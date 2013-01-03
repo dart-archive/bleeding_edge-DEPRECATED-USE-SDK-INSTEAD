@@ -1,4 +1,4 @@
-package com.google.dart.tools.core.internal.builder;
+package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 

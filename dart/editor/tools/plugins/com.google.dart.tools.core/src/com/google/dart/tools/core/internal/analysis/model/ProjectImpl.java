@@ -1,4 +1,4 @@
-package com.google.dart.tools.core.internal.builder;
+package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
@@ -9,6 +9,7 @@ import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;

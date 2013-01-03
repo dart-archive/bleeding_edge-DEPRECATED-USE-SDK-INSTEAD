@@ -16,12 +16,12 @@ package com.google.dart.tools.core.analysis.timing;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
-import com.google.dart.tools.core.internal.builder.Project;
-import com.google.dart.tools.core.internal.builder.ProjectImpl;
 
 import junit.framework.TestCase;
 

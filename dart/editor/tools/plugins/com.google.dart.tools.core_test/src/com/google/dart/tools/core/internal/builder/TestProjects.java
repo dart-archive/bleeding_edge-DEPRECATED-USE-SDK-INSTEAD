@@ -3,6 +3,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.tools.core.mock.MockContainer;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import static com.google.dart.tools.core.DartCore.BUILD_DART_FILE_NAME;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
@@ -23,7 +24,16 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newEmptyProject() {
-    return new MockProject("testproj");
+    return newEmptyProject(null);
+  }
+
+  /**
+   * Answer a new empty mock project
+   * 
+   * @return a project (not {@code null})
+   */
+  public static MockProject newEmptyProject(MockWorkspaceRoot rootContainer) {
+    return new MockProject(rootContainer, "testproj");
   }
 
   /**
@@ -62,7 +72,18 @@ public class TestProjects {
    * @return the mock project (not {@code null})
    */
   public static MockProject newPubProject2() {
-    MockProject project = newEmptyProject();
+    return newPubProject2(null);
+  }
+
+  /**
+   * Answer a new mock project with a pubspec file in the root, a nested folder containing another
+   * pubspec file, and a packages directory containing one package and a hidden ".svn" directory,
+   * with *.dart files sprinkled throughout.
+   * 
+   * @return the mock project (not {@code null})
+   */
+  public static MockProject newPubProject2(MockWorkspaceRoot rootContainer) {
+    MockProject project = newEmptyProject(rootContainer);
     project.addFile(PUBSPEC_FILE_NAME);
     project.addFile(BUILD_DART_FILE_NAME);
     project.addFile("some.dart");
@@ -91,7 +112,18 @@ public class TestProjects {
    * @return a project (not {@code null})
    */
   public static MockProject newPubProject3() {
-    MockProject project = newPubProject2();
+    return newPubProject3(null);
+  }
+
+  /**
+   * Answer a new mock project with a pubspec file in the root, a nested folder containing another
+   * pubspec file, and a packages directory containing one package and a hidden ".svn" directory,
+   * with *.dart files sprinkled throughout.
+   * 
+   * @return a project (not {@code null})
+   */
+  public static MockProject newPubProject3(MockWorkspaceRoot rootContainer) {
+    MockProject project = newPubProject2(rootContainer);
 
     MockFolder app = project.getMockFolder("myapp");
 

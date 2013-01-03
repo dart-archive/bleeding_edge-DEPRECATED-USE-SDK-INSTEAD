@@ -38,6 +38,10 @@ public class MockProject extends MockContainer implements IProject {
     this(null);
   }
 
+  public MockProject(MockWorkspaceRoot root, String name) {
+    super(root, name);
+  }
+
   public MockProject(String name) {
     super(null, name);
   }
@@ -46,8 +50,6 @@ public class MockProject extends MockContainer implements IProject {
   @Override
   public void build(IBuildConfiguration config, int kind, IProgressMonitor monitor)
       throws CoreException {
-    // TODO Auto-generated method stub
-
   }
 
   @Override
@@ -86,21 +88,18 @@ public class MockProject extends MockContainer implements IProject {
   // Eclipse 3.7 specific method
   @Override
   public IBuildConfiguration getActiveBuildConfig() throws CoreException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   // Eclipse 3.7 specific method
   @Override
   public IBuildConfiguration getBuildConfig(String configName) throws CoreException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   // Eclipse 3.7 specific method
   @Override
   public IBuildConfiguration[] getBuildConfigs() throws CoreException {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -146,7 +145,6 @@ public class MockProject extends MockContainer implements IProject {
   @Override
   public IBuildConfiguration[] getReferencedBuildConfigs(String configName, boolean includeMissing)
       throws CoreException {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -173,7 +171,6 @@ public class MockProject extends MockContainer implements IProject {
   // Eclipse 3.7 specific method
   @Override
   public boolean hasBuildConfig(String configName) throws CoreException {
-    // TODO Auto-generated method stub
     return false;
   }
 

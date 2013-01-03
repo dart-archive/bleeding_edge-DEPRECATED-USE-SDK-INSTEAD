@@ -16,10 +16,12 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 
 import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
 

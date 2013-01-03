@@ -27,7 +27,6 @@ public class TestAll {
     suite.addTestSuite(DartBuilderTest.class);
     suite.addTestSuite(DeltaProcessorTest.class);
 //    suite.addTestSuite(LocalArtifactProviderTest.class);
-    suite.addTestSuite(ProjectImplTest.class);
 //    suite.addTestSuite(RootArtifactProviderTest.class);
     return suite;
   }

@@ -14,6 +14,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImplTest;
 
 import static junit.framework.Assert.fail;
 
@@ -42,6 +43,24 @@ public class MockContext implements AnalysisContext {
   private HashSet<Object> availableSources = new HashSet<Object>();
   private HashSet<Object> changedSources = new HashSet<Object>();
   private HashSet<Object> deletedSources = new HashSet<Object>();
+
+  public void assertClearResolution(boolean expected) {
+    ProjectImplTest.assertEquals(expected, clearResolution);
+  }
+
+  public void assertDiscarded(boolean expected) {
+    ProjectImplTest.assertEquals(expected, discarded);
+  }
+
+  public void assertExtracted(IContainer expectedContainer) {
+    SourceContainer expected = expectedContainer == null ? null
+        : factory.forDirectory(expectedContainer.getLocation().toFile());
+    ProjectImplTest.assertEquals(expected, extractedContainer);
+  }
+
+  public void assertMergedContext(AnalysisContext expectedContext) {
+    ProjectImplTest.assertSame(expectedContext, mergedContext);
+  }
 
   @Override
   public void clearResolution() {
@@ -134,24 +153,6 @@ public class MockContext implements AnalysisContext {
   @Override
   public void sourcesDeleted(SourceContainer container) {
     deletedSources.add(container);
-  }
-
-  void assertClearResolution(boolean expected) {
-    ProjectImplTest.assertEquals(expected, clearResolution);
-  }
-
-  void assertDiscarded(boolean expected) {
-    ProjectImplTest.assertEquals(expected, discarded);
-  }
-
-  void assertExtracted(IContainer expectedContainer) {
-    SourceContainer expected = expectedContainer == null ? null
-        : factory.forDirectory(expectedContainer.getLocation().toFile());
-    ProjectImplTest.assertEquals(expected, extractedContainer);
-  }
-
-  void assertMergedContext(AnalysisContext expectedContext) {
-    ProjectImplTest.assertSame(expectedContext, mergedContext);
   }
 
   void assertSourcesAvailable(IResource... expected) {
