@@ -79,7 +79,7 @@ class LogReader {
 
   }
 
-  public static final long MAX_FILE_LENGTH = 32 * 1024;
+  public static final long MAX_FILE_LENGTH = 23 * 1024;
 
   private static final int DEFAULT_BUFFER_SIZE = 1024 * 4;
 
