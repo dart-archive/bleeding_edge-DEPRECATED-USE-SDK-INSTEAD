@@ -16,30 +16,38 @@ package com.google.dart.engine.source;
 import java.io.File;
 
 /**
- * A basic {@link SourceContainer}
+ * Instances of the class {@link DirectoryBasedSourceContainer} represent a source container that
+ * contains all sources within a given directory.
  */
-public class SourceContainerImpl implements SourceContainer {
-
+public class DirectoryBasedSourceContainer implements SourceContainer {
+  /**
+   * Append the system file separator to the given path unless the path already ends with a
+   * separator.
+   * 
+   * @param path the path to which the file separator is to be added
+   * @return a path that ends with the system file separator
+   */
   private static String appendFileSeparator(String path) {
-    if (path.charAt(path.length() - 1) == File.separatorChar) {
+    if (path == null || path.length() <= 0 || path.charAt(path.length() - 1) == File.separatorChar) {
       return path;
     }
     return path + File.separator;
   }
 
   /**
-   * The container's path (not {@code null})
+   * The container's path (not {@code null}).
    */
   private final String path;
 
   /**
    * Construct a container representing the specified directory and containing any sources whose
    * {@link Source#getFullName()} starts with the directory's path. This is a convenience method,
-   * fully equivalent to {@link SourceContainerImpl#SourceContainerImpl(String)}
+   * fully equivalent to {@link DirectoryBasedSourceContainer#DirectoryBasedSourceContainer(String)}
+   * .
    * 
    * @param directory the directory (not {@code null})
    */
-  public SourceContainerImpl(File directory) {
+  public DirectoryBasedSourceContainer(File directory) {
     this(directory.getPath());
   }
 
@@ -49,7 +57,7 @@ public class SourceContainerImpl implements SourceContainer {
    * 
    * @param path the path (not {@code null} and not empty)
    */
-  public SourceContainerImpl(String path) {
+  public DirectoryBasedSourceContainer(String path) {
     this.path = appendFileSeparator(path);
   }
 
@@ -60,12 +68,12 @@ public class SourceContainerImpl implements SourceContainer {
 
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof SourceContainerImpl)
-        && ((SourceContainerImpl) obj).getPath().equals(getPath());
+    return (obj instanceof DirectoryBasedSourceContainer)
+        && ((DirectoryBasedSourceContainer) obj).getPath().equals(getPath());
   }
 
   /**
-   * Answer the receiver's path, used to determine if a source is contained in the recevier.
+   * Answer the receiver's path, used to determine if a source is contained in the receiver.
    * 
    * @return the path (not {@code null}, not empty)
    */

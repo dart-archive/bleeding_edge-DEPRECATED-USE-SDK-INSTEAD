@@ -17,7 +17,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 
-public class SourceContainerImplTest extends TestCase {
+public class DirectoryBasedSourceContainerTest extends TestCase {
 
   public void test_contains() {
     File dir = new File("/does/not/exist");
@@ -26,11 +26,11 @@ public class SourceContainerImplTest extends TestCase {
     File file3 = new File("/does/not/exist3/some3.dart");
 
     SourceFactory factory = new SourceFactory();
-    SourceImpl source1 = new SourceImpl(factory, file1);
-    SourceImpl source2 = new SourceImpl(factory, file2);
-    SourceImpl source3 = new SourceImpl(factory, file3);
+    FileBasedSource source1 = new FileBasedSource(factory, file1);
+    FileBasedSource source2 = new FileBasedSource(factory, file2);
+    FileBasedSource source3 = new FileBasedSource(factory, file3);
 
-    SourceContainerImpl container = new SourceContainerImpl(dir);
+    DirectoryBasedSourceContainer container = new DirectoryBasedSourceContainer(dir);
 
     assertTrue(container.contains(source1));
     assertTrue(container.contains(source2));

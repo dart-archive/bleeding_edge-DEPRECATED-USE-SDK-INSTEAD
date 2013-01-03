@@ -48,6 +48,6 @@ public class FileUriResolver extends UriResolver {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new SourceImpl(factory, new File(uri));
+    return new FileBasedSource(factory, new File(uri));
   }
 }

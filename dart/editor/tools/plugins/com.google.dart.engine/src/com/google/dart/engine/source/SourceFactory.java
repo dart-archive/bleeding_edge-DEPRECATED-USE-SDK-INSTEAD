@@ -50,7 +50,7 @@ public class SourceFactory {
    * @return the source container representing the directory (not {@code null})
    */
   public SourceContainer forDirectory(File directory) {
-    return new SourceContainerImpl(directory);
+    return new DirectoryBasedSourceContainer(directory);
   }
 
   /**
@@ -60,7 +60,7 @@ public class SourceFactory {
    * @return a source object representing the given file
    */
   public Source forFile(File file) {
-    return new SourceImpl(this, file);
+    return new FileBasedSource(this, file);
   }
 
   /**
@@ -103,7 +103,7 @@ public class SourceFactory {
    * contents of the source.
    * <p>
    * <b>Note:</b> This method is not intended to be used except by
-   * {@link SourceImpl#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
+   * {@link FileBasedSource#getContents(com.google.dart.engine.source.Source.ContentReceiver)}.
    * 
    * @param source the source whose content is to be returned
    * @return the contents of the given source

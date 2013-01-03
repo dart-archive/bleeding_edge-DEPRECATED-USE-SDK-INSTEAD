@@ -70,9 +70,9 @@ public class PackageUriResolver extends UriResolver {
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new SourceImpl(factory, resolvedFile);
+        return new FileBasedSource(factory, resolvedFile);
       }
     }
-    return new SourceImpl(factory, new File(packagesDirectories[0], path));
+    return new FileBasedSource(factory, new File(packagesDirectories[0], path));
   }
 }

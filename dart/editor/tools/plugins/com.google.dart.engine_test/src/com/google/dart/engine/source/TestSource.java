@@ -19,7 +19,7 @@ import java.io.File;
  * Instances of the class {@code TestSource} implement a source object that can be used for testing
  * purposes.
  */
-public class TestSource extends SourceImpl {
+public class TestSource extends FileBasedSource {
   /**
    * The contents of the file represented by this source.
    */

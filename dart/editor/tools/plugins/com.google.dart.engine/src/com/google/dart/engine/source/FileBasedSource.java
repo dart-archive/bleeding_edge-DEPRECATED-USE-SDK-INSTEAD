@@ -21,9 +21,9 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 
 /**
- * Instances of the class {@code SourceImpl} implement a basic source object.
+ * Instances of the class {@code FileBasedSource} implement a source that represents a file.
  */
-public class SourceImpl implements Source {
+public class FileBasedSource implements Source {
   /**
    * The source factory that created this source and that should be used to resolve URI's against
    * this source.
@@ -52,7 +52,7 @@ public class SourceImpl implements Source {
    * @param factory the source factory that created this source
    * @param file the file represented by this source
    */
-  public SourceImpl(SourceFactory factory, File file) {
+  public FileBasedSource(SourceFactory factory, File file) {
     this(factory, file, false);
   }
 
@@ -63,7 +63,7 @@ public class SourceImpl implements Source {
    * @param file the file represented by this source
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
-  public SourceImpl(SourceFactory factory, File file, boolean inSystemLibrary) {
+  public FileBasedSource(SourceFactory factory, File file, boolean inSystemLibrary) {
     this.factory = factory;
     this.file = file;
     this.inSystemLibrary = inSystemLibrary;
@@ -71,7 +71,7 @@ public class SourceImpl implements Source {
 
   @Override
   public boolean equals(Object object) {
-    return this.getClass() == object.getClass() && file.equals(((SourceImpl) object).file);
+    return this.getClass() == object.getClass() && file.equals(((FileBasedSource) object).file);
   }
 
   @Override

@@ -19,7 +19,7 @@ import com.google.dart.engine.element.ImportSpecification;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.source.SourceImpl;
+import com.google.dart.engine.source.FileBasedSource;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 
@@ -92,7 +92,7 @@ public class LibraryElementImplTest extends EngineTestCase {
 
   private LibraryElementImpl createLibrary(AnalysisContext context, String libraryName) {
     String fileName = libraryName + ".dart";
-    SourceImpl source = new SourceImpl(null, new File(fileName));
+    FileBasedSource source = new FileBasedSource(null, new File(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
     LibraryElementImpl library = new LibraryElementImpl(context, identifier(libraryName));

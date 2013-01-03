@@ -24,7 +24,7 @@ import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.source.SourceImpl;
+import com.google.dart.engine.source.FileBasedSource;
 
 import java.io.File;
 
@@ -42,7 +42,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -57,7 +57,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -72,7 +72,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/does/not/exist.dart"));
+    Source source = new FileBasedSource(sourceFactory, new File("/does/not/exist.dart"));
     Element element = context.getLibraryElement(source);
     assertNotNull(element);
   }
@@ -81,7 +81,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -100,7 +100,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -115,7 +115,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new SourceImpl(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
