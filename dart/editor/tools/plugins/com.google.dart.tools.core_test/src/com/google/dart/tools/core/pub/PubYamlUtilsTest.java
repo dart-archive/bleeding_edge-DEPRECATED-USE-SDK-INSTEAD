@@ -13,15 +13,16 @@
  */
 package com.google.dart.tools.core.pub;
 
+import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
-import junit.framework.TestCase;
+import org.eclipse.core.runtime.IStatus;
 
 import java.util.Map;
 import java.util.TreeMap;
 
-public class PubYamlUtilsTest extends TestCase {
+public class PubYamlUtilsTest extends AbstractDartCoreTest {
 
   public static String pubspecYamlString = "name: web_components\n"
       + "description: an easy way to build web apps in Dart\n" + "author: dart team\n"
@@ -74,6 +75,7 @@ public class PubYamlUtilsTest extends TestCase {
   public void test_parseYamlToObjectWithErrors() {
     Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(yamlStringWithErrors);
     assertTrue(map == null);
+    LOG.assertEntries(IStatus.ERROR);
   }
 
   private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {
