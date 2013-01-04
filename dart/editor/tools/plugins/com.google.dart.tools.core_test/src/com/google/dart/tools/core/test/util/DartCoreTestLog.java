@@ -107,7 +107,11 @@ public class DartCoreTestLog implements ILog {
       DartCore.getPlugin().getLog().log(status);
     }
     if (status.getSeverity() != IStatus.INFO) {
-      content.add(status);
+      // Ignore exceptions we cannot address
+      String name = Thread.currentThread().getName();
+      if (!name.equals("Index Operation Processor")) {
+        content.add(status);
+      }
     }
   }
 
