@@ -32,6 +32,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 
 import junit.framework.AssertionFailedError;
 
@@ -131,7 +132,7 @@ public class ResolverTestCase extends EngineTestCase {
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
     compilationUnit.setSource(sourceFactory.forFile(new File(fileName)));
 
-    LibraryElementImpl library = new LibraryElementImpl(context, identifier(libraryName));
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);
     library.setParts(sourcedCompilationUnits);
     return library;

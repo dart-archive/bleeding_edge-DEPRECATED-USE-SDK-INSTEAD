@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
@@ -71,7 +71,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param context the analysis context in which the library is defined
    * @param name the name of this element
    */
-  public LibraryElementImpl(AnalysisContext context, Identifier name) {
+  public LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) {
     super(name);
     this.context = context;
   }

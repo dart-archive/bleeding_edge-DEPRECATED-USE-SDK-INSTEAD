@@ -22,12 +22,13 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.source.FileBasedSource;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 
 import java.io.File;
 
 public class LibraryElementImplTest extends EngineTestCase {
   public void test_creation() {
-    assertNotNull(new LibraryElementImpl(new AnalysisContextImpl(), identifier("l")));
+    assertNotNull(new LibraryElementImpl(new AnalysisContextImpl(), libraryIdentifier("l")));
   }
 
   public void test_getImportedLibraries() {
@@ -71,7 +72,7 @@ public class LibraryElementImplTest extends EngineTestCase {
 
   public void test_setImports() {
     AnalysisContext context = new AnalysisContextImpl();
-    LibraryElementImpl library = new LibraryElementImpl(context, identifier("l1"));
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("l1"));
     ImportSpecificationImpl[] expectedImports = {
         createImport(createLibrary(context, "l2"), null),
         createImport(createLibrary(context, "l3"), null)};
@@ -95,7 +96,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     FileBasedSource source = new FileBasedSource(null, new File(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
-    LibraryElementImpl library = new LibraryElementImpl(context, identifier(libraryName));
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(unit);
     return library;
   }

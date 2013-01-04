@@ -448,7 +448,7 @@ public class InMemoryIndex implements Index {
   /**
    * Set whether the index should process query requests.
    * 
-   * @param processQueries <code>true</code> if the index should process incomming query requests or
+   * @param processQueries <code>true</code> if the index should process incoming query requests or
    *          <code>false</code> if query requests should be queued but not processed until this
    *          method is called with a value of <code>true</code>.
    */

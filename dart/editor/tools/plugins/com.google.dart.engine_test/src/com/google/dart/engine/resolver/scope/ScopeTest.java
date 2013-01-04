@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 
 public class ScopeTest extends ResolverTestCase {
   /**
@@ -117,7 +118,7 @@ public class ScopeTest extends ResolverTestCase {
   public void test_getErrorListener() throws Exception {
     LibraryElement definingLibrary = new LibraryElementImpl(
         new AnalysisContextImpl(),
-        identifier("test"));
+        libraryIdentifier("test"));
     GatheringErrorListener errorListener = new GatheringErrorListener();
     Scope scope = new TestScope(definingLibrary, errorListener);
     assertEquals(errorListener, scope.getErrorListener());

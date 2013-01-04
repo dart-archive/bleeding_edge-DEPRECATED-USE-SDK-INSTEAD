@@ -1,0 +1,100 @@
+/*
+ * Copyright 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.google.dart.engine.internal.index.operation;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.index.IndexStore;
+import com.google.dart.engine.internal.index.IndexContributor;
+import com.google.dart.engine.source.Source;
+
+/**
+ * Instances of the {@link IndexUnitOperation} implement an operation that adds data to the
+ * index based on the content of a specified resource.
+ */
+public class IndexUnitOperation implements IndexOperation {
+  /**
+   * The index store against which this operation is being run.
+   */
+  private IndexStore indexStore;
+
+  /**
+   * The compilation unit being indexed.
+   */
+  private CompilationUnit unit;
+
+  /**
+   * The source being indexed.
+   */
+  private Source source;
+
+  /**
+   * Initialize a newly created operation that will index the specified unit.
+   * 
+   * @param indexStore the index store against which this operation is being run
+   * @param unit the fully resolved AST structure
+   */
+  public IndexUnitOperation(IndexStore indexStore, CompilationUnit unit) {
+    this.indexStore = indexStore;
+    this.unit = unit;
+    this.source = unit.getElement().getSource();
+  }
+
+  /**
+   * @return the {@link Source} to be indexed.
+   */
+  public Source getSource() {
+    return source;
+  }
+
+  /**
+   * @return the {@link CompilationUnit} to be indexed.
+   */
+  @VisibleForTesting
+  public CompilationUnit getUnit() {
+    return unit;
+  }
+
+  @Override
+  public boolean isQuery() {
+    return false;
+  }
+
+  @Override
+  public void performOperation() {
+    synchronized (indexStore) {
+      indexStore.regenerateResource(source);
+      try {
+        IndexContributor contributor = new IndexContributor(indexStore);
+        unit.accept(contributor);
+      } catch (Throwable exception) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not index " + unit.getElement().getLocation(),
+            exception);
+      }
+    }
+  }
+
+  @Override
+  public boolean removeWhenSourceRemoved(Source source) {
+    return Objects.equal(this.source, source);
+  }
+
+  @Override
+  public String toString() {
+    return "IndexResource(" + source.getFullName() + ")";
+  }
+}

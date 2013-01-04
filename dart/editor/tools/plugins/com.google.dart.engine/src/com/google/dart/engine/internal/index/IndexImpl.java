@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package com.google.dart.engine.internal.index;
+
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexStore;
+import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.RelationshipCallback;
+import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation;
+import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
+import com.google.dart.engine.internal.index.operation.OperationProcessor;
+import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
+import com.google.dart.engine.source.Source;
+
+/**
+ * Implementation of {@link Index}.
+ */
+public class IndexImpl implements Index {
+  private final IndexStore store;
+  private final OperationQueue queue;
+  private final OperationProcessor processor;
+
+  public IndexImpl(IndexStore store, OperationQueue queue, OperationProcessor processor) {
+    this.store = store;
+    this.queue = queue;
+    this.processor = processor;
+  }
+
+  @Override
+  public void getRelationships(ElementLocation elementLocation, Relationship relationship,
+      RelationshipCallback callback) {
+    queue.enqueue(new GetRelationshipsOperation(store, elementLocation, relationship, callback));
+  }
+
+  @Override
+  public void indexUnit(CompilationUnit unit) {
+    queue.enqueue(new IndexUnitOperation(store, unit));
+  }
+
+  @Override
+  public void removeSource(Source source) {
+    queue.enqueue(new RemoveSourceOperation(store, source));
+  }
+
+  @Override
+  public void run() {
+    processor.run();
+  }
+}

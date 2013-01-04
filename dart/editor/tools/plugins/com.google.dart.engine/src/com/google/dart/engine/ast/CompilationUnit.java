@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -73,6 +74,12 @@ public class CompilationUnit extends ASTNode {
   private Token endToken;
 
   /**
+   * The element associated with this compilation unit, or {@code null} if the AST structure has not
+   * been resolved.
+   */
+  private CompilationUnitElement element;
+
+  /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
    * 
    * @param beginToken the first token in the token stream
@@ -118,6 +125,16 @@ public class CompilationUnit extends ASTNode {
     return directives;
   }
 
+  /**
+   * Return the element associated with this compilation unit, or {@code null} if the AST structure
+   * has not been resolved.
+   * 
+   * @return the element associated with this compilation unit
+   */
+  public CompilationUnitElement getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return endToken;
@@ -149,6 +166,15 @@ public class CompilationUnit extends ASTNode {
    */
   public ScriptTag getScriptTag() {
     return scriptTag;
+  }
+
+  /**
+   * Set the element associated with this compilation unit to the given element.
+   * 
+   * @param element the element associated with this compilation unit
+   */
+  public void setElement(CompilationUnitElement element) {
+    this.element = element;
   }
 
   /**

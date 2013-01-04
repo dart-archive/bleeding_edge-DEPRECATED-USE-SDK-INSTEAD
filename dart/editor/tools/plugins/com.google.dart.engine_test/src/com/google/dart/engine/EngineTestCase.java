@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
@@ -25,6 +26,7 @@ import junit.framework.TestCase;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The class {@code EngineTestCase} defines utility methods for making assertions.
@@ -118,6 +120,78 @@ public class EngineTestCase extends TestCase {
       assertEquals(message, expected, actual);
     }
 
+  }
+
+  /**
+   * Assert that the given list is non-{@code null} and has exactly expected elements.
+   * 
+   * @param list the list being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
+   */
+  public static void assertExactElements(List<?> list, Object... expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (list == null) {
+      fail("Expected list of size " + expectedSize + "; found null");
+    }
+    if (list.size() != expectedSize) {
+      fail("Expected list of size " + expectedSize + "; contained " + list.size() + " elements");
+    }
+    for (int i = 0; i < expectedElements.length; i++) {
+      Object element = list.get(i);
+      Object expectedElement = expectedElements[i];
+      if (!Objects.equal(element, expectedElement)) {
+        fail("Expected " + expectedElement + " at [" + i + "]; found " + element);
+      }
+    }
+  }
+
+  /**
+   * Assert that the given array is non-{@code null} and has exactly expected elements.
+   * 
+   * @param array the array being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the array is {@code null} or does not have the expected
+   *           elements
+   */
+  public static void assertExactElements(Object array[], Object... expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (array == null) {
+      fail("Expected array of size " + expectedSize + "; found null");
+    }
+    if (array.length != expectedSize) {
+      fail("Expected array of size " + expectedSize + "; contained " + array.length + " elements");
+    }
+    for (int i = 0; i < expectedElements.length; i++) {
+      Object element = array[0];
+      Object expectedElement = expectedElements[i];
+      if (!Objects.equal(element, expectedElement)) {
+        fail("Expected " + expectedElement + " at [" + i + "]; found " + element);
+      }
+    }
+  }
+
+  /**
+   * Assert that the given list is non-{@code null} and has exactly expected elements.
+   * 
+   * @param set the list being tested
+   * @param expectedElements the expected elements
+   * @throws AssertionFailedError if the list is {@code null} or does not have the expected elements
+   */
+  public static void assertExactElements(Set<?> set, Object... expectedElements) {
+    int expectedSize = expectedElements.length;
+    if (set == null) {
+      fail("Expected list of size " + expectedSize + "; found null");
+    }
+    if (set.size() != expectedSize) {
+      fail("Expected list of size " + expectedSize + "; contained " + set.size() + " elements");
+    }
+    for (int i = 0; i < expectedElements.length; i++) {
+      Object expectedElement = expectedElements[i];
+      if (!set.contains(expectedElement)) {
+        fail("Expected " + expectedElement + " in set" + set);
+      }
+    }
   }
 
   /**
