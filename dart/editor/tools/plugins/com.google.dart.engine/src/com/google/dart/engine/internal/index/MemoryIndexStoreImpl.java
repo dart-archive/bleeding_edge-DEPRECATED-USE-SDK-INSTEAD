@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.index.IndexStore;
@@ -82,8 +83,19 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public Location[] getRelationships(ElementLocation elementLocation, Relationship relationship) {
-    // TODO(scheglov)
-    return null;
+    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(elementLocation);
+    if (elementRelationshipMap != null) {
+      List<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
+      if (contributedLocations != null) {
+        int count = contributedLocations.size();
+        Location[] locations = new Location[count];
+        for (int i = 0; i < count; i++) {
+          locations[i] = contributedLocations.get(i).getLocation();
+        }
+        return locations;
+      }
+    }
+    return Location.EMPTY_ARRAY;
   }
 
   @Override
@@ -99,10 +111,30 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public void recordRelationship(Source contributor, ElementLocation elementLocation,
+  public void recordRelationship(Source contributor, ElementLocation element,
       Relationship relationship, Location location) {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+    if (contributor == null || element == null || location == null) {
+      return;
+    }
+//    recordElement(element);
+//    recordElement(location.getElement());
+    // add ContributedLocation for "element"
+    ContributedLocation contributedLocation;
+    {
+      Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
+      if (elementRelationshipMap == null) {
+        elementRelationshipMap = Maps.newHashMap();
+        relationshipMap.put(element, elementRelationshipMap);
+      }
+      List<ContributedLocation> locations = elementRelationshipMap.get(relationship);
+      if (locations == null) {
+        locations = Lists.newArrayList();
+        elementRelationshipMap.put(relationship, locations);
+      }
+      contributedLocation = new ContributedLocation(locations, contributor, location);
+    }
+    // add to "contributor" -> "locations" map
+//    recordContributorToLocation(contributor, contributedLocation);
   }
 
   @Override
