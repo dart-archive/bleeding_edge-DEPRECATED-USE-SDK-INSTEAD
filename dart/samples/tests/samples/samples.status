@@ -73,6 +73,9 @@ swarm/swarm_test: Slow, Pass # Occasionally times out.
 lib/view/view_test: Slow, Pass # Occasionally times out.
 dartcombat/dartcombat_test: Slow, Pass # Occasionally times out.
 
+[ $compiler == dart2js && $runtime == drt && system == linux ]
+swarm/swarm_test: Fail # TODO(efortuna): Issue 7707
+
 [ $compiler == dart2js && $runtime == ie9 ]
 swarm/swarm_test: Fail # BUG(5633)
 lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9, actual:8.990625000000001, tolerance:0.0009) fails
