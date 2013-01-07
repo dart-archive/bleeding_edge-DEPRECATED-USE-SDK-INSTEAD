@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.web.css;
 
+import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.utils.CssAttributes;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -24,6 +25,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.jface.text.rules.IWordDetector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,21 +40,54 @@ public class CssContentAssistProcessor implements IContentAssistProcessor {
 
   @Override
   public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-    String prefix = getValidPrefix(viewer, offset);
+    IDocument document = viewer.getDocument();
 
-    if (prefix == null) {
+    String prefix = getValidPrefix(document, offset);
+    String linePrefix = getLinePrefix(document, offset);
+
+    if (linePrefix == null) {
       return null;
     }
 
     List<ICompletionProposal> completions = new ArrayList<ICompletionProposal>();
 
-    for (String keyword : CssAttributes.getAttributes()) {
-      if (keyword.startsWith(prefix)) {
-        completions.add(new CompletionProposal(
-            keyword,
-            offset - prefix.length(),
-            prefix.length(),
-            keyword.length()));
+    boolean attributeCompletion = false;
+
+    if (linePrefix != null) {
+      if (linePrefix.indexOf(':') != -1) {
+        String attribute = getWordBefore(linePrefix, linePrefix.indexOf(':'), new CssWordDetector());
+
+        for (String keyword : CssAttributes.getAttributeValues(attribute)) {
+          if (keyword.startsWith(prefix)) {
+            completions.add(new CompletionProposal(
+                keyword,
+                offset - prefix.length(),
+                prefix.length(),
+                keyword.length(),
+                DartWebPlugin.getImage("protected_co.gif"),
+                null,
+                null,
+                null));
+          }
+        }
+
+        attributeCompletion = true;
+      }
+    }
+
+    if (!attributeCompletion) {
+      for (String keyword : CssAttributes.getAttributes()) {
+        if (keyword.startsWith(prefix)) {
+          completions.add(new CompletionProposal(
+              keyword,
+              offset - prefix.length(),
+              prefix.length(),
+              keyword.length(),
+              DartWebPlugin.getImage("protected_co.gif"),
+              null,
+              null,
+              null));
+        }
       }
     }
 
@@ -91,10 +126,18 @@ public class CssContentAssistProcessor implements IContentAssistProcessor {
     return null;
   }
 
-  private String getValidPrefix(ITextViewer viewer, int offset) {
+  private String getLinePrefix(IDocument document, int offset) {
     try {
-      IDocument doc = viewer.getDocument();
+      IRegion lineInfo = document.getLineInformationOfOffset(offset);
 
+      return document.get(lineInfo.getOffset(), offset - lineInfo.getOffset());
+    } catch (BadLocationException ble) {
+      return null;
+    }
+  }
+
+  private String getValidPrefix(IDocument doc, int offset) {
+    try {
       IRegion lineInfo = doc.getLineInformationOfOffset(offset);
 
       String line = doc.get(lineInfo.getOffset(), offset - lineInfo.getOffset());
@@ -116,4 +159,24 @@ public class CssContentAssistProcessor implements IContentAssistProcessor {
       return null;
     }
   }
+
+  private String getWordBefore(String str, int index, IWordDetector wordDetector) {
+    while (index >= 0 && !wordDetector.isWordPart(str.charAt(index))) {
+      index--;
+    }
+
+    if (index < 0) {
+      return "";
+    }
+
+    StringBuilder word = new StringBuilder();
+
+    while (index >= 0 && wordDetector.isWordPart(str.charAt(index))) {
+      word.insert(0, str.charAt(index));
+      index--;
+    }
+
+    return word.toString();
+  }
+
 }

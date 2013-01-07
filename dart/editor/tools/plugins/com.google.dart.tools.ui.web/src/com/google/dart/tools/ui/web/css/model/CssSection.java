@@ -14,15 +14,56 @@
 package com.google.dart.tools.ui.web.css.model;
 
 import com.google.dart.tools.ui.web.utils.Node;
+import com.google.dart.tools.ui.web.utils.Token;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * A css model section object. A section contains 0 or more selectors, and a body.
+ * A CSS model section object. A section contains 0 or more selectors, and a body.
  */
 public class CssSection extends Node {
-  //private CssBody body;
+  private List<Token> selectors = new ArrayList<Token>();
+  private CssBody body;
 
-  public void setBody(CssBody body) {
-    //this.body = body;
+  public CssSection() {
+
+  }
+
+  public CssBody getBody() {
+    return body;
+  }
+
+  @Override
+  public String getLabel() {
+    if (selectors.size() == 0) {
+      return "";
+    } else if (selectors.size() == 1) {
+      return selectors.get(0).getValue();
+    } else {
+      return selectors.get(0).getValue() + ", ...";
+    }
+  }
+
+  public List<Token> getSelectors() {
+    return selectors;
+  }
+
+  protected void addSelector(Token token) {
+    selectors.add(token);
+
+    if (getStartToken() == null) {
+      setStart(token);
+      setLabel(token.getValue());
+    }
+
+    setEnd(token);
+  }
+
+  protected void setBody(CssBody body) {
+    this.body = body;
+
+    addChild(body);
   }
 
 }

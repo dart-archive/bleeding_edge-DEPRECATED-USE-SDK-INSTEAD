@@ -15,26 +15,46 @@
 package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.css.model.CssProperty;
 import com.google.dart.tools.ui.web.utils.Node;
 
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
 /**
  * A label provider for css model elements.
  */
-public class CssLabelProvider extends LabelProvider {
+public class CssLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
   @Override
   public Image getImage(Object element) {
-    return DartWebPlugin.getImage("topic_small.gif");
+    if (element instanceof CssProperty) {
+      return DartWebPlugin.getImage("protected_co.gif");
+    } else {
+      return DartWebPlugin.getImage("public_co.gif");
+    }
   }
 
   @Override
-  public String getText(Object element) {
+  public StyledString getStyledText(Object element) {
     Node node = (Node) element;
 
-    return node.getLabel();
+    StyledString string = new StyledString(node.getLabel());
+
+    String auxText = getAuxText(node);
+
+    if (auxText != null) {
+      string.append(" - " + auxText, StyledString.QUALIFIER_STYLER);
+    }
+
+    return string;
+  }
+
+  private String getAuxText(Node node) {
+
+    return null;
   }
 
 }

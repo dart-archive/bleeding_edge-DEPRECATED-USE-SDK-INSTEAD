@@ -21,12 +21,11 @@ import com.google.dart.tools.ui.web.utils.Node;
 public class CssDocument extends Node {
 
   public CssDocument() {
-
+    super("document");
   }
 
-  @Override
-  public String getLabel() {
-    return null;
+  protected void addSection(CssSection section) {
+    addChild(section);
   }
 
 }

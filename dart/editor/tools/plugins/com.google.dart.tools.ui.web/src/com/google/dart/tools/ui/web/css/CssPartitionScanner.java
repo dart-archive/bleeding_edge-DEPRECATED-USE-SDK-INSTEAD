@@ -23,7 +23,10 @@ import org.eclipse.jface.text.rules.Token;
 import java.util.ArrayList;
 import java.util.List;
 
-class CssPartitionScanner extends RuleBasedPartitionScanner {
+/**
+ * A partition scanner for CSS content.
+ */
+public class CssPartitionScanner extends RuleBasedPartitionScanner {
   public final static String CSS_COMMENT = "__css_comment";
 
   public CssPartitionScanner(CssEditor editor) {

@@ -15,10 +15,13 @@ package com.google.dart.tools.ui.web.css;
 
 import org.eclipse.jface.text.rules.IWordDetector;
 
-class CssWordDetector implements IWordDetector {
+/**
+ * A IWordDetector for CSS identifiers.
+ */
+public class CssWordDetector implements IWordDetector {
 
-  public static boolean wordPart(char c) {
-    return Character.isJavaIdentifierPart(c) || c == '-';
+  public static final boolean wordPart(char c) {
+    return Character.isJavaIdentifierPart(c) || c == '-' || c == '.';
   }
 
   public CssWordDetector() {
@@ -27,12 +30,12 @@ class CssWordDetector implements IWordDetector {
 
   @Override
   public boolean isWordPart(char c) {
-    return Character.isJavaIdentifierPart(c) || c == '-';
+    return wordPart(c);
   }
 
   @Override
   public boolean isWordStart(char c) {
-    return Character.isJavaIdentifierStart(c) || c == '#';
+    return wordPart(c) || c == '#';
   }
 
 }

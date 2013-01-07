@@ -11,8 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.web.css;
+package com.google.dart.tools.ui.web.css.model;
 
+import com.google.dart.tools.ui.web.css.CssNumberDetector;
+import com.google.dart.tools.ui.web.css.CssPartitionScanner;
+import com.google.dart.tools.ui.web.css.CssWordDetector;
 import com.google.dart.tools.ui.web.utils.AnyWordRule;
 import com.google.dart.tools.ui.web.utils.Token;
 import com.google.dart.tools.ui.web.utils.WhitespaceDetector;
@@ -20,6 +23,7 @@ import com.google.dart.tools.ui.web.utils.WhitespaceDetector;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.eclipse.jface.text.rules.IRule;
 import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.MultiLineRule;
@@ -39,7 +43,7 @@ import java.util.Stack;
 /**
  * Convert css content into a stream of tokens.
  */
-public class Tokenizer implements Iterator<Token> {
+class Tokenizer implements Iterator<Token> {
   private static IDocument createDocument(Reader in) throws IOException {
     String content = readContent(in);
 
@@ -68,14 +72,17 @@ public class Tokenizer implements Iterator<Token> {
 
   private Stack<Token> tokenStack = new Stack<Token>();
 
-  public Tokenizer(IDocument document, String[] comments) {
+  private static IToken COMMENT_TOKEN = new org.eclipse.jface.text.rules.Token(
+      CssPartitionScanner.CSS_COMMENT);
+
+  public Tokenizer(IDocument document) {
     this.document = document;
 
-    setupScanner(document, comments);
+    setupScanner(document);
   }
 
-  public Tokenizer(Reader reader, String[] comments) throws IOException {
-    this(createDocument(reader), comments);
+  public Tokenizer(Reader reader) throws IOException {
+    this(createDocument(reader));
   }
 
   @Override
@@ -108,6 +115,24 @@ public class Tokenizer implements Iterator<Token> {
     }
   }
 
+  public boolean peek(String str) {
+    if (!hasNext()) {
+      return false;
+    }
+
+    Token token = next();
+
+    if (token != null) {
+      boolean result = str.equals(token.getValue());
+
+      pushBack(token);
+
+      return result;
+    } else {
+      return false;
+    }
+  }
+
   public void pushBack(Token token) {
     tokenStack.push(token);
   }
@@ -118,12 +143,12 @@ public class Tokenizer implements Iterator<Token> {
   }
 
   private void advance() {
-    if (scanner != null && tokenStack.isEmpty()) {
+    while (scanner != null && tokenStack.isEmpty()) {
       IToken t = scanner.nextToken();
 
       if (t.isEOF()) {
         scanner = null;
-      } else {
+      } else if (!t.isWhitespace() && !isComment(t)) {
         try {
           tokenStack.push(new Token(
               document.get(scanner.getTokenOffset(), scanner.getTokenLength()),
@@ -136,19 +161,23 @@ public class Tokenizer implements Iterator<Token> {
     }
   }
 
-  private void setupScanner(IDocument document, String[] comments) {
-    IToken commentToken = new org.eclipse.jface.text.rules.Token(CssPartitionScanner.CSS_COMMENT);
+  private boolean isComment(IToken t) {
+    return t == COMMENT_TOKEN;
+  }
+
+  private void setupScanner(IDocument document) {
     IToken stringToken = new org.eclipse.jface.text.rules.Token("word");
 
     scanner = new RuleBasedScanner();
 
     List<IRule> rules = new ArrayList<IRule>();
 
-    rules.add(new MultiLineRule(comments[0], comments[1], commentToken));
-    rules.add(new AnyWordRule(new CssWordDetector()));
-    rules.add(new AnyWordRule(new CssNumberDetector()));
+    rules.add(new MultiLineRule("/*", "*/", COMMENT_TOKEN));
+    rules.add(new EndOfLineRule("//", COMMENT_TOKEN));
     rules.add(new SingleLineRule("\"", "\"", stringToken, '\\'));
     rules.add(new SingleLineRule("'", "'", stringToken, '\\'));
+    rules.add(new AnyWordRule(new CssWordDetector()));
+    rules.add(new AnyWordRule(new CssNumberDetector()));
     rules.add(new WhitespaceRule(new WhitespaceDetector()));
 
     scanner.setRules(rules.toArray(new IRule[rules.size()]));

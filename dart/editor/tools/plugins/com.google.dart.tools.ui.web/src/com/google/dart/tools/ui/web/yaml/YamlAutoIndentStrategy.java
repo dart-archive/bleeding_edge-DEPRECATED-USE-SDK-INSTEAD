@@ -14,64 +14,51 @@
 
 package com.google.dart.tools.ui.web.yaml;
 
+import com.google.dart.tools.ui.web.utils.WebEditorAutoIndentStrategy;
+
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DefaultIndentLineAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.TextUtilities;
 
 /**
  * An indent strategy for yaml.
  */
-public class YamlAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
+class YamlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
   public YamlAutoIndentStrategy() {
 
   }
 
   @Override
-  public void customizeDocumentCommand(IDocument d, DocumentCommand c) {
-    if (c.length == 0 && c.text != null
-        && TextUtilities.endsWith(d.getLegalLineDelimiters(), c.text) != -1) {
-      autoIndentAfterNewLine(d, c);
-    }
-  }
-
-  /**
-   * Copies the indentation of the previous line.
-   * 
-   * @param d the document to work on
-   * @param c the command to deal with
-   */
-  private void autoIndentAfterNewLine(IDocument d, DocumentCommand c) {
-    if (c.offset == -1 || d.getLength() == 0) {
+  protected void doAutoIndentAfterNewLine(IDocument document, DocumentCommand command) {
+    if (command.offset == -1 || document.getLength() == 0) {
       return;
     }
 
     try {
       // find start of line
-      int p = (c.offset == d.getLength() ? c.offset - 1 : c.offset);
-      IRegion info = d.getLineInformationOfOffset(p);
-      int start = info.getOffset();
+      int location = (command.offset == document.getLength() ? command.offset - 1 : command.offset);
+      IRegion lineInfo = document.getLineInformationOfOffset(location);
+      int start = lineInfo.getOffset();
 
-      boolean endsInColon = (d.getChar(c.offset - 1) == ':');
+      boolean endsInColon = (document.getChar(command.offset - 1) == ':');
 
       // find white spaces
-      int end = findEndOfWhiteSpace(d, start, c.offset);
+      int end = findEndOfWhiteSpace(document, start, command.offset);
 
-      StringBuffer buf = new StringBuffer(c.text);
+      StringBuffer buf = new StringBuffer(command.text);
 
       if (end > start) {
         // append to input
-        buf.append(d.get(start, end - start));
+        buf.append(document.get(start, end - start));
       }
 
       if (endsInColon) {
         buf.append("  ");
       }
 
-      c.text = buf.toString();
+      command.text = buf.toString();
     } catch (BadLocationException excp) {
       // stop work
     }

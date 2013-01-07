@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.css.model.CssDocument;
 import com.google.dart.tools.ui.web.css.model.CssParser;
+import com.google.dart.tools.ui.web.utils.Node;
 import com.google.dart.tools.ui.web.utils.WebEditor;
 
 import org.eclipse.jface.text.IDocumentExtension3;
@@ -64,11 +65,14 @@ public class CssEditor extends WebEditor {
 
   public CssDocument getModel() {
     if (model == null) {
-      //model = new CssParser(getDocument()).parse();
-      model = CssParser.createEmpty();
+      model = new CssParser(getDocument()).parse();
     }
 
     return model;
+  }
+
+  public void selectAndReveal(Node node) {
+    selectAndReveal(node.getStartOffset(), node.getEndOffset() - node.getStartOffset());
   }
 
   @Override

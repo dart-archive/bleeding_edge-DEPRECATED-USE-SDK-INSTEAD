@@ -14,8 +14,13 @@
 package com.google.dart.tools.ui.web.css;
 
 import com.google.dart.tools.ui.web.DartWebPlugin;
-import com.google.dart.tools.ui.web.utils.NodeContentProvider;
+import com.google.dart.tools.ui.web.utils.CollapseAllAction;
+import com.google.dart.tools.ui.web.utils.Node;
 
+import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
@@ -39,9 +44,21 @@ public class CssContentOutlinePage extends ContentOutlinePage {
   public void createControl(Composite parent) {
     super.createControl(parent);
 
-    getTreeViewer().setLabelProvider(new CssLabelProvider());
-    getTreeViewer().setContentProvider(new NodeContentProvider());
+    getTreeViewer().setLabelProvider(
+        new DecoratingStyledCellLabelProvider(new CssLabelProvider(), null, null));
+    getTreeViewer().setContentProvider(new CssContentProvider());
     getTreeViewer().setInput(editor.getModel());
+
+    getTreeViewer().expandToLevel(2);
+
+    getSite().getActionBars().getToolBarManager().add(new CollapseAllAction(getTreeViewer()));
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+
+    handleTreeViewerSelectionChanged(event.getSelection());
   }
 
   protected void handleEditorReconcilation() {
@@ -50,10 +67,22 @@ public class CssContentOutlinePage extends ContentOutlinePage {
     }
   }
 
+  protected void handleTreeViewerSelectionChanged(ISelection selection) {
+    if (selection instanceof IStructuredSelection) {
+      Object sel = ((IStructuredSelection) selection).getFirstElement();
+
+      if (sel instanceof Node) {
+        Node node = (Node) sel;
+
+        editor.selectAndReveal(node);
+      }
+    }
+  }
+
   private void refresh() {
     try {
       if (!getTreeViewer().getControl().isDisposed()) {
-        getTreeViewer().setInput(editor.getModel());
+        getTreeViewer().refresh(editor.getModel());
       }
     } catch (Throwable exception) {
       DartWebPlugin.logError(exception);

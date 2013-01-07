@@ -31,6 +31,10 @@ public class Token {
     this.whitespace = whitespace;
   }
 
+  public int getLength() {
+    return value.length();
+  }
+
   public int getLocation() {
     return location;
   }

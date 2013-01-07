@@ -40,9 +40,9 @@ public class CssAttributes {
     return attributeMap.keySet();
   }
 
-  public static List<String> getAttributeValues(String keyword) {
-    if (attributeMap.containsKey(keyword)) {
-      return attributeMap.get(keyword);
+  public static List<String> getAttributeValues(String attribute) {
+    if (attributeMap.containsKey(attribute)) {
+      return attributeMap.get(attribute);
     } else {
       return Collections.emptyList();
     }
@@ -68,7 +68,7 @@ public class CssAttributes {
             String[] strs = line.split("=");
 
             keyword = strs[0];
-            atts = Collections.unmodifiableList(Arrays.asList(strs[1]));
+            atts = Collections.unmodifiableList(Arrays.asList(strs[1].split(",")));
           }
 
           attributeMap.put(keyword, atts);

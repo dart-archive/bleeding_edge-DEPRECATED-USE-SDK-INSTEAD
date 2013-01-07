@@ -73,7 +73,7 @@ public class XmlContentOutlinePage extends ContentOutlinePage {
   private void refresh() {
     try {
       if (!getTreeViewer().getControl().isDisposed()) {
-        getTreeViewer().setInput(editor.getModel());
+        getTreeViewer().refresh(editor.getModel());
       }
     } catch (Throwable exception) {
       DartWebPlugin.logError(exception);

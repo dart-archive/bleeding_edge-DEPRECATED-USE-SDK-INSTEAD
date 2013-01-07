@@ -41,12 +41,49 @@ public abstract class Node {
     children.add(child);
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+
+    if (this == obj) {
+      return true;
+    }
+
+    if (this.getClass().isAssignableFrom(obj.getClass())) {
+      Node other = (Node) obj;
+
+      return safeEquals(getId(), other.getId());
+    } else {
+      return false;
+    }
+  }
+
   public List<Node> getChildren() {
     return children;
   }
 
+  public int getEndOffset() {
+    if (endToken != null) {
+      return endToken.getLocation() + endToken.getValue().length();
+    } else if (startToken != null) {
+      return startToken.getLocation() + startToken.getValue().length();
+    } else {
+      return -1;
+    }
+  }
+
   public Token getEndToken() {
     return endToken;
+  }
+
+  public String getId() {
+    if (getParent() == null) {
+      return getLabel();
+    } else {
+      return getParent().getId() + "." + getLabel() + getChildPos();
+    }
   }
 
   public String getLabel() {
@@ -55,6 +92,10 @@ public abstract class Node {
 
   public Node getParent() {
     return parent;
+  }
+
+  public int getStartOffset() {
+    return startToken == null ? -1 : startToken.getLocation();
   }
 
   public Token getStartToken() {
@@ -76,6 +117,34 @@ public abstract class Node {
   @Override
   public String toString() {
     return getLabel();
+  }
+
+  protected void setLabel(String label) {
+    this.label = label;
+  }
+
+  private int getChildPos() {
+    List<Node> children = getParent().getChildren();
+
+    for (int i = 0; i < children.size(); i++) {
+      if (children.get(i) == this) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
+
+  private boolean safeEquals(String id, String id2) {
+    if (id == id2) {
+      return true;
+    }
+
+    if (id == null) {
+      return false;
+    }
+
+    return id.equals(id2);
   }
 
 }

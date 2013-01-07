@@ -14,32 +14,47 @@
 package com.google.dart.tools.ui.web.css.model;
 
 import com.google.dart.tools.ui.web.utils.Node;
+import com.google.dart.tools.ui.web.utils.Token;
 
 /**
  * A css model property object. A property is a key = value.
  */
-public class CssProperty {
-  private Node key;
-  private Node value;
+public class CssProperty extends Node {
+  private Token keyToken;
+  private Token valueToken;
 
   public CssProperty() {
 
   }
 
-  public Node getKey() {
-    return key;
+  public Token getKey() {
+    return keyToken;
   }
 
-  public Node getValue() {
-    return value;
+  @Override
+  public String getLabel() {
+    if (keyToken != null) {
+      return keyToken.getValue();
+    } else {
+      return "";
+    }
   }
 
-  public void setKey(Node key) {
-    this.key = key;
+  public Token getValue() {
+    return valueToken;
   }
 
-  public void setValue(Node value) {
-    this.value = value;
+  protected void setKey(Token keyToken) {
+    this.keyToken = keyToken;
+
+    setStart(keyToken);
+    setEnd(keyToken);
+
+    setLabel(keyToken.getValue());
+  }
+
+  protected void setValue(Token valueToken) {
+    this.valueToken = valueToken;
   }
 
 }

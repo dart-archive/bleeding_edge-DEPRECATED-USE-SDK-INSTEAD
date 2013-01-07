@@ -13,12 +13,12 @@
  */
 package com.google.dart.tools.ui.web.css.model;
 
-import com.google.dart.tools.ui.web.css.Tokenizer;
 import com.google.dart.tools.ui.web.utils.Token;
 
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 
-// selector [, selector2, ...] [:pseudo-class] {
+// selector [selector2] [:pseudo-class] {
 // property: value;
 // [property2: value2;
 // ...]
@@ -26,13 +26,8 @@ import org.eclipse.jface.text.IDocument;
 // /* comment */
 
 // A document contains multiple sections.
-// A section contains 0 or more selectors, and a body
-// a body contains 0 or more properties.
+// A section contains 0 or more selectors, and 0 or more properties.
 // a property is a key = value.
-
-// section, selectors, properties
-
-// TODO(devoncarew): finish css parser
 
 /**
  * A CSS content parser.
@@ -43,112 +38,142 @@ public class CssParser {
   }
 
   private IDocument document;
+  private Tokenizer tokenizer;
 
   public CssParser(IDocument document) {
     this.document = document;
   }
 
   public CssDocument parse() {
-    Tokenizer tokenizer = new Tokenizer(document, new String[] {"/*", "*/"});
+    tokenizer = new Tokenizer(document);
 
     CssDocument cssDocument = new CssDocument();
 
     while (tokenizer.hasNext()) {
-      readSection(tokenizer, cssDocument);
+      readSection(cssDocument);
     }
 
     return cssDocument;
   }
 
-  private void readBody(Tokenizer tokenizer, CssSection section) {
-    CssBody body = new CssBody();
-
-    if (readOpenBlock(tokenizer, body)) {
-      section.setBody(body);
-
-      readProperties(tokenizer, body);
-
-      readCloseBlock(tokenizer, body);
-    }
-  }
-
-  private Token readChar(Tokenizer tokenizer, char c) {
-    if (!tokenizer.hasNext()) {
-      return null;
-    }
-
-    Token t = tokenizer.next();
-
-    if (t.getValue().equals(Character.toString(c))) {
-      return t;
-    } else {
-      tokenizer.pushBack(t);
-    }
-
-    return null;
-  }
-
-  private void readCloseBlock(Tokenizer tokenizer, CssBody body) {
-    Token t = readChar(tokenizer, '}');
-
-    if (t != null) {
-      body.setEnd(t);
-    }
-  }
-
-  private boolean readComma(Tokenizer tokenizer) {
-    return readChar(tokenizer, ',') != null;
-  }
-
-  private boolean readOpenBlock(Tokenizer tokenizer, CssBody body) {
-    Token t = readChar(tokenizer, '{');
-
-    if (t != null) {
-      body.setStart(t);
-    }
-
-    return t != null;
-  }
-
-  private void readProperties(Tokenizer tokenizer, CssBody body) {
-    while (readProperty(tokenizer, body)) {
-
-    }
-  }
-
-  private boolean readProperty(Tokenizer tokenizer, CssBody body) {
-    // TODO(devoncarew):
-
-    return false;
-  }
-
-  private void readSection(Tokenizer tokenizer, CssDocument cssDocument) {
+  protected void readSection(CssDocument cssDocument) {
     CssSection section = new CssSection();
 
-    cssDocument.addChild(section);
+    cssDocument.addSection(section);
 
-    readSelectors(tokenizer, section);
+    readSelectors(section);
 
-    readBody(tokenizer, section);
+    readBody(section);
   }
 
-  private boolean readSelector(Tokenizer tokenizer, CssSection section) {
-    // TODO(devoncarew):
+  void readBody(CssSection section) {
+    CssBody body = new CssBody();
+    section.setBody(body);
 
-    return false;
-  }
+    if (tokenizer.peek("{")) {
+      Token token = tokenizer.next();
 
-  private void readSelectors(Tokenizer tokenizer, CssSection section) {
-    if (readSelector(tokenizer, section)) {
-      while (true) {
-        if (readComma(tokenizer)) {
-          if (!readSelector(tokenizer, section)) {
-            return;
-          }
-        } else {
-          return;
-        }
+      body.setStart(token);
+
+      readProperties(body);
+
+      if (tokenizer.peek("}")) {
+        body.setEnd(tokenizer.next());
       }
     }
   }
+
+  void readSelectors(CssSection section) {
+    while (readSelector(section)) {
+      if (tokenizer.peek(",")) {
+        tokenizer.next();
+      }
+    }
+  }
+
+  private Token combine(Token startToken, Token endToken) {
+    if (startToken == null) {
+      return null;
+    }
+
+    if (startToken == endToken) {
+      return startToken;
+    }
+
+    try {
+      int start = startToken.getLocation();
+      int end = endToken.getLocation() + endToken.getLength();
+
+      return new Token(document.get(start, end - start), start);
+    } catch (BadLocationException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void readProperties(CssBody body) {
+    while (tokenizer.hasNext() && !tokenizer.peek("}")) {
+      readProperty(body);
+    }
+  }
+
+  private void readProperty(CssBody body) {
+    CssProperty property = new CssProperty();
+
+    body.addProperty(property);
+
+    Token token = tokenizer.next();
+
+    property.setKey(token);
+
+    if (tokenizer.peek(":")) {
+      tokenizer.next();
+
+      Token valueToken = readPropertyValueToken();
+
+      if (valueToken != null) {
+        property.setValue(valueToken);
+      }
+    }
+
+    if (tokenizer.peek(";")) {
+      tokenizer.next();
+    }
+  }
+
+  private Token readPropertyValueToken() {
+    Token startToken = null;
+    Token endToken = null;
+
+    while (tokenizer.hasNext() && !tokenizer.peek(";") && !tokenizer.peek("}")) {
+      endToken = tokenizer.next();
+
+      if (startToken == null) {
+        startToken = endToken;
+      }
+    }
+
+    return combine(startToken, endToken);
+  }
+
+  private boolean readSelector(CssSection section) {
+    Token startToken = null;
+    Token endToken = null;
+
+    while (tokenizer.hasNext() && !tokenizer.peek(",") && !tokenizer.peek("{")) {
+      endToken = tokenizer.next();
+
+      if (startToken == null) {
+        startToken = endToken;
+      }
+    }
+
+    if (startToken != null) {
+      section.addSelector(combine(startToken, endToken));
+
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 }

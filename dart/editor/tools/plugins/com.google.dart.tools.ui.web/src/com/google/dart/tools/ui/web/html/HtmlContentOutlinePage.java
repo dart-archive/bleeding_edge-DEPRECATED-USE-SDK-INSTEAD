@@ -15,11 +15,11 @@ package com.google.dart.tools.ui.web.html;
 
 import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.DartWebPlugin;
+import com.google.dart.tools.ui.web.utils.CollapseAllAction;
 import com.google.dart.tools.ui.web.xml.XmlNodeContentProvider;
 
 import org.eclipse.jface.viewers.DecoratingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Composite;
@@ -47,12 +47,14 @@ public class HtmlContentOutlinePage extends ContentOutlinePage {
 
     getTreeViewer().expandToLevel(3);
 
-    getTreeViewer().addSelectionChangedListener(new ISelectionChangedListener() {
-      @Override
-      public void selectionChanged(SelectionChangedEvent event) {
-        handleTreeViewerSelectionChanged(event.getSelection());
-      }
-    });
+    getSite().getActionBars().getToolBarManager().add(new CollapseAllAction(getTreeViewer()));
+  }
+
+  @Override
+  public void selectionChanged(SelectionChangedEvent event) {
+    super.selectionChanged(event);
+
+    handleTreeViewerSelectionChanged(event.getSelection());
   }
 
   protected void handleEditorReconcilation() {

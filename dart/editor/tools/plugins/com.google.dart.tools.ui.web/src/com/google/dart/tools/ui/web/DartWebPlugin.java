@@ -56,6 +56,10 @@ public class DartWebPlugin extends AbstractUIPlugin {
     return getPlugin().getPluginImage(imagePath);
   }
 
+  public static ImageDescriptor getImageDescriptor(String path) {
+    return imageDescriptorFromPlugin(PLUGIN_ID, "icons/" + path);
+  }
+
   /**
    * Returns the shared instance
    * 

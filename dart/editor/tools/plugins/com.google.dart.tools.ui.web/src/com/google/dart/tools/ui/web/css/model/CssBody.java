@@ -21,7 +21,11 @@ import com.google.dart.tools.ui.web.utils.Node;
 public class CssBody extends Node {
 
   public CssBody() {
+    super("<body>");
+  }
 
+  public void addProperty(CssProperty property) {
+    addChild(property);
   }
 
 }
