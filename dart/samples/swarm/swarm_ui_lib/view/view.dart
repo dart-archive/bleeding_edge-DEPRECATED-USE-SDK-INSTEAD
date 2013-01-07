@@ -320,7 +320,7 @@ class View implements Positionable {
   }
 
   void doLayout() {
-    _measureLayout().then((bool changed) {
+    _measureLayout().then((changed) {
       if (changed) {
         _applyLayoutToChildren();
       }
