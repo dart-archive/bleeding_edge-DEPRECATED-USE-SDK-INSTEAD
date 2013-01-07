@@ -97,7 +97,6 @@ import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.Messages;
-import com.google.dart.tools.core.internal.util.TypeUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -1527,7 +1526,15 @@ public class CompletionEngine {
   static private List<Element> getAllElements(Type type) {
     Map<String, Element> map = new HashMap<String, Element>();
     List<Element> list = new ArrayList<Element>();
-    List<InterfaceType> types = TypeUtil.allSupertypes((InterfaceType) type);
+    List<InterfaceType> types = new ArrayList<InterfaceType>();
+    try {
+      InterfaceType base = (InterfaceType) type;
+      types.add(base);
+      types.addAll(base.getElement().getAllSupertypes());
+    } catch (CyclicDeclarationException e) {
+      // Should not happen
+      return list;
+    }
     for (InterfaceType itype : types) {
       ClassElement cls = itype.getElement();
       Iterable<? extends Element> members = cls.getMembers();

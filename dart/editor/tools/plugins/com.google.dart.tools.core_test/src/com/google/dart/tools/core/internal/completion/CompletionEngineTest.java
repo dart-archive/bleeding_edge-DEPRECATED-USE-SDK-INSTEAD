@@ -231,7 +231,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "2+clear");
+    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
   }
 
   public void testCommentSnippets035() throws Exception {
