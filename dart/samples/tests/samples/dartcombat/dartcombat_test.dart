@@ -7,6 +7,7 @@ library dartcombat_tests;
 
 import 'dart:html';
 import 'dart:isolate';
+import 'dart:async';
 import '../../../../pkg/unittest/lib/unittest.dart';
 import '../../../../pkg/unittest/lib/html_config.dart';
 import '../../../dartcombat/dartcombatlib.dart';

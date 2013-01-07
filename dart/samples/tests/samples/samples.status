@@ -71,7 +71,7 @@ swarm/swarm_test: Fail # Issue 4517
 lib/layout/layout_test: Slow, Pass # Occasionally times out.
 swarm/swarm_test: Slow, Pass # Occasionally times out.
 lib/view/view_test: Slow, Pass # Occasionally times out.
-dartcombat/dartcombat_test: Slow, Pass # Occasionally times out.
+dartcombat/dartcombat_test: Slow, Fail # Occasionally times out. Issue 7739.
 
 [ $compiler == dart2js && $runtime == ie9 ]
 swarm/swarm_test: Fail # BUG(5633)

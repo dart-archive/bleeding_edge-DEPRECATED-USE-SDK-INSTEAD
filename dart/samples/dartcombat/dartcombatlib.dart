@@ -4,6 +4,7 @@
 
 library dartcombatlib;
 
+import 'dart:async';
 import 'dart:isolate';
 import 'dart:html';
 import 'dart:math' as Math;
