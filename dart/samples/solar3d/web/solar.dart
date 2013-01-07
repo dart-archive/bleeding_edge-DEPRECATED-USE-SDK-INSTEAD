@@ -49,6 +49,10 @@ class Solar3DApplication {
   void startup(String canvasId) {
     canvas = query(canvasId);
     glContext = canvas.getContext('experimental-webgl');
+    if (glContext == null) {
+      canvas.parent.text = ">>> Browser does not support WebGL <<<";
+      return;
+    }
     var baseUrl = getBaseUrl();
     baseUrl = '${baseUrl}textures/';
     textureManager = new TextureManager(baseUrl, glContext);
