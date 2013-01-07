@@ -137,7 +137,8 @@ public class WebkitScript {
     }
 
     // TODO(devoncarew): this hack has to do with how Dartium is built, and will go away at some point
-    if (url.startsWith("/Volumes/data/b/build/") || url.startsWith("e:\\b\\build\\slave")) {
+    if (url.startsWith("/Volumes/data/b/build/") || url.startsWith("e:\\b\\build\\slave")
+        || url.startsWith("file:///e:/b/build/slave")) {
       return true;
     }
 
