@@ -86,7 +86,8 @@ public class NameOccurrencesFinderTest extends TestCase {
             "}"),
         // 1 class ref
         "1+Math.sqrt(5)",
-        "1+Math.parseInt",
+        // TODO: cleanup references to parseInt().
+        //"1+Math.parseInt",
         "1+Math.PI",
         // 2 constructor ref from new expr
         "2+Sunflower() {",
