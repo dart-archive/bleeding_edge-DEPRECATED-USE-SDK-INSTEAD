@@ -467,7 +467,7 @@ class HavlakLoopFinder {
               nonBackPreds[w].add(ydash.getDfsnumber());
             } else {
               if (ydash.getDfsNumber() != w) {
-                if (!nodePool.some(
+                if (!nodePool.any(
                   function f(UnionFindNode x) {
                     return x == ydash;
                   })) {

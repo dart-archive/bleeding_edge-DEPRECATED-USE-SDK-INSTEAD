@@ -12,11 +12,11 @@ class BenchUtil {
   }
 
   static Map<String, Object> deserialize(String data) {
-    return JSON.parse(data);
+    return parseJson(data);
   }
 
   static String serialize(Object obj) {
-    return JSON.stringify(obj);
+    return jsonStringify(obj);
   }
 
   // Shuffle a list randomly.

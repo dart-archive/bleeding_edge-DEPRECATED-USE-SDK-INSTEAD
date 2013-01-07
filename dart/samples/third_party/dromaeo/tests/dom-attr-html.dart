@@ -1,6 +1,6 @@
 library dromaeo;
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math' as Math;
 part 'Common.dart';
 part 'RunnerSuite.dart';

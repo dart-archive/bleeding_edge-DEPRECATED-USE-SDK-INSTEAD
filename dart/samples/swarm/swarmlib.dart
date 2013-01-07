@@ -4,7 +4,7 @@
 
 library swarmlib;
 
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:html';
 import 'dart:math' as Math;
 import 'swarm_ui_lib/base/base.dart';

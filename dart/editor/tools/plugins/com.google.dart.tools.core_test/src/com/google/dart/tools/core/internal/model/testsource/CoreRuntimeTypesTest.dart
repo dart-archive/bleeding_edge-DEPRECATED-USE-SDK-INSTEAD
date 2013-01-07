@@ -217,15 +217,15 @@ class CoreRuntimeTypesTest {
 
     assertEquals(d.remove('c'), null);
     assertEquals(d.remove('b'), 2);
-    assertEquals(d.keys, ['a']);
-    assertEquals(d.values, [1]);
+    assertEquals(d.keys.single, 'a');
+    assertEquals(d.values.single, 1);
 
     d['c'] = 3;
     d['f'] = 4;
     assertEquals(d.keys.length, 3);
     assertEquals(d.values.length, 3);
-    assertEquals(d.keys, ['a', 'c', 'f']);
-    assertEquals(d.values, [1, 3, 4]);
+    assertEquals(d.keys.toList(), ['a', 'c', 'f']);
+    assertEquals(d.values.toList(), [1, 3, 4]);
 
     var count = 0;
     d.forEach(function(key, value) {

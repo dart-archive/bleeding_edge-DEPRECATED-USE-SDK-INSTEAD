@@ -199,7 +199,7 @@ class JsonTokenizer {
                       _s.substring(_pos, _len);
                 }
                 final codeString = _s.substring(_pos + 1, _pos + 5);
-                c = Math.parseInt('0x' + codeString);
+                c = int.parse('0x' + codeString);
                 if (c >= 128) {
                   // TODO(jmessery): the VM doesn't support 2-byte strings yet
                   // see runtime/lib/string.cc:49
@@ -254,7 +254,7 @@ class JsonTokenizer {
 
         final String body = _s.substring(startPos, _pos);
         return new JsonToken.number(
-            isInteger ?  Math.parseInt(body) : Math.parseDouble(body));
+            isInteger ?  int.parse(body) : double.parse(body));
 
       case cur == LBRACE:
         _pos++;

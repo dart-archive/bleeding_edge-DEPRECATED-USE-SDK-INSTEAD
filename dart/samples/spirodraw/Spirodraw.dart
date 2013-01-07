@@ -157,7 +157,7 @@ class Spirodraw {
     if (run && rad <= maxTurns * PI2) {
       rad+=stepSize;
       drawFrame(rad);
-      int nTurns = (rad / PI2).toInt();
+      int nTurns = rad ~/ PI2;
       numTurns.text = '${nTurns}/$maxTurns';
       window.requestAnimationFrame(animate);
     } else {
@@ -178,7 +178,7 @@ class Spirodraw {
     int ru = rUnits.abs();
     int wrUnits = RUnits + rUnits;
     int g = gcf (wrUnits, ru);
-    return (ru ~/ g).toInt();
+    return ru ~/ g;
   }
 
   void stop() {

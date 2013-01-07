@@ -9,7 +9,7 @@
 
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import '../../../chat/chat_server_lib.dart';
 
 // Message to start chat test client running in an isolate.
@@ -57,7 +57,7 @@ class ChatTestClient {
 
     void leaveResponseHandler(String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = JSON.parse(data);
+      var responseData = json.parse(data);
       Expect.equals("leave", responseData["response"]);
 
       // Test done.
@@ -69,7 +69,7 @@ class ChatTestClient {
     leaveRequest["sessionId"] = sessionId;
     HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
     conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(JSON.stringify(leaveRequest));
+      request.outputStream.writeString(json.stringify(leaveRequest));
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse r) {
@@ -87,7 +87,7 @@ class ChatTestClient {
 
     void receiveResponseHandler(String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = JSON.parse(data);
+      var responseData = json.parse(data);
       Expect.equals("receive", responseData["response"]);
       Expect.equals(null, responseData["disconnect"]);
       for (int i = 0; i < responseData["messages"].length; i++) {
@@ -130,7 +130,7 @@ class ChatTestClient {
     HttpClientConnection conn =
         httpClient.post("127.0.0.1", port, "/receive");
     conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(JSON.stringify(receiveRequest));
+      request.outputStream.writeString(json.stringify(receiveRequest));
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse r) {
@@ -148,7 +148,7 @@ class ChatTestClient {
 
     void sendResponseHandler(String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = JSON.parse(data);
+      var responseData = json.parse(data);
       Expect.equals("message", responseData["response"]);
       sendMessageNumber++;
       if (sendMessageNumber < messagesToSend) {
@@ -165,7 +165,7 @@ class ChatTestClient {
     HttpClientConnection conn =
         httpClient.post("127.0.0.1", port, "/message");
     conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(JSON.stringify(messageRequest));
+      request.outputStream.writeString(json.stringify(messageRequest));
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse r) {
@@ -183,7 +183,7 @@ class ChatTestClient {
 
     void joinResponseHandler(String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
-      var responseData = JSON.parse(data);
+      var responseData = json.parse(data);
       Expect.equals("join", responseData["response"]);
       sessionId = responseData["sessionId"];
       Expect.isTrue(sessionId != null);
@@ -200,7 +200,7 @@ class ChatTestClient {
     joinRequest["handle"] = "test1";
     HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
     conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(JSON.stringify(joinRequest));
+      request.outputStream.writeString(json.stringify(joinRequest));
       request.outputStream.close();
     };
     conn.onResponse = (HttpClientResponse r) {
@@ -258,9 +258,9 @@ class TestMain {
         });
 
     // Prepare the requested number of clients.
-    clientPorts = new List<SendPort>(clientCount);
+    clientPorts = new List<SendPort>.fixedLength(clientCount);
     int liveClientsCount = 0;
-    clientStatusPorts = new List<ReceivePort>(clientCount);
+    clientStatusPorts = new List<ReceivePort>.fixedLength(clientCount);
     for (int i = 0; i < clientCount; i++) {
       ReceivePort statusPort = new ReceivePort();
       statusPort.receive((var message, SendPort replyTo) {

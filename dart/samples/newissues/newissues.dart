@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as jsonlib;
 
 /// Issue wraps JSON structure that describes a bug.
 class Issue {
@@ -20,7 +20,7 @@ class Issue {
 List<Issue> getIssues(json) {
   var issues = json["feed"]["entry"];
   if (issues == null) return null;
-  return issues.map((data) => new Issue(data));
+  return issues.mappedBy((data) => new Issue(data)).toList();
 }
 
 /// Iterates over the recieved issues and construct HTML for them.
@@ -39,7 +39,7 @@ Future<dynamic> requestJson(String url) {
   Completer c = new Completer<dynamic>();
   void callback(HttpRequest req) {
     if (req.readyState == HttpRequest.DONE) {
-      c.complete(JSON.parse(req.response));
+      c.complete(jsonlib.parse(req.response));
     }
   };
   new HttpRequest.get(url, callback);

@@ -41,7 +41,7 @@ class AppModel {
   int get remaining => todos.length - doneCount;
 
   void clearDone() {
-    todos = todos.filter((t) => !t.done);
+    todos = todos.where((t) => !t.done).toList();
   }
 }
 

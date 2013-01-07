@@ -6,7 +6,6 @@ library isolate_sample;
 
 import 'dart:html';
 import 'dart:isolate';
-import 'dart:math';
 
 /*
  * This is a simple sample application showing how to create two isolates
@@ -75,7 +74,7 @@ void isolateMain() {
       'received message: <span class="messageText">"${message}"</span>';
     if (div.query('input.replyCheckbox').checked) {
       InputElement element = div.query('.delayTextbox');
-      int millis = parseInt(element.value);
+      int millis = int.parse(element.value);
       // TODO(justinfagnani): use Timer when it works in isolates in dart2js
       // see: http://dartbug.com/4997
       window.setTimeout(() {

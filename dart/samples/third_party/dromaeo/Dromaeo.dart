@@ -1,5 +1,5 @@
 import 'dart:html';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math' as Math;
 import 'Suites.dart';
 
@@ -95,7 +95,7 @@ class Dromaeo {
     window.on.message.add(
         (MessageEvent event) {
           try {
-            final response = JSON.parse(event.data);
+            final response = json.parse(event.data);
             _handler = _handler(response['command'], response['data']);
           } catch (e, stacktrace) {
             window.alert('Exception: ${e}: ${stacktrace}');

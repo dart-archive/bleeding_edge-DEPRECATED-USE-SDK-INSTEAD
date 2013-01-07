@@ -113,7 +113,7 @@ class Suite {
     if (data != null) {
       payload['data'] = data;
     }
-    _window.top.postMessage(JSON.stringify(payload), '*');
+    _window.top.postMessage(json.stringify(payload), '*');
   }
 
   // Implementation.

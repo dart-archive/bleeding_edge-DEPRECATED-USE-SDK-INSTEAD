@@ -77,7 +77,9 @@ class AbstractObservable implements Observable {
     // TODO(rnystrom): This is awkward without List.remove(e).
     if (listeners.indexOf(listener, 0) != -1) {
       bool found = false;
-      listeners = listeners.filter((e) => found || !(found = (e == listener)));
+      listeners = listeners
+          .where((e) => found || !(found = (e == listener)))
+          .toList();
       return true;
     } else {
       return false;
@@ -175,7 +177,7 @@ class ObservableList<T>
     add(element);
   }
 
-  void addAll(Collection<T> elements) {
+  void addAll(Iterable<T> elements) {
     for (T element in elements) {
       add(element);
     }
@@ -189,6 +191,10 @@ class ObservableList<T>
 
   T get first => _internal.first;
   T get last => _internal.last;
+  T get single => _internal.single;
+
+  T min([int compare(T a, T b)]) => _internal.min(compare);
+  T max([int compare(T a, T b)]) => _internal.max(compare);
 
   T removeLast() {
     final result = _internal.removeLast();
@@ -199,13 +205,13 @@ class ObservableList<T>
   T removeAt(int index) {
     int i = 0;
     T found = null;
-    _internal = _internal.filter((element) {
+    _internal = _internal.where((element) {
       if (i++ == index) {
         found = element;
         return false;
       }
       return true;
-    });
+    }).toList();
     if (found != null) {
       recordListRemove(index, found);
     }
@@ -271,14 +277,28 @@ class ObservableList<T>
 
 
   // Iterable<T>:
-  Iterator<T> iterator() => _internal.iterator();
+  Iterator<T> get iterator => _internal.iterator;
 
   // Collection<T>:
-  Collection<T> filter(bool f(T element)) => _internal.filter(f);
-  Collection map(f(T element)) => _internal.map(f);
+  Iterable<T> where(bool f(T element)) => _internal.where(f);
+  Iterable mappedBy(f(T element)) => _internal.mappedBy(f);
   bool every(bool f(T element)) => _internal.every(f);
-  bool some(bool f(T element)) => _internal.some(f);
+  bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
+  String join([String separator]) => _internal.join(separator);
+  Element firstMatching(bool test(Element value), {Element orElse()}) {
+    return _internal.firstMatching(test, orElse: orElse);
+  }
+  Element lastMatching(bool test(Element value), {Element orElse()}) {
+    return _internal.lastMatching(test, orElse: orElse);
+  }
+  Element singleMatching(bool test(Element value)) {
+    return _internal.singleMatching(test);
+  }
+  Element elementAt(int index) {
+    return _internal.elementAt(index);
+  }
+
   bool get isEmpty => length == 0;
 }
 

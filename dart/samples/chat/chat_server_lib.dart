@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 library chat_server;
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math';
 
 void startChatServer() {
@@ -308,7 +309,7 @@ class IsolatedServer {
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.headers.set("Content-Type", "application/json; charset=UTF-8");
-    response.outputStream.writeString(JSON.stringify(responseData));
+    response.outputStream.writeString(json.stringify(responseData));
     response.outputStream.close();
   }
 
@@ -386,7 +387,7 @@ class IsolatedServer {
     input.onClosed = () {
       String data = body.toString();
       if (data != null) {
-        var requestData = JSON.parse(data);
+        var requestData = json.parse(data);
         if (requestData["request"] == "join") {
           String handle = requestData["handle"];
           if (handle != null) {
@@ -419,7 +420,7 @@ class IsolatedServer {
     input.onData = () => body.add(input.read());
     input.onClosed = () {
       String data = body.toString();
-      var requestData = JSON.parse(data);
+      var requestData = json.parse(data);
       if (requestData["request"] == "leave") {
         String sessionId = requestData["sessionId"];
         if (sessionId != null) {
@@ -451,7 +452,7 @@ class IsolatedServer {
       String data = body.toString();
       _messageCount++;
       _messageRate.record(1);
-      var requestData = JSON.parse(data);
+      var requestData = json.parse(data);
       if (requestData["request"] == "message") {
         String sessionId = requestData["sessionId"];
         if (sessionId != null) {
@@ -486,7 +487,7 @@ class IsolatedServer {
     input.onData = () => body.add(input.read());
     input.onClosed = () {
       String data = body.toString();
-      var requestData = JSON.parse(data);
+      var requestData = json.parse(data);
       if (requestData["request"] == "receive") {
         String sessionId = requestData["sessionId"];
         int nextMessage = requestData["nextMessage"];
@@ -638,7 +639,7 @@ class IsolatedServer {
 class Rate {
   Rate([int timeRange = 1000, int buckets = 10])
       : _timeRange = timeRange,
-        _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
+        _buckets = new List.fixedLength(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
         _currentBucketTime = new Date.now().millisecondsSinceEpoch,
         _sum = 0 {

@@ -110,9 +110,9 @@ InputElement hue, saturation, lightness;
 Map<String, Color> defaultColors;
 
 onSliderChange(_) {
-  final hueDelta = Math.parseInt(hue.value) - 180;
-  final saturationMod = Math.parseInt(saturation.value)/100;
-  final lightnessMod = Math.parseInt(lightness.value)/100;
+  final hueDelta = int.parse(hue.value) - 180;
+  final saturationMod = int.parse(saturation.value)/100;
+  final lightnessMod = int.parse(lightness.value)/100;
 
   logo.queryAll("path").forEach((p) {
     final color = defaultColors[p.id].dup();

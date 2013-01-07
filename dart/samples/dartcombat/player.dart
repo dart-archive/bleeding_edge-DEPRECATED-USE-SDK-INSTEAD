@@ -75,7 +75,7 @@ class EnemyImpl implements Enemy {
   Future<int> ready() {
     Completer<int> res = new Completer<int>();
     return portToEnemy.call({ "action" : MessageIds.ENEMY_IS_READY })
-      .transform((message) {
+      .then((message) {
          if (!message[0]) throw message[1];
          return 0;
        });
@@ -84,7 +84,7 @@ class EnemyImpl implements Enemy {
   Future<int> shoot(int x, int y) {
     Completer<int> res = new Completer<int>();
     return portToEnemy.call({ "action" : MessageIds.SHOOT, "args" : [x, y] })
-      .transform((message) {
+      .then((message) {
          if (!message[0]) throw message[1];
          return message[1][0];
        });

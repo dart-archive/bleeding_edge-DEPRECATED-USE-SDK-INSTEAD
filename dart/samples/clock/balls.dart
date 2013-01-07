@@ -46,7 +46,7 @@ class Balls {
     lastTime = now;
 
     // incrementally move each ball, removing balls that are offscreen
-    balls = balls.filter((ball) => ball.tick(delta));
+    balls = balls.where((ball) => ball.tick(delta)).toList();
     collideBalls(delta);
   }
 

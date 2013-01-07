@@ -171,7 +171,7 @@ class GenericListView<D> extends View {
   }
 
   Collection<View> get childViews {
-    return _itemViews.values;
+    return _itemViews.values.toList();
   }
 
   void _onClick(MouseEvent e) {
@@ -691,14 +691,13 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
 
   Interval computeVisibleInterval(
       num offset, num viewLength, num bufferLength) {
-    num targetIntervalStart =
-        Math.max(0,((-offset - bufferLength) / _itemLength).floor());
+    int targetIntervalStart =
+        Math.max(0, (-offset - bufferLength) ~/ _itemLength);
     num targetIntervalEnd = GoogleMath.clamp(
         ((-offset + viewLength + bufferLength) / _itemLength).ceil(),
         targetIntervalStart,
         _data.length);
-    return new Interval(targetIntervalStart.toInt(),
-                        targetIntervalEnd.toInt());
+    return new Interval(targetIntervalStart, targetIntervalEnd.toInt());
   }
 }
 

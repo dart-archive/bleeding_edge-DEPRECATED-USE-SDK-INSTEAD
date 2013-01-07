@@ -40,22 +40,6 @@ class CollectionUtils {
     }
   }
 
-  // Collection<T> supports most of the ES 5 list methods, but it's missing
-  // map.
-
-  // TODO(jmesserly): we might want a version of this that return an iterable,
-  // however JS, Python and Ruby versions are all eager.
-  static List map(Iterable source, var mapper) {
-    // TODO(jmesserly): I was trying to set the capacity here, but instead it
-    // seems to create a fixed list. Hence assigning by index below.
-    List result = new List(source is List ? (source as List).length : null);
-    int i = 0;
-    for (final item in source) {
-      result[i++] = mapper(item);
-    }
-    return result;
-  }
-
   /**
    * Finds the item in [source] that matches [test].  Returns null if
    * no item matches.  The typing should be:
@@ -72,26 +56,26 @@ class CollectionUtils {
 
   /** Compute the minimum of an iterable. Returns null if empty. */
   static num min(Iterable source) {
-    final iter = source.iterator();
-    if (!iter.hasNext) {
+    final iter = source.iterator;
+    if (!iter.moveNext()) {
       return null;
     }
-    num best = iter.next();
-    while (iter.hasNext) {
-      best = Math.min(best, iter.next());
+    num best = iter.current;
+    while (iter.moveNext()) {
+      best = Math.min(best, iter.current);
     }
     return best;
   }
 
   /** Compute the maximum of an iterable. Returns null if empty. */
   static num max(Iterable source) {
-    final iter = source.iterator();
-    if (!iter.hasNext) {
+    final iter = source.iterator;
+    if (!iter.moveNext()) {
       return null;
     }
-    num best = iter.next();
-    while (iter.hasNext) {
-      best = Math.max(best, iter.next());
+    num best = iter.current;
+    while (iter.moveNext()) {
+      best = Math.max(best, iter.current);
     }
     return best;
   }
@@ -117,17 +101,21 @@ class CollectionUtils {
 
   /** Compute the sum of an iterable. An empty iterable is an error. */
   static num sum(Iterable source, [NumericValueSelector selector = null]) {
-    final iter = source.iterator();
+    final iter = source.iterator;
+    bool wasEmpty = true;
     num total = 0;
     if (selector != null) {
-      do {
-        total += selector(iter.next());
-      } while (iter.hasNext);
+      for (var element in source) {
+        wasEmpty = false;
+        total += selector(element);
+      }
     } else {
-      do {
-        total += iter.next();
-      } while (iter.hasNext);
+      for (num element in source) {
+        wasEmpty = false;
+        total += element;
+      }
     }
+    if (wasEmpty) throw new StateError("No elements");
     return total;
   }
 

@@ -136,7 +136,7 @@ class Suites {
     tags = tags.replaceAll('OR', '|').replaceAll('AND', '&');
     // A disjunction of conjunctions (e.g.,
     // 'js&modify|dart&dom&modify').
-    final taglist = tags.split('|').map((tag) => tag.split('&'));
+    final taglist = tags.split('|').mappedBy((tag) => tag.split('&')).toList();
 
     bool match(suite) {
       // If any conjunction matches, return true.
@@ -147,7 +147,7 @@ class Suites {
       }
       return false;
     }
-    final suites = SUITE_DESCRIPTIONS.filter(match);
+    final suites = SUITE_DESCRIPTIONS.where(match).toList();
 
     suites.sort((s1, s2) => s1.name.compareTo(s2.name));
     return suites;

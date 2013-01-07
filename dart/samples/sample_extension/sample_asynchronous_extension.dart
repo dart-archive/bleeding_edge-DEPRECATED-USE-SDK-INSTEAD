@@ -11,7 +11,7 @@ class RandomArray {
   static SendPort _port;
 
   void randomArray(int seed, int length, void callback(List result)) {
-    var args = new List(2);
+    var args = new List.fixedLength(2);
     args[0] = seed;
     args[1] = length;
     _servicePort.call(args).then((result) {

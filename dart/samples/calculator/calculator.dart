@@ -256,7 +256,6 @@ void processNumber(int code, Element key) {
 
   // TODO(terry): Need to fix this in Dart library.
   // If there's already a . in our current register don't allow a second period.
-  // Math.parseDouble validates that 2.2.3.4.5 is okay and returns 2.2
   if (char == '.' && currentRegister.indexOf('.') != -1) {
     // Signal dot is valid more than once for a number.
     flickerKey(padUI.keyDot, '-error');

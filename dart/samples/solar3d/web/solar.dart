@@ -10,7 +10,7 @@ library solar3d;
 
 import 'dart:html';
 import 'dart:scalarlist';
-import 'dart:json';
+import 'dart:json' as json;
 import 'dart:math' as Math;
 
 import 'package:vector_math/vector_math_browser.dart';

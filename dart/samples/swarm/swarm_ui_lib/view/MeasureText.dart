@@ -45,7 +45,7 @@ class MeasureText {
   }
 
   String quickTruncate(String text, num lineWidth, int maxLines) {
-    int targetLength = (lineWidth * maxLines / _typicalCharLength).toInt();
+    int targetLength = lineWidth * maxLines ~/ _typicalCharLength;
     // Advance to next word break point.
     while(targetLength < text.length && !isWhitespace(text[targetLength])) {
       targetLength++;

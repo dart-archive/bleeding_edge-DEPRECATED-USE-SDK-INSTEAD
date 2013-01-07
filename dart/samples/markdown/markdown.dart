@@ -33,7 +33,7 @@ main() {
 String readFile(String path) {
   final file = (new File(path)).openSync();
   final length = file.lengthSync();
-  final buffer = new List<int>(length);
+  final buffer = new List<int>.fixedLength(length);
   final bytes = file.readListSync(buffer, 0, length);
   file.closeSync();
   return new String.fromCharCodes(buffer);

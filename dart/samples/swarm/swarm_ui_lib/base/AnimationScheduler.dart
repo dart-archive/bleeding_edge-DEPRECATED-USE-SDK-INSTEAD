@@ -65,7 +65,7 @@ class AnimationScheduler {
    * frames.
    */
   void cancelRequestAnimationFrame(int id) {
-    _callbacks = _callbacks.filter((CallbackData e) => e.id != id);
+    _callbacks = _callbacks.where((CallbackData e) => e.id != id).toList();
   }
 
   /**

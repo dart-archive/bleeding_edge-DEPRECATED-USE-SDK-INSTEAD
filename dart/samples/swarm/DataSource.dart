@@ -6,7 +6,7 @@ part of swarmlib;
 
 /** The top-level collection of all sections for a user. */
 // TODO(jimhug): This is known as UserData in the server model.
-class Sections implements Collection<Section> {
+class Sections extends Collection<Section> {
   final List<Section> _sections;
 
   Sections(this._sections);
@@ -16,7 +16,7 @@ class Sections implements Collection<Section> {
   int get length => _sections.length;
 
   List<String> get sectionTitles =>
-    CollectionUtils.map(_sections, (s) => s.title);
+    _sections.mappedBy((s) => s.title).toList();
 
   void refresh() {
     // TODO(jimhug): http://b/issue?id=5351067
@@ -31,7 +31,7 @@ class Sections implements Collection<Section> {
   }
 
   // TODO(jimhug): Track down callers!
-  Iterator<Section> iterator() => _sections.iterator();
+  Iterator<Section> get iterator => _sections.iterator;
 
   // TODO(jimhug): Better support for switching between local dev and server.
   static bool get runningFromFile {
@@ -89,15 +89,8 @@ class Sections implements Collection<Section> {
   List<Section> get sections => _sections;
 
   // Collection<Section> methods:
-  List map(f(Section element)) {
-    return Collections.map(this, new List(), f);
-  }
-
-  List<Section> filter(bool f(Section element)) {
-    return Collections.filter(this, new List<Section>(), f);
-  }
   bool every(bool f(Section element)) => Collections.every(this, f);
-  bool some(bool f(Section element)) => Collections.some(this, f);
+  bool any(bool f(Section element)) => Collections.any(this, f);
   void forEach(void f(Section element)) { Collections.forEach(this, f); }
 
   // TODO(jmesserly): this should be a property

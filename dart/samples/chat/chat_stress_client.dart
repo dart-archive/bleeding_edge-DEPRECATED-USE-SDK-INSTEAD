@@ -4,7 +4,7 @@
 
 library chat_stress_client;
 import 'dart:io';
-import 'dart:json';
+import 'dart:json' as json;
 
 
 class ChatStressClient {
@@ -34,7 +34,7 @@ class ChatStressClient {
         printServerError(response);
         return null;
       }
-      var responseData = JSON.parse(data);
+      var responseData = json.parse(data);
       if (responseData["response"] != expected ) {
         printProtocolError();
         return null;
@@ -52,7 +52,7 @@ class ChatStressClient {
       leaveRequest["sessionId"] = sessionId;
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
       conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(JSON.stringify(leaveRequest));
+        request.outputStream.writeString(json.stringify(leaveRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse response) {
@@ -83,7 +83,7 @@ class ChatStressClient {
       HttpClientConnection conn =
           httpClient.post("127.0.0.1", port, "/receive");
       conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(JSON.stringify(messageRequest));
+        request.outputStream.writeString(json.stringify(messageRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse response) {
@@ -121,7 +121,7 @@ class ChatStressClient {
       HttpClientConnection conn =
       httpClient.post("127.0.0.1", port, "/message");
       conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(JSON.stringify(messageRequest));
+        request.outputStream.writeString(json.stringify(messageRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse response) {
@@ -151,7 +151,7 @@ class ChatStressClient {
       joinRequest["handle"] = "test1";
       HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
       conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(JSON.stringify(joinRequest));
+        request.outputStream.writeString(json.stringify(joinRequest));
         request.outputStream.close();
       };
       conn.onResponse = (HttpClientResponse response) {
