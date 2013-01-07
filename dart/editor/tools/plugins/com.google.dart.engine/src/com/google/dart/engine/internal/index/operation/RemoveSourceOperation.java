@@ -57,7 +57,7 @@ public class RemoveSourceOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeResource(source);
+      indexStore.removeSource(source);
     }
   }
 

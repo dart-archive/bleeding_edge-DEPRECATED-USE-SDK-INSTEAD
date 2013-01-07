@@ -28,17 +28,17 @@ public class FileBasedSource implements Source {
    * The source factory that created this source and that should be used to resolve URI's against
    * this source.
    */
-  private SourceFactory factory;
+  private final SourceFactory factory;
 
   /**
    * The file represented by this source.
    */
-  private File file;
+  private final File file;
 
   /**
    * A flag indicating whether this source is in one of the system libraries.
    */
-  private boolean inSystemLibrary;
+  private final boolean inSystemLibrary;
 
   /**
    * The character set used to decode bytes into characters.

@@ -23,12 +23,8 @@ import java.util.List;
  * analyzed when a relationship was recorded.
  */
 public class ContributedLocation {
-  private final List<ContributedLocation> owner;
-
-  /**
-   * The source that contributed the relationship.
-   */
-  private final Source contributor;
+  private final List<ContributedLocation> locationOwner;
+  private final List<ContributedLocation> declarationOwner;
 
   /**
    * The location that is part of the relationship contributed by the contributor.
@@ -37,25 +33,24 @@ public class ContributedLocation {
 
   /**
    * Initialize a newly created contributed location with the given information.
-   * 
-   * @param owner the {@link List} which contains this {@link ContributedLocation}
-   * @param contributor the resource that contributed the relationship
+   * @param declarationOwner {@link List} to remove from when declaration {@link Source} is removed
+   * @param locationOwner {@link List} to remove from when location {@link Source} is removed
    * @param location the location that is part of the relationship contributed by the contributor
    */
-  public ContributedLocation(List<ContributedLocation> owner, Source contributor, Location location) {
-    this.owner = owner;
-    this.contributor = contributor;
+  public ContributedLocation(List<ContributedLocation> declarationOwner,
+      List<ContributedLocation> locationOwner, Location location) {
+    this.locationOwner = locationOwner;
+    this.declarationOwner = declarationOwner;
     this.location = location;
-    owner.add(this);
+    locationOwner.add(this);
+    declarationOwner.add(this);
   }
 
   /**
-   * Return the source that contributed the relationship.
-   * 
-   * @return the source that contributed the relationship
+   * @return the owner {@link List} to remove from when declaration {@link Source} is removed.
    */
-  public Source getContributor() {
-    return contributor;
+  public List<ContributedLocation> getDeclarationOwner() {
+    return declarationOwner;
   }
 
   /**
@@ -68,9 +63,9 @@ public class ContributedLocation {
   }
 
   /**
-   * @return the owner {@link List} which contains this {@link ContributedLocation}.
+   * @return the owner {@link List} to remove from when location {@link Source} is removed.
    */
-  public List<ContributedLocation> getOwner() {
-    return owner;
+  public List<ContributedLocation> getLocationOwner() {
+    return locationOwner;
   }
 }

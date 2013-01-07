@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.index;
 
-import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -46,20 +46,20 @@ public interface IndexStore {
    * relationship, then the returned locations will be all of the places where the method is
    * invoked.
    * 
-   * @param elementLocation the {@link ElementLocation} of the element that has the relationship
-   *          with the locations to be returned
+   * @param element the {@link ElementProxy} of the element that has the relationship with the
+   *          locations to be returned
    * @param relationship the {@link Relationship} between the given element and the locations to be
    *          returned
    * @return the locations that have the given relationship with the given element
    */
-  Location[] getRelationships(ElementLocation elementLocation, Relationship relationship);
+  Location[] getRelationships(ElementProxy element, Relationship relationship);
 
   /**
    * Return the number of sources that are currently recorded in this index.
    * 
    * @return the number of sources that are currently recorded in this index
    */
-  int getResourceCount();
+  int getSourceCount();
 
   /**
    * Record that the given element and location have the given relationship. For example, if the
@@ -81,25 +81,11 @@ public interface IndexStore {
    * 
    * would be an array containing both <code>location1</code> and <code>location2</code>.
    * 
-   * @param contributor the source that was being analyzed when this relationship was contributed
-   * @param elementLocation the {@link ElementLocation} that is related to the location
+   * @param element the {@link ElementProxy} that is related to the location
    * @param relationship the {@link Relationship} between the element and the location
-   * @param location the location that is related to the element
+   * @param location the {@link Location} where relationship happens
    */
-  void recordRelationship(Source contributor, ElementLocation elementLocation,
-      Relationship relationship, Location location);
-
-  /**
-   * Remove from the index all of the information associated that was contribute as a result of
-   * analyzing the given source. This includes relationships between an element in the given source
-   * and any other locations and relationships between any other elements and a location within the
-   * given source.
-   * <p>
-   * This method should be invoked when a source is about to be re-analyzed.
-   * 
-   * @param source the resource being re-analyzed
-   */
-  void regenerateResource(Source source);
+  void recordRelationship(ElementProxy element, Relationship relationship, Location location);
 
   /**
    * Remove from the index all of the information associated with elements or locations in the given
@@ -110,5 +96,5 @@ public interface IndexStore {
    * 
    * @param source the source being removed
    */
-  void removeResource(Source source);
+  void removeSource(Source source);
 }

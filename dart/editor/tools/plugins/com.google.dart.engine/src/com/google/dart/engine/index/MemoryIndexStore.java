@@ -16,7 +16,6 @@ package com.google.dart.engine.index;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 /**
@@ -38,5 +37,5 @@ public interface MemoryIndexStore extends IndexStore {
    * @param output the {@link OutputStream} to which this index will be written
    * @throws IOException if the index could not be written
    */
-  void writeIndex(ObjectOutputStream output) throws IOException;
+  void writeIndex(OutputStream output) throws IOException;
 }

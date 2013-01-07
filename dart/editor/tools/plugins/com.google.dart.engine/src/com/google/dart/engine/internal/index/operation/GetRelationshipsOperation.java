@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.index.operation;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -27,7 +27,7 @@ import com.google.dart.engine.source.Source;
  */
 public class GetRelationshipsOperation implements IndexOperation {
   private final IndexStore indexStore;
-  private final ElementLocation elementLocation;
+  private final ElementProxy element;
   private final Relationship relationship;
   private RelationshipCallback callback;
 
@@ -35,10 +35,10 @@ public class GetRelationshipsOperation implements IndexOperation {
    * Initialize a newly created operation that will access the locations that have a specified
    * relationship with a specified element.
    */
-  public GetRelationshipsOperation(IndexStore indexStore, ElementLocation elementLocation,
+  public GetRelationshipsOperation(IndexStore indexStore, ElementProxy element,
       Relationship relationship, RelationshipCallback callback) {
     this.indexStore = indexStore;
-    this.elementLocation = elementLocation;
+    this.element = element;
     this.relationship = relationship;
     this.callback = callback;
   }
@@ -49,8 +49,8 @@ public class GetRelationshipsOperation implements IndexOperation {
   }
 
   @VisibleForTesting
-  public ElementLocation getElementLocation() {
-    return elementLocation;
+  public ElementProxy getElement() {
+    return element;
   }
 
   @VisibleForTesting
@@ -67,9 +67,9 @@ public class GetRelationshipsOperation implements IndexOperation {
   public void performOperation() {
     Location[] locations;
     synchronized (indexStore) {
-      locations = indexStore.getRelationships(elementLocation, relationship);
+      locations = indexStore.getRelationships(element, relationship);
     }
-    callback.hasRelationships(elementLocation, relationship, locations);
+    callback.hasRelationships(element, relationship, locations);
   }
 
   @Override
@@ -79,6 +79,6 @@ public class GetRelationshipsOperation implements IndexOperation {
 
   @Override
   public String toString() {
-    return "GetRelationships(" + elementLocation + ", " + relationship + ")";
+    return "GetRelationships(" + element + ", " + relationship + ")";
   }
 }

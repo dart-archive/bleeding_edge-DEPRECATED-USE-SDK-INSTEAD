@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -76,6 +77,16 @@ public class FunctionTypeAlias extends TypeAlias {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFunctionTypeAlias(this);
+  }
+
+  /**
+   * Return the {@link TypeAliasElement} associated with this type alias, or {@code null} if the AST
+   * structure has not been resolved.
+   * 
+   * @return the {@link TypeAliasElement} associated with this type alias
+   */
+  public TypeAliasElement getElement() {
+    return name != null ? (TypeAliasElement) name.getElement() : null;
   }
 
   /**

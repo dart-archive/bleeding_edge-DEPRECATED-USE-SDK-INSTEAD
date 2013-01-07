@@ -22,8 +22,10 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.engine.internal.index.operation.TestAll.suite());
-    suite.addTestSuite(IndexImplTest.class);
     suite.addTestSuite(ContributedLocationTest.class);
+    suite.addTestSuite(IndexImplTest.class);
+    suite.addTestSuite(MemoryIndexStoreImplTest.class);
+    suite.addTestSuite(IndexContributorTest.class);
     return suite;
   }
 }

@@ -22,8 +22,8 @@ import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.source.Source;
 
 /**
- * Instances of the {@link IndexUnitOperation} implement an operation that adds data to the
- * index based on the content of a specified resource.
+ * Instances of the {@link IndexUnitOperation} implement an operation that adds data to the index
+ * based on the content of a specified resource.
  */
 public class IndexUnitOperation implements IndexOperation {
   /**
@@ -76,7 +76,7 @@ public class IndexUnitOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.regenerateResource(source);
+      indexStore.removeSource(source);
       try {
         IndexContributor contributor = new IndexContributor(indexStore);
         unit.accept(contributor);

@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.index;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
@@ -40,14 +40,14 @@ public class IndexImplTest extends EngineTestCase {
   private IndexImpl index = new IndexImpl(store, queue, processor);
 
   public void test_getRelationships() throws Exception {
-    ElementLocation elementLocation = mock(ElementLocation.class);
+    ElementProxy element = mock(ElementProxy.class);
     Relationship relationship = Relationship.getRelationship("test-relationship");
     RelationshipCallback callback = mock(RelationshipCallback.class);
-    index.getRelationships(elementLocation, relationship, callback);
+    index.getRelationships(element, relationship, callback);
     // verify
     ArgumentCaptor<GetRelationshipsOperation> argument = ArgumentCaptor.forClass(GetRelationshipsOperation.class);
     verify(queue).enqueue(argument.capture());
-    assertSame(elementLocation, argument.getValue().getElementLocation());
+    assertSame(element, argument.getValue().getElement());
     assertSame(relationship, argument.getValue().getRelationship());
     assertSame(callback, argument.getValue().getCallback());
   }

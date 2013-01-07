@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
@@ -41,9 +41,9 @@ public class IndexImpl implements Index {
   }
 
   @Override
-  public void getRelationships(ElementLocation elementLocation, Relationship relationship,
+  public void getRelationships(ElementProxy element, Relationship relationship,
       RelationshipCallback callback) {
-    queue.enqueue(new GetRelationshipsOperation(store, elementLocation, relationship, callback));
+    queue.enqueue(new GetRelationshipsOperation(store, element, relationship, callback));
   }
 
   @Override

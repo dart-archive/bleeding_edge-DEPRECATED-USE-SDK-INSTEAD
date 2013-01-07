@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.index;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.index.Location;
-import com.google.dart.engine.source.Source;
 
 import static org.mockito.Mockito.mock;
 
@@ -24,12 +23,15 @@ import java.util.List;
 
 public class ContributedLocationTest extends EngineTestCase {
   public void test_new() throws Exception {
-    List<ContributedLocation> owner = Lists.newArrayList();
-    Source contributor = mock(Source.class);
+    List<ContributedLocation> declarationOwner = Lists.newArrayList();
+    List<ContributedLocation> locationOwner = Lists.newArrayList();
     Location location = mock(Location.class);
-    ContributedLocation contributedLocation = new ContributedLocation(owner, contributor, location);
-    assertSame(owner, contributedLocation.getOwner());
-    assertSame(contributor, contributedLocation.getContributor());
+    ContributedLocation contributedLocation = new ContributedLocation(
+        declarationOwner,
+        locationOwner,
+        location);
+    assertSame(declarationOwner, contributedLocation.getDeclarationOwner());
+    assertSame(locationOwner, contributedLocation.getLocationOwner());
     assertSame(location, contributedLocation.getLocation());
   }
 }

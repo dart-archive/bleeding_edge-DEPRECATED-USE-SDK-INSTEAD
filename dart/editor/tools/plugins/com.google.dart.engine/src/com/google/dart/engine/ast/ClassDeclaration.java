@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -135,6 +136,14 @@ public class ClassDeclaration extends CompilationUnitMember {
    */
   public Token getClassKeyword() {
     return classKeyword;
+  }
+
+  /**
+   * @return the {@link ClassElement} associated with this identifier, or {@code null} if the AST
+   *         structure has not been resolved or if this identifier could not be resolved.
+   */
+  public ClassElement getElement() {
+    return name != null ? (ClassElement) name.getElement() : null;
   }
 
   @Override

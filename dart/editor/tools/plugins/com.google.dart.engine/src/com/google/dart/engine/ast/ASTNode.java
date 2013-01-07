@@ -101,7 +101,7 @@ public abstract class ASTNode {
    * 
    * @return the parent of this node, or {@code null} if none
    */
-  public final ASTNode getParent() {
+  public ASTNode getParent() {
     return parent;
   }
 

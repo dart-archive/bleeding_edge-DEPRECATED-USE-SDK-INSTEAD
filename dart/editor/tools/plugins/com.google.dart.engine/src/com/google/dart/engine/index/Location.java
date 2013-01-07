@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.index;
 
-import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 
 /**
  * Instances of the class <code>Location</code> represent a location related to an element. The
@@ -30,7 +30,7 @@ public class Location {
   /**
    * The element containing this location.
    */
-  private final ElementLocation elementLocation;
+  private final ElementProxy element;
 
   /**
    * The offset of this location within the resource containing the element.
@@ -52,25 +52,25 @@ public class Location {
    * Initialize a newly create location to be relative to the given element at the given offset with
    * the given length.
    * 
-   * @param elementLocation the element containing this location
+   * @param element the {@link ElementProxy} containing this location
    * @param offset the offset of this location within the resource containing the element
    * @param length the length of this location
    */
-  public Location(ElementLocation elementLocation, int offset, int length, String importPrefix) {
-    if (elementLocation == null) {
-      throw new IllegalArgumentException("element cannot be null");
+  public Location(ElementProxy element, int offset, int length, String importPrefix) {
+    if (element == null) {
+      throw new IllegalArgumentException("element location cannot be null");
     }
-    this.elementLocation = elementLocation;
+    this.element = element;
     this.offset = offset;
     this.length = length;
     this.importPrefix = importPrefix;
   }
 
   /**
-   * @return the {@link ElementLocation} containing this location
+   * @return the {@link ElementProxy} containing this location.
    */
-  public ElementLocation getElementLocation() {
-    return elementLocation;
+  public ElementProxy getElement() {
+    return element;
   }
 
   /**
@@ -100,7 +100,7 @@ public class Location {
 
   @Override
   public String toString() {
-    String result = "[" + offset + " - " + (offset + length - 1) + "] in " + elementLocation;
+    String result = "[" + offset + " - " + (offset + length - 1) + "] in " + element;
     if (importPrefix != null) {
       result += " with prefix '" + importPrefix + "'";
     }

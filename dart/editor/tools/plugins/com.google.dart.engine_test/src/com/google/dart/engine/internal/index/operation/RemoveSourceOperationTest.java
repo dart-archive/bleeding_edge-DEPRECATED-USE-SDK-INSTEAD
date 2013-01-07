@@ -39,7 +39,7 @@ public class RemoveSourceOperationTest extends EngineTestCase {
   public void test_performOperation_noPostClearRunnable() throws Exception {
     RemoveSourceOperation operation = new RemoveSourceOperation(store, source);
     operation.performOperation();
-    verify(store, only()).removeResource(source);
+    verify(store, only()).removeSource(source);
   }
 
   public void test_removeWhenSourceRemoved() throws Exception {

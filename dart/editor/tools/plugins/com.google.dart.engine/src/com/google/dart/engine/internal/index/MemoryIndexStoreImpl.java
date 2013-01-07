@@ -13,9 +13,12 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
@@ -24,7 +27,7 @@ import com.google.dart.engine.source.Source;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,18 +36,6 @@ import java.util.Set;
  * {@link IndexStore} which keeps full index in memory.
  */
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
-//  /**
-//   * @return the {@link Source} which contains given {@link Element}, may be <code>null</code>.
-//   */
-//  private static Source getSource(Element element) {
-//    while (element != null) {
-//      if (element instanceof CompilationUnitElement) {
-//        return ((CompilationUnitElement) element).getSource();
-//      }
-//      element = element.getEnclosingElement();
-//    }
-//    return null;
-//  }
 
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
@@ -52,38 +43,53 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private Map<ElementLocation, Map<Relationship, List<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
 
   /**
-   * A table mapping the resources that are known to the index to a set of the elements known to be
-   * in those resources.
+   * A set of all {@link Source}s with elements or relationships.
    */
-  private Map<Source, Set<ElementLocation>> sourceToElementsMap = Maps.newHashMapWithExpectedSize(1024);
+  private Set<Source> sources = Sets.newHashSetWithExpectedSize(1024);
 
   /**
-   * Contains {@link ContributedLocation}s contributed by their
-   * {@link ContributedLocation#getContributor()}.
+   * {@link ElementLocation}s by {@link Source} where they are declared.
    */
-  private Map<Source, List<ContributedLocation>> contributorToContributedLocations = Maps.newHashMap();
+  private Map<Source, List<ElementLocation>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(1024);
+
+  /**
+   * {@link ContributedLocation}s by {@link Source} where they are contributed.
+   */
+  private Map<Source, List<ContributedLocation>> sourceToLocations = Maps.newHashMapWithExpectedSize(1024);
 
   @Override
   public void clear() {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+    relationshipMap.clear();
   }
 
   @Override
   public int getElementCount() {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+    return relationshipMap.size();
+  }
+
+  @VisibleForTesting
+  public int getLocationCount() {
+    int count = 0;
+    for (List<ContributedLocation> contributedLocations : sourceToLocations.values()) {
+      count += contributedLocations.size();
+    }
+    return count;
   }
 
   @Override
   public int getRelationshipCount() {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+    int count = 0;
+    for (Map<Relationship, List<ContributedLocation>> elementRelationshipMap : relationshipMap.values()) {
+      for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
+        count += contributedLocations.size();
+      }
+    }
+    return count;
   }
 
   @Override
-  public Location[] getRelationships(ElementLocation elementLocation, Relationship relationship) {
-    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(elementLocation);
+  public Location[] getRelationships(ElementProxy element, Relationship relationship) {
+    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element.getLocation());
     if (elementRelationshipMap != null) {
       List<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
       if (contributedLocations != null) {
@@ -99,9 +105,8 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public int getResourceCount() {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+  public int getSourceCount() {
+    return sources.size();
   }
 
   @Override
@@ -111,48 +116,79 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public void recordRelationship(Source contributor, ElementLocation element,
-      Relationship relationship, Location location) {
-    if (contributor == null || element == null || location == null) {
+  public void recordRelationship(ElementProxy element, Relationship relationship, Location location) {
+    if (element == null || location == null) {
       return;
     }
-//    recordElement(element);
-//    recordElement(location.getElement());
+    // prepare information
+    ElementLocation elementLocation = element.getLocation();
+    Source elementSource = element.getSource();
+    Source locationSource = location.getElement().getSource();
+    // remember sources
+    sources.add(elementSource);
+    sources.add(locationSource);
+    recordSourceToDeclarations(elementSource, elementLocation);
+    //
+    List<ContributedLocation> locationsOfLocationSource = sourceToLocations.get(locationSource);
+    if (locationsOfLocationSource == null) {
+      locationsOfLocationSource = Lists.newArrayList();
+      sourceToLocations.put(locationSource, locationsOfLocationSource);
+    }
     // add ContributedLocation for "element"
-    ContributedLocation contributedLocation;
     {
-      Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
-      if (elementRelationshipMap == null) {
-        elementRelationshipMap = Maps.newHashMap();
-        relationshipMap.put(element, elementRelationshipMap);
+      Map<Relationship, List<ContributedLocation>> elementRelMap = relationshipMap.get(elementLocation);
+      if (elementRelMap == null) {
+        elementRelMap = Maps.newHashMap();
+        relationshipMap.put(elementLocation, elementRelMap);
       }
-      List<ContributedLocation> locations = elementRelationshipMap.get(relationship);
+      List<ContributedLocation> locations = elementRelMap.get(relationship);
       if (locations == null) {
         locations = Lists.newArrayList();
-        elementRelationshipMap.put(relationship, locations);
+        elementRelMap.put(relationship, locations);
       }
-      contributedLocation = new ContributedLocation(locations, contributor, location);
+      new ContributedLocation(locationsOfLocationSource, locations, location);
     }
-    // add to "contributor" -> "locations" map
-//    recordContributorToLocation(contributor, contributedLocation);
   }
 
   @Override
-  public void regenerateResource(Source source) {
+  public void removeSource(Source source) {
+    sources.remove(source);
+    // remove relationships with elements in removed source
+    List<ElementLocation> declaredElements = sourceToDeclarations.remove(source);
+    if (declaredElements != null) {
+      for (ElementLocation elementLocation : declaredElements) {
+        Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(elementLocation);
+        if (elementRelationshipMap != null) {
+          for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
+            for (ContributedLocation contributedLocation : contributedLocations) {
+              contributedLocation.getDeclarationOwner().remove(contributedLocation);
+            }
+          }
+        }
+      }
+    }
+    // remove relationships in removed source
+    List<ContributedLocation> contributedLocations = sourceToLocations.remove(source);
+    if (contributedLocations != null) {
+      for (ContributedLocation contributedLocation : contributedLocations) {
+        contributedLocation.getLocationOwner().remove(contributedLocation);
+      }
+    }
+  }
+
+  @Override
+  public void writeIndex(OutputStream output) throws IOException {
     // TODO(scheglov)
     throw new UnsupportedOperationException();
   }
 
-  @Override
-  public void removeResource(Source source) {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void writeIndex(ObjectOutputStream output) throws IOException {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+  private void recordSourceToDeclarations(Source elementSource, ElementLocation elementLocation) {
+    List<ElementLocation> declaredElements = sourceToDeclarations.get(elementSource);
+    if (declaredElements == null) {
+      declaredElements = Lists.newArrayList();
+      sourceToDeclarations.put(elementSource, declaredElements);
+    }
+    declaredElements.add(elementLocation);
   }
 
 //  /**
@@ -162,7 +198,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 //    super();
 //  }
 //
-//  // TODO(scheglov) read/write
 ////  /**
 ////   * Return a reader that can read the contents of this index from a stream.
 ////   * 

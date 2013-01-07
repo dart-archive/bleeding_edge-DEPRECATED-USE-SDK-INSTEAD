@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -65,6 +66,16 @@ public class VariableDeclaration extends Declaration {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitVariableDeclaration(this);
+  }
+
+  /**
+   * Return the {@link VariableElement} associated with this variable, or {@code null} if the AST
+   * structure has not been resolved.
+   * 
+   * @return the {@link VariableElement} associated with this variable
+   */
+  public VariableElement getElement() {
+    return name != null ? (VariableElement) name.getElement() : null;
   }
 
   @Override
@@ -142,4 +153,5 @@ public class VariableDeclaration extends Declaration {
   protected Token getFirstTokenAfterCommentAndMetadata() {
     return name.getBeginToken();
   }
+
 }

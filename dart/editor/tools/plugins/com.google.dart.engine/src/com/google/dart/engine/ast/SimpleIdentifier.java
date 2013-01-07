@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code SimpleIdentifier} represent a simple identifier.
@@ -69,6 +70,37 @@ public class SimpleIdentifier extends Identifier {
    */
   public Token getToken() {
     return token;
+  }
+
+  /**
+   * Looks to see if this identifier is used to read value.
+   */
+  public boolean inGetterContext() {
+    if (getParent() instanceof AssignmentExpression) {
+      AssignmentExpression expr = (AssignmentExpression) getParent();
+      if (expr.getLeftHandSide() == this && expr.getOperator().getType() == TokenType.EQ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Looks to see if this identifier is used to write value.
+   */
+  public boolean inSetterContext() {
+    if (getParent() instanceof PrefixExpression) {
+      PrefixExpression expr = (PrefixExpression) getParent();
+      return expr.getOperand() == this && expr.getOperator().getType().isIncrementOperator();
+    }
+    if (getParent() instanceof PostfixExpression) {
+      return true;
+    }
+    if (getParent() instanceof AssignmentExpression) {
+      AssignmentExpression expr = (AssignmentExpression) getParent();
+      return expr.getLeftHandSide() == this;
+    }
+    return false;
   }
 
   @Override
