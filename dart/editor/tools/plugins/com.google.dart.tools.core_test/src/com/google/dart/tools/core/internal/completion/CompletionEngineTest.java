@@ -231,11 +231,11 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    test("t2() {var q=[0],z=q.!1length;q.!2isEmpty();}", "1+length", "2+isEmpty");
+    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "2+clear");
   }
 
   public void testCommentSnippets035() throws Exception {
-    test("t3() {var x=new List(), y=x.!1length();x.!2isEmpty();}", "1+length", "2+isEmpty");
+    test("t3() {var x=new List(), y=x.!1length();x.!2clear();}", "1+length", "2+clear");
   }
 
   public void testCommentSnippets036() throws Exception {
@@ -276,7 +276,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets045() throws Exception {
-    test("class X{var q; f() {q.!1a!2}}", "1+future", "1+end", "2+arguments", "2+abs", "2-end");
+    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+arguments", "2+abs", "2-end");
   }
 
   public void testCommentSnippets046() throws Exception {
@@ -657,7 +657,7 @@ public class CompletionEngineTest extends TestCase {
     String source = Joiner.on("\n").join(
         "class X {",
         "  m() {",
-        "    JSON.stri!1",
+        "    JSON.stri!1;",
         "    X f = null;",
         "  }",
         "}",
