@@ -16,23 +16,33 @@ package com.google.dart.engine.source;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 
 /**
  * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing
  * {@link Source source}.
  */
 public class SourceFactory {
+
   /**
    * The resolvers used to resolve absolute URI's.
    */
   private UriResolver[] resolvers;
 
   /**
-   * A table mapping sources to the contents of those sources. This is used to override the default
-   * contents of a source.
+   * A cache of content used to override the default content of a source.
    */
-  private HashMap<Source, String> contentMap = new HashMap<Source, String>();
+  private ContentCache contentCache;
+
+  /**
+   * Initialize a newly created source factory.
+   * 
+   * @param contentCache the cache holding content used to override the default content of a source.
+   * @param resolvers the resolvers used to resolve absolute URI's
+   */
+  public SourceFactory(ContentCache contentCache, UriResolver... resolvers) {
+    this.contentCache = contentCache;
+    this.resolvers = resolvers;
+  }
 
   /**
    * Initialize a newly created source factory.
@@ -40,7 +50,7 @@ public class SourceFactory {
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   public SourceFactory(UriResolver... resolvers) {
-    this.resolvers = resolvers;
+    this(new ContentCache(), resolvers);
   }
 
   /**
@@ -91,11 +101,7 @@ public class SourceFactory {
    * @param contents the new contents of the source
    */
   public void setContents(Source source, String contents) {
-    if (contents == null) {
-      contentMap.remove(source);
-    } else {
-      contentMap.put(source, contents);
-    }
+    contentCache.setContents(source, contents);
   }
 
   /**
@@ -109,7 +115,7 @@ public class SourceFactory {
    * @return the contents of the given source
    */
   protected String getContents(Source source) {
-    return contentMap.get(source);
+    return contentCache.getContents(source);
   }
 
   /**

@@ -81,4 +81,34 @@ public class SourceFactoryTest extends TestCase {
     factory.setContents(source, null);
     assertNull(factory.getContents(source));
   }
+
+  public void test_sharedContents() {
+    ContentCache cache = new ContentCache();
+
+    SourceFactory factory1 = new SourceFactory(cache);
+    File file = new File("/does/not/exist.dart");
+    Source source1 = factory1.forFile(file);
+    assertNull(factory1.getContents(source1));
+    String contents = "library lib;";
+    factory1.setContents(source1, contents);
+    assertEquals(contents, factory1.getContents(source1));
+
+    SourceFactory factory2 = new SourceFactory(cache);
+    Source source2 = factory2.forFile(file);
+    assertEquals(contents, factory2.getContents(source2));
+  }
+
+  public void test_sharedContentsNot() {
+    SourceFactory factory1 = new SourceFactory();
+    File file = new File("/does/not/exist.dart");
+    Source source1 = factory1.forFile(file);
+    assertNull(factory1.getContents(source1));
+    String contents = "library lib;";
+    factory1.setContents(source1, contents);
+    assertEquals(contents, factory1.getContents(source1));
+
+    SourceFactory factory2 = new SourceFactory();
+    Source source2 = factory2.forFile(file);
+    assertNull(factory2.getContents(source2));
+  }
 }
