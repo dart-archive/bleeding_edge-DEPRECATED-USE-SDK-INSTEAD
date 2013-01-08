@@ -122,8 +122,11 @@ public class DeltaProcessor {
     }
 
     // Cache the context and traverse child resource changes
-    context = project.getContext((IContainer) proxy.requestResource());
-    return true;
+    return setContextFor((IContainer) proxy.requestResource());
+  }
+
+  private void logNoLocation(IResource resource) {
+    DartCore.logInformation("No location for " + resource);
   }
 
   /**
@@ -183,8 +186,9 @@ public class DeltaProcessor {
 
         // Process "packages" folder changes separately
         if (name.equals(PACKAGES_DIRECTORY_NAME)) {
-          context = project.getContext(resource.getParent());
-          processPackagesDelta(delta);
+          if (setContextFor(resource.getParent())) {
+            processPackagesDelta(delta);
+          }
           return false;
         }
 
@@ -200,8 +204,7 @@ public class DeltaProcessor {
         }
 
         // Cache the context and traverse child resource changes
-        context = project.getContext((IContainer) resource);
-        return true;
+        return setContextFor((IContainer) resource);
       }
     });
   }
@@ -313,6 +316,22 @@ public class DeltaProcessor {
   }
 
   /**
+   * Cache the context for the specified container for use in subsequent operations. If the context
+   * for the specified container cannot be determined, then the cached context is left unchanged.
+   * 
+   * @param container the container (not {@code null})
+   * @return {@code true} if the context was set, or {@code false} if not
+   */
+  private boolean setContextFor(IContainer container) {
+    AnalysisContext nextContext = project.getContext(container);
+    if (nextContext == null) {
+      return false;
+    }
+    context = nextContext;
+    return true;
+  }
+
+  /**
    * Notify the current context of a source file that has changed
    * 
    * @param resource the resource that has changed (not {@code null})
@@ -324,7 +343,7 @@ public class DeltaProcessor {
   private void sourceChanged(IFile resource, boolean available, boolean changed) {
     IPath location = resource.getLocation();
     if (location == null) {
-      DartCore.logInformation("No location for " + resource);
+      logNoLocation(resource);
       return;
     }
     Source source = context.getSourceFactory().forFile(location.toFile());
@@ -344,7 +363,7 @@ public class DeltaProcessor {
   private void sourceDeleted(IFile resource) {
     IPath location = resource.getLocation();
     if (location == null) {
-      DartCore.logInformation("No location for " + resource);
+      logNoLocation(resource);
       return;
     }
     Source source = context.getSourceFactory().forFile(location.toFile());
@@ -359,7 +378,7 @@ public class DeltaProcessor {
   private void sourcesDeleted(IContainer resource) {
     IPath location = resource.getLocation();
     if (location == null) {
-      DartCore.logInformation("No location for " + resource);
+      logNoLocation(resource);
       return;
     }
     SourceContainer container = context.getSourceFactory().forDirectory(location.toFile());

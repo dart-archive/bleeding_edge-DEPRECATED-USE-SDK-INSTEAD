@@ -23,7 +23,8 @@ public interface Project {
    * this container.
    * 
    * @param container a container (not {@code null}) in this project
-   * @return the context used for analysis (not {@code null})
+   * @return the context used for analysis or {@code null} if the context was not cached and could
+   *         not be created because the container's location could not be determined
    */
   AnalysisContext getContext(IContainer container);
 

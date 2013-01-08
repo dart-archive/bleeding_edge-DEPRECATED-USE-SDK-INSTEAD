@@ -22,21 +22,21 @@ public interface ProjectManager {
    * Answer the project for the specified Eclipse resource
    * 
    * @param resource the Eclipse resource
-   * @return the project (not <code>null</code>)
+   * @return the project (not {@code null})
    */
   Project getProject(IProject resource);
 
   /**
-   * Return an array containing all of the projects currently defined in the workspace.
+   * Answer an array containing all of the projects currently defined in the workspace
    * 
-   * @return array of projects (not <code>null</code>, contains no <code>null</code>)
+   * @return array of projects (not {@code null}, contains no {@code null})
    */
   Project[] getProjects();
 
   /**
    * Answer the underlying Eclipse workspace associated with this object
    * 
-   * @return the Eclipse workspace (not <code>null</code>)
+   * @return the Eclipse workspace (not {@code null})
    */
   IWorkspaceRoot getResource();
 }

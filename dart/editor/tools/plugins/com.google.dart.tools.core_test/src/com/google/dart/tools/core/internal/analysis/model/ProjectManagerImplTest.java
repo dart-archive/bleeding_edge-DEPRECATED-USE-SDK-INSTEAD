@@ -22,14 +22,14 @@ import junit.framework.TestCase;
 
 public class ProjectManagerImplTest extends TestCase {
 
-  private MockWorkspaceRoot rootContainer;
-  private MockProject projectContainer;
+  private MockWorkspaceRoot mockRoot;
+  private MockProject mockProject;
   private ProjectManagerImpl manager;
 
   public void test_getProject() {
-    Project actual = manager.getProject(projectContainer);
+    Project actual = manager.getProject(mockProject);
     assertNotNull(actual);
-    assertSame(projectContainer, actual.getResource());
+    assertSame(mockProject, actual.getResource());
   }
 
   public void test_getProjects() {
@@ -37,18 +37,18 @@ public class ProjectManagerImplTest extends TestCase {
     assertNotNull(actual);
     assertEquals(1, actual.length);
     assertNotNull(actual[0]);
-    assertSame(manager.getProject(projectContainer), actual[0]);
+    assertSame(manager.getProject(mockProject), actual[0]);
   }
 
   public void test_getResource() {
-    assertSame(rootContainer, manager.getResource());
+    assertSame(mockRoot, manager.getResource());
   }
 
   @Override
   protected void setUp() throws Exception {
-    rootContainer = new MockWorkspaceRoot();
-    projectContainer = TestProjects.newPubProject3(rootContainer);
-    rootContainer.add(projectContainer);
-    manager = new ProjectManagerImpl(rootContainer);
+    mockRoot = new MockWorkspaceRoot();
+    mockProject = TestProjects.newPubProject3(mockRoot);
+    mockRoot.add(mockProject);
+    manager = new ProjectManagerImpl(mockRoot);
   }
 }

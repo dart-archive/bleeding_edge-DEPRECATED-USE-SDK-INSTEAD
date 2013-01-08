@@ -37,7 +37,11 @@ public class ProjectImpl implements Project {
   private final IProject resource;
 
   /**
-   * A mapping of container to context used to analyze Dart source in that container
+   * A mapping of container to context used to analyze Dart source in that container. The content of
+   * this map is lazily built as clients request the context for a particular container. A
+   * container/context pair is added for each container for which a context is requested, and
+   * because a single context is used to analyze an entire directory tree, a particular context may
+   * appear multiple times in the map.
    */
   private final HashMap<IContainer, AnalysisContext> contexts = new HashMap<IContainer, AnalysisContext>();
 
@@ -82,23 +86,25 @@ public class ProjectImpl implements Project {
 
   @Override
   public void containerDeleted(IContainer container) {
-    HashSet<AnalysisContext> toDelete = new HashSet<AnalysisContext>();
+    HashSet<AnalysisContext> toDiscard = new HashSet<AnalysisContext>();
     HashSet<AnalysisContext> toSave = new HashSet<AnalysisContext>();
 
-    // Remove contexts in the specified container
+    // Determine which contexts should be saved, and which should be discarded
+    // Since a single context may appear multiple times in the map (see field comment)
+    // any given context may be part of both lists
     Iterator<Entry<IContainer, AnalysisContext>> iter = contexts.entrySet().iterator();
     while (iter.hasNext()) {
       Entry<IContainer, AnalysisContext> entry = iter.next();
       if (equalsOrContains(container, entry.getKey())) {
-        toDelete.add(entry.getValue());
+        toDiscard.add(entry.getValue());
         iter.remove();
       } else {
         toSave.add(entry.getValue());
       }
     }
 
-    // Discard removed contexts
-    for (AnalysisContext context : toDelete) {
+    // Discard only those contexts which are no longer in the map
+    for (AnalysisContext context : toDiscard) {
       if (!toSave.contains(context)) {
         context.discard();
       }
@@ -119,7 +125,8 @@ public class ProjectImpl implements Project {
     }
     IPath location = container.getLocation();
     if (location == null) {
-      throw new RuntimeException("No location for " + container);
+      logNoLocation(container);
+      return null;
     }
 
     // Create a context for analyzing sources in the project
@@ -127,6 +134,9 @@ public class ProjectImpl implements Project {
       context = createDefaultContext();
     } else {
       AnalysisContext parentContext = getContext(container.getParent());
+      if (parentContext == null) {
+        return null;
+      }
 
       // If the folder contains a pubspec, then create a new context for analyzing sources
       if (((IFolder) container).getFile(DartCore.PUBSPEC_FILE_NAME).exists()) {
@@ -148,11 +158,10 @@ public class ProjectImpl implements Project {
   }
 
   /**
-   * For testing :: Answer the cached context for the specified container, but do not create a
-   * context or retrieve the parent context if a context is not already associated with this
-   * container. This differs from {@link #getContext(IContainer)} which will create a context or
-   * retrieve the parent context as appropriate if a context is not already associated with this
-   * container.
+   * Answer the cached context for the specified container, but do not create a context or retrieve
+   * the parent context if a context is not already associated with this container. This differs
+   * from {@link #getContext(IContainer)} which will create a context or retrieve the parent context
+   * as appropriate if a context is not already associated with this container.
    * 
    * @param container the container (not {@code null})
    * @return the associated context or {@code null} if none.
@@ -178,19 +187,22 @@ public class ProjectImpl implements Project {
       return;
     }
 
-    // Extract the child context from the parent
     AnalysisContext context = contexts.get(container);
+    // If a context is not cached, then nothing to be updated
     if (context == null) {
       return;
     }
     IPath location = container.getLocation();
     if (location == null) {
-      throw new RuntimeException("No location for " + container);
+      logNoLocation(container);
+      return;
     }
     AnalysisContext parentContext = contexts.get(container.getParent());
+    // If a sub context has already been created, then nothing to update
     if (context != parentContext) {
       return;
     }
+    // Extract the child context from the parent
     SourceFactory factory = parentContext.getSourceFactory();
     SourceContainer sourceContainer = factory.forDirectory(location.toFile());
     context = parentContext.extractAnalysisContext(sourceContainer);
@@ -242,10 +254,10 @@ public class ProjectImpl implements Project {
   }
 
   /**
-   * Answer <code>true</code> if the container equals or contains the specified resource.
+   * Answer {@code true} if the container equals or contains the specified resource.
    * 
-   * @param directory the directory (not <code>null</code>, absolute file)
-   * @param file the file (not <code>null</code>, absolute file)
+   * @param directory the directory (not {@code null}, absolute file)
+   * @param file the file (not {@code null}, absolute file)
    */
   private boolean equalsOrContains(IContainer container, IResource resource) {
     IPath dirPath = container.getFullPath();
@@ -271,5 +283,9 @@ public class ProjectImpl implements Project {
 
     // Create and cache the context
     context.setSourceFactory(factory);
+  }
+
+  private void logNoLocation(IContainer container) {
+    DartCore.logInformation("No location for " + container);
   }
 }
