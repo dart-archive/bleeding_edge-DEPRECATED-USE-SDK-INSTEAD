@@ -53,7 +53,7 @@ public class NewFileGenerator extends AbstractGenerator {
       substitutions.put("title", className); //$NON-NLS-1$
       substitutions.put("fileName", className); //$NON-NLS-1$
       substitutions.put("dartSrcPath", className); //$NON-NLS-1$
-      nameOfSrcTxt = "generated-html.txt";
+      nameOfSrcTxt = "generated-html-new.txt";
     }
 
     if (DartCore.PUBSPEC_FILE_NAME.equals(fileName)) {

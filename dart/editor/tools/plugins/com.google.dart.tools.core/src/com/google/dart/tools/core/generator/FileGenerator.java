@@ -160,7 +160,7 @@ public class FileGenerator extends AbstractGenerator {
       }
       substitutions.put("dartPath", jsGeneratedFileName + ".dart.app.js"); //$NON-NLS-1$ //$NON-NLS-2$
 
-      nameOfSrcTxt = "generated-html.txt";
+      nameOfSrcTxt = "generated-html-new.txt";
 
     } else if (DartCore.isCSSLikeFileName(fileName)) {
       // CSS file- same as empty file case, for now
