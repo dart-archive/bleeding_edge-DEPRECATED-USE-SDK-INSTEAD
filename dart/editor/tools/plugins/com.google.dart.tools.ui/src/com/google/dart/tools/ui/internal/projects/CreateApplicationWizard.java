@@ -15,16 +15,15 @@
 package com.google.dart.tools.ui.internal.projects;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.generator.ApplicationGenerator;
-import com.google.dart.tools.core.generator.DartIdentifierUtil;
+import com.google.dart.tools.core.generator.AbstractSample;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.AbstractOperation;
 import org.eclipse.core.resources.ICommand;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -37,7 +36,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -112,9 +110,7 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
   }
 
   private void createFolder(IPath path) {
-
-    final ProjectType projectType = page.getProjectType();
-    final boolean hasPubSupport = page.hasPubSupport();
+    final AbstractSample sampleContent = page.getCurrentSample();
 
     IPath containerPath = path.removeLastSegments(1);
 
@@ -136,13 +132,12 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
 
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
-          if (status.isOK() && projectType != ProjectType.NONE) {
+          if (status.isOK()) {
             createdFile = createProjectContent(
                 newProject,
-                newFolderHandle.getLocation().toOSString(),
+                newFolderHandle,
                 newFolderHandle.getName(),
-                projectType,
-                hasPubSupport);
+                sampleContent);
           }
 
         } catch (ExecutionException e) {
@@ -198,8 +193,7 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
 
     // get a project handle
     final IProject newProjectHandle = page.getProjectHandle();
-    final ProjectType projectType = page.getProjectType();
-    final boolean hasPubSupport = page.hasPubSupport();
+    final AbstractSample sampleContent = page.getCurrentSample();
 
     // get a project descriptor
     URI location = page.getLocationURI();
@@ -216,13 +210,12 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
         try {
           IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
 
-          if (status.isOK() && projectType != ProjectType.NONE) {
+          if (status.isOK()) {
             createdFile = createProjectContent(
                 newProjectHandle,
-                newProjectHandle.getLocation().toOSString(),
+                null,
                 newProjectHandle.getName(),
-                projectType,
-                hasPubSupport);
+                sampleContent);
           }
         } catch (ExecutionException e) {
           throw new InvocationTargetException(e);
@@ -285,21 +278,21 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
    * @param projectType
    * @throws CoreException
    */
-  private IFile createProjectContent(IProject project, String location, String name,
-      ProjectType projectType, boolean hasPubSupport) throws CoreException {
-
+  private IFile createProjectContent(IProject project, IFolder folder, String name,
+      AbstractSample sampleContent) throws CoreException {
     IProjectUtilities.configurePackagesFilter(project);
 
-    ApplicationGenerator generator = new ApplicationGenerator(project);
+    if (sampleContent == null) {
+      return null;
+    }
 
-    generator.setApplicationLocation(location);
-    generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(name));
-    generator.setWebApplication(projectType == ProjectType.WEB);
-    generator.setHasPubSupport(hasPubSupport);
+    IContainer container = project;
 
-    generator.execute(new NullProgressMonitor());
+    if (folder != null) {
+      container = folder;
+    }
 
-    return generator.getFile();
+    return sampleContent.generateInto(container, name);
   }
 
   private IProjectDescription createProjectDescription(IProject project, URI location) {

@@ -13,10 +13,8 @@
  */
 package com.google.dart.eclipse.wizards;
 
+import com.google.dart.tools.core.generator.AbstractSample;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage;
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
-import com.google.dart.tools.ui.internal.projects.ProjectMessages;
 
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -25,7 +23,16 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -39,7 +46,13 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import java.util.List;
+
 class ProjectComposite extends Composite {
+  static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings"; //$NON-NLS-1$
+  private static final String CONTENT_GENERATION_DISABLED = "contentGenerationDisabled"; //$NON-NLS-1$
+
+  private DartProjectWizardPage page;
 
   private Label nameLabel;
   private Text nameField;
@@ -50,12 +63,14 @@ class ProjectComposite extends Composite {
   private Text existingSourcePathText;
   private Button browseButton;
 
-//  private Button addSampleContentCheckbox;
-  private Button webAppCheckboxButton;
-  private Button pubSupportCheckboxButton;
+  private Button addSampleContentCheckbox;
+  private ListViewer samplesListViewer;
 
-  public ProjectComposite(Composite parent, int style) {
+  public ProjectComposite(DartProjectWizardPage page, Composite parent, int style) {
     super(parent, style);
+
+    this.page = page;
+
     initialize();
   }
 
@@ -77,15 +92,18 @@ class ProjectComposite extends Composite {
     return null;
   }
 
-  public ProjectType getSampleType() {
-//    if (!addSampleContentCheckbox.getSelection()) {
-//      return ProjectType.NONE;
-//    }
-    return webAppCheckboxButton.getSelection() ? ProjectType.WEB : ProjectType.SERVER;
-  }
+  protected AbstractSample getCurrentSample() {
+    if (addSampleContentCheckbox.getSelection()) {
+      IStructuredSelection selection = (IStructuredSelection) samplesListViewer.getSelection();
 
-  public boolean hasPubSupport() {
-    return pubSupportCheckboxButton.getSelection();
+      if (selection.isEmpty()) {
+        return null;
+      } else {
+        return (AbstractSample) selection.getFirstElement();
+      }
+    } else {
+      return null;
+    }
   }
 
   private void createContentGroup() {
@@ -119,7 +137,7 @@ class ProjectComposite extends Composite {
     gridLayout1.verticalSpacing = 7;
 
     contentGroup = new Group(this, SWT.SHADOW_ETCHED_IN);
-    contentGroup.setText("Contents");
+    contentGroup.setText("Location");
     contentGroup.setLayout(gridLayout1);
     contentGroup.setLayoutData(gridData2);
 
@@ -195,56 +213,49 @@ class ProjectComposite extends Composite {
   private void createSampleGroup() {
 
     Group contentGroup = new Group(this, SWT.NONE);
-    GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
+    contentGroup.setText("Sample content");
+    GridDataFactory.fillDefaults().span(3, 1).grab(true, false).applyTo(contentGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
-//    addSampleContentCheckbox = new Button(contentGroup, SWT.CHECK);
-//    addSampleContentCheckbox.setText("Create sample content");
-
-    webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
-    webAppCheckboxButton.setText(ProjectMessages.NewApplicationWizardPage_webAppCheckbox_name_label);
-    webAppCheckboxButton.setSelection(getWebAppCheckboxEnabled());
-    webAppCheckboxButton.addSelectionListener(new SelectionAdapter() {
+    addSampleContentCheckbox = new Button(contentGroup, SWT.CHECK);
+    addSampleContentCheckbox.setText("Create sample content");
+    addSampleContentCheckbox.setSelection(getGenerateContentPreference());
+    addSampleContentCheckbox.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-            NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS);
-        settings.put(
-            NewApplicationCreationPage.WEB_APP_CHECKBOX_DISABLED,
-            !webAppCheckboxButton.getSelection());
+            NEW_APPPLICATION_SETTINGS);
+        settings.put(CONTENT_GENERATION_DISABLED, !addSampleContentCheckbox.getSelection());
+
+        updateMessageAndEnablement();
       }
     });
 
-    pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
-    pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
-    pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
-    pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
+    Label spacer = new Label(contentGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(spacer);
+
+    samplesListViewer = new ListViewer(contentGroup);
+    samplesListViewer.setLabelProvider(new LabelProvider());
+    samplesListViewer.setContentProvider(new ArrayContentProvider());
+    List<AbstractSample> samples = AbstractSample.getAllSamples();
+    samplesListViewer.setInput(samples);
+    GridDataFactory.fillDefaults().hint(-1, 60).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        samplesListViewer.getControl());
+    samplesListViewer.setSelection(new StructuredSelection(samples.get(0)));
+    samplesListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
-      public void widgetSelected(SelectionEvent e) {
-        IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-            NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS);
-        settings.put(
-            NewApplicationCreationPage.PUB_SUPPORT_CHECKBOX_DISABLED,
-            !pubSupportCheckboxButton.getSelection());
+      public void selectionChanged(SelectionChangedEvent event) {
+        updateMessageAndEnablement();
       }
     });
 
+    samplesListViewer.getList().setEnabled(addSampleContentCheckbox.getSelection());
   }
 
-  private boolean getPubSupportCheckboxEnabled() {
+  private boolean getGenerateContentPreference() {
     IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-        NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS);
-    return !settings.getBoolean(NewApplicationCreationPage.PUB_SUPPORT_CHECKBOX_DISABLED);
-  }
-
-  private boolean getWebAppCheckboxEnabled() {
-    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-        NewApplicationCreationPage.NEW_APPPLICATION_SETTINGS);
-    // The following has one of three (not two) states:
-    // 1) If it has never been set before (see listener on checkbox), this will return true- the default behavior
-    // 2) If WEB_APP_CHECKBOX_DISABLED is false, return true.
-    // 3) If WEB_APP_CHECKBOX_DISABLED is true, return false.
-    return !settings.getBoolean(NewApplicationCreationPage.WEB_APP_CHECKBOX_DISABLED);
+        NEW_APPPLICATION_SETTINGS);
+    return !settings.getBoolean(CONTENT_GENERATION_DISABLED);
   }
 
   private void initialize() {
@@ -270,12 +281,24 @@ class ProjectComposite extends Composite {
 
     nameField = new Text(this, SWT.BORDER);
     nameField.setLayoutData(gridData);
+    nameField.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyReleased(KeyEvent e) {
+        updateMessageAndEnablement();
+      }
+    });
 
     setLayout(gridLayout);
     createContentGroup();
     createSampleGroup();
 
     setSize(new Point(449, 311));
+  }
+
+  private void updateMessageAndEnablement() {
+    page.updatePage();
+
+    samplesListViewer.getList().setEnabled(addSampleContentCheckbox.getSelection());
   }
 
 }

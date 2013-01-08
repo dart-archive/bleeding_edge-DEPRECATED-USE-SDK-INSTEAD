@@ -15,11 +15,11 @@
 package com.google.dart.tools.ui.internal.projects;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.generator.AbstractSample;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.internal.util.StatusUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
-import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.resources.IProject;
@@ -28,9 +28,18 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -47,11 +56,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
 import java.io.File;
 import java.net.URI;
+import java.util.List;
 
 /**
  * New project creation page.
@@ -64,16 +73,17 @@ public class NewApplicationCreationPage extends WizardPage {
     WEB
   }
 
-  public static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings"; //$NON-NLS-1$
-  public static final String PARENT_DIR = "parentDir"; //$NON-NLS-1$
-  public static final String WEB_APP_CHECKBOX_DISABLED = "webAppCheckboxDisabled"; //$NON-NLS-1$
-  public static final String PUB_SUPPORT_CHECKBOX_DISABLED = "pubSupportCheckboxDisabled"; //$NON-NLS-1$
+  static final String NEW_APPPLICATION_SETTINGS = "newApplicationWizard.settings"; //$NON-NLS-1$
+  static final String PARENT_DIR = "parentDir"; //$NON-NLS-1$
+
+  private static final String CONTENT_GENERATION_DISABLED = "contentGenerationDisabled"; //$NON-NLS-1$
 
   private Text projectNameField;
   private Text projectLocationField;
   private String defaultLocation;
-  private Button webAppCheckboxButton;
-  private Button pubSupportCheckboxButton;
+
+  private Button generateContentButton;
+  private ListViewer samplesListViewer;
 
   /**
    * Creates a new project creation wizard page.
@@ -95,12 +105,17 @@ public class NewApplicationCreationPage extends WizardPage {
 
     GridData gridData = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
     container.setLayoutData(gridData);
-    container.setLayout(new GridLayout(3, false));
+    container.setLayout(new GridLayout(1, false));
 
-    Label nameLabel = new Label(container, SWT.NONE);
+    Group nameGroup = new Group(container, SWT.NONE);
+    nameGroup.setText("Name and location");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(nameGroup);
+    GridLayoutFactory.fillDefaults().numColumns(3).margins(8, 8).applyTo(nameGroup);
+
+    Label nameLabel = new Label(nameGroup, SWT.NONE);
     nameLabel.setText(ProjectMessages.NewApplicationWizardPage_project_name_label);
 
-    projectNameField = new Text(container, SWT.BORDER);
+    projectNameField = new Text(nameGroup, SWT.BORDER);
     projectNameField.setText(""); //$NON-NLS-1$
     projectNameField.setToolTipText(ProjectMessages.NewApplicationWizardPage_project_name_tooltip);
     projectNameField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
@@ -117,10 +132,10 @@ public class NewApplicationCreationPage extends WizardPage {
       }
     });
 
-    Label locationLabel = new Label(container, SWT.NONE);
+    Label locationLabel = new Label(nameGroup, SWT.NONE);
     locationLabel.setText(ProjectMessages.NewApplicationWizardPage_directory_label);
 
-    projectLocationField = new Text(container, SWT.BORDER);
+    projectLocationField = new Text(nameGroup, SWT.BORDER);
     projectLocationField.setText(defaultLocation);
     projectLocationField.setToolTipText(ProjectMessages.NewApplicationWizardPage_directory_tooltip);
     projectLocationField.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -137,7 +152,7 @@ public class NewApplicationCreationPage extends WizardPage {
       }
     });
 
-    Button browseButton = new Button(container, SWT.NONE);
+    Button browseButton = new Button(nameGroup, SWT.NONE);
     browseButton.setText(ProjectMessages.NewApplicationWizardPage_browse_label);
     browseButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -145,48 +160,50 @@ public class NewApplicationCreationPage extends WizardPage {
         handleBrowseButton(projectLocationField);
       }
     });
+    PixelConverter converter = new PixelConverter(browseButton);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(browseButton);
 
     projectNameField.setFocus();
 
     Group contentGroup = new Group(container, SWT.NONE);
-//    contentGroup.setText("Create sample content");
+    contentGroup.setText("Sample content");
     GridDataFactory.fillDefaults().span(3, 1).grab(true, false).indent(0, 10).applyTo(contentGroup);
-    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(contentGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(contentGroup);
 
-    webAppCheckboxButton = new Button(contentGroup, SWT.CHECK);
-    webAppCheckboxButton.setText(ProjectMessages.NewApplicationWizardPage_webAppCheckbox_name_label);
-    GridDataFactory.fillDefaults().span(2, 1).applyTo(webAppCheckboxButton);
-    webAppCheckboxButton.setSelection(getWebAppCheckboxEnabled());
-    webAppCheckboxButton.addSelectionListener(new SelectionAdapter() {
+    generateContentButton = new Button(contentGroup, SWT.CHECK);
+    generateContentButton.setText("Generate sample content");
+    generateContentButton.setSelection(getGenerateContentPreference());
+    generateContentButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
             NEW_APPPLICATION_SETTINGS);
-        settings.put(WEB_APP_CHECKBOX_DISABLED, !webAppCheckboxButton.getSelection());
+        settings.put(CONTENT_GENERATION_DISABLED, !generateContentButton.getSelection());
+
+        updateMessageAndEnablement();
       }
     });
 
-    pubSupportCheckboxButton = new Button(contentGroup, SWT.CHECK);
-    pubSupportCheckboxButton.setText(ProjectMessages.NewApplicationCreationPage_pubSupportCheckbox_name_label);
-    GridDataFactory.swtDefaults().grab(true, false).applyTo(pubSupportCheckboxButton);
-    pubSupportCheckboxButton.setSelection(getPubSupportCheckboxEnabled());
-    pubSupportCheckboxButton.addSelectionListener(new SelectionAdapter() {
+    Label spacer = new Label(contentGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(spacer);
+
+    samplesListViewer = new ListViewer(contentGroup);
+    samplesListViewer.setLabelProvider(new LabelProvider());
+    samplesListViewer.setContentProvider(new ArrayContentProvider());
+    List<AbstractSample> samples = AbstractSample.getAllSamples();
+    samplesListViewer.setInput(samples);
+    GridDataFactory.fillDefaults().hint(-1, 60).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
+        samplesListViewer.getControl());
+    samplesListViewer.setSelection(new StructuredSelection(samples.get(0)));
+    samplesListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
-      public void widgetSelected(SelectionEvent e) {
-        IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-            NEW_APPPLICATION_SETTINGS);
-        settings.put(PUB_SUPPORT_CHECKBOX_DISABLED, !pubSupportCheckboxButton.getSelection());
+      public void selectionChanged(SelectionChangedEvent event) {
+        updateMessageAndEnablement();
       }
     });
 
-    Link infoLink = new Link(contentGroup, SWT.NONE);
-    infoLink.setText("<a href=\"" + "http://pub.dartlang.org/doc/" + "\">what is Pub?</a>");
-    infoLink.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        ExternalBrowserUtil.openInExternalBrowser("http://pub.dartlang.org/doc/");
-      }
-    });
+    updateMessageAndEnablement();
 
     setPageComplete(false);
   }
@@ -226,28 +243,18 @@ public class NewApplicationCreationPage extends WizardPage {
     return getProjectNameFieldValue();
   }
 
-  /**
-   * @return the sample project content to create
-   * @see ProjectType
-   */
-  public ProjectType getProjectType() {
-    if (doesProjectExist()) {
-      return ProjectType.NONE;
-    }
-    if (webAppCheckboxButton.getSelection()) {
-      return ProjectType.WEB;
-    } else {
-      return ProjectType.SERVER;
-    }
-  }
+  protected AbstractSample getCurrentSample() {
+    if (generateContentButton.getSelection()) {
+      IStructuredSelection selection = (IStructuredSelection) samplesListViewer.getSelection();
 
-  /**
-   * Specifies if contents should be generated to suit pub package layout
-   * 
-   * @return true/false
-   */
-  public boolean hasPubSupport() {
-    return pubSupportCheckboxButton.getSelection();
+      if (selection.isEmpty()) {
+        return null;
+      } else {
+        return (AbstractSample) selection.getFirstElement();
+      }
+    } else {
+      return null;
+    }
   }
 
   protected void handleBrowseButton(Text locationField) {
@@ -283,6 +290,12 @@ public class NewApplicationCreationPage extends WizardPage {
     return file.exists();
   }
 
+  private boolean getGenerateContentPreference() {
+    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
+        NEW_APPPLICATION_SETTINGS);
+    return !settings.getBoolean(CONTENT_GENERATION_DISABLED);
+  }
+
   private IPath getLocationPath() {
     return new Path(projectLocationField.getText()).append(getProjectName());
   }
@@ -311,25 +324,7 @@ public class NewApplicationCreationPage extends WizardPage {
     return projectNameField.getText().trim();
   }
 
-  private boolean getPubSupportCheckboxEnabled() {
-    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-        NEW_APPPLICATION_SETTINGS);
-    return !settings.getBoolean(PUB_SUPPORT_CHECKBOX_DISABLED);
-  }
-
-  private boolean getWebAppCheckboxEnabled() {
-    IDialogSettings settings = DartToolsPlugin.getDefault().getDialogSettingsSection(
-        NEW_APPPLICATION_SETTINGS);
-    // The following has one of three (not two) states:
-    // 1) If it has never been set before (see listener on checkbox), this will return true- the default behavior
-    // 2) If WEB_APP_CHECKBOX_DISABLED is false, return true.
-    // 3) If WEB_APP_CHECKBOX_DISABLED is true, return false.
-    return !settings.getBoolean(WEB_APP_CHECKBOX_DISABLED);
-  }
-
   private void update() {
-    webAppCheckboxButton.setEnabled(!doesProjectExist());
-
     if (getProjectNameFieldValue().isEmpty()) {
       setMessage(ProjectMessages.OpenNewApplicationWizardAction_desc);
       setPageComplete(false);
@@ -346,6 +341,13 @@ public class NewApplicationCreationPage extends WizardPage {
       setPageComplete(false);
       setErrorMessage(status.getMessage());
     }
+  }
+
+  private void updateMessageAndEnablement() {
+    AbstractSample sample = getCurrentSample();
+    setMessage(sample == null ? null : sample.getDescription());
+
+    samplesListViewer.getList().setEnabled(generateContentButton.getSelection());
   }
 
   private IStatus validate() {

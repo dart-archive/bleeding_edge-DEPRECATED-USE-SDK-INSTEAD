@@ -13,8 +13,13 @@
  */
 package com.google.dart.eclipse.wizards;
 
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
+import com.google.dart.tools.core.generator.AbstractSample;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.wizard.WizardPage;
@@ -40,14 +45,15 @@ public class DartProjectWizardPage extends WizardPage {
 
   @Override
   public void createControl(Composite parent) {
-
     Composite container = new Composite(parent, SWT.NULL);
     GridLayoutFactory.swtDefaults().spacing(5, 1).applyTo(container);
 
-    projectComposite = new ProjectComposite(container, SWT.NONE);
+    projectComposite = new ProjectComposite(this, container, SWT.NONE);
     projectComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     setControl(container);
+    
+    updatePage();
   }
 
   public String getProjectLocation() {
@@ -58,12 +64,43 @@ public class DartProjectWizardPage extends WizardPage {
     return projectComposite.getProjectName();
   }
 
-  public ProjectType getSampleContentType() {
-    return projectComposite.getSampleType();
+  protected AbstractSample getSampleContent() {
+    return projectComposite.getCurrentSample();
   }
 
-  public boolean hasPubSupport() {
-    return projectComposite.hasPubSupport();
+  protected void updatePage() {
+    AbstractSample sample = getSampleContent();
+    setMessage(sample == null ? null : sample.getDescription());
+
+    setPageComplete(validatePage());
+  }
+
+  protected boolean validatePage() {
+    IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+    String projectFieldContents = getProjectName();
+
+    if (projectFieldContents.equals("")) {
+      setErrorMessage(null);
+      setMessage("Project name must be specified");
+      return false;
+    }
+
+    IStatus nameStatus = workspace.validateName(projectFieldContents, IResource.PROJECT);
+    if (!nameStatus.isOK()) {
+      setErrorMessage(nameStatus.getMessage());
+      return false;
+    }
+
+    IProject handle = workspace.getRoot().getProject(getProjectName());
+    if (handle.exists()) {
+      setErrorMessage("A project with that name already exists in the workspace.");
+      return false;
+    }
+
+    setErrorMessage(null);
+    setMessage(null);
+    return true;
   }
 
 }

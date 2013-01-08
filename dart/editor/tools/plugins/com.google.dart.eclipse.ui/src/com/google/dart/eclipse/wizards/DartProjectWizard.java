@@ -16,11 +16,10 @@ package com.google.dart.eclipse.wizards;
 import com.google.dart.eclipse.DartEclipseUI;
 import com.google.dart.eclipse.ui.internal.DartPerspective;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.generator.ApplicationGenerator;
+import com.google.dart.tools.core.generator.AbstractSample;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.utilities.resource.IProjectUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.internal.resources.ProjectDescription;
@@ -35,7 +34,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -246,27 +244,21 @@ public class DartProjectWizard extends Wizard implements INewWizard {
         CoreException cause = (CoreException) t.getCause();
         StatusAdapter status;
         if (cause.getStatus().getCode() == IResourceStatus.CASE_VARIANT_EXISTS) {
-          status = new StatusAdapter(StatusUtil.newStatus(
-              IStatus.WARNING,
+          status = new StatusAdapter(StatusUtil.newStatus(IStatus.WARNING,
               NLS.bind(ResourceMessages.NewProject_caseVariantExistsError, project.getName()),
               cause));
         } else {
-          status = new StatusAdapter(StatusUtil.newStatus(
-              cause.getStatus().getSeverity(),
-              ResourceMessages.NewProject_errorMessage,
-              cause));
+          status = new StatusAdapter(StatusUtil.newStatus(cause.getStatus().getSeverity(),
+              ResourceMessages.NewProject_errorMessage, cause));
         }
-        status.setProperty(
-            IStatusAdapterConstants.TITLE_PROPERTY,
+        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.BLOCK);
       } else {
         StatusAdapter status = new StatusAdapter(new Status(IStatus.WARNING,
             IDEWorkbenchPlugin.IDE_WORKBENCH, 0, NLS.bind(
-                ResourceMessages.NewProject_internalError,
-                t.getMessage()), t));
-        status.setProperty(
-            IStatusAdapterConstants.TITLE_PROPERTY,
+                ResourceMessages.NewProject_internalError, t.getMessage()), t));
+        status.setProperty(IStatusAdapterConstants.TITLE_PROPERTY,
             ResourceMessages.NewProject_errorMessage);
         StatusManager.getManager().handle(status, StatusManager.LOG | StatusManager.BLOCK);
       }
@@ -274,25 +266,14 @@ public class DartProjectWizard extends Wizard implements INewWizard {
     }
 
     try {
-
       IProjectUtilities.configurePackagesFilter(project);
 
-      ProjectType contentType = page.getSampleContentType();
+      AbstractSample sampleContent = page.getSampleContent();
 
-      if (contentType != ProjectType.NONE) {
-
-        ApplicationGenerator generator = new ApplicationGenerator(project);
-
-        generator.setApplicationLocation(project.getLocation().toOSString());
-        generator.setApplicationName(DartIdentifierUtil.createValidIdentifier(name));
-        generator.setWebApplication(contentType == ProjectType.WEB);
-        generator.setHasPubSupport(page.hasPubSupport());
-
-        generator.execute(new NullProgressMonitor());
-
-        createdSampleFile = generator.getFile();
+      if (sampleContent != null) {
+        createdSampleFile = sampleContent.generateInto(project,
+            DartIdentifierUtil.createValidIdentifier(name));
       }
-
     } catch (CoreException e) {
       DartEclipseUI.logError(e);
     }
@@ -304,8 +285,7 @@ public class DartProjectWizard extends Wizard implements INewWizard {
 
   private void updatePerspective() {
     try {
-      PlatformUI.getWorkbench().showPerspective(
-          perspectiveId,
+      PlatformUI.getWorkbench().showPerspective(perspectiveId,
           PlatformUI.getWorkbench().getActiveWorkbenchWindow());
     } catch (WorkbenchException e) {
       DartEclipseUI.logError(e);
