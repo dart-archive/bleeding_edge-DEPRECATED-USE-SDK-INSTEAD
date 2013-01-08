@@ -105,6 +105,15 @@ public interface InterfaceType extends Type {
   @Override
   public boolean isSubtypeOf(Type type);
 
+  /**
+   * Return the type resulting from substituting the given arguments for this type's parameters.
+   * This is fully equivalent to {@code substitute(argumentTypes, getTypeArguments())}.
+   * 
+   * @param argumentTypes the actual type arguments being substituted for the type parameters
+   * @return the result of performing the substitution
+   */
+  public InterfaceType substitute(Type[] argumentTypes);
+
   @Override
   public InterfaceType substitute(Type[] argumentTypes, Type[] parameterTypes);
 }

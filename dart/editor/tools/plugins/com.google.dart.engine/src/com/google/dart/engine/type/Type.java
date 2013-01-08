@@ -86,7 +86,7 @@ public interface Type {
    * this type. The specification defines this operation in section 2: <blockquote> The notation
    * <i>[x<sub>1</sub>, ..., x<sub>n</sub>/y<sub>1</sub>, ..., y<sub>n</sub>]E</i> denotes a copy of
    * <i>E</i> in which all occurrences of <i>y<sub>i</sub>, 1 <= i <= n</i> have been replaced with
-   * <i>x<sub>i</sub></i>. </blockquote> Note that, contrary to the specification, this method will
+   * <i>x<sub>i</sub></i>.</blockquote> Note that, contrary to the specification, this method will
    * not create a copy of this type if no substitutions were required, but will return this type
    * directly.
    * 

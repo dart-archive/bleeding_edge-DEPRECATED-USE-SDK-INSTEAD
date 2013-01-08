@@ -234,6 +234,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public InterfaceTypeImpl substitute(Type[] argumentTypes) {
+    return substitute(argumentTypes, getTypeArguments());
+  }
+
+  @Override
   public InterfaceTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException("argumentTypes.length (" + argumentTypes.length
