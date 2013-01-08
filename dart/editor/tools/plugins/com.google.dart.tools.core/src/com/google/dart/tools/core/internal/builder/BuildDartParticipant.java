@@ -247,7 +247,7 @@ public class BuildDartParticipant implements BuildParticipant {
     List<String> args = new ArrayList<String>();
 
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
-    args.add(builderFile.getProjectRelativePath().toOSString());
+    args.add(builderFile.getName());
     args.addAll(buildArgs);
 
     Map<String, String> env = builder.environment();
