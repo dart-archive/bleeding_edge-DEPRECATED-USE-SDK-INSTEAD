@@ -331,8 +331,13 @@ class View implements Positionable {
     final changed = new Completer<bool>();
     _measureLayoutHelper(changed);
 
+    var changedComplete = false;
+    changed.future.then((_) {
+      changedComplete = true;
+    });
+
     window.requestLayoutFrame(() {
-      if (!changed.future.isComplete) {
+      if (!changedComplete) {
         changed.complete(false);
       }
     });
