@@ -27,7 +27,7 @@ public final class FileUtilities2 {
    * @return the file representing the path
    */
   public static File createFile(String path) {
-    return new File(convertPath(path));
+    return new File(convertPath(path)).getAbsoluteFile();
   }
 
   /**
@@ -37,11 +37,13 @@ public final class FileUtilities2 {
    * @return the converted path
    */
   private static String convertPath(String path) {
-    String separator = File.separator;
-    if (separator.equals("/")) {
+    if (File.separator.equals("/")) {
+      // We're on a unix-ish OS.
       return path;
+    } else {
+      // On windows, the path separator is '\'.
+      return path.replaceAll("/", "\\\\");
     }
-    return path.replaceAll("/", separator);
   }
 
   /**
