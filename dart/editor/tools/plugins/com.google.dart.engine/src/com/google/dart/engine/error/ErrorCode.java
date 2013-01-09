@@ -33,13 +33,6 @@ public interface ErrorCode {
   public String getMessage();
 
   /**
-   * Return the subsystem that issued this error.
-   * 
-   * @return the subsystem that issued this error
-   */
-  public SubSystem getSubSystem();
-
-  /**
    * Return the type of the error.
    * 
    * @return the type of the error

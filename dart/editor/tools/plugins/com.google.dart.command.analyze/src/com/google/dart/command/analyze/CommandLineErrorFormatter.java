@@ -126,7 +126,7 @@ public class CommandLineErrorFormatter {
         buf.append(String.format(
             "%s|%s|%s|%s|%d|%d|%d|%s",
             escapePipe(event.getErrorCode().getErrorSeverity().toString()),
-            escapePipe(event.getErrorCode().getSubSystem().toString()),
+            escapePipe(event.getErrorCode().getType().toString()),
             escapePipe(event.getErrorCode().toString()),
             escapePipe(sourceFile.getFullName()),
             location.getLineNumber(),
