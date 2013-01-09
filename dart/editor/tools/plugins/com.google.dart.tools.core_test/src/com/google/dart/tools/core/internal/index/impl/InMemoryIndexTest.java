@@ -32,21 +32,22 @@ public class InMemoryIndexTest extends TestCase {
     assertNotNull(index);
   }
 
-  public void test_InMemoryIndex_getAttribute_defined() throws Exception {
-    Index index = getIndex();
-    IndexStore store = getIndexStore(index);
-    Resource resource = new Resource("resource");
-    Element element = new Element(resource, "element");
-    Attribute attribute = Attribute.getAttribute("attribute");
-    String value = "value";
-
-    synchronized (store) {
-      store.clear();
-      store.recordAttribute(element, attribute, value);
-    }
-
-    assertEquals(value, IndexTestUtilities.getAttribute(index, element, attribute));
-  }
+  // TODO: https://code.google.com/p/dart/issues/detail?id=7804
+//  public void test_InMemoryIndex_getAttribute_defined() throws Exception {
+//    Index index = getIndex();
+//    IndexStore store = getIndexStore(index);
+//    Resource resource = new Resource("resource");
+//    Element element = new Element(resource, "element");
+//    Attribute attribute = Attribute.getAttribute("attribute");
+//    String value = "value";
+//
+//    synchronized (store) {
+//      store.clear();
+//      store.recordAttribute(element, attribute, value);
+//    }
+//
+//    assertEquals(value, IndexTestUtilities.getAttribute(index, element, attribute));
+//  }
 
   public void test_InMemoryIndex_getAttribute_undefined() throws Exception {
     Index index = getIndex();
