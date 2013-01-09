@@ -25,7 +25,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -111,13 +110,19 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
         return DartToolsPlugin.getImage(BUILD_FILE_ICON);
       }
 
-      DartElement dartElement = DartCore.create(resource);
+      try {
 
-      // Return a different icon for library units.
-      if (dartElement instanceof CompilationUnit) {
-        if (((CompilationUnit) dartElement).definesLibrary()) {
-          return DartToolsPlugin.getImage(LIBRARY_ICON);
+        DartElement dartElement = DartCore.create(resource);
+
+        // Return a different icon for library units.
+        if (dartElement instanceof CompilationUnit) {
+          if (((CompilationUnit) dartElement).definesLibrary()) {
+            return DartToolsPlugin.getImage(LIBRARY_ICON);
+          }
         }
+
+      } catch (Throwable th) {
+        DartToolsPlugin.log(th);
       }
 
       if (element instanceof IFolder) {
@@ -127,6 +132,7 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
           return DartToolsPlugin.getImage(PACKAGES_FOLDER_ICON);
         }
       }
+
     }
 
     return workbenchLabelProvider.getImage(element);
@@ -144,31 +150,36 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
       StyledString string = new StyledString(resource.getName());
 
-      if (resource instanceof IFolder) {
-        try {
+      try {
+
+        if (resource instanceof IFolder) {
+
           String version = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);
           if (version != null) {
             string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER);
             return string;
           }
-        } catch (CoreException e) {
-          DartToolsPlugin.log(e);
+
         }
-      }
 
-      DartElement dartElement = DartCore.create(resource);
+        DartElement dartElement = DartCore.create(resource);
 
-      // Append the library name to library units.
-      if (dartElement instanceof CompilationUnit) {
-        if (((CompilationUnit) dartElement).definesLibrary()) {
-          DartLibrary library = ((CompilationUnit) dartElement).getLibrary();
+        // Append the library name to library units.
+        if (dartElement instanceof CompilationUnit) {
+          if (((CompilationUnit) dartElement).definesLibrary()) {
+            DartLibrary library = ((CompilationUnit) dartElement).getLibrary();
 
-          string.append(" [" + library.getDisplayName() + "]", StyledString.QUALIFIER_STYLER);
+            string.append(" [" + library.getDisplayName() + "]", StyledString.QUALIFIER_STYLER);
+          }
         }
+
+      } catch (Throwable th) {
+        DartToolsPlugin.log(th);
       }
 
       return string;
     }
+
     if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
       StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
       string.append(

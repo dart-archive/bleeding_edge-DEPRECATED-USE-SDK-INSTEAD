@@ -42,9 +42,13 @@ public final class IResourceUtilities {
     List<String> filePaths = new ArrayList<String>();
     for (String name : fileNames) {
       String encodedName = URIUtilities.uriEncode(name);
-      IFile file = ResourceUtil.getFile(resource.getLocationURI().resolve(encodedName));
-      if (file != null) {
-        filePaths.add(file.getLocation().toPortableString());
+      try {
+        IFile file = ResourceUtil.getFile(resource.getLocationURI().resolve(encodedName));
+        if (file != null) {
+          filePaths.add(file.getLocation().toPortableString());
+        }
+      } catch (Exception e) {
+        //ignore bad URIs
       }
     }
     return filePaths;
