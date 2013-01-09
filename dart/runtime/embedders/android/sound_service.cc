@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/sound_service.h"
+#include "embedders/android/sound_service.h"
 
-#include "jni/log.h"
-#include "jni/resource.h"
+#include "embedders/android/log.h"
+#include "embedders/android/resource.h"
 
 SoundService::SoundService(android_app* application)
     : application_(application),

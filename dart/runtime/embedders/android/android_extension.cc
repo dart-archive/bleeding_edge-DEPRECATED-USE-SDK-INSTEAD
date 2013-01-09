@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/android_extension.h"
+#include "embedders/android/android_extension.h"
 
 #include <android/log.h>
 #include <EGL/egl.h>
@@ -14,7 +14,7 @@
 #include <string.h>
 
 #include "include/dart_api.h"
-#include "jni/log.h"
+#include "embedders/android/log.h"
 
 Dart_Handle HandleError(Dart_Handle handle) {
   if (Dart_IsError(handle)) Dart_PropagateError(handle);
@@ -863,7 +863,11 @@ void GLViewport(Dart_NativeArguments arguments) {
   int64_t height;
   HandleError(Dart_IntegerToInt64(heightHandle, &height));
 
-  LOGI("Dimensions: [%ld, %ld, %ld, %ld]", x, y, width, height);
+  LOGI("Dimensions: [%d, %d, %d, %d]",
+       static_cast<int>(x),
+       static_cast<int>(y),
+       static_cast<int>(width),
+       static_cast<int>(height));
 
   glViewport(x, y, width, height);
   CheckGLError("glViewPort");

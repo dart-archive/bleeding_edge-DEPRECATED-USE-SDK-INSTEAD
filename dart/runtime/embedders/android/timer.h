@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef EMBEDDERS_ANDROID_TIMER_H_
+#define EMBEDDERS_ANDROID_TIMER_H_
 
 #include <time.h>
 
@@ -20,4 +20,4 @@ class Timer {
   double last_time_;
 };
 
-#endif
+#endif  // EMBEDDERS_ANDROID_TIMER_H_

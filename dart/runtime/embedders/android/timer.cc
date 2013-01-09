@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/timer.h"
+#include "embedders/android/timer.h"
 
 Timer::Timer() : elapsed_(0.0f), last_time_(0.0) {
 }

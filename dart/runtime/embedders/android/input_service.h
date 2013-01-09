@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef INPUTSERVICE_H
-#define INPUTSERVICE_H
+#ifndef EMBEDDERS_ANDROID_INPUT_SERVICE_H_
+#define EMBEDDERS_ANDROID_INPUT_SERVICE_H_
 
 #include <android_native_app_glue.h>
-#include "jni/input_handler.h"
-#include "jni/types.h"
-#include "jni/vm_glue.h"
+#include "embedders/android/input_handler.h"
+#include "embedders/android/types.h"
+#include "embedders/android/vm_glue.h"
 
 class InputService : public InputHandler {
   public:
@@ -28,4 +28,4 @@ class InputService : public InputHandler {
     const int32_t& width_, &height_;
 };
 
-#endif
+#endif  // EMBEDDERS_ANDROID_INPUT_SERVICE_H_

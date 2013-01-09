@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/graphics.h"
+#include "embedders/android/graphics.h"
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
 
-#include "jni/log.h"
+#include "embedders/android/log.h"
 
 Graphics::Graphics(android_app* application, Timer* timer)
     : application_(application),
@@ -28,7 +28,7 @@ const int32_t& Graphics::width() {
 }
 
 int32_t Graphics::Start() {
-  EGLint format, numConfigs, errorResult;
+  EGLint format, numConfigs;
   EGLConfig config;
   const EGLint attributes[] = {
       EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,

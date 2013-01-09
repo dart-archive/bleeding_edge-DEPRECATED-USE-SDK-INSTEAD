@@ -13,29 +13,30 @@ import android.util.Log;
 
 public class DummyActivity extends NativeActivity {
   static {
+    // TODO(vsm): We should be able to get rid of this here
+    // and specify in xml instead.
     System.loadLibrary("android_embedder");
-    System.loadLibrary("DartNDK");
   }
-  
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);    
-    try { 
+    super.onCreate(savedInstanceState);
+    try {
       File localDir = getApplicationContext().getDir("dart", 0);
       String fileSystemPath = localDir.toString();
       String assetPath = "dart";
       AssetManager assetManager = getAssets();
       String[] files = assetManager.list(assetPath);
       byte[] buffer = new byte[1024];
-      int read;    
+      int read;
       for (String filename : files) {
         String dest = fileSystemPath + "/" + filename;
-        Log.w("Dart", "Copying " + dest);      
+        Log.w("Dart", "Copying " + dest);
         InputStream in = assetManager.open(assetPath + "/" + filename);
         OutputStream out = new FileOutputStream(dest);
         while((read = in.read(buffer)) != -1){
           out.write(buffer, 0, read);
-        }      
+        }
         in.close();
         out.flush();
         ((FileOutputStream)out).getFD().sync();

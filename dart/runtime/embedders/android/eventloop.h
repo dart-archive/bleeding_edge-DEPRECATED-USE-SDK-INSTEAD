@@ -1,10 +1,14 @@
-#ifndef EVENTLOOP_H
-#define EVENTLOOP_H
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef EMBEDDERS_ANDROID_EVENTLOOP_H_
+#define EMBEDDERS_ANDROID_EVENTLOOP_H_
 
 #include <android_native_app_glue.h>
-#include "jni/activity_handler.h"
-#include "jni/context.h"
-#include "jni/input_handler.h"
+#include "embedders/android/activity_handler.h"
+#include "embedders/android/context.h"
+#include "embedders/android/input_handler.h"
 
 class EventLoop {
   public:
@@ -23,10 +27,9 @@ class EventLoop {
   private:
     bool enabled_;
     bool quit_;
+    android_app* application_;
     ActivityHandler* activity_handler_;
     InputHandler* input_handler_;
-    android_app* application_;
 };
 
-#endif
-
+#endif  // EMBEDDERS_ANDROID_EVENTLOOP_H_

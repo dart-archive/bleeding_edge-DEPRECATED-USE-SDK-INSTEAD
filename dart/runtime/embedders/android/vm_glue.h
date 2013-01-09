@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_GLUE_H
-#define VM_GLUE_H
+#ifndef EMBEDDERS_ANDROID_VM_GLUE_H_
+#define EMBEDDERS_ANDROID_VM_GLUE_H_
 
 #include <android_native_app_glue.h>
 
 #include "include/dart_api.h"
-#include "jni/graphics.h"
+#include "embedders/android/graphics.h"
 
 class VMGlue {
  public:
@@ -38,8 +38,8 @@ class VMGlue {
                                     const char* main,
                                     void* data, char** error);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
-				       Dart_Handle library,
-				       Dart_Handle urlHandle);
+                                       Dart_Handle library,
+                                       Dart_Handle urlHandle);
   static Dart_Handle LoadSourceFromFile(const char* url);
   static void ShutdownIsolate(void* callback_data);
 
@@ -49,5 +49,4 @@ class VMGlue {
   bool initialized_script_;
 };
 
-#endif
-
+#endif  // EMBEDDERS_ANDROID_VM_GLUE_H_

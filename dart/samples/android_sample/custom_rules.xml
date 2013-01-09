@@ -37,9 +37,6 @@
       </exec>
     </target>
     <target name="-pre-compile">
-      <exec executable="ndk-build" dir="jni">
-        <arg line="V=1" />
-      </exec>
     </target>
     <target name="-post-compile">
     </target>

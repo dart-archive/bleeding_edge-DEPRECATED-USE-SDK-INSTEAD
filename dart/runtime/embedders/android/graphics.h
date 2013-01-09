@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef GRAPHICS_H
-#define GRAPHICS_H
+#ifndef EMBEDDERS_ANDROID_GRAPHICS_H_
+#define EMBEDDERS_ANDROID_GRAPHICS_H_
 
 #include <android_native_app_glue.h>
 #include <EGL/egl.h>
 
-#include "jni/timer.h"
+#include "embedders/android/timer.h"
 
 class Graphics {
   public:
@@ -29,4 +29,4 @@ class Graphics {
     EGLContext context_;
 };
 
-#endif
+#endif  // EMBEDDERS_ANDROID_GRAPHICS_H_

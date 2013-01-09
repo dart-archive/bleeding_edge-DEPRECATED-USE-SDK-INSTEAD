@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef DART_HOST_H
-#define DART_HOST_H
+#ifndef EMBEDDERS_ANDROID_DART_HOST_H_
+#define EMBEDDERS_ANDROID_DART_HOST_H_
 
 #include <android_native_app_glue.h>
 #include "include/dart_api.h"
-#include "jni/activity_handler.h"
-#include "jni/context.h"
-#include "jni/graphics.h"
-#include "jni/input_service.h"
-#include "jni/sound_service.h"
-#include "jni/timer.h"
-#include "jni/vm_glue.h"
+#include "embedders/android/activity_handler.h"
+#include "embedders/android/context.h"
+#include "embedders/android/graphics.h"
+#include "embedders/android/input_service.h"
+#include "embedders/android/sound_service.h"
+#include "embedders/android/timer.h"
+#include "embedders/android/vm_glue.h"
 
 // Currently the life cycle management is very crude. We conservatively
 // shutdown the main isolate when we lose focus and create a new one when
@@ -51,13 +51,12 @@ class DartHost : public ActivityHandler {
   void Deactivate();
 
   ANativeWindow_Buffer window_buffer_;
-  InputHandler* input_handler_;
   Graphics* graphics_;
+  InputHandler* input_handler_;
   SoundService* sound_service_;
   Timer* timer_;
   VMGlue* vm_glue_;
   bool active_;
 };
 
-#endif
-
+#endif  // EMBEDDERS_ANDROID_DART_HOST_H_

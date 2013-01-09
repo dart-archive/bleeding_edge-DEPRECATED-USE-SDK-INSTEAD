@@ -18,8 +18,6 @@
               {
                 'action_name': 'build_app',
                 'inputs': [
-                  'jni/*.cc',
-                  'jni/*.h',
                   'assets/dart/*.dart',
                 ],
                 'outputs': [

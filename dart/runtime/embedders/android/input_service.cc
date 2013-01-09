@@ -5,8 +5,8 @@
 #include <android_native_app_glue.h>
 #include <cmath>
 
-#include "jni/input_service.h"
-#include "jni/log.h"
+#include "embedders/android/input_service.h"
+#include "embedders/android/log.h"
 
 InputService::InputService(android_app* application,
                            VMGlue* vm_glue,
@@ -97,13 +97,14 @@ bool InputService::OnKeyEvent(AInputEvent* event) {
      * that have occurred. */
     int32_t repeat = AKeyEvent_getRepeatCount(event);
 
-    /* Get the time of the most recent key down event, in the
-     * java.lang.System.nanoTime() time base.  If this is a down event,
-     * this will be the same as eventTime.
-     * Note that when chording keys, this value is the down time of the most
-     * recently pressed key, which may not be the same physical key of this
-     * event. */
-    int64_t key_down_time = AKeyEvent_getDownTime(event);
+    /* Get the time of the most recent key down event, in the	
+     * java.lang.System.nanoTime() time base.  If this is a down event,	
+     * this will be the same as eventTime.	
+     * Note that when chording keys, this value is the down time of the most	
+     * recently pressed key, which may not be the same physical key of this	
+     * event. */	
+    // TODO(gram): Use or remove this.
+    // int64_t key_down_time = AKeyEvent_getDownTime(event);
 
     /* Get the time this event occurred, in the
      * java.lang.System.nanoTime() time base. */

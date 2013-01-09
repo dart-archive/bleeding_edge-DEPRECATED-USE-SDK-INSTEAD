@@ -8,9 +8,9 @@
 #include <sys/stat.h>
 
 #include "include/dart_api.h"
-#include "jni/android_extension.h"
-#include "jni/log.h"
-#include "jni/vm_glue.h"
+#include "embedders/android/android_extension.h"
+#include "embedders/android/log.h"
+#include "embedders/android/vm_glue.h"
 
 // snapshot_buffer points to a snapshot if we link in a snapshot otherwise
 // it is initialized to NULL.
@@ -52,8 +52,8 @@ Dart_Handle VMGlue::CheckError(Dart_Handle handle) {
   }
 
 Dart_Handle VMGlue::LibraryTagHandler(Dart_LibraryTag tag,
-				      Dart_Handle library,
-				      Dart_Handle urlHandle) {
+                                      Dart_Handle library,
+                                      Dart_Handle urlHandle) {
   const char* url;
   Dart_StringToCString(urlHandle, &url);
   if (tag == kCanonicalizeUrl) {
@@ -63,7 +63,8 @@ Dart_Handle VMGlue::LibraryTagHandler(Dart_LibraryTag tag,
   // Touch, Audio, etc.  All builtin libraries should be handled here
   // (or moved into a snapshot).
   if (strcmp(url, "android_extension.dart") == 0) {
-    Dart_Handle source = VMGlue::LoadSourceFromFile("/data/data/com.google.dartndk/app_dart/android_extension.dart");
+    Dart_Handle source =
+        VMGlue::LoadSourceFromFile("/data/data/com.google.dartndk/app_dart/android_extension.dart");
     Dart_Handle library = CheckError(Dart_LoadLibrary(urlHandle, source));
     CheckError(Dart_SetNativeResolver(library, ResolveName));
     return library;
@@ -81,7 +82,7 @@ bool VMGlue::CreateIsolateAndSetupHelper(const char* script_uri,
   Dart_Isolate isolate =
       Dart_CreateIsolate(script_uri, main, NULL, data, error);
   if (isolate == NULL) {
-    LOGE("Couldn't create isolate: %s", error);
+    LOGE("Couldn't create isolate: %s", *error);
     return false;
   }
 
@@ -276,7 +277,8 @@ int VMGlue::Invoke(const char* function, int argc, Dart_Handle* args) {
 
   // Lookup and invoke the appropriate function.
   LOGI("invoking %s", function);
-  result = Dart_Invoke(library, Dart_NewStringFromCString(function), argc, args);
+  result =
+      Dart_Invoke(library, Dart_NewStringFromCString(function), argc, args);
 
   if (Dart_IsError(result)) {
     return ErrorExit("%s\n", Dart_GetError(result));

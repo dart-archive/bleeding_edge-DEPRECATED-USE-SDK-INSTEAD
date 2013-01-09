@@ -1,5 +1,9 @@
-#ifndef ACTIVITY_HANDLER_H
-#define ACTIVITY_HANDLER_H
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef EMBEDDERS_ANDROID_ACTIVITY_HANDLER_H_
+#define EMBEDDERS_ANDROID_ACTIVITY_HANDLER_H_
 
 class ActivityHandler {
   public:
@@ -21,5 +25,4 @@ class ActivityHandler {
     virtual ~ActivityHandler() {}
 };
 
-#endif
-
+#endif  // EMBEDDERS_ANDROID_ACTIVITY_HANDLER_H_

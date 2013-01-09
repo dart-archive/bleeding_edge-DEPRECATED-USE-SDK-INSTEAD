@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/dart_host.h"
+#include "embedders/android/dart_host.h"
 
 #include <math.h>
 #include <unistd.h>
 
-#include "jni/log.h"
+#include "embedders/android/log.h"
 
 DartHost::DartHost(Context *context)
     : graphics_(context->graphics),

@@ -1,11 +1,15 @@
-#ifndef SOUND_SERVICE_H
-#define SOUND_SERVICE_H
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+#ifndef EMBEDDERS_ANDROID_SOUND_SERVICE_H_
+#define EMBEDDERS_ANDROID_SOUND_SERVICE_H_
 
 #include <android_native_app_glue.h>
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 #include <SLES/OpenSLES_AndroidConfiguration.h>
-#include "jni/types.h"
+#include "embedders/android/types.h"
 
 class SoundService {
   public:
@@ -28,4 +32,4 @@ class SoundService {
 
 void PlayBackground(const char* path);
 void StopBackground();
-#endif
+#endif  // EMBEDDERS_ANDROID_SOUND_SERVICE_H_

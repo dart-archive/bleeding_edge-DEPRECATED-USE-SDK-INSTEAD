@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "jni/eventloop.h"
-#include "jni/log.h"
+#include "embedders/android/eventloop.h"
+#include "embedders/android/log.h"
 
 EventLoop::EventLoop(android_app* application)
     : enabled_(false),
@@ -22,7 +22,8 @@ void EventLoop::Run(ActivityHandler* activity_handler,
   int32_t events;
   android_poll_source* source;
 
-  app_dummy();
+  // TODO(vsm): We need to link in native_app_glue.
+  // app_dummy();
   activity_handler_ = activity_handler;
   input_handler_ = context->input_handler;
   LOGI("Starting event loop");
