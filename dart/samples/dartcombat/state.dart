@@ -239,7 +239,7 @@ class PlayerState {
       });
       shot.handleException((String error) {
         _recordFailedShot(x, y);
-        sunk.completeException(error);
+        sunk.completeError(error);
         return true;
       });
       // We don't actually chain sunk.cancel with shot.cancel because individual
