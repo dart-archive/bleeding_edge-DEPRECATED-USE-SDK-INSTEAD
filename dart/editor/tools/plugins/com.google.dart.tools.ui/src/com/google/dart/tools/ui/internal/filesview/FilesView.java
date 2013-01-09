@@ -470,12 +470,17 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(cleanUpAction);
         manager.add(new Separator());
 
-        if (selection.size() == 1) {
-          Object elem = selection.getFirstElement();
-          if (elem instanceof IFolder || isDartLikeFile(elem)) {
-            ignoreResourceAction.updateLabel();
-            manager.add(ignoreResourceAction);
+        boolean analysisTargets = true;
+        for (Object elem : selection.toList()) {
+          if (!(elem instanceof IContainer || isDartLikeFile(elem))) {
+            analysisTargets = false;
+            break;
           }
+        }
+
+        if (analysisTargets) {
+          ignoreResourceAction.updateLabel();
+          manager.add(ignoreResourceAction);
         }
 
         if (enableBuilderAction.shouldBeEnabled()) {
