@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.timing;
 
+import com.google.common.collect.Lists;
+
 import junit.framework.TestCase;
 
 import java.io.BufferedReader;
@@ -24,11 +26,24 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class IoTimings extends TestCase {
   private Charset utf8Charset;
 
   private static final int REPETITION_COUNT = 500;
+
+  /**
+   * Recursively adds the given {@link File} and its children into "files".
+   */
+  private static void scanForFiles(List<File> files, File file) {
+    files.add(file);
+    if (file.isDirectory()) {
+      for (File child : file.listFiles()) {
+        scanForFiles(files, child);
+      }
+    }
+  }
 
   public void test_file_read() throws IOException {
     // Replace the path below with a valid path.
@@ -65,6 +80,30 @@ public class IoTimings extends TestCase {
         + (bufferTotal[2] / divisor) + ", " + (bufferTotal[3] / divisor) + "), bytes = "
         + (bytesTotal[0] / divisor) + " ms (" + (bytesTotal[1] / divisor) + ", "
         + (bytesTotal[2] / divisor) + ", " + (bytesTotal[3] / divisor) + ")");
+  }
+
+  public void test_getCanonicalPath() throws Exception {
+    // "testFolder" should be linked folder or folder with linked sub-folder
+    // It was tested on Dart SDK, with sub-folders named 1, 2, 3, 4, 5, 6 which are
+    // symlinks on dart-sdk folder and its top-level sub-folders.
+    // MacBook:        count = 1575   time = 87 ms    0.055 ms/call   18044 files/sec
+    // Win7 in VMWare: count = 1575   time = 171 ms   0.108 ms/call    9205 files/sec
+    File folder = new File("/Users/scheglov/tmp/testFolder");
+    assertTrue(folder.exists());
+    assertTrue(folder.isDirectory());
+    List<File> files = Lists.newLinkedList();
+    scanForFiles(files, folder);
+    int count = 0;
+    long startTime = System.nanoTime();
+    for (File file : files) {
+      count++;
+      file.getCanonicalPath();
+    }
+    long endTime = System.nanoTime();
+    double timeSec = (endTime - startTime) / 1000000000.0;
+    double avgMsCall = (((int) (1000000 * timeSec)) / count) / 1000.0;
+    System.out.println("getCanonicalPath: count = " + count + "   time = " + (int) (timeSec * 1000)
+        + " ms   " + avgMsCall + " ms/call   " + (int) (count / timeSec) + " files/sec");
   }
 
   private void addTo(long[] total, long[] count) {
