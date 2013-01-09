@@ -24,6 +24,7 @@ import com.google.dart.compiler.ast.DartBooleanLiteral;
 import com.google.dart.compiler.ast.DartCascadeExpression;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -801,6 +802,7 @@ public class CompletionEngine {
       if (beforeBrace) {
         int extendsLoc = classSrc.indexOf(C_EXTENDS);
         int implementsLoc = classSrc.indexOf(C_IMPLEMENTS);
+        int withLoc = -1;
         if (extendsLoc < 0 && implementsLoc < 0) {
           return null;
         }
@@ -814,7 +816,9 @@ public class CompletionEngine {
           if (sc == null) {
             isClassDef = false; // parsing an interface
           } else {
-            if (actualCompletionPosition >= sc.getSourceInfo().getOffset() && implementsLoc < 0) {
+            withLoc = classSrc.indexOf(C_WITH);
+            if (actualCompletionPosition >= sc.getSourceInfo().getOffset() && implementsLoc < 0
+                && withLoc < 0) {
               return null;
             }
             if (implementsLoc < completionPos || implementsLoc < 0) {
@@ -925,17 +929,23 @@ public class CompletionEngine {
       DartNode parent = node.getParent();
       if ((node instanceof IdentifierCompleter)
           && ((IdentifierCompleter) node).getCompletionParsingContext().size() > 4) {
-        DartNode ancestor = parent.getParent().getParent().getParent();
-        if (ancestor instanceof DartClassMember) {
-          DartClassMember<?> member = (DartClassMember<?>) ancestor;
-          if (member.getModifiers().isConstant()) {
-            // class X { const !; } to be continued with X.init();
-            proposeTypesForNewParam();
+        DartNode ancestor = parent.getParent();
+        if (ancestor instanceof DartClassTypeAlias) {
+          proposeTypesForPrefix(node, false);
+          return null;
+        } else {
+          ancestor = ancestor.getParent().getParent();
+          if (ancestor instanceof DartClassMember) {
+            DartClassMember<?> member = (DartClassMember<?>) ancestor;
+            if (member.getModifiers().isConstant()) {
+              // class X { const !; } to be continued with X.init();
+              proposeTypesForNewParam();
+              return null;
+            }
+          } else if (isCompletionAfterQuery(node)) {
+            createCompletionsForParameterNames(node, node);
             return null;
           }
-        } else if (isCompletionAfterQuery(node)) {
-          createCompletionsForParameterNames(node, node);
-          return null;
         }
       } else if (isCompletionAfterCascade()) {
         if (node.getSourceInfo().getOffset() - 1 == actualCompletionPosition) {
@@ -1709,6 +1719,7 @@ public class CompletionEngine {
   private LibraryElement currentLib;
 
   private static final String C_EXTENDS = "extends";
+  private static final String C_WITH = "with";
   private static final String C_IMPLEMENTS = "implements";
   private static final char[] DYNAMIC_CA = "dynamic".toCharArray();
   private static final boolean DEBUG = "true".equalsIgnoreCase(Platform.getDebugOption("com.google.dart.tools.ui/debug/CompletionEngine"));
