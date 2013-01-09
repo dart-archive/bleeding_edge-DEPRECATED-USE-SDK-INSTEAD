@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -822,6 +824,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   /** A flag to show contents of top level type only */
   private boolean fTopLevelTypeOnly;
 
+  private Element elementInput;
   private DartElement fInput;
   private final String fContextMenuID;
   private Menu fMenu;
@@ -914,8 +917,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     fOutlineViewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(fOutlineViewer);
     initDragAndDrop();
-    fOutlineViewer.setContentProvider(new DartOutlinePageContentProvider(true));
-    fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      fOutlineViewer.setContentProvider(new DartOutlinePageEngineContentProvider());
+      fOutlineViewer.setLabelProvider(new DartOutlineElementLabelProvider());
+    } else {
+      fOutlineViewer.setContentProvider(new DartOutlinePageContentProvider(true));
+      fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
+    }
     fOutlineViewer.updateTreeFont();
 
     Object[] listeners = fSelectionChangedListeners.getListeners();
@@ -1014,7 +1022,11 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
 
     registerToolbarActions(actionBars);
 
-    fOutlineViewer.setInput(fInput);
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      fOutlineViewer.setInput(fInput);
+    } else {
+      fOutlineViewer.setInput(elementInput);
+    }
   }
 
   @Override
@@ -1143,7 +1155,12 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     if (fOutlineViewer != null) {
       fOutlineViewer.removePostSelectionChangedListener(listener);
     } else {
-      fPostSelectionChangedListeners.remove(listener);
+      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
+      // contents to be displayed in the outline view. After there is a change listener for the
+      // analysis engine, that logic will go here.
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        fPostSelectionChangedListeners.remove(listener);
+      }
     }
   }
 
@@ -1153,9 +1170,19 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
   @Override
   public void removeSelectionChangedListener(ISelectionChangedListener listener) {
     if (fOutlineViewer != null) {
-      fOutlineViewer.removeSelectionChangedListener(listener);
+      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
+      // contents to be displayed in the outline view. After there is a change listener for the
+      // analysis engine, that logic will go here.
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        fOutlineViewer.removeSelectionChangedListener(listener);
+      }
     } else {
-      fSelectionChangedListeners.remove(listener);
+      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
+      // contents to be displayed in the outline view. After there is a change listener for the
+      // analysis engine, that logic will go here.
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        fSelectionChangedListeners.remove(listener);
+      }
     }
   }
 
@@ -1168,7 +1195,12 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         List<?> elements = ss.toList();
         if (!elements.contains(reference)) {
           s = (reference == null ? StructuredSelection.EMPTY : new StructuredSelection(reference));
-          fOutlineViewer.setSelection(s, true);
+          // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
+          // contents to be displayed in the outline view. After there is a change listener for the
+          // analysis engine, that logic will go here.
+          if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+            fOutlineViewer.setSelection(s, true);
+          }
         }
       }
     }
@@ -1202,6 +1234,18 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     DartX.todo();
 //    if (fCategoryFilterActionGroup != null)
 //      fCategoryFilterActionGroup.setInput(new DartElement[]{fInput});
+  }
+
+  /**
+   * Alternative to setInput(DartElement) that takes an Element from the Analysis Engine as the
+   * input to the Outline page.
+   */
+  public void setInputElement(Element e) {
+    elementInput = e;
+    if (fOutlineViewer != null) {
+      fOutlineViewer.setInput(elementInput);
+      updateSelectionProvider(getSite());
+    }
   }
 
   /*

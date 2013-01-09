@@ -17,7 +17,20 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.parser.Parser;
+import com.google.dart.engine.scanner.StringScanner;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -191,6 +204,7 @@ import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
 import java.text.CharacterIterator;
@@ -3059,6 +3073,60 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
+   * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
+   */
+  protected com.google.dart.engine.element.Element getInputElement() {
+    // TODO(jwren) the Element should not be computed every time, instead, after the AnalysisContext
+    // API has been decided on, this method should get the information from a shared cache
+    java.io.File file = null;
+    if (getEditorInput() instanceof IFileEditorInput) {
+      IFileEditorInput input = (IFileEditorInput) getEditorInput();
+      if (input.getFile().getLocation() != null) {
+        file = input.getFile().getLocation().toFile();
+      }
+    }
+
+    if (file == null) {
+      return null;
+    }
+
+    AnalysisErrorListener ael = new AnalysisErrorListener() {
+      @Override
+      public void onError(AnalysisError error) {
+        // do nothing
+      }
+    };
+
+    // Scanner
+    Source source = new SourceFactory().forFile(file);
+    StringScanner scanner = null;
+    try {
+      scanner = new StringScanner(source, FileUtilities.getContents(file), ael);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (scanner == null) {
+      return null;
+    }
+    Token token = scanner.tokenize();
+
+    // Parser
+    Parser parser = new Parser(source, ael);
+    final com.google.dart.engine.ast.CompilationUnit unit = parser.parseCompilationUnit(token);
+
+    // Element Builder
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), ael);
+    CompilationUnitElement element = null;
+    try {
+      element = builder.buildCompilationUnit(source, unit);
+    } catch (AnalysisException e) {
+      e.printStackTrace();
+    }
+    return element;
+  }
+
+  /**
    * Returns the signed current selection. The length will be negative if the resulting selection is
    * right-to-left (RtoL).
    * <p>
@@ -3546,11 +3614,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return;
     }
 
-    DartElement je = getInputDartElement();
-    if (je != null && je.exists()) {
-      page.setInput(je);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // new Analysis Engine
+      page.setInputElement(getInputElement());
     } else {
-      page.setInput(null);
+      // dartc
+      DartElement de = getInputDartElement();
+      if (de != null && de.exists()) {
+        page.setInput(de);
+      } else {
+        page.setInput(null);
+      }
     }
 
   }
