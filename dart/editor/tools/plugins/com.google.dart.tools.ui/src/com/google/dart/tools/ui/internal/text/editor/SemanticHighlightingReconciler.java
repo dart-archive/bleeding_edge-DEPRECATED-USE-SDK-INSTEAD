@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExportDirective;
@@ -77,6 +78,12 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
     public Void visitClass(DartClass node) {
       processNode(token, node);
       return super.visitClass(node);
+    }
+
+    @Override
+    public Void visitClassTypeAlias(DartClassTypeAlias node) {
+      processNode(token, node);
+      return super.visitClassTypeAlias(node);
     }
 
     @Override

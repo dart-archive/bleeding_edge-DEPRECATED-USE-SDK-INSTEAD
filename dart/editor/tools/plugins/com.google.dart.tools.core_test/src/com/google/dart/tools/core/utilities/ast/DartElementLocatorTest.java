@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartImport;
@@ -95,6 +96,19 @@ public class DartElementLocatorTest extends TestCase {
     } finally {
       testProject.dispose();
     }
+  }
+
+  public void test_ClassTypeAlias_topLevel() throws Exception {
+    testElementLocator(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "class A {}",
+            "typedef B = Object with A;",
+            "foo(B b) {}"),
+        "B b)",
+        DartClassTypeAlias.class,
+        "B = Object",
+        1);
   }
 
   public void test_DartFunction_onReference() throws Exception {

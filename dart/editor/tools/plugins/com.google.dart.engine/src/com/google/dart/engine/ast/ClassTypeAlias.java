@@ -18,7 +18,7 @@ import com.google.dart.engine.scanner.Token;
 import java.util.List;
 
 /**
- * Instances of the class {@code FunctionTypeAlias} represent a class type alias.
+ * Instances of the class {@code ClassTypeAlias} represent a class type alias.
  * 
  * <pre>
  * classTypeAlias ::=

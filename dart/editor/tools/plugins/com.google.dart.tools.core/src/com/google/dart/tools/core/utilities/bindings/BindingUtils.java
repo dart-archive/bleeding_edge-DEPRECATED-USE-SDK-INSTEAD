@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.compiler.resolver.ClassAliasElement;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Element;
@@ -44,6 +45,7 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -64,7 +66,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,6 +96,12 @@ public class BindingUtils {
      * that name.
      */
     private HashMap<String, List<DartFunctionTypeAlias>> functionTypeAliasMap = new HashMap<String, List<DartFunctionTypeAlias>>();
+
+    /**
+     * A table mapping class type alias names to a list of class type aliases defined with that
+     * name.
+     */
+    private HashMap<String, List<DartClassTypeAlias>> classTypeAliasMap = new HashMap<String, List<DartClassTypeAlias>>();
 
     /**
      * A table mapping function names to a list of top-level functions defined with that name.
@@ -314,6 +321,35 @@ public class BindingUtils {
   }
 
   /**
+   * Return the Dart model element corresponding to the given resolved class alias.
+   * 
+   * @param library the library containing the compilation unit in which the class alias is declared
+   * @param aliasBinding the resolved function alias used to locate the model element
+   * @return the Dart model element corresponding to the resolved class alias
+   */
+  public static DartClassTypeAlias getDartElement(DartLibrary library,
+      ClassAliasElement aliasBinding) {
+    if (aliasBinding == null) {
+      return null;
+    } else if (library == null) {
+      return null;
+    }
+    ClassElement element = aliasBinding.getType().getElement();
+    String typeName = element.getName();
+    LibraryElement declaringLibraryElement = element.getLibrary();
+    if (declaringLibraryElement == null) {
+      DartCore.logError("Could not access declaring library for type " + typeName, new Throwable());
+      return null;
+    }
+    DartLibrary declaringLibrary = getDartElement(library, declaringLibraryElement);
+    List<DartClassTypeAlias> matchingTypes = getClassTypeAliases(declaringLibrary, typeName);
+    if (matchingTypes.size() == 1) {
+      return matchingTypes.get(0);
+    }
+    return null;
+  }
+
+  /**
    * Return the Dart model element corresponding to the given type element.
    * 
    * @param library the library containing the type in which the method is declared
@@ -358,6 +394,8 @@ public class BindingUtils {
   public static DartElement getDartElement(DartLibrary library, Element element) {
     if (element instanceof FunctionAliasElement) {
       return getDartElement(library, (FunctionAliasElement) element);
+    } else if (element instanceof ClassAliasElement) {
+      return getDartElement(library, (ClassAliasElement) element);
     } else if (element instanceof ClassElement) {
       return getDartElement(library, ((ClassElement) element).getType());
     } else if (element instanceof FieldElement) {
@@ -833,53 +871,53 @@ public class BindingUtils {
     return null;
   }
 
-  /**
-   * Search the supertypes of the given method's declaring type for any types that define a method
-   * that is overridden by the given method. Return an array containing all of the overridden
-   * methods, or an empty array if there are no overridden methods. The methods in the array are not
-   * guaranteed to be in any particular order.
-   * <p>
-   * The result will contain only immediately overridden methods. For example, given a class
-   * <code>A</code>, a class <code>B</code> that extends <code>A</code>, and a class <code>C</code>
-   * that extends <code>B</code>, all three of which define a method <code>m</code>, asking the
-   * method defined in class <code>C</code> for it's overridden methods will return an array
-   * containing only the method defined in <code>B</code>.
-   * 
-   * @param methodElement the method that overrides the methods to be returned
-   * @return an array containing all of the methods declared in supertypes of the given method's
-   *         declaring type that are overridden by the given method
-   */
-  public static MethodElement[] getOverriddenMethods(MethodElement methodElement) {
-    List<MethodElement> overriddenMethods = new ArrayList<MethodElement>();
-    String methodName = methodElement.getName();
-    Element enclosingElement = methodElement.getEnclosingElement();
-    if (enclosingElement instanceof ClassElement) {
-      Set<ClassElement> visitedTypes = new HashSet<ClassElement>();
-      List<ClassElement> targetTypes = new ArrayList<ClassElement>();
-      targetTypes.add((ClassElement) enclosingElement);
-      while (!targetTypes.isEmpty()) {
-        ClassElement targetType = targetTypes.remove(0);
-        for (InterfaceType supertype : getImmediateSupertypes(targetType)) {
-          if (supertype != null) {
-            ClassElement supertypeElement = supertype.getElement();
-            Iterator<? extends Element> members = supertypeElement.getMembers().iterator();
-            if (members.hasNext()) {
-              while (members.hasNext()) {
-                Element member = members.next();
-                if (member instanceof MethodElement && member.getName().equals(methodName)) {
-                  overriddenMethods.add((MethodElement) member);
-                }
-              }
-            } else if (!visitedTypes.contains(supertypeElement)) {
-              visitedTypes.add(supertypeElement);
-              targetTypes.add(supertypeElement);
-            }
-          }
-        }
-      }
-    }
-    return overriddenMethods.toArray(new MethodElement[overriddenMethods.size()]);
-  }
+//  /**
+//   * Search the supertypes of the given method's declaring type for any types that define a method
+//   * that is overridden by the given method. Return an array containing all of the overridden
+//   * methods, or an empty array if there are no overridden methods. The methods in the array are not
+//   * guaranteed to be in any particular order.
+//   * <p>
+//   * The result will contain only immediately overridden methods. For example, given a class
+//   * <code>A</code>, a class <code>B</code> that extends <code>A</code>, and a class <code>C</code>
+//   * that extends <code>B</code>, all three of which define a method <code>m</code>, asking the
+//   * method defined in class <code>C</code> for it's overridden methods will return an array
+//   * containing only the method defined in <code>B</code>.
+//   * 
+//   * @param methodElement the method that overrides the methods to be returned
+//   * @return an array containing all of the methods declared in supertypes of the given method's
+//   *         declaring type that are overridden by the given method
+//   */
+//  public static MethodElement[] getOverriddenMethods(MethodElement methodElement) {
+//    List<MethodElement> overriddenMethods = new ArrayList<MethodElement>();
+//    String methodName = methodElement.getName();
+//    Element enclosingElement = methodElement.getEnclosingElement();
+//    if (enclosingElement instanceof ClassElement) {
+//      Set<ClassElement> visitedTypes = new HashSet<ClassElement>();
+//      List<ClassElement> targetTypes = new ArrayList<ClassElement>();
+//      targetTypes.add((ClassElement) enclosingElement);
+//      while (!targetTypes.isEmpty()) {
+//        ClassElement targetType = targetTypes.remove(0);
+//        for (InterfaceType supertype : getImmediateSupertypes(targetType)) {
+//          if (supertype != null) {
+//            ClassElement supertypeElement = supertype.getElement();
+//            Iterator<? extends Element> members = supertypeElement.getMembers().iterator();
+//            if (members.hasNext()) {
+//              while (members.hasNext()) {
+//                Element member = members.next();
+//                if (member instanceof MethodElement && member.getName().equals(methodName)) {
+//                  overriddenMethods.add((MethodElement) member);
+//                }
+//              }
+//            } else if (!visitedTypes.contains(supertypeElement)) {
+//              visitedTypes.add(supertypeElement);
+//              targetTypes.add(supertypeElement);
+//            }
+//          }
+//        }
+//      }
+//    }
+//    return overriddenMethods.toArray(new MethodElement[overriddenMethods.size()]);
+//  }
 
   /**
    * Return <code>true</code> if the given method is an abstract method (either explicitly declared
@@ -946,6 +984,34 @@ public class BindingUtils {
       return array;
     }
     return result;
+  }
+
+  /**
+   * Traverse the given library looking for all of the class type aliases with the given name.
+   * 
+   * @param matchingAliases the list to which matching class type aliases are to be added
+   * @param library the library containing the class type aliases to be returned
+   * @param typeName the name of the class type aliases to be returned
+   */
+  private static void addImmediateClassTypeAliasesUncached(
+      List<DartClassTypeAlias> matchingAliases, DartLibrary library, String typeName) {
+    try {
+      for (CompilationUnit unit : library.getCompilationUnits()) {
+        try {
+          for (DartClassTypeAlias type : unit.getClassTypeAliases()) {
+            if (type.getElementName().equals(typeName)) {
+              matchingAliases.add(type);
+            }
+          }
+        } catch (DartModelException exception) {
+//        DartCore.logInformation("Could not get function type aliases defined in " + unit.getElementName(),
+//          exception);
+        }
+      }
+    } catch (DartModelException exception) {
+//    DartCore.logInformation(
+//        "Could not get compilation units defined in " + library.getElementName(), exception);
+    }
   }
 
   /**
@@ -1187,6 +1253,33 @@ public class BindingUtils {
     return libraries;
   }
 
+  /**
+   * Traverse the entire workspace looking for all of the function type aliases with the given name.
+   * 
+   * @param matchingTypes the list to which matching types are to be added
+   * @param library the library containing the type in which the method is declared
+   * @param typeName the name of the types to be returned
+   */
+  private static List<DartClassTypeAlias> getClassTypeAliases(DartLibrary library, String typeName) {
+    if (library == null) {
+      return new ArrayList<DartClassTypeAlias>();
+    }
+    CacheEntry entry = getLibraryCache(library);
+    if (entry == null) {
+      return new ArrayList<DartClassTypeAlias>();
+    }
+    HashMap<String, List<DartClassTypeAlias>> typeMap = entry.classTypeAliasMap;
+    if (typeMap != null) {
+      List<DartClassTypeAlias> typeList = typeMap.get(typeName);
+      if (typeList != null) {
+        return typeList;
+      }
+    }
+    List<DartClassTypeAlias> matchingAliases = new ArrayList<DartClassTypeAlias>();
+    addImmediateClassTypeAliasesUncached(matchingAliases, library, typeName);
+    return matchingAliases;
+  }
+
   private static DartLibrary getDartElement0(LibraryElement library) {
     if (library == null) {
       return null;
@@ -1308,21 +1401,22 @@ public class BindingUtils {
     return matchingFunctions;
   }
 
-  /**
-   * Return the immediate supertypes of the given class element.
-   * 
-   * @param targetType the type whose supertypes are to be returned.
-   * @return the immediate supertypes of the given class element
-   */
-  private static Set<InterfaceType> getImmediateSupertypes(ClassElement targetType) {
-    Set<InterfaceType> supertypes = new HashSet<InterfaceType>();
-    InterfaceType supertype = targetType.getSupertype();
-    if (supertype != null) {
-      supertypes.add(supertype);
-    }
-    supertypes.addAll(targetType.getInterfaces());
-    return supertypes;
-  }
+//  /**
+//   * Return the immediate supertypes of the given class element.
+//   * 
+//   * @param targetType the type whose supertypes are to be returned.
+//   * @return the immediate supertypes of the given class element
+//   */
+//  private static Set<InterfaceType> getImmediateSupertypes(ClassElement targetType) {
+//    Set<InterfaceType> supertypes = new HashSet<InterfaceType>();
+//    InterfaceType supertype = targetType.getSupertype();
+//    if (supertype != null) {
+//      supertypes.add(supertype);
+//    }
+//    supertypes.addAll(targetType.getInterfaces());
+//    // don't add mixins here, they are NOT supertypes
+//    return supertypes;
+//  }
 
   /**
    * Traverse the entire workspace looking for all of the types with the given name.

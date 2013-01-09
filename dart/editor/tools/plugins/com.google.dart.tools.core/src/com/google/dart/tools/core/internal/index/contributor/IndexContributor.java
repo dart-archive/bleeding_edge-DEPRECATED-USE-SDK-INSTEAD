@@ -1135,6 +1135,9 @@ public class IndexContributor extends ASTVisitor<Void> {
       for (InterfaceType type : classElement.getInterfaces()) {
         processSupertype(node, type);
       }
+      for (InterfaceType type : classElement.getMixins()) {
+        processSupertype(node, type);
+      }
     } else {
       notFound("unqualified invocation", node);
     }

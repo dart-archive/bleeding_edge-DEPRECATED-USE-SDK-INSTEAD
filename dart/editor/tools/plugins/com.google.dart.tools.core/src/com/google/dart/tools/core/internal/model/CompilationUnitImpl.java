@@ -18,6 +18,7 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExpression;
@@ -209,6 +210,31 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       }
 
       typeInfo.setIsInterface(isInterface);
+      typeInfo.setSuperclassName(extractTypeName(node.getSuperclass(), false));
+      typeInfo.setInterfaceNames(extractTypeNames(node.getInterfaces(), false));
+      typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
+      typeInfo.setSourceRangeEnd(node.getSourceInfo().getEnd());
+      captureDartDoc(node, typeInfo);
+      typeInfo.setNameRange(new SourceRangeImpl(node.getName()));
+      typeInfo.setChildren(DartElementImpl.toArray(children));
+      topLevelElements.add(typeImpl);
+      return null;
+    }
+
+    /**
+     * Parse a top-level type and add a Type as a child of the compilation unit to represent it.
+     */
+    @Override
+    public Void visitClassTypeAlias(DartClassTypeAlias node) {
+      String className = node.getClassName();
+      DartClassTypeAliasImpl typeImpl = new DartClassTypeAliasImpl(compilationUnit, className);
+      DartTypeInfo typeInfo = new DartTypeInfo();
+      List<DartElementImpl> children = Lists.newArrayList();
+      addNewElement(typeImpl, typeInfo);
+
+      // add DartTypeParameter elements
+      addTypeParameters(node.getTypeParameters(), typeImpl, children);
+
       typeInfo.setSuperclassName(extractTypeName(node.getSuperclass(), false));
       typeInfo.setInterfaceNames(extractTypeNames(node.getInterfaces(), false));
       typeInfo.setSourceRangeStart(node.getSourceInfo().getOffset());
@@ -1221,6 +1247,13 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
   }
 
   @Override
+  public com.google.dart.tools.core.model.DartClassTypeAlias[] getClassTypeAliases()
+      throws DartModelException {
+    List<com.google.dart.tools.core.model.DartClassTypeAlias> typeList = getChildrenOfType(com.google.dart.tools.core.model.DartClassTypeAlias.class);
+    return typeList.toArray(new com.google.dart.tools.core.model.DartClassTypeAlias[typeList.size()]);
+  }
+
+  @Override
   public CompilationUnit getCompilationUnit() {
     return this;
   }
@@ -1629,6 +1662,12 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
         }
         DartTypeImpl type = new DartTypeImpl(this, tokenizer.nextToken());
         return type.getHandleFromMemento(tokenizer, owner);
+      case MEMENTO_DELIMITER_CLASS_TYPE_ALIAS:
+        if (!tokenizer.hasMoreTokens()) {
+          return this;
+        }
+        DartClassTypeAliasImpl type2 = new DartClassTypeAliasImpl(this, tokenizer.nextToken());
+        return type2.getHandleFromMemento(tokenizer, owner);
       case MEMENTO_DELIMITER_VARIABLE:
         if (!tokenizer.hasMoreTokens()) {
           return this;

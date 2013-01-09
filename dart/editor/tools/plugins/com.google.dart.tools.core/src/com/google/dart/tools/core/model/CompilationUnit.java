@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  */
 public interface CompilationUnit extends CodeAssistElement, SourceFileElement<CompilationUnit>,
     OpenableElement, ParentElement, SourceManipulation, SourceReference {
+
   /**
    * Return the Dart elements corresponding to the given selected text in this compilation unit. The
    * <code>offset</code> is the 0-based index of the first selected character. The
@@ -113,6 +114,15 @@ public interface CompilationUnit extends CodeAssistElement, SourceFileElement<Co
    * @return the found elements in this Dart file that correspond to the given element
    */
   public DartElement[] findElements(DartElement element);
+
+  /**
+   * Return an array containing the top-level class type aliases defined in this compilation unit.
+   * 
+   * @return the top-level class type aliases defined in this compilation unit
+   * @throws DartModelException if the class type aliases defined in this compilation unit cannot be
+   *           determined
+   */
+  public DartClassTypeAlias[] getClassTypeAliases() throws DartModelException;
 
   /**
    * Returns the most narrow element including the given offset.

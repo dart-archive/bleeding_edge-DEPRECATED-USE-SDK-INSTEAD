@@ -19,6 +19,7 @@ import com.google.dart.tools.core.internal.model.DartElementImpl;
  * Instances of the class <code>MementoTokenizer</code> tokenize a DartElementImpl memento.
  */
 public class MementoTokenizer {
+  public static final String CLASS_TYPE_ALIAS = Character.toString(DartElementImpl.MEMENTO_DELIMITER_CLASS_TYPE_ALIAS);
   public static final String COMPILATION_UNIT = Character.toString(DartElementImpl.MEMENTO_DELIMITER_COMPILATION_UNIT);
   public static final String COUNT = Character.toString(DartElementImpl.MEMENTO_DELIMITER_COUNT);
   public static final String FIELD = Character.toString(DartElementImpl.MEMENTO_DELIMITER_FIELD);
@@ -85,6 +86,8 @@ public class MementoTokenizer {
         return PROJECT;
       case DartElementImpl.MEMENTO_DELIMITER_TYPE:
         return TYPE;
+      case DartElementImpl.MEMENTO_DELIMITER_CLASS_TYPE_ALIAS:
+        return CLASS_TYPE_ALIAS;
       case DartElementImpl.MEMENTO_DELIMITER_VARIABLE:
         return VARIABLE;
     }

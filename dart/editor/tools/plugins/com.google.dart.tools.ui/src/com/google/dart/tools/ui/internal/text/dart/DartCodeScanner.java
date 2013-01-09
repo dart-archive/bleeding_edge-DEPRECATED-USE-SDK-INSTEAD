@@ -31,7 +31,7 @@ import static com.google.dart.compiler.parser.Token.BREAK;
 import static com.google.dart.compiler.parser.Token.IS;
 import static com.google.dart.compiler.parser.Token.LIBRARY;
 import static com.google.dart.compiler.parser.Token.NATIVE;
-import static com.google.dart.compiler.parser.Token.WHILE;
+import static com.google.dart.compiler.parser.Token.WITH;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.rules.ICharacterScanner;
@@ -240,7 +240,7 @@ public class DartCodeScanner extends AbstractDartScanner {
 
     for (int i = 0; i < tokens.length; i++) {
       com.google.dart.compiler.parser.Token token = tokens[i];
-      if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WHILE.ordinal())
+      if ((BREAK.ordinal() <= token.ordinal() && token.ordinal() <= WITH.ordinal())
           || token.ordinal() == AS.ordinal() || token.ordinal() == IS.ordinal()) {
         keywords.add(token.getSyntax());
       }

@@ -18,6 +18,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExportDirective;
 import com.google.dart.compiler.ast.DartField;
@@ -93,7 +94,7 @@ public class SemanticHighlightings {
       // prepare DartNode
       DartNode node = token.getNode();
       // typedef
-      if (node instanceof DartFunctionTypeAlias) {
+      if (node instanceof DartFunctionTypeAlias || node instanceof DartClassTypeAlias) {
         addStartPosition(token, "typedef");
       }
       // as

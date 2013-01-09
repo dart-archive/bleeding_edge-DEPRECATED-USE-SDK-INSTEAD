@@ -65,7 +65,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * CRITICAL! Do not use colon (:) as a delimiter. It is used in the indexer as a delimiter between
    * the memento and other information. Using it as a delimiter here would break the indexer.
    * 
-   * Suggested characters for additional delimiters: '*', ')', '}', '?'
+   * Suggested characters for additional delimiters: ')', '}', '?'
    */
 
   /**
@@ -137,6 +137,11 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
    * The character used before the name of a type.
    */
   public static final char MEMENTO_DELIMITER_TYPE = '%';
+
+  /**
+   * The character used before the name of a class type alias.
+   */
+  public static final char MEMENTO_DELIMITER_CLASS_TYPE_ALIAS = '*';
 
   /**
    * The character used before the name of a variable.
@@ -810,6 +815,7 @@ public abstract class DartElementImpl extends PlatformObject implements DartElem
     for (int i = 0; i < length; i++) {
       char character = mementoName.charAt(i);
       switch (character) {
+        case MEMENTO_DELIMITER_CLASS_TYPE_ALIAS:
         case MEMENTO_DELIMITER_COMPILATION_UNIT:
         case MEMENTO_DELIMITER_COUNT:
         case MEMENTO_DELIMITER_ESCAPE:

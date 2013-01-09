@@ -227,17 +227,17 @@ public class BindingUtilsTest extends TestCase {
     assertNull(BindingUtils.getEnclosingType(ast));
   }
 
-  public void test_BindingUtils_getOverriddenMethods() throws Exception {
-    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
-    Type type = getType(compilationUnit, "SimpleMoney");
-    Method method = getMethod(type, "addComplexMoney");
-    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
-    DartClass classNode = getType(ast, type.getElementName());
-    DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
-    MethodElement[] result = BindingUtils.getOverriddenMethods(methodNode.getElement());
-    assertNotNull(result);
-    assertEquals(1, result.length);
-  }
+//  public void test_BindingUtils_getOverriddenMethods() throws Exception {
+//    CompilationUnit compilationUnit = getMoneyCompilationUnit("simple_money.dart");
+//    Type type = getType(compilationUnit, "SimpleMoney");
+//    Method method = getMethod(type, "addComplexMoney");
+//    DartUnit ast = DartCompilerUtilities.resolveUnit(compilationUnit);
+//    DartClass classNode = getType(ast, type.getElementName());
+//    DartMethodDefinition methodNode = getMethod(classNode, method.getElementName());
+//    MethodElement[] result = BindingUtils.getOverriddenMethods(methodNode.getElement());
+//    assertNotNull(result);
+//    assertEquals(1, result.length);
+//  }
 
   private CompilationUnit getCompilationUnit(DartLibrary library, String unitName) throws Exception {
     if (library == null) {
