@@ -43,7 +43,7 @@ public class FileBasedSourceTest extends TestCase {
     String fullPath = "/does/not/exist.dart";
     File file = createFile(fullPath);
     FileBasedSource source = new FileBasedSource(factory, file);
-    assertEquals(fullPath, source.getFullName());
+    assertEquals(file.getAbsolutePath(), source.getFullName());
   }
 
   public void test_getShortName() {
@@ -76,7 +76,7 @@ public class FileBasedSourceTest extends TestCase {
     File file = createFile("/does/not/exist1.dart");
     FileBasedSource source = new FileBasedSource(factory, file);
     Source result = source.resolve("file:///invalid/path.dart");
-    assertEquals("/invalid/path.dart", result.getFullName());
+    assertEquals(createFile("/invalid/path.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_resolve_relative() {
@@ -85,7 +85,7 @@ public class FileBasedSourceTest extends TestCase {
     FileBasedSource source = new FileBasedSource(factory, file);
     Source result = source.resolve("exist2.dart");
     assertNotNull(result);
-    assertEquals("/does/not/exist2.dart", result.getFullName());
+    assertEquals(createFile("/does/not/exist2.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_system() {

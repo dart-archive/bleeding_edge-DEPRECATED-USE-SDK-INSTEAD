@@ -89,7 +89,9 @@ public class DartSdkTest extends TestCase {
 
   private DartSdk createDartSdk() {
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
-    assertNotNull(sdkDirectory);
+    assertNotNull(
+        "No SDK configured; set the property 'com.google.dart.sdk' on the command line",
+        sdkDirectory);
     return new DartSdk(sdkDirectory);
   }
 }

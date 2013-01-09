@@ -57,7 +57,7 @@ public class SourceFactoryTest extends TestCase {
     String absolutePath = "/does/not/matter.dart";
     Source containingSource = factory.forFile(createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
-    assertEquals(absolutePath, result.getFullName());
+    assertEquals(createFile(absolutePath).getAbsolutePath(), result.getFullName());
   }
 
   public void test_resolveUri_nonAbsolute_relative() throws Exception {
@@ -69,7 +69,7 @@ public class SourceFactoryTest extends TestCase {
     });
     Source containingSource = factory.forFile(createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
-    assertEquals("/does/not/exist.dart", result.getFullName());
+    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_setContents() {

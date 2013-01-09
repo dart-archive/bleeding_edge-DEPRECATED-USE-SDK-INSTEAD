@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.net.URI;
@@ -27,7 +29,7 @@ public class FileUriResolverTest extends TestCase {
     UriResolver resolver = new FileUriResolver();
     Source result = resolver.resolve(factory, null, new URI("file:/does/not/exist.dart"));
     assertNotNull(result);
-    assertEquals("/does/not/exist.dart", result.getFullName());
+    assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_resolve_nonFile() throws Exception {
