@@ -56,7 +56,7 @@ public class OpenViewActionGroup extends ActionGroup {
   private OpenCallHierarchyAction fOpenCallHierarchy;
   private PropertyDialogAction fOpenPropertiesDialog;
 
-  private boolean fShowOpenPropertiesAction = true;
+  private boolean fShowOpenPropertiesAction = false;
 
 //  private boolean fShowShowInMenu = true;
 
@@ -84,10 +84,12 @@ public class OpenViewActionGroup extends ActionGroup {
 
     fOpenTypeHierarchy = new OpenTypeHierarchyAction(part);
     fOpenTypeHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    fOpenTypeHierarchy.setId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
     part.setAction("OpenTypeHierarchy", fOpenTypeHierarchy); //$NON-NLS-1$
 
     fOpenCallHierarchy = new OpenCallHierarchyAction(part);
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
+    fOpenCallHierarchy.setId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
     part.setAction("OpenCallHierarchy", fOpenCallHierarchy); //$NON-NLS-1$
 
     initialize(part.getEditorSite().getSelectionProvider());
@@ -221,10 +223,12 @@ public class OpenViewActionGroup extends ActionGroup {
 
     fOpenTypeHierarchy = new OpenTypeHierarchyAction(site);
     fOpenTypeHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
+    fOpenTypeHierarchy.setId(DartEditorActionDefinitionIds.OPEN_TYPE_HIERARCHY);
     fOpenTypeHierarchy.setSpecialSelectionProvider(specialProvider);
 
     fOpenCallHierarchy = new OpenCallHierarchyAction(site);
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
+    fOpenCallHierarchy.setId(DartEditorActionDefinitionIds.OPEN_CALL_HIERARCHY);
     fOpenCallHierarchy.setSpecialSelectionProvider(specialProvider);
 
     ISelectionProvider provider = specialProvider != null ? specialProvider

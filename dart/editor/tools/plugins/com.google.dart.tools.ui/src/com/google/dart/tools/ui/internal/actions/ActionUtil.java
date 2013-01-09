@@ -13,14 +13,21 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -36,10 +43,22 @@ import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.ide.ResourceUtil;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
-/*
- * http://dev.eclipse.org/bugs/show_bug.cgi?id=19104
- */
 public class ActionUtil {
+
+  private static final String STRING_ALIAS = "alias"; // TODO(messick): Externalize strings.
+  private static final String STRING_CLASS = "class";
+  private static final String STRING_FIELD = "field";
+  private static final String STRING_FUNCTION = "function";
+  private static final String STRING_GETTER = "getter";
+  private static final String STRING_IMPORT = "import";
+  private static final String STRING_METHOD = "method";
+  private static final String STRING_OF = " of ";
+  private static final String STRING_SELECTION = "selection";
+  private static final String STRING_SETTER = "setter";
+  private static final String STRING_SPACE = " ";
+  private static final String STRING_TYPE = "type";
+  private static final String STRING_VARIABLE = "variable";
+  private static final int MAX_NAME_LENGTH = 30; // prevent menus from filling the screen
 
   public static boolean areProcessable(Shell shell, DartElement[] elements) {
     for (int i = 0; i < elements.length; i++) {
@@ -54,6 +73,90 @@ public class ActionUtil {
       }
     }
     return true;
+  }
+
+  public static String constructMenuText(String template, boolean isAdjectivePhrase,
+      DartTextSelection selection) {
+    StringBuffer text = new StringBuffer(template);
+    String sep = isAdjectivePhrase ? STRING_OF : STRING_SPACE;
+    try {
+      DartElement[] elements = selection.resolveElementAtOffset();
+      if (elements.length == 1) {
+        String name = elements[0].getElementName();
+        text.append(sep);
+        if (name == null) {
+          text.append(STRING_SELECTION);
+        } else if (name.length() > MAX_NAME_LENGTH) {
+          text.append(findGenericName(elements[0]));
+        } else {
+          text.append('\"');
+          text.append(name);
+          text.append('\"');
+        }
+      } else {
+        DartNode node = selection.resolveCoveringNode();
+        String src;
+        if ((node instanceof com.google.dart.compiler.ast.DartIdentifier)
+            && ((src = node.toSource()) != null)) {
+          // TODO(pquitslund): Searches that begin when this branch is taken always fail.
+          text.append(sep);
+          text.append('\"');
+          text.append(src);
+          text.append('\"');
+        } else {
+          text.append(sep);
+          text.append(STRING_SELECTION);
+        }
+      }
+    } catch (DartModelException ex) {
+      // should not happen
+      text.append(sep);
+      text.append(STRING_SELECTION);
+    }
+    return text.toString();
+  }
+
+  public static String findGenericName(DartElement element) {
+    switch (element.getElementType()) {
+      case DartElement.FIELD:
+        return STRING_FIELD;
+      case DartElement.FUNCTION:
+        DartFunction function = (DartFunction) element;
+        // TODO(scheglov): Investigate functions (e.g. window) that reply "false" to isGetter().
+        if (function.isGetter()) {
+          return STRING_GETTER;
+        } else if (function.isSetter()) {
+          return STRING_SETTER;
+        }
+        return STRING_FUNCTION;
+      case DartElement.FUNCTION_TYPE_ALIAS:
+        return STRING_ALIAS;
+      case DartElement.IMPORT:
+        return STRING_IMPORT;
+      case DartElement.METHOD:
+        Method method = (Method) element;
+        if (method.isGetter()) {
+          return STRING_GETTER;
+        } else if (method.isSetter()) {
+          return STRING_SETTER;
+        }
+        return STRING_METHOD;
+      case DartElement.TYPE:
+        Type type = (Type) element;
+        try {
+          if (type.isClass()) {
+            return STRING_CLASS;
+          }
+        } catch (DartModelException ex) {
+          // fall thru
+        }
+        return STRING_TYPE;
+      case DartElement.TYPE_PARAMETER:
+        return STRING_TYPE;
+      case DartElement.VARIABLE:
+        return STRING_VARIABLE;
+    }
+    return STRING_SELECTION;
   }
 
   public static boolean isEditable(DartEditor editor) {
@@ -96,8 +199,7 @@ public class ActionUtil {
       IResource resource = cu.getResource();
       if (resource != null && resource.isDerived()) {
 
-        // see
-// org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#validateEditorInputState()
+        // see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#validateEditorInputState()
         final String warnKey = AbstractDecoratedTextEditorPreferenceConstants.EDITOR_WARN_IF_INPUT_DERIVED;
         IPreferenceStore store = EditorsUI.getPreferenceStore();
         if (!store.getBoolean(warnKey)) {
@@ -121,6 +223,15 @@ public class ActionUtil {
       }
     }
     return true;
+  }
+
+  public static boolean isFindDeclarationsAvailable(DartElementSelection selection) {
+    return true;
+  }
+
+  public static boolean isFindUsesAvailable(DartElementSelection selection) {
+    return selection.toArray().length == 1
+        || selection.resolveCoveringNode() instanceof com.google.dart.compiler.ast.DartIdentifier;
   }
 
   public static boolean isOnBuildPath(DartElement element) {
@@ -147,6 +258,35 @@ public class ActionUtil {
     } catch (CoreException e) {
     }
     return false;
+  }
+
+  public static boolean isOpenDeclarationAvailable(DartElementSelection selection) {
+    if (selection.toArray().length == 1) {
+      com.google.dart.compiler.type.Type type;
+      DartNode[] nodes = selection.resolveSelectedNodes();
+      if (nodes != null && nodes.length > 0) {
+        DartNode node = nodes[0];
+        type = node.getType();
+        if (type != null) {
+          return true;
+        }
+      }
+      DartNode node = selection.resolveCoveringNode();
+      if (node != null) {
+        type = node.getType();
+        if (type != null) {
+          return true;
+        }
+        if (node.getElement() != null && node.getElement().getType() != null) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public static boolean isOpenHierarchyAvailable(DartElementSelection selection) {
+    return true;
   }
 
   public static boolean isProcessable(DartEditor editor) {

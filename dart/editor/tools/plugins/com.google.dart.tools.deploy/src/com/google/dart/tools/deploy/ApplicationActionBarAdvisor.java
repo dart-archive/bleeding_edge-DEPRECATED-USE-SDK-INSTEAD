@@ -17,10 +17,13 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.ui.internal.view.BreakpointsView;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 import com.google.dart.tools.debug.ui.launch.DartRunAction;
+import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.actions.AboutDartAction;
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateDartdocAction;
 import com.google.dart.tools.ui.actions.GenerateJavascriptAction;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
@@ -44,12 +47,14 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.ICoolBarManager;
+import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.StatusLineContributionItem;
+import org.eclipse.jface.action.SubContributionItem;
 import org.eclipse.jface.internal.provisional.action.IToolBarContributionItem;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -76,6 +81,7 @@ import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.internal.ide.actions.QuickMenuAction;
 import org.eclipse.ui.internal.provisional.application.IActionBarConfigurer2;
+import org.eclipse.ui.texteditor.RetargetTextEditorAction;
 import org.eclipse.ui.views.IViewDescriptor;
 
 /**
@@ -646,6 +652,34 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   }
 
+  void updateModeLine(final String text) {
+    statusLineItem.setText(text);
+  }
+
+  /**
+   * Update the pin action's tool bar
+   */
+  void updatePinActionToolbar() {
+
+    ICoolBarManager coolBarManager = getActionBarConfigurer().getCoolBarManager();
+    IContributionItem cbItem = coolBarManager.find(IWorkbenchActionConstants.TOOLBAR_NAVIGATE);
+    if (!(cbItem instanceof IToolBarContributionItem)) {
+      // This should not happen
+      IDEWorkbenchPlugin.log("Navigation toolbar contribution item is missing"); //$NON-NLS-1$
+      return;
+    }
+    IToolBarContributionItem toolBarItem = (IToolBarContributionItem) cbItem;
+    IToolBarManager toolBarManager = toolBarItem.getToolBarManager();
+    if (toolBarManager == null) {
+      // error if this happens, navigation toolbar assumed to always exist
+      IDEWorkbenchPlugin.log("Navigate toolbar is missing"); //$NON-NLS-1$
+      return;
+    }
+
+    toolBarManager.update(false);
+    toolBarItem.update(ICoolBarManager.SIZE);
+  }
+
   /**
    * Update actions based on resource changes. Actions affected include the new file action, the
    * build actions on the toolbar and menu bar based on the current state of autobuild.
@@ -695,34 +729,6 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
         shell.getDisplay().asyncExec(update);
       }
     }
-  }
-
-  void updateModeLine(final String text) {
-    statusLineItem.setText(text);
-  }
-
-  /**
-   * Update the pin action's tool bar
-   */
-  void updatePinActionToolbar() {
-
-    ICoolBarManager coolBarManager = getActionBarConfigurer().getCoolBarManager();
-    IContributionItem cbItem = coolBarManager.find(IWorkbenchActionConstants.TOOLBAR_NAVIGATE);
-    if (!(cbItem instanceof IToolBarContributionItem)) {
-      // This should not happen
-      IDEWorkbenchPlugin.log("Navigation toolbar contribution item is missing"); //$NON-NLS-1$
-      return;
-    }
-    IToolBarContributionItem toolBarItem = (IToolBarContributionItem) cbItem;
-    IToolBarManager toolBarManager = toolBarItem.getToolBarManager();
-    if (toolBarManager == null) {
-      // error if this happens, navigation toolbar assumed to always exist
-      IDEWorkbenchPlugin.log("Navigate toolbar is missing"); //$NON-NLS-1$
-      return;
-    }
-
-    toolBarManager.update(false);
-    toolBarItem.update(ICoolBarManager.SIZE);
   }
 
   /**
@@ -1003,6 +1009,13 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
     menu.add(new GroupMarker(IWorkbenchActionConstants.NAV_END));
 
+    IMenuListener menuSelectionistener = new IMenuListener() {
+      @Override
+      public void menuAboutToShow(IMenuManager manager) {
+        updateContextSensitiveMenuItems(manager);
+      }
+    };
+    menu.addMenuListener(menuSelectionistener);
     //TBD: Location of this actions
     //menu.add(new Separator());
     //menu.add(backwardHistoryAction);
@@ -1165,5 +1178,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     if (!sameState) {
       prefs.putValue(stateKey, currentState);
     }
+  }
+
+  private void updateContextSensitiveMenuItems(IMenuManager manager) {
+    manager.getId();
+    SubContributionItem item = (SubContributionItem) manager.findUsingPath(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    ActionContributionItem inner = (ActionContributionItem) item.getInnerItem();
+    RetargetTextEditorAction reaction = (RetargetTextEditorAction) inner.getAction();
+    OpenAction action = (OpenAction) ReflectionUtils.getFieldObject(reaction, "fAction");
+    action.updateLabel();
   }
 }

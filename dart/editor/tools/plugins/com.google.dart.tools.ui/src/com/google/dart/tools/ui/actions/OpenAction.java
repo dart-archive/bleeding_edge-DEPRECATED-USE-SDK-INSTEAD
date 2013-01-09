@@ -27,6 +27,8 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
@@ -39,6 +41,7 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchSite;
@@ -287,12 +290,35 @@ public class OpenAction extends SelectionDispatchAction {
   }
 
   @Override
+  public void selectionChanged(DartTextSelection selection) {
+    if (selection instanceof DartElementSelection) {
+      DartElementSelection sel = (DartElementSelection) selection;
+      setEnabled(checkEnabled(sel));
+      if (isEnabled()) {
+        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
+      }
+    } else {
+      selectionChanged((ITextSelection) selection);
+    }
+  }
+
+  @Override
   public void selectionChanged(IStructuredSelection selection) {
     setEnabled(checkEnabled(selection));
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
+  }
+
+  public void updateLabel() {
+    ISelection selection = fEditor.createElementSelection();
+    if (ActionUtil.isOpenDeclarationAvailable((DartElementSelection) selection)) {
+      update(selection);
+    } else {
+      setText(ActionMessages.OpenAction_declaration_label);
+      setEnabled(false);
+    }
   }
 
   protected void selectInEditor(IEditorPart part, DartElement element) {

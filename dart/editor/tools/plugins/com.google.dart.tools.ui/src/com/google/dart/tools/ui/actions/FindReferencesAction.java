@@ -18,10 +18,11 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 import com.google.dart.tools.ui.search.ElementQuerySpecification;
 import com.google.dart.tools.ui.search.QuerySpecification;
 
@@ -61,6 +62,16 @@ public class FindReferencesAction extends FindAction {
   }
 
   @Override
+  public void selectionChanged(DartTextSelection selection) {
+    // Update text of menu item to include name of element.
+    String text = ActionUtil.constructMenuText(
+        SearchMessages.Search_FindReferencesAction_label,
+        true,
+        selection);
+    setText(text.toString());
+  }
+
+  @Override
   QuerySpecification createQuery(DartElement element) throws DartModelException,
       InterruptedException {
     SearchScope scope = SearchScopeFactory.createWorkspaceScope();
@@ -82,7 +93,6 @@ public class FindReferencesAction extends FindAction {
   void init() {
     setText(SearchMessages.Search_FindReferencesAction_label);
     setToolTipText(SearchMessages.Search_FindReferencesAction_tooltip);
-    setImageDescriptor(DartPluginImages.DESC_OBJS_SEARCH_REF);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
         DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);

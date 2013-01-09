@@ -93,6 +93,7 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
 
     fOpenDeclaration = new RetargetTextEditorAction(ActionMessages.getBundle(), "OpenAction_"); //$NON-NLS-1$
     fOpenDeclaration.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpenDeclaration.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
 
     fOpenHierarchy = new RetargetTextEditorAction(
         DartEditorMessages.getBundleForConstructedKeys(),

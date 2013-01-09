@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IAction;
@@ -54,6 +56,7 @@ public class ReferencesSearchGroup extends ActionGroup {
     site = editor.getSite();
     findReferencesAction = new FindReferencesAction(editor);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     editor.setAction("SearchReferencesInWorkspace", findReferencesAction); //$NON-NLS-1$
   }
 
@@ -81,6 +84,7 @@ public class ReferencesSearchGroup extends ActionGroup {
 
     findReferencesAction = new FindReferencesAction(site);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
 
     // register the actions as selection listeners
     ISelectionProvider provider = specialSelectionProvider == null ? site.getSelectionProvider()
@@ -109,7 +113,17 @@ public class ReferencesSearchGroup extends ActionGroup {
 
   @Override
   public void fillContextMenu(IMenuManager mm) {
-    appendToGroup(mm, findReferencesAction);
+    ISelection sel = getContext().getSelection();
+    if (sel instanceof DartElementSelection) {
+      DartElementSelection selection = (DartElementSelection) sel;
+      if (ActionUtil.isFindUsesAvailable(selection)) {
+        findReferencesAction.update(selection);
+        appendToGroup(mm, findReferencesAction);
+      }
+    } else {
+      // TODO(messick): Remove this branch.
+      appendToGroup(mm, findReferencesAction);
+    }
   }
 
   private void appendToGroup(IMenuManager menu, IAction action) {

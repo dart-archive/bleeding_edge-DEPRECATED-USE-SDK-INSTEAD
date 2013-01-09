@@ -541,6 +541,7 @@ public class RefactorActionGroup extends ActionGroup {
     if (fEditor != null) {
       final DartElement element = getEditorInput();
       if (element != null && ActionUtil.isOnBuildPath(element)) {
+        // TODO(messick): Change to use the selection set in setContext(), and define setContext().
         ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
         ISelection selection = new DartTextSelection(
             fEditor,

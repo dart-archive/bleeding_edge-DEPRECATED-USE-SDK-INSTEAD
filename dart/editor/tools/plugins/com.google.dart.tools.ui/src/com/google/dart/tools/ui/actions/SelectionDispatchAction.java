@@ -238,10 +238,10 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
   }
 
   private void dispatchRun(ISelection selection) {
-    if (selection instanceof IStructuredSelection) {
-      run((IStructuredSelection) selection);
-    } else if (selection instanceof DartTextSelection) {
+    if (selection instanceof DartTextSelection) {
       run((DartTextSelection) selection);
+    } else if (selection instanceof IStructuredSelection) {
+      run((IStructuredSelection) selection);
     } else if (selection instanceof ITextSelection) {
       run((ITextSelection) selection);
     } else {
@@ -250,10 +250,10 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
   }
 
   private void dispatchSelectionChanged(ISelection selection) {
-    if (selection instanceof IStructuredSelection) {
-      selectionChanged((IStructuredSelection) selection);
-    } else if (selection instanceof DartTextSelection) {
+    if (selection instanceof DartTextSelection) {
       selectionChanged((DartTextSelection) selection);
+    } else if (selection instanceof IStructuredSelection) {
+      selectionChanged((IStructuredSelection) selection);
     } else if (selection instanceof ITextSelection) {
       selectionChanged((ITextSelection) selection);
     } else {

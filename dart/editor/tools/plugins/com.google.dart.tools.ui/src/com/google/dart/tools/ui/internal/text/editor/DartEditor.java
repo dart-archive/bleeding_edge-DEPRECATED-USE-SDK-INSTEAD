@@ -32,6 +32,7 @@ import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 import com.google.dart.tools.core.utilities.general.Timer;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -1841,6 +1842,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  public ISelection createElementSelection() {
+    ITextSelection textSelection = (ITextSelection) getSelectionProvider().getSelection();
+    ISelection selection = new DartElementSelection(
+        this,
+        DartUI.getEditorInputDartElement(getEditorInput()),
+        getSourceViewer().getDocument(),
+        textSelection.getOffset(),
+        textSelection.getLength());
+    return selection;
+  }
+
   /*
    * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets .Composite)
    */
@@ -1930,10 +1942,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
     // Open Declaration action
-    ActionContext context = new ActionContext(getSelectionProvider().getSelection());
-    fOpenEditorActionGroup.setContext(context);
-    fOpenEditorActionGroup.fillContextMenu(menu);
-    fOpenEditorActionGroup.setContext(null);
+    ActionContext context = new ActionContext(createElementSelection());
+    setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
     // Quick Outline
     {
@@ -1943,6 +1953,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     // Quick Type Hierarchy
     {
+      // TODO(messick): Only add if selection is appropriate.
       IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
       menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
     }
@@ -3516,6 +3527,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       updateStatusLine();
     }
     fSelectionChangedViaGotoAnnotation = false;
+  }
+
+  protected void setContextMenuContext(IMenuManager menu, ActionContext context) {
+    fOpenEditorActionGroup.setContext(context);
+    fOpenEditorActionGroup.fillContextMenu(menu);
+    fOpenEditorActionGroup.setContext(null);
   }
 
   /**

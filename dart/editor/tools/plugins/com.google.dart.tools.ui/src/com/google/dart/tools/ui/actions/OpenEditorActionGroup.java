@@ -14,7 +14,9 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.IContextMenuConstants;
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -58,6 +60,7 @@ public class OpenEditorActionGroup extends ActionGroup {
     fIsEditorOwner = true;
     fOpen = new OpenAction(editor);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     editor.setAction("OpenEditor", fOpen); //$NON-NLS-1$
     fSite = editor.getEditorSite();
     fSelectionProvider = fSite.getSelectionProvider();
@@ -87,6 +90,7 @@ public class OpenEditorActionGroup extends ActionGroup {
     fSite = site;
     fOpen = new OpenAction(fSite);
     fOpen.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    fOpen.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
     fSelectionProvider = specialSelectionProvider == null ? fSite.getSelectionProvider()
         : specialSelectionProvider;
     initialize();
@@ -119,7 +123,17 @@ public class OpenEditorActionGroup extends ActionGroup {
   @Override
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);
-    appendToGroup(menu, fOpen);
+    ISelection sel = getContext().getSelection();
+    if (sel instanceof DartElementSelection) {
+      DartElementSelection selection = (DartElementSelection) sel;
+      if (ActionUtil.isOpenDeclarationAvailable(selection)) {
+        fOpen.update(selection);
+        appendToGroup(menu, fOpen);
+      }
+    } else {
+      // TODO(messick): Remove this branch.
+      appendToGroup(menu, fOpen);
+    }
     if (!fIsEditorOwner) {
       addOpenWithMenu(menu);
     }

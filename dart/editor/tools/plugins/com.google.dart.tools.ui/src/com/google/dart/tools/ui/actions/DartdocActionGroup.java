@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IAction;
@@ -61,8 +62,19 @@ public class DartdocActionGroup extends ActionGroup {
   }
 
   @Override
-  public void fillContextMenu(IMenuManager mm) {
-    appendToGroup(mm, openExternalDartdocAction);
+  public void fillContextMenu(IMenuManager menu) {
+    super.fillContextMenu(menu);
+    ISelection sel = getContext().getSelection();
+    if (sel instanceof DartElementSelection) {
+      DartElementSelection selection = (DartElementSelection) sel;
+      if (openExternalDartdocAction.isEnabled()) {
+        openExternalDartdocAction.update(selection);
+        appendToGroup(menu, openExternalDartdocAction);
+      }
+    } else {
+      // TODO(messick): Remove this branch.
+      appendToGroup(menu, openExternalDartdocAction);
+    }
   }
 
   /**

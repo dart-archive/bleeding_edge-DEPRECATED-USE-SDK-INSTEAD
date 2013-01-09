@@ -1218,12 +1218,6 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     super.editorContextMenuAboutToShow(menu);
-    {
-      ActionContext context = new ActionContext(getSelectionProvider().getSelection());
-      fContextMenuGroup.setContext(context);
-      fContextMenuGroup.fillContextMenu(menu);
-      fContextMenuGroup.setContext(null);
-    }
     addAction(menu, "ToggleComment");
     // add Organize Imports action to menu
 //    menu.add(new Separator());
@@ -1831,6 +1825,14 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   protected void restoreSelection() {
     fRememberedSelection.restore();
+  }
+
+  @Override
+  protected void setContextMenuContext(IMenuManager menu, ActionContext context) {
+    super.setContextMenuContext(menu, context);
+    fContextMenuGroup.setContext(context);
+    fContextMenuGroup.fillContextMenu(menu);
+    fContextMenuGroup.setContext(null);
   }
 
   /*
