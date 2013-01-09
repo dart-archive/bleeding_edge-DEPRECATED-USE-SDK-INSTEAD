@@ -373,7 +373,19 @@ public class AutoSaveHelper {
    * Start {@link AutoSaveHelper} with given started {@link IWorkbench}.
    */
   private void start(IWorkbench workbench) {
-    IWorkbenchPage activePage = workbench.getActiveWorkbenchWindow().getActivePage();
+    // prepare page
+    IWorkbenchPage activePage;
+    {
+      // may be workbench already closed
+      if (workbench == null || workbench.getActiveWorkbenchWindow() == null) {
+        return;
+      }
+      activePage = workbench.getActiveWorkbenchWindow().getActivePage();
+      if (activePage == null) {
+        return;
+      }
+    }
+    // do restore
     restoreEditors(activePage);
     // remember all open editors
     {
