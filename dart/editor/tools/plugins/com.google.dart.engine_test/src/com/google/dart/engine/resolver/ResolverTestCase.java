@@ -33,10 +33,9 @@ import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.AssertionFailedError;
-
-import java.io.File;
 
 public class ResolverTestCase extends EngineTestCase {
   /**
@@ -84,7 +83,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = sourceFactory.forFile(new File(filePath));
+    Source source = sourceFactory.forFile(createFile(filePath));
     sourceFactory.setContents(source, contents);
     return source;
   }
@@ -124,13 +123,13 @@ public class ResolverTestCase extends EngineTestCase {
       ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.setSource(sourceFactory.forFile(new File(fileName)));
+      compilationUnit.setSource(sourceFactory.forFile(createFile(fileName)));
       compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.setSource(sourceFactory.forFile(new File(fileName)));
+    compilationUnit.setSource(sourceFactory.forFile(createFile(fileName)));
 
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);

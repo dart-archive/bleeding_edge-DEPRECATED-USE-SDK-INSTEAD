@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -25,7 +27,7 @@ public class SourceFactoryTest extends TestCase {
 
   public void test_forFile() {
     SourceFactory factory = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     Source result = factory.forFile(file);
     assertNotNull(result);
     assertEquals(file.getAbsolutePath(), result.getFullName());
@@ -53,7 +55,7 @@ public class SourceFactoryTest extends TestCase {
       }
     });
     String absolutePath = "/does/not/matter.dart";
-    Source containingSource = factory.forFile(new File("/does/not/exist.dart"));
+    Source containingSource = factory.forFile(createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
     assertEquals(absolutePath, result.getFullName());
   }
@@ -65,14 +67,14 @@ public class SourceFactoryTest extends TestCase {
         return null;
       }
     });
-    Source containingSource = factory.forFile(new File("/does/not/have.dart"));
+    Source containingSource = factory.forFile(createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
     assertEquals("/does/not/exist.dart", result.getFullName());
   }
 
   public void test_setContents() {
     SourceFactory factory = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     Source source = factory.forFile(file);
     assertNull(factory.getContents(source));
     String contents = "library lib;";
@@ -86,7 +88,7 @@ public class SourceFactoryTest extends TestCase {
     ContentCache cache = new ContentCache();
 
     SourceFactory factory1 = new SourceFactory(cache);
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     Source source1 = factory1.forFile(file);
     assertNull(factory1.getContents(source1));
     String contents = "library lib;";
@@ -100,7 +102,7 @@ public class SourceFactoryTest extends TestCase {
 
   public void test_sharedContentsNot() {
     SourceFactory factory1 = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     Source source1 = factory1.forFile(file);
     assertNull(factory1.getContents(source1));
     String contents = "library lib;";

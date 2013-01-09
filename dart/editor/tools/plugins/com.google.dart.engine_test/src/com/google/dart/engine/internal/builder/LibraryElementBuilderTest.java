@@ -26,7 +26,7 @@ import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
-import java.io.File;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class LibraryElementBuilderTest extends EngineTestCase {
   /**
@@ -183,7 +183,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = sourceFactory.forFile(new File(filePath));
+    Source source = sourceFactory.forFile(createFile(filePath));
     sourceFactory.setContents(source, contents);
     return source;
   }

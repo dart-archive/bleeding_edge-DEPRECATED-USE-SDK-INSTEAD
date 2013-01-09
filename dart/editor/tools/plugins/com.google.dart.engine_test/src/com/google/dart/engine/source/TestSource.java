@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import java.io.File;
 
 /**
@@ -29,7 +31,7 @@ public class TestSource extends FileBasedSource {
    * Initialize a newly created source object.
    */
   public TestSource() {
-    this(null, new File("/test.dart"), "");
+    this(null, createFile("/test.dart"), "");
   }
 
   /**

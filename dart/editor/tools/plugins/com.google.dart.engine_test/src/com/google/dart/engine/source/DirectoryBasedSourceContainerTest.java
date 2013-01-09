@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -20,10 +22,10 @@ import java.io.File;
 public class DirectoryBasedSourceContainerTest extends TestCase {
 
   public void test_contains() {
-    File dir = new File("/does/not/exist");
-    File file1 = new File("/does/not/exist/some.dart");
-    File file2 = new File("/does/not/exist/folder/some2.dart");
-    File file3 = new File("/does/not/exist3/some3.dart");
+    File dir = createFile("/does/not/exist");
+    File file1 = createFile("/does/not/exist/some.dart");
+    File file2 = createFile("/does/not/exist/folder/some2.dart");
+    File file3 = createFile("/does/not/exist3/some3.dart");
 
     SourceFactory factory = new SourceFactory();
     FileBasedSource source1 = new FileBasedSource(factory, file1);

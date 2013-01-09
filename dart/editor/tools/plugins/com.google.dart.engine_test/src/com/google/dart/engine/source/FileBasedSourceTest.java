@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -20,8 +22,8 @@ import java.io.File;
 public class FileBasedSourceTest extends TestCase {
   public void test_equals_false() {
     SourceFactory factory = new SourceFactory();
-    File file1 = new File("/does/not/exist1.dart");
-    File file2 = new File("/does/not/exist2.dart");
+    File file1 = createFile("/does/not/exist1.dart");
+    File file2 = createFile("/does/not/exist2.dart");
     FileBasedSource source1 = new FileBasedSource(factory, file1);
     FileBasedSource source2 = new FileBasedSource(factory, file2);
     assertFalse(source1.equals(source2));
@@ -29,8 +31,8 @@ public class FileBasedSourceTest extends TestCase {
 
   public void test_equals_true() {
     SourceFactory factory = new SourceFactory();
-    File file1 = new File("/does/not/exist.dart");
-    File file2 = new File("/does/not/exist.dart");
+    File file1 = createFile("/does/not/exist.dart");
+    File file2 = createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource(factory, file1);
     FileBasedSource source2 = new FileBasedSource(factory, file2);
     assertTrue(source1.equals(source2));
@@ -39,30 +41,30 @@ public class FileBasedSourceTest extends TestCase {
   public void test_getFullName() {
     SourceFactory factory = new SourceFactory();
     String fullPath = "/does/not/exist.dart";
-    File file = new File(fullPath);
+    File file = createFile(fullPath);
     FileBasedSource source = new FileBasedSource(factory, file);
     assertEquals(fullPath, source.getFullName());
   }
 
   public void test_getShortName() {
     SourceFactory factory = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(factory, file);
     assertEquals("exist.dart", source.getShortName());
   }
 
   public void test_hashCode() {
     SourceFactory factory = new SourceFactory();
-    File file1 = new File("/does/not/exist.dart");
-    File file2 = new File("/does/not/exist.dart");
+    File file1 = createFile("/does/not/exist.dart");
+    File file2 = createFile("/does/not/exist.dart");
     FileBasedSource source1 = new FileBasedSource(factory, file1);
     FileBasedSource source2 = new FileBasedSource(factory, file2);
     assertEquals(source1.hashCode(), source2.hashCode());
   }
 
-  public void test_nonSystem() {
+  public void test_isInSystemLibrary_false() {
     SourceFactory factory = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(factory, file);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());
@@ -71,7 +73,7 @@ public class FileBasedSourceTest extends TestCase {
 
   public void test_resolve_absolute() {
     SourceFactory factory = new SourceFactory(new FileUriResolver());
-    File file = new File("/does/not/exist1.dart");
+    File file = createFile("/does/not/exist1.dart");
     FileBasedSource source = new FileBasedSource(factory, file);
     Source result = source.resolve("file:///invalid/path.dart");
     assertEquals("/invalid/path.dart", result.getFullName());
@@ -79,7 +81,7 @@ public class FileBasedSourceTest extends TestCase {
 
   public void test_resolve_relative() {
     SourceFactory factory = new SourceFactory(new FileUriResolver());
-    File file = new File("/does/not/exist1.dart");
+    File file = createFile("/does/not/exist1.dart");
     FileBasedSource source = new FileBasedSource(factory, file);
     Source result = source.resolve("exist2.dart");
     assertNotNull(result);
@@ -88,7 +90,7 @@ public class FileBasedSourceTest extends TestCase {
 
   public void test_system() {
     SourceFactory factory = new SourceFactory();
-    File file = new File("/does/not/exist.dart");
+    File file = createFile("/does/not/exist.dart");
     FileBasedSource source = new FileBasedSource(factory, file, true);
     assertNotNull(source);
     assertEquals(file.getAbsolutePath(), source.getFullName());

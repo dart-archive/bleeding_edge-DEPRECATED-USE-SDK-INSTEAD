@@ -17,7 +17,7 @@ import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
   public void test_class_extends_implements() throws Exception {
-    Source source = addSource("test.dart", createSource(//
+    Source source = addSource("/test.dart", createSource(//
         "class A extends B implements C {}",
         "class B {}",
         "class C {}"));
@@ -27,7 +27,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   }
 
   public void test_empty() throws Exception {
-    Source source = addSource("test.dart", "");
+    Source source = addSource("/test.dart", "");
     resolve(source);
     assertNoErrors();
     verify(source);

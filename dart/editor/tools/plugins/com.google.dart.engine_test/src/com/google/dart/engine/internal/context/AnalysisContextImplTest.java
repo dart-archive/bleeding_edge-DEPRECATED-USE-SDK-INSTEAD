@@ -22,11 +22,11 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.source.FileBasedSource;
 
-import java.io.File;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class AnalysisContextImplTest extends EngineTestCase {
 
@@ -42,7 +42,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -57,7 +57,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -72,7 +72,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/does/not/exist.dart"));
+    Source source = new FileBasedSource(sourceFactory, createFile("/does/not/exist.dart"));
     Element element = context.getLibraryElement(source);
     assertNotNull(element);
   }
@@ -81,7 +81,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -100,7 +100,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -115,7 +115,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         receiver.accept("library lib;");
@@ -137,7 +137,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = sourceFactory.forFile(new File("/lib.dart"));
+    Source source = sourceFactory.forFile(createFile("/lib.dart"));
 
     sourceFactory.setContents(source, "class A {}");
     CompilationUnit unit = context.parse(source, new GatheringErrorListener());

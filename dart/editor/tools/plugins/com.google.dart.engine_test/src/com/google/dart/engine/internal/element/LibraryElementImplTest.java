@@ -23,8 +23,7 @@ import com.google.dart.engine.source.FileBasedSource;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
-
-import java.io.File;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class LibraryElementImplTest extends EngineTestCase {
   public void test_creation() {
@@ -93,7 +92,7 @@ public class LibraryElementImplTest extends EngineTestCase {
 
   private LibraryElementImpl createLibrary(AnalysisContext context, String libraryName) {
     String fileName = libraryName + ".dart";
-    FileBasedSource source = new FileBasedSource(null, new File(fileName));
+    FileBasedSource source = new FileBasedSource(null, createFile(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
