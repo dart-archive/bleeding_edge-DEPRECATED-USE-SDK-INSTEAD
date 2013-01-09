@@ -904,6 +904,25 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
+  public void test_searchReferences_mixin() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {} // 0",
+          "class B extends Object with A {} // 1",
+          "typedef C = Object with A; // 2",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      Type type = (Type) unit.getChildren()[0];
+      assertTypeReferences(type, 1, new String[] {"A {} // 1", "A; // 2"});
+    } finally {
+      testProject.dispose();
+    }
+  }
+
   public void test_searchReferences_namedParameter_ofFunction() throws Exception {
     TestProject testProject = new TestProject("Test");
     try {
@@ -1127,6 +1146,30 @@ public class SearchEngineTest extends TestCase {
       DartVariableDeclaration variable = (DartVariableDeclaration) unit.getChildren()[0];
       List<SearchMatch> matches = getVariableReferences(variable);
       assertEquals(2, matches.size());
+    } finally {
+      testProject.dispose();
+    }
+  }
+
+  public void test_searchTypeDeclarations_mixin() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit c = testProject.setUnitContent(
+          "c.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "class A {}",
+              "typedef MyMix = Object with A;",
+              ""));
+      indexUnits(c);
+
+      SearchEngine engine = createSearchEngine();
+      List<SearchMatch> matches = engine.searchTypeDeclarations(
+          SearchScopeFactory.createLibraryScope(c.getLibrary()),
+          SearchPatternFactory.createPrefixPattern("MyM", true),
+          (SearchFilter) null,
+          new NullProgressMonitor());
+      assertEquals(1, matches.size());
     } finally {
       testProject.dispose();
     }

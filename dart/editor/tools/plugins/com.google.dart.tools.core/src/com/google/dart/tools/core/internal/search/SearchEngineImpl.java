@@ -789,10 +789,14 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = new CountingSearchListener(2, applyFilter(filter, listener));
+    SearchListener filteredListener = new CountingSearchListener(3, applyFilter(filter, listener));
     index.getRelationships(
         createElement(type),
         IndexConstants.IS_EXTENDED_BY,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_MIXED_IN_BY,
         new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
     index.getRelationships(
         createElement(type),
@@ -1105,13 +1109,17 @@ public class SearchEngineImpl implements SearchEngine {
     if (listener == null) {
       throw new IllegalArgumentException("listener cannot be null");
     }
-    SearchListener filteredListener = new CountingSearchListener(elements.length * 3, applyFilter(
+    SearchListener filteredListener = new CountingSearchListener(elements.length * 4, applyFilter(
         filter,
         applyPattern(pattern, listener)));
     for (Element element : elements) {
       index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
           MatchKind.NOT_A_REFERENCE,
           filteredListener));
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_CLASS_ALIAS,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
       index.getRelationships(
           element,
           IndexConstants.DEFINES_FUNCTION_TYPE,

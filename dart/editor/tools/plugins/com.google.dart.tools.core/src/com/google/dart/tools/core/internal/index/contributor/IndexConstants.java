@@ -52,7 +52,13 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that a container (the left-operand) contains the definition
-   * of a function type at a specific location (the right operand).
+   * of a class type alias at a specific location (the right operand).
+   */
+  public static final Relationship DEFINES_CLASS_ALIAS = Relationship.getRelationship("defines-class-alias");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a function type alias at a specific location (the right operand).
    */
   public static final Relationship DEFINES_FUNCTION_TYPE = Relationship.getRelationship("defines-function-type");
 
@@ -87,6 +93,12 @@ public interface IndexConstants {
   public static final Relationship IMPLEMENTS = Relationship.getRelationship("implements");
 
   /**
+   * The relationship used to indicate that a type (the left-operand) has mixed in a type at a
+   * specific location (the right operand).
+   */
+  public static final Relationship MIXES_IN = Relationship.getRelationship("mixes-in");
+
+  /**
    * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
    * accessed at a specific location (the right operand). With some qualifier.
    */
@@ -103,6 +115,12 @@ public interface IndexConstants {
    * type at a specific location (the right operand).
    */
   public static final Relationship IS_EXTENDED_BY = Relationship.getRelationship("is-extended-by");
+
+  /**
+   * The relationship used to indicate that a type (the left-operand) is mixed into a type at a
+   * specific location (the right operand).
+   */
+  public static final Relationship IS_MIXED_IN_BY = Relationship.getRelationship("is-mixed-in-by");
 
   /**
    * The relationship used to indicate that a type (the left-operand) is implemented by a type at a

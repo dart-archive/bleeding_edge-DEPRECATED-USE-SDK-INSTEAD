@@ -118,7 +118,7 @@ public interface DartElement extends IAdaptable {
    * A constant representing a class type alias. A Dart element with this type can be safely cast to
    * {@link DartClassTypeAlias}.
    */
-  public static int CLASS_TYPE_ALIAS = 16;
+  public static int CLASS_TYPE_ALIAS = 18;
 
   /**
    * A constant representing a local variable or parameter. A Dart element with this type can be

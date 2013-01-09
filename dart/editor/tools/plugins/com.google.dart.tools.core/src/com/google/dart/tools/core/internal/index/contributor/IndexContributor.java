@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayAccess;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartClassTypeAlias;
 import com.google.dart.compiler.ast.DartCommentNewName;
 import com.google.dart.compiler.ast.DartCommentRefName;
 import com.google.dart.compiler.ast.DartDeclaration;
@@ -284,6 +285,18 @@ public class IndexContributor extends ASTVisitor<Void> {
     try {
       processClass(node);
       super.visitClass(node);
+    } finally {
+      exitScope();
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitClassTypeAlias(DartClassTypeAlias node) {
+    enterScope(getElement(node));
+    try {
+      processClassTypeAlias(node);
+      super.visitClassTypeAlias(node);
     } finally {
       exitScope();
     }
@@ -663,6 +676,16 @@ public class IndexContributor extends ASTVisitor<Void> {
   }
 
   /**
+   * Return a location representing the location of the name of the given class type.
+   * 
+   * @param node the node representing the declaration of the class type
+   * @return a location representing the location of the name of the given class type
+   */
+  private Location createNameLocation(DartClassTypeAlias node) {
+    return createNameLocation(node.getName());
+  }
+
+  /**
    * @return the {@link Location} representing location of the {@link DartExpression} used as name.
    */
   private Location createNameLocation(DartExpression name) {
@@ -830,6 +853,18 @@ public class IndexContributor extends ASTVisitor<Void> {
     return new Element(
         compilationUnitResource,
         ElementFactory.composeElementId(node.getClassName()));
+  }
+
+  /**
+   * Return an element representing the given class type.
+   * 
+   * @param node the node representing the declaration of the class type
+   * @return an element representing the given class type
+   */
+  private Element getElement(DartClassTypeAlias node) {
+    return new Element(
+        compilationUnitResource,
+        ElementFactory.composeElementId(node.getName().getName()));
   }
 
   /**
@@ -1136,11 +1171,27 @@ public class IndexContributor extends ASTVisitor<Void> {
         processSupertype(node, type);
       }
       for (InterfaceType type : classElement.getMixins()) {
-        processSupertype(node, type);
+        processSupertype(node, type, IndexConstants.IS_MIXED_IN_BY, IndexConstants.MIXES_IN);
       }
     } else {
       notFound("unqualified invocation", node);
     }
+  }
+
+  /**
+   * Record any information implied by the given class type definition.
+   * 
+   * @param node the node representing the definition of the class type
+   */
+  private void processClassTypeAlias(DartClassTypeAlias node) {
+    //
+    // Record the class type as being contained by the workspace and the library.
+    //
+    recordRelationship(
+        IndexConstants.UNIVERSE,
+        IndexConstants.DEFINES_CLASS_ALIAS,
+        createNameLocation(node));
+    recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS_ALIAS, createNameLocation(node));
   }
 
   /**
@@ -1252,18 +1303,16 @@ public class IndexContributor extends ASTVisitor<Void> {
 
   private void processSupertype(DartClass node, InterfaceType binding) {
     if (node.isInterface() == binding.getElement().isInterface()) {
-      recordRelationship(
-          getElement(binding),
-          IndexConstants.IS_EXTENDED_BY,
-          createNameLocation(node));
-      recordRelationship(getElement(node), IndexConstants.EXTENDS, createNameLocation(node));
+      processSupertype(node, binding, IndexConstants.IS_EXTENDED_BY, IndexConstants.EXTENDS);
     } else {
-      recordRelationship(
-          getElement(binding),
-          IndexConstants.IS_IMPLEMENTED_BY,
-          createNameLocation(node));
-      recordRelationship(getElement(node), IndexConstants.IMPLEMENTS, createNameLocation(node));
+      processSupertype(node, binding, IndexConstants.IS_IMPLEMENTED_BY, IndexConstants.IMPLEMENTS);
     }
+  }
+
+  private void processSupertype(DartClass node, InterfaceType binding,
+      Relationship isExtendedByRel, Relationship extendsRel) {
+    recordRelationship(getElement(binding), isExtendedByRel, createNameLocation(node));
+    recordRelationship(getElement(node), extendsRel, createNameLocation(node));
   }
 
   /**
