@@ -85,9 +85,9 @@ public class CacheReader {
     }
     if (ch == LINE_SEPARATOR.charAt(0)) {
       if (LINE_SEPARATOR.length() > 1) {
-        ch = reader.read();
-        if (ch != LINE_SEPARATOR.charAt(1)) {
-          throw new IOException("Expected LF but found " + ch);
+        String line = reader.readLine();
+        if (line.length() > 0) {
+          throw new IOException("Expected EOL but found " + line);
         }
       }
       return "";
