@@ -105,19 +105,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement j = type.getElement();
     Type supertype = j.getSupertype();
     //
-    // I is Object, and J has no extends clause.
+    // If J is Object then it has no direct supertype.
     //
     if (supertype == null) {
-      // TODO(brianwilkerson) Finish implementing this.
-//      if (i.isObject()) {
-//        return true;
-//      }
       return false;
     }
-    ClassElement supertypeElement = (ClassElement) supertype.getElement();
     //
     // I is listed in the extends clause of J.
     //
+    ClassElement supertypeElement = (ClassElement) supertype.getElement();
     if (supertypeElement.equals(i)) {
       return true;
     }
