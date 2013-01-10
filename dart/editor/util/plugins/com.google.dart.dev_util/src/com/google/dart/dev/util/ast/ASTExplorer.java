@@ -267,7 +267,12 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     private String getName(ASTNode node) {
       // TODO(brianwilkerson) Rewrite this to use a visitor.
       if (node instanceof ConstructorDeclaration) {
-        return ((ConstructorDeclaration) node).getName().getName();
+        ConstructorDeclaration cd = (ConstructorDeclaration) node;
+        if (cd.getName() == null) {
+          return cd.getReturnType().getName();
+        } else {
+          return cd.getReturnType().getName() + '.' + cd.getName().getName();
+        }
       } else if (node instanceof FieldDeclaration) {
         return getNames(((FieldDeclaration) node).getFields());
       } else if (node instanceof MethodDeclaration) {
