@@ -15,6 +15,8 @@ import java.util.Set;
  */
 public class CacheReader {
 
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
   private final LineNumberReader reader;
 
   public CacheReader(Reader reader) throws IOException {
@@ -77,14 +79,21 @@ public class CacheReader {
 
     // Normal case... read a line
 
-    reader.mark(1);
     int ch = reader.read();
     if (ch == -1) {
       throw new IOException("Unexpected EOF when reading string");
     }
+    if (ch == LINE_SEPARATOR.charAt(0)) {
+      if (LINE_SEPARATOR.length() > 1) {
+        ch = reader.read();
+        if (ch != LINE_SEPARATOR.charAt(1)) {
+          throw new IOException("Expected LF but found " + ch);
+        }
+      }
+      return "";
+    }
     if (ch != '!') {
-      reader.reset();
-      return reader.readLine();
+      return Character.toString((char) ch) + reader.readLine();
     }
 
     // If the string contains a line separator, then string length is encoded
