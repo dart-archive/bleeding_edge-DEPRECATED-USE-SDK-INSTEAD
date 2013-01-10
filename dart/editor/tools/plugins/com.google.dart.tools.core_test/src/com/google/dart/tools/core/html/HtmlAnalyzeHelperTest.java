@@ -23,12 +23,14 @@ public class HtmlAnalyzeHelperTest extends AbstractDartCoreTest {
 
   private static void assertMarker(IMarker marker, TypeErrorCode expectedErrorCode,
       int expectedLine, int expectedOffset, int expectedLength) throws CoreException {
-    assertSame(expectedErrorCode, getMarkerErrorCode(marker));
-    assertEquals(expectedLine, marker.getAttribute(IMarker.LINE_NUMBER));
+    String msg = (String) marker.getAttribute(IMarker.MESSAGE);
     int offset = (Integer) marker.getAttribute(IMarker.CHAR_START);
     int length = (Integer) marker.getAttribute(IMarker.CHAR_END) - offset;
-    assertEquals(expectedOffset, offset);
-    assertEquals(expectedLength, length);
+    String debugMsg = msg + " " + offset + " " + length;
+    assertSame(debugMsg, expectedErrorCode, getMarkerErrorCode(marker));
+    assertEquals(debugMsg, expectedLine, marker.getAttribute(IMarker.LINE_NUMBER));
+    assertEquals(debugMsg, expectedOffset, offset);
+    assertEquals(debugMsg, expectedLength, length);
   }
 
   /**
