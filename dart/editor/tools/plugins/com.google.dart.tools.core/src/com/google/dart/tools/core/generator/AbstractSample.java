@@ -45,7 +45,11 @@ import java.util.Map;
 public class AbstractSample {
 
   public static List<AbstractSample> getAllSamples() {
-    return Arrays.asList(new CommandLineSample(), new WebAppSample(), new ChromePackagedAppSample());
+    return Arrays.asList(
+        new CommandLineSample(),
+        new WebAppSample(),
+        new WebUiSample(),
+        new ChromePackagedAppSample());
   }
 
   private String title;

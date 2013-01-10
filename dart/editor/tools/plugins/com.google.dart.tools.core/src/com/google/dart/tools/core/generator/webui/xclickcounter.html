@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+
+<html>
+  <body>
+    <element name="x-click-counter" constructor="CounterComponent" extends="div">
+      <template>
+        <div>
+          <button on-click="increment()">Click me</button><br />
+          <span>(click count: {{count}})</span>
+        </div>
+      </template>
+      <script type="application/dart" src="xclickcounter.dart"></script>
+    </element>
+  </body>
+</html>
