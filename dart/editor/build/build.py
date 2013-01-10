@@ -354,9 +354,9 @@ def main():
     StartBuildStep(builder_name)
 
     if PLUGINS_BUILD:
-      BuildUpdateSite(ant, revision, builder_name, buildroot, buildout,
-              editorpath, buildos)
-      return 0
+      status = BuildUpdateSite(ant, revision, builder_name, buildroot, buildout,
+                               editorpath, buildos)
+      return status
 
     #tell the ant script where to write the sdk zip file so it can
     #be expanded later
@@ -474,7 +474,6 @@ def ReadPropertyFile(buildos, property_file):
     the dictionary of Ant properties
   """
   properties = {}
-  print 'processing file ' + property_file
   for line in open(property_file):
     #ignore comments
     if not line.startswith('#'):
@@ -802,12 +801,13 @@ def ExecuteCommand(cmd, directory=None):
 
 def BuildUpdateSite(ant, revision, name, buildroot, buildout,
               editorpath, buildos):
-  ant.RunAnt('../com.google.dart.eclipse.feature_releng',
+  status = ant.RunAnt('../com.google.dart.eclipse.feature_releng',
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
   #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
   UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
   UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
+  return status
   
   
 def UploadSite(buildout, gsPath) :
@@ -1031,7 +1031,7 @@ def BuildStepFailure():
 
 
 def PrintTestSummary(testSuite):
-  print "\n%s: %s tests, %s errors, %s failures (time: %s)\n" % (
+  print "\n%s:\n  %s tests, %s errors, %s failures (time: %s)\n" % (
       testSuite.getAttribute("name"),
       testSuite.getAttribute("tests"),
       testSuite.getAttribute("errors"),
