@@ -80,8 +80,6 @@ public class HtmlAnalyzeHelperTest extends AbstractDartCoreTest {
         "</html>",
         "");
     IFile htmlFile = testProject.setFileContent("Test.html", source);
-    // notify HtmlAnalyzeHelper
-    HtmlAnalyzeHelper.analyze(htmlFile);
     // prepare single marker
     IMarker marker;
     {
@@ -123,8 +121,6 @@ public class HtmlAnalyzeHelperTest extends AbstractDartCoreTest {
         "</html>",
         "");
     IFile htmlFile = testProject.setFileContent("Test.html", source);
-    // notify HtmlAnalyzeHelper
-    HtmlAnalyzeHelper.analyze(htmlFile);
     // prepare single marker
     IMarker marker;
     {
