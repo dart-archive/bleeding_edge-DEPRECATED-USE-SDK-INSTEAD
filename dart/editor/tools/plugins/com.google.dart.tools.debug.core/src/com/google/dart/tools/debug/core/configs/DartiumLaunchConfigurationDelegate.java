@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
@@ -69,7 +70,7 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
     launchConfig.markAsLaunched();
 
     boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
-        && launchConfig.getEnableDebugging();
+        && !DartCoreDebug.DISABLE_DARTIUM_DEBUGGER;
 
     // Launch the browser - show errors if we couldn't.
     IResource resource = null;

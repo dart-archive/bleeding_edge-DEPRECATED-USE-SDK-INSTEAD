@@ -35,3 +35,6 @@ com.google.dart.tools.core/experimental/analysis/engine = false
 com.google.dart.tools.core/experimental/pubInWinXP = false
 
 com.google.dart.tools.core/dev/disableMarkOccurrences=false
+
+com.google.dart.tools.core/user/disableDartiumDebugger=false
+com.google.dart.tools.core/user/disableCommandLineDebugger=false

@@ -38,7 +38,6 @@ public class DartLaunchConfigWrapper {
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
-  private static final String VM_ENABLE_DEBUGGING = "vmEnableDebugging";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
   // --enable-experimental-webkit-features and --enable-devtools-experiments
@@ -169,16 +168,6 @@ public class DartLaunchConfigWrapper {
       DartDebugCorePlugin.logError(e);
 
       return DEFAULT_CHROME_PORT;
-    }
-  }
-
-  public boolean getEnableDebugging() {
-    try {
-      return launchConfig.getAttribute(VM_ENABLE_DEBUGGING, true);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return false;
     }
   }
 
@@ -363,10 +352,6 @@ public class DartLaunchConfigWrapper {
    */
   public void setConnectionPort(int value) {
     getWorkingCopy().setAttribute(CONNECTION_PORT, value);
-  }
-
-  public void setEnableDebugging(boolean value) {
-    getWorkingCopy().setAttribute(VM_ENABLE_DEBUGGING, value);
   }
 
   /**

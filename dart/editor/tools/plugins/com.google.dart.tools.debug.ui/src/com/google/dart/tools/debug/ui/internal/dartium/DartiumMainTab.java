@@ -104,8 +104,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   private Button checkedModeButton;
 
-  private Button enableDebuggingButton;
-
   private Button showOutputButton;
 
   private Button useWebComponentsButton;
@@ -161,16 +159,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       @Override
       public void widgetSelected(SelectionEvent e) {
         ExternalBrowserUtil.openInExternalBrowser(DartDebugUIPlugin.CHECK_MODE_DESC_URL);
-      }
-    });
-
-    enableDebuggingButton = new Button(group, SWT.CHECK);
-    enableDebuggingButton.setText("Enable debugging");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(enableDebuggingButton);
-    enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
       }
     });
 
@@ -270,10 +258,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
       checkedModeButton.setSelection(dartLauncher.getCheckedMode());
     }
 
-    if (enableDebuggingButton != null) {
-      enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
-    }
-
     if (showOutputButton != null) {
       showOutputButton.setSelection(dartLauncher.getShowLaunchOutput());
     }
@@ -324,10 +308,6 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
     if (checkedModeButton != null) {
       dartLauncher.setCheckedMode(checkedModeButton.getSelection());
-    }
-
-    if (enableDebuggingButton != null) {
-      dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
     }
 
     if (showOutputButton != null) {

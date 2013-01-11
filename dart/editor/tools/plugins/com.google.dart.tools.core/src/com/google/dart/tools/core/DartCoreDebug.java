@@ -64,6 +64,11 @@ public class DartCoreDebug {
 
   public static final boolean DISABLE_MARK_OCCURRENCES = isOptionTrue("dev/disableMarkOccurrences");
 
+  // User settings
+
+  public static final boolean DISABLE_DARTIUM_DEBUGGER = isOptionTrue("user/disableDartiumDebugger");
+  public static final boolean DISABLE_CLI_DEBUGGER = isOptionTrue("user/disableCommandLineDebugger");
+
   /**
    * @return <code>true</code> if option has value "true".
    */

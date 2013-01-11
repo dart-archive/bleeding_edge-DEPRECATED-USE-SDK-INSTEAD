@@ -56,7 +56,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
   private Text argsText;
 
   private Button checkedModeButton;
-  private Button enableDebuggingButton;
   private Text workingDirText;
   private IPath scriptPath;
 
@@ -161,16 +160,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
       }
     });
 
-    enableDebuggingButton = new Button(group, SWT.CHECK);
-    enableDebuggingButton.setText("Enable debugging");
-    GridDataFactory.swtDefaults().span(3, 1).applyTo(enableDebuggingButton);
-    enableDebuggingButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        notifyPanelChanged();
-      }
-    });
-
     setControl(composite);
   }
 
@@ -210,11 +199,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     }
     workingDirText.setText(dartLauncher.getWorkingDirectory());
     argsText.setText(dartLauncher.getArguments());
-
     checkedModeButton.setSelection(dartLauncher.getCheckedMode());
-    if (enableDebuggingButton != null) {
-      enableDebuggingButton.setSelection(dartLauncher.getEnableDebugging());
-    }
   }
 
   @Override
@@ -229,12 +214,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     dartLauncher.setApplicationName(scriptPath.toPortableString());
     dartLauncher.setWorkingDirectory(workingDirText.getText());
     dartLauncher.setArguments(argsText.getText());
-
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
-
-    if (enableDebuggingButton != null) {
-      dartLauncher.setEnableDebugging(enableDebuggingButton.getSelection());
-    }
   }
 
   @Override

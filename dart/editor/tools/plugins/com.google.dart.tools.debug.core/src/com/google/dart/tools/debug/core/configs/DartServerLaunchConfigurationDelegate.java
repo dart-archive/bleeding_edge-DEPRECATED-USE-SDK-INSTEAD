@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -65,8 +66,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
 
     launchConfig.markAsLaunched();
 
-    boolean enableDebugging = launchConfig.getEnableDebugging()
-        && ILaunchManager.DEBUG_MODE.equals(mode);
+    boolean enableDebugging = ILaunchManager.DEBUG_MODE.equals(mode)
+        && !DartCoreDebug.DISABLE_CLI_DEBUGGER;
 
     terminateSameLaunches(launch);
 
