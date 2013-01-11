@@ -573,6 +573,13 @@ public class CompilationUnitImpl extends SourceFileElementImpl<CompilationUnit> 
       node.accept(functionGatherer);
       functionChildren.addAll(functionGatherer.getFunctions());
 
+      LocalVariableGatherer variableGatherer = new LocalVariableGatherer(
+          node.getFunction(),
+          functionImpl,
+          newElements);
+      node.getFunction().accept(variableGatherer);
+      functionChildren.addAll(variableGatherer.getLocalVariables());
+
       functionInfo.setChildren(DartElementImpl.toArray(functionChildren));
 
       addNewElement(functionImpl, functionInfo);
