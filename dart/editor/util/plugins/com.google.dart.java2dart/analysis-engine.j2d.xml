@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <source-folders>
+        <source-folder path="/Users/scheglov/Source/Dart/dart/editor/tools/plugins/com.google.dart.engine/src/"/>
+    </source-folders>
+    <output-libraries>
+        <output-library name="engine">
+            <source-packages>
+                <source-package name="com.google.dart.engine"/>
+                <source-package name="com.google.dart.engine.context"/>
+            </source-packages>
+        </output-library>
+        <output-library name="engine.ast">
+            <source-packages>
+                <source-package name="com.google.dart.engine.source"/>
+                <source-package name="com.google.dart.engine.scanner"/>
+                <source-package name="com.google.dart.engine.parser"/>
+                <source-package name="com.google.dart.engine.ast"/>
+            </source-packages>
+        </output-library>
+        <output-library name="engine.element">
+            <source-packages>
+                <source-package name="com.google.dart.engine.element"/>
+            </source-packages>
+        </output-library>
+    </output-libraries>
+</config>

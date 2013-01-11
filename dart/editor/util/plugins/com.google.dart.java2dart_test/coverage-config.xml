@@ -1,0 +1,5 @@
+<config>
+    <directory path="/Users/scheglov/Source/java2dart/com.google.dart.java2dart/bin">
+        <include prefix="com/google/dart/java2dart/" source="/com.google.dart.java2dart/src/"/>
+	</directory>
+</config>
