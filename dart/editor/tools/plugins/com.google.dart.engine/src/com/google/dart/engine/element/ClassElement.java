@@ -63,8 +63,9 @@ public interface ClassElement extends Element {
   public Type[] getMixins();
 
   /**
-   * Return the superclass of this class. Return {@code null} if the class does not have an explicit
-   * superclass.
+   * Return the superclass of this class, or {@code null} if the class represents the class
+   * 'Object'. All other classes will have a non-{@code null} superclass. If the superclass was not
+   * explicitly declared then the implicit superclass 'Object' will be returned.
    * 
    * @return the superclass of this class
    */
