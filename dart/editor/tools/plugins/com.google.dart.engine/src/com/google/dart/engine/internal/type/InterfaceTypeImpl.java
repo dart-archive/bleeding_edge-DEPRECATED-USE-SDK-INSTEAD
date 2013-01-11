@@ -175,24 +175,27 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // Covariance: T is of the form I<T1, ..., Tn> and S is of the form I<S1, ..., Sn> and Ti << Si, 1 <= i <= n.
     //
-    // TODO(brianwilkerson) Implement this.
-//    TypeElement tElement = getElement();
-//    TypeElement sElement = s.getElement();
-//    if (tElement.equals(sElement)) {
-//      TypeVariableElement[] tVariables = tElement.getTypeVariables();
-//      TypeVariableElement[] sVariables = sElement.getTypeVariables();
-//      if (tVariables.length != sVariables.length) {
-//        return false;
-//      }
-//      for (int i = 0; i < tVariables.length; i++) {
-//        if (!tVariables[0].isMoreSpecificThan(sVariables[0])) {
-//          return false;
-//        }
-//      }
-//    }
+    ClassElement tElement = getElement();
+    ClassElement sElement = s.getElement();
+    if (tElement.equals(sElement)) {
+      Type[] tArguments = getTypeArguments();
+      Type[] sArguments = s.getTypeArguments();
+      if (tArguments.length != sArguments.length) {
+        return false;
+      }
+      for (int i = 0; i < tArguments.length; i++) {
+        if (!tArguments[i].isMoreSpecificThan(sArguments[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
     //
     // Transitivity: T << U and U << S.
     //
+    if (getElement().getSupertype() == null) {
+      return false;
+    }
     return getElement().getSupertype().isMoreSpecificThan(type);
   }
 

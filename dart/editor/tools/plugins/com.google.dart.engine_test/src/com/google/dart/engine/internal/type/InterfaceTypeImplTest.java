@@ -14,39 +14,16 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.element.ElementFactory.classElement;
 
 public class InterfaceTypeImplTest extends EngineTestCase {
-
-  private static ClassElementImpl OBJECT_ELEMENT = new ClassElementImpl(identifier("Object"));
-  private static InterfaceTypeImpl OBJECT_TYPE = new InterfaceTypeImpl(OBJECT_ELEMENT);
-
-  static {
-    OBJECT_ELEMENT.setSupertype(null);
-    OBJECT_ELEMENT.setType(OBJECT_TYPE);
-  }
-
-  public void fail_isMoreSpecificThan_covariance() {
-    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
-    elementA.setSupertype(OBJECT_TYPE);
-    ClassElementImpl elementI = new ClassElementImpl(identifier("I"));
-    elementI.setSupertype(OBJECT_TYPE);
-    ClassElementImpl elementJ = new ClassElementImpl(identifier("J"));
-    elementJ.setSupertype(OBJECT_TYPE);
-    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(elementA);
-    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(elementA);
-    InterfaceTypeImpl typeI = new InterfaceTypeImpl(elementI);
-    InterfaceTypeImpl typeJ = new InterfaceTypeImpl(elementJ);
-    elementJ.setSupertype(typeI);
-    typeAI.setTypeArguments(new Type[] {typeI});
-    typeAJ.setTypeArguments(new Type[] {typeJ});
-    assertTrue(typeAJ.isMoreSpecificThan(typeAI));
-  }
 
   public void test_creation() {
     assertNotNull(new InterfaceTypeImpl(new ClassElementImpl(identifier("A"))));
@@ -67,7 +44,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertLength(0, type.getTypeArguments());
   }
 
-  public void test_isDirectSupertypeOf_false_explicit() {
+  public void test_isDirectSupertypeOf_false() {
     ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
     ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
     ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
@@ -78,17 +55,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertFalse(typeA.isDirectSupertypeOf(typeC));
   }
 
-  public void test_isDirectSupertypeOf_false_implicit() {
-    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
-    elementA.setSupertype(OBJECT_TYPE);
-    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
-    elementB.setSupertype(OBJECT_TYPE);
-    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
-    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
-    assertFalse(typeA.isDirectSupertypeOf(typeB));
-  }
-
-  public void test_isDirectSupertypeOf_true_explicit() {
+  public void test_isDirectSupertypeOf_true() {
     ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
     ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
     InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
@@ -102,13 +69,27 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(BottomTypeImpl.getInstance().isMoreSpecificThan(type));
   }
 
-  public void test_isMoreSpecificThan_directSupertype_explicit() {
+  public void test_isMoreSpecificThan_covariance() {
+    ClassElement elementA = classElement("A", "E");
+    ClassElement elementI = classElement("I");
+    ClassElement elementJ = classElement("J", elementI.getType());
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(elementA);
+    typeAI.setTypeArguments(new Type[] {elementI.getType()});
+    typeAJ.setTypeArguments(new Type[] {elementJ.getType()});
+    assertTrue(typeAJ.isMoreSpecificThan(typeAI));
+    assertFalse(typeAI.isMoreSpecificThan(typeAJ));
+  }
+
+  public void test_isMoreSpecificThan_directSupertype() {
     ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
     ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
     InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
     InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
     elementB.setSupertype(typeA);
     assertTrue(typeB.isMoreSpecificThan(typeA));
+    // the opposite test tests a different branch in isMoreSpecificThan()
+    assertFalse(typeA.isMoreSpecificThan(typeB));
   }
 
   public void test_isMoreSpecificThan_dynamic() {
