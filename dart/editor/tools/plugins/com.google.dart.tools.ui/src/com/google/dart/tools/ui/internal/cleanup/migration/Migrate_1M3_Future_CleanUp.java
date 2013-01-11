@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.cleanup.migration;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 import static com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.isSubType;
@@ -36,12 +38,24 @@ public class Migrate_1M3_Future_CleanUp extends AbstractMigrateCleanUp {
       @Override
       public Void visitMethodInvocation(DartMethodInvocation node) {
         DartIdentifier nameNode = node.getFunctionName();
+        // chain/transform -> then
         if (Elements.isIdentifierName(nameNode, "chain")
             || Elements.isIdentifierName(nameNode, "transform")) {
           Type targetType = node.getTarget().getType();
           if (targetType instanceof InterfaceType) {
-            if (isSubType((InterfaceType) targetType, "Future", "dart://core/core.dart")) {
+            if (isSubType((InterfaceType) targetType, "Future", "dart://core/core.dart")
+                || TypeKind.of(targetType) == TypeKind.DYNAMIC) {
               addReplaceEdit(SourceRangeFactory.create(nameNode), "then");
+            }
+          }
+        }
+        // Futures.forEach/wait -> Future.*
+        if (Elements.isIdentifierName(nameNode, "forEach")
+            || Elements.isIdentifierName(nameNode, "wait")) {
+          if (node.getTarget() instanceof DartIdentifier) {
+            DartIdentifier targetIdentifier = (DartIdentifier) node.getTarget();
+            if (Objects.equal(targetIdentifier.getName(), "Futures")) {
+              addReplaceEdit(SourceRangeFactory.create(targetIdentifier), "Future");
             }
           }
         }

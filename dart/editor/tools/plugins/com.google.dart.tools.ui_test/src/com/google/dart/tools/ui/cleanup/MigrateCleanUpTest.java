@@ -14,13 +14,9 @@
 package com.google.dart.tools.ui.cleanup;
 
 import com.google.dart.tools.ui.internal.cleanup.migration.AbstractMigrateCleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_catch_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_get_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_identical_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_optionalNamed_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_parseNum_CleanUp;
-import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_rawString_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_functionLiteral_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeAbstract_CleanUp;
@@ -33,102 +29,6 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_C
  * Test for {@link AbstractMigrateCleanUp}.
  */
 public final class MigrateCleanUpTest extends AbstractCleanUpTest {
-
-  public void test_1M1_catch_alreadyNewSyntax_withoutType() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_catch_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } catch (e, stack) {",
-        "  }",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
-
-  public void test_1M1_catch_alreadyNewSyntax_withType() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_catch_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } on Exception catch (e, stack) {",
-        "  }",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
-
-  public void test_1M1_catch_withExceptionType() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_catch_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } catch (final Exception e, stack) {",
-        "  }",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } on Exception catch (e, stack) {",
-        "  }",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_catch_withStackType() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_catch_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } catch (e, Object stack) {",
-        "  }",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  try {",
-        "  } catch (e, stack) {",
-        "  }",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_getter() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_get_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  get test() => 42;",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  get test => 42;",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_getter_noOp() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_get_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  get test => 42;",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
 
   public void test_1M1_identical() throws Exception {
     ICleanUp cleanUp = new Migrate_1M1_identical_CleanUp();
@@ -576,128 +476,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  public void test_1M1_parseNum() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_parseNum_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:math';",
-        "main() {",
-        "  parseInt('123');",
-        "  parseDouble('123.45');",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:math';",
-        "main() {",
-        "  int.parse('123');",
-        "  double.parse('123.45');",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_parseNum_qualifiedInvocation() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_parseNum_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:math' as m;",
-        "main() {",
-        "  m.parseInt('123');",
-        "  m.parseDouble('123.45');",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:math' as m;",
-        "main() {",
-        "  int.parse('123');",
-        "  double.parse('123.45');",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_rawString() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var s1 = '111';",
-        "  var s2 = \"222\";",
-        "  var s3 = '333';",
-        "  var s4 = r\"444\";",
-        "  var s5 = r\"555\";",
-        "  var s6 = @\"666\";",
-        "  var s7 = @\"777\";",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var s1 = '111';",
-        "  var s2 = \"222\";",
-        "  var s3 = '333';",
-        "  var s4 = r\"444\";",
-        "  var s5 = r\"555\";",
-        "  var s6 = r\"666\";",
-        "  var s7 = r\"777\";",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_rawString_adjacent() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var s1 = '111' 'aaa';",
-        "  var s2 = r'222' r'bbb';",
-        "  var s3 = @'333' r'ccc';",
-        "  var s4 = r'444' @'ddd';",
-        "  var s5 = @'555' @'eee';",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var s1 = '111' 'aaa';",
-        "  var s2 = r'222' r'bbb';",
-        "  var s3 = r'333' r'ccc';",
-        "  var s4 = r'444' r'ddd';",
-        "  var s5 = r'555' r'eee';",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M1_rawString_interpolation() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var user = 'user';",
-        "  var host = 'host';",
-        "  var s = '$user@$host';",
-        "}",
-        "");
-    assertNoFix(cleanUp, initial);
-  }
-
-  public void test_1M1_rawString_native() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M1_rawString_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() native @'abc';",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() native r'abc';",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
   public void test_1M2_functionLiteral_name() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_functionLiteral_CleanUp();
     String initial = makeSource(
@@ -854,73 +632,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  A a = new A();",
         "  print(a.foo);",
         "  print(a.bar());",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
-  }
-
-  public void test_1M2_methods_isEmpty() throws Exception {
-    ICleanUp cleanUp = new Migrate_1M2_methods_CleanUp();
-    String initial = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A_Collection implements Collection {",
-        "  bool isEmpty() => false;",
-        "}",
-        "class A_SequenceCollection implements Collection {",
-        "  bool isEmpty() => false;",
-        "}",
-        "main() {",
-        "  {",
-        "    Collection v = null;",
-        "    v.isEmpty();",
-        "  }",
-        "  {",
-        "    Map v = null;",
-        "    v.isEmpty();",
-        "  }",
-        "  {",
-        "    SequenceCollection v = null;",
-        "    v.isEmpty();",
-        "  }",
-        "  {",
-        "    String v = null;",
-        "    v.isEmpty();",
-        "  }",
-        "  {",
-        "    StringBuffer v = null;",
-        "    v.isEmpty();",
-        "  }",
-        "}",
-        "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A_Collection implements Collection {",
-        "  bool get isEmpty => false;",
-        "}",
-        "class A_SequenceCollection implements Collection {",
-        "  bool get isEmpty => false;",
-        "}",
-        "main() {",
-        "  {",
-        "    Collection v = null;",
-        "    v.isEmpty;",
-        "  }",
-        "  {",
-        "    Map v = null;",
-        "    v.isEmpty;",
-        "  }",
-        "  {",
-        "    SequenceCollection v = null;",
-        "    v.isEmpty;",
-        "  }",
-        "  {",
-        "    String v = null;",
-        "    v.isEmpty;",
-        "  }",
-        "  {",
-        "    StringBuffer v = null;",
-        "    v.isEmpty;",
-        "  }",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
@@ -1416,6 +1127,28 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  Future future = null;",
         "  future.then(null).then(null).then(null);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  /**
+   * Class <code>Futures</code> was removed, its methods are moved into <code>Future</code>.
+   */
+  public void test_1M3_Futures_methods() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_Future_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Futures.wait(null);",
+        "  Futures.forEach(null, null);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Future.wait(null);",
+        "  Future.forEach(null, null);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
