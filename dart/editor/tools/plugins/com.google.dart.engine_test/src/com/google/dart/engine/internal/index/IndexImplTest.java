@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.index;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
@@ -40,7 +40,7 @@ public class IndexImplTest extends EngineTestCase {
   private IndexImpl index = new IndexImpl(store, queue, processor);
 
   public void test_getRelationships() throws Exception {
-    ElementProxy element = mock(ElementProxy.class);
+    Element element = mock(Element.class);
     Relationship relationship = Relationship.getRelationship("test-relationship");
     RelationshipCallback callback = mock(RelationshipCallback.class);
     index.getRelationships(element, relationship, callback);

@@ -298,6 +298,35 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(0, constructor.getLabels());
     assertLength(0, constructor.getLocalVariables());
     assertLength(0, constructor.getParameters());
+    assertSame(constructor, constructorDeclaration.getName().getElement());
+    assertSame(constructor, constructorDeclaration.getElement());
+  }
+
+  public void test_visitConstructorDeclaration_unnamed() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration = constructorDeclaration(
+        null,
+        null,
+        identifier(className),
+        null,
+        formalParameterList(),
+        null,
+        blockFunctionBody());
+    constructorDeclaration.accept(builder);
+    ConstructorElement[] constructors = holder.getConstructors();
+    assertLength(1, constructors);
+
+    ConstructorElement constructor = constructors[0];
+    assertNotNull(constructor);
+    assertFalse(constructor.isFactory());
+    assertEquals("", constructor.getName());
+    assertLength(0, constructor.getFunctions());
+    assertLength(0, constructor.getLabels());
+    assertLength(0, constructor.getLocalVariables());
+    assertLength(0, constructor.getParameters());
+    assertSame(constructor, constructorDeclaration.getElement());
   }
 
   public void test_visitFieldDeclaration() {

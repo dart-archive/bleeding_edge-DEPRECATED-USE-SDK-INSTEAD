@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -42,6 +43,12 @@ public class ConstructorName extends ASTNode {
   private SimpleIdentifier name;
 
   /**
+   * The element associated with this constructor name, or {@code null} if the AST structure has not
+   * been resolved or if this constructor name could not be resolved.
+   */
+  private ConstructorElement element;
+
+  /**
    * Initialize a newly created constructor name.
    * 
    * @param type the name of the type defining the constructor
@@ -62,6 +69,16 @@ public class ConstructorName extends ASTNode {
   @Override
   public Token getBeginToken() {
     return type.getBeginToken();
+  }
+
+  /**
+   * Return the element associated with this constructor name, or {@code null} if the AST structure
+   * has not been resolved or if this constructor name could not be resolved.
+   * 
+   * @return the element associated with this constructor name
+   */
+  public ConstructorElement getElement() {
+    return element;
   }
 
   @Override
@@ -99,6 +116,15 @@ public class ConstructorName extends ASTNode {
    */
   public TypeName getType() {
     return type;
+  }
+
+  /**
+   * Set the element associated with this constructor name to the given element.
+   * 
+   * @param element the element associated with this constructor name
+   */
+  public void setElement(ConstructorElement element) {
+    this.element = element;
   }
 
   /**

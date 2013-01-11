@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.index.operation;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -27,7 +27,7 @@ import com.google.dart.engine.source.Source;
  */
 public class GetRelationshipsOperation implements IndexOperation {
   private final IndexStore indexStore;
-  private final ElementProxy element;
+  private final Element element;
   private final Relationship relationship;
   private RelationshipCallback callback;
 
@@ -35,7 +35,7 @@ public class GetRelationshipsOperation implements IndexOperation {
    * Initialize a newly created operation that will access the locations that have a specified
    * relationship with a specified element.
    */
-  public GetRelationshipsOperation(IndexStore indexStore, ElementProxy element,
+  public GetRelationshipsOperation(IndexStore indexStore, Element element,
       Relationship relationship, RelationshipCallback callback) {
     this.indexStore = indexStore;
     this.element = element;
@@ -49,7 +49,7 @@ public class GetRelationshipsOperation implements IndexOperation {
   }
 
   @VisibleForTesting
-  public ElementProxy getElement() {
+  public Element getElement() {
     return element;
   }
 

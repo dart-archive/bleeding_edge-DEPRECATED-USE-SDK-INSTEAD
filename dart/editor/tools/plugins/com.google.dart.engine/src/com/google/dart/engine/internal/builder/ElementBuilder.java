@@ -181,9 +181,8 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(holder.getParameters());
 
     currentHolder.addConstructor(element);
-    if (constructorName == null) {
-      // TODO(brianwilkerson) Decide how to record elements for un-named constructors. 
-    } else {
+    node.setElement(element);
+    if (constructorName != null) {
       constructorName.setElement(element);
     }
     return null;

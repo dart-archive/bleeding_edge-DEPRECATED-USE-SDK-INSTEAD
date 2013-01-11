@@ -14,7 +14,7 @@
 
 package com.google.dart.engine.index;
 
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -46,13 +46,12 @@ public interface IndexStore {
    * relationship, then the returned locations will be all of the places where the method is
    * invoked.
    * 
-   * @param element the {@link ElementProxy} of the element that has the relationship with the
-   *          locations to be returned
+   * @param element the the element that has the relationship with the locations to be returned
    * @param relationship the {@link Relationship} between the given element and the locations to be
    *          returned
    * @return the locations that have the given relationship with the given element
    */
-  Location[] getRelationships(ElementProxy element, Relationship relationship);
+  Location[] getRelationships(Element element, Relationship relationship);
 
   /**
    * Return the number of sources that are currently recorded in this index.
@@ -81,11 +80,11 @@ public interface IndexStore {
    * 
    * would be an array containing both <code>location1</code> and <code>location2</code>.
    * 
-   * @param element the {@link ElementProxy} that is related to the location
+   * @param element the element that is related to the location
    * @param relationship the {@link Relationship} between the element and the location
    * @param location the {@link Location} where relationship happens
    */
-  void recordRelationship(ElementProxy element, Relationship relationship, Location location);
+  void recordRelationship(Element element, Relationship relationship, Location location);
 
   /**
    * Remove from the index all of the information associated with elements or locations in the given

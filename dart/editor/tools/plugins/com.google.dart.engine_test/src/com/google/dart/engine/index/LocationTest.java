@@ -14,14 +14,14 @@
 package com.google.dart.engine.index;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LocationTest extends EngineTestCase {
   public void test_new() throws Exception {
-    ElementProxy element = mock(ElementProxy.class);
+    Element element = mock(Element.class);
     when(element.toString()).thenReturn("myElement");
     // test Location
     Location location = new Location(element, 1, 2, null);
@@ -41,7 +41,7 @@ public class LocationTest extends EngineTestCase {
   }
 
   public void test_new_withPrefix() throws Exception {
-    ElementProxy element = mock(ElementProxy.class);
+    Element element = mock(Element.class);
     when(element.toString()).thenReturn("myElement");
     when(element.toString()).thenReturn("myElement");
     // test Location

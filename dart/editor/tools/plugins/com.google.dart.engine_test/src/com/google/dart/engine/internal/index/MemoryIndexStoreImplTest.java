@@ -14,8 +14,9 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
-import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
@@ -29,12 +30,15 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   private ElementLocation elementLocationA = mock(ElementLocation.class);
   private ElementLocation elementLocationB = mock(ElementLocation.class);
   private ElementLocation elementLocationC = mock(ElementLocation.class);
-  private ElementProxy elementA = mock(ElementProxy.class);
-  private ElementProxy elementB = mock(ElementProxy.class);
-  private ElementProxy elementC = mock(ElementProxy.class);
+  private Element elementA = mock(Element.class);
+  private Element elementB = mock(Element.class);
+  private Element elementC = mock(Element.class);
   private Source sourceA = mock(Source.class);
   private Source sourceB = mock(Source.class);
   private Source sourceC = mock(Source.class);
+  private CompilationUnitElement unitElementA = mock(CompilationUnitElement.class);
+  private CompilationUnitElement unitElementB = mock(CompilationUnitElement.class);
+  private CompilationUnitElement unitElementC = mock(CompilationUnitElement.class);
   private Relationship relationship = Relationship.getRelationship("test-relationship");
   private Location location = mock(Location.class);
 
@@ -89,14 +93,10 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_getSourceCount() throws Exception {
-    Source sourceA = mock(Source.class);
-    Source sourceB = mock(Source.class);
-    Source sourceC = mock(Source.class);
     // no relationships
     assertEquals(0, store.getSourceCount());
     // add relationship in "sourceA"
     {
-      when(elementA.getSource()).thenReturn(sourceA);
       Location location = mock(Location.class);
       when(location.getElement()).thenReturn(elementA);
       store.recordRelationship(elementA, relationship, location);
@@ -104,8 +104,6 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
     // add relationship in "sourceB" to "sourceC"
     {
-      when(elementB.getSource()).thenReturn(sourceB);
-      when(elementC.getSource()).thenReturn(sourceC);
       Location location = mock(Location.class);
       when(location.getElement()).thenReturn(elementC);
       store.recordRelationship(elementB, relationship, location);
@@ -132,9 +130,6 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSource_withDeclaration() throws Exception {
-    when(elementA.getSource()).thenReturn(sourceA);
-    when(elementB.getSource()).thenReturn(sourceB);
-    when(elementC.getSource()).thenReturn(sourceC);
     Location locationB = mock(Location.class);
     Location locationC = mock(Location.class);
     when(locationB.getElement()).thenReturn(elementB);
@@ -154,9 +149,6 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   public void test_removeSource_withRelationship() throws Exception {
-    when(elementA.getSource()).thenReturn(sourceA);
-    when(elementB.getSource()).thenReturn(sourceB);
-    when(elementC.getSource()).thenReturn(sourceC);
     Location locationB = mock(Location.class);
     Location locationC = mock(Location.class);
     when(locationB.getElement()).thenReturn(elementB);
@@ -180,9 +172,15 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    when(location.getElement()).thenReturn(elementC);
     when(elementA.getLocation()).thenReturn(elementLocationA);
     when(elementB.getLocation()).thenReturn(elementLocationB);
     when(elementC.getLocation()).thenReturn(elementLocationC);
-    when(location.getElement()).thenReturn(elementC);
+    when(elementA.getEnclosingElement()).thenReturn(unitElementA);
+    when(elementB.getEnclosingElement()).thenReturn(unitElementB);
+    when(elementC.getEnclosingElement()).thenReturn(unitElementC);
+    when(unitElementA.getSource()).thenReturn(sourceA);
+    when(unitElementB.getSource()).thenReturn(sourceB);
+    when(unitElementC.getSource()).thenReturn(sourceC);
   }
 }

@@ -18,25 +18,36 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.Label;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -60,9 +71,69 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
       int offset = element.getNameOffset();
       int length = element.getName().length();
       String prefix = null;
-      return new Location(new ElementProxy(element), offset, length, prefix);
+      return new Location(element, offset, length, prefix);
     }
     return null;
+  }
+
+  /**
+   * @return the library import prefix name, may be <code>null</code>.
+   */
+  @VisibleForTesting
+  static String getLibraryImportPrefix(ASTNode node) {
+    // "prefix.topLevelFunction()" looks as method invocation
+    if (node.getParent() instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) node.getParent();
+      if (invocation.getRealTarget() instanceof SimpleIdentifier) {
+        SimpleIdentifier target = (SimpleIdentifier) invocation.getRealTarget();
+        if (target != null && target.getElement() instanceof LibraryElement) {
+          return target.getName();
+        }
+      }
+    }
+    // "prefix.field"
+    if (node.getParent() instanceof PrefixedIdentifier) {
+      PrefixedIdentifier propertyAccess = (PrefixedIdentifier) node.getParent();
+      SimpleIdentifier qualifier = propertyAccess.getPrefix();
+      if (qualifier instanceof SimpleIdentifier && qualifier.getElement() instanceof LibraryElement) {
+        return qualifier.getName();
+      }
+    }
+    // no prefix
+    return null;
+  }
+
+  /**
+   * @return the name node of the given {@link ASTNode}.
+   */
+  private static Identifier getNameNode(ASTNode node) {
+    if (node instanceof ClassDeclaration) {
+      return ((ClassDeclaration) node).getName();
+    }
+    if (node instanceof ClassTypeAlias) {
+      return ((ClassTypeAlias) node).getName();
+    }
+    if (node instanceof FunctionDeclaration) {
+      return ((FunctionDeclaration) node).getName();
+    }
+    if (node instanceof MethodDeclaration) {
+      return ((MethodDeclaration) node).getName();
+    }
+    if (node instanceof VariableDeclaration) {
+      return ((VariableDeclaration) node).getName();
+    }
+    if (node instanceof SimpleFormalParameter) {
+      return ((SimpleFormalParameter) node).getIdentifier();
+    }
+    return null;
+  }
+
+  /**
+   * @return <code>true</code> if the given identifier is the name in a declaration
+   */
+  private static boolean isNameInDeclaration(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    return getNameNode(parent) == node;
   }
 
   /**
@@ -103,7 +174,6 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
-    // TODO(scheglov) mixins
     ClassElement element = node.getElement();
     enterScope(element);
     try {
@@ -119,6 +189,14 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
         }
       }
       {
+        WithClause withClause = node.getWithClause();
+        if (withClause != null) {
+          for (TypeName mixinNode : withClause.getMixinTypes()) {
+            recordSuperType(element, mixinNode, IndexConstants.IS_MIXED_IN_BY);
+          }
+        }
+      }
+      {
         ImplementsClause implementsClause = node.getImplementsClause();
         if (implementsClause != null) {
           for (TypeName interfaceNode : implementsClause.getInterfaces()) {
@@ -127,6 +205,43 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
         }
       }
       return super.visitClassDeclaration(node);
+    } finally {
+      exitScope();
+    }
+  }
+
+  @Override
+  public Void visitClassTypeAlias(ClassTypeAlias node) {
+    ClassElement element = node.getElement();
+    enterScope(element);
+    try {
+      {
+        Location location = createElementLocation(element);
+        recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS_ALIAS, location);
+      }
+      {
+        TypeName superclassNode = node.getSuperclass();
+        if (superclassNode != null) {
+          recordSuperType(element, superclassNode, IndexConstants.IS_EXTENDED_BY);
+        }
+      }
+      {
+        WithClause withClause = node.getWithClause();
+        if (withClause != null) {
+          for (TypeName mixinNode : withClause.getMixinTypes()) {
+            recordSuperType(element, mixinNode, IndexConstants.IS_MIXED_IN_BY);
+          }
+        }
+      }
+      {
+        ImplementsClause implementsClause = node.getImplementsClause();
+        if (implementsClause != null) {
+          for (TypeName interfaceNode : implementsClause.getInterfaces()) {
+            recordSuperType(element, interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
+          }
+        }
+      }
+      return super.visitClassTypeAlias(node);
     } finally {
       exitScope();
     }
@@ -148,9 +263,14 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.getElement();
-    Location location = createElementLocation(element);
-    recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
-    return super.visitFunctionDeclaration(node);
+    enterScope(element);
+    try {
+      Location location = createElementLocation(element);
+      recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
+      return super.visitFunctionDeclaration(node);
+    } finally {
+      exitScope();
+    }
   }
 
   @Override
@@ -162,20 +282,72 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorName name = node.getConstructorName();
+    Location location = createLocation(name);
+    recordRelationship(name.getElement(), IndexConstants.IS_INVOKED_BY_UNQUALIFIED, location);
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @Override
+  public Void visitMethodDeclaration(MethodDeclaration node) {
+    MethodElement element = node.getElement();
+    enterScope(element);
+    try {
+      return super.visitMethodDeclaration(node);
+    } finally {
+      exitScope();
+    }
+  }
+
+  @Override
+  public Void visitMethodInvocation(MethodInvocation node) {
+    SimpleIdentifier name = node.getMethodName();
+    Location location = createLocation(name);
+    Relationship relationship;
+    if (node.getTarget() != null) {
+      relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
+    } else {
+      relationship = IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
+    }
+    recordRelationship(name.getElement(), relationship, location);
+    return super.visitMethodInvocation(node);
+  }
+
+  @Override
+  public Void visitNamedExpression(NamedExpression node) {
+    SimpleIdentifier name = node.getName().getLabel();
+    Location location = createLocation(name);
+    recordRelationship(name.getElement(), IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitNamedExpression(node);
+  }
+
+  @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (isNameInDeclaration(node)) {
+      return null;
+    }
+    if (isAlreadyHandledName(node)) {
+      return null;
+    }
     Element element = node.getElement();
-    if (element instanceof FieldElement) {
-      FieldElement fieldElement = (FieldElement) element;
+    if (element instanceof ClassElement || element instanceof TypeVariableElement) {
+      Location location = createLocation(node);
+      recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    } else if (element instanceof FieldElement || element instanceof ParameterElement) {
       Location location = createLocation(node);
       if (node.inGetterContext()) {
         if (isQualified(node)) {
-          recordRelationship(fieldElement, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
+          recordRelationship(element, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
         } else {
-          recordRelationship(fieldElement, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
+          recordRelationship(element, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
         }
       } else {
-        // TODO(scheglov)
-        throw new UnsupportedOperationException();
+        if (isQualified(node)) {
+          recordRelationship(element, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
+        } else {
+          recordRelationship(element, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED, location);
+        }
       }
     }
     return super.visitSimpleIdentifier(node);
@@ -201,13 +373,6 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     unnamedFunctionCount.push(0);
   }
 
-//  /**
-//   * @return the {@link Location} representing the location of the name of the given class.
-//   */
-//  private Location createNameLocation(ClassDeclaration node) {
-//    return createNameLocation(node.getName());
-//  }
-
   /**
    * @return the inner-most enclosing {@link Element}, may be <code>null</code>.
    */
@@ -225,8 +390,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
    * @return the {@link Location} representing location of the {@link ASTNode}.
    */
   private Location createLocation(ASTNode node) {
-    // TODO(scheglov) get actual prefix
-    String prefix = null;
+    String prefix = getLibraryImportPrefix(node);
     return createLocation(node.getOffset(), node.getLength(), prefix);
   }
 
@@ -239,7 +403,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
    */
   private Location createLocation(int offset, int length, String prefix) {
     Element element = peekElement();
-    return new Location(new ElementProxy(element), offset, length, prefix);
+    return new Location(element, offset, length, prefix);
   }
 
   /**
@@ -251,11 +415,29 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * @return <code>true</code> if given node already indexed as more interesting reference, so it
+   *         should not be indexed again.
+   */
+  private boolean isAlreadyHandledName(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof MethodInvocation) {
+      return ((MethodInvocation) parent).getMethodName() == node;
+    }
+    if (parent instanceof Label) {
+      Label label = (Label) parent;
+      if (label.getLabel() == node && label.getParent() instanceof NamedExpression) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Record the given relationship between the given {@link Element} and {@link Location}.
    */
   private void recordRelationship(Element element, Relationship relationship, Location location) {
     if (element != null && location != null) {
-      store.recordRelationship(new ElementProxy(element), relationship, location);
+      store.recordRelationship(element, relationship, location);
     }
   }
 
@@ -265,9 +447,8 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
    */
   private void recordSuperType(ClassElement element, TypeName superNode, Relationship relationship) {
     if (element != null) {
-      Type superType = superNode.getType();
-      if (superType != null) {
-        Element superElement = superType.getElement();
+      Element superElement = superNode.getName().getElement();
+      if (superElement != null) {
         recordRelationship(superElement, relationship, createLocation(superNode));
       }
     }

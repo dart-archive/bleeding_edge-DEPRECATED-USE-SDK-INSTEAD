@@ -49,6 +49,12 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that a container (the left-operand) contains the definition
+   * of a class type alias at a specific location (the right operand).
+   */
+  Relationship DEFINES_CLASS_ALIAS = Relationship.getRelationship("defines-class-alias");
+
+  /**
+   * The relationship used to indicate that a container (the left-operand) contains the definition
    * of a function type at a specific location (the right operand).
    */
   Relationship DEFINES_FUNCTION_TYPE = Relationship.getRelationship("defines-function-type");
@@ -102,6 +108,12 @@ public interface IndexConstants {
   Relationship IS_IMPLEMENTED_BY = Relationship.getRelationship("is-implemented-by");
 
   /**
+   * The relationship used to indicate that a type (the left-operand) is mixed into a type at a
+   * specific location (the right operand).
+   */
+  Relationship IS_MIXED_IN_BY = Relationship.getRelationship("is-mixed-in-by");
+
+  /**
    * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
    * modified (assigned to) at a specific location (the right operand). With some qualifier.
    */
@@ -113,11 +125,11 @@ public interface IndexConstants {
    */
   Relationship IS_MODIFIED_BY_UNQUALIFIED = Relationship.getRelationship("is-modified-by-unqualified");
 
-  /**
-   * The relationship used to indicate that a method (the left-operand) is overridden by a method at
-   * a specific location (the right operand).
-   */
-  Relationship IS_OVERRIDDEN_BY = Relationship.getRelationship("is-overridden-by");
+//  /**
+//   * The relationship used to indicate that a method (the left-operand) is overridden by a method at
+//   * a specific location (the right operand).
+//   */
+//  Relationship IS_OVERRIDDEN_BY = Relationship.getRelationship("is-overridden-by");
 
   /**
    * The relationship used to indicate that an element (the left-operand) is referenced at a

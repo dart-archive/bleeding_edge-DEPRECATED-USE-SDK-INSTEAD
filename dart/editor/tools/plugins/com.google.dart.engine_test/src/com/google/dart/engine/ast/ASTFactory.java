@@ -489,6 +489,10 @@ public final class ASTFactory {
     return new SimpleIdentifier(token(TokenType.IDENTIFIER, lexeme));
   }
 
+  public static PrefixedIdentifier identifier(String prefix, SimpleIdentifier identifier) {
+    return new PrefixedIdentifier(identifier(prefix), token(TokenType.PERIOD), identifier);
+  }
+
   public static PrefixedIdentifier identifier(String prefix, String identifier) {
     return new PrefixedIdentifier(
         identifier(prefix),

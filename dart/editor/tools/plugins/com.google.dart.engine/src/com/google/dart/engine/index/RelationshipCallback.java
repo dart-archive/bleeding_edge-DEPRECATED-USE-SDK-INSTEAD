@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.index;
 
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 
 /**
  * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
@@ -26,9 +26,9 @@ public interface RelationshipCallback {
    * is-referenced-by relationship, then this method will be invoked with each location at which the
    * field is referenced.
    * 
-   * @param element the {@link ElementProxy} that has the relationship with the locations
+   * @param element the {@link Element} that has the relationship with the locations
    * @param relationship the relationship between the given element and the locations
    * @param locations the locations that were found
    */
-  public void hasRelationships(ElementProxy element, Relationship relationship, Location[] locations);
+  public void hasRelationships(Element element, Relationship relationship, Location[] locations);
 }

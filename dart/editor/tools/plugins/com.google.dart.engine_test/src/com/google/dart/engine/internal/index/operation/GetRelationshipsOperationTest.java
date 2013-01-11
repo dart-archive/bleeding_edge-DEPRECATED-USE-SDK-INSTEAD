@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.index.operation;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 public class GetRelationshipsOperationTest extends EngineTestCase {
   private IndexStore store = mock(IndexStore.class);
-  private ElementProxy elementLocation = mock(ElementProxy.class);
+  private Element elementLocation = mock(Element.class);
   private RelationshipCallback callback = mock(RelationshipCallback.class);
   private Relationship relationship = Relationship.getRelationship("test-relationship");
   private GetRelationshipsOperation operation = new GetRelationshipsOperation(

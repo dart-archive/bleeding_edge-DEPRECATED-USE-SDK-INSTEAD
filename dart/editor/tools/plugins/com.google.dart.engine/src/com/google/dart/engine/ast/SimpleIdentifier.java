@@ -76,9 +76,20 @@ public class SimpleIdentifier extends Identifier {
    * Looks to see if this identifier is used to read value.
    */
   public boolean inGetterContext() {
-    if (getParent() instanceof AssignmentExpression) {
-      AssignmentExpression expr = (AssignmentExpression) getParent();
-      if (expr.getLeftHandSide() == this && expr.getOperator().getType() == TokenType.EQ) {
+    ASTNode parent = getParent();
+    ASTNode target = this;
+    // skip prefix
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      if (prefixed.getIdentifier() == this) {
+        parent = prefixed.getParent();
+        target = prefixed;
+      }
+    }
+    // analyze usage
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression expr = (AssignmentExpression) parent;
+      if (expr.getLeftHandSide() == target && expr.getOperator().getType() == TokenType.EQ) {
         return false;
       }
     }
@@ -89,16 +100,27 @@ public class SimpleIdentifier extends Identifier {
    * Looks to see if this identifier is used to write value.
    */
   public boolean inSetterContext() {
-    if (getParent() instanceof PrefixExpression) {
-      PrefixExpression expr = (PrefixExpression) getParent();
-      return expr.getOperand() == this && expr.getOperator().getType().isIncrementOperator();
+    ASTNode parent = getParent();
+    ASTNode target = this;
+    // skip prefix
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      if (prefixed.getIdentifier() == this) {
+        parent = prefixed.getParent();
+        target = prefixed;
+      }
     }
-    if (getParent() instanceof PostfixExpression) {
+    // analyze usage
+    if (parent instanceof PrefixExpression) {
+      PrefixExpression expr = (PrefixExpression) parent;
+      return expr.getOperand() == target && expr.getOperator().getType().isIncrementOperator();
+    }
+    if (parent instanceof PostfixExpression) {
       return true;
     }
-    if (getParent() instanceof AssignmentExpression) {
-      AssignmentExpression expr = (AssignmentExpression) getParent();
-      return expr.getLeftHandSide() == this;
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression expr = (AssignmentExpression) parent;
+      return expr.getLeftHandSide() == target;
     }
     return false;
   }

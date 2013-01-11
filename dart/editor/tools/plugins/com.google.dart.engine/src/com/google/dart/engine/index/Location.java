@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.index;
 
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.Element;
 
 /**
  * Instances of the class <code>Location</code> represent a location related to an element. The
@@ -30,7 +30,7 @@ public class Location {
   /**
    * The element containing this location.
    */
-  private final ElementProxy element;
+  private final Element element;
 
   /**
    * The offset of this location within the resource containing the element.
@@ -52,11 +52,11 @@ public class Location {
    * Initialize a newly create location to be relative to the given element at the given offset with
    * the given length.
    * 
-   * @param element the {@link ElementProxy} containing this location
+   * @param element the {@link Element} containing this location
    * @param offset the offset of this location within the resource containing the element
    * @param length the length of this location
    */
-  public Location(ElementProxy element, int offset, int length, String importPrefix) {
+  public Location(Element element, int offset, int length, String importPrefix) {
     if (element == null) {
       throw new IllegalArgumentException("element location cannot be null");
     }
@@ -67,9 +67,9 @@ public class Location {
   }
 
   /**
-   * @return the {@link ElementProxy} containing this location.
+   * @return the {@link Element} containing this location.
    */
-  public ElementProxy getElement() {
+  public Element getElement() {
     return element;
   }
 

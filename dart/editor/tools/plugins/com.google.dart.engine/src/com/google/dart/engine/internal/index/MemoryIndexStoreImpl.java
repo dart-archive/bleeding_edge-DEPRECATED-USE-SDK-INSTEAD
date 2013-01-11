@@ -17,8 +17,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
-import com.google.dart.engine.element.ElementProxy;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
@@ -36,6 +38,22 @@ import java.util.Set;
  * {@link IndexStore} which keeps full index in memory.
  */
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
+
+  /**
+   * @return the {@link Source} which contains given {@link Element}, may be <code>null</code>.
+   */
+  private static Source findSource(Element element) {
+    while (element != null) {
+      if (element instanceof LibraryElement) {
+        element = ((LibraryElement) element).getDefiningCompilationUnit();
+      }
+      if (element instanceof CompilationUnitElement) {
+        return ((CompilationUnitElement) element).getSource();
+      }
+      element = element.getEnclosingElement();
+    }
+    return null;
+  }
 
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
@@ -88,7 +106,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public Location[] getRelationships(ElementProxy element, Relationship relationship) {
+  public Location[] getRelationships(Element element, Relationship relationship) {
     Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element.getLocation());
     if (elementRelationshipMap != null) {
       List<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
@@ -116,14 +134,14 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public void recordRelationship(ElementProxy element, Relationship relationship, Location location) {
+  public void recordRelationship(Element element, Relationship relationship, Location location) {
     if (element == null || location == null) {
       return;
     }
     // prepare information
     ElementLocation elementLocation = element.getLocation();
-    Source elementSource = element.getSource();
-    Source locationSource = location.getElement().getSource();
+    Source elementSource = findSource(element);
+    Source locationSource = findSource(location.getElement());
     // remember sources
     sources.add(elementSource);
     sources.add(locationSource);

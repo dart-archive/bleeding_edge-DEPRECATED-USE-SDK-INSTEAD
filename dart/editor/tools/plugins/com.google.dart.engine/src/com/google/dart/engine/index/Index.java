@@ -15,7 +15,6 @@ package com.google.dart.engine.index;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementProxy;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -37,13 +36,11 @@ public interface Index {
    * locations that will be passed into the callback will be all of the places where the method is
    * invoked.
    * 
-   * @param element the {@link ElementProxy} that has the relationship with the locations to be
-   *          returned
+   * @param element the element that has the relationship with the locations to be returned
    * @param relationship the relationship between the given element and the locations to be returned
    * @param callback the callback that will be invoked when the locations are found
    */
-  void getRelationships(ElementProxy element, Relationship relationship,
-      RelationshipCallback callback);
+  void getRelationships(Element element, Relationship relationship, RelationshipCallback callback);
 
   /**
    * Asynchronously process the given {@link CompilationUnit} in order to record the relationships.

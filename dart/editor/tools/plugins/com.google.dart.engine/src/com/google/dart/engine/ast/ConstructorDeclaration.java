@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -72,6 +73,12 @@ public class ConstructorDeclaration extends ClassMember {
    * The name of the constructor, or {@code null} if the constructor being declared is unnamed.
    */
   private SimpleIdentifier name;
+
+  /**
+   * The element associated with this constructor, or {@code null} if the AST structure has not been
+   * resolved or if this constructor could not be resolved.
+   */
+  private ConstructorElement element;
 
   /**
    * The parameters associated with the constructor.
@@ -158,6 +165,16 @@ public class ConstructorDeclaration extends ClassMember {
    */
   public Token getConstKeyword() {
     return constKeyword;
+  }
+
+  /**
+   * Return the element associated with this constructor , or {@code null} if the AST structure has
+   * not been resolved or if this constructor could not be resolved.
+   * 
+   * @return the element associated with this constructor
+   */
+  public ConstructorElement getElement() {
+    return element;
   }
 
   @Override
@@ -274,6 +291,15 @@ public class ConstructorDeclaration extends ClassMember {
    */
   public void setConstKeyword(Token constKeyword) {
     this.constKeyword = constKeyword;
+  }
+
+  /**
+   * Set the element associated with this constructor to the given element.
+   * 
+   * @param element the element associated with this constructor
+   */
+  public void setElement(ConstructorElement element) {
+    this.element = element;
   }
 
   /**

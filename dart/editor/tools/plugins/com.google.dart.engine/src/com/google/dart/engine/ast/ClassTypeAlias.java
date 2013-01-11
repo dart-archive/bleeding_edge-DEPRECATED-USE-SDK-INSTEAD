@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -107,6 +108,16 @@ public class ClassTypeAlias extends TypeAlias {
    */
   public Token getAbstractKeyword() {
     return abstractKeyword;
+  }
+
+  /**
+   * Return the {@link ClassElement} associated with this type alias, or {@code null} if the AST
+   * structure has not been resolved.
+   * 
+   * @return the {@link ClassElement} associated with this type alias
+   */
+  public ClassElement getElement() {
+    return name != null ? (ClassElement) name.getElement() : null;
   }
 
   /**

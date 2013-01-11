@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -120,6 +121,16 @@ public class MethodDeclaration extends ClassMember {
    */
   public FunctionBody getBody() {
     return body;
+  }
+
+  /**
+   * Return the {@link MethodElement} associated with this method, or {@code null} if the AST
+   * structure has not been resolved.
+   * 
+   * @return the {@link MethodElement} associated with this method
+   */
+  public MethodElement getElement() {
+    return name != null ? (MethodElement) name.getElement() : null;
   }
 
   @Override
