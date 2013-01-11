@@ -22,6 +22,7 @@ import com.google.dart.tools.core.internal.index.util.ResourceFactory;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.search.SearchEngineImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -107,6 +108,30 @@ public class SearchEngineTest extends TestCase {
   public void tearDown() {
     if (index != null) {
       index.shutdown();
+    }
+  }
+
+  /**
+   * Search for {@link DartClassTypeAlias} references.
+   */
+  public void test_searchReferences_classTypeAlias() throws Exception {
+    TestProject testProject = new TestProject();
+    try {
+      String source = buildSource(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "typedef Test = Object with A;",
+          "class A {}",
+          "main() {",
+          "  Test t = null;",
+          "}",
+          "");
+      CompilationUnit unit = testProject.setUnitContent("Test.dart", source);
+      indexUnits(unit);
+      // find references
+      DartClassTypeAlias type = (DartClassTypeAlias) unit.getChildren()[0];
+      assertClassTypeAliasReferences(type, 4, new String[] {"Test t = null"});
+    } finally {
+      testProject.dispose();
     }
   }
 
@@ -923,34 +948,6 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
-  public void test_searchReferences_namedParameter_ofFunction() throws Exception {
-    TestProject testProject = new TestProject("Test");
-    try {
-      CompilationUnit unit = testProject.setUnitContent(
-          "Test.dart",
-          buildSource(
-              "// filler filler filler filler filler filler filler filler filler filler",
-              "f({test: 0}) {}",
-              "",
-              "void main() {",
-              "  f(test: 42);",
-              "}",
-              ""));
-      indexUnits(unit);
-      DartVariableDeclaration variable = findElement(unit, "test: 0");
-      List<SearchMatch> matches = getVariableReferences(variable);
-      assertEquals(1, matches.size());
-      {
-        SearchMatch match = matches.get(0);
-        SourceRange range = match.getSourceRange();
-        assertEquals(findPattern(unit, "test: 42"), range.getOffset());
-        assertEquals("test".length(), range.getLength());
-      }
-    } finally {
-      testProject.dispose();
-    }
-  }
-
   // TODO: see issue https://code.google.com/p/dart/issues/detail?id=7803
 //  public void test_searchReferences_namedParameter_ofMethod() throws Exception {
 //    TestProject testProject = new TestProject("Test");
@@ -981,6 +978,34 @@ public class SearchEngineTest extends TestCase {
 //      testProject.dispose();
 //    }
 //  }
+
+  public void test_searchReferences_namedParameter_ofFunction() throws Exception {
+    TestProject testProject = new TestProject("Test");
+    try {
+      CompilationUnit unit = testProject.setUnitContent(
+          "Test.dart",
+          buildSource(
+              "// filler filler filler filler filler filler filler filler filler filler",
+              "f({test: 0}) {}",
+              "",
+              "void main() {",
+              "  f(test: 42);",
+              "}",
+              ""));
+      indexUnits(unit);
+      DartVariableDeclaration variable = findElement(unit, "test: 0");
+      List<SearchMatch> matches = getVariableReferences(variable);
+      assertEquals(1, matches.size());
+      {
+        SearchMatch match = matches.get(0);
+        SourceRange range = match.getSourceRange();
+        assertEquals(findPattern(unit, "test: 42"), range.getOffset());
+        assertEquals("test".length(), range.getLength());
+      }
+    } finally {
+      testProject.dispose();
+    }
+  }
 
   /**
    * Test that we {@link SearchMatch#getImportPrefix()}.
@@ -1300,6 +1325,14 @@ public class SearchEngineTest extends TestCase {
     }
   }
 
+  private void assertClassTypeAliasReferences(DartClassTypeAlias type, int length,
+      String[] refMarkers) throws Exception {
+    String source = type.getCompilationUnit().getSource();
+    // find references
+    List<SearchMatch> references = getClassTypeAliasReferences(type);
+    assertReferences(source, references, length, refMarkers);
+  }
+
   private void assertHasReferenceWithPrefix(List<SearchMatch> references, String expectedPrefix) {
     assertThat(references).isNotEmpty();
     assertEquals(expectedPrefix, references.get(0).getImportPrefix());
@@ -1318,6 +1351,16 @@ public class SearchEngineTest extends TestCase {
 
   private SearchEngine createSearchEngine() {
     return new SearchEngineImpl(index);
+  }
+
+  private List<SearchMatch> getClassTypeAliasReferences(DartClassTypeAlias type)
+      throws SearchException {
+    SearchEngine engine = createSearchEngine();
+    return engine.searchReferences(
+        type,
+        SearchScopeFactory.createWorkspaceScope(),
+        null,
+        new NullProgressMonitor());
   }
 
   private List<SearchMatch> getFieldReferences(Field field) throws SearchException {

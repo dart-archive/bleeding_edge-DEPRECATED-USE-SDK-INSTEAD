@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.search;
 
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -225,6 +226,8 @@ public class DartSearchQuery implements ISearchQuery {
       try {
         if (element instanceof Method) {
           engine.searchReferences((Method) element, scope, null, collector, monitor);
+        } else if (element instanceof DartClassTypeAlias) {
+          engine.searchReferences((DartClassTypeAlias) element, scope, null, collector, monitor);
         } else if (element instanceof DartFunctionTypeAlias) {
           engine.searchReferences((DartFunctionTypeAlias) element, scope, null, collector, monitor);
         } else if (element instanceof Field) {

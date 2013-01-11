@@ -376,9 +376,19 @@ public class BindingUtils {
     if (matchingTypes.size() == 1) {
       return matchingTypes.get(0);
     }
-    List<DartFunctionTypeAlias> matchingAliases = getFunctionTypeAliases(declaringLibrary, typeName);
-    if (matchingAliases.size() == 1) {
-      return matchingAliases.get(0);
+    {
+      List<DartFunctionTypeAlias> matchingAliases = getFunctionTypeAliases(
+          declaringLibrary,
+          typeName);
+      if (matchingAliases.size() == 1) {
+        return matchingAliases.get(0);
+      }
+    }
+    {
+      List<DartClassTypeAlias> matchingAliases = getClassTypeAliases(declaringLibrary, typeName);
+      if (matchingAliases.size() == 1) {
+        return matchingAliases.get(0);
+      }
     }
     return null;
   }

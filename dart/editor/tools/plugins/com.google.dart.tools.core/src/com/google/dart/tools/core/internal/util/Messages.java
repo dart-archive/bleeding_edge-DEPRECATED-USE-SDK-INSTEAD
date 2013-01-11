@@ -60,6 +60,15 @@ public final class Messages extends NLS {
   public static String convention_functionTypeAliasName_null;
   public static String convention_functionTypeAliasName_underscore;
 
+  public static String convention_classTypeAliasName_dollar;
+  public static String convention_classTypeAliasName_empty;
+  public static String convention_classTypeAliasName_notLowercase;
+  public static String convention_classTypeAliasName_initialChar;
+  public static String convention_classTypeAliasName_internalChar;
+  public static String convention_classTypeAliasName_leadingOrTrailingBlanks;
+  public static String convention_classTypeAliasName_null;
+  public static String convention_classTypeAliasName_underscore;
+
   public static String convention_parameterName_dollar;
   public static String convention_parameterName_empty;
   public static String convention_parameterName_notLowercase;

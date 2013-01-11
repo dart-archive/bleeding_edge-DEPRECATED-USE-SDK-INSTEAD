@@ -31,6 +31,7 @@ public class TestAll {
     suite.addTestSuite(RenameFunctionProcessorTest.class);
     suite.addTestSuite(RenameGlobalVariableProcessorTest.class);
     suite.addTestSuite(RenameFunctionTypeAliasProcessorTest.class);
+    suite.addTestSuite(RenameClassTypeAliasProcessorTest.class);
     suite.addTestSuite(RenameTypeParameterProcessorTest.class);
     suite.addTestSuite(RenameImportProcessorTest.class);
     // participants

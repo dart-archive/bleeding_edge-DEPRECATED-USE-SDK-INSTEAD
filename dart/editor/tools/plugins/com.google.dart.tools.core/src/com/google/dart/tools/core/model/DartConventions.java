@@ -29,6 +29,10 @@ import org.eclipse.core.runtime.Status;
 public final class DartConventions {
   @SuppressWarnings("unused")
   private static class MessageHolder {
+    public static MessageHolder forClassTypeAlias() {
+      return new MessageHolder().initForClassTypeAlias();
+    }
+
     public static MessageHolder forCompilationUnit() {
       return new MessageHolder().initForCompilationUnit();
     }
@@ -84,6 +88,18 @@ public final class DartConventions {
 
     public String internalChar(String name) {
       return Messages.bind(internalChar, name);
+    }
+
+    private MessageHolder initForClassTypeAlias() {
+      dollar = Messages.convention_classTypeAliasName_dollar;
+      empty = Messages.convention_classTypeAliasName_empty;
+      initialCase = Messages.convention_classTypeAliasName_notLowercase;
+      initialChar = Messages.convention_classTypeAliasName_initialChar;
+      internalChar = Messages.convention_classTypeAliasName_internalChar;
+      leadingOrTrailingBlanks = Messages.convention_classTypeAliasName_leadingOrTrailingBlanks;
+      nullName = Messages.convention_classTypeAliasName_null;
+      underscore = Messages.convention_classTypeAliasName_underscore;
+      return this;
     }
 
     private MessageHolder initForCompilationUnit() {
@@ -203,6 +219,20 @@ public final class DartConventions {
       underscore = Messages.convention_variableName_underscore;
       return this;
     }
+  }
+
+  /**
+   * Validate the given function type alias name. Return a status object indicating the validity of
+   * the name. The status will have the code {@link IStatus.OK} if the name is valid as a function
+   * type alias name, the code {@link IStatus.WARNING} if the name is discouraged, or the code
+   * {@link IStatus.ERROR} if the name is illegal. If the identifier is not valid then the status
+   * will have a message indicating why.
+   * 
+   * @param name the function name being validated
+   * @return a status object indicating the validity of the name
+   */
+  public static IStatus validateClassTypeAliasName(String name) {
+    return validateUpperCamelCase(name, MessageHolder.forClassTypeAlias());
   }
 
   /**

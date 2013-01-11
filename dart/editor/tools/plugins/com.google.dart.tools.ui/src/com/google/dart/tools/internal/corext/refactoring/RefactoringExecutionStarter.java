@@ -15,6 +15,7 @@ package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -77,6 +78,8 @@ public final class RefactoringExecutionStarter {
         return RenameSupport.create((DartImport) element, newName);
       case DartElement.FUNCTION:
         return RenameSupport.create((DartFunction) element, newName);
+      case DartElement.CLASS_TYPE_ALIAS:
+        return RenameSupport.create((DartClassTypeAlias) element, newName);
       case DartElement.FUNCTION_TYPE_ALIAS:
         return RenameSupport.create((DartFunctionTypeAlias) element, newName);
       case DartElement.TYPE:

@@ -37,6 +37,7 @@ import com.google.dart.tools.core.internal.search.listener.WrappedSearchListener
 import com.google.dart.tools.core.internal.search.scope.LibrarySearchScope;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -492,6 +493,29 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final DartClassTypeAlias type, final SearchScope scope,
+      final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(type, scope, filter, listener, monitor);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(DartClassTypeAlias type, SearchScope scope, SearchFilter filter,
+      SearchListener listener, IProgressMonitor monitor) throws SearchException {
+    if (listener == null) {
+      throw new IllegalArgumentException("listener cannot be null");
+    }
+    index.getRelationships(
+        createElement(type),
+        IndexConstants.IS_REFERENCED_BY,
+        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final DartFunction function, final SearchScope scope,
       final SearchFilter filter, final IProgressMonitor monitor) throws SearchException {
     return gatherResults(new SearchRunner() {
@@ -908,11 +932,19 @@ public class SearchEngineImpl implements SearchEngine {
     return new NameMatchingSearchListener(pattern, listener);
   }
 
+  private Element createElement(DartClassTypeAlias alias) throws SearchException {
+    return new Element(
+        getResource(alias.getCompilationUnit()),
+        ElementFactory.composeElementId(alias.getElementName()));
+  }
+
   private Element createElement(DartElement element) throws SearchException {
     if (element == null || element instanceof CompilationUnit) {
       return null;
     } else if (element instanceof DartFunction) {
       return createElement((DartFunction) element);
+    } else if (element instanceof DartClassTypeAlias) {
+      return createElement((DartClassTypeAlias) element);
     } else if (element instanceof DartFunctionTypeAlias) {
       return createElement((DartFunctionTypeAlias) element);
     } else if (element instanceof DartVariableDeclaration) {

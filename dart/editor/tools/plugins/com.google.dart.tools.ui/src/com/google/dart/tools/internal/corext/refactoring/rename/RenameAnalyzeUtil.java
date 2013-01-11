@@ -29,6 +29,7 @@ import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.CompilationUnitElement;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -329,6 +330,9 @@ public class RenameAnalyzeUtil {
         }
         if (element instanceof DartFunctionTypeAlias) {
           return searchEngine.searchReferences((DartFunctionTypeAlias) element, null, null, pm);
+        }
+        if (element instanceof DartClassTypeAlias) {
+          return searchEngine.searchReferences((DartClassTypeAlias) element, null, null, pm);
         }
         return Lists.newArrayList();
       }

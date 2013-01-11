@@ -85,6 +85,17 @@ public class Checks {
 //      return new RefactoringStatus();
 //  }
 
+  /**
+   * Checks if the given name is a valid Dart function class type alias name.
+   * 
+   * @param name the Dart class type alias name.
+   * @return a refactoring status containing the error message if the name is not a valid Dart class
+   *         type alias name.
+   */
+  public static RefactoringStatus checkClassTypeAliasName(String name) {
+    return checkName(name, DartConventions.validateClassTypeAliasName(name));
+  }
+
   public static void checkCompileErrorsInAffectedFile(RefactoringStatus result, IResource resource)
       throws DartModelException {
     if (hasCompileErrors(resource)) {

@@ -23,6 +23,7 @@ import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -1317,6 +1318,19 @@ public class RefactoringAvailabilityTester {
 //    return isPullUpAvailable(new TypeMember[]{(TypeMember) element});
 //  }
 
+  public static boolean isRenameAvailable(DartClassTypeAlias type) throws DartModelException {
+    if (type == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(type)) {
+      return false;
+    }
+//    if (isRenameProhibited(type)) {
+//      return false;
+//    }
+    return true;
+  }
+
   public static boolean isRenameAvailable(DartFunction function) throws DartModelException {
     if (function == null) {
       return false;
@@ -1473,6 +1487,8 @@ public class RefactoringAvailabilityTester {
         return isRenameAvailable((DartImport) element);
       case DartElement.FUNCTION:
         return isRenameAvailable((DartFunction) element);
+      case DartElement.CLASS_TYPE_ALIAS:
+        return isRenameAvailable((DartClassTypeAlias) element);
       case DartElement.FUNCTION_TYPE_ALIAS:
         return isRenameAvailable((DartFunctionTypeAlias) element);
       case DartElement.TYPE:

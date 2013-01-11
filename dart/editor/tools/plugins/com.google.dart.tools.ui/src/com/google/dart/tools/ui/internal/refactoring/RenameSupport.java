@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.core.IPackageFragment;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
@@ -26,6 +27,7 @@ import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.DartRenameProcessor;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameClassTypeAliasProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionTypeAliasProcessor;
@@ -122,6 +124,18 @@ public class RenameSupport {
   }
 
   /**
+   * Creates a new rename support for the given {@link DartClassTypeAlias}.
+   * 
+   * @param type the {@link DartClassTypeAlias} to be renamed, not <code>null</code>.
+   * @param newName the new name, not <code>null</code>.
+   * @return the {@link RenameSupport}.
+   */
+  public static RenameSupport create(DartClassTypeAlias type, String newName) {
+    DartRenameProcessor processor = new RenameClassTypeAliasProcessor(type);
+    return new RenameSupport(processor, newName, 0);
+  }
+
+  /**
    * Creates a new rename support for the given {@link DartFunction}.
    * 
    * @param function the {@link DartFunction} to be renamed, not <code>null</code>.
@@ -141,12 +155,12 @@ public class RenameSupport {
   /**
    * Creates a new rename support for the given {@link DartFunctionTypeAlias}.
    * 
-   * @param field the {@link DartFunctionTypeAlias} to be renamed, not <code>null</code>.
+   * @param type the {@link DartFunctionTypeAlias} to be renamed, not <code>null</code>.
    * @param newName the new name, not <code>null</code>.
    * @return the {@link RenameSupport}.
    */
-  public static RenameSupport create(DartFunctionTypeAlias field, String newName) {
-    DartRenameProcessor processor = new RenameFunctionTypeAliasProcessor(field);
+  public static RenameSupport create(DartFunctionTypeAlias type, String newName) {
+    DartRenameProcessor processor = new RenameFunctionTypeAliasProcessor(type);
     return new RenameSupport(processor, newName, 0);
   }
 
