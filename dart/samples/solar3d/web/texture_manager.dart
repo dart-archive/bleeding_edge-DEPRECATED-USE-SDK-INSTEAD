@@ -113,7 +113,7 @@ class TextureManager {
       });
       img.src = '$baseURL${sides[i]}';
     }
-    return Futures.wait(futures);
+    return Future.wait(futures);
   }
 
   void bind(String name) {

@@ -103,7 +103,7 @@ class Solar3DApplication {
                                           'positiveZ.jpg',
                                           'negativeZ.jpg',
                                           ]));
-    return Futures.wait(futures);
+    return Future.wait(futures);
   }
 
   bool get _fullScreened => canvas == document.webkitFullscreenElement;

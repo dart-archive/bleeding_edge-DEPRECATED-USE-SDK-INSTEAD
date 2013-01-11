@@ -188,7 +188,7 @@ class PlayerState {
       arr.add(_exploreDirectionHelper(RIGHT_DIR, x, y));
       arr.add(_exploreDirectionHelper(UP_DIR, x, y));
       arr.add(_exploreDirectionHelper(DOWN_DIR, x, y));
-      Futures.wait(arr).then((arrValues) {
+      Future.wait(arr).then((arrValues) {
         superShot_.complete(true);
       });
     } else {
