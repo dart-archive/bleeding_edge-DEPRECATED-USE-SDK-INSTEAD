@@ -146,9 +146,12 @@
             ${user.os.property.file}
             **********************************
             <condition>
+              <and>
+                <not><isset property="build.no.properties"/></not>
                 <not>
                     <available file="${user.os.property.file}" type="file" />
                 </not>
+              </and>
             </condition>
         </fail>
         <echo message="reading ${user.os.property.file}" />
@@ -165,7 +168,7 @@
         <!--
           validate that the ${user.name}.property file exists
         -->
-        <fail>*
+        <fail>
             **********************************
             Error: 
             ${user.property.file} must exist.
@@ -174,9 +177,12 @@
             and adjust the content for your build situation
             **********************************
             <condition>
+              <and>
+                <not><isset property="build.no.properties"/></not>
                 <not>
                     <available file="${user.property.file}" type="file" />
                 </not>
+              </and>
             </condition>
         </fail>
         <echo message="reading ${user.property.file}" />
@@ -292,7 +298,7 @@
         <sequential>
             <echo message="setting up Eclipse @{version} (@{arch} @{os.ws} in @{location})" />
             <mkdir dir="${build.downloads}" />
-            <echoproperties prefix="eclipse-" />
+            <!-- echoproperties prefix="eclipse-" / -->
             <get src="${eclipse-sdk.@{version}.url}/${eclipse-sdk.@{version}.@{os.ws}.@{arch}.zip}"
                  dest="${build.downloads}/eclipse-SDK-@{version}-@{os.ws}-@{arch}.${eclipse-sdk-@{os.ws}.ext}" 
                  verbose="true" 
@@ -659,7 +665,7 @@
     </target>
     
     <target name="-untarFile" unless="do.unzip">
-        <untar  src="${archive.name}" dest="${output.dir}" compression="gzip" />
+        <untar src="${archive.name}" dest="${output.dir}" compression="gzip" />
     </target>
 
 </project>

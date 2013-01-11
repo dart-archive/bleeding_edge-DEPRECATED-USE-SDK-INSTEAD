@@ -59,7 +59,6 @@ build system.  The PDE build system has to run under Eclipse.
     -->
     <target name="init" depends="setOS, buildBotFastFail, readProperties">
         <property environment="env" />
-        <echoproperties prefix="env." />
 
         <tstamp>
             <format property="build.date" pattern="yyyyMMddHHmm" />
@@ -113,7 +112,7 @@ build system.  The PDE build system has to run under Eclipse.
         <condition property="build.revision" value="${env.BUILDBOT_GOT_REVISION}">
             <isset property="env.BUILDBOT_GOT_REVISION" />
         </condition>
-        <property name="build.revision" value="unknown" />
+        <property name="build.revision" value="000" />
         <property name="dart.version_revision" value="${dart.version}_${build.revision}" />
         <!-- TODO(devoncarew): we should pull this info from tools/version.dart -->
         <property name="dart.version.full" value="${MAJOR}.${MINOR}.${BUILD}.${PATCH}_r${build.revision}" />
@@ -123,8 +122,8 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="build.thirdparty" location="${build.source.root}/third_party" />
         
         <property name="build.stage.scripts" location="${build.stage}/scripts" />
-        <echoproperties prefix="java." />
-        <echoproperties prefix="build." />
+        <!-- echoproperties prefix="java." / -->
+        <!-- echoproperties prefix="build." / -->
         <property name="build.runtime.abs" location="${build.runtime}" />
         <property name="build.target.abs" location="${build.target}" />
         <property name="build.stage.abs" location="${build.stage}" />
@@ -152,6 +151,9 @@ build system.  The PDE build system has to run under Eclipse.
         <mkdir dir="${build.stage.plugins}" />
         <mkdir dir="${build.stage.features}" />
         <mkdir dir="${build.out}" />
+
+        <property name="build.dart.sdk" value="true"/>
+
         <echoProperty propertyname="build.revision" />
         <echoProperty propertyname="build.builder" />
         <echoProperty propertyname="build.root" />
@@ -161,7 +163,7 @@ build system.  The PDE build system has to run under Eclipse.
         <echoProperty propertyname="build.out.property.file" />
         <echoProperty propertyname="build.os" />
         <echoProperty propertyname="build.dart.sdk.zip" />
-        <echoProperty propertyname="build.local.build" />
+        <echoProperty propertyname="build.download.sdk" />
     </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
@@ -180,9 +182,9 @@ build system.  The PDE build system has to run under Eclipse.
         <!-- create the samples directory -->
         <property name="samples.out.dir" value="${build.stage.include.dir}/samples" />
         
-    	  <!-- delete old samples -->
-    	  <delete dir="${samples.out.dir}"/>
-    	
+        <!-- delete old samples -->
+        <delete dir="${samples.out.dir}"/>
+
         <!-- copy specific samples -->
         <copy todir="${samples.out.dir}">
             <fileset dir="${build.source.root}/samples">
@@ -230,43 +232,24 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${samples.out.dir}" file="${build.source.root}/client/dart.js"/>
     </target>
     
-    <!-- - - - - - - - - - - - - - - - - - 
-          target: getSdk
+    <!-- - - - - - - - - - - - - - - - - - - 
+          target: installSdk
+          Install the sdk zip unless a path to an SDK exists - build.dart.sdk.
          - - - - - - - - - - - - - - - - - -->
-    <target name="getSdk" if="build.download.sdk" depends="setOS">
+    <target name="installSdk" unless="build.dart.sdk" depends="setOS">
+        <echoProperty propertyname="build.dart.sdk"/>
+
         <get src="http://gsdview.appspot.com/dart-editor-archive-continuous/latest/dartsdk-${osfamily}-32.zip"
              dest="${build.dart.sdk.zip}"
              usetimestamp="true" />
-        <delete dir="${build.stage.include.dir}/dart-sdk"/>
-    </target>
-
-    <!-- - - - - - - - - - - - - - - - - - 
-          target: installSdkInWindows
-          Use the standard Ant unzip task to install the sdk
-         - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInWindows" if="installSdkWindows" depends="getSdk">
-        <unzip src="${build.dart.sdk.zip}" dest="${build.stage.include.dir}" />
-    </target>
-
-    <!-- - - - - - - - - - - - - - - - - - 
-          target: installSdkInNonWindows
-          The standard Ant unzip task destroys execute permissions in the sdk
-          so use the command line unzip instead
-         - - - - - - - - - - - - - - - - - -->
-    <target name="installSdkInNonWindows" if="installSdkNotWindows" depends="getSdk">
+        
         <echo message="unzipping ${build.dart.sdk.zip} to ${build.stage.include.dir}"/>
         <mkdir dir="${build.stage.include.dir}" />
+        <delete dir="${build.stage.include.dir}/dart-sdk"/>
         <exec executable="unzip" dir="${build.stage.include.dir}">
             <arg value="-q"/>
             <arg value="${build.dart.sdk.zip}"/>
         </exec>
-    </target>
-
-    <!-- - - - - - - - - - - - - - - - - - - 
-          target: installSdk
-          Install the sdk zip if build.os is set
-         - - - - - - - - - - - - - - - - - -->
-    <target name="installSdk" depends="installSdkInNonWindows, installSdkInWindows">
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -315,13 +298,13 @@ build system.  The PDE build system has to run under Eclipse.
         <property name="user.property.file" location="${data.location}/${user.name}.properties" /> 
         <echo message="reading ${user.property.file}" />
         <property file="${user.property.file}" />
+      
+        <!-- The path to dart/editor/ -->
+        <property name="build.source" location="../../.." />
+        <dirname property="build.source.root" file="${build.source}" />
 
-        <fail unless="build.source">*
-            **********************************
-            Define the "build.source" property to point to your dart/eclipse SVN directory
-            **********************************
-        </fail>
-        <dirname file="${build.source}" property="build.source.root"/>
+        <echoProperty propertyname="build.source" />
+        <echoProperty propertyname="build.source.root" />
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - 
@@ -342,12 +325,6 @@ build system.  The PDE build system has to run under Eclipse.
     <target name="setupBuild" depends="init, installSdk, setupRuntimeEclipse, buildSamples" >
         <setupTargetEclipse location="${build.target}" eclipse="${build.target.eclipse.version}"
                             arch="${build.eclipse.arch}" />
-        <!-- installDirIntoTargetEclipse updatesite="${build.source.root}/third_party/chromesdk/0.3.0"
-                                     ius="org.chromium.sdk.feature.group"
-                                     uniqueId="chrome"/ -->
-        <!-- installDirIntoTargetEclipse updatesite="${build.source.root}/third_party/usageprofiler"
-                                     ius="com.google.gdt.eclipse.usageprofiler.feature.feature.group"
-                                     uniqueId="profiler"/-->
 
         <property name="eclipse.runtime.dir"
                   value="${build.runtime}/eclipse" />
