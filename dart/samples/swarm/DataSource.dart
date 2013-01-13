@@ -56,8 +56,9 @@ class Sections extends Collection<Section> {
     callback(new Sections(sections));
   }
 
-  static void initializeFromUrl(void callback(Sections sections)) {
-    if (Sections.runningFromFile) {
+  static void initializeFromUrl(bool useCannedData,
+                                void callback(Sections sections)) {
+    if (Sections.runningFromFile || useCannedData) {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
