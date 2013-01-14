@@ -34,26 +34,4 @@ public interface AnalysisConfiguration {
    */
   File dartSdkDirectory();
 
-  /**
-   * Indicates whether developer-mode runtime checks are needed.
-   * 
-   * @return true if developer-mode checks should be inserted, false if not
-   */
-  boolean developerModeChecks();
-
-  /**
-   * Returns a comma-separated string list of options for displaying JVM metrics. Returns
-   * {@code null} if JVM metrics are not enabled.
-   */
-  String jvmMetricOptions();
-
-  /**
-   * Returns the name of the platform (used for finding system libraries).
-   */
-  String platformName();
-
-  /**
-   * Returns {@code true} if warnings in the SDK should not be forwarded to the error listener.
-   */
-  boolean showSdkWarnings();
 }

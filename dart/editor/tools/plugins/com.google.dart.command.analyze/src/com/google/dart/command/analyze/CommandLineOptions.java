@@ -40,32 +40,14 @@ public class CommandLineOptions {
     @Option(name = "--error_format", usage = "Format errors as normal or machine")
     private String errorFormat = "";
 
-    @Option(name = "--enable_type_checks", usage = "Generate runtime type checks")
-    private boolean developerModeChecks = false;
-
     @Option(name = "--ignore_unrecognized_flags", aliases = {"--ignore-unrecognized-flags"}, //
     usage = "Ignore unrecognized command line flags")
     private boolean ignoreUnrecognizedFlags = false;
 
-    @Option(name = "--jvm_metrics_detail", //
-    usage = "Display summary (default) or\n verbose metrics")
-    private String jvmMetricDetail = "summary";
-
-    @Option(name = "--jvm_metrics_format", //
-    usage = "Output metrics in tabular (default)\n or pretty format")
-    private String jvmMetricFormat = "tabular";
-
-    @Option(name = "--jvm_metrics_type", usage = "Comma-separated list to display:\n "
-        + "  all:  (default) all stat types\n " + "  gc:   show garbage collection stats\n "
-        + "  mem:  show memory stats\n " + "  jit:  show jit stats")
-    private String jvmMetricType = "all";
-
     @Option(name = "--help", aliases = {"-?", "-help"}, usage = "Prints this help message")
     private boolean showHelp = false;
 
-    @Option(name = "--jvm_metrics", usage = "Print jvm metrics at end of the program")
-    private boolean showJvmMetrics = false;
-
+    //TODO(pquitslund): how we specify metrics may well change (as will instrumentation)
     @Option(name = "--metrics", usage = "Print metrics")
     private boolean showMetrics = false;
 
@@ -73,26 +55,18 @@ public class CommandLineOptions {
     usage = "Treat non-type warnings as fatal")
     private boolean warningsAreFatal = false;
 
-    @Option(name = "--platform", //
-    usage = "Platform libraries to analyze (e.g. dartium, vm, dart2js, any)")
-    private String platformName = "Not Implemented";
-
     @Option(name = "--dart_sdk", aliases = {"--dart-sdk"}, //
     usage = "Path to dart sdk.  (system property com.google.dart.sdk)")
     private File dartSdkPath = new File("Not Implemented");
 
-    @Option(name = "--show_sdk_warnings", usage = "show warnings from SDK source")
-    private boolean showSdkWarnings = false;
-
     @Argument
     private final List<String> sourceFiles = Lists.newArrayList();
 
+    /**
+     * Return the path to the dart SDK.
+     */
     public File dartSdkPath() {
       return dartSdkPath;
-    }
-
-    public boolean developerModeChecks() {
-      return developerModeChecks;
     }
 
     /**
@@ -102,23 +76,15 @@ public class CommandLineOptions {
       return sourceFiles;
     }
 
+    /**
+     * Return {@code true} if unrecognized flags should be ignored, {@code false} otherwise.
+     */
     public boolean ignoreUnrecognizedFlags() {
       return ignoreUnrecognizedFlags;
     }
 
-    public String jvmMetricOptions() {
-      if (!showJvmMetrics) {
-        return null;
-      }
-      return jvmMetricDetail + ":" + jvmMetricFormat + ":" + jvmMetricType;
-    }
-
-    public String platformName() {
-      return platformName;
-    }
-
     /**
-     * @return the format to use for printing errors
+     * Return the format to use for printing errors.
      */
     public ErrorFormat printErrorFormat() {
       String lowerError = errorFormat.toLowerCase();
@@ -128,6 +94,12 @@ public class CommandLineOptions {
       return ErrorFormat.NORMAL;
     }
 
+    /**
+     * Return {@code true} if the analyzer should be run in batch mode, {@code false} otherwise.
+     * <p>
+     * (In batch mode, command line arguments are received through stdin and returning pass/fail
+     * status through stdout. Batch mode is used in test execution.)
+     */
     public boolean shouldBatch() {
       return batch;
     }
@@ -139,19 +111,11 @@ public class CommandLineOptions {
       return showHelp;
     }
 
-    public boolean showJvmMetrics() {
-      return showJvmMetrics;
-    }
-
+    /**
+     * Returns {@code true} to indicate that metrics should be displayed.
+     */
     public boolean showMetrics() {
       return showMetrics;
-    }
-
-    /**
-     * Returns whether warnings from SDK files should be suppressed.
-     */
-    public boolean suppressSdkWarnings() {
-      return !showSdkWarnings;
     }
 
     /**

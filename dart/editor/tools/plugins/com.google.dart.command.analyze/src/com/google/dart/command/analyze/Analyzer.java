@@ -15,7 +15,6 @@ package com.google.dart.command.analyze;
 
 import com.google.dart.command.metrics.AnalysisMetrics;
 import com.google.dart.command.metrics.DartEventType;
-import com.google.dart.command.metrics.JvmMetrics;
 import com.google.dart.command.metrics.Tracer;
 import com.google.dart.command.metrics.Tracer.TraceEvent;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -85,7 +84,8 @@ public class Analyzer {
     if (analyzerMetrics != null) {
       analyzerMetrics.write(System.out);
     }
-    JvmMetrics.maybeWriteJvmMetrics(System.out, config.jvmMetricOptions());
+    //TODO(pquitslund): decide if we want to dump JVM metrics and if this is how we want to do it
+    //JvmMetrics.maybeWriteJvmMetrics(System.out, config.jvmMetricOptions());
   }
 
   public Analyzer() {

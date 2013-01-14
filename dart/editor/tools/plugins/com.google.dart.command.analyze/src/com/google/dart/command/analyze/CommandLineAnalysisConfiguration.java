@@ -27,28 +27,16 @@ public class CommandLineAnalysisConfiguration implements AnalysisConfiguration {
 
   private final File dartSdkDirectory;
 
-  private final boolean developerModeChecks;
-
-  private final String jvmMetricOptions;
-
-  private final String platformName;
-
-  private final boolean suppressSdkWarnings;
-
   /**
    * A new instance with the specified {@link AnalyzerOptions}.
    */
   public CommandLineAnalysisConfiguration(AnalyzerOptions analyzerOptions) {
-    this.developerModeChecks = analyzerOptions.developerModeChecks();
     this.dartSdkDirectory = analyzerOptions.dartSdkPath();
-    this.jvmMetricOptions = analyzerOptions.jvmMetricOptions();
-    this.platformName = analyzerOptions.platformName();
     if (analyzerOptions.showMetrics()) {
       this.compilerMetrics = new AnalysisMetrics();
     } else {
       this.compilerMetrics = null;
     }
-    this.suppressSdkWarnings = analyzerOptions.suppressSdkWarnings();
   }
 
   @Override
@@ -61,23 +49,4 @@ public class CommandLineAnalysisConfiguration implements AnalysisConfiguration {
     return dartSdkDirectory;
   }
 
-  @Override
-  public boolean developerModeChecks() {
-    return developerModeChecks;
-  }
-
-  @Override
-  public String jvmMetricOptions() {
-    return jvmMetricOptions;
-  }
-
-  @Override
-  public String platformName() {
-    return platformName;
-  }
-
-  @Override
-  public boolean showSdkWarnings() {
-    return suppressSdkWarnings;
-  }
 }
