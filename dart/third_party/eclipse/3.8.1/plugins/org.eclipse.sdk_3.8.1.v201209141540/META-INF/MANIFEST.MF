@@ -1,0 +1,89 @@
+Manifest-Version: 1.0
+Bundle-Vendor: %providerName
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: org.eclipse.sdk; singleton:=true
+Eclipse-SourceReferences: scm:git:git://git.eclipse.org/gitroot/platfo
+ rm/eclipse.platform.git;path="platform/org.eclipse.sdk";tag=v20120814
+ -104707
+Require-Bundle: org.eclipse.ui;bundle-version="[3.2.0,4.0.0)",org.ecli
+ pse.help.ui;bundle-version="[3.2.0,4.0.0)",org.eclipse.help.base;bund
+ le-version="[3.1.0,4.0.0)",org.eclipse.ui.cheatsheets;bundle-version=
+ "[3.2.0,4.0.0)",org.eclipse.ui.ide.application;bundle-version="[1.0.0
+ ,2.0.0)"
+Bundle-Version: 3.8.1.v201209141540
+Eclipse-AutoStart: true
+Bundle-ManifestVersion: 2
+
+Name: intro-eclipse.png
+SHA1-Digest: IUrE9u5RnkRx7unbvyyosuGTAOE=
+
+Name: eclipse48.gif
+SHA1-Digest: joafzB2KmUajcypuNkoevLaG8oU=
+
+Name: disabled_book.css
+SHA1-Digest: x3/plDo/tiH3FDASeesyGUCF4gM=
+
+Name: eclipse32.png
+SHA1-Digest: Tet+jRa8Gm9JsW/hWCgO9ayE664=
+
+Name: narrow_book.css
+SHA1-Digest: /86jkfITUYJB4OWlA3NEx9IN6zo=
+
+Name: eclipse16.gif
+SHA1-Digest: zwt4gz2o7PTRfQDHJimtmymBJo8=
+
+Name: about.ini
+SHA1-Digest: 047iq9u2++7hl+oJ2nkNdXXELdw=
+
+Name: META-INF/eclipse.inf
+SHA1-Digest: KyT9FF7C7t86NoBoa2kZT3ZJBfw=
+
+Name: eclipse48.png
+SHA1-Digest: wRYWPRIG/9RrNLHZh4GGFnUMGjQ=
+
+Name: about.mappings
+SHA1-Digest: pwwp3utzaQYTOZ02IupElLNnl2s=
+
+Name: eclipse16.png
+SHA1-Digest: dMO+1jnMMGzYeRFxESUlSACxxEg=
+
+Name: eclipse256.png
+SHA1-Digest: 7KiCNPEKzYy7sq8YFJSsXuQmf/s=
+
+Name: macosx_narrow_book.css
+SHA1-Digest: jjHm301H2huNyXiXwJbHzgWn0K4=
+
+Name: eclipse_lg.gif
+SHA1-Digest: V1bzzsRNTt2D6InH92BXO4We/X0=
+
+Name: about.html
+SHA1-Digest: ejOZra0kypGLQQ2bJtGTX+LI8tU=
+
+Name: plugin.properties
+SHA1-Digest: jYTEIcE/lfdAOhwGJ5QhOUuYzT4=
+
+Name: helpData.xml
+SHA1-Digest: ZR1pFHw9xoMSs25sZ0MO6v4/asI=
+
+Name: about.properties
+SHA1-Digest: o+RD2QugkLOuNsAqLr8a7WiIGVc=
+
+Name: plugin_customization.properties
+SHA1-Digest: MrQ8crKtLhmApcHy3MtzuLPnS8g=
+
+Name: plugin.xml
+SHA1-Digest: kE30gpLNWeKt2EaylNAH/NlO79w=
+
+Name: eclipse32.gif
+SHA1-Digest: ppkAcrq2pIoBxNI//Z3q3xJRdEY=
+
+Name: plugin_customization.ini
+SHA1-Digest: 3Tw+jf1ANMGQmRd0x9Na3ABcjj4=
+
+Name: book.css
+SHA1-Digest: dsGbqnJH+kPrO0L++3y5oeGM0F4=
+
+Name: introData.xml
+SHA1-Digest: hRUHRieYHfLpbEmuEpkQGBDq/fU=
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.eclipse.jdt.source" version="3.8.1.v20120814-104540-8-8nFqpFNOfwKDRVz-tXLgJBep83" label="%featureName"   provider-name="%providerName" image="eclipse_update_120.jpg"    >
+	<description >
+		%description
+	</description>
+	<copyright >
+		%copyright
+	</copyright>
+	<license url="%licenseURL">
+      %license
+  	</license>
+	<plugin id="org.eclipse.jdt.doc.isv" version="3.8.1.v20120807-082626"     unpack="false"/>
+	<plugin id="org.junit.source" version="3.8.2.v3_8_2_v20100427-1100"     unpack="false"/>
+	<plugin id="org.junit.source" version="4.10.0.v4_10_0_v20120426-0900"     unpack="false"/>
+	<plugin id="org.hamcrest.core.source" version="1.1.0.v20090501071000"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.source" version="3.8.0.v201209141540"     unpack="false"/>
+	<plugin id="org.eclipse.ant.ui.source" version="3.5.300.v20120523-1742"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.apt.core.source" version="3.3.500.v20120522-1651"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.apt.ui.source" version="3.3.300.v20120522-1651"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.apt.pluggable.core.source" version="1.0.400.v20120522-1651"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.compiler.apt.source" version="1.0.500.v20120522-1651"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.compiler.tool.source" version="1.0.101.v20120522-1651"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.core.source" version="3.8.2.v20120814-155456"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.annotation.source" version="1.0.0.v20120728-095341"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.core.manipulation.source" version="1.5.0.v20120523-1543"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.debug.ui.source" version="3.6.100.v20120530-1425"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.debug.source" version="3.7.101.v20120725-115645"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.junit.source" version="3.7.100.v20120523-1543"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.junit.core.source" version="3.7.100.v20120523-1257"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.junit.runtime.source" version="3.4.300.v20120523-1257"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.junit4.runtime.source" version="1.1.200.v20120523-1257"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.launching.source" version="3.6.100.v20120523-1953"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.ui.source" version="3.8.1.v20120814-144251"     unpack="false"/>
+	<plugin id="org.eclipse.jdt.launching.macosx.source" version="3.2.100.v20120523-1953" os="macosx"    unpack="false"/>
+	<plugin id="org.eclipse.jdt.launching.ui.macosx.source" version="1.0.100.v20120523-1953" os="macosx"    unpack="false"/>
+	<plugin id="org.eclipse.ant.launching.source" version="1.0.200.v20120530-120908"     unpack="false"/>
+</feature>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.eclipse.cvs"
+      label="%featureName"
+      version="1.3.200.v20120525-1249-7B79FJJAkF7BF7VEH5FEJT"
+      provider-name="%providerName"   
+      
+      >
+
+   <description>
+      %description
+   </description>
+   
+   <copyright>
+      %copyright
+   </copyright>   
+
+   <license url="%licenseURL">
+      %license
+   </license>
+
+   <requires>
+      <import feature="org.eclipse.platform" version="3.7.0" match="greaterOrEqual"/>
+   </requires>
+
+   <plugin
+         id="org.eclipse.cvs"
+         download-size="0"
+         install-size="0"
+         version="1.2.0.v201209141540"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.team.cvs.core"
+         download-size="0"
+         install-size="0"
+         version="3.3.500.v20120522-1148"
+         unpack="false"/>   
+
+   <plugin
+         id="org.eclipse.team.cvs.ssh2"
+         download-size="0"
+         install-size="0"
+         version="3.2.300.v20120522-1148"
+         unpack="false"/>
+
+   <plugin
+         id="org.eclipse.team.cvs.ui"
+         download-size="0"
+         install-size="0"
+         version="3.3.500.v20120522-1148"
+         unpack="false"/>
+
+</feature>

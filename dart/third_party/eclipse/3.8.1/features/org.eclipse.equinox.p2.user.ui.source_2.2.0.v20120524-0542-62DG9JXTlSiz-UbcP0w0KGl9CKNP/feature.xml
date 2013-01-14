@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.eclipse.equinox.p2.user.ui.source" version="2.2.0.v20120524-0542-62DG9JXTlSiz-UbcP0w0KGl9CKNP" label="%featureName"   provider-name="%providerName" image="eclipse_update_120.jpg"    >
+	<description >
+		%description
+	</description>
+	<copyright >
+		%copyright
+	</copyright>
+	<license url="%licenseURL">
+      %license
+  	</license>
+	<includes id="org.eclipse.equinox.p2.core.feature.source" version="1.1.0.v20120524-0542-8297FncFWmE7h4Asx2cpqz-T38"/>
+	<includes id="org.eclipse.equinox.p2.extras.feature.source" version="1.1.0.v20120524-0542-7A6FEcDiVOTg1Q_HuZrEuBty3dqr"/>
+	<includes id="org.eclipse.equinox.p2.rcp.feature.source" version="1.1.0.v20120524-0542-785EoBqNKNYz-GX2sUgCaBty3dqr"/>
+	<plugin id="org.eclipse.ecf.source" version="3.1.300.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.ssl.source" version="1.0.100.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.identity.source" version="3.1.200.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.filetransfer.source" version="5.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.source" version="3.2.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.ssl.source" version="1.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.httpclient.source" version="4.0.200.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.httpclient.ssl.source" version="1.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.apache.commons.codec.source" version="1.3.0.v201101211617"     unpack="false"/>
+	<plugin id="org.apache.commons.httpclient.source" version="3.1.0.v201012070820"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.updatesite.source" version="1.0.400.v20120412-1615"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.ui.importexport.source" version="1.0.1.v20110818-1344"     unpack="false"/>
+</feature>

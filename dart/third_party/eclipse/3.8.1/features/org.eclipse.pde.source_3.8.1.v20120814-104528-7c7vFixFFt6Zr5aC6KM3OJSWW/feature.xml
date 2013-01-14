@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.eclipse.pde.source" version="3.8.1.v20120814-104528-7c7vFixFFt6Zr5aC6KM3OJSWW" label="%featureName"   provider-name="%providerName" image="eclipse_update_120.jpg"    >
+	<description >
+		%description
+	</description>
+	<copyright >
+		%copyright
+	</copyright>
+	<license url="%licenseURL">
+      %license
+  	</license>
+	<plugin id="org.objectweb.asm.source" version="3.3.1.v201105211655"     unpack="false"/>
+	<plugin id="org.eclipse.pde.source" version="3.7.0.v201209141540"     unpack="false"/>
+	<plugin id="org.eclipse.pde.build.source" version="3.8.1.v20120725-202643"     unpack="false"/>
+	<plugin id="org.eclipse.pde.core.source" version="3.8.0.v20120606-170547"     unpack="false"/>
+	<plugin id="org.eclipse.pde.junit.runtime.source" version="3.4.200.v20120530-1435"     unpack="false"/>
+	<plugin id="org.eclipse.pde.runtime.source" version="3.4.300.v20120523-1453"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ui.source" version="3.7.1.v20120824-102423"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ui.templates.source" version="3.4.500.v20120523-2012"     unpack="false"/>
+	<plugin id="org.eclipse.ui.views.log.source" version="1.0.300.v20120530-1435"     unpack="false"/>
+	<plugin id="org.eclipse.pde.api.tools.source" version="1.0.400.v20120523-2012"     unpack="false"/>
+	<plugin id="org.eclipse.pde.api.tools.ui.source" version="1.0.400.v20120523-2012"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ds.core.source" version="1.0.200.v20120530-1435"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ds.ui.source" version="1.0.200.v20120530-1435"     unpack="false"/>
+	<plugin id="org.eclipse.pde.launching.source" version="3.6.100.v20120605-203027"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ua.core.source" version="1.0.200.v20120530-1435"     unpack="false"/>
+	<plugin id="org.eclipse.pde.ua.ui.source" version="1.0.200.v20120523-1453"     unpack="false"/>
+	<plugin id="org.eclipse.ui.trace.source" version="1.0.1.v20120814-165841"     unpack="false"/>
+</feature>

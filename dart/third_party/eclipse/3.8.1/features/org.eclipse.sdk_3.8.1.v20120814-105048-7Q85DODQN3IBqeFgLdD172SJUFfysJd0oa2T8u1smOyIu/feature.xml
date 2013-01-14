@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="org.eclipse.sdk"
+      label="%featureName"
+      version="3.8.1.v20120814-105048-7Q85DODQN3IBqeFgLdD172SJUFfysJd0oa2T8u1smOyIu"
+      provider-name="%providerName"
+      image="eclipse_update_120.jpg"
+      
+      >
+
+   <description>
+      %description
+   </description>
+
+   <copyright>
+      %copyright
+   </copyright>
+
+   <license url="%licenseURL">
+      %license
+   </license>
+
+   <includes
+         id="org.eclipse.platform"
+         version="3.8.1.v20120815-074604-9gF7jI7wG5qDyZMWGg8NPvDbfWFWlIJU-kYaOQ"/>
+
+   <includes
+         id="org.eclipse.platform.source"
+         version="3.8.1.v20120815-074604-9gF7jI7wG5qDyZMWGg8NPvDbfWFWlIJU-kYaOQ"/>
+
+   <includes
+         id="org.eclipse.cvs"
+         version="1.3.200.v20120525-1249-7B79FJJAkF7BF7VEH5FEJT"/>
+
+   <includes
+         id="org.eclipse.cvs.source"
+         version="1.3.200.v20120525-1249-7B79FJJAkF7BF7VEH5FEJT"/>
+
+   <includes
+         id="org.eclipse.jdt"
+         version="3.8.1.v20120814-104540-8-8nFqpFNOfwKDRVz-tXLgJBep83"/>
+
+   <includes
+         id="org.eclipse.jdt.source"
+         version="3.8.1.v20120814-104540-8-8nFqpFNOfwKDRVz-tXLgJBep83"/>
+
+   <includes
+         id="org.eclipse.pde"
+         version="3.8.1.v20120814-104528-7c7vFixFFt6Zr5aC6KM3OJSWW"/>
+
+   <includes
+         id="org.eclipse.pde.source"
+         version="3.8.1.v20120814-104528-7c7vFixFFt6Zr5aC6KM3OJSWW"/>
+
+   <includes
+         id="org.eclipse.help"
+         version="1.4.1.v20120726-050831-8R7xFOUFLWUl7MoSKV_OFXl27"/>
+
+   <includes
+         id="org.eclipse.help.source"
+         version="1.4.1.v20120726-050831-8R7xFOUFLWUl7MoSKV_OFXl27"/>
+
+   <plugin
+         id="org.eclipse.sdk"
+         download-size="0"
+         install-size="0"
+         version="3.8.1.v201209141540"/>
+
+</feature>

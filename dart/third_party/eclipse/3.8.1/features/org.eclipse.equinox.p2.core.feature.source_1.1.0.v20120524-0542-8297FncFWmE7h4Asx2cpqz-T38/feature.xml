@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="org.eclipse.equinox.p2.core.feature.source" version="1.1.0.v20120524-0542-8297FncFWmE7h4Asx2cpqz-T38" label="%featureName"   provider-name="%providerName" image="eclipse_update_120.jpg"    >
+	<description >
+		%description
+	</description>
+	<copyright url="%copyrightURL">
+		%copyright
+	</copyright>
+	<license url="%licenseURL">
+      %license
+  	</license>
+	<plugin id="org.eclipse.equinox.p2.artifact.repository.source" version="1.1.200.v20120430-1959"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.console.source" version="1.0.300.v20120429-0125"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.core.source" version="2.2.0.v20120430-0525"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.director.source" version="2.2.0.v20120524-0542"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.engine.source" version="2.2.0.v20120501-1502"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.garbagecollector.source" version="1.0.200.v20110808-1657"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.metadata.source" version="2.1.0.v20120430-2001"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.metadata.repository.source" version="1.2.100.v20120524-1717"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.repository.source" version="2.2.0.v20120524-1945"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.touchpoint.eclipse.source" version="2.1.100.v20120428-0117"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.touchpoint.natives.source" version="1.1.0.v20120524-0542"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.simpleconfigurator.manipulator.source" version="2.0.0.v20110808-1657"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.source" version="3.1.300.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.filetransfer.source" version="5.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.identity.source" version="3.1.200.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.source" version="3.2.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.httpclient.source" version="4.0.200.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.httpclient.ssl.source" version="1.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.provider.filetransfer.ssl.source" version="1.0.0.v20120610-1946"     unpack="false"/>
+	<plugin id="org.eclipse.ecf.ssl.source" version="1.0.100.v20120610-1946"     unpack="false"/>
+	<plugin id="org.apache.commons.codec.source" version="1.3.0.v201101211617"     unpack="false"/>
+	<plugin id="org.apache.commons.httpclient.source" version="3.1.0.v201012070820"     unpack="false"/>
+	<plugin id="org.apache.commons.logging.source" version="1.0.4.v201101211617"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.frameworkadmin.source" version="2.0.100.v20120606-175127"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.frameworkadmin.equinox.source" version="1.0.400.v20120428-0117"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.preferences.source" version="3.5.0.v20120522-1841"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.security.source" version="1.1.100.v20120522-1841"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.jarprocessor.source" version="1.0.200.v20110808-1657"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.ql.source" version="2.0.100.v20110808-1657"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.transport.ecf.source" version="1.0.100.v20120305-0333"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.p2.operations.source" version="2.2.0.v20120524-0542"     unpack="false"/>
+	<plugin id="org.eclipse.equinox.security.macosx.source" version="1.100.200.v20120522-2049" os="macosx"    unpack="false"/>
+	<plugin id="org.eclipse.equinox.security.win32.x86.source" version="1.0.300.v20120522-2049" os="win32" arch="x86"   unpack="false"/>
+	<plugin id="org.eclipse.equinox.security.win32.x86_64.source" version="1.0.100.v20120522-2049" os="win32" arch="x86_64"   unpack="false"/>
+</feature>
