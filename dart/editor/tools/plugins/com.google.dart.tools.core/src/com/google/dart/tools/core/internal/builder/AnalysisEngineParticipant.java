@@ -49,12 +49,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    */
   private Project project;
 
-  /**
-   * The delta processor used to traverse changes and update the associated project or {@code null}
-   * if it has not been initialized yet.
-   */
-  private DeltaProcessor processor;
-
   public AnalysisEngineParticipant() {
     this(DartCoreDebug.ENABLE_NEW_ANALYSIS);
   }
@@ -86,7 +80,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         if (monitor.isCanceled()) {
           return false;
         }
-        processor.traverse(delta, true);
+        createProcessor(project).traverse(delta, true);
         return false;
       }
 
@@ -104,7 +98,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
         // Only traverse if not already traversed during initialization
         if (traverse) {
-          processor.traverse(resource, true);
+          createProcessor(project).traverse(resource, true);
         }
         return false;
       }
@@ -130,7 +124,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     if (project != null) {
       project.containerDeleted(event.getProject());
       project = null;
-      processor = null;
     }
     event.getProject().deleteMarkers(DART_PROBLEM_MARKER_TYPE, true, DEPTH_INFINITE);
   }
@@ -139,9 +132,10 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * Initialize the delta processor associated with this builder. Overridden when testing this
    * class.
    * 
+   * @param project the project for which the processor is created (not {@code null})
    * @return the delta processor (not {@code null})
    */
-  protected DeltaProcessor createProcessor() {
+  protected DeltaProcessor createProcessor(Project project) {
     return new DeltaProcessor(project);
   }
 
@@ -168,8 +162,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private void init(IProject resource, boolean notifyChanged) throws CoreException {
     if (project == null) {
       project = createProject(resource);
-      processor = createProcessor();
-      processor.traverse(resource, notifyChanged);
+      createProcessor(project).traverse(resource, notifyChanged);
     }
   }
 }

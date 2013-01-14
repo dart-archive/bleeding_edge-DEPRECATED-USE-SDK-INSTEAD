@@ -249,7 +249,7 @@ public class ScanTimings extends TestCase {
       private ProjectImpl project;
 
       @Override
-      protected DeltaProcessor createProcessor() {
+      protected DeltaProcessor createProcessor(Project project) {
         return new DeltaProcessor(project) {
           @Override
           protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
