@@ -22,13 +22,18 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
+import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchListener;
 import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchScope;
+import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.search.internal.ui.text.BasicElementLabels;
 import com.google.dart.tools.search.internal.ui.text.SearchResultUpdater;
 import com.google.dart.tools.search.ui.ISearchQuery;
@@ -42,6 +47,7 @@ import com.google.dart.tools.ui.search.ElementQuerySpecification;
 import com.google.dart.tools.ui.search.PatternQuerySpecification;
 import com.google.dart.tools.ui.search.QuerySpecification;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -224,33 +230,17 @@ public class DartSearchQuery implements ISearchQuery {
       }
 
       try {
-        if (element instanceof Method) {
-          engine.searchReferences((Method) element, scope, null, collector, monitor);
-        } else if (element instanceof DartClassTypeAlias) {
-          engine.searchReferences((DartClassTypeAlias) element, scope, null, collector, monitor);
-        } else if (element instanceof DartFunctionTypeAlias) {
-          engine.searchReferences((DartFunctionTypeAlias) element, scope, null, collector, monitor);
-        } else if (element instanceof Field) {
-          engine.searchReferences((Field) element, scope, null, collector, monitor);
-        } else if (element instanceof DartFunction) {
-          engine.searchReferences((DartFunction) element, scope, null, collector, monitor);
-        } else if (element instanceof Type) {
-          engine.searchReferences((Type) element, scope, null, collector, monitor);
-        } else if (element instanceof DartImport) {
-          engine.searchReferences((DartImport) element, scope, null, collector, monitor);
-        } else if (element instanceof DartVariableDeclaration) {
-          engine.searchReferences(
-              (DartVariableDeclaration) element,
-              scope,
-              null,
-              collector,
-              monitor);
-        } else {
-          throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
+        if (patternData.isReferencesSearch()) {
+          searchForReferences(engine, element, scope, collector, monitor);
+        }
+        if (patternData.isDeclarationsSearch()) {
+          searchForDeclarations(engine, element, scope, collector, monitor);
         }
       } catch (SearchException e) {
         DartToolsPlugin.log(e);
         // TODO: do we need to update the UI as well? Or schedule another search?
+      } catch (CoreException ex) {
+        DartToolsPlugin.log(ex);
       }
 
     }
@@ -317,4 +307,65 @@ public class DartSearchQuery implements ISearchQuery {
     return BasicElementLabels.getFilePattern(((PatternQuerySpecification) patternData).getPattern());
   }
 
+  private void searchForDeclarations(SearchEngine engine, DartElement element, SearchScope scope,
+      SearchResultCollector listener, IProgressMonitor monitor) throws CoreException {
+    switch (element.getElementType()) {
+      case DartElement.CLASS_TYPE_ALIAS:
+      case DartElement.FUNCTION_TYPE_ALIAS:
+      case DartElement.FUNCTION:
+      case DartElement.FIELD:
+      case DartElement.IMPORT:
+      case DartElement.TYPE:
+      case DartElement.TYPE_PARAMETER:
+      case DartElement.VARIABLE: {
+        SourceRange range = ((SourceReference) element).getSourceRange();
+        SearchMatch match = new SearchMatch(MatchQuality.EXACT, element, range);
+        listener.matchFound(match);
+        break;
+      }
+      case DartElement.METHOD: {
+        MemberDeclarationsReferences memberInfo;
+        memberInfo = RenameAnalyzeUtil.findDeclarationsReferences((Method) element, monitor);
+        for (TypeMember member : memberInfo.declarations) {
+          SearchMatch match = new SearchMatch(MatchQuality.EXACT, member, member.getSourceRange());
+          listener.matchFound(match);
+        }
+        break;
+      }
+      default:
+        throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
+    }
+  }
+
+  private void searchForReferences(SearchEngine engine, DartElement element, SearchScope scope,
+      SearchResultCollector collector, IProgressMonitor monitor) throws SearchException {
+    switch (element.getElementType()) {
+      case DartElement.METHOD:
+        engine.searchReferences((Method) element, scope, null, collector, monitor);
+        break;
+      case DartElement.CLASS_TYPE_ALIAS:
+        engine.searchReferences((DartClassTypeAlias) element, scope, null, collector, monitor);
+        break;
+      case DartElement.FUNCTION_TYPE_ALIAS:
+        engine.searchReferences((DartFunctionTypeAlias) element, scope, null, collector, monitor);
+        break;
+      case DartElement.FIELD:
+        engine.searchReferences((Field) element, scope, null, collector, monitor);
+        break;
+      case DartElement.FUNCTION:
+        engine.searchReferences((DartFunction) element, scope, null, collector, monitor);
+        break;
+      case DartElement.TYPE:
+        engine.searchReferences((Type) element, scope, null, collector, monitor);
+        break;
+      case DartElement.IMPORT:
+        engine.searchReferences((DartImport) element, scope, null, collector, monitor);
+        break;
+      case DartElement.VARIABLE:
+        engine.searchReferences((DartVariableDeclaration) element, scope, null, collector, monitor);
+        break;
+      default:
+        throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
+    }
+  }
 }

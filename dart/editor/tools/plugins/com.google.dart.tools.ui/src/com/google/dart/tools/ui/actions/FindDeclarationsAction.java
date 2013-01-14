@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -30,15 +30,10 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Finds references of the selected element in the workspace. The action is applicable to selections
- * representing a Dart element.
- * <p>
- * This class may be instantiated; it is not intended to be subclassed.
- * </p>
- * 
- * @noextend This class is not intended to be subclassed by clients.
+ * Finds declarations of the selected element in the workspace. The action is applicable to
+ * selections representing a Dart element.
  */
-public class FindReferencesAction extends FindAction {
+public class FindDeclarationsAction extends FindAction {
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -46,18 +41,18 @@ public class FindReferencesAction extends FindAction {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public FindReferencesAction(DartEditor editor) {
+  public FindDeclarationsAction(DartEditor editor) {
     super(editor);
   }
 
   /**
-   * Creates a new <code>FindReferencesAction</code>. The action requires that the selection
+   * Creates a new <code>FindDeclarationsAction</code>. The action requires that the selection
    * provided by the site's selection provider is of type
    * <code>org.eclipse.jface.viewers.IStructuredSelection</code>.
    * 
    * @param site the site providing context information for this action
    */
-  public FindReferencesAction(IWorkbenchSite site) {
+  public FindDeclarationsAction(IWorkbenchSite site) {
     super(site);
   }
 
@@ -65,8 +60,8 @@ public class FindReferencesAction extends FindAction {
   public void selectionChanged(DartTextSelection selection) {
     // Update text of menu item to include name of element.
     String text = ActionUtil.constructMenuText(
-        SearchMessages.Search_FindReferencesAction_label,
-        true,
+        SearchMessages.Search_FindDeclarationsAction_template,
+        false,
         selection);
     setText(text.toString());
   }
@@ -78,10 +73,9 @@ public class FindReferencesAction extends FindAction {
     return new ElementQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
   }
 
-  //TODO (pquitslund): update to use SearchFilter
   @Override
   int getLimitTo() {
-    return QuerySpecification.LIMIT_REFERENCES;
+    return QuerySpecification.LIMIT_DECLARATIONS;
   }
 
   @Override
@@ -91,10 +85,11 @@ public class FindReferencesAction extends FindAction {
 
   @Override
   void init() {
-    setText(SearchMessages.Search_FindReferencesAction_label);
-    setToolTipText(SearchMessages.Search_FindReferencesAction_tooltip);
+    setText(SearchMessages.Search_FindDeclarationsAction_label);
+    setToolTipText(SearchMessages.Search_FindDeclarationsAction_tooltip);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
-        DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
+        DartHelpContextIds.FIND_DECLARATIONS_IN_WORKSPACE_ACTION);
   }
+
 }

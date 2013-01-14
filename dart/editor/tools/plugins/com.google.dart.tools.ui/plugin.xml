@@ -1367,6 +1367,12 @@
             categoryId="com.google.dart.tools.search.ui.category.search"
             id="com.google.dart.tools.ui.edit.text.dart.search.references.in.workspace">
       </command>
+      <command
+            name="%ActionDefinition.declarationsInWorkspace.name"
+            description="%ActionDefinition.declarationsInWorkspace.description"
+            categoryId="com.google.dart.tools.search.ui.category.search"
+            id="com.google.dart.tools.ui.edit.text.dart.search.declarations.in.workspace">
+      </command>
 <!-- file -->
       <command
             categoryId="org.eclipse.ui.category.file"

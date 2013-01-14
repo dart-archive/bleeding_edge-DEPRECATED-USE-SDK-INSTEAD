@@ -44,6 +44,7 @@ public class ReferencesSearchGroup extends ActionGroup {
   private IWorkbenchSite site;
 
   private FindReferencesAction findReferencesAction;
+  private FindDeclarationsAction findDeclarationsAction;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -58,6 +59,10 @@ public class ReferencesSearchGroup extends ActionGroup {
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     editor.setAction("SearchReferencesInWorkspace", findReferencesAction); //$NON-NLS-1$
+    findDeclarationsAction = new FindDeclarationsAction(editor);
+    findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+    findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+    editor.setAction("SearchDeclarationsInWorkspace", findDeclarationsAction); //$NON-NLS-1$
   }
 
   /**
@@ -85,12 +90,16 @@ public class ReferencesSearchGroup extends ActionGroup {
     findReferencesAction = new FindReferencesAction(site);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findDeclarationsAction = new FindDeclarationsAction(site);
+    findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+    findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
 
     // register the actions as selection listeners
     ISelectionProvider provider = specialSelectionProvider == null ? site.getSelectionProvider()
         : specialSelectionProvider;
     ISelection selection = provider.getSelection();
     registerAction(findReferencesAction, provider, selection, specialSelectionProvider);
+    registerAction(findDeclarationsAction, provider, selection, specialSelectionProvider);
   }
 
   @Override
@@ -98,8 +107,10 @@ public class ReferencesSearchGroup extends ActionGroup {
     ISelectionProvider provider = site.getSelectionProvider();
     if (provider != null) {
       disposeAction(findReferencesAction, provider);
+      disposeAction(findDeclarationsAction, provider);
     }
     findReferencesAction = null;
+    findDeclarationsAction = null;
     updateGlobalActionHandlers();
     super.dispose();
   }
@@ -116,12 +127,17 @@ public class ReferencesSearchGroup extends ActionGroup {
     ISelection sel = getContext().getSelection();
     if (sel instanceof DartElementSelection) {
       DartElementSelection selection = (DartElementSelection) sel;
+      if (ActionUtil.isFindDeclarationsAvailable(selection)) {
+        findDeclarationsAction.update(selection);
+        appendToGroup(mm, findDeclarationsAction);
+      }
       if (ActionUtil.isFindUsesAvailable(selection)) {
         findReferencesAction.update(selection);
         appendToGroup(mm, findReferencesAction);
       }
     } else {
       // TODO(messick): Remove this branch.
+      appendToGroup(mm, findDeclarationsAction);
       appendToGroup(mm, findReferencesAction);
     }
   }

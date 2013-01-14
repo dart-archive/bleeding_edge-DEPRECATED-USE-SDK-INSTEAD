@@ -21,8 +21,7 @@ import com.google.dart.tools.core.search.SearchScope;
  * kind of match to search for (reference, declarations, etc) and either a Dart element or a string
  * and what kind of element to search for (type, field, etc). What exactly it means to, for example,
  * to search for "references to type Foo" is up to query participants. For example, a participant
- * might consider the "class" attribute of an extension in a plugin.xml file to be a reference to
- * the class mentioned in the attribute.
+ * might consider the name of a package in a pubspec.yaml file to be a reference to the package.
  * </p>
  * <p>
  * This class is not intended to be instantiated or subclassed by clients.
@@ -31,6 +30,9 @@ import com.google.dart.tools.core.search.SearchScope;
  * @noextend This class is not intended to be subclassed by clients.
  */
 public abstract class QuerySpecification {
+
+  public static final int LIMIT_REFERENCES = 1;
+  public static final int LIMIT_DECLARATIONS = 2;
 
   private final SearchScope scope;
   private final int limitTo;
@@ -45,7 +47,8 @@ public abstract class QuerySpecification {
   /**
    * Returns what kind of occurrences the query should look for.
    * 
-   * @return Whether to search for reference, declaration, etc.
+   * @return Whether to search for references (LIMIT_REFERENCES), declarations (LIMIT_DECLARATIONS),
+   *         etc. This is a bit field; a single specification may define multiple searches.
    */
   public int getLimitTo() {
     //TODO (pquitslund): migrate this to a SearchFilter
@@ -71,4 +74,11 @@ public abstract class QuerySpecification {
     return scopeDescription;
   }
 
+  public boolean isDeclarationsSearch() {
+    return (getLimitTo() & LIMIT_DECLARATIONS) == LIMIT_DECLARATIONS;
+  }
+
+  public boolean isReferencesSearch() {
+    return (getLimitTo() & LIMIT_REFERENCES) == LIMIT_REFERENCES;
+  }
 }

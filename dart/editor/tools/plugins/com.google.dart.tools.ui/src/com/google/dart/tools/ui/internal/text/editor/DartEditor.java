@@ -55,6 +55,7 @@ import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -1949,26 +1950,26 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     menu.add(new Separator(ITextEditorActionConstants.GROUP_OPEN));
     menu.add(new Separator(ITextEditorActionConstants.GROUP_EDIT));
-
-    // TODO: Is this the right group to be using?
     menu.add(new Separator(ITextEditorActionConstants.GROUP_RESTORE));
-
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
     // Open Declaration action
     ActionContext context = new ActionContext(createElementSelection());
     setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
+    // Quick Type Hierarchy
+    {
+      ISelection selection = context.getSelection();
+      if (selection instanceof DartElementSelection
+          && ActionUtil.isOpenHierarchyAvailable((DartElementSelection) selection)) {
+        IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+        menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+      }
+    }
+
     // Quick Outline
     {
       IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
-      menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
-    }
-
-    // Quick Type Hierarchy
-    {
-      // TODO(messick): Only add if selection is appropriate.
-      IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
       menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
     }
 

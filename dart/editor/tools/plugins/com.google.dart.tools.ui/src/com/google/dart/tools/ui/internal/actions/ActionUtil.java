@@ -226,7 +226,7 @@ public class ActionUtil {
   }
 
   public static boolean isFindDeclarationsAvailable(DartElementSelection selection) {
-    return true;
+    return !selection.isEmpty() && selection.getFirstElement() instanceof Method;
   }
 
   public static boolean isFindUsesAvailable(DartElementSelection selection) {
@@ -286,7 +286,7 @@ public class ActionUtil {
   }
 
   public static boolean isOpenHierarchyAvailable(DartElementSelection selection) {
-    return true;
+    return !selection.isEmpty() && selection.getFirstElement() instanceof Type;
   }
 
   public static boolean isProcessable(DartEditor editor) {

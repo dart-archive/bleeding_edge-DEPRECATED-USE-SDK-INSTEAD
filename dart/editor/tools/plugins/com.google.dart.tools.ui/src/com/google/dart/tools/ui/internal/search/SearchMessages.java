@@ -38,6 +38,10 @@ public final class SearchMessages extends NLS {
   public static String Search_Error_codeResolve;
   public static String SearchElementSelectionDialog_title;
   public static String SearchElementSelectionDialog_message;
+  public static String Search_FindDeclarationsAction_label;
+  public static String Search_FindDeclarationsAction_template;
+  public static String Search_FindDeclarationsAction_tooltip;
+  public static String Search_DeclarationsAction_tooltip;
   public static String Search_FindReferencesAction_label;
   public static String Search_FindReferencesAction_tooltip;
 
