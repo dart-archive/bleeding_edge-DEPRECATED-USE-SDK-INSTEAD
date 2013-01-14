@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 
@@ -32,6 +33,21 @@ import java.io.File;
  * Test for general Java semantics to Dart translation.
  */
 public class SemanticTest extends TestCase {
+
+  static void printFormattedSource(ASTNode node) {
+    String source = getFormattedSource(node);
+    String[] lines = StringUtils.split(source, '\n');
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      System.out.print("\"");
+      System.out.print(line);
+      if (i != lines.length - 1) {
+        System.out.println("\",");
+      } else {
+        System.out.println("\"");
+      }
+    }
+  }
 
   /**
    * @return the formatted Dart source dump of the given {@link ASTNode}.
@@ -175,6 +191,124 @@ public class SemanticTest extends TestCase {
         getFormattedSource(unit));
   }
 
+  public void test_constructor_configureNames() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Test() {",
+            "    print(0);",
+            "  }",
+            "  Test(int p) {",
+            "    print(1);",
+            "  }",
+            "  Test(double p) {",
+            "    print(2);",
+            "  }",
+            "  static void main() {",
+            "    new Test();",
+            "    new Test(2);",
+            "    new Test(3.0);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // configure names for constructors
+    context.addRename("Ltest/Test;.(I)", "forInt");
+    context.addRename("Ltest/Test;.(D)", "forDouble");
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "    print(0);",
+            "  }",
+            "  Test.forInt(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "    print(1);",
+            "  }",
+            "  Test.forDouble(double p) {",
+            "    _jtd_constructor_2_impl(p);",
+            "  }",
+            "  _jtd_constructor_2_impl(double p) {",
+            "    print(2);",
+            "  }",
+            "  static void main() {",
+            "    new Test();",
+            "    new Test.forInt(2);",
+            "    new Test.forDouble(3.0);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_constructor_defaultNames() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Test() {",
+            "    print(0);",
+            "  }",
+            "  Test(int p) {",
+            "    print(1);",
+            "  }",
+            "  Test(double p) {",
+            "    print(2);",
+            "  }",
+            "  static void main() {",
+            "    new Test();",
+            "    new Test(2);",
+            "    new Test(3.0);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "    print(0);",
+            "  }",
+            "  Test.con1(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "    print(1);",
+            "  }",
+            "  Test.con2(double p) {",
+            "    _jtd_constructor_2_impl(p);",
+            "  }",
+            "  _jtd_constructor_2_impl(double p) {",
+            "    print(2);",
+            "  }",
+            "  static void main() {",
+            "    new Test();",
+            "    new Test.con1(2);",
+            "    new Test.con2(3.0);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_ensureFieldInitializer() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -207,6 +341,88 @@ public class SemanticTest extends TestCase {
             "  int longF = 0;",
             "  double floatF = 0.0;",
             "  double doubleF = 0.0;",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  // TODO(scheglov) does not work yet
+  public void test_enum_constantWithSubclass() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum Test {",
+            "  EOF(5) {",
+            "    void foo() {",
+            "      print(2);",
+            "    }",
+            "  };",
+            "  private Test() {",
+            "  }",
+            "  private Test(int p) {",
+            "  }",
+            "  void foo() {",
+            "    print(1);",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    printFormattedSource(unit);
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static final Test ONE = new Test();",
+            "  static final Test TWO = new Test.withPriority(2);",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "  }",
+            "  Test.withPriority(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_enum_twoConstructors() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum Test {",
+            "  ONE(), TWO(2);",
+            "  private Test() {",
+            "  }",
+            "  private Test(int p) {",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    context.addRename("Ltest/Test;.(Ljava/lang/String;II)", "withPriority");
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static final Test ONE = new Test();",
+            "  static final Test TWO = new Test.withPriority(2);",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "  }",
+            "  Test.withPriority(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "  }",
             "}"),
         getFormattedSource(unit));
   }
@@ -315,6 +531,228 @@ public class SemanticTest extends TestCase {
         getFormattedSource(unit));
   }
 
+  public void test_importStatic() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  public static final int ZERO;",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "import static test.A.ZERO;",
+            "public class B {",
+            "  int myInstanceField;",
+            "  static int myStaticField;",
+            "  void main() {",
+            "    print(A.ZERO);",
+            "    print(ZERO);",
+            "    this.myInstanceField = 1;",
+            "    myInstanceField = 2;",
+            "    myInstanceField = ZERO;",
+            "    myInstanceField = ZERO + 1;",
+            "    myInstanceField = 2 + ZERO;",
+            "    myInstanceField = 1 + 2 + 3 + ZERO;",
+            "    myStaticField = 3;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    printFormattedSource(unit);
+    assertEquals(
+        toString(
+            "class A {",
+            "  static int ZERO = 0;",
+            "}",
+            "class B {",
+            "  int myInstanceField = 0;",
+            "  static int myStaticField = 0;",
+            "  void main() {",
+            "    print(A.ZERO);",
+            "    print(A.ZERO);",
+            "    this.myInstanceField = 1;",
+            "    myInstanceField = 2;",
+            "    myInstanceField = A.ZERO;",
+            "    myInstanceField = A.ZERO + 1;",
+            "    myInstanceField = 2 + A.ZERO;",
+            "    myInstanceField = 1 + 2 + 3 + A.ZERO;",
+            "    myStaticField = 3;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_redirectingConstructorInvocation() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public Test() {",
+            "    this(42);",
+            "  }",
+            "  public Test(int p) {",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "    _jtd_constructor_1_impl(42);",
+            "  }",
+            "  Test.con1(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_superConstructorInvocation() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  A(int p) {}",
+            "  A(double p) {}",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B extends A {",
+            "  B() {",
+            "    super(1.0);",
+            "    print(2);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  A.con1(int p) {",
+            "    _jtd_constructor_0_impl(p);",
+            "  }",
+            "  _jtd_constructor_0_impl(int p) {",
+            "  }",
+            "  A.con2(double p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(double p) {",
+            "  }",
+            "}",
+            "class B extends A {",
+            "  B() : super.con2(1.0) {",
+            "    _jtd_constructor_2_impl();",
+            "  }",
+            "  _jtd_constructor_2_impl() {",
+            "    print(2);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_superMethodInvocation() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  void test(int p) {}",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B extends A {",
+            "  void test() {",
+            "    print(1);",
+            "    super.test(2);",
+            "    print(3);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test(int p) {",
+            "  }",
+            "}",
+            "class B extends A {",
+            "  void test() {",
+            "    print(1);",
+            "    super.test(2);",
+            "    print(3);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_varArgs() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  void test(int errorCode, Object ...args) {",
+            "  }",
+            "  void main() {",
+            "    test(-1);",
+            "    test(-1, 2, 3.0);",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test(int errorCode, List<Object> args) {",
+            "  }",
+            "  void main() {",
+            "    test(-1, []);",
+            "    test(-1, [2, 3.0]);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -326,37 +764,6 @@ public class SemanticTest extends TestCase {
     FileUtils.deleteDirectory(tmpFolder);
     super.tearDown();
   }
-
-//  /**
-//   * Translates {@link #javaUnit} into {@link #dartUnit} and check that it produces given Dart
-//   * source.
-//   */
-//  private void assertDartSource(String... lines) {
-//    dartUnit = SyntaxTranslator.translate(javaUnit);
-//    String actualDartSource = getFormattedSource(dartUnit);
-//    String expectedDartSource = toString(lines);
-//    assertEquals(expectedDartSource, actualDartSource);
-//  }
-//
-//  /**
-//   * Parse Java source into {@link #javaUnit}.
-//   */
-//  private void parseJavaSource(String path) throws Exception {
-//    String unitName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
-//    String source = Files.toString(new File(tmpFolder, path), Charsets.UTF_8);
-//    ASTParser parser = ASTParser.newParser(AST.JLS4);
-//    parser.setEnvironment(null, new String[] {tmpFolderPath}, null, true);
-//    parser.setResolveBindings(true);
-//    parser.setCompilerOptions(ImmutableMap.of(
-//        JavaCore.COMPILER_SOURCE,
-//        JavaCore.VERSION_1_5,
-//        JavaCore.COMPILER_DOC_COMMENT_SUPPORT,
-//        JavaCore.ENABLED));
-//    parser.setUnitName(unitName);
-//    parser.setSource(source.toCharArray());
-//    javaUnit = (CompilationUnit) parser.createAST(null);
-//    assertThat(javaUnit.getProblems()).isEmpty();
-//  }
 
   /**
    * Sets the content of the file with given path relative to {@link #tmpFolder}.

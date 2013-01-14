@@ -63,14 +63,15 @@ import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchMember;
@@ -92,10 +93,14 @@ import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.ExecutionUtils;
+import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.dom.IBinding;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -114,6 +119,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     SyntaxTranslator translator = new SyntaxTranslator(context);
     javaUnit.accept(translator);
     return (CompilationUnit) translator.result;
+  }
+
+  private static String getBindingSignature(org.eclipse.jdt.core.dom.IBinding binding) {
+    if (binding != null) {
+      String signature = binding.getKey();
+      return JavaUtils.getShortJdtSignature(signature);
+    }
+    return null;
   }
 
   /**
@@ -153,6 +166,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private final Context context;
 
+  private MethodDeclaration constructorImpl;
+
   private ASTNode result;
 
   private SyntaxTranslator(Context context) {
@@ -178,7 +193,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           (TypeName) translate(node.getType()),
           null,
           newSimpleIdentifier("fixedLength"));
-      ArgumentList arguments = translateArgumentList(node.dimensions());
+      ArgumentList arguments = translateArgumentList0(node.dimensions());
       return done(new InstanceCreationExpression(
           new KeywordToken(Keyword.NEW, 0),
           constructorName,
@@ -263,9 +278,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if (javaStatement instanceof org.eclipse.jdt.core.dom.SuperConstructorInvocation) {
         continue;
       }
-      if (javaStatement instanceof org.eclipse.jdt.core.dom.ConstructorInvocation) {
-        continue;
-      }
       statements.add((Statement) translate(javaStatement));
     }
     return done(new Block(null, statements, null));
@@ -312,10 +324,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ClassInstanceCreation node) {
-    return done(new InstanceCreationExpression(
+    IMethodBinding binding = node.resolveConstructorBinding();
+    String signature = getBindingSignature(binding);
+    InstanceCreationExpression creation = new InstanceCreationExpression(
         new KeywordToken(Keyword.NEW, 0),
         new ConstructorName((TypeName) translate(node.getType()), null, null),
-        translateArgumentList(node.arguments())));
+        translateArgumentList(binding, node.arguments()));
+    context.getConstructorDescription(signature).instanceCreations.add(creation);
+    return done(creation);
   }
 
   @Override
@@ -340,10 +356,22 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         (Expression) translate(node.getElseExpression())));
   }
 
+  /**
+   * We generate invocation of "impl" method instead of redirecting constructor invocation. The
+   * reason is that in Java it is possible to have "redirecting constructor invocation" as first
+   * statement of constructor and then any other statement. But in Dart redirection should be only
+   * clause.
+   */
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ConstructorInvocation node) {
-    ArgumentList argumentList = translateArgumentList(node.arguments());
-    return done(new RedirectingConstructorInvocation(null, null, null, argumentList));
+    IMethodBinding binding = node.resolveConstructorBinding();
+    String signature = getBindingSignature(binding);
+    SimpleIdentifier nameNode = newSimpleIdentifier("jtdTmp");
+    context.getConstructorDescription(signature).implInvocations.add(nameNode);
+    // invoke "impl"
+    ArgumentList argumentList = translateArgumentList(binding, node.arguments());
+    MethodInvocation invocation = new MethodInvocation(null, null, nameNode, argumentList);
+    return done(new ExpressionStatement(invocation, null));
   }
 
   @Override
@@ -382,6 +410,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.EnumConstantDeclaration node) {
+    String signature = getBindingSignature(node.resolveConstructorBinding());
     // prepare enum name
     org.eclipse.jdt.core.dom.SimpleName enumTypeName;
     {
@@ -393,10 +422,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // prepare field variables
     List<VariableDeclaration> variables = Lists.newArrayList();
     {
-      Expression init = new InstanceCreationExpression(
+      InstanceCreationExpression init = new InstanceCreationExpression(
           new KeywordToken(Keyword.NEW, 0),
           new ConstructorName(new TypeName(translateSimpleName(enumTypeName), null), null, null),
-          translateArgumentList(node.arguments()));
+          translateArgumentList0(node.arguments()));
+      context.getConstructorDescription(signature).instanceCreations.add(init);
       variables.add(new VariableDeclaration(
           null,
           null,
@@ -436,8 +466,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       // body declarations
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
+        constructorImpl = null;
         ClassMember member = translate(javaBodyDecl);
         members.add(member);
+        if (constructorImpl != null) {
+          members.add(constructorImpl);
+        }
       }
     }
     return done(new ClassDeclaration(
@@ -654,7 +688,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // done
     FunctionBody body;
     SuperConstructorInvocation superConstructorInvocation = null;
-    RedirectingConstructorInvocation redirectingConstructorInvocation = null;
     {
       org.eclipse.jdt.core.dom.Block javaBlock = node.getBody();
       if (javaBlock != null) {
@@ -662,19 +695,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           if (javaStatement instanceof org.eclipse.jdt.core.dom.SuperConstructorInvocation) {
             superConstructorInvocation = translate((org.eclipse.jdt.core.dom.SuperConstructorInvocation) javaStatement);
           }
-          if (javaStatement instanceof org.eclipse.jdt.core.dom.ConstructorInvocation) {
-            redirectingConstructorInvocation = translate((org.eclipse.jdt.core.dom.ConstructorInvocation) javaStatement);
-          }
         }
         Block bodyBlock = (Block) translate(javaBlock);
-        if (redirectingConstructorInvocation != null) {
-          Assert.isLegal(
-              bodyBlock.getStatements().isEmpty(),
-              "Cannot translate redirecting constructor with body.");
-          body = new EmptyFunctionBody(null);
-        } else {
-          body = new BlockFunctionBody(bodyBlock);
-        }
+        body = new BlockFunctionBody(bodyBlock);
       } else {
         body = new EmptyFunctionBody(null);
       }
@@ -684,23 +707,52 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if (superConstructorInvocation != null) {
         initializers.add(superConstructorInvocation);
       }
-      if (redirectingConstructorInvocation != null) {
-        initializers.add(redirectingConstructorInvocation);
+      String technicalConstructorName = context.generateTechnicalConstructorName();
+      String constructorDeclName = technicalConstructorName + "_decl";
+      String constructorImplName = "_" + technicalConstructorName + "_impl";
+      constructorImpl = new MethodDeclaration(
+          translateJavadoc(node),
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          newSimpleIdentifier(constructorImplName),
+          parameterList,
+          body);
+      //
+      List<Expression> implInvArgs = Lists.newArrayList();
+      for (FormalParameter parameter : parameterList.getParameters()) {
+        implInvArgs.add(newSimpleIdentifier(parameter.getIdentifier().getName()));
       }
+      ArgumentList implInvocationArgList = new ArgumentList(null, implInvArgs, null);
+      Expression implInvocation = new MethodInvocation(
+          null,
+          null,
+          newSimpleIdentifier(constructorImplName),
+          implInvocationArgList);
+      Statement conStatement = new ExpressionStatement(implInvocation, null);
+      Block constructorBody = new Block(null, Lists.newArrayList(conStatement), null);
+      SimpleIdentifier nameNode = newSimpleIdentifier(constructorDeclName);
+      String signature = getBindingSignature(node.resolveBinding());
+      context.getConstructorDescription(signature).declName = constructorDeclName;
+      context.getConstructorDescription(signature).implName = constructorImplName;
+      context.putConstructorNameSignature(nameNode, signature);
       return done(new ConstructorDeclaration(
           translateJavadoc(node),
           null,
           null,
           null,
           null,
-          translateSimpleName(node.getName()),
+          newSimpleIdentifier(node.getName().getIdentifier()),
           null,
-          null,
+          nameNode,
           parameterList,
           null,
           initializers,
           null,
-          body));
+          new BlockFunctionBody(constructorBody)));
     } else {
       Token modifierKeyword = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers())
           ? new KeywordToken(Keyword.STATIC, 0) : null;
@@ -720,8 +772,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.MethodInvocation node) {
+    IMethodBinding binding = node.resolveMethodBinding();
     Expression target = (Expression) translate(node.getExpression());
-    ArgumentList argumentList = translateArgumentList(node.arguments());
+    ArgumentList argumentList = translateArgumentList(binding, node.arguments());
     SimpleIdentifier name = translateSimpleName(node.getName());
     return done(new MethodInvocation(target, null, name, argumentList));
   }
@@ -845,7 +898,32 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         TokenType.IDENTIFIER,
         node.getIdentifier(),
         0));
-    context.putReference(node.resolveBinding(), result);
+    putReference(node.resolveBinding(), result);
+    // may be statically imported field, generate PrefixedIdentifier
+    {
+      IBinding binding = node.resolveBinding();
+      org.eclipse.jdt.core.dom.StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
+      if (binding instanceof IVariableBinding) {
+        org.eclipse.jdt.core.dom.IVariableBinding variableBinding = (org.eclipse.jdt.core.dom.IVariableBinding) binding;
+        org.eclipse.jdt.core.dom.ASTNode parent = node.getParent();
+        if (locationInParent == org.eclipse.jdt.core.dom.EnumConstantDeclaration.ARGUMENTS_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.MethodInvocation.ARGUMENTS_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.ConstructorInvocation.ARGUMENTS_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.SuperConstructorInvocation.ARGUMENTS_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.Assignment.RIGHT_HAND_SIDE_PROPERTY
+            || parent instanceof org.eclipse.jdt.core.dom.InfixExpression
+            || parent instanceof org.eclipse.jdt.core.dom.ConditionalExpression) {
+          if (variableBinding.getDeclaringClass() != null
+              && org.eclipse.jdt.core.dom.Modifier.isStatic(variableBinding.getModifiers())) {
+            return done(new PrefixedIdentifier(
+                newSimpleIdentifier(variableBinding.getDeclaringClass().getName()),
+                null,
+                result));
+          }
+        }
+      }
+    }
+    // done
     return done(result);
   }
 
@@ -860,6 +938,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.SingleVariableDeclaration node) {
     TypeName type = (TypeName) translate(node.getType());
     type = newListType(type, node.getExtraDimensions());
+    if (node.isVarargs()) {
+      type = newListType(type, 1);
+    }
     return done(new SimpleFormalParameter(
         null,
         null,
@@ -879,8 +960,26 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SuperConstructorInvocation node) {
-    ArgumentList argumentList = translateArgumentList(node.arguments());
-    return done(new SuperConstructorInvocation(null, null, null, argumentList));
+    IMethodBinding binding = node.resolveConstructorBinding();
+    String signature = getBindingSignature(binding);
+    // invoke "impl"
+    ArgumentList argumentList = translateArgumentList(binding, node.arguments());
+    SuperConstructorInvocation superInvocation = new SuperConstructorInvocation(
+        null,
+        null,
+        null,
+        argumentList);
+    context.getConstructorDescription(signature).superInvocations.add(superInvocation);
+    return done(superInvocation);
+  }
+
+  @Override
+  public boolean visit(org.eclipse.jdt.core.dom.SuperMethodInvocation node) {
+    IMethodBinding binding = node.resolveMethodBinding();
+    Expression target = new SuperExpression(null);
+    ArgumentList argumentList = translateArgumentList(binding, node.arguments());
+    SimpleIdentifier name = translateSimpleName(node.getName());
+    return done(new MethodInvocation(target, null, name, argumentList));
   }
 
   @Override
@@ -989,8 +1088,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     List<ClassMember> members = Lists.newArrayList();
     for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
       org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
+      constructorImpl = null;
       ClassMember member = translate(javaBodyDecl);
       members.add(member);
+      if (constructorImpl != null) {
+        members.add(constructorImpl);
+      }
     }
     return done(new ClassDeclaration(
         translateJavadoc(node),
@@ -1067,6 +1170,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return false;
   }
 
+  private void putReference(org.eclipse.jdt.core.dom.IBinding binding, SimpleIdentifier identifier) {
+    if (binding != null) {
+      String signature = binding.getKey();
+      signature = JavaUtils.getShortJdtSignature(signature);
+      context.putReference(signature, identifier);
+    }
+  }
+
   /**
    * Recursively translates given {@link org.eclipse.jdt.core.dom.ASTNode} to Dart {@link ASTNode}.
    * 
@@ -1100,8 +1211,31 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    * Translates given {@link List} of {@link org.eclipse.jdt.core.dom.Expression} to the
    * {@link ArgumentList}.
    */
-  private ArgumentList translateArgumentList(List<?> javaArguments) {
+  private ArgumentList translateArgumentList(IMethodBinding binding, List<?> javaArguments) {
     List<Expression> arguments = translateExpressionList(javaArguments);
+    // may be some of the arguments are var-args
+    if (binding != null && binding.isVarargs()) {
+      int numRequired = binding.getParameterTypes().length - 1;
+      List<Expression> vars = Lists.newArrayList();
+      for (int i = numRequired; i < arguments.size(); i++) {
+        vars.add(arguments.get(i));
+      }
+      List<Expression> newArguments = Lists.newArrayList();
+      newArguments.addAll(arguments.subList(0, numRequired));
+      newArguments.add(new ListLiteral(null, null, null, vars, null));
+      arguments = newArguments;
+    }
+    // done
+    return new ArgumentList(null, arguments, null);
+  }
+
+  /**
+   * Translates given {@link List} of {@link org.eclipse.jdt.core.dom.Expression} to the
+   * {@link ArgumentList}.
+   */
+  private ArgumentList translateArgumentList0(List<?> javaArguments) {
+    List<Expression> arguments = translateExpressionList(javaArguments);
+    // XXX
     return new ArgumentList(null, arguments, null);
   }
 
@@ -1153,10 +1287,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       VariableDeclaration var = translate(javaFragment);
       variableDeclarations.add(var);
     }
-    Token tokenFinal = isFinal ? new KeywordToken(Keyword.FINAL, 0) : null;
-    return new VariableDeclarationList(
-        tokenFinal,
-        (TypeName) translate(javaType),
-        variableDeclarations);
+    return new VariableDeclarationList(null, (TypeName) translate(javaType), variableDeclarations);
   }
 }

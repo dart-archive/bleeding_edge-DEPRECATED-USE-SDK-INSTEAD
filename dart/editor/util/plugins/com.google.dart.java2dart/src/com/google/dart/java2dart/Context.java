@@ -23,13 +23,16 @@ import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -59,15 +62,37 @@ import java.util.Set;
  * Context information for Java to Dart translation.
  */
 public class Context {
-  private static final String[] JAVA_EXTENSION = {"java"};
+  /**
+   * Information about constructor and its usages.
+   */
+  class ConstructorDescription {
+    final String binding;
+    final List<SuperConstructorInvocation> superInvocations = Lists.newArrayList();
+    final List<InstanceCreationExpression> instanceCreations = Lists.newArrayList();
+    final List<SimpleIdentifier> implInvocations = Lists.newArrayList();
+    String declName;
+    String implName;
 
+    public ConstructorDescription(String binding) {
+      this.binding = binding;
+    }
+  }
+
+  private static final String[] JAVA_EXTENSION = {"java"};
   private final List<File> sourceFolders = Lists.newArrayList();
   private final List<File> sourceFiles = Lists.newArrayList();
+
   private final Map<String, String> renameMap = Maps.newHashMap();
 
-  private final Map<File, CompilationUnit> dartUnits = Maps.newLinkedHashMap();
+  private final CompilationUnit dartUnit = new CompilationUnit(null, null, null, null, null);
+  // information about names
+  private final Set<String> usedNames = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToBinding = Maps.newHashMap();
   private final Map<String, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
+  // information about constructors
+  private int technicalConstructorIndex;
+  private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
+  private final Map<SimpleIdentifier, String> constructorNameToBinding = Maps.newHashMap();
 
   /**
    * Specifies that field with given signature should be renamed before normalizing member names.
@@ -112,9 +137,6 @@ public class Context {
     Collections.sort(sourceFiles);
     // perform syntax translation
     translateSyntax();
-//    System.out.println(dartUnits);
-//    System.out.println(identifierToBinding);
-//    System.out.println(bindingToIdentifiers);
     // perform configured renames
     for (Entry<String, String> renameEntry : renameMap.entrySet()) {
       String signature = renameEntry.getKey();
@@ -132,32 +154,47 @@ public class Context {
         }
       }
     }
-    // ensure field initializer
-    for (CompilationUnit unit : dartUnits.values()) {
-      ensureFieldInitializers(unit);
-    }
-    // ensure unique names
-    for (CompilationUnit unit : dartUnits.values()) {
-      ensureUniqueClassMemberNames(unit);
-    }
-    for (CompilationUnit unit : dartUnits.values()) {
-      ensureNoVariableNameReferenceFromInitializer(unit);
-    }
-    // build single Dart unit
-    List<CompilationUnitMember> declarations = Lists.newArrayList();
-    for (CompilationUnit unit : dartUnits.values()) {
-      declarations.addAll(unit.getDeclarations());
-    }
-    return new CompilationUnit(null, null, null, declarations, null);
+    // run processors
+    ensureFieldInitializers(dartUnit);
+    ensureUniqueClassMemberNames(dartUnit);
+    ensureNoVariableNameReferenceFromInitializer(dartUnit);
+    renameConstructors(dartUnit);
+    // done
+    return dartUnit;
   }
 
   /**
-   * Remembers that "identifier" is reference to the given Java binding.
+   * @return the "technical" name for the Dart constructor.
    */
-  void putReference(org.eclipse.jdt.core.dom.IBinding binding, SimpleIdentifier identifier) {
-    if (binding != null) {
-      String signature = binding.getKey();
-      signature = JavaUtils.getShortJdtSignature(signature);
+  String generateTechnicalConstructorName() {
+    return "jtd_constructor_" + technicalConstructorIndex++;
+  }
+
+  /**
+   * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
+   */
+  ConstructorDescription getConstructorDescription(String binding) {
+    ConstructorDescription description = bindingToConstructor.get(binding);
+    if (description == null) {
+      description = new ConstructorDescription(binding);
+      bindingToConstructor.put(binding, description);
+    }
+    return description;
+  }
+
+  /**
+   * Remembers that given {@link SimpleIdentifier} used as name of the named
+   * {@link ConstructorDeclaration} is reference to the given Java signature.
+   */
+  void putConstructorNameSignature(SimpleIdentifier name, String signature) {
+    constructorNameToBinding.put(name, signature);
+  }
+
+  /**
+   * Remembers that "identifier" is reference to the given Java signature.
+   */
+  void putReference(String signature, SimpleIdentifier identifier) {
+    if (signature != null) {
       // remember binding for reference
       identifierToBinding.put(identifier, signature);
       // add reference to binding
@@ -168,6 +205,8 @@ public class Context {
       }
       names.add(identifier);
     }
+    // remember global name
+    usedNames.add(identifier.getName());
   }
 
   private void ensureFieldInitializers(CompilationUnit unit) {
@@ -200,25 +239,32 @@ public class Context {
 
   private void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
-      private String currentVaraibleName = null;
+      private String currentVariableName = null;
       private boolean hasNameReference = false;
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        hasNameReference |= node.getName().equals(currentVaraibleName);
+        hasNameReference |= node.getName().equals(currentVariableName);
         return super.visitSimpleIdentifier(node);
       }
 
       @Override
       public Void visitVariableDeclaration(VariableDeclaration node) {
-        currentVaraibleName = node.getName().getName();
-        hasNameReference = false;
-        Expression initializer = node.getInitializer();
-        if (initializer != null) {
-          initializer.accept(this);
+        String oldVariableName = currentVariableName;
+        try {
+          currentVariableName = node.getName().getName();
+          hasNameReference = false;
+          Expression initializer = node.getInitializer();
+          if (initializer != null) {
+            initializer.accept(this);
+          }
+          if (hasNameReference) {
+            String newName = generateUniqueName(currentVariableName);
+            renameIdentifier(node.getName(), newName);
+          }
+        } finally {
+          currentVariableName = oldVariableName;
         }
-//        System.out.println(node + " " + hasNameReference);
-        currentVaraibleName = null;
         return null;
       }
     });
@@ -226,11 +272,11 @@ public class Context {
 
   private void ensureUniqueClassMemberNames(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
-      private final Set<String> usedNames = Sets.newHashSet();
+      private final Set<String> usedNames2 = Sets.newHashSet();
 
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
-        usedNames.clear();
+        usedNames2.clear();
         // ensure unique method names (and prefer to keep method name over field name)
         for (ClassMember member : node.getMembers()) {
           if (member instanceof MethodDeclaration) {
@@ -255,38 +301,37 @@ public class Context {
         if (declarationName instanceof SimpleIdentifier) {
           SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
           String name = declarationIdentifier.getName();
-          if (usedNames.contains(name)) {
-            // generate unique name
-            String newName;
-            {
-              int index = 2;
-              while (true) {
-                newName = name + index;
-                if (!usedNames.contains(newName)) {
-                  break;
-                }
-                index++;
-              }
+          if (usedNames2.contains(name)) {
+            String newName = generateUniqueName(name);
+            // rename binding
+            if (!newName.equals(name)) {
+              renameIdentifier(declarationIdentifier, newName);
+              name = newName;
             }
-            // move identifiers to the new signature
-            String signature = identifierToBinding.get(declarationIdentifier);
-            String newSignature = JavaUtils.getRenamedJdtSignature(signature, newName);
-            List<SimpleIdentifier> identifiers = bindingToIdentifiers.remove(signature);
-            bindingToIdentifiers.put(newSignature, identifiers);
-            // update identifiers to the new name
-            for (SimpleIdentifier identifier : identifiers) {
-              identifier.setToken(new StringToken(TokenType.IDENTIFIER, newName, 0));
-              identifierToBinding.remove(identifier);
-              identifierToBinding.put(identifier, newSignature);
-            }
-            // remember new name
-            name = newName;
           }
           // remember that name is used
-          usedNames.add(name);
+          usedNames2.add(name);
         }
       }
     });
+  }
+
+  /**
+   * @return the globally unique name, based on the given one.
+   */
+  private String generateUniqueName(String name) {
+    if (usedNames.contains(name)) {
+      int index = 2;
+      while (true) {
+        String newName = name + index;
+        if (!usedNames.contains(newName)) {
+          usedNames.add(newName);
+          return newName;
+        }
+        index++;
+      }
+    }
+    return name;
   }
 
   /**
@@ -317,14 +362,129 @@ public class Context {
     return (org.eclipse.jdt.core.dom.CompilationUnit) parser.createAST(null);
   }
 
+  private void renameConstructors(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      private final Set<String> memberNamesInClass = Sets.newHashSet();
+      private int numConstructors;
+
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        memberNamesInClass.clear();
+        numConstructors = 0;
+        NodeList<ClassMember> members = node.getMembers();
+        for (ClassMember member : members) {
+          if (member instanceof ConstructorDeclaration) {
+            numConstructors++;
+          }
+          if (member instanceof MethodDeclaration) {
+            String name = ((MethodDeclaration) member).getName().getName();
+            memberNamesInClass.add(name);
+          }
+          if (member instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+            NodeList<VariableDeclaration> variables = fieldDeclaration.getFields().getVariables();
+            for (VariableDeclaration variable : variables) {
+              String name = variable.getName().getName();
+              memberNamesInClass.add(name);
+            }
+          }
+        }
+        return super.visitClassDeclaration(node);
+      }
+
+      @Override
+      public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+        SimpleIdentifier nameNode = node.getName();
+        String binding = constructorNameToBinding.get(nameNode);
+        // prepare name
+        String name = renameMap.get(binding);
+        if (name == null) {
+          if (numConstructors == 1 || node.getParameters().getParameters().isEmpty()) {
+            // don't set name, use unnamed constructor
+          } else {
+            int index = 1;
+            while (true) {
+              name = "con" + index++;
+              if (!memberNamesInClass.contains(name)) {
+                break;
+              }
+            }
+          }
+        }
+        memberNamesInClass.add(name);
+        // apply name
+        if (name == null) {
+          // remove constructor name
+          node.setName(null);
+        } else {
+          // rename constructor
+          node.getName().setToken(new StringToken(TokenType.IDENTIFIER, name, 0));
+          // set name in InstanceCreationExpression
+          ConstructorDescription constructorDescription = bindingToConstructor.get(binding);
+          {
+            List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
+            for (InstanceCreationExpression creation : creations) {
+              creation.getConstructorName().setName(
+                  new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0)));
+            }
+          }
+          // set name in SuperConstructorInvocation
+          {
+            List<SuperConstructorInvocation> invocations = constructorDescription.superInvocations;
+            for (SuperConstructorInvocation invocation : invocations) {
+              invocation.setConstructorName(new SimpleIdentifier(new StringToken(
+                  TokenType.IDENTIFIER,
+                  name,
+                  0)));
+            }
+          }
+          // set name in invocation of implementation
+          {
+            List<SimpleIdentifier> invocations = constructorDescription.implInvocations;
+            for (SimpleIdentifier identifier : invocations) {
+              identifier.setToken(new StringToken(
+                  TokenType.IDENTIFIER,
+                  constructorDescription.implName,
+                  0));
+            }
+          }
+        }
+        // continue
+        return super.visitConstructorDeclaration(node);
+      }
+
+      @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        return super.visitInstanceCreationExpression(node);
+      }
+    });
+  }
+
+  /**
+   * Sets the {@link SimpleIdentifier} name and updates all references.
+   */
+  private void renameIdentifier(SimpleIdentifier declarationIdentifier, String newName) {
+    // move identifiers to the new signature
+    String signature = identifierToBinding.get(declarationIdentifier);
+    String newSignature = JavaUtils.getRenamedJdtSignature(signature, newName);
+    List<SimpleIdentifier> identifiers = bindingToIdentifiers.remove(signature);
+    bindingToIdentifiers.put(newSignature, identifiers);
+    // update identifiers to the new name
+    for (SimpleIdentifier identifier : identifiers) {
+      identifier.setToken(new StringToken(TokenType.IDENTIFIER, newName, 0));
+      identifierToBinding.remove(identifier);
+      identifierToBinding.put(identifier, newSignature);
+    }
+  }
+
   /**
    * Translate {@link #sourceFiles} into Dart AST in {@link #dartUnits}.
    */
   private void translateSyntax() throws Exception {
     for (File javaFile : sourceFiles) {
       org.eclipse.jdt.core.dom.CompilationUnit javaUnit = parseJavaFile(javaFile);
-      CompilationUnit dartUnit = SyntaxTranslator.translate(this, javaUnit);
-      dartUnits.put(javaFile, dartUnit);
+      CompilationUnit singleDartUnit = SyntaxTranslator.translate(this, javaUnit);
+      dartUnit.getDeclarations().addAll(singleDartUnit.getDeclarations());
     }
   }
 }
