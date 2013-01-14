@@ -13,15 +13,19 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -43,6 +47,8 @@ import org.eclipse.ui.internal.ide.IIDEHelpContextIds;
 import org.eclipse.ui.internal.ide.actions.LTKLauncher;
 import org.eclipse.ui.progress.WorkbenchJob;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -132,6 +138,15 @@ public class DeleteResourceAction extends SelectionListenerAction {
   @Override
   public void run() {
     final IResource[] resources = getSelectedResourcesArray();
+
+    // on Windows platform call out to system to do the delete, since 
+    // Eclipse has no knowledge of junctions used in packages
+    if (DartCore.isWindows()) {
+      if (confirmDelete(resources)) {
+        windowsDelete(resources);
+      }
+      return;
+    }
 
     if (LTKLauncher.openDeleteWizard(getStructuredSelection())) {
 
@@ -450,5 +465,68 @@ public class DeleteResourceAction extends SelectionListenerAction {
 
   private void setShellProvider(IShellProvider provider) {
     shellProvider = provider;
+  }
+
+  /**
+   * Method is called for all deletes on Windows platform, since Eclipse does not have support for
+   * Junctions which are used by Pub to create symlinks.
+   */
+  private void windowsDelete(IResource[] resources) {
+
+    List<IResource> resourceList = Arrays.asList(resources);
+
+    List<IResource> folders = new ArrayList<IResource>();
+    List<IResource> files = new ArrayList<IResource>();
+    for (IResource resource : resources) {
+      if (!resourceList.contains(resource.getParent())) {
+        if (resource.getType() == IResource.FILE) {
+          files.add(resource);
+        } else {
+          folders.add(resource);
+        }
+      }
+    }
+
+    List<String> commandsList = new ArrayList<String>();
+    try {
+      if (!files.isEmpty()) {
+        commandsList.add("cmd");
+        commandsList.add("/C");
+        commandsList.add("del");
+        commandsList.add("/q");
+        for (IResource resource : files) {
+          commandsList.add(resource.getLocation().toOSString());
+        }
+        ProcessBuilder builder = new ProcessBuilder(commandsList);
+        Process process = builder.start();
+        process.waitFor();
+      }
+
+      if (!folders.isEmpty()) {
+        commandsList.clear();
+        commandsList.add("cmd");
+        commandsList.add("/C");
+        commandsList.add("rmdir");
+        commandsList.add("/s");
+        commandsList.add("/q");
+        for (IResource resource : folders) {
+          commandsList.add(resource.getLocation().toOSString());
+          if (resource instanceof IProject) {
+            ((IProject) resource).delete(false, true, new NullProgressMonitor());
+          }
+        }
+        ProcessBuilder builder = new ProcessBuilder(commandsList);
+        Process process = builder.start();
+        process.waitFor();
+      }
+
+      ResourcesPlugin.getWorkspace().getRoot().refreshLocal(
+          IResource.DEPTH_INFINITE,
+          new NullProgressMonitor());
+      EditorUtility.closeOrphanedEditors();
+
+    } catch (Exception e) {
+      DartToolsPlugin.log(e);
+    }
   }
 }
