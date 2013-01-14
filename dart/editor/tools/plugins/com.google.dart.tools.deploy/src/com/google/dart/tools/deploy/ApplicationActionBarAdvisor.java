@@ -1181,11 +1181,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   }
 
   private void updateContextSensitiveMenuItems(IMenuManager manager) {
-    manager.getId();
-    SubContributionItem item = (SubContributionItem) manager.findUsingPath(DartEditorActionDefinitionIds.OPEN_EDITOR);
-    ActionContributionItem inner = (ActionContributionItem) item.getInnerItem();
-    RetargetTextEditorAction reaction = (RetargetTextEditorAction) inner.getAction();
-    OpenAction action = (OpenAction) ReflectionUtils.getFieldObject(reaction, "fAction");
-    action.updateLabel();
+    try {
+      SubContributionItem item = (SubContributionItem) manager.findUsingPath(DartEditorActionDefinitionIds.OPEN_EDITOR);
+      ActionContributionItem inner = (ActionContributionItem) item.getInnerItem();
+      RetargetTextEditorAction reaction = (RetargetTextEditorAction) inner.getAction();
+      OpenAction action = (OpenAction) ReflectionUtils.getFieldObject(reaction, "fAction");
+      action.updateLabel();
+    } catch (Exception ex) {
+      // initialization order can cause exception
+    }
   }
 }
