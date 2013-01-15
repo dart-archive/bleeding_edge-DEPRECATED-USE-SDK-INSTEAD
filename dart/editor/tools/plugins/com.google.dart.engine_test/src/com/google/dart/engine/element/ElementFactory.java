@@ -13,15 +13,22 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ImportSpecificationImpl;
+import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
@@ -67,6 +74,25 @@ public final class ElementFactory {
       objectElement = classElement("Object", (Type) null);
     }
     return objectElement;
+  }
+
+  public static ImportSpecificationImpl importFor(LibraryElement importedLibrary,
+      PrefixElement prefix, ImportCombinator... combinators) {
+    ImportSpecificationImpl spec = new ImportSpecificationImpl();
+    spec.setImportedLibrary(importedLibrary);
+    spec.setPrefix(prefix);
+    spec.setCombinators(combinators);
+    return spec;
+  }
+
+  public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
+    String fileName = libraryName + ".dart";
+    FileBasedSource source = new FileBasedSource(null, createFile(fileName));
+    CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
+    unit.setSource(source);
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
+    library.setDefiningCompilationUnit(unit);
+    return library;
   }
 
   public static MethodElement methodElement(String methodName, Type returnType,
