@@ -246,8 +246,8 @@ build system.  The PDE build system has to run under Eclipse.
         <echo message="unzipping ${build.dart.sdk.zip} to ${build.stage.include.dir}"/>
         <mkdir dir="${build.stage.include.dir}" />
         <delete dir="${build.stage.include.dir}/dart-sdk"/>
-        <exec executable="unzip" dir="${build.stage.include.dir}">
-            <arg value="-q"/>
+        <exec executable="${unzip.tool}" dir="${build.stage.include.dir}">
+            <arg value="${unzip.arg}"/>
             <arg value="${build.dart.sdk.zip}"/>
         </exec>
     </target>

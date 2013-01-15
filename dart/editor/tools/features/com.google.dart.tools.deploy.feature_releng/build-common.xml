@@ -78,6 +78,8 @@
                   build is only running on OS specific builds -->
             <isset property="build.os" />
         </condition>
+        <property name="unzip.tool" value="third_party/7zip/7za.exe"/>
+        <property name="unzip.arg" value="x"/>
     </target>
     <target name="setOSMac" if="build.os.mac">
         <echo message="setup mac" />
@@ -93,6 +95,8 @@
                   build is only running on OS specific builds -->
             <isset property="build.os" />
         </condition>
+        <property name="unzip.tool" value="unzip"/>
+        <property name="unzip.arg" value="-q"/>
     </target>
     <target name="setOSLinux" if="build.os.linux">
         <echo message="setup linux" />
@@ -108,6 +112,8 @@
                   build is only running on OS specific builds -->
             <isset property="build.os" />
         </condition>
+        <property name="unzip.tool" value="unzip"/>
+        <property name="unzip.arg" value="-q"/>
     </target>
     
     <!-- configure and validate the data location -->
