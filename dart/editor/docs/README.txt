@@ -205,13 +205,13 @@ Next, install Dartium (Chromium with an embedded Dart VM) into the "dart-sdk" di
 http://www.dartlang.org/dartium/index.html
 
 Linux:
-  <eclipse-install-dir>/dart-sdk/chromium/
+  <eclipse-install-dir>/chromium/
 
 Mac:
-  <eclipse-install-dir>/dart-sdk/Chromium.app
+  <eclipse-install-dir>/Chromium.app
 
 Windows
-  <eclipse-install-dir>/dart-sdk/chromium.exe
+  <eclipse-install-dir>/chromium/chromium.exe
 
 ====================================
   Launching the Dart Editor
