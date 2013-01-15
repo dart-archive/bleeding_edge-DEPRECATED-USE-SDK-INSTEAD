@@ -49,8 +49,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public void traverse(IResourceDelta delta, boolean notifyAvailable) throws CoreException {
-      called.add(new Object[] {delta, notifyAvailable});
+    public void traverse(IResourceDelta delta) throws CoreException {
+      called.add(new Object[] {delta});
     }
 
     void assertNoCalls() {
@@ -59,13 +59,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
       }
     }
 
-    void assertTraversed(Object arg1, boolean flag) {
+    void assertTraversed(Object arg1, boolean... flags) {
       if (called.size() == 0) {
         fail("Expected traverse " + arg1);
       }
       Object[] call = called.remove(0);
       assertSame(arg1, call[0]);
-      assertEquals(flag, ((Boolean) call[1]).booleanValue());
+      assertEquals("Unexpected number of arguments", flags.length + 1, call.length);
+      if (flags.length > 0) {
+        assertEquals(flags[0], ((Boolean) call[1]).booleanValue());
+      }
     }
   }
 
@@ -142,11 +145,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
     participant.processor.assertTraversed(projectContainer, false);
-    participant.processor.assertTraversed(delta, true);
+    participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
 
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
-    participant.processor.assertTraversed(delta, true);
+    participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
   }
 

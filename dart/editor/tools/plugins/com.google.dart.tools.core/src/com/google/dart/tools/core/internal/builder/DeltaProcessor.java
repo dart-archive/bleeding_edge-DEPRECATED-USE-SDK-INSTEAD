@@ -32,7 +32,6 @@ import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 public class DeltaProcessor {
 
   private final Project project;
-  private boolean notifyAvailable;
   private boolean notifyChanged;
   private AnalysisContext context;
 
@@ -55,7 +54,6 @@ public class DeltaProcessor {
    *          sources via {@link AnalysisContext#sourceChanged(Source)}, or {@code false} if not.
    */
   public void traverse(IContainer resource, boolean notifyChanged) throws CoreException {
-    this.notifyAvailable = true;
     this.notifyChanged = notifyChanged;
     processResources(resource);
   }
@@ -66,11 +64,8 @@ public class DeltaProcessor {
    * notified of new sources via {@link AnalysisContext#sourceAvailable(Source)}.
    * 
    * @param delta the delta describing the resource changes
-   * @param notifyAvailable {@code true} if the context(s) being updated should be notified of new
-   *          sources via {@link AnalysisContext#sourceAvailable(Source)}, or {@code false} if not.
    */
-  public void traverse(IResourceDelta delta, boolean notifyAvailable) throws CoreException {
-    this.notifyAvailable = notifyAvailable;
+  public void traverse(IResourceDelta delta) throws CoreException {
     this.notifyChanged = true;
     processDelta(delta);
   }
@@ -116,7 +111,7 @@ public class DeltaProcessor {
       if (name.equals(PUBSPEC_FILE_NAME)) {
         project.pubspecAdded(proxy.requestResource().getParent());
       } else if (isDartLikeFileName(name)) {
-        sourceChanged((IFile) proxy.requestResource(), notifyAvailable, notifyChanged);
+        sourceChanged((IFile) proxy.requestResource(), true, notifyChanged);
       }
       return false;
     }
@@ -168,7 +163,7 @@ public class DeltaProcessor {
           if (isDartLikeFileName(name)) {
             switch (delta.getKind()) {
               case ADDED:
-                sourceChanged((IFile) resource, notifyAvailable, notifyChanged);
+                sourceChanged((IFile) resource, true, notifyChanged);
                 break;
               case CHANGED:
                 sourceChanged((IFile) resource, false, notifyChanged);

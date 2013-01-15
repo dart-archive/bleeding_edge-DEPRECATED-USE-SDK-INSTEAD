@@ -80,7 +80,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         if (monitor.isCanceled()) {
           return false;
         }
-        createProcessor(project).traverse(delta, true);
+        createProcessor(project).traverse(delta);
         return false;
       }
 
