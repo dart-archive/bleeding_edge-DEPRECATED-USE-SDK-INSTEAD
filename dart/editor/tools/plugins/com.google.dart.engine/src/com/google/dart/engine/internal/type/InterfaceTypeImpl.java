@@ -14,11 +14,14 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Instances of the class {@code InterfaceTypeImpl} defines the behavior common to objects
@@ -26,6 +29,89 @@ import java.util.Arrays;
  * type.
  */
 public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
+
+  /**
+   * This method computes the longest inheritance path from some passed {@link Type} to Object.
+   * 
+   * @see #computeLongestInheritancePathToObject(Type, int)
+   * @see InterfaceType#getLeastUpperBound(Type)
+   * @param type the {@link Type} to compute the longest inheritance path of from the passed
+   *          {@link Type} to Object
+   * @return the computed longest inheritance path to Object
+   */
+  public static int computeLongestInheritancePathToObject(Type type) {
+    return computeLongestInheritancePathToObject(type, 1);
+  }
+
+  /**
+   * Returns the set of all superinterfaces of the passed {@link Type}.
+   * 
+   * @see #computeSuperinterfaceSet(Type, HashSet)
+   * @see #getLeastUpperBound(Type)
+   * @param type the {@link Type} to compute the set of superinterfaces of
+   * @return the {@link Set} of superinterfaces of the passed {@link Type}
+   */
+  public static Set<Type> computeSuperinterfaceSet(Type type) {
+    return computeSuperinterfaceSet(type, new HashSet<Type>());
+  }
+
+  /**
+   * This method computes the longest inheritance path from some passed {@link Type} to Object. This
+   * method calls itself recursively, callers should use the public method
+   * {@link #computeLongestInheritancePathToObject(Type)}.
+   * 
+   * @see #computeLongestInheritancePathToObject(Type)
+   * @see #getLeastUpperBound(Type)
+   * @param type the {@link Type} to compute the longest inheritance path of from the passed
+   *          {@link Type} to Object
+   * @param depth a field used recursively
+   * @return the computed longest inheritance path to Object
+   */
+  private static int computeLongestInheritancePathToObject(Type type, int depth) {
+    if (!(type instanceof InterfaceType)) {
+      return 0;
+    }
+    ClassElement classElement = ((InterfaceType) type).getElement();
+    Type[] superinterfaces = classElement.getInterfaces();
+    int longestPath = 0;
+    if (superinterfaces.length > 0) {
+      // loop through each of the superinterfaces recursively calling this method and keeping track
+      // of the longest path to return
+      for (Type superinterface : superinterfaces) {
+        int pathLength = computeLongestInheritancePathToObject(superinterface, depth + 1);
+        if (pathLength > longestPath) {
+          longestPath = pathLength;
+        }
+      }
+      return longestPath;
+    } else {
+      return depth;
+    }
+  }
+
+  /**
+   * Returns the set of all superinterfaces of the passed {@link Type}. This is a recursive method,
+   * callers should call the public {@link #computeSuperinterfaceSet(Type)}.
+   * 
+   * @see #computeSuperinterfaceSet(Type)
+   * @see #getLeastUpperBound(Type)
+   * @param type the {@link Type} to compute the set of superinterfaces of
+   * @param set a {@link HashSet} used recursively by this method
+   * @return the {@link Set} of superinterfaces of the passed {@link Type}
+   */
+  private static Set<Type> computeSuperinterfaceSet(Type type, HashSet<Type> set) {
+    Element element = type.getElement();
+    if (element != null && element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      Type[] superinterfaces = classElement.getInterfaces();
+      for (Type superinterface : superinterfaces) {
+        set.add(superinterface);
+        computeSuperinterfaceSet(superinterface, set);
+      }
+    }
+    return set;
+  }
+
   /**
    * An array containing the actual types of the type arguments.
    */
@@ -81,8 +167,60 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public Type getLeastUpperBound(Type type) {
-    // TODO(brianwilkerson) Implement this.
-    return this;
+    // TODO (jwren) opportunity here for a better, faster algorithm if this turns out to be a bottle-neck
+    if (type == null || !(type instanceof InterfaceType)) {
+      return null;
+    }
+    // new names to match up with the spec
+    InterfaceType i = this;
+    InterfaceType j = (InterfaceType) type;
+
+    // compute set of supertypes
+    Set<Type> si = computeSuperinterfaceSet(i);
+    Set<Type> sj = computeSuperinterfaceSet(j);
+
+    // union si with i and sj with j
+    si.add(i);
+    sj.add(j);
+
+    // compute intersection, reference as set 's'
+    si.retainAll(sj);
+    Set<Type> s = si;
+
+    // define the list sn, a list containing the elements from set 's'
+    //ArrayList<Type> sn = new ArrayList<Type>(s.size());
+    Type[] sn = s.toArray(new Type[s.size()]);
+
+    // for each element in Set sn, compute the largest inheritance path to Object
+    int[] depths = new int[sn.length];
+    int maxDepth = 0;
+    for (int n = 0; n < sn.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(sn[n]);
+      if (depths[n] > maxDepth) {
+        maxDepth = depths[n];
+      }
+    }
+
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
+    for (; maxDepth >= 0; maxDepth--) {
+      int indexOfLeastUpperBound = -1;
+      int numberOfTypesAtMaxDepth = 0;
+      for (int m = 0; m < depths.length; m++) {
+        if (depths[m] == maxDepth) {
+          numberOfTypesAtMaxDepth++;
+          indexOfLeastUpperBound = m;
+        }
+      }
+      if (numberOfTypesAtMaxDepth == 1) {
+        return sn[indexOfLeastUpperBound];
+      }
+    }
+
+    // illegal state, log and return null- Object at maxDepth == 0 should always return itself as
+    // the least upper bound.
+    // TODO (jwren) log the error state 
+    return null;
   }
 
   @Override

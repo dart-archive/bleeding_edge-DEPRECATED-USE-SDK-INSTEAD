@@ -23,7 +23,101 @@ import com.google.dart.engine.type.Type;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 
+import java.util.Set;
+
 public class InterfaceTypeImplTest extends EngineTestCase {
+
+  public void test_computeLongestInheritancePathToObject_multiplePaths() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    ClassElementImpl elementD = new ClassElementImpl(identifier("D"));
+    ClassElementImpl elementE = new ClassElementImpl(identifier("E"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    InterfaceTypeImpl typeD = new InterfaceTypeImpl(elementD);
+    InterfaceTypeImpl typeE = new InterfaceTypeImpl(elementE);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeA});
+    elementD.setInterfaces(new Type[] {typeC});
+    elementE.setInterfaces(new Type[] {typeB, typeD});
+    // assertion: even though the longest path to Object for typeB is 2, and typeE implements typeB,
+    // the longest path for typeE is 4 since it also implements typeD
+    assertEquals(2, InterfaceTypeImpl.computeLongestInheritancePathToObject(typeB));
+    assertEquals(4, InterfaceTypeImpl.computeLongestInheritancePathToObject(typeE));
+  }
+
+  public void test_computeLongestInheritancePathToObject_singlePath() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeB});
+    assertEquals(1, InterfaceTypeImpl.computeLongestInheritancePathToObject(typeA));
+    assertEquals(2, InterfaceTypeImpl.computeLongestInheritancePathToObject(typeB));
+    assertEquals(3, InterfaceTypeImpl.computeLongestInheritancePathToObject(typeC));
+  }
+
+  public void test_computeSuperinterfaceSet_multiplePaths() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    ClassElementImpl elementD = new ClassElementImpl(identifier("D"));
+    ClassElementImpl elementE = new ClassElementImpl(identifier("E"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    InterfaceTypeImpl typeD = new InterfaceTypeImpl(elementD);
+    InterfaceTypeImpl typeE = new InterfaceTypeImpl(elementE);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeA});
+    elementD.setInterfaces(new Type[] {typeC});
+    elementE.setInterfaces(new Type[] {typeB, typeD});
+    // D
+    Set<Type> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(typeD);
+    assertNotNull(superinterfacesOfD);
+    assertTrue(superinterfacesOfD.contains(typeA));
+    assertTrue(superinterfacesOfD.contains(typeC));
+    assertEquals(2, superinterfacesOfD.size());
+    // E
+    Set<Type> superinterfacesOfE = InterfaceTypeImpl.computeSuperinterfaceSet(typeE);
+    assertNotNull(superinterfacesOfE);
+    assertTrue(superinterfacesOfE.contains(typeA));
+    assertTrue(superinterfacesOfE.contains(typeB));
+    assertTrue(superinterfacesOfE.contains(typeC));
+    assertTrue(superinterfacesOfE.contains(typeD));
+    assertEquals(4, superinterfacesOfE.size());
+  }
+
+  public void test_computeSuperinterfaceSet_singlePath() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeB});
+    // A
+    Set<Type> superinterfacesOfA = InterfaceTypeImpl.computeSuperinterfaceSet(typeA);
+    assertNotNull(superinterfacesOfA);
+    assertEquals(0, superinterfacesOfA.size());
+    // B
+    Set<Type> superinterfacesOfB = InterfaceTypeImpl.computeSuperinterfaceSet(typeB);
+    assertNotNull(superinterfacesOfB);
+    assertTrue(superinterfacesOfB.contains(typeA));
+    assertEquals(1, superinterfacesOfB.size());
+    // C
+    Set<Type> superinterfacesOfC = InterfaceTypeImpl.computeSuperinterfaceSet(typeC);
+    assertNotNull(superinterfacesOfC);
+    assertTrue(superinterfacesOfC.contains(typeA));
+    assertTrue(superinterfacesOfC.contains(typeB));
+    assertEquals(2, superinterfacesOfC.size());
+  }
 
   public void test_creation() {
     assertNotNull(new InterfaceTypeImpl(new ClassElementImpl(identifier("A"))));
@@ -37,6 +131,87 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl typeElement = new ClassElementImpl(identifier("A"));
     InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
     assertEquals(typeElement, type.getElement());
+  }
+
+  public void test_getLeastUpperBound_self() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    assertTrue(typeA.equals(typeA.getLeastUpperBound(typeA)));
+  }
+
+  public void test_getLeastUpperBound_sharedSuperinterface1() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeA});
+    assertTrue(typeA.equals(typeB.getLeastUpperBound(typeC)));
+    assertTrue(typeA.equals(typeC.getLeastUpperBound(typeB)));
+  }
+
+  public void test_getLeastUpperBound_sharedSuperinterface2() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    ClassElementImpl elementD = new ClassElementImpl(identifier("D"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    InterfaceTypeImpl typeD = new InterfaceTypeImpl(elementD);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeA});
+    elementD.setInterfaces(new Type[] {typeC});
+    assertTrue(typeA.equals(typeB.getLeastUpperBound(typeD)));
+    assertTrue(typeA.equals(typeD.getLeastUpperBound(typeB)));
+  }
+
+  public void test_getLeastUpperBound_sharedSuperinterface3() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    ClassElementImpl elementD = new ClassElementImpl(identifier("D"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    InterfaceTypeImpl typeD = new InterfaceTypeImpl(elementD);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeB});
+    elementD.setInterfaces(new Type[] {typeB});
+    assertTrue(typeB.equals(typeC.getLeastUpperBound(typeD)));
+    assertTrue(typeB.equals(typeD.getLeastUpperBound(typeC)));
+  }
+
+  public void test_getLeastUpperBound_sharedSuperinterface4() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementA2 = new ClassElementImpl(identifier("A2"));
+    ClassElementImpl elementA3 = new ClassElementImpl(identifier("A3"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeA2 = new InterfaceTypeImpl(elementA2);
+    InterfaceTypeImpl typeA3 = new InterfaceTypeImpl(elementA3);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    elementB.setInterfaces(new Type[] {typeA, typeA2});
+    elementC.setInterfaces(new Type[] {typeA, typeA3});
+    assertTrue(typeA.equals(typeB.getLeastUpperBound(typeC)));
+    assertTrue(typeA.equals(typeC.getLeastUpperBound(typeB)));
+  }
+
+  public void test_getLeastUpperBound_subclassCase() {
+    ClassElementImpl elementA = new ClassElementImpl(identifier("A"));
+    ClassElementImpl elementB = new ClassElementImpl(identifier("B"));
+    ClassElementImpl elementC = new ClassElementImpl(identifier("C"));
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    InterfaceTypeImpl typeC = new InterfaceTypeImpl(elementC);
+    elementB.setInterfaces(new Type[] {typeA});
+    elementC.setInterfaces(new Type[] {typeB});
+    assertTrue(typeB.equals(typeB.getLeastUpperBound(typeC)));
+    assertTrue(typeB.equals(typeC.getLeastUpperBound(typeB)));
   }
 
   public void test_getTypeArguments() {
