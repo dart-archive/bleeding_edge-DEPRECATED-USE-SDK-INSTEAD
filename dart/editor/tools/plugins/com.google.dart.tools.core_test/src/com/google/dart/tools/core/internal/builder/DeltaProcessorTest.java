@@ -55,7 +55,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public void containerDeleted(IContainer container) {
+    public void discardContextsIn(IContainer container) {
       containersDeleted.add(container);
     }
 
@@ -262,7 +262,10 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
 
     processor.traverse(delta, true);
 
-    assertNoContextChanges((MockContext) project.getContext(projectContainer));
+    MockContext context = (MockContext) project.getContext(projectContainer);
+    context.assertSourcesAvailable();
+    context.assertSourcesChanged();
+    context.assertSourcesDeleted(removedFolder);
     assertNoContextChanges((MockContext) project.getContext(appContainer));
     assertNoContextChanges((MockContext) project.getContext(subAppContainer));
     project.assertPubspecAdded();

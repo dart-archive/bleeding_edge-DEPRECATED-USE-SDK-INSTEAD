@@ -81,7 +81,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public void containerDeleted(IContainer container) {
+    public void discardContextsIn(IContainer container) {
       throw new RuntimeException("Unexpected call");
     }
 

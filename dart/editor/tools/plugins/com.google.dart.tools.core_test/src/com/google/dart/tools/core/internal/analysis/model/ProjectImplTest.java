@@ -64,7 +64,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     context2.assertDiscarded(false);
 
     projectContainer.remove("web");
-    project.containerDeleted(webContainer);
+    project.discardContextsIn(webContainer);
 
     assertNotNull(project.getExistingContext(projectContainer));
     assertNotNull(project.getExistingContext(appContainer));
@@ -74,7 +74,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     context2.assertDiscarded(false);
 
     projectContainer.remove("myapp");
-    project.containerDeleted(appContainer);
+    project.discardContextsIn(appContainer);
 
     assertNotNull(project.getExistingContext(projectContainer));
     assertNull(project.getExistingContext(appContainer));
@@ -91,7 +91,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     context1.assertDiscarded(false);
     context2.assertDiscarded(false);
 
-    project.containerDeleted(projectContainer);
+    project.discardContextsIn(projectContainer);
 
     assertNull(project.getExistingContext(projectContainer));
     assertNull(project.getExistingContext(appContainer));

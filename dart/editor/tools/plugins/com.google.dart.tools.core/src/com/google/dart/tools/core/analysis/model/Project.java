@@ -11,11 +11,11 @@ import org.eclipse.core.resources.IProject;
 public interface Project {
 
   /**
-   * Called when a container is deleted
+   * Discard all analysis contexts in the specified container
    * 
-   * @param container the container (not {@code null}) that was deleted
+   * @param container the container (not {@code null})
    */
-  void containerDeleted(IContainer container);
+  void discardContextsIn(IContainer container);
 
   /**
    * Answer the {@link AnalysisContext} used to analyze Dart source in the specified folder,

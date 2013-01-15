@@ -197,7 +197,17 @@ public class DeltaProcessor {
             processResources(resource);
             return false;
           case REMOVED:
-            project.containerDeleted((IContainer) resource);
+            IContainer container = (IContainer) resource;
+            if (container.getType() != PROJECT) {
+              context = project.getContext(container);
+              AnalysisContext parentContext = project.getContext(container.getParent());
+              // If the container is part of a larger context (context == parentContext)
+              // then remove the contained sources from the larger context
+              if (context == parentContext) {
+                sourcesDeleted(container);
+              }
+            }
+            project.discardContextsIn(container);
             return false;
           default:
             break;

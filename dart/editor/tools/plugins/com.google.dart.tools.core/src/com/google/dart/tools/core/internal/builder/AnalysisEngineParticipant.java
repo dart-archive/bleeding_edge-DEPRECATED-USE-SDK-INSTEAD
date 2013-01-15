@@ -122,7 +122,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     }
 
     if (project != null) {
-      project.containerDeleted(event.getProject());
+      project.discardContextsIn(event.getProject());
       project = null;
     }
     event.getProject().deleteMarkers(DART_PROBLEM_MARKER_TYPE, true, DEPTH_INFINITE);

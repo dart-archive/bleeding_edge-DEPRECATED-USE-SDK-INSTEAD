@@ -85,7 +85,7 @@ public class ProjectImpl implements Project {
   }
 
   @Override
-  public void containerDeleted(IContainer container) {
+  public void discardContextsIn(IContainer container) {
     HashSet<AnalysisContext> toDiscard = new HashSet<AnalysisContext>();
     HashSet<AnalysisContext> toSave = new HashSet<AnalysisContext>();
 
