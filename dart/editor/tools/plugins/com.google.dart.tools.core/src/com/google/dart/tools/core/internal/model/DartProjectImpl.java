@@ -606,15 +606,10 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(null);
       IResource pubspec = project.findMember(DartCore.PUBSPEC_FILE_NAME);
       if (pubspec != null) {
-        Map<String, Object> pubMap = PubYamlUtils.parsePubspecYamlToMap(IFileUtilities.getContents((IFile) pubspec));
-        if (pubMap != null) {
-          for (String key : pubMap.keySet()) {
-            if (key.equals("name")) {
-              ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName((String) pubMap.get(key));
-              return;
-            }
-          }
-        }
+        String name = PubYamlUtils.getPubspecName(IFileUtilities.getContents((IFile) pubspec));
+        if (name != null){
+          ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(name);
+        }      
       }
 
     } catch (Exception exception) {

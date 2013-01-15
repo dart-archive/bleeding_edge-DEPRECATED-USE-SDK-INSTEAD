@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for using Snake YAML parser and other yaml utility methods
@@ -91,6 +93,8 @@ public class PubYamlUtils {
       return result;
     }
   }
+
+  public static String PATTERN_PUBSPEC_NAME_LINE = "(?m)^(?:(?!--|').|'(?:''|[^'])*')*(name:.*)$";
 
   /**
    * Return a yaml string for the given {@link PubYamlObject}
@@ -154,6 +158,23 @@ public class PubYamlUtils {
   }
 
   /**
+   * Return the name of the package as specified in pubspec.yaml (name: sample)
+   * 
+   * @param contents string contents of the pubspec.yaml file
+   * @return String package name
+   */
+  public static String getPubspecName(String contents) {
+    Matcher m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher(contents);
+    if (m.find()) {
+      String[] strings = m.group(1).split(":");
+      if (strings.length == 2) {
+        return strings[1].replaceAll(" ", "");
+      }
+    }
+    return null;
+  }
+
+  /**
    * Parse the pubspec.yaml string contents to an Map
    */
   @SuppressWarnings("unchecked")
@@ -183,7 +204,6 @@ public class PubYamlUtils {
       DartCore.logError(e);
       return null;
     }
-
   }
 
 }

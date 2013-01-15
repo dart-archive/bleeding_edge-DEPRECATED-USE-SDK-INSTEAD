@@ -21,6 +21,8 @@ import org.eclipse.core.runtime.IStatus;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class PubYamlUtilsTest extends AbstractDartCoreTest {
 
@@ -60,6 +62,15 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertEquals("0.0.0-r.15157", map.get("unittest"));
   }
 
+  public void test_getPubspecName() {
+    String name = PubYamlUtils.getPubspecName(pubspecYamlString);
+    assertEquals("web_components", name);
+    name = PubYamlUtils.getPubspecName(yamlStringWithErrors);
+    assertEquals("web_components", name);
+    name = PubYamlUtils.getPubspecName(yamlLockFile);
+    assertNull(name);
+  }
+
   // Assert pubspec file contents can be loaded into PubYamlObject
   public void test_parseYamlToObject() {
     PubYamlObject object = PubYamlUtils.parsePubspecYamlToObject(pubspecYamlString);
@@ -76,6 +87,23 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     Map<String, Object> map = PubYamlUtils.parsePubspecYamlToMap(yamlStringWithErrors);
     assertTrue(map == null);
     LOG.assertEntries(IStatus.ERROR);
+  }
+
+  public void test_patternForPubspecNameLine() {
+    Matcher m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher(pubspecYamlString);
+    assertTrue(m.find());
+    assertEquals(1, m.groupCount());
+    assertEquals("name: web_components", m.group(1));
+    m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher(yamlStringWithErrors);
+    assertTrue(m.find());
+    assertEquals(1, m.groupCount());
+    assertEquals("name: web_components", m.group(1));
+    m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher(yamlLockFile);
+    assertFalse(m.find());
+    m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher("  name: sample\n");
+    assertTrue(m.find());
+    assertEquals(1, m.groupCount());
+    assertEquals("name: sample", m.group(1));
   }
 
   private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {
