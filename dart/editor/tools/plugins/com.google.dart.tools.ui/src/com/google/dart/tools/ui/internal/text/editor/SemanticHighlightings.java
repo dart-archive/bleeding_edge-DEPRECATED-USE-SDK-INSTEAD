@@ -72,7 +72,6 @@ public class SemanticHighlightings {
    * Highlights build-in identifiers - "abstract", "as", "dynamic", "typedef", etc.
    */
   private static class BuiltInHighlighting extends DefaultSemanticHighlighting {
-    private List<SourceRange> result = null;
 
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
@@ -90,12 +89,12 @@ public class SemanticHighlightings {
 
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
-      result = null;
+      List<SourceRange> result = null;
       // prepare DartNode
       DartNode node = token.getNode();
       // typedef
       if (node instanceof DartFunctionTypeAlias || node instanceof DartClassTypeAlias) {
-        addStartPosition(token, "typedef");
+        result = addStartPosition(result, token, "typedef");
       }
       // as
       if (node instanceof DartBinaryExpression) {
@@ -111,32 +110,32 @@ public class SemanticHighlightings {
         DartFieldDefinition fieldDef = (DartFieldDefinition) node;
         List<DartField> fields = fieldDef.getFields();
         if (!fields.isEmpty() && fields.get(0).getModifiers().isStatic()) {
-          addStartPosition(token, "static");
+          result = addStartPosition(result, token, "static");
         }
       }
       // method modifiers
       if (node instanceof DartMethodDefinition) {
         DartMethodDefinition method = (DartMethodDefinition) node;
         if (method.getModifiers().isAbstract()) {
-          addStartPosition(token, "abstract");
+          result = addStartPosition(result, token, "abstract");
         }
         if (method.getModifiers().isExternal()) {
-          addStartPosition(token, "external");
+          result = addStartPosition(result, token, "external");
         }
         if (method.getModifiers().isFactory()) {
-          addStartPosition(token, "factory");
+          result = addStartPosition(result, token, "factory");
         }
         if (method.getModifiers().isGetter()) {
-          addMethodModifierPosition(token, method, "get");
+          result = addMethodModifierPosition(result, token, method, "get");
         }
         if (method.getModifiers().isOperator()) {
-          addMethodModifierPosition(token, method, "operator");
+          result = addMethodModifierPosition(result, token, method, "operator");
         }
         if (method.getModifiers().isSetter()) {
-          addMethodModifierPosition(token, method, "set");
+          result = addMethodModifierPosition(result, token, method, "set");
         }
         if (method.getModifiers().isStatic()) {
-          addStartPosition(token, "static");
+          result = addStartPosition(result, token, "static");
         }
       }
       // class
@@ -146,12 +145,12 @@ public class SemanticHighlightings {
         {
           int implementsOffset = clazz.getImplementsOffset();
           if (implementsOffset != -1) {
-            addPosition(implementsOffset, "implements".length());
+            result = addPosition(result, implementsOffset, "implements".length());
           }
         }
         // "abstract"
         if (clazz.getModifiers().isAbstract()) {
-          addStartPosition(token, "abstract");
+          result = addStartPosition(result, token, "abstract");
         }
       }
       // try {} on
@@ -199,8 +198,8 @@ public class SemanticHighlightings {
      * Attempts to find special method modifier position - "get", "set" or "operator", which can be
      * not right at the start of the method, but after optional return type.
      */
-    private void addMethodModifierPosition(SemanticToken token, DartMethodDefinition method,
-        String modifierName) {
+    private List<SourceRange> addMethodModifierPosition(List<SourceRange> positions,
+        SemanticToken token, DartMethodDefinition method, String modifierName) {
       String source = token.getSource();
       int offset = method.getSourceInfo().getOffset();
       // skip return type
@@ -219,33 +218,38 @@ public class SemanticHighlightings {
       // find modifier
       int index = source.indexOf(modifierName);
       if (index == 0) {
-        addPosition(offset, modifierName.length());
+        positions = addPosition(positions, offset, modifierName.length());
       }
+      return positions;
     }
 
-    private void addPosition(int start, int length) {
+    private List<SourceRange> addPosition(List<SourceRange> positions, int start, int length) {
       SourceRange range = SourceRangeFactory.forStartLength(start, length);
-      addPosition(range);
+      positions = addPosition(positions, range);
+      return positions;
     }
 
-    private void addPosition(SourceRange range) {
-      if (result == null) {
-        result = Lists.newArrayList();
+    private List<SourceRange> addPosition(List<SourceRange> positions, SourceRange range) {
+      if (positions == null) {
+        positions = Lists.newArrayList();
       }
-      result.add(range);
+      positions.add(range);
+      return positions;
     }
 
     /**
      * Adds position of token source has <code>str</code> exactly at the start.
      */
-    private void addStartPosition(SemanticToken token, String str) {
+    private List<SourceRange> addStartPosition(List<SourceRange> positions, SemanticToken token,
+        String str) {
       DartNode node = token.getNode();
       int index = token.getSource().indexOf(str);
       if (index == 0) {
         int start = node.getSourceInfo().getOffset() + index;
         int length = str.length();
-        addPosition(start, length);
+        positions = addPosition(positions, start, length);
       }
+      return positions;
     }
   }
 
@@ -376,32 +380,30 @@ public class SemanticHighlightings {
    * Highlights directives - "library", "import", "part of", etc.
    */
   private static class DirectiveHighlighting extends DefaultSemanticHighlighting {
-    private List<SourceRange> result = null;
-
     @Override
     public List<SourceRange> consumesMulti(SemanticToken token) {
-      result = null;
+      List<SourceRange> result = null;
       DartNode node = token.getNode();
       if (node instanceof DartLibraryDirective) {
-        addPosition(token, "#library");
-        addPosition(token, "library");
+        result = addPosition(result, token, "#library");
+        result = addPosition(result, token, "library");
       }
       if (node instanceof DartImportDirective) {
-        addPosition(token, "#import");
-        addPosition(token, "import");
-        addPosition(token, "show");
-        addPosition(token, "hide");
+        result = addPosition(result, token, "#import");
+        result = addPosition(result, token, "import");
+        result = addPosition(result, token, "show");
+        result = addPosition(result, token, "hide");
       }
       if (node instanceof DartExportDirective) {
         DartExportDirective export = (DartExportDirective) node;
-        addPosition(token, "export");
+        result = addPosition(result, token, "export");
         for (ImportCombinator combinator : export.getCombinators()) {
           result.add(SourceRangeFactory.forStartLength(combinator, "show".length()));
         }
       }
       if (node instanceof DartSourceDirective) {
-        addPosition(token, "#source");
-        addPosition(token, "part");
+        result = addPosition(result, token, "#source");
+        result = addPosition(result, token, "part");
       }
       if (node instanceof DartPartOfDirective) {
         DartPartOfDirective partOf = (DartPartOfDirective) node;
@@ -437,7 +439,7 @@ public class SemanticHighlightings {
       return true;
     }
 
-    private boolean addPosition(SemanticToken token, String str) {
+    private List<SourceRange> addPosition(List<SourceRange> result, SemanticToken token, String str) {
       DartNode node = token.getNode();
       int index = token.getSource().indexOf(str);
       if (index == 0) {
@@ -447,9 +449,9 @@ public class SemanticHighlightings {
           result = Lists.newArrayList();
         }
         result.add(SourceRangeFactory.forStartLength(start, length));
-        return true;
+        return result;
       }
-      return false;
+      return result;
     }
   }
 
