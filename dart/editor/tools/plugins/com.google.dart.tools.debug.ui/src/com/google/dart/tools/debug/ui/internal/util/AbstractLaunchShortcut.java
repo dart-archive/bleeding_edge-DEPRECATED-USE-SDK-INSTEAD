@@ -295,7 +295,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
           }
         }
         IResource[] files = htmlFiles.toArray(new IResource[htmlFiles.size()]);
-        // TODO(keertip): need to handle the case of mutliple html files 
+        // TODO(keertip): need to handle the case of multiple html files
         return files[0];
       }
     }
@@ -328,15 +328,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
 
     if (htmlFiles.isEmpty()) {
       // no html file associated with library
-      MessageDialog.openError(
-          PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-          "Launch Error",
-          "Could not find the HTML file for " + library.getCorrespondingResource().getName());
       return null;
+    } else {
+      // TODO(keertip): need to handle the case of multiple html files
+      return htmlFiles.get(0).getCorrespondingResource();
     }
-
-    // TODO(keertip): need to handle the case of mutliple html files 
-    return htmlFiles.get(0).getCorrespondingResource();
   }
 
 }

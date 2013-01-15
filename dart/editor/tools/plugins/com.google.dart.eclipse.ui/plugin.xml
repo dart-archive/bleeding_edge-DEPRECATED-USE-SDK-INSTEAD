@@ -471,7 +471,7 @@
                icon="icons/dart_16_16.gif"
                id="com.google.dart.eclipse.sendFeedbackAction"
                label="%action.sendFeedbackAction.label"
-               menubarPath="help/helpStart"
+               menubarPath="help/helpEnd"
                style="push">
          </action>
       </actionSet>

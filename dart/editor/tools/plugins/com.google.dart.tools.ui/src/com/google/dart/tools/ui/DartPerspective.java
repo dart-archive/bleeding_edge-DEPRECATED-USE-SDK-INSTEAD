@@ -60,7 +60,7 @@ public class DartPerspective implements IPerspectiveFactory {
         TL);
     outlinefolder.addPlaceholder(IPageLayout.ID_OUTLINE);
     outlinefolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
-    outlinefolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
+    //outlinefolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
     outlinefolder.addPlaceholder(DartUI.ID_TYPE_HIERARCHY);
 
     // Bottom right: info views

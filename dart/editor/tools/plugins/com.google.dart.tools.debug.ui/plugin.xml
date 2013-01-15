@@ -53,7 +53,8 @@
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.dartium.DartiumTabGroup"
             id="com.google.dart.tools.debug.core.chromeLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.dartiumLaunchConfig">
+            type="com.google.dart.tools.debug.core.dartiumLaunchConfig"
+            description="Run a Dart web application in Dartium">
       </launchConfigurationTabGroup>
    </extension>
 
@@ -118,7 +119,8 @@
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationTabGroup"
             id="com.google.dart.tools.debug.core.browserLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.browserLaunchConfig">
+            type="com.google.dart.tools.debug.core.browserLaunchConfig"
+            description="Run a Dart web application in a non-Dartium browser (using dart2js)">
       </launchConfigurationTabGroup>
    </extension>
 
@@ -173,7 +175,8 @@
       <launchConfigurationTabGroup
             class="com.google.dart.tools.debug.ui.internal.server.DartServerTabGroup"
             id="com.google.dart.tools.debug.core.serverLaunchConfigTabGroup"
-            type="com.google.dart.tools.debug.core.serverLaunchConfig">
+            type="com.google.dart.tools.debug.core.serverLaunchConfig"
+            description="Run a command-line Dart application">
       </launchConfigurationTabGroup>
    </extension>
    
