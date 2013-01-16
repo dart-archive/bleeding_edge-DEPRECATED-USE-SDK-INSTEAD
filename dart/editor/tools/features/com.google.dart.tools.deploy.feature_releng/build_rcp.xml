@@ -392,7 +392,6 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${dart.compiler.js.dir}/third_party">
             <fileset dir="${build.source.root}/third_party">
                 <include name="args4j/**" />
-                <include name="commons-io/**" />
                 <include name="commons-lang/**" />
                 <include name="guava/**" />
                 <include name="hamcrest/**" />
@@ -407,7 +406,6 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${dart.engine.dir}/third_party">
             <fileset dir="${build.source.root}/third_party">
                 <include name="args4j/**" />
-                <include name="commons-io/**" />
                 <include name="commons-lang/**" />
                 <include name="guava/**" />
                 <include name="hamcrest/**" />

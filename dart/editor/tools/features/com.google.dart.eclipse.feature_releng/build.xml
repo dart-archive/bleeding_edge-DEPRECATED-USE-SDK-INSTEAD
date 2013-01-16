@@ -95,7 +95,6 @@
       <copy todir="${dart.compiler.js.dir}/third_party">
           <fileset dir="${third_party.dir}">
               <include name="args4j/**" />
-              <include name="commons-io/**" />
               <include name="commons-lang/**" />
               <include name="guava/**" />
               <include name="hamcrest/**" />
@@ -112,7 +111,6 @@
       <copy todir="${dart.engine.dir}/third_party">
           <fileset dir="${third_party.dir}">
               <include name="args4j/**" />
-              <include name="commons-io/**" />
               <include name="commons-lang/**" />
               <include name="guava/**" />
               <include name="hamcrest/**" />
