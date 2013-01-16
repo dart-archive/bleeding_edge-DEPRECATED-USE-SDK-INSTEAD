@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.server.ServerDebugVariable.IValueRetriever;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 
@@ -89,8 +88,6 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
   @Override
   public String getValueString() {
-    fillInFields();
-
     if (value == null) {
       return getValueString_impl();
     } else if (value.isString()) {
@@ -102,7 +99,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
 
       }
     } else if (value.isList()) {
-      return "List[" + getListLength() + "]";
+      return "List[" + value.getLength() + "]";
     }
 
     return getValueString_impl();
@@ -112,12 +109,20 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   public IVariable[] getVariables() throws DebugException {
     fillInFields();
 
-    return fields.toArray(new ServerDebugVariable[fields.size()]);
+    return fields.toArray(new IVariable[fields.size()]);
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
-    return getVariables().length > 0;
+    if (isListValue()) {
+      return value.getLength() > 0;
+    } else if (fields != null) {
+      return fields.size() > 0;
+    } else if (valueRetriever != null) {
+      return valueRetriever.hasVariables();
+    } else {
+      return getVariables().length > 0;
+    }
   }
 
   @Override
@@ -125,6 +130,7 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     return true;
   }
 
+  @Override
   public boolean isListValue() {
     return value == null ? false : value.isList();
   }
@@ -217,17 +223,14 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     } else if (value.isObject()) {
       fillInFieldsSync();
     } else if (value.isList()) {
-      fields = new ArrayList<IVariable>();
-
-      for (int i = 0; i < value.getLength(); i++) {
-        fields.add(new ServerDebugVariable(getTarget(), VmVariable.createArrayEntry(
-            getConnection(),
-            value,
-            i)));
-      }
+      fillInFieldsList();
     } else {
       fields = Collections.emptyList();
     }
+  }
+
+  void fillInFieldsList() {
+    fields = ListSlicer.createValues(getTarget(), value);
   }
 
   private List<IVariable> convert(VmClass vmClass) {
@@ -254,10 +257,6 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     }
 
     return vars;
-  }
-
-  private int getListLength() {
-    return value.getLength();
   }
 
   private String getValueString_impl() {

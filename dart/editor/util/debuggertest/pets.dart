@@ -1,8 +1,8 @@
 
 library pets;
 
-import 'dart:math';
 import 'dart:isolate';
+import 'dart:math';
 
 final num MAX_CATS = 10;
 
@@ -196,4 +196,16 @@ void checkTypes() {
   set.add("what");
 
   print("types");
+}
+
+void createARealBigArray() {
+  var arr = new List<int>(120);
+  
+  for (int i = 0; i < arr.length; i++) {
+    arr[i] = i * 10;
+  }
+  
+  print("big array created");
+  
+  arr[0]++;
 }

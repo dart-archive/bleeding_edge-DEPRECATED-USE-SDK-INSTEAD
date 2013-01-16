@@ -14,8 +14,14 @@
 
 package com.google.dart.tools.debug.core.server;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 /**
- * A utility class for the VM debugger.
+ * A utility class for the VM debugger. This normalizes between the url format that the VM expects
+ * and the format the the editor uses.
  */
 public class VmUtils {
   private static final String VM_FORMAT = "file:///";
@@ -32,9 +38,10 @@ public class VmUtils {
     }
 
     if (url.startsWith(ECLIPSE_FORMAT)) {
-      if (!url.startsWith(ECLIPSE_FORMAT + "/")) {
-        url = VM_FORMAT + url.substring(ECLIPSE_FORMAT.length());
-      }
+      // Use the URI class to convert things like '%20' ==> ' '.
+      // The VM also wants file urls to start with file:///, not file:/.
+      URI uri = URI.create(url);
+      url = uri.getScheme() + "://" + uri.getPath();
     }
 
     return url;
@@ -44,14 +51,19 @@ public class VmUtils {
    * Convert the given URL from VM format (file:///) to Eclipse format (file:/).
    */
   public static String vmUrlToEclipse(String url) {
-    // file:/// --> file:/
-
     if (url == null) {
       return null;
     }
 
     if (url.startsWith(VM_FORMAT)) {
-      url = ECLIPSE_FORMAT + url.substring(VM_FORMAT.length());
+      try {
+        // Convert things like ' ' to '%20'.
+        // Also, file:/// --> file:/.
+        URI uri = new URI("file", null, url.substring(VM_FORMAT.length() - 1), null);
+        url = uri.toString();
+      } catch (URISyntaxException e) {
+        DartDebugCorePlugin.logError(e);
+      }
     }
 
     return url;

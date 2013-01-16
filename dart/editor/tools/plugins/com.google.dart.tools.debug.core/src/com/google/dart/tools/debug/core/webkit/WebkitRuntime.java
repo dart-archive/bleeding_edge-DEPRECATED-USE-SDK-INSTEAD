@@ -20,7 +20,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 // TODO(devoncarew): Runtime.callFunctionOn
 // TODO(devoncarew): Runtime.evaluate
@@ -173,8 +172,6 @@ public class WebkitRuntime extends WebkitDomain {
       JSONObject obj = object.getJSONObject("result");
 
       WebkitPropertyDescriptor[] properties = WebkitPropertyDescriptor.createFrom(obj.getJSONArray("result"));
-
-      Arrays.sort(properties);
 
       for (WebkitPropertyDescriptor property : properties) {
         if (property.getName().equals(WebkitPropertyDescriptor.CLASS_INFO)) {

@@ -12,9 +12,9 @@ void main() {
   print("starting debuggertest");
 
   // Spawn some isolates...
-  pets.spawnAnimalsIsolate();
-  pets.spawnAnimalsIsolate();
-  pets.spawnAnimalsIsolate();
+//  pets.spawnAnimalsIsolate();
+//  pets.spawnAnimalsIsolate();
+//  pets.spawnAnimalsIsolate();
 
   var cat = pets.SPARKY;
 
@@ -24,6 +24,8 @@ void main() {
 
   pets.checkTypes();
 
+  pets.createARealBigArray();
+  
   var dog = new pets.Dog("Scooter");
 
   dog.performAction();

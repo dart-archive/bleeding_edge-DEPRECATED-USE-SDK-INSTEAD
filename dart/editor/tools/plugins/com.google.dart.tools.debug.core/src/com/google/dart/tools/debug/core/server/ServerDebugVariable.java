@@ -32,25 +32,39 @@ import java.util.concurrent.CountDownLatch;
  * An IVariable implementation for VM debugging.
  */
 public class ServerDebugVariable extends ServerDebugElement implements IDartDebugVariable {
-  public static interface IValueRetriever {
-    public String getDisplayName();
+  static class LibraryValueRetriever implements IValueRetriever {
+    private final ServerDebugTarget target;
+    private final int libraryId;
+    private final VmIsolate isolate;
 
-    public List<IVariable> getVariables();
+    LibraryValueRetriever(ServerDebugTarget target, int libraryId, VmIsolate isolate) {
+      this.target = target;
+      this.libraryId = libraryId;
+      this.isolate = isolate;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return "";
+    }
+
+    @Override
+    public List<IVariable> getVariables() {
+      return createLibraryVariables(target, isolate, libraryId);
+    }
+
+    @Override
+    public boolean hasVariables() {
+      return true;
+    }
   }
 
-  public static ServerDebugVariable createLibraryVariable(final ServerDebugTarget target,
-      final VmIsolate isolate, final int libraryId) {
-    return new ServerDebugVariable(target, DebuggerUtils.TOP_LEVEL_NAME, new IValueRetriever() {
-      @Override
-      public String getDisplayName() {
-        return "";
-      }
-
-      @Override
-      public List<IVariable> getVariables() {
-        return createLibraryVariables(target, isolate, libraryId);
-      }
-    });
+  public static ServerDebugVariable createLibraryVariable(ServerDebugTarget target,
+      VmIsolate isolate, int libraryId) {
+    return new ServerDebugVariable(target, DebuggerUtils.TOP_LEVEL_NAME, new LibraryValueRetriever(
+        target,
+        libraryId,
+        isolate));
   }
 
   protected static List<IVariable> createLibraryVariables(final ServerDebugTarget target,
@@ -101,7 +115,6 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     super(target);
 
     this.name = name;
-
     this.value = new ServerDebugValue(target, valueRetriever);
   }
 
@@ -110,7 +123,6 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
 
     this.vmVariable = vmVariable;
     this.value = new ServerDebugValue(target, vmVariable.getValue());
-
     this.name = vmVariable.getName();
   }
 
@@ -166,6 +178,8 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
 
   @Override
   public boolean isLibraryObject() {
+    // TODO: clean this up
+
     return value.isValueRetriever()
         && (DebuggerUtils.LIBRARY_NAME.equals(getName()) || DebuggerUtils.TOP_LEVEL_NAME.equals(getName()));
   }

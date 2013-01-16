@@ -41,6 +41,8 @@ void testAnimals() {
 
   checkTypes();
 
+  createARealBigArray();
+  
   var dog = new Dog("Scooter");
 
   dog.performAction();

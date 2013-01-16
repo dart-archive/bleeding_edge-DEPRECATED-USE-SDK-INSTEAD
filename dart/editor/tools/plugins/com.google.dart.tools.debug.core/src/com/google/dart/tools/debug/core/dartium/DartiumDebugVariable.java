@@ -111,7 +111,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   }
 
   public boolean isListValue() {
-    return getDartiumValue().isList();
+    return getDartiumValue().isListValue();
   }
 
   public boolean isPrimitiveValue() {

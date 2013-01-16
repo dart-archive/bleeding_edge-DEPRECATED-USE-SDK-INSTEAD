@@ -325,7 +325,7 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
    */
   protected String getValueText(DartiumDebugValue value) throws DebugException {
     boolean isPrimitive = value.isPrimitive();
-    boolean isArray = value.isList();
+    boolean isArray = value.isListValue();
 
     final String valueString[] = new String[1];
 

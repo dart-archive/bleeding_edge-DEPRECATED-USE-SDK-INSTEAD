@@ -14,4 +14,22 @@
 	<natures>
 		<nature>com.google.dart.tools.core.dartNature</nature>
 	</natures>
+	<filteredResources>
+		<filter>
+			<id>1355649237639</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1357753705185</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
+	</filteredResources>
 </projectDescription>

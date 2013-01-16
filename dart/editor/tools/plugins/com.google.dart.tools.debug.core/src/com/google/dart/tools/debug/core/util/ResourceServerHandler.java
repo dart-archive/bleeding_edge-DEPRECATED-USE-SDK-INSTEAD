@@ -278,6 +278,10 @@ class ResourceServerHandler implements Runnable {
       HttpHeader header = parseHeader(in);
 
       if (header == null) {
+        if (DartDebugCorePlugin.LOGGING) {
+          System.out.println("resource server: socket closed early");
+        }
+
         safeClose(socket);
       } else if (isAllowableConnection(socket, header)) {
         HttpResponse response;
@@ -289,6 +293,14 @@ class ResourceServerHandler implements Runnable {
           response = createPOSTResponse(header, in);
         } else {
           response = createErrorResponse("Request type " + header.method + " not supported.");
+        }
+
+        if (DartDebugCorePlugin.LOGGING) {
+          System.out.println("resource server: " + header);
+
+          if (response.responseCode != HttpResponse.OK) {
+            System.out.println("       response: " + response);
+          }
         }
 
         sendResponse(response);

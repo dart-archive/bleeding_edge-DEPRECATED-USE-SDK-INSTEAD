@@ -22,6 +22,11 @@ import org.eclipse.debug.core.model.IValue;
 public interface IDartDebugValue extends IValue {
 
   /**
+   * @return whether this value represents a list
+   */
+  public boolean isListValue();
+
+  /**
    * @return whether this value represents a null value
    */
   public boolean isNull();

@@ -37,10 +37,12 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     public void detailComputed(String stringValue);
   }
 
+  private static final int MAX_DISPLAYABLE_LIST_LENGTH = 2000;
+
   private DartiumDebugVariable variable;
   private WebkitRemoteObject value;
 
-  private VariableCollector variableCollector = VariableCollector.empty();
+  private VariableCollector variableCollector;
 
   public DartiumDebugValue(DartiumDebugTarget target, DartiumDebugVariable variable,
       WebkitRemoteObject value) {
@@ -49,7 +51,9 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     this.variable = variable;
     this.value = value;
 
-    populate();
+    if (!value.isList()) {
+      populate();
+    }
   }
 
   public void computeDetail(final ValueCallback callback) {
@@ -105,7 +109,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       return value.getValue();
     }
 
-    if (isList()) {
+    if (isListValue()) {
       if (value.getClassName() != null) {
         return value.getClassName() + "[" + getListLength() + "]";
       } else {
@@ -136,6 +140,10 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public IVariable[] getVariables() throws DebugException {
+    if (variableCollector == null) {
+      populate();
+    }
+
     try {
       return variableCollector.getVariables();
     } catch (InterruptedException e) {
@@ -149,7 +157,11 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public boolean hasVariables() throws DebugException {
-    return value.hasObjectId();
+    if (isListValue()) {
+      return getListLength() > 0;
+    } else {
+      return value.hasObjectId();
+    }
   }
 
   @Override
@@ -157,7 +169,8 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     return true;
   }
 
-  public boolean isList() {
+  @Override
+  public boolean isListValue() {
     return value.isList();
   }
 
@@ -193,10 +206,19 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   private void populate() {
     if (value.hasObjectId()) {
-      variableCollector = VariableCollector.createCollector(
-          getTarget(),
-          variable,
-          Collections.singletonList(value));
+      // TODO(devoncarew): this prevents crashes in the editor and Dartium, but a better
+      // solution is needed. That solution will likely involve use of the Runtime.callFunctionOn
+      // method. See https://code.google.com/p/dart/issues/detail?id=7794.
+      if (value.isList() && getListLength() > MAX_DISPLAYABLE_LIST_LENGTH) {
+        variableCollector = VariableCollector.empty();
+      } else {
+        variableCollector = VariableCollector.createCollector(
+            getTarget(),
+            variable,
+            Collections.singletonList(value));
+      }
+    } else {
+      variableCollector = VariableCollector.empty();
     }
   }
 
