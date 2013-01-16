@@ -16,11 +16,13 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartCatchBlock;
+import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartForStatement;
 import com.google.dart.compiler.ast.DartFunction;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -54,6 +56,10 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
 
     public abstract Element getSymbol();
 
+    public boolean isFunction() {
+      return false;
+    }
+
     public boolean isParameter() {
       return false;
     }
@@ -80,7 +86,34 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     public FieldElement getSymbol() {
       return field.getElement();
     }
+  }
 
+  private static class Function extends ScopedName {
+    private DartFunctionExpression method;
+
+    Function(DartFunctionExpression method) {
+      this.method = method;
+    }
+
+    @Override
+    public String getName() {
+      return method.getElement().getName();
+    }
+
+    @Override
+    public DartNode getNode() {
+      return method;
+    }
+
+    @Override
+    public Element getSymbol() {
+      return method.getElement();
+    }
+
+    @Override
+    public boolean isFunction() {
+      return true;
+    }
   }
 
   private static class Method extends ScopedName {
@@ -104,7 +137,6 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     public Element getSymbol() {
       return method.getElement();
     }
-
   }
 
   private static class Param extends ScopedName {
@@ -269,6 +301,17 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
     }
   }
 
+  private void addToScope(DartFunctionExpression func) {
+    if (!isInRange(func)) {
+      return;
+    }
+    String name = func.getFunctionName();
+    if (locals.get(name) != null) {
+      return;
+    }
+    locals.put(name, new Function(func));
+  }
+
   private void addToScope(DartMethodDefinition method) {
     boolean notTopLevel = method.getParent() != null && !(method.getParent() instanceof DartUnit);
     if (notTopLevel && !isInRange(method.getName())) {
@@ -319,6 +362,11 @@ public class ScopedNameFinder extends ASTVisitor<Void> {
       }
       if (stmt instanceof DartVariableStatement) {
         addVariables((DartVariableStatement) stmt);
+      } else if (stmt instanceof DartExprStmt) {
+        DartExprStmt expr = (DartExprStmt) stmt;
+        if (expr.getExpression() instanceof DartFunctionExpression) {
+          addToScope((DartFunctionExpression) expr.getExpression());
+        }
       }
     }
   }

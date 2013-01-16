@@ -2263,6 +2263,16 @@ public class CompletionEngine {
         members = getAllElements(type);
         break;
     }
+    if (node != null) {
+      ScopedNameFinder vars = new ScopedNameFinder(actualCompletionPosition);
+      node.accept(vars);
+      Map<String, ScopedName> localNames = vars.getLocals();
+      for (ScopedName para : localNames.values()) {
+        if (para.isFunction()) {
+          members.add(para.getSymbol());
+        }
+      }
+    }
     Set<String> previousNames = new HashSet<String>(members.size());
     previousNames.add(NO_SUCH_METHOD);
     for (Element elem : members) {

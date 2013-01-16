@@ -739,6 +739,10 @@ public class CompletionEngineTest extends TestCase {
     test("class Z extends List with !1Ma!2p {}", "1+List", "1+Map", "2+Map", "2-List");
   }
 
+  public void testCommentSnippets086() throws Exception {
+    test("class Q{f(){xy() {};x!1y();}}", "1+xy");
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
