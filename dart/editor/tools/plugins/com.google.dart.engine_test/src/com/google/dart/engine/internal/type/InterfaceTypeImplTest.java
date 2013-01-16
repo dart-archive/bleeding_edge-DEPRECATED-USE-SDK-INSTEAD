@@ -450,6 +450,86 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(type.isMoreSpecificThan(type));
   }
 
+  public void test_isSubtypeOf_directSubtype() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    assertTrue(typeB.isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(typeB));
+  }
+
+  public void test_isSubtypeOf_dynamic() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    assertTrue(InterfaceTypeImpl.getDynamic().isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(InterfaceTypeImpl.getDynamic()));
+  }
+
+  public void test_isSubtypeOf_indirectSubtype() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElement elementC = classElement("C", elementB.getType());
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    assertTrue(typeC.isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(typeC));
+  }
+
+  public void test_isSubtypeOf_object() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    assertTrue(typeA.isSubtypeOf(typeObject));
+    assertFalse(typeObject.isSubtypeOf(typeA));
+  }
+
+  public void test_isSubtypeOf_self() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    assertTrue(typeA.isSubtypeOf(typeA));
+  }
+
+  public void test_isSupertypeOf_directSupertype() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    assertFalse(typeB.isSupertypeOf(typeA));
+    assertTrue(typeA.isSupertypeOf(typeB));
+  }
+
+  public void test_isSupertypeOf_dynamic() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    assertFalse(InterfaceTypeImpl.getDynamic().isSupertypeOf(typeA));
+    assertTrue(typeA.isSupertypeOf(InterfaceTypeImpl.getDynamic()));
+  }
+
+  public void test_isSupertypeOf_indirectSupertype() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElement elementC = classElement("C", elementB.getType());
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    assertFalse(typeC.isSupertypeOf(typeA));
+    assertTrue(typeA.isSupertypeOf(typeC));
+  }
+
+  public void test_isSupertypeOf_object() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    assertFalse(typeA.isSupertypeOf(typeObject));
+    assertTrue(typeObject.isSupertypeOf(typeA));
+  }
+
+  public void test_isSupertypeOf_self() {
+    ClassElement elementA = classElement("A");
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    assertTrue(typeA.isSupertypeOf(typeA));
+  }
+
   public void test_setTypeArguments() {
     InterfaceTypeImpl type = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
     Type[] typeArguments = new Type[] {

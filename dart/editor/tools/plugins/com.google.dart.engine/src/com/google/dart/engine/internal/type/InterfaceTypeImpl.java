@@ -365,6 +365,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       return false;
     } else if (this.equals(type)) {
       return true;
+    } else if (this.equals(getDynamic())) {
+      return true;
     }
     ClassElement element = getElement();
     if (element == null) {
@@ -372,7 +374,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
     Type supertype = element.getSupertype();
     if (supertype == null) {
-      // TODO(brianwilkerson) Figure out whether the type is Object and return true if it is.
+      // The type is Object, return false.
       return false;
     }
     return supertype.isSubtypeOf(type);
