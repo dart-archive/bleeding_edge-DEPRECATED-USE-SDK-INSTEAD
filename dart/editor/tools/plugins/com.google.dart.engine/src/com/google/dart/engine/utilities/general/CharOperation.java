@@ -435,4 +435,178 @@ public class CharOperation {
       // Since pattern is also at an uppercase letter
     }
   }
+
+  /**
+   * Return true if the pattern matches the given name, false otherwise. This char[] pattern
+   * matching accepts wild-cards '*' and '?'. When not case sensitive, the pattern is assumed to
+   * already be lowercased, the name will be lowercased character per character as comparing. If
+   * name is null, the answer is false. If pattern is null, the answer is true if name is not null. <br>
+   * <br>
+   * For example:
+   * <ol>
+   * <li>
+   * 
+   * <pre>
+   *    pattern = { '?', 'b', '*' }
+   *    name = { 'a', 'b', 'c' , 'd' }
+   *    isCaseSensitive = true
+   *    result => true
+   * </pre>
+   * </li>
+   * <li>
+   * 
+   * <pre>
+   *    pattern = { '?', 'b', '?' }
+   *    name = { 'a', 'b', 'c' , 'd' }
+   *    isCaseSensitive = true
+   *    result => false
+   * </pre>
+   * </li>
+   * <li>
+   * 
+   * <pre>
+   *    pattern = { 'b', '*' }
+   *    name = { 'a', 'b', 'c' , 'd' }
+   *    isCaseSensitive = true
+   *    result => false
+   * </pre>
+   * </li>
+   * </ol>
+   * 
+   * @param pattern the given pattern
+   * @param name the given name
+   * @param isCaseSensitive flag to know whether or not the matching should be case sensitive
+   * @return true if the pattern matches the given name, false otherwise
+   */
+  public static final boolean match(char[] pattern, char[] name, boolean isCaseSensitive) {
+
+    if (name == null) {
+      return false; // null name cannot match
+    }
+    if (pattern == null) {
+      return true; // null pattern is equivalent to '*'
+    }
+
+    return match(pattern, 0, pattern.length, name, 0, name.length, isCaseSensitive);
+  }
+
+  /**
+   * Return true if a sub-pattern matches the subpart of the given name, false otherwise. char[]
+   * pattern matching, accepting wild-cards '*' and '?'. Can match only subset of name/pattern. end
+   * positions are non-inclusive. The subpattern is defined by the patternStart and pattternEnd
+   * positions. When not case sensitive, the pattern is assumed to already be lowercased, the name
+   * will be lowercased character per character as comparing. <br>
+   * <br>
+   * For example:
+   * <ol>
+   * <li>
+   * 
+   * <pre>
+   *    pattern = { '?', 'b', '*' }
+   *    patternStart = 1
+   *    patternEnd = 3
+   *    name = { 'a', 'b', 'c' , 'd' }
+   *    nameStart = 1
+   *    nameEnd = 4
+   *    isCaseSensitive = true
+   *    result => true
+   * </pre>
+   * </li>
+   * <li>
+   * 
+   * <pre>
+   *    pattern = { '?', 'b', '*' }
+   *    patternStart = 1
+   *    patternEnd = 2
+   *    name = { 'a', 'b', 'c' , 'd' }
+   *    nameStart = 1
+   *    nameEnd = 2
+   *    isCaseSensitive = true
+   *    result => false
+   * </pre>
+   * </li>
+   * </ol>
+   * 
+   * @param pattern the given pattern
+   * @param patternStart the given pattern start
+   * @param patternEnd the given pattern end
+   * @param name the given name
+   * @param nameStart the given name start
+   * @param nameEnd the given name end
+   * @param isCaseSensitive flag to know if the matching should be case sensitive
+   * @return true if a sub-pattern matches the subpart of the given name, false otherwise
+   */
+  public static final boolean match(char[] pattern, int patternStart, int patternEnd, char[] name,
+      int nameStart, int nameEnd, boolean isCaseSensitive) {
+
+    if (name == null) {
+      return false; // null name cannot match
+    }
+    if (pattern == null) {
+      return true; // null pattern is equivalent to '*'
+    }
+    int iPattern = patternStart;
+    int iName = nameStart;
+
+    if (patternEnd < 0) {
+      patternEnd = pattern.length;
+    }
+    if (nameEnd < 0) {
+      nameEnd = name.length;
+    }
+
+    /* check first segment */
+    char patternChar = 0;
+    while ((iPattern < patternEnd) && (patternChar = pattern[iPattern]) != '*') {
+      if (iName == nameEnd) {
+        return false;
+      }
+      if (patternChar != (isCaseSensitive ? name[iName] : toLowerCase(name[iName]))
+          && patternChar != '?') {
+        return false;
+      }
+      iName++;
+      iPattern++;
+    }
+    /* check sequence of star+segment */
+    int segmentStart;
+    if (patternChar == '*') {
+      segmentStart = ++iPattern; // skip star
+    } else {
+      segmentStart = 0; // force iName check
+    }
+    int prefixStart = iName;
+    checkSegment : while (iName < nameEnd) {
+      if (iPattern == patternEnd) {
+        iPattern = segmentStart; // mismatch - restart current segment
+        iName = ++prefixStart;
+        continue checkSegment;
+      }
+      /* segment is ending */
+      if ((patternChar = pattern[iPattern]) == '*') {
+        segmentStart = ++iPattern; // skip start
+        if (segmentStart == patternEnd) {
+          return true;
+        }
+        prefixStart = iName;
+        continue checkSegment;
+      }
+      /* check current name character */
+      if ((isCaseSensitive ? name[iName] : toLowerCase(name[iName])) != patternChar
+          && patternChar != '?') {
+        iPattern = segmentStart; // mismatch - restart current segment
+        iName = ++prefixStart;
+        continue checkSegment;
+      }
+      iName++;
+      iPattern++;
+    }
+
+    return (segmentStart == patternEnd) || (iName == nameEnd && iPattern == patternEnd)
+        || (iPattern == patternEnd - 1 && pattern[iPattern] == '*');
+  }
+
+  private static char toLowerCase(char c) {
+    return Character.toLowerCase(c);
+  }
 }

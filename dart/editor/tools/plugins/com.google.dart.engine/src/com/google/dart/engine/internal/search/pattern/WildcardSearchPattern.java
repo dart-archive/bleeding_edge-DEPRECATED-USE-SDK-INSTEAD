@@ -16,9 +16,7 @@ package com.google.dart.engine.internal.search.pattern;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.MatchQuality;
 import com.google.dart.engine.search.SearchPattern;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOCase;
+import com.google.dart.engine.utilities.general.CharOperation;
 
 /**
  * Instances of the class <code>WildcardSearchPattern</code> implement a search pattern that matches
@@ -30,12 +28,12 @@ public class WildcardSearchPattern implements SearchPattern {
   /**
    * The pattern that matching elements must match.
    */
-  private final String pattern;
+  private char[] pattern;
 
   /**
-   * Case sensitivity object.
+   * A flag indicating whether a case sensitive match is to be performed.
    */
-  private final IOCase caseSensitivity;
+  private boolean caseSensitive;
 
   /**
    * Initialize a newly created search pattern to match elements whose names begin with the given
@@ -45,8 +43,8 @@ public class WildcardSearchPattern implements SearchPattern {
    * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
    */
   public WildcardSearchPattern(String pattern, boolean caseSensitive) {
-    this.pattern = pattern;
-    this.caseSensitivity = caseSensitive ? IOCase.SENSITIVE : IOCase.INSENSITIVE;
+    this.pattern = caseSensitive ? pattern.toCharArray() : pattern.toLowerCase().toCharArray();
+    this.caseSensitive = caseSensitive;
   }
 
   @Override
@@ -58,7 +56,7 @@ public class WildcardSearchPattern implements SearchPattern {
     if (name == null) {
       return null;
     }
-    if (FilenameUtils.wildcardMatch(name, pattern, caseSensitivity)) {
+    if (CharOperation.match(pattern, name.toCharArray(), caseSensitive)) {
       return MatchQuality.EXACT;
     }
     return null;

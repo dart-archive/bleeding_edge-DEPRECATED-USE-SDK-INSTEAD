@@ -136,4 +136,64 @@ public class CharOperationTest extends TestCase {
   public void test_camelCaseMatch7_nullPattern() {
     assertTrue(CharOperation.camelCaseMatch(null, 0, -1, "justAnything".toCharArray(), 0, -1, true));
   }
+
+  public void test_match3_notPattern_caseMismatch_caseInsensitive() throws Exception {
+    assertTrue(CharOperation.match("abc".toCharArray(), "AbC".toCharArray(), false));
+  }
+
+  public void test_match3_notPattern_caseMismatch_caseSensitive() throws Exception {
+    assertFalse(CharOperation.match("abc".toCharArray(), "AbC".toCharArray(), true));
+  }
+
+  public void test_match3_notPattern_equals() throws Exception {
+    assertTrue(CharOperation.match("abc".toCharArray(), "abc".toCharArray(), true));
+  }
+
+  public void test_match3_notPattern_nameTooShort() throws Exception {
+    assertFalse(CharOperation.match("abcd".toCharArray(), "abc".toCharArray(), true));
+  }
+
+  public void test_match3_nullName() throws Exception {
+    assertFalse(CharOperation.match("*".toCharArray(), null, true));
+  }
+
+  public void test_match3_nullPattern() throws Exception {
+    assertTrue(CharOperation.match(null, "anything".toCharArray(), true));
+  }
+
+  public void test_match3_question() throws Exception {
+    assertTrue(CharOperation.match("ab?d".toCharArray(), "abcd".toCharArray(), true));
+  }
+
+  public void test_match3_star_anyName() throws Exception {
+    assertTrue(CharOperation.match("*".toCharArray(), "abc".toCharArray(), true));
+  }
+
+  public void test_match3_star_suffixMatch() throws Exception {
+    assertTrue(CharOperation.match("*D".toCharArray(), "abcD".toCharArray(), true));
+  }
+
+  public void test_match3_star_suffixMismatch() throws Exception {
+    assertFalse(CharOperation.match("*D".toCharArray(), "abcE".toCharArray(), true));
+  }
+
+  public void test_match3_star2_noSuffix() throws Exception {
+    assertTrue(CharOperation.match("*D*".toCharArray(), "abcDefg".toCharArray(), true));
+  }
+
+  public void test_match3_star2_suffixMatch() throws Exception {
+    assertTrue(CharOperation.match("*D*H".toCharArray(), "abcDefgH".toCharArray(), true));
+  }
+
+  public void test_match7_notPattern_equals() throws Exception {
+    assertTrue(CharOperation.match("abc".toCharArray(), 0, -1, "abc".toCharArray(), 0, -1, true));
+  }
+
+  public void test_match7_nullName() throws Exception {
+    assertFalse(CharOperation.match("*".toCharArray(), 0, -1, null, 0, -1, true));
+  }
+
+  public void test_match7_nullPattern() throws Exception {
+    assertTrue(CharOperation.match(null, 0, -1, "anything".toCharArray(), 0, -1, true));
+  }
 }
