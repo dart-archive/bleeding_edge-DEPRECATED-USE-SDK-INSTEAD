@@ -530,6 +530,7 @@
                 <arg value="${build.stage}/workspace" />
                 <arg value="-application" />
                 <arg value="org.eclipse.ant.core.antRunner" />
+                <arg value="-quiet" />
                 <arg value="-f" />
                 <arg value="@{script}" />
                 <arg value="-Dbuilder=@{builddir}" />
