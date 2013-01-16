@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.type.InterfaceType;
@@ -33,24 +34,26 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object.
    * 
-   * @see #computeLongestInheritancePathToObject(Type, int)
-   * @see InterfaceType#getLeastUpperBound(Type)
    * @param type the {@link Type} to compute the longest inheritance path of from the passed
    *          {@link Type} to Object
    * @return the computed longest inheritance path to Object
+   * @see #computeLongestInheritancePathToObject(Type, int)
+   * @see InterfaceType#getLeastUpperBound(Type)
    */
+  @VisibleForTesting
   public static int computeLongestInheritancePathToObject(Type type) {
-    return computeLongestInheritancePathToObject(type, 1);
+    return computeLongestInheritancePathToObject(type, 0);
   }
 
   /**
    * Returns the set of all superinterfaces of the passed {@link Type}.
    * 
-   * @see #computeSuperinterfaceSet(Type, HashSet)
-   * @see #getLeastUpperBound(Type)
    * @param type the {@link Type} to compute the set of superinterfaces of
    * @return the {@link Set} of superinterfaces of the passed {@link Type}
+   * @see #computeSuperinterfaceSet(Type, HashSet)
+   * @see #getLeastUpperBound(Type)
    */
+  @VisibleForTesting
   public static Set<Type> computeSuperinterfaceSet(Type type) {
     return computeSuperinterfaceSet(type, new HashSet<Type>());
   }
@@ -60,44 +63,53 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * method calls itself recursively, callers should use the public method
    * {@link #computeLongestInheritancePathToObject(Type)}.
    * 
-   * @see #computeLongestInheritancePathToObject(Type)
-   * @see #getLeastUpperBound(Type)
    * @param type the {@link Type} to compute the longest inheritance path of from the passed
    *          {@link Type} to Object
    * @param depth a field used recursively
    * @return the computed longest inheritance path to Object
+   * @see #computeLongestInheritancePathToObject(Type)
+   * @see #getLeastUpperBound(Type)
    */
   private static int computeLongestInheritancePathToObject(Type type, int depth) {
     if (!(type instanceof InterfaceType)) {
       return 0;
     }
     ClassElement classElement = ((InterfaceType) type).getElement();
+    // Object case
+    if (classElement.getSupertype() == null) {
+      return depth;
+    }
     Type[] superinterfaces = classElement.getInterfaces();
-    int longestPath = 0;
+    int longestPath = 1;
+    int pathLength;
     if (superinterfaces.length > 0) {
       // loop through each of the superinterfaces recursively calling this method and keeping track
       // of the longest path to return
       for (Type superinterface : superinterfaces) {
-        int pathLength = computeLongestInheritancePathToObject(superinterface, depth + 1);
+        pathLength = computeLongestInheritancePathToObject(superinterface, depth + 1);
         if (pathLength > longestPath) {
           longestPath = pathLength;
         }
       }
-      return longestPath;
-    } else {
-      return depth;
     }
+    // finally, perform this same check on the super type
+    Type supertype = classElement.getSupertype();
+    pathLength = computeLongestInheritancePathToObject(supertype, depth + 1);
+    if (pathLength > longestPath) {
+      longestPath = pathLength;
+    }
+    return longestPath;
   }
 
   /**
    * Returns the set of all superinterfaces of the passed {@link Type}. This is a recursive method,
    * callers should call the public {@link #computeSuperinterfaceSet(Type)}.
    * 
-   * @see #computeSuperinterfaceSet(Type)
-   * @see #getLeastUpperBound(Type)
    * @param type the {@link Type} to compute the set of superinterfaces of
    * @param set a {@link HashSet} used recursively by this method
    * @return the {@link Set} of superinterfaces of the passed {@link Type}
+   * @see #computeSuperinterfaceSet(Type)
+   * @see #getLeastUpperBound(Type)
    */
   private static Set<Type> computeSuperinterfaceSet(Type type, HashSet<Type> set) {
     Element element = type.getElement();
@@ -107,6 +119,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       for (Type superinterface : superinterfaces) {
         set.add(superinterface);
         computeSuperinterfaceSet(superinterface, set);
+      }
+      Type supertype = classElement.getSupertype();
+      if (supertype != null) {
+        set.add(supertype);
+        computeSuperinterfaceSet(supertype, set);
       }
     }
     return set;
