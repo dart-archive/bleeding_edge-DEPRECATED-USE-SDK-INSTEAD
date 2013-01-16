@@ -14,9 +14,11 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
@@ -50,6 +52,44 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     store.clear();
     assertEquals(0, store.getElementCount());
     assertEquals(0, store.getRelationshipCount());
+  }
+
+  public void test_findSource_ClassElement() throws Exception {
+    Source source = mock(Source.class);
+    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    when(unitElement.getSource()).thenReturn(source);
+    ClassElement classElement = mock(ClassElement.class);
+    when(classElement.getEnclosingElement()).thenReturn(unitElement);
+    // validate
+    assertSame(source, MemoryIndexStoreImpl.findSource(unitElement));
+  }
+
+  public void test_findSource_CompilationUnitElement() throws Exception {
+    Source source = mock(Source.class);
+    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    when(unitElement.getSource()).thenReturn(source);
+    // validate
+    assertSame(source, MemoryIndexStoreImpl.findSource(unitElement));
+  }
+
+  public void test_findSource_LibraryElement_noDefiningUnit() throws Exception {
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    // validate
+    assertSame(null, MemoryIndexStoreImpl.findSource(libraryElement));
+  }
+
+  public void test_findSource_LibraryElement_withDefiningUnit() throws Exception {
+    Source source = mock(Source.class);
+    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    when(libraryElement.getDefiningCompilationUnit()).thenReturn(unitElement);
+    when(unitElement.getSource()).thenReturn(source);
+    // validate
+    assertSame(source, MemoryIndexStoreImpl.findSource(libraryElement));
+  }
+
+  public void test_findSource_null() throws Exception {
+    assertSame(null, MemoryIndexStoreImpl.findSource(null));
   }
 
   public void test_getElementCount() throws Exception {
