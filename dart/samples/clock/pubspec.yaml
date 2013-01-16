@@ -1,0 +1,4 @@
+name: clock
+description: An html5 clock using absolutely positioned elements
+dependencies:
+  browser: any

@@ -1,0 +1,4 @@
+name: sunflower
+description: "drfibonacci's Sunflower Spectacular"
+dependencies:
+  browser: any

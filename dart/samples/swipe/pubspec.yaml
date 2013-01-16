@@ -1,0 +1,4 @@
+name: swipe
+description: A demo using touch gestures and CSS 3D transforms
+dependencies:
+  browser: any

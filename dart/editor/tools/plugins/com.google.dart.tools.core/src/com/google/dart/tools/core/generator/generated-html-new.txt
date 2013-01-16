@@ -8,6 +8,7 @@
   <body>   
     <p id="text"></p>
     <script type="application/dart" src="%dartSrcPath%.dart"></script>
-    <script src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/pkg/browser/lib/dart.js"></script>
+    <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
+    <script src="packages/browser/dart.js"></script>
   </body>
 </html>

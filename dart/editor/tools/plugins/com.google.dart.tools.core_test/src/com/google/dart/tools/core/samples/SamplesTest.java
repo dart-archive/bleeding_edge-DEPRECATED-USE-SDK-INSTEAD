@@ -62,10 +62,7 @@ public class SamplesTest extends TestCase {
     void logParse(long elapseTime, String... comments);
   }
 
-  private static final String[] JS_DART_TRIGGERS = new String[] {
-      "http://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js", // most common
-      "dart.js", // used by Total
-  };
+  private static final String[] JS_DART_TRIGGERS = new String[] {"dart.js"};
 
   // TODO (danrubel) dynamically build this list from ???
   private static HashSet<String> KNOWN_DART_LIBS = new HashSet<String>();
