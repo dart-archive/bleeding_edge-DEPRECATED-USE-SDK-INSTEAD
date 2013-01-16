@@ -53,29 +53,6 @@ public class DartModelImpl extends OpenableElementImpl implements DartModel {
   }
 
   @Override
-  public boolean contains(IResource resource) {
-    switch (resource.getType()) {
-      case IResource.ROOT:
-      case IResource.PROJECT:
-        return true;
-    }
-    // file or folder
-    DartProject[] projects;
-    try {
-      projects = getDartProjects();
-    } catch (DartModelException e) {
-      return false;
-    }
-    for (int i = 0, length = projects.length; i < length; i++) {
-      DartProjectImpl project = (DartProjectImpl) projects[i];
-      if (!project.contains(resource)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
   public void copy(DartElement[] elements, DartElement[] containers, DartElement[] siblings,
       String[] renamings, boolean replace, IProgressMonitor monitor) throws DartModelException {
     DartCore.notYetImplemented();

@@ -24,21 +24,6 @@ import java.util.List;
  * to the workspace.
  */
 public interface DartModel extends DartElement {
-  /**
-   * Return <code>true</code> if this Dart model contains a <code>DartElement</code> whose resource
-   * is the given resource or a non-Dart resource which is the given resource.
-   * <p>
-   * Note: no existence check is performed on the argument resource. If it is not accessible (see
-   * <code>IResource.isAccessible()</code>) yet but would be located in Dart model range, then this
-   * method will return <code>true</code>.
-   * <p>
-   * If the resource is accessible, it can be reached by navigating the Dart model down using the
-   * <code>getChildren()</code> and/or <code>getNonJavaResources()</code> methods.
-   * 
-   * @param resource the resource to check
-   * @return <code>true</code> if the resource is accessible through the Dart model
-   */
-  public boolean contains(IResource resource);
 
   /**
    * Copies the given elements to the specified container(s). If one container is specified, all
