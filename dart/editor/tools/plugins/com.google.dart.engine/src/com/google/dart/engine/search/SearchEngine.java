@@ -318,60 +318,60 @@ public interface SearchEngine {
 //   */
 //  public void searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter,
 //      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for all of the type declarations that are defined in the given scope and
-//   * match the given pattern. Return all matches that pass the optional filter.
-//   * 
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param pattern the pattern used to determine which type declarations are to be returned
-//   * @param filter the filter used to determine which matches should be passed to the listener, or
-//   *          <code>null</code> if all of the matches should be passed to the listener
-//   * @return the matches that were found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for all of the type declarations that are defined in the given scope and match the given
-//   * pattern.
-//   * 
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param pattern the pattern used to determine which type declarations are to be returned
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for all variables matching the given pattern within the given scope.
-//   * Return all matches that pass the optional filter.
-//   * 
-//   * @param scope the scope containing the variable declarations to be searched
-//   * @param pattern the pattern used to determine which variable declarations are to be returned
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for all variables matching the given pattern within the given scope.
-//   * 
-//   * @param scope the scope containing the variable declarations to be searched
-//   * @param pattern the pattern used to determine which variable declarations are to be returned
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-//      SearchFilter filter, SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for all of the type declarations that are defined in the given scope and
+   * match the given pattern. Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the type declarations to be searched
+   * @param pattern the pattern used to determine which type declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener, or
+   *          <code>null</code> if all of the matches should be passed to the listener
+   * @return the matches that were found
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for all of the type declarations that are defined in the given scope and match the given
+   * pattern.
+   * 
+   * @param scope the scope containing the type declarations to be searched
+   * @param pattern the pattern used to determine which type declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for all variables matching the given pattern within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the variable declarations to be searched
+   * @param pattern the pattern used to determine which variable declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for all variables matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the variable declarations to be searched
+   * @param pattern the pattern used to determine which variable declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener) throws SearchException;
 }

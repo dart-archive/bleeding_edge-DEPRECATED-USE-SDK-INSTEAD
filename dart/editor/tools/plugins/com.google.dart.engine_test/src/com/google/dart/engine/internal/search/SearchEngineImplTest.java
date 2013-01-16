@@ -188,6 +188,102 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
   }
 
+  public void test_searchTypeDeclarations_async() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
+    }
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchTypeDeclarationsAsync();
+    // verify
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+  }
+
+  public void test_searchTypeDeclarations_class() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
+    }
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchTypeDeclarationsSync();
+    // verify
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+  }
+
+  public void test_searchTypeDeclarations_classAlias() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS_ALIAS, locationA);
+    }
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchTypeDeclarationsSync();
+    // verify
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+  }
+
+  public void test_searchTypeDeclarations_functionType() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION_TYPE, locationA);
+    }
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchTypeDeclarationsSync();
+    // verify
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+  }
+
+  public void test_searchVariableDeclarations() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    defineVariablesAB(library);
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchVariableDeclarationsSync();
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+  }
+
+  public void test_searchVariableDeclarations_async() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    defineVariablesAB(library);
+    scope = new LibrarySearchScope(library);
+    // search matches
+    List<SearchMatch> matches = searchVariableDeclarationsAsync();
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+  }
+
+  public void test_searchVariableDeclarations_usePattern() throws Exception {
+    LibraryElement library = mock(LibraryElement.class);
+    defineVariablesAB(library);
+    scope = new LibrarySearchScope(library);
+    // search "A"
+    {
+      pattern = SearchPatternFactory.createExactPattern("A", true);
+      List<SearchMatch> matches = searchVariableDeclarationsSync();
+      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+    }
+    // search "B"
+    {
+      pattern = SearchPatternFactory.createExactPattern("B", true);
+      List<SearchMatch> matches = searchVariableDeclarationsSync();
+      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+    }
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -203,6 +299,17 @@ public class SearchEngineImplTest extends EngineTestCase {
     {
       Location locationB = new Location(elementB, 10, 20, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION, locationB);
+    }
+  }
+
+  private void defineVariablesAB(LibraryElement library) {
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationB);
     }
   }
 
@@ -272,5 +379,21 @@ public class SearchEngineImplTest extends EngineTestCase {
 
   private List<SearchMatch> searchFunctionDeclarationsSync() throws Exception {
     return doSearchSync("searchFunctionDeclarations");
+  }
+
+  private List<SearchMatch> searchTypeDeclarationsAsync() throws Exception {
+    return doSearchAsync("searchTypeDeclarations");
+  }
+
+  private List<SearchMatch> searchTypeDeclarationsSync() throws Exception {
+    return doSearchSync("searchTypeDeclarations");
+  }
+
+  private List<SearchMatch> searchVariableDeclarationsAsync() throws Exception {
+    return doSearchAsync("searchVariableDeclarations");
+  }
+
+  private List<SearchMatch> searchVariableDeclarationsSync() throws Exception {
+    return doSearchSync("searchVariableDeclarations");
   }
 }

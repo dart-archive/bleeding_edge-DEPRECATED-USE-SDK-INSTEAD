@@ -544,53 +544,47 @@ public class SearchEngineImpl implements SearchEngine {
 ////        IndexConstants.IMPLEMENTS,
 ////        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
 ////  }
-//
-//  @Override
-//  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, final SearchPattern pattern,
-//      final SearchFilter filter) throws SearchException {
-//    final Element[] elements = createElements(scope);
-//    return gatherResults(new SearchRunner() {
-//      @Override
-//      public void performSearch(SearchListener listener) throws SearchException {
-//        searchTypeDeclarations(elements, pattern, filter, listener);
-//      }
-//    });
-//  }
-//
-//  @Override
-//  public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
-//      SearchListener listener) throws SearchException {
-//    searchTypeDeclarations(createElements(scope), pattern, filter, listener);
-//  }
-//
-////  @Override
-////  public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
-////      SearchListener listener) throws SearchException {
-////    searchTypeDeclarations(scope, pattern, null, listener);
-////  }
-//
-//  @Override
-//  public List<SearchMatch> searchVariableDeclarations(final SearchScope scope,
-//      final SearchPattern pattern, final SearchFilter filter) throws SearchException {
-//    final Element[] elements = createElements(scope);
-//    return gatherResults(new SearchRunner() {
-//      @Override
-//      public void performSearch(SearchListener listener) throws SearchException {
-//        searchVariableDeclarations(elements, pattern, filter, listener);
-//      }
-//    });
-//  }
-//
-//  @Override
-//  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-//      SearchFilter filter, SearchListener listener) throws SearchException {
-//    searchVariableDeclarations(createElements(scope), pattern, filter, listener);
-//  }
 
   @Override
   public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter, SearchListener listener) throws SearchException {
     searchFunctionDeclarations(createElements(scope), pattern, filter, listener);
+  }
+
+  @Override
+  public List<SearchMatch> searchTypeDeclarations(SearchScope scope, final SearchPattern pattern,
+      final SearchFilter filter) throws SearchException {
+    final Element[] elements = createElements(scope);
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchTypeDeclarations(elements, pattern, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
+      SearchListener listener) throws SearchException {
+    searchTypeDeclarations(createElements(scope), pattern, filter, listener);
+  }
+
+  @Override
+  public List<SearchMatch> searchVariableDeclarations(final SearchScope scope,
+      final SearchPattern pattern, final SearchFilter filter) throws SearchException {
+    final Element[] elements = createElements(scope);
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchVariableDeclarations(elements, pattern, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener) throws SearchException {
+    searchVariableDeclarations(createElements(scope), pattern, filter, listener);
   }
 
   /**
@@ -810,47 +804,39 @@ public class SearchEngineImpl implements SearchEngine {
 ////          filteredListener));
 ////    }
 ////  }
-//
-//  private void searchTypeDeclarations(Element[] elements, SearchPattern pattern,
-//      SearchFilter filter, SearchListener listener) throws SearchException {
-//    if (listener == null) {
-//      throw new IllegalArgumentException("listener cannot be null");
-//    }
-//    SearchListener filteredListener = new CountingSearchListener(elements.length * 4, applyFilter(
-//        filter,
-//        applyPattern(pattern, listener)));
-//    for (Element element : elements) {
-//      index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
-//          MatchKind.NOT_A_REFERENCE,
-//          filteredListener));
-//      index.getRelationships(
-//          element,
-//          IndexConstants.DEFINES_CLASS_ALIAS,
-//          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-//      index.getRelationships(
-//          element,
-//          IndexConstants.DEFINES_FUNCTION_TYPE,
-//          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-//      index.getRelationships(
-//          element,
-//          IndexConstants.DEFINES_INTERFACE,
-//          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-//    }
-//  }
-//
-//  private void searchVariableDeclarations(Element[] elements, SearchPattern pattern,
-//      SearchFilter filter, SearchListener listener) throws SearchException {
-//    if (listener == null) {
-//      throw new IllegalArgumentException("listener cannot be null");
-//    }
-//    SearchListener filteredListener = new CountingSearchListener(elements.length, applyFilter(
-//        filter,
-//        applyPattern(pattern, listener)));
-//    for (Element element : elements) {
-//      index.getRelationships(
-//          element,
-//          IndexConstants.DEFINES_VARIABLE,
-//          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, filteredListener));
-//    }
-//  }
+
+  private void searchTypeDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener) throws SearchException {
+    assert listener != null;
+    listener = applyPattern(pattern, listener);
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(elements.length * 3, listener);
+    for (Element element : elements) {
+      index.getRelationships(element, IndexConstants.DEFINES_CLASS, new RelationshipCallbackImpl(
+          MatchKind.NOT_A_REFERENCE,
+          listener));
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_CLASS_ALIAS,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, listener));
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_FUNCTION_TYPE,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, listener));
+    }
+  }
+
+  private void searchVariableDeclarations(Element[] elements, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener) throws SearchException {
+    assert listener != null;
+    listener = applyPattern(pattern, listener);
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(elements.length, listener);
+    for (Element element : elements) {
+      index.getRelationships(
+          element,
+          IndexConstants.DEFINES_VARIABLE,
+          new RelationshipCallbackImpl(MatchKind.NOT_A_REFERENCE, listener));
+    }
+  }
 }
