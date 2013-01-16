@@ -18,8 +18,7 @@ void glMain(setup, resize, draw) {
   gl = canvas.getContext('experimental-webgl');
 
   // The first 'setup' entry point is called once.
-  setup();
-  resize(canvas.width, canvas.height);
+  setup(canvas.width, canvas.height);
 
   // The second 'render' entry point is called each time the canvas should
   // be re-drawn.

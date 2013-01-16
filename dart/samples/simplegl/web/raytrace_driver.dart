@@ -5,4 +5,7 @@
 import 'gl_driver.dart';
 import 'raytrace.dart';
 
-main() => glMain(setup, resize, draw);
+main() {
+  wrapVertexArray = true;
+  glMain(setup, resize, update);
+}

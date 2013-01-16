@@ -13,6 +13,11 @@ library raytrace;
 import 'gl.dart';
 import 'dart:math' as Math;
 
+// Note: The first line of the fragment shader ("precision mediump float")
+// is not portable. It is required for WebGL and OpenGL ES. Desktop OpenGL
+// does not use precision specifiers. Some desktop systems treat this as a
+// no-op and some treat it as a syntax error. In particular, this line needs
+// to be removed to this this shader on a MAc.
 const FRAGMENT_PROGRAM = """
   precision mediump float;
 
@@ -155,6 +160,7 @@ loadShader(final type, final program) {
   gl.compileShader(shader);
   if (gl.getShaderParameter(shader, WebGLRenderingContext.COMPILE_STATUS) != true) {
     final error = gl.getShaderInfoLog(shader);
+    log(error);
     throw new Exception("Shader compilation error: $error");
   }
 
@@ -171,8 +177,10 @@ var sphere3Center;
 var ratio;
 
 void initShaders() {
-  var vertexShader = loadShader(WebGLRenderingContext.VERTEX_SHADER, VERTEX_PROGRAM);
-  var fragmentShader = loadShader(WebGLRenderingContext.FRAGMENT_SHADER, FRAGMENT_PROGRAM);
+  var vertexShader = loadShader(WebGLRenderingContext.VERTEX_SHADER,
+      VERTEX_PROGRAM);
+  var fragmentShader = loadShader(WebGLRenderingContext.FRAGMENT_SHADER,
+      FRAGMENT_PROGRAM);
 
   shaderProgram = gl.createProgram();
   if (shaderProgram == 0) {
@@ -202,6 +210,13 @@ void initShaders() {
   sphere3Center = gl.getUniformLocation(shaderProgram, "sphere3Center");
 }
 
+// TODO(gram): This should go away at some point. For now it is a kludge
+// to allow us to run same .dart file with WebGL and natively; the WebGL
+// version will set this to true.
+var wrapVertexArray = false;
+
+wrapVertices(a) => wrapVertexArray ? (new Float32Array.fromList(a)) : a;
+
 void initBuffers() {
   var vertexPositionBuffer = gl.createBuffer();
   gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vertexPositionBuffer);
@@ -212,22 +227,26 @@ void initBuffers() {
       -1.0, -1.0,
       ];
 
-  gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, new Float32Array.fromList(vertices), WebGLRenderingContext.STATIC_DRAW);
-  gl.vertexAttribPointer(aVertexPosition, 2, WebGLRenderingContext.FLOAT, false, 0, 0);
+  gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, wrapVertices(vertices),
+      WebGLRenderingContext.STATIC_DRAW);
+  gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, vertexPositionBuffer);
+  gl.vertexAttribPointer(aVertexPosition, 2, WebGLRenderingContext.FLOAT,
+      false,0, 0);
 
   var plotPositionBuffer = gl.createBuffer();
   gl.bindBuffer(WebGLRenderingContext.ARRAY_BUFFER, plotPositionBuffer);
-  gl.vertexAttribPointer(aPlotPosition, 3, WebGLRenderingContext.FLOAT, false, 0, 0);
+  gl.vertexAttribPointer(aPlotPosition, 3, WebGLRenderingContext.FLOAT,
+      false, 0, 0);
 }
 
 class Vector {
   var x;
   var y;
   var z;
-
   Vector(this.x, this.y, this.z);
 }
 
+// TODO(gram): This should be using vector_math.
 crossProd(v1, v2) =>
     new Vector(v1.y*v2.z - v2.y*v1.z,
                v1.z*v2.x - v2.z*v1.x,
@@ -285,14 +304,13 @@ void drawScene() {
   var cameraBotRight = vectSub(vectSub(cameraCenter, cameraUp),
              vectMul(cameraLeft, ratio));
 
-  // corners = [1.2, 1, -12, -1.2, 1, -12, 1.2, -1, -12, -1.2, -1, -12];
   var corners = [];
   pushVec(cameraTopRight, corners);
   pushVec(cameraTopLeft, corners);
   pushVec(cameraBotRight, corners);
   pushVec(cameraBotLeft, corners);
-  var cornersArray = new Float32Array.fromList(corners);
-  gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, cornersArray,
+
+  gl.bufferData(WebGLRenderingContext.ARRAY_BUFFER, wrapVertices(corners),
       WebGLRenderingContext.STATIC_DRAW);
 
   gl.uniform3f(cameraPos, cameraFrom.x, cameraFrom.y, cameraFrom.z);
@@ -308,11 +326,12 @@ void drawScene() {
   }
 }
 
-void setup() {
+void setup(int width, int height) {
   initShaders();
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   initBuffers();
+  resize(width, height);
 }
 
 void resize(int width, int height) {
@@ -322,6 +341,25 @@ void resize(int width, int height) {
   drawScene();
 }
 
-void draw() {
+void update() {
   drawScene();
 }
+
+/*
+TODO(gram): below are the current entry points for input events for the
+native code version. We need to integrate these somehow with the WebGL
+version:
+
+onMotionDown(num when, num x, num y) {}
+onMotionUp(num when, num x, num y) {}
+onMotionMove(num when, num x, num y) {}
+onMotionCancel(num when, num x, num y) {}
+onMotionOutside(num when, num x, num y) {}
+onMotionPointerDown(num when, num x, num y) {}
+onMotionPointerUp(num when, num x, num y) {}
+onKeyDown(num when, int flags, int keycode, int metastate, int repeat) {}
+onKeyUp(num when, int flags, int keycode, int metastate, int repeat) {}
+onKeyMultiple(num when, int flags, int keycode, int metastate, int repeat) {
+}
+*/
+

@@ -24,7 +24,7 @@
             android:configChanges="keyboardHidden|orientation|screenSize" >
             <meta-data
                 android:name="android.app.lib_name"
-                android:value="DartNDK" />
+                android:value="android_embedder" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

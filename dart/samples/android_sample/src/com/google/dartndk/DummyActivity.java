@@ -12,12 +12,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 public class DummyActivity extends NativeActivity {
-  static {
-    // TODO(vsm): We should be able to get rid of this here
-    // and specify in xml instead.
-    System.loadLibrary("android_embedder");
-  }
-
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);

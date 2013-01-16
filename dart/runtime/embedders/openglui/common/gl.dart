@@ -10,7 +10,7 @@ void systemSrand(int seed) native "SystemSrand";
 void log(String what) native "Log";
 
 // EGL functions.
-void eglSwapBuffers() native "EGLSwapBuffers";
+void glSwapBuffers() native "SwapBuffers";
 
 // GL functions.
 void glAttachShader(int program, int shader) native "GLAttachShader";
@@ -61,6 +61,7 @@ void glViewport(int x, int y, int width, int height) native "GLViewport";
 int glArrayBuffer() native "GLArrayBuffer";
 int glColorBufferBit() native "GLColorBufferBit";
 int glCompileStatus() native "GLCompileStatus";
+int glDeleteStatus() native "GLDeleteStatus";
 int glDepthBufferBit() native "GLDepthBufferBit";
 int glFloat() native "GLFloat";
 int glFragmentShader() native "GLFragmentShader";
@@ -69,6 +70,7 @@ int glStaticDraw() native "GLStaticDraw";
 int glTriangleStrip() native "GLTriangleStrip";
 int glTriangles() native "GLTriangles";
 int glTrue() native "GLTrue";
+int glValidateStatus() native "GLValidateStatus";
 int glVertexShader() native "GLVertexShader";
 
 String glGetShaderInfoLog(int shader) native "GLGetShaderInfoLog";
@@ -80,15 +82,17 @@ class WebGLRenderingContext {
   static get ARRAY_BUFFER => glArrayBuffer();
   static get COLOR_BUFFER_BIT => glColorBufferBit();
   static get COMPILE_STATUS => glCompileStatus();
+  static get DELETE_STATUS => glDeleteStatus();
   static get DEPTH_BUFFER_BIT => glDepthBufferBit();
   static get FLOAT => glFloat();
   static get FRAGMENT_SHADER => glFragmentShader();
   static get LINK_STATUS => glLinkStatus();
-  static get VERTEX_SHADER => glVertexShader();
   static get STATIC_DRAW => glStaticDraw();
   static get TRUE => glTrue();
   static get TRIANGLE_STRIP => glTriangleStrip();
   static get TRIANGLES => glTriangles();
+  static get VALIDATE_STATUS => glValidateStatus();
+  static get VERTEX_SHADER => glVertexShader();
 
   attachShader(program, shader) => glAttachShader(program, shader);
   bindBuffer(target, buffer) => glBindBuffer(target, buffer);
@@ -104,8 +108,22 @@ class WebGLRenderingContext {
   enableVertexAttribArray(index) => glEnableVertexAttribArray(index);
   getAttribLocation(program, name) => glGetAttribLocation(program, name);
   getError() => glGetError();
-  getProgramParameter(program, name) => glGetProgramParameter(program, name);
-  getShaderParameter(shader, name) => glGetShaderParameter(shader, name);
+  getProgramParameter(program, name) {
+    var rtn = glGetProgramParameter(program, name);
+    if (name == DELETE_STATUS ||
+        name == LINK_STATUS ||
+        name == VALIDATE_STATUS) {
+      return (rtn == 0) ? false : true;
+    }
+    return rtn;
+  }
+  getShaderParameter(shader, name) {
+    var rtn = glGetShaderParameter(shader, name);
+    if (name == DELETE_STATUS || name == COMPILE_STATUS) {
+      return (rtn == 0) ? false : true;
+    }
+    return rtn;
+  }
   getUniformLocation(program, name) => glGetUniformLocation(program, name);
   linkProgram(program) => glLinkProgram(program);
   shaderSource(shader, source) => glShaderSource(shader, source);
@@ -145,4 +163,24 @@ var gl = new WebGLRenderingContext();
 
 void playBackground(String path) native "PlayBackground";
 void stopBackground() native "StopBackground";
+
+//-------------------------------------------------------------------
+// Set up print().
+
+get _printClosure => (s) {
+  try {
+    log(s);
+  } catch (_) {
+    throw(s);
+  }
+};
+
+//------------------------------------------------------------------
+// Temp hack for compat with WebGL.
+
+class Float32Array extends List<double> {
+  Float32Array.fromList(List a) {
+    addAll(a);
+  }
+}
 
