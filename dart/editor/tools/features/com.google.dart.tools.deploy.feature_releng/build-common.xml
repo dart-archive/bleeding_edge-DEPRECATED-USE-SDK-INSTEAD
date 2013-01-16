@@ -524,10 +524,7 @@
             <echo message=" workspace: ${build.stage}/workspace" />
             <echo message=" output:    ${eclipse.pde.build.out}" />
             <echo message=" build.extra.artifacts = ${build.extra.artifacts}" />
-            <java jar="${eclipse.runtime.launcher.jar}" fork="true" 
-                  failonerror="false"
-                  errorproperty="build.eclipse.pde.build.error"
-                  output="${eclipse.pde.build.out}">
+            <java jar="${eclipse.runtime.launcher.jar}" fork="true" failonerror="true">
                 <jvmarg value="-Dbuild.extra.artifacts=${build.extra.artifacts}" />
                 <arg value="-data" />
                 <arg value="${build.stage}/workspace" />
@@ -549,24 +546,6 @@
                 <arg value="-Xms256M" />
                 <arg value="-Xmx512M" />
             </java>
-            
-            <condition property="tmp.pde.output" value="${build.eclipse.pde.output}">
-                <istrue value="${build.running.headless}" />
-            </condition>
-            
-            <echo message="" />
-            <echo message="PDE exited with ${build.eclipse.pde.build.error}" />
-            <echo message="" />
-            
-            <antcall target="displayEclipseOutput" inheritall="true" />
-            
-            <fail message="PDE build Failed">
-                <condition>
-                    <not>
-                        <equals arg1="" arg2="${build.eclipse.pde.build.error}" trim="true" />
-                    </not>
-                </condition>
-            </fail>
         </sequential>
     </macrodef>
 
