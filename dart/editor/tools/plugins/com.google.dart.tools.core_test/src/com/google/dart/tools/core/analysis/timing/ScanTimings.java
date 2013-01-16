@@ -22,6 +22,7 @@ import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
+import com.google.dart.tools.core.internal.builder.ProjectUpdater;
 
 import junit.framework.TestCase;
 
@@ -249,8 +250,8 @@ public class ScanTimings extends TestCase {
       private ProjectImpl project;
 
       @Override
-      protected DeltaProcessor createProcessor(Project project) {
-        return new DeltaProcessor(project) {
+      protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
+        return new DeltaProcessor(project, new ProjectUpdater(project, true)) {
           @Override
           protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
             checkName(name);

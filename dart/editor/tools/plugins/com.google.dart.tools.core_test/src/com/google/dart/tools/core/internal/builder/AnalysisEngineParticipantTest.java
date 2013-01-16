@@ -37,38 +37,34 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
    */
   private class MockDeltaProcessor extends DeltaProcessor {
 
-    private ArrayList<Object[]> called = new ArrayList<Object[]>();
+    private ArrayList<Object> called = new ArrayList<Object>();
 
-    public MockDeltaProcessor(Project project) {
-      super(project);
+    public MockDeltaProcessor(Project project, ProjectUpdater updater) {
+      super(project, updater);
     }
 
     @Override
-    public void traverse(IContainer resource, boolean notifyChanged) throws CoreException {
-      called.add(new Object[] {resource, notifyChanged});
+    public void traverse(IContainer resource) throws CoreException {
+      called.add(resource);
     }
 
     @Override
     public void traverse(IResourceDelta delta) throws CoreException {
-      called.add(new Object[] {delta});
+      called.add(delta);
     }
 
     void assertNoCalls() {
       if (called.size() > 0) {
-        fail("Unexpected call " + called.get(0)[0]);
+        fail("Unexpected call " + called.get(0));
       }
     }
 
-    void assertTraversed(Object arg1, boolean... flags) {
+    void assertTraversed(Object arg) {
       if (called.size() == 0) {
-        fail("Expected traverse " + arg1);
+        fail("Expected traverse " + arg);
       }
-      Object[] call = called.remove(0);
-      assertSame(arg1, call[0]);
-      assertEquals("Unexpected number of arguments", flags.length + 1, call.length);
-      if (flags.length > 0) {
-        assertEquals(flags[0], ((Boolean) call[1]).booleanValue());
-      }
+      Object call = called.remove(0);
+      assertSame(arg, call);
     }
   }
 
@@ -123,10 +119,10 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    protected DeltaProcessor createProcessor(Project project) {
+    protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
       assertNotNull(project);
       if (processor == null) {
-        processor = new MockDeltaProcessor(project);
+        processor = new MockDeltaProcessor(project, new ProjectUpdater(project, notifyChanged));
       }
       return processor;
     }
@@ -144,7 +140,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   public void test_build_delta() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer, false);
+    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
 
@@ -155,11 +151,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
   public void test_build_noDelta() throws Exception {
     participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer, true);
+    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
 
     participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer, true);
+    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
   }
 

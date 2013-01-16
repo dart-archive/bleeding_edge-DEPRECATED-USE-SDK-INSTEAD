@@ -80,7 +80,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         if (monitor.isCanceled()) {
           return false;
         }
-        createProcessor(project).traverse(delta);
+        createProcessor(project, true).traverse(delta);
         return false;
       }
 
@@ -98,7 +98,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
         // Only traverse if not already traversed during initialization
         if (traverse) {
-          createProcessor(project).traverse(resource, true);
+          createProcessor(project, true).traverse(resource);
         }
         return false;
       }
@@ -133,10 +133,12 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * class.
    * 
    * @param project the project for which the processor is created (not {@code null})
+   * @param notifyChanged {@code true} if the context(s) being updated should be modified of changed
+   *          sources via {@link AnalysisContext#sourceChanged(Source)}, or {@code false} if not.
    * @return the delta processor (not {@code null})
    */
-  protected DeltaProcessor createProcessor(Project project) {
-    return new DeltaProcessor(project);
+  protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
+    return new DeltaProcessor(project, new ProjectUpdater(project, notifyChanged));
   }
 
   /**
@@ -162,7 +164,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private void init(IProject resource, boolean notifyChanged) throws CoreException {
     if (project == null) {
       project = createProject(resource);
-      createProcessor(project).traverse(resource, notifyChanged);
+      createProcessor(project, notifyChanged).traverse(resource);
     }
   }
 }
