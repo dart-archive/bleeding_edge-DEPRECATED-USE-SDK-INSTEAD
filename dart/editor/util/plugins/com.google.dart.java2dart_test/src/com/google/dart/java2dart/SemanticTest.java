@@ -357,7 +357,7 @@ public class SemanticTest extends TestCase {
             "    void foo() {",
             "      print(2);",
             "    }",
-            "  };",
+            "  }, DEF;",
             "  private Test() {",
             "  }",
             "  private Test(int p) {",
@@ -370,21 +370,39 @@ public class SemanticTest extends TestCase {
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     CompilationUnit unit = context.translate();
-    printFormattedSource(unit);
     assertEquals(
         toString(
             "class Test {",
-            "  static final Test ONE = new Test();",
-            "  static final Test TWO = new Test.withPriority(2);",
-            "  Test() {",
-            "    _jtd_constructor_0_impl();",
+            "  String __name;",
+            "  int __ordinal = 0;",
+            "  static final Test EOF = new Test_EOF('EOF', 0, 5);",
+            "  static final Test DEF = new Test.con1('DEF', 1);",
+            "  static final List<Test> values = [EOF, DEF];",
+            "  Test.con1(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_0_impl(___name, ___ordinal);",
             "  }",
-            "  _jtd_constructor_0_impl() {",
+            "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
             "  }",
-            "  Test.withPriority(int p) {",
-            "    _jtd_constructor_1_impl(p);",
+            "  Test.con2(String ___name, int ___ordinal, int p) {",
+            "    _jtd_constructor_1_impl(___name, ___ordinal, p);",
             "  }",
-            "  _jtd_constructor_1_impl(int p) {",
+            "  _jtd_constructor_1_impl(String ___name, int ___ordinal, int p) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
+            "  }",
+            "  void foo() {",
+            "    print(1);",
+            "  }",
+            "  String toString() {",
+            "    return __name;",
+            "  }",
+            "}",
+            "class Test_EOF extends Test {",
+            "  Test_EOF(String ___name, int ___ordinal, int p) : super.con2(___name, ___ordinal, p);",
+            "  void foo() {",
+            "    print(2);",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -399,6 +417,7 @@ public class SemanticTest extends TestCase {
             "public enum Test {",
             "  ONE(), TWO(2);",
             "  private Test() {",
+            "    this(0);",
             "  }",
             "  private Test(int p) {",
             "  }",
@@ -411,17 +430,26 @@ public class SemanticTest extends TestCase {
     assertEquals(
         toString(
             "class Test {",
-            "  static final Test ONE = new Test();",
-            "  static final Test TWO = new Test.withPriority(2);",
-            "  Test() {",
-            "    _jtd_constructor_0_impl();",
+            "  String __name;",
+            "  int __ordinal = 0;",
+            "  static final Test ONE = new Test.con1('ONE', 0);",
+            "  static final Test TWO = new Test.withPriority('TWO', 1, 2);",
+            "  static final List<Test> values = [ONE, TWO];",
+            "  Test.con1(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_0_impl(___name, ___ordinal);",
             "  }",
-            "  _jtd_constructor_0_impl() {",
+            "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_1_impl(___name, ___ordinal, 0);",
             "  }",
-            "  Test.withPriority(int p) {",
-            "    _jtd_constructor_1_impl(p);",
+            "  Test.withPriority(String ___name, int ___ordinal, int p) {",
+            "    _jtd_constructor_1_impl(___name, ___ordinal, p);",
             "  }",
-            "  _jtd_constructor_1_impl(int p) {",
+            "  _jtd_constructor_1_impl(String ___name, int ___ordinal, int p) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
+            "  }",
+            "  String toString() {",
+            "    return __name;",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -567,7 +595,6 @@ public class SemanticTest extends TestCase {
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
     CompilationUnit unit = context.translate();
-    printFormattedSource(unit);
     assertEquals(
         toString(
             "class A {",

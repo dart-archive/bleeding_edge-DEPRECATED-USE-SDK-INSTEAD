@@ -37,8 +37,9 @@ public class Config {
   /**
    * Determine the configuration based upon the specified arguments
    * 
-   * @param args the arguments (not {@code null}, contains no {@code null}s)
-   * @return the configuration or {@code null} if there was a problem determining the configuration
+   * @param args the arguments (not <code>null</code>, contains no <code>null</code>s)
+   * @return the configuration or <code>null</code> if there was a problem determining the
+   *         configuration
    */
   public static Config from(String[] args) {
     if (args == null || args.length == 0) {

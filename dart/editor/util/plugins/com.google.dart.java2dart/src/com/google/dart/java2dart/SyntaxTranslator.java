@@ -14,6 +14,8 @@
 
 package com.google.dart.java2dart;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
@@ -96,21 +98,42 @@ import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
 
+import static com.google.dart.java2dart.util.ASTFactory.TOKEN_FINAL;
+import static com.google.dart.java2dart.util.ASTFactory.TOKEN_NEW;
+import static com.google.dart.java2dart.util.ASTFactory.TOKEN_STATIC;
+import static com.google.dart.java2dart.util.ASTFactory.integerLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.listType;
+import static com.google.dart.java2dart.util.ASTFactory.assignmentStatement;
+import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.newFormalParameterList;
+import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
+import static com.google.dart.java2dart.util.ASTFactory.instanceCreation;
+import static com.google.dart.java2dart.util.ASTFactory.listLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.stringLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.typeName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Translates Java AST to Dart AST.
  */
 public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
+
   /**
    * Translates given Java AST into Dart AST.
    */
@@ -148,27 +171,39 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return resultMethod;
   }
 
-  private static TypeName newListType(TypeName elementType, int dimensions) {
-    TypeName listType = elementType;
-    for (int i = 0; i < dimensions; i++) {
-      TypeArgumentList typeArguments = new TypeArgumentList(
-          null,
-          Lists.newArrayList(listType),
-          null);
-      listType = new TypeName(newSimpleIdentifier("List"), typeArguments);
-    }
-    return listType;
+  private static boolean hasConstructorInvocation(org.eclipse.jdt.core.dom.ASTNode node) {
+    final AtomicBoolean result = new AtomicBoolean();
+    node.accept(new ASTVisitor() {
+      @Override
+      public boolean visit(ConstructorInvocation node) {
+        result.set(true);
+        return false;
+      }
+    });
+    return result.get();
   }
 
-  private static SimpleIdentifier newSimpleIdentifier(String name) {
-    return new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0));
+  private static boolean isInEnumConstructor(org.eclipse.jdt.core.dom.ASTNode node) {
+    boolean inConstructor = false;
+    while (node != null) {
+      if (node instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
+        inConstructor = ((org.eclipse.jdt.core.dom.MethodDeclaration) node).isConstructor();
+      }
+      if (node instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
+        return inConstructor;
+      }
+      node = node.getParent();
+    }
+    return false;
   }
 
   private final Context context;
 
-  private MethodDeclaration constructorImpl;
-
   private ASTNode result;
+
+  private final List<CompilationUnitMember> artificialUnitDeclarations = Lists.newArrayList();
+
+  private MethodDeclaration constructorImpl;
 
   private SyntaxTranslator(Context context) {
     this.context = context;
@@ -192,12 +227,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       ConstructorName constructorName = new ConstructorName(
           (TypeName) translate(node.getType()),
           null,
-          newSimpleIdentifier("fixedLength"));
+          simpleIdentifier("fixedLength"));
       ArgumentList arguments = translateArgumentList0(node.dimensions());
-      return done(new InstanceCreationExpression(
-          new KeywordToken(Keyword.NEW, 0),
-          constructorName,
-          arguments));
+      return done(new InstanceCreationExpression(TOKEN_NEW, constructorName, arguments));
     }
   }
 
@@ -211,7 +243,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.ArrayType node) {
     TypeName elementType = translate(node.getElementType());
     int dimensions = node.getDimensions();
-    return done(newListType(elementType, dimensions));
+    return done(listType(elementType, dimensions));
   }
 
   @Override
@@ -327,7 +359,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     IMethodBinding binding = node.resolveConstructorBinding();
     String signature = getBindingSignature(binding);
     InstanceCreationExpression creation = new InstanceCreationExpression(
-        new KeywordToken(Keyword.NEW, 0),
+        TOKEN_NEW,
         new ConstructorName((TypeName) translate(node.getType()), null, null),
         translateArgumentList(binding, node.arguments()));
     context.getConstructorDescription(signature).instanceCreations.add(creation);
@@ -342,6 +374,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       Object javaType = I.next();
       ClassDeclaration dartClass = translate((org.eclipse.jdt.core.dom.ASTNode) javaType);
       declarations.add(dartClass);
+      declarations.addAll(artificialUnitDeclarations);
+      artificialUnitDeclarations.clear();
     }
     return done(new CompilationUnit(null, null, directives, declarations, null));
   }
@@ -366,10 +400,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.ConstructorInvocation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
     String signature = getBindingSignature(binding);
-    SimpleIdentifier nameNode = newSimpleIdentifier("jtdTmp");
+    SimpleIdentifier nameNode = simpleIdentifier("jtdTmp");
     context.getConstructorDescription(signature).implInvocations.add(nameNode);
     // invoke "impl"
     ArgumentList argumentList = translateArgumentList(binding, node.arguments());
+    if (isInEnumConstructor(node)) {
+      argumentList.getArguments().add(0, simpleIdentifier("___ordinal"));
+      argumentList.getArguments().add(0, simpleIdentifier("___name"));
+    }
     MethodInvocation invocation = new MethodInvocation(null, null, nameNode, argumentList);
     return done(new ExpressionStatement(invocation, null));
   }
@@ -410,29 +448,110 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.EnumConstantDeclaration node) {
-    String signature = getBindingSignature(node.resolveConstructorBinding());
+    String fieldName = node.getName().getIdentifier();
+    IMethodBinding constructorBinding = node.resolveConstructorBinding();
+    String constructorSignature = getBindingSignature(constructorBinding);
     // prepare enum name
-    org.eclipse.jdt.core.dom.SimpleName enumTypeName;
+    org.eclipse.jdt.core.dom.EnumDeclaration parentEnum = (org.eclipse.jdt.core.dom.EnumDeclaration) node.getParent();
+    String enumTypeName = parentEnum.getName().getIdentifier();
+    constructorSignature = parentEnum.resolveBinding().getKey()
+        + StringUtils.substringAfter(constructorSignature, ";");
+    // may be create Dart top-level class for Java inner class
+    String innerClassName = null;
     {
-      org.eclipse.jdt.core.dom.EnumDeclaration parentEnum = (org.eclipse.jdt.core.dom.EnumDeclaration) node.getParent();
-      enumTypeName = parentEnum.getName();
+      AnonymousClassDeclaration anoClassDeclaration = node.getAnonymousClassDeclaration();
+      if (anoClassDeclaration != null) {
+        innerClassName = enumTypeName + "_" + fieldName;
+        ClassDeclaration innerClass = new ClassDeclaration(
+            null,
+            null,
+            null,
+            null,
+            simpleIdentifier(innerClassName),
+            null,
+            new ExtendsClause(null, new TypeName(simpleIdentifier(enumTypeName), null)),
+            null,
+            null,
+            null,
+            null,
+            null);
+        artificialUnitDeclarations.add(innerClass);
+        {
+          List<FormalParameter> parameters = Lists.newArrayList();
+          List<Expression> arguments = Lists.newArrayList();
+          {
+            for (Object javaBodyDeclaration : parentEnum.bodyDeclarations()) {
+              if (javaBodyDeclaration instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
+                org.eclipse.jdt.core.dom.MethodDeclaration javaMethod = (org.eclipse.jdt.core.dom.MethodDeclaration) javaBodyDeclaration;
+                if (javaMethod.isConstructor()) {
+                  String javaMethodSignature = getBindingSignature(javaMethod.resolveBinding());
+                  if (Objects.equal(javaMethodSignature, constructorSignature)) {
+                    parameters.add(simpleFormalParameter("String", "___name"));
+                    arguments.add(simpleIdentifier("___name"));
+                    parameters.add(simpleFormalParameter("int", "___ordinal"));
+                    arguments.add(simpleIdentifier("___ordinal"));
+                    for (Object javaParameter0 : javaMethod.parameters()) {
+                      org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (SingleVariableDeclaration) javaParameter0;
+                      TypeName dartParameterType = translate(javaParameter.getType());
+                      String parameterName = javaParameter.getName().getIdentifier();
+                      parameters.add(simpleFormalParameter(dartParameterType, parameterName));
+                      arguments.add(simpleIdentifier(parameterName));
+                    }
+                    break;
+                  }
+                }
+              }
+            }
+          }
+          FormalParameterList parameterList = newFormalParameterList(parameters);
+          ArgumentList argList = new ArgumentList(null, arguments, null);
+          SuperConstructorInvocation superCI = new SuperConstructorInvocation(
+              null,
+              null,
+              null,
+              argList);
+          context.getConstructorDescription(constructorSignature).superInvocations.add(superCI);
+          ConstructorDeclaration innerConstructor = new ConstructorDeclaration(
+              null,
+              null,
+              null,
+              null,
+              null,
+              simpleIdentifier(innerClassName),
+              null,
+              null,
+              parameterList,
+              null,
+              ImmutableList.<ConstructorInitializer> of(superCI),
+              null,
+              new EmptyFunctionBody(null));
+          innerClass.getMembers().add(innerConstructor);
+        }
+        for (Object javaBodyDeclaration : anoClassDeclaration.bodyDeclarations()) {
+          ClassMember classMember = translate((org.eclipse.jdt.core.dom.ASTNode) javaBodyDeclaration);
+          innerClass.getMembers().add(classMember);
+        }
+      }
     }
     // prepare field type
-    TypeName type = new TypeName(translateSimpleName(enumTypeName), null);
+    TypeName type = new TypeName(simpleIdentifier(enumTypeName), null);
     // prepare field variables
     List<VariableDeclaration> variables = Lists.newArrayList();
     {
-      InstanceCreationExpression init = new InstanceCreationExpression(
-          new KeywordToken(Keyword.NEW, 0),
-          new ConstructorName(new TypeName(translateSimpleName(enumTypeName), null), null, null),
-          translateArgumentList0(node.arguments()));
-      context.getConstructorDescription(signature).instanceCreations.add(init);
-      variables.add(new VariableDeclaration(
-          null,
-          null,
-          translateSimpleName(node.getName()),
-          null,
-          init));
+      ArgumentList argList = translateArgumentList0(node.arguments());
+      {
+        int ordinal = parentEnum.enumConstants().indexOf(node);
+        argList.getArguments().add(0, integerLiteral(ordinal));
+        argList.getArguments().add(0, stringLiteral(fieldName));
+      }
+      InstanceCreationExpression init;
+      if (innerClassName == null) {
+        init = instanceCreation(enumTypeName, argList);
+        context.getConstructorDescription(constructorSignature).instanceCreations.add(init);
+      } else {
+        init = instanceCreation(innerClassName, argList);
+      }
+      variables.add(new VariableDeclaration(null, null, simpleIdentifier(fieldName), null, init));
     }
     Token tokenStatic = new KeywordToken(Keyword.STATIC, 0);
     Token tokenFinal = new KeywordToken(Keyword.FINAL, 0);
@@ -459,9 +578,24 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // members
     List<ClassMember> members = Lists.newArrayList();
     {
+      members.add(fieldDeclaration("String", "__name"));
+      members.add(fieldDeclaration("int", "__ordinal"));
       // constants
+      List<Expression> valuesList = Lists.newArrayList();
       for (Object javaConst : node.enumConstants()) {
-        members.add((FieldDeclaration) translate((org.eclipse.jdt.core.dom.EnumConstantDeclaration) javaConst));
+        org.eclipse.jdt.core.dom.EnumConstantDeclaration javaEnumConst = (org.eclipse.jdt.core.dom.EnumConstantDeclaration) javaConst;
+        members.add((FieldDeclaration) translate(javaEnumConst));
+        valuesList.add(simpleIdentifier(javaEnumConst.getName().getIdentifier()));
+      }
+      // get values
+      {
+        FieldDeclaration valuesDeclaration = fieldDeclaration(
+            listType(typeName(name), 1),
+            "values",
+            listLiteral(valuesList));
+        valuesDeclaration.setKeyword(TOKEN_STATIC);
+        valuesDeclaration.getFields().setKeyword(TOKEN_FINAL);
+        members.add(valuesDeclaration);
       }
       // body declarations
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
@@ -473,6 +607,21 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           members.add(constructorImpl);
         }
       }
+      // toString()
+      members.add(new MethodDeclaration(
+          null,
+          null,
+          null,
+          null,
+          typeName("String"),
+          null,
+          null,
+          simpleIdentifier("toString"),
+          new FormalParameterList(null, null, null, null, null),
+          new BlockFunctionBody(new Block(null, ImmutableList.<Statement> of(new ReturnStatement(
+              null,
+              simpleIdentifier("__name"),
+              null)), null))));
     }
     return done(new ClassDeclaration(
         translateJavadoc(node),
@@ -674,18 +823,24 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.MethodDeclaration node) {
+    boolean isEnumConstructor = node.isConstructor()
+        && node.getParent() instanceof org.eclipse.jdt.core.dom.EnumDeclaration;
     // parameters
     FormalParameterList parameterList;
     {
       List<FormalParameter> parameters = Lists.newArrayList();
+      if (isEnumConstructor) {
+        parameters.add(simpleFormalParameter("String", "___name"));
+        parameters.add(simpleFormalParameter("int", "___ordinal"));
+      }
       for (Iterator<?> I = node.parameters().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (org.eclipse.jdt.core.dom.SingleVariableDeclaration) I.next();
         SimpleFormalParameter parameter = translate(javaParameter);
         parameters.add(parameter);
       }
-      parameterList = new FormalParameterList(null, parameters, null, null, null);
+      parameterList = newFormalParameterList(parameters);
     }
-    // done
+    // body
     FunctionBody body;
     SuperConstructorInvocation superConstructorInvocation = null;
     {
@@ -698,10 +853,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
         Block bodyBlock = (Block) translate(javaBlock);
         body = new BlockFunctionBody(bodyBlock);
+        if (isEnumConstructor && !hasConstructorInvocation(node)) {
+          bodyBlock.getStatements().add(0, assignmentStatement("__ordinal", "___ordinal"));
+          bodyBlock.getStatements().add(0, assignmentStatement("__name", "___name"));
+        }
       } else {
         body = new EmptyFunctionBody(null);
       }
     }
+    // constructor
     if (node.isConstructor()) {
       List<ConstructorInitializer> initializers = Lists.newArrayList();
       if (superConstructorInvocation != null) {
@@ -711,30 +871,30 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       String constructorDeclName = technicalConstructorName + "_decl";
       String constructorImplName = "_" + technicalConstructorName + "_impl";
       constructorImpl = new MethodDeclaration(
-          translateJavadoc(node),
           null,
           null,
           null,
           null,
           null,
           null,
-          newSimpleIdentifier(constructorImplName),
+          null,
+          simpleIdentifier(constructorImplName),
           parameterList,
           body);
       //
       List<Expression> implInvArgs = Lists.newArrayList();
       for (FormalParameter parameter : parameterList.getParameters()) {
-        implInvArgs.add(newSimpleIdentifier(parameter.getIdentifier().getName()));
+        implInvArgs.add(simpleIdentifier(parameter.getIdentifier().getName()));
       }
       ArgumentList implInvocationArgList = new ArgumentList(null, implInvArgs, null);
       Expression implInvocation = new MethodInvocation(
           null,
           null,
-          newSimpleIdentifier(constructorImplName),
+          simpleIdentifier(constructorImplName),
           implInvocationArgList);
       Statement conStatement = new ExpressionStatement(implInvocation, null);
       Block constructorBody = new Block(null, Lists.newArrayList(conStatement), null);
-      SimpleIdentifier nameNode = newSimpleIdentifier(constructorDeclName);
+      SimpleIdentifier nameNode = simpleIdentifier(constructorDeclName);
       String signature = getBindingSignature(node.resolveBinding());
       context.getConstructorDescription(signature).declName = constructorDeclName;
       context.getConstructorDescription(signature).implName = constructorImplName;
@@ -745,7 +905,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           null,
           null,
           null,
-          newSimpleIdentifier(node.getName().getIdentifier()),
+          simpleIdentifier(node.getName().getIdentifier()),
           null,
           nameNode,
           parameterList,
@@ -874,7 +1034,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     if ("float".equals(name)) {
       name = "double";
     }
-    TypeName type = new TypeName(newSimpleIdentifier(name), null);
+    TypeName type = new TypeName(simpleIdentifier(name), null);
     return done(type);
   }
 
@@ -916,7 +1076,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           if (variableBinding.getDeclaringClass() != null
               && org.eclipse.jdt.core.dom.Modifier.isStatic(variableBinding.getModifiers())) {
             return done(new PrefixedIdentifier(
-                newSimpleIdentifier(variableBinding.getDeclaringClass().getName()),
+                simpleIdentifier(variableBinding.getDeclaringClass().getName()),
                 null,
                 result));
           }
@@ -937,9 +1097,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SingleVariableDeclaration node) {
     TypeName type = (TypeName) translate(node.getType());
-    type = newListType(type, node.getExtraDimensions());
+    type = listType(type, node.getExtraDimensions());
     if (node.isVarargs()) {
-      type = newListType(type, 1);
+      type = listType(type, 1);
     }
     return done(new SimpleFormalParameter(
         null,
@@ -1235,7 +1395,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    */
   private ArgumentList translateArgumentList0(List<?> javaArguments) {
     List<Expression> arguments = translateExpressionList(javaArguments);
-    // XXX
     return new ArgumentList(null, arguments, null);
   }
 

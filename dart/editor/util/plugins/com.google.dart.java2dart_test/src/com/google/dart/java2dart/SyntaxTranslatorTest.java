@@ -48,48 +48,6 @@ public class SyntaxTranslatorTest extends TestCase {
   private org.eclipse.jdt.core.dom.CompilationUnit javaUnit;
   private com.google.dart.engine.ast.CompilationUnit dartUnit;
 
-  /**
-   * TODO(scheglov) we could support body in redirecting constructors using intermediate classes.
-   */
-  public void _test_statementConstructorInvocation_hasBody() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  public A() {",
-        "    this(42);",
-        "    print(12345);",
-        "  }",
-        "  public A(int p) {",
-        "  }",
-        "}",
-        "");
-    try {
-      SyntaxTranslator.translate(context, javaUnit);
-      fail();
-    } catch (IllegalArgumentException e) {
-    }
-  }
-
-  // TODO(scheglov)
-  public void _test_statementSuperConstructorInvocation() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  public A(int p) {",
-        "  }",
-        "}",
-        "public class B extends A {",
-        "  public B() {",
-        "    super(42);",
-        "    print(0);",
-        "    print(1);",
-        "  }",
-        "}",
-        "");
-    assertDartSource("class A {A(int p) {}}"
-        + " class B extends A {B() : super(42) {print(0); print(1);}}");
-  }
-
   public void test_classAbstract() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -236,48 +194,22 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
-  public void test_enum() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public enum Direction {",
-        "  UP(false), DOWN(false), LEFT(true), RIGHT(true);",
-        "  private Direction(boolean horizontal) {",
-        "    this.horizontal = horizontal;",
-        "  }",
-        "  private final boolean horizontal;",
-        "  public boolean isHorizontal() {",
-        "    return horizontal;",
-        "  }",
-        "}");
-    assertDartSource(
-        "class Direction {",
-        "  static final Direction UP = new Direction(false);",
-        "  static final Direction DOWN = new Direction(false);",
-        "  static final Direction LEFT = new Direction(true);",
-        "  static final Direction RIGHT = new Direction(true);",
-        "  Direction.jtd_constructor_0_decl(bool horizontal) {",
-        "    _jtd_constructor_0_impl(horizontal);",
-        "  }",
-        "  _jtd_constructor_0_impl(bool horizontal) {",
-        "    this.horizontal = horizontal;",
-        "  }",
-        "  bool horizontal;",
-        "  bool isHorizontal() {",
-        "    return horizontal;",
-        "  }",
-        "}");
-  }
-
   public void test_enum_withImplements() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public interface I {}",
         "public enum Direction implements I {",
         "}");
-    assertDartSource(//
+    assertDartSource(
         "abstract class I {",
         "}",
         "class Direction implements I {",
+        "  String __name;",
+        "  int __ordinal;",
+        "  static final List<Direction> values = [];",
+        "  String toString() {",
+        "    return __name;",
+        "  }",
         "}");
   }
 

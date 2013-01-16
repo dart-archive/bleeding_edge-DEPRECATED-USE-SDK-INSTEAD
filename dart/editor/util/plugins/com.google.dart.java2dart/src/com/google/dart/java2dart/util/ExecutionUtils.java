@@ -13,7 +13,6 @@
  */
 package com.google.dart.java2dart.util;
 
-
 /**
  * Utilities for executing actions, such as {@link RunnableObjectEx}.
  */
@@ -50,7 +49,7 @@ public class ExecutionUtils {
   }
 
   /**
-   * Propagates {@code Throwable} as-is without any wrapping. This is trick.
+   * Propagates {@link Throwable} as-is without any wrapping. This is trick.
    * 
    * @return nothing will ever be returned; this return type is only for your convenience, to use
    *         this method in "throw" statement.

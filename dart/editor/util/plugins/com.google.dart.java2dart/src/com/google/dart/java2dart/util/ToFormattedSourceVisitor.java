@@ -250,6 +250,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    visit(node.getDocumentationComment());
     visit(node.getExternalKeyword(), " ");
     visit(node.getConstKeyword(), " ");
     visit(node.getFactoryKeyword(), " ");
@@ -987,7 +988,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   /**
-   * Safely visit the given node, printing the suffix after the node if it is non-{@code null}.
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
    * 
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited
@@ -1000,7 +1001,8 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   /**
-   * Safely visit the given node, printing the prefix before the node if it is non-{@code null}.
+   * Safely visit the given node, printing the prefix before the node if it is non-<code>null</code>
+   * .
    * 
    * @param prefix the prefix to be printed if there is a node to visit
    * @param node the node to be visited
@@ -1013,7 +1015,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   /**
-   * Safely visit the given node, printing the suffix after the node if it is non-{@code null}.
+   * Safely visit the given node, printing the suffix after the node if it is non-<code>null</code>.
    * 
    * @param suffix the suffix to be printed if there is a node to visit
    * @param node the node to be visited

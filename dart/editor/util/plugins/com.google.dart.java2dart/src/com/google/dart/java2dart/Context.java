@@ -93,6 +93,8 @@ public class Context {
   private int technicalConstructorIndex;
   private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
   private final Map<SimpleIdentifier, String> constructorNameToBinding = Maps.newHashMap();
+  // information about inner classes
+  private int technicalInnerClassIndex;
 
   /**
    * Specifies that field with given signature should be renamed before normalizing member names.
@@ -168,6 +170,13 @@ public class Context {
    */
   String generateTechnicalConstructorName() {
     return "jtd_constructor_" + technicalConstructorIndex++;
+  }
+
+  /**
+   * @return the "technical" name for the top-level Dart class for Java inner class.
+   */
+  String generateTechnicalInnerClassName() {
+    return "JtdClass_" + technicalInnerClassIndex++;
   }
 
   /**
