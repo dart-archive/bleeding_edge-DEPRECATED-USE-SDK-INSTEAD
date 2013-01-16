@@ -339,7 +339,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
         String next = nextToken == Symbols.TokenEOF ? null : document.get(
             offset,
             scanner.getPosition() - offset).trim();
-        int prevToken = scanner.previousToken(offset - 1, startLine.getOffset());
+        int prevToken = scanner.previousToken(offset - 1, startLine.getOffset() - 1);
         int prevTokenOffset = scanner.getPosition() + 1;
         String previous = prevToken == Symbols.TokenEOF ? null : document.get(
             prevTokenOffset,
@@ -376,7 +376,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           case '"':
             if (!fCloseStrings || nextToken == Symbols.TokenIDENT
                 || prevToken == Symbols.TokenIDENT || next != null && next.length() > 1
-                || previous != null && previous.length() > 1) {
+                || (previous != null && previous.length() > 1 && !previous.equals("import"))) {
               return;
             }
             break;
