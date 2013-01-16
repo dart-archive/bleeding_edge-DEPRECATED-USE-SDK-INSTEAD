@@ -112,9 +112,7 @@ public class SearchEngineImpl implements SearchEngine {
     if (scope instanceof LibrarySearchScope) {
       return ((LibrarySearchScope) scope).getLibraries();
     }
-    // TODO(scheglov) do we need UNIVERSE?
-    return new Element[] {};
-//    return new Element[] {IndexConstants.UNIVERSE};
+    return new Element[] {IndexConstants.UNIVERSE};
   }
 
   /**

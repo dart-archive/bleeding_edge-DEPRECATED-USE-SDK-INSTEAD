@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,26 +13,12 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.internal.element.UniverseElementImpl;
+
 /**
- * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
+ * The interface {@code UniverseElement} defines element to use when we want to request "defines"
+ * relations without specifying exact library.
  */
-public enum ElementKind {
-  CLASS,
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  ERROR,
-  FIELD,
-  FUNCTION,
-  GETTER,
-  HTML,
-  LABEL,
-  LIBRARY,
-  METHOD,
-  PARAMETER,
-  PREFIX,
-  SETTER,
-  TYPE_ALIAS,
-  TYPE_VARIABLE,
-  UNIVERSE,
-  VARIABLE;
+public interface UniverseElement extends Element {
+  UniverseElement INSTANCE = new UniverseElementImpl();
 }

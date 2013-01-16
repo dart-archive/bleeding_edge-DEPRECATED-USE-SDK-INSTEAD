@@ -97,6 +97,20 @@ public class IndexContributorTest extends EngineTestCase {
     }
   }
 
+  private static void assertDefinesTopLevelElement(List<RecordedRelation> recordedRelations,
+      Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
+    assertRecordedRelation(
+        recordedRelations,
+        expectedElement,
+        expectedRelationship,
+        expectedLocation);
+    assertRecordedRelation(
+        recordedRelations,
+        IndexConstants.UNIVERSE,
+        expectedRelationship,
+        expectedLocation);
+  }
+
   /**
    * Asserts that actual {@link Location} has given properties.
    */
@@ -139,6 +153,13 @@ public class IndexContributorTest extends EngineTestCase {
     assertLocation(recordedRelation.location, expectedLocation);
   }
 
+//  private static <T extends Element> T mockElement(Class<T> clazz, Element enclosingElement,
+//      ElementLocation location, int offset, String name) {
+//    T element = mockElement(clazz, location, offset, name);
+//    when(element.getEnclosingElement()).thenReturn(enclosingElement);
+//    return element;
+//  }
+
   /**
    * Asserts that there are two relations with same location.
    */
@@ -148,11 +169,12 @@ public class IndexContributorTest extends EngineTestCase {
     assertRecordedRelation(relations, element, r2, expectedLocation);
   }
 
-//  private static <T extends Element> T mockElement(Class<T> clazz, Element enclosingElement,
-//      ElementLocation location, int offset, String name) {
-//    T element = mockElement(clazz, location, offset, name);
-//    when(element.getEnclosingElement()).thenReturn(enclosingElement);
-//    return element;
+//  private static SimpleIdentifier mockSimpleIdentifier(Element element, int offset, String name) {
+//    SimpleIdentifier identifier = mock(SimpleIdentifier.class);
+//    when(identifier.getElement()).thenReturn(element);
+//    when(identifier.getOffset()).thenReturn(offset);
+//    when(identifier.getLength()).thenReturn(name.length());
+//    return identifier;
 //  }
 
   private static <T extends Element> T mockElement(Class<T> clazz, ElementLocation location,
@@ -164,14 +186,6 @@ public class IndexContributorTest extends EngineTestCase {
     return element;
   }
 
-//  private static SimpleIdentifier mockSimpleIdentifier(Element element, int offset, String name) {
-//    SimpleIdentifier identifier = mock(SimpleIdentifier.class);
-//    when(identifier.getElement()).thenReturn(element);
-//    when(identifier.getOffset()).thenReturn(offset);
-//    when(identifier.getLength()).thenReturn(name.length());
-//    return identifier;
-//  }
-
   private IndexStore store = mock(IndexStore.class);
   private IndexContributor index = new IndexContributor(store);
   private Source unitSource = mock(Source.class);
@@ -180,6 +194,7 @@ public class IndexContributorTest extends EngineTestCase {
   private ElementLocation libraryLocation = mock(ElementLocation.class);
   private CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
   private String testCode;
+
   private CompilationUnit testUnit;
 
   public void test_accessByQualified_field() throws Exception {
@@ -272,7 +287,7 @@ public class IndexContributorTest extends EngineTestCase {
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
+    assertDefinesTopLevelElement(
         relations,
         libraryElement,
         IndexConstants.DEFINES_CLASS,
@@ -286,7 +301,7 @@ public class IndexContributorTest extends EngineTestCase {
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
+    assertDefinesTopLevelElement(
         relations,
         libraryElement,
         IndexConstants.DEFINES_CLASS_ALIAS,
@@ -300,7 +315,7 @@ public class IndexContributorTest extends EngineTestCase {
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
+    assertDefinesTopLevelElement(
         relations,
         libraryElement,
         IndexConstants.DEFINES_FUNCTION,
@@ -314,7 +329,7 @@ public class IndexContributorTest extends EngineTestCase {
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
+    assertDefinesTopLevelElement(
         relations,
         libraryElement,
         IndexConstants.DEFINES_FUNCTION_TYPE,
@@ -328,7 +343,7 @@ public class IndexContributorTest extends EngineTestCase {
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
+    assertDefinesTopLevelElement(
         relations,
         libraryElement,
         IndexConstants.DEFINES_VARIABLE,

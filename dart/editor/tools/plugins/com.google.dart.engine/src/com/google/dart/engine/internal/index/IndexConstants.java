@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.UniverseElement;
 import com.google.dart.engine.index.Relationship;
 
 /**
@@ -23,11 +25,11 @@ public interface IndexConstants {
 //   * An {@link Resource} for unresolved elements.
 //   */
 //  Resource DYNAMIC = new Resource("--dynamic--");
-//
-//  /**
-//   * An element used to represent the workspace.
-//   */
-//  Element UNIVERSE = new Element(new Resource("--universe--"), "--universe--");
+
+  /**
+   * An element used to represent the workspace.
+   */
+  Element UNIVERSE = UniverseElement.INSTANCE;
 
   /**
    * The relationship used to indicate that a container (the left-operand) contains the definition

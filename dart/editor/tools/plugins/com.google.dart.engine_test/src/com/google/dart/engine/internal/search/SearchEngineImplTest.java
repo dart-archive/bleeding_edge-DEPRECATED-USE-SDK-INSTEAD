@@ -36,6 +36,7 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchPatternFactory;
 import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -109,6 +110,31 @@ public class SearchEngineImplTest extends EngineTestCase {
     scope = new LibrarySearchScope(library);
     // search matches
     List<SearchMatch> matches = searchFunctionDeclarationsAsync();
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+  }
+
+  public void test_searchFunctionDeclarations_inWorkspace() throws Exception {
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(
+          IndexConstants.UNIVERSE,
+          IndexConstants.DEFINES_FUNCTION,
+          locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(
+          IndexConstants.UNIVERSE,
+          IndexConstants.DEFINES_FUNCTION,
+          locationB);
+    }
+    scope = SearchScopeFactory.createWorkspaceScope();
+    // search matches
+    List<SearchMatch> matches = searchFunctionDeclarationsSync();
     // verify
     assertMatches(
         matches,

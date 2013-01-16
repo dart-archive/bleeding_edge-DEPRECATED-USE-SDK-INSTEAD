@@ -177,10 +177,11 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     ClassElement element = node.getElement();
     enterScope(element);
     try {
-      recordRelationship(
-          libraryElement,
-          IndexConstants.DEFINES_CLASS,
-          createElementLocation(element));
+      {
+        Location location = createElementLocation(element);
+        recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS, location);
+        recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_CLASS, location);
+      }
       {
         ExtendsClause extendsClause = node.getExtendsClause();
         if (extendsClause != null) {
@@ -218,6 +219,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
       {
         Location location = createElementLocation(element);
         recordRelationship(libraryElement, IndexConstants.DEFINES_CLASS_ALIAS, location);
+        recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_CLASS_ALIAS, location);
       }
       {
         TypeName superclassNode = node.getSuperclass();
@@ -267,6 +269,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     try {
       Location location = createElementLocation(element);
       recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
+      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION, location);
       return super.visitFunctionDeclaration(node);
     } finally {
       exitScope();
@@ -278,6 +281,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     Element element = node.getElement();
     Location location = createElementLocation(element);
     recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION_TYPE, location);
+    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION_TYPE, location);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -360,6 +364,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
       Element element = variableDeclaration.getElement();
       Location location = createElementLocation(element);
       recordRelationship(libraryElement, IndexConstants.DEFINES_VARIABLE, location);
+      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_VARIABLE, location);
     }
     return super.visitTopLevelVariableDeclaration(node);
   }
