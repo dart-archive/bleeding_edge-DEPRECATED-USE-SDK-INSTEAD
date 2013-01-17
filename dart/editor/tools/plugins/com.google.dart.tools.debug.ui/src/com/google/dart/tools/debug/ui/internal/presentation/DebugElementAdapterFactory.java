@@ -15,16 +15,28 @@
 package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.debug.core.dartium.DartiumDebugThread;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugVariable;
+import com.google.dart.tools.debug.core.server.ServerDebugThread;
 import com.google.dart.tools.debug.core.server.ServerDebugVariable;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.IAdapterManager;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.Launch;
+import org.eclipse.debug.internal.ui.model.elements.DebugElementLabelProvider;
+import org.eclipse.debug.internal.ui.model.elements.ViewerInputProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementContentProvider;
 import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProvider;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IPresentationContext;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerInputProvider;
+import org.eclipse.debug.internal.ui.viewers.model.provisional.IViewerUpdate;
+import org.eclipse.debug.ui.IDebugUIConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An adaptor factory to map from Dartium debug elements to presentation label providers.
@@ -34,13 +46,38 @@ import org.eclipse.debug.internal.ui.viewers.model.provisional.IElementLabelProv
 @SuppressWarnings("restriction")
 public class DebugElementAdapterFactory implements IAdapterFactory {
 
+  static class DartThreadInputProvider extends ViewerInputProvider {
+    @Override
+    protected Object getViewerInput(Object source, IPresentationContext context,
+        IViewerUpdate update) throws CoreException {
+      if (source instanceof ServerDebugThread) {
+        ServerDebugThread thread = (ServerDebugThread) source;
+
+        return thread.getIsolateVarsPseudoFrame();
+      } else if (source instanceof DartiumDebugThread) {
+        DartiumDebugThread thread = (DartiumDebugThread) source;
+
+        return thread.getIsolateVarsPseudoFrame();
+      }
+
+      return null;
+    }
+
+    @Override
+    protected boolean supportsContextId(String id) {
+      return IDebugUIConstants.ID_VARIABLE_VIEW.equals(id);
+    }
+  }
+
   public static void init() {
     IAdapterManager manager = Platform.getAdapterManager();
 
     DebugElementAdapterFactory factory = new DebugElementAdapterFactory();
 
     manager.registerAdapters(factory, DartiumDebugVariable.class);
+    manager.registerAdapters(factory, DartiumDebugThread.class);
     manager.registerAdapters(factory, ServerDebugVariable.class);
+    manager.registerAdapters(factory, ServerDebugThread.class);
 
     if (!DartCore.isPluginsBuild()) {
       manager.registerAdapters(factory, Launch.class);
@@ -53,7 +90,10 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
   private ServerVariableLabelProvider serverLabelProvider = new ServerVariableLabelProvider();
 
   private static IElementContentProvider launchContentProvider = new DartLaunchContentProvider();
-  private static IElementLabelProvider debugElementLabelProvider = new DartLaunchElementLabelProvider();
+  private static IElementLabelProvider launchLabelProvider = new DartLaunchElementLabelProvider();
+
+  private static IElementLabelProvider threadLabelProvider = new DebugElementLabelProvider();
+  private static IViewerInputProvider threadInputProvider = new DartThreadInputProvider();
 
   public DebugElementAdapterFactory() {
 
@@ -85,7 +125,20 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
 
     if (adapterType.equals(IElementLabelProvider.class)) {
       if (adaptableObject instanceof ILaunch) {
-        return debugElementLabelProvider;
+        return launchLabelProvider;
+      }
+    }
+
+    if (adaptableObject instanceof ServerDebugThread
+        || adaptableObject instanceof DartiumDebugThread) {
+      // IElementLabelProvider
+      if (adapterType.equals(IElementLabelProvider.class)) {
+        return threadLabelProvider;
+      }
+
+      // IViewerInputProvider
+      if (adapterType.equals(IViewerInputProvider.class)) {
+        return threadInputProvider;
       }
     }
 
@@ -95,11 +148,18 @@ public class DebugElementAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("rawtypes")
   @Override
   public Class[] getAdapterList() {
-    if (DartCore.isPluginsBuild()) {
-      return new Class[] {IElementLabelProvider.class};
-    } else {
-      return new Class[] {IElementLabelProvider.class, IElementContentProvider.class};
+    List<Class> adapterClasses = new ArrayList<Class>();
+
+    adapterClasses.add(IElementLabelProvider.class);
+    adapterClasses.add(IViewerInputProvider.class);
+
+    // For the RCP, we override the content provider for ILaunches on order to shave
+    // one level off the process/thread/stack-frame tree.
+    if (!DartCore.isPluginsBuild()) {
+      adapterClasses.add(IElementContentProvider.class);
     }
+
+    return adapterClasses.toArray(new Class[adapterClasses.size()]);
   }
 
 }

@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * A lightweight representation of a VM library. See also VmLibrary.
  */
-public class VmLibraryRef {
+public class VmLibraryRef implements Comparable<VmLibraryRef> {
 
   static List<VmLibraryRef> createFrom(JSONArray arr) throws JSONException {
     if (arr == null) {
@@ -56,6 +56,11 @@ public class VmLibraryRef {
 
   private VmLibraryRef() {
 
+  }
+
+  @Override
+  public int compareTo(VmLibraryRef other) {
+    return url.compareToIgnoreCase(other.getUrl());
   }
 
   public int getId() {

@@ -227,9 +227,11 @@ class VariableCollector {
   }
 
   private void createLibraryVariable(WebkitRemoteObject libraryObject) {
-    variables.add(new DartiumDebugVariable(target, WebkitPropertyDescriptor.createObjectDescriptor(
-        libraryObject,
-        DebuggerUtils.TOP_LEVEL_NAME), true));
+    DartiumDebugVariable variable = new DartiumDebugVariable(
+        target,
+        WebkitPropertyDescriptor.createObjectDescriptor(libraryObject, DebuggerUtils.TOP_LEVEL_NAME));
+    variable.setIsLibraryObject(true);
+    variables.add(variable);
   }
 
   private void createThisVariable(WebkitRemoteObject thisObject) {

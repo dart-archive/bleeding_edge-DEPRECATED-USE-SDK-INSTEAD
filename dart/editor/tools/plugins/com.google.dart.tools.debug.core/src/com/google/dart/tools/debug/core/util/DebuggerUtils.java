@@ -24,9 +24,6 @@ import java.util.List;
  * This class contains static utility methods for use by the debugger.
  */
 public class DebuggerUtils {
-
-  public static final String LIBRARY_NAME = "library";
-
   public static final String TOP_LEVEL_NAME = "top-level";
 
   /**

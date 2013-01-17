@@ -32,6 +32,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   private DartiumDebugValue value;
   private boolean isSpecialObject;
   private boolean isStatic;
+  private boolean isLibraryObject;
 
   /**
    * Create a new Dartium Debug Variable
@@ -105,9 +106,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   @Override
   public boolean isLibraryObject() {
-    return isSpecialObject
-        && (getName().equals(DebuggerUtils.LIBRARY_NAME) || getName().equals(
-            DebuggerUtils.TOP_LEVEL_NAME));
+    return isLibraryObject;
   }
 
   public boolean isListValue() {
@@ -171,6 +170,10 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
     // TODO(devoncarew): do verification for numbers
 
     return true;
+  }
+
+  protected void setIsLibraryObject(boolean value) {
+    this.isLibraryObject = value;
   }
 
   protected void setIsStatic(boolean value) {

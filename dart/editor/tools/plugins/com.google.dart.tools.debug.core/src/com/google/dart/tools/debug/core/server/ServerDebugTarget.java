@@ -257,7 +257,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
     threads.clear();
 
-    super.fireTerminateEvent();
+    // Check for null on system shutdown.
+    if (DebugPlugin.getDefault() != null) {
+      super.fireTerminateEvent();
+    }
   }
 
   @Override
