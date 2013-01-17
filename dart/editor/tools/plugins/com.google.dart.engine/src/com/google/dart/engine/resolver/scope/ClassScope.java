@@ -13,12 +13,12 @@
  */
 package com.google.dart.engine.resolver.scope;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -53,7 +53,7 @@ public class ClassScope extends EnclosedScope {
     //
     // Then look in the inheritance scope.
     //
-    // TODO(brianwilkerson) Look in the superclass and interfaces.
+    // TODO(brianwilkerson) Look in the superclass, mixins and interfaces.
     return null;
   }
 

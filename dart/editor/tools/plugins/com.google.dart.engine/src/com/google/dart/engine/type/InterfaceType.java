@@ -43,6 +43,15 @@ public interface InterfaceType extends Type {
   public Type getLeastUpperBound(Type type);
 
   /**
+   * Return the type representing the superclass of this type. Note that this is <b>not</b>, in
+   * general, equivalent to getting the superclass from this type's element because the type
+   * returned by this method will have had it's type parameters replaced.
+   * 
+   * @return the superclass of this type
+   */
+  public Type getSuperclass();
+
+  /**
    * Return an array containing the actual types of the type arguments. If this type's element does
    * not have type parameters, then the array should be empty (although it is possible for type
    * arguments to be erroneously declared). If the element has type parameters and the actual type

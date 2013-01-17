@@ -241,6 +241,14 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public Type getSuperclass() {
+    ClassElement classElement = getElement();
+    return getElement().getSupertype().substitute(
+        typeArguments,
+        TypeVariableTypeImpl.getTypes(classElement.getTypeVariables()));
+  }
+
+  @Override
   public Type[] getTypeArguments() {
     return typeArguments;
   }
@@ -260,7 +268,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement j = type.getElement();
     Type supertype = j.getSupertype();
     //
-    // If J is Object then it has no direct supertype.
+    // If J has no direct supertype then it is Object, and Object has no direct supertypes.
     //
     if (supertype == null) {
       return false;
