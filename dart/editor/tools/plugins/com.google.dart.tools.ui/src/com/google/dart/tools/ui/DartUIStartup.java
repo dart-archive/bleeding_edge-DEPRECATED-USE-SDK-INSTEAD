@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -63,18 +64,31 @@ public class DartUIStartup implements IStartup {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+
+      long start = System.currentTimeMillis();
+
       try {
         if (!getThread().isInterrupted()) {
           modelWarmup();
+
+          long delta = System.currentTimeMillis() - start;
+          Instrumentation.metric("DartUIStartup.modelWarmup", delta).log();
+
         }
         if (!getThread().isInterrupted()) {
           compilerWarmup();
+          long delta = System.currentTimeMillis() - start;
+          Instrumentation.metric("DartUIStartup.compilerWarmup", delta).log();
         }
         if (!getThread().isInterrupted()) {
           detectStartupComplete();
+          long delta = System.currentTimeMillis() - start;
+          Instrumentation.metric("DartUIStartup.detectSetupComplete", delta).log();
         }
         if (!getThread().isInterrupted()) {
           openInitialFilesAndFolders();
+          long delta = System.currentTimeMillis() - start;
+          Instrumentation.metric("DartUIStartup.openInitialFilesAndFolder", delta).log();
         }
         if (!getThread().isInterrupted()) {
           printPerformanceNumbers();
