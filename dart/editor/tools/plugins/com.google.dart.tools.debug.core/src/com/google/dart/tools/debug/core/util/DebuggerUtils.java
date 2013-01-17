@@ -66,11 +66,15 @@ public class DebuggerUtils {
    * The names of private fields are mangled by the VM.
    * <p>
    * _foo@652376 ==> _foo
+   * <p>
+   * Also, remove "set:" and "get:", as these are artifacts of the VM implementation.
+   * <p>
+   * e.x., Cat.get:color() ==> Cat.color()
    * 
    * @param name
    * @return
    */
-  public static String demanglePrivateName(String name) {
+  public static String demangleVmName(String name) {
     if (name == null) {
       return null;
     }
@@ -93,6 +97,18 @@ public class DebuggerUtils {
     // Also remove the trailing '.' for default constructors.
     if (name.endsWith(".")) {
       name = name.substring(0, name.length() - 1);
+    }
+
+    // remove "set:" and "get:"
+    // Cat.get:color() ==> Cat.color()
+    if (name.indexOf(".set:") != -1) {
+      int index = name.indexOf(".set:");
+      name = name.substring(0, index + 1) + name.substring(index + 5);
+    }
+
+    if (name.indexOf(".get:") != -1) {
+      int index = name.indexOf(".get:");
+      name = name.substring(0, index + 1) + name.substring(index + 5);
     }
 
     return name;

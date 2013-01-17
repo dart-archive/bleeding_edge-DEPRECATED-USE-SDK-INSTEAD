@@ -130,7 +130,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     // variable information before we attempt to retrieve the class name.
     getVariables();
 
-    return DebuggerUtils.demanglePrivateName(getConnection().getDebugger().getClassNameSync(value));
+    return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
   }
 
   @Override

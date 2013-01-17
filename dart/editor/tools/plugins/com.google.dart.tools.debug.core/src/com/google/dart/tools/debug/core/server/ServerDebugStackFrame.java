@@ -152,7 +152,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public String getShortName() {
-    return DebuggerUtils.demanglePrivateName(vmFrame.getFunctionName()) + "()";
+    return DebuggerUtils.demangleVmName(vmFrame.getFunctionName()) + "()";
   }
 
   @Override

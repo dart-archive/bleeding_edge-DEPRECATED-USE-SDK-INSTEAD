@@ -35,6 +35,9 @@ void testAnimals() {
   // loaded, dartium does not send us the adjusted bp location.
   var tempCat = SPARKY;
 
+  tempCat.color;
+  tempCat.color = "dsdf";
+
   print("${tempCat}:");
 
   tempCat.performAction();

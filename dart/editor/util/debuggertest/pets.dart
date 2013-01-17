@@ -28,6 +28,17 @@ class Cat implements Animal {
 
   bool livesWith(Animal other) => other is Cat;
 
+  final String _color = "blue";
+  
+  String get color {
+    return _color;
+  }
+  
+  set color(String val) {
+    // nothing to do
+    val = "${val}";
+  }
+  
   void performAction() {
     print("m${_eo()}w");
   }
@@ -206,6 +217,8 @@ void createARealBigArray() {
   }
   
   print("big array created");
+  
+  arr[0] = "assdsdf";
   
   arr[0]++;
 }

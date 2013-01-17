@@ -18,6 +18,9 @@ void main() {
 
   var cat = pets.SPARKY;
 
+  cat.color;
+  cat.color = "dsdf";
+  
   print("my ${cat} says:");
 
   cat.performAction();

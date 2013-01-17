@@ -165,7 +165,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   public String getName() {
     // The names of private fields are mangled by the VM.
     // _foo@652376 ==> _foo
-    return DebuggerUtils.demanglePrivateName(name);
+    return DebuggerUtils.demangleVmName(name);
   }
 
   @Override

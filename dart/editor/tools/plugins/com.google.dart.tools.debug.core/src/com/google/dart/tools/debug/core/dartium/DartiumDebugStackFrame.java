@@ -227,7 +227,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public String getShortName() {
-    return DebuggerUtils.demanglePrivateName(webkitFrame.getFunctionName()) + "()";
+    return DebuggerUtils.demangleVmName(webkitFrame.getFunctionName()) + "()";
   }
 
   @Override

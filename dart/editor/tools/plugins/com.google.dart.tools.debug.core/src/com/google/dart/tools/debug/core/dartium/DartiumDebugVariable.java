@@ -80,7 +80,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   @Override
   public String getName() {
-    return DebuggerUtils.demanglePrivateName(descriptor.getName());
+    return DebuggerUtils.demangleVmName(descriptor.getName());
   }
 
   @Override

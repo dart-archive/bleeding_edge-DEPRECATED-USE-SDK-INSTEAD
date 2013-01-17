@@ -78,12 +78,12 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
       getVariables();
 
       if (value.getVmObject() != null) {
-        return DebuggerUtils.demanglePrivateName(getConnection().getClassNameSync(
+        return DebuggerUtils.demangleVmName(getConnection().getClassNameSync(
             value.getVmObject()));
       }
     }
 
-    return DebuggerUtils.demanglePrivateName(value.getKind());
+    return DebuggerUtils.demangleVmName(value.getKind());
   }
 
   @Override
