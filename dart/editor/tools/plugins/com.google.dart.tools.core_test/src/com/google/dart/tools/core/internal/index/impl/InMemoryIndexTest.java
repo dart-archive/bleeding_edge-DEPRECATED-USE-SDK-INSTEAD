@@ -49,7 +49,7 @@ public class InMemoryIndexTest extends TestCase {
 //    assertEquals(value, IndexTestUtilities.getAttribute(index, element, attribute));
 //  }
 
-  public void test_InMemoryIndex_getAttribute_undefined() throws Exception {
+  public void issue_7951_test_InMemoryIndex_getAttribute_undefined() throws Exception {
     Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
