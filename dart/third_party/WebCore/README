@@ -2,7 +2,7 @@ This directory contains a copy of WebKit/WebCore IDL files.
 See the attached LICENSE-* files in this directory.
 
 Please do not modify the files here.  They are periodically copied
-using the script: $DART_ROOT/sdk/lib/html/scripts/idlsync.py
+using the script: $DART_ROOT/tools/dom/scripts/idlsync.py
 
 The current version corresponds to:
 URL: http://src.chromium.org/multivm/trunk/webkit
