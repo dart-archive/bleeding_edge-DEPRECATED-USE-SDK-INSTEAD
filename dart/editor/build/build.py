@@ -213,7 +213,7 @@ def main():
   toolspath = os.path.abspath(os.path.join(scriptdir, '..', '..',
                                            'tools'))
   dartpath = os.path.abspath(os.path.join(scriptdir, '..', '..'))
-  antpath = os.path.join(thirdpartypath, 'apache_ant', 'v1_7_1')
+  antpath = os.path.join(thirdpartypath, 'apache_ant', '1.8.4')
   bzip2libpath = os.path.join(thirdpartypath, 'bzip2')
   buildpath = os.path.join(editorpath, 'tools', 'features',
                            'com.google.dart.tools.deploy.feature_releng')
