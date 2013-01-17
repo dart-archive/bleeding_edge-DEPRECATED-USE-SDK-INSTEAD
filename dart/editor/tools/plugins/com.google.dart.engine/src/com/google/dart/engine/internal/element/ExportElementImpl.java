@@ -13,14 +13,15 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.element.ExportSpecification;
-import com.google.dart.engine.element.ImportCombinator;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.NamespaceCombinator;
 
 /**
- * Instances of the class {@code ExportSpecificationImpl} implement an {@link ExportSpecification}.
+ * Instances of the class {@code ExportElementImpl} implement an {@link ExportElement}.
  */
-public class ExportSpecificationImpl implements ExportSpecification {
+public class ExportElementImpl extends ElementImpl implements ExportElement {
   /**
    * The library that is exported from this library by this export directive.
    */
@@ -30,17 +31,17 @@ public class ExportSpecificationImpl implements ExportSpecification {
    * The combinators that were specified as part of the export directive in the order in which they
    * were specified.
    */
-  private ImportCombinator[] combinators = ImportCombinator.EMPTY_ARRAY;
+  private NamespaceCombinator[] combinators = NamespaceCombinator.EMPTY_ARRAY;
 
   /**
-   * Initialize a newly created export specification.
+   * Initialize a newly created export element.
    */
-  public ExportSpecificationImpl() {
-    super();
+  public ExportElementImpl() {
+    super(null);
   }
 
   @Override
-  public ImportCombinator[] getCombinators() {
+  public NamespaceCombinator[] getCombinators() {
     return combinators;
   }
 
@@ -49,13 +50,18 @@ public class ExportSpecificationImpl implements ExportSpecification {
     return exportedLibrary;
   }
 
+  @Override
+  public ElementKind getKind() {
+    return ElementKind.EXPORT;
+  }
+
   /**
    * Set the combinators that were specified as part of the export directive to the given array of
    * combinators.
    * 
    * @param combinators the combinators that were specified as part of the export directive
    */
-  public void setCombinators(ImportCombinator[] combinators) {
+  public void setCombinators(NamespaceCombinator[] combinators) {
     this.combinators = combinators;
   }
 

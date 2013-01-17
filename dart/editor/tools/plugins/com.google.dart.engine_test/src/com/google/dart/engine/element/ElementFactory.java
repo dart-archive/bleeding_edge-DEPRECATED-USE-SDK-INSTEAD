@@ -16,7 +16,7 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
-import com.google.dart.engine.internal.element.ImportSpecificationImpl;
+import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
@@ -76,9 +76,9 @@ public final class ElementFactory {
     return objectElement;
   }
 
-  public static ImportSpecificationImpl importFor(LibraryElement importedLibrary,
-      PrefixElement prefix, ImportCombinator... combinators) {
-    ImportSpecificationImpl spec = new ImportSpecificationImpl();
+  public static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix,
+      NamespaceCombinator... combinators) {
+    ImportElementImpl spec = new ImportElementImpl();
     spec.setImportedLibrary(importedLibrary);
     spec.setPrefix(prefix);
     spec.setCombinators(combinators);

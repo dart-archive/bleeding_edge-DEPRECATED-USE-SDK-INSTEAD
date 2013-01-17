@@ -14,14 +14,14 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code ImportSpecification} defines the behavior of objects representing
- * information about a single import directive within a library.
+ * The interface {@code ImportElement} defines the behavior of objects representing information
+ * about a single import directive within a library.
  */
-public interface ImportSpecification {
+public interface ImportElement extends Element {
   /**
-   * An empty array of import specifications.
+   * An empty array of import elements.
    */
-  public static final ImportSpecification[] EMPTY_ARRAY = new ImportSpecification[0];
+  public static final ImportElement[] EMPTY_ARRAY = new ImportElement[0];
 
   /**
    * Return an array containing the combinators that were specified as part of the import directive
@@ -29,7 +29,7 @@ public interface ImportSpecification {
    * 
    * @return the combinators specified in the import directive
    */
-  public ImportCombinator[] getCombinators();
+  public NamespaceCombinator[] getCombinators();
 
   /**
    * Return the library that is imported into this library by this import directive.
@@ -45,13 +45,4 @@ public interface ImportSpecification {
    * @return the prefix that was specified as part of the import directive
    */
   public PrefixElement getPrefix();
-
-  /**
-   * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
-   * represented in the source code explicitly, but is implied by the source code, such as the
-   * default constructor for a class that does not explicitly define any constructors.
-   * 
-   * @return {@code true} if this element is synthetic
-   */
-  public boolean isSynthetic();
 }

@@ -14,12 +14,12 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code ImportCombinator} defines the behavior common to objects that control how
+ * The interface {@code NamespaceCombinator} defines the behavior common to objects that control how
  * namespaces are combined.
  */
-public interface ImportCombinator {
+public interface NamespaceCombinator {
   /**
-   * An empty array of import combinators.
+   * An empty array of namespace combinators.
    */
-  public static final ImportCombinator[] EMPTY_ARRAY = new ImportCombinator[0];
+  public static final NamespaceCombinator[] EMPTY_ARRAY = new NamespaceCombinator[0];
 }

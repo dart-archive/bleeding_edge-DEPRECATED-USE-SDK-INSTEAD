@@ -32,18 +32,18 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.ExportSpecification;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.ImportCombinator;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
-import com.google.dart.engine.internal.element.ExportSpecificationImpl;
+import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.HideCombinatorImpl;
-import com.google.dart.engine.internal.element.ImportSpecificationImpl;
+import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowCombinatorImpl;
@@ -108,10 +108,10 @@ public class LibraryElementBuilder {
     boolean hasPartDirective = false;
     boolean explicitlyImportsCore = false;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
-    ArrayList<ImportSpecification> imports = new ArrayList<ImportSpecification>();
-    ArrayList<ExportSpecification> exports = new ArrayList<ExportSpecification>();
+    ArrayList<ImportElement> imports = new ArrayList<ImportElement>();
+    ArrayList<ExportElement> exports = new ArrayList<ExportElement>();
     HashMap<String, PrefixElementImpl> nameToPrefixMap = new HashMap<String, PrefixElementImpl>();
-    HashMap<PrefixElementImpl, ArrayList<ImportSpecification>> prefixToImportMap = new HashMap<PrefixElementImpl, ArrayList<ImportSpecification>>();
+    HashMap<PrefixElementImpl, ArrayList<ImportElement>> prefixToImportMap = new HashMap<PrefixElementImpl, ArrayList<ImportElement>>();
     ArrayList<Directive> directivesToResolve = new ArrayList<Directive>();
     ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
     for (Directive directive : directives) {
@@ -127,7 +127,7 @@ public class LibraryElementBuilder {
           if (uri != null && CORE_LIBRARY_NAME.equals(uri)) {
             explicitlyImportsCore = true;
           }
-          ImportSpecificationImpl specification = new ImportSpecificationImpl();
+          ImportElementImpl specification = new ImportElementImpl();
           specification.setCombinators(buildCombinators(namespaceDirective));
           LibraryElement importedLibrary = getReferencedLibrary(
               librarySource,
@@ -151,9 +151,9 @@ public class LibraryElementBuilder {
               // TODO(brianwilkerson) Report the error
               // errorListener.onError(new AnalysisError(source, prefixNode.getOffset(), prefixNode.getLength(), ResolverErrorCode.DUPLICATE_PREFIX, prefixName));
             }
-            ArrayList<ImportSpecification> prefixedImports = prefixToImportMap.get(prefix);
+            ArrayList<ImportElement> prefixedImports = prefixToImportMap.get(prefix);
             if (prefixedImports == null) {
-              prefixedImports = new ArrayList<ImportSpecification>();
+              prefixedImports = new ArrayList<ImportElement>();
               prefixToImportMap.put(prefix, prefixedImports);
             }
             prefixedImports.add(specification);
@@ -161,7 +161,7 @@ public class LibraryElementBuilder {
           }
           imports.add(specification);
         } else if (directive instanceof ExportDirective) {
-          ExportSpecificationImpl specification = new ExportSpecificationImpl();
+          ExportElementImpl specification = new ExportElementImpl();
           specification.setCombinators(buildCombinators(namespaceDirective));
           LibraryElement exportedLibrary = getReferencedLibrary(
               librarySource,
@@ -232,7 +232,7 @@ public class LibraryElementBuilder {
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);
     }
-    libraryElement.setImports(imports.toArray(new ImportSpecification[imports.size()]));
+    libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
     libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
     for (Directive directive : directivesToResolve) {
       directive.setElement(libraryElement);
@@ -268,8 +268,8 @@ public class LibraryElementBuilder {
    * @param directive the directive that declares the combinators
    * @return an array containing the import combinators that were built
    */
-  private ImportCombinator[] buildCombinators(NamespaceDirective directive) {
-    ArrayList<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+  private NamespaceCombinator[] buildCombinators(NamespaceDirective directive) {
+    ArrayList<NamespaceCombinator> combinators = new ArrayList<NamespaceCombinator>();
     for (Combinator combinator : directive.getCombinators()) {
       if (combinator instanceof HideCombinator) {
         HideCombinatorImpl hide = new HideCombinatorImpl();
@@ -281,7 +281,7 @@ public class LibraryElementBuilder {
         combinators.add(show);
       }
     }
-    return combinators.toArray(new ImportCombinator[combinators.size()]);
+    return combinators.toArray(new NamespaceCombinator[combinators.size()]);
   }
 
   /**

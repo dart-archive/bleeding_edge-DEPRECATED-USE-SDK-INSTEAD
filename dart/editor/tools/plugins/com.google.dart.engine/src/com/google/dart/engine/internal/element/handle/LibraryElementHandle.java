@@ -15,9 +15,9 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ExportSpecification;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 
@@ -46,7 +46,7 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
-  public ExportSpecification[] getExports() {
+  public ExportElement[] getExports() {
     return getActualElement().getExports();
   }
 
@@ -56,7 +56,7 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
-  public ImportSpecification[] getImports() {
+  public ImportElement[] getImports() {
     return getActualElement().getImports();
   }
 

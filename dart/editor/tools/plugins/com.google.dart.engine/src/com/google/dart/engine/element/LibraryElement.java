@@ -34,11 +34,11 @@ public interface LibraryElement extends Element {
   public FunctionElement getEntryPoint();
 
   /**
-   * Return an array containing specifications of all of the exports defined in this library.
+   * Return an array containing all of the exports defined in this library.
    * 
    * @return the exports defined in this library
    */
-  public ExportSpecification[] getExports();
+  public ExportElement[] getExports();
 
   /**
    * Return an array containing all of the libraries that are imported into this library. This
@@ -50,11 +50,11 @@ public interface LibraryElement extends Element {
   public LibraryElement[] getImportedLibraries();
 
   /**
-   * Return an array containing specifications of all of the imports defined in this library.
+   * Return an array containing all of the imports defined in this library.
    * 
    * @return the imports defined in this library
    */
-  public ImportSpecification[] getImports();
+  public ImportElement[] getImports();
 
   /**
    * Return an array containing all of the compilation units that are included in this library using

@@ -13,15 +13,16 @@
  */
 package com.google.dart.engine.internal.element;
 
-import com.google.dart.engine.element.ImportCombinator;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.PrefixElement;
 
 /**
- * Instances of the class {@code ImportSpecificationImpl} implement an {@link ImportSpecification}.
+ * Instances of the class {@code ImportElementImpl} implement an {@link ImportElement}.
  */
-public class ImportSpecificationImpl implements ImportSpecification {
+public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**
    * The library that is imported into this library by this import directive.
    */
@@ -31,7 +32,7 @@ public class ImportSpecificationImpl implements ImportSpecification {
    * The combinators that were specified as part of the import directive in the order in which they
    * were specified.
    */
-  private ImportCombinator[] combinators = ImportCombinator.EMPTY_ARRAY;
+  private NamespaceCombinator[] combinators = NamespaceCombinator.EMPTY_ARRAY;
 
   /**
    * The prefix that was specified as part of the import directive, or {@code null} if there was no
@@ -40,19 +41,14 @@ public class ImportSpecificationImpl implements ImportSpecification {
   private PrefixElement prefix;
 
   /**
-   * A flag indicating whether this import specification is synthetic.
+   * Initialize a newly created import element.
    */
-  private boolean isSynthetic = false;
-
-  /**
-   * Initialize a newly created import specification.
-   */
-  public ImportSpecificationImpl() {
-    super();
+  public ImportElementImpl() {
+    super(null);
   }
 
   @Override
-  public ImportCombinator[] getCombinators() {
+  public NamespaceCombinator[] getCombinators() {
     return combinators;
   }
 
@@ -62,13 +58,13 @@ public class ImportSpecificationImpl implements ImportSpecification {
   }
 
   @Override
-  public PrefixElement getPrefix() {
-    return prefix;
+  public ElementKind getKind() {
+    return ElementKind.IMPORT;
   }
 
   @Override
-  public boolean isSynthetic() {
-    return isSynthetic;
+  public PrefixElement getPrefix() {
+    return prefix;
   }
 
   /**
@@ -77,7 +73,7 @@ public class ImportSpecificationImpl implements ImportSpecification {
    * 
    * @param combinators the combinators that were specified as part of the import directive
    */
-  public void setCombinators(ImportCombinator[] combinators) {
+  public void setCombinators(NamespaceCombinator[] combinators) {
     this.combinators = combinators;
   }
 
@@ -98,14 +94,5 @@ public class ImportSpecificationImpl implements ImportSpecification {
    */
   public void setPrefix(PrefixElement prefix) {
     this.prefix = prefix;
-  }
-
-  /**
-   * Set whether this element is synthetic to correspond to the given value.
-   * 
-   * @param isSynthetic {@code true} if the element is synthetic
-   */
-  public void setSynthetic(boolean isSynthetic) {
-    this.isSynthetic = isSynthetic;
   }
 }

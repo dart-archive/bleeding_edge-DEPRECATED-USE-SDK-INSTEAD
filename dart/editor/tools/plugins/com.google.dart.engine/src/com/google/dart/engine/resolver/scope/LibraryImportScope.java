@@ -14,7 +14,7 @@
 package com.google.dart.engine.resolver.scope;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.element.MultiplyDefinedElementImpl;
@@ -109,8 +109,8 @@ public class LibraryImportScope extends Scope {
    */
   private final void createImportedNamespaces(LibraryElement definingLibrary) {
     NamespaceBuilder builder = new NamespaceBuilder();
-    for (ImportSpecification specification : definingLibrary.getImports()) {
-      importedNamespaces.add(builder.createImportNamespace(specification));
+    for (ImportElement element : definingLibrary.getImports()) {
+      importedNamespaces.add(builder.createImportNamespace(element));
     }
   }
 }

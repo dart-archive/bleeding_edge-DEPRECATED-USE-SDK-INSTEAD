@@ -17,13 +17,13 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ExportSpecification;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HideCombinator;
-import com.google.dart.engine.element.ImportCombinator;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
@@ -62,12 +62,12 @@ public class NamespaceBuilder {
    * @param library the library whose import namespace is to be created
    * @return the import namespace that was created
    */
-  public Namespace createImportNamespace(ImportSpecification specification) {
+  public Namespace createImportNamespace(ImportElement element) {
     HashMap<String, Element> definedNames = createExportMapping(
-        specification.getImportedLibrary(),
+        element.getImportedLibrary(),
         new HashSet<LibraryElement>());
-    apply(definedNames, specification.getCombinators());
-    apply(definedNames, specification.getPrefix());
+    apply(definedNames, element.getCombinators());
+    apply(definedNames, element.getPrefix());
     return new Namespace(definedNames);
   }
 
@@ -155,8 +155,8 @@ public class NamespaceBuilder {
    * @param combinators the combinators to be applied
    */
   private Map<String, Element> apply(Map<String, Element> definedNames,
-      ImportCombinator[] combinators) {
-    for (ImportCombinator combinator : combinators) {
+      NamespaceCombinator[] combinators) {
+    for (NamespaceCombinator combinator : combinators) {
       if (combinator instanceof HideCombinator) {
         hide(definedNames, ((HideCombinator) combinator).getHiddenNames());
       } else if (combinator instanceof ShowCombinator) {
@@ -203,11 +203,11 @@ public class NamespaceBuilder {
     visitedElements.add(library);
     try {
       HashMap<String, Element> definedNames = new HashMap<String, Element>();
-      for (ExportSpecification specification : library.getExports()) {
-        LibraryElement exportedLibrary = specification.getExportedLibrary();
+      for (ExportElement element : library.getExports()) {
+        LibraryElement exportedLibrary = element.getExportedLibrary();
         if (!visitedElements.contains(exportedLibrary)) {
           Map<String, Element> exportedNames = createExportMapping(exportedLibrary, visitedElements);
-          exportedNames = apply(exportedNames, specification.getCombinators());
+          exportedNames = apply(exportedNames, element.getCombinators());
           addAll(definedNames, exportedNames);
         }
       }

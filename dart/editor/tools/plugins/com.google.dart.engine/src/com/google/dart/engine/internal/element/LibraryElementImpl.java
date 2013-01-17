@@ -17,9 +17,9 @@ import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ExportSpecification;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 
@@ -52,12 +52,12 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**
    * An array containing specifications of all of the imports defined in this library.
    */
-  private ImportSpecification[] imports = ImportSpecification.EMPTY_ARRAY;
+  private ImportElement[] imports = ImportElement.EMPTY_ARRAY;
 
   /**
    * An array containing specifications of all of the exports defined in this library.
    */
-  private ExportSpecification[] exports = ExportSpecification.EMPTY_ARRAY;
+  private ExportElement[] exports = ExportElement.EMPTY_ARRAY;
 
   /**
    * An array containing all of the compilation units that are included in this library using a
@@ -111,7 +111,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
-  public ExportSpecification[] getExports() {
+  public ExportElement[] getExports() {
     return exports;
   }
 
@@ -123,15 +123,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public LibraryElement[] getImportedLibraries() {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>(imports.length);
-    for (ImportSpecification specification : imports) {
-      LibraryElement prefix = specification.getImportedLibrary();
+    for (ImportElement element : imports) {
+      LibraryElement prefix = element.getImportedLibrary();
       libraries.add(prefix);
     }
     return libraries.toArray(new LibraryElement[libraries.size()]);
   }
 
   @Override
-  public ImportSpecification[] getImports() {
+  public ImportElement[] getImports() {
     return imports;
   }
 
@@ -148,8 +148,8 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public PrefixElement[] getPrefixes() {
     HashSet<PrefixElement> prefixes = new HashSet<PrefixElement>(imports.length);
-    for (ImportSpecification specification : imports) {
-      PrefixElement prefix = specification.getPrefix();
+    for (ImportElement element : imports) {
+      PrefixElement prefix = element.getPrefix();
       if (prefix != null) {
         prefixes.add(prefix);
       }
@@ -187,7 +187,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * 
    * @param exports the specifications of all of the exports defined in this library
    */
-  public void setExports(ExportSpecification[] exports) {
+  public void setExports(ExportElement[] exports) {
     this.exports = exports;
   }
 
@@ -196,7 +196,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * 
    * @param imports the specifications of all of the imports defined in this library
    */
-  public void setImports(ImportSpecification[] imports) {
+  public void setImports(ImportElement[] imports) {
     this.imports = imports;
   }
 

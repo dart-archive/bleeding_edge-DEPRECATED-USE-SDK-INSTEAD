@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.ImportSpecification;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -38,7 +38,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl library4 = library(context, "l4");
     PrefixElement prefixA = new PrefixElementImpl(identifier("a"));
     PrefixElement prefixB = new PrefixElementImpl(identifier("b"));
-    ImportSpecificationImpl[] imports = {
+    ImportElementImpl[] imports = {
         importFor(library2, null), importFor(library2, prefixB), importFor(library3, null),
         importFor(library3, prefixA), importFor(library3, prefixB), importFor(library4, prefixA),};
     library1.setImports(imports);
@@ -51,7 +51,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     LibraryElementImpl library = library(context, "l1");
     PrefixElement prefixA = new PrefixElementImpl(identifier("a"));
     PrefixElement prefixB = new PrefixElementImpl(identifier("b"));
-    ImportSpecificationImpl[] imports = {
+    ImportElementImpl[] imports = {
         importFor(library(context, "l2"), null), importFor(library(context, "l3"), null),
         importFor(library(context, "l4"), prefixA), importFor(library(context, "l5"), prefixA),
         importFor(library(context, "l6"), prefixB),};
@@ -69,10 +69,10 @@ public class LibraryElementImplTest extends EngineTestCase {
   public void test_setImports() {
     AnalysisContext context = new AnalysisContextImpl();
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("l1"));
-    ImportSpecificationImpl[] expectedImports = {
+    ImportElementImpl[] expectedImports = {
         importFor(library(context, "l2"), null), importFor(library(context, "l3"), null)};
     library.setImports(expectedImports);
-    ImportSpecification[] actualImports = library.getImports();
+    ImportElement[] actualImports = library.getImports();
     assertLength(expectedImports.length, actualImports);
     for (int i = 0; i < actualImports.length; i++) {
       assertEquals(expectedImports[i], actualImports[i]);

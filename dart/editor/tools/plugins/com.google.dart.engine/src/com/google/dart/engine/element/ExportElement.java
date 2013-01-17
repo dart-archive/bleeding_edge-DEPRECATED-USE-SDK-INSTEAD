@@ -14,14 +14,14 @@
 package com.google.dart.engine.element;
 
 /**
- * The interface {@code ExportSpecification} defines the behavior of objects representing
- * information about a single export directive within a library.
+ * The interface {@code ExportElement} defines the behavior of objects representing information
+ * about a single export directive within a library.
  */
-public interface ExportSpecification {
+public interface ExportElement extends Element {
   /**
-   * An empty array of export specifications.
+   * An empty array of export elements.
    */
-  public static final ExportSpecification[] EMPTY_ARRAY = new ExportSpecification[0];
+  public static final ExportElement[] EMPTY_ARRAY = new ExportElement[0];
 
   /**
    * Return an array containing the combinators that were specified as part of the export directive
@@ -29,7 +29,7 @@ public interface ExportSpecification {
    * 
    * @return the combinators specified in the export directive
    */
-  public ImportCombinator[] getCombinators();
+  public NamespaceCombinator[] getCombinators();
 
   /**
    * Return the library that is exported from this library by this export directive.
