@@ -2,6 +2,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
@@ -16,6 +17,7 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
 import static org.eclipse.core.resources.IResource.FILE;
 import static org.eclipse.core.resources.IResource.PROJECT;
@@ -28,9 +30,9 @@ import static org.eclipse.core.resources.IResourceDelta.REMOVED;
  */
 public class DeltaProcessor {
 
-  final Project project;
-  final ProjectUpdater updater;
-  AnalysisContext context;
+  private final Project project;
+  private final ProjectUpdater updater;
+  private AnalysisContext context;
 
   /**
    * Construct a new instance for updating the specified project.
@@ -84,6 +86,7 @@ public class DeltaProcessor {
 
         if (resource.getType() == IResource.FILE) {
 
+          // Notify listeners of changes to the pubspec.yaml file
           if (name.equals(PUBSPEC_FILE_NAME)) {
             switch (delta.getKind()) {
               case ADDED:
@@ -98,23 +101,42 @@ public class DeltaProcessor {
               default:
                 break;
             }
+            return false;
           }
 
           // Notify context of Dart source that have been added, changed, or removed
           if (isDartLikeFileName(name)) {
+            IPath location = resource.getLocation();
             switch (delta.getKind()) {
               case ADDED:
-                updater.sourceAdded((IFile) resource);
+                if (location != null) {
+                  Source source = context.getSourceFactory().forFile(location.toFile());
+                  updater.sourceAdded((IFile) resource, source);
+                } else {
+                  logNoLocation(resource);
+                }
                 break;
               case CHANGED:
-                updater.sourceChanged((IFile) resource);
+                if (location != null) {
+                  Source source = context.getSourceFactory().forFile(location.toFile());
+                  updater.sourceChanged((IFile) resource, source);
+                } else {
+                  logNoLocation(resource);
+                }
                 break;
               case REMOVED:
-                updater.sourceRemoved((IFile) resource);
+                Source source = null;
+                if (location != null) {
+                  source = context.getSourceFactory().forFile(location.toFile());
+                } else {
+                  logNoLocation(resource);
+                }
+                updater.sourceRemoved((IFile) resource, source);
                 break;
               default:
                 break;
             }
+            return false;
           }
 
           return false;
@@ -128,19 +150,20 @@ public class DeltaProcessor {
           return false;
         }
 
+        // Process folder changes
         switch (delta.getKind()) {
           case ADDED:
             processResources(resource);
             return false;
+          case CHANGED:
+            // Cache the context and traverse child resource changes
+            return setContextFor((IContainer) resource);
           case REMOVED:
             updater.containerRemoved((IContainer) resource);
             return false;
           default:
-            break;
+            return false;
         }
-
-        // Cache the context and traverse child resource changes
-        return setContextFor((IContainer) resource);
       }
     });
   }
@@ -294,13 +317,24 @@ public class DeltaProcessor {
       if (name.equals(PUBSPEC_FILE_NAME)) {
         updater.pubspec(proxy);
       } else if (isDartLikeFileName(name)) {
-        updater.source(proxy);
+        IFile resource = (IFile) proxy.requestResource();
+        IPath location = resource.getLocation();
+        if (location != null) {
+          Source source = context.getSourceFactory().forFile(location.toFile());
+          updater.sourceAdded(resource, source);
+        } else {
+          logNoLocation(resource);
+        }
       }
       return false;
     }
 
     // Cache the context and traverse child resource changes
     return setContextFor((IContainer) proxy.requestResource());
+  }
+
+  private void logNoLocation(IResource resource) {
+    DartCore.logInformation("No location for " + resource);
   }
 
   /**

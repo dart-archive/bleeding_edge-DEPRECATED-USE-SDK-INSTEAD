@@ -93,14 +93,15 @@ public class ProjectUpdater {
     context.sourceChanged(source);
   }
 
-  public void packageSourceRemoved(IFile file) {
-    IPath location = file.getLocation();
-    if (location == null) {
-      logNoLocation(file);
+  public void packageSourceRemoved(IFile resource) {
+    IPath location = resource.getLocation();
+    Source source = null;
+    if (location != null) {
+      source = context.getSourceFactory().forFile(location.toFile());
     } else {
-      Source source = context.getSourceFactory().forFile(location.toFile());
-      context.sourceDeleted(source);
+      logNoLocation(resource);
     }
+    sourceRemoved(resource, source);
   }
 
   public void packageSourcesRemoved(IContainer container) {
@@ -133,61 +134,47 @@ public class ProjectUpdater {
     this.notifyChanged = notifyChanged;
   }
 
-  public void source(IResourceProxy proxy) {
-    IFile resource = (IFile) proxy.requestResource();
-    IPath location = resource.getLocation();
-    if (location == null) {
-      logNoLocation(resource);
-      return;
-    }
-    Source source = context.getSourceFactory().forFile(location.toFile());
+  /**
+   * Called when a source file has been added
+   * 
+   * @param resource the file that was added (not {@code null})
+   * @param source the source that was added (not {@code null})
+   */
+  public void sourceAdded(IFile resource, Source source) {
     context.sourceAvailable(source);
+    sourceChanged(resource, source);
+  }
+
+  /**
+   * Called when a source file has changed
+   * 
+   * @param resource the file that changed (not {@code null})
+   * @param source the source that changed (not {@code null})
+   */
+  public void sourceChanged(IFile resource, Source source) {
     if (notifyChanged) {
       context.sourceChanged(source);
     }
   }
 
-  public void sourceAdded(IFile resource) {
-    IPath location = resource.getLocation();
-    if (location == null) {
-      logNoLocation(resource);
-      return;
+  /**
+   * Called when a source file has been removed
+   * 
+   * @param resource the file that was removed (not {@code null})
+   * @param source the source that was removed (may be {@code null} if the location of the source
+   *          cannot be determined)
+   */
+  public void sourceRemoved(IFile resource, Source source) {
+    if (source != null) {
+      context.sourceDeleted(source);
     }
-    Source source = context.getSourceFactory().forFile(location.toFile());
-    context.sourceAvailable(source);
-    if (notifyChanged) {
-      context.sourceChanged(source);
-    }
-  }
-
-  public void sourceChanged(IFile resource) {
-    if (!notifyChanged) {
-      return;
-    }
-    IPath location = resource.getLocation();
-    if (location == null) {
-      logNoLocation(resource);
-      return;
-    }
-    Source source = context.getSourceFactory().forFile(location.toFile());
-    context.sourceChanged(source);
-  }
-
-  public void sourceRemoved(IFile resource) {
-    IPath location = resource.getLocation();
-    if (location == null) {
-      logNoLocation(resource);
-      return;
-    }
-    Source source = context.getSourceFactory().forFile(location.toFile());
-    context.sourceDeleted(source);
   }
 
   public void visitContext(IContainer container, AnalysisContext context) {
     this.context = context;
   }
 
-  void logNoLocation(IResource resource) {
+  private void logNoLocation(IResource resource) {
     DartCore.logInformation("No location for " + resource);
   }
 
