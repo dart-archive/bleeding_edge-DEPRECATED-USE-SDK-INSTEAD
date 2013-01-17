@@ -33,9 +33,11 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -64,16 +66,23 @@ public class IndexContributorTest extends EngineTestCase {
     Element element;
     int offset;
     String name;
+    String prefix;
 
     ExpectedLocation(Element element, int offset, String name) {
+      this(element, offset, name, null);
+    }
+
+    ExpectedLocation(Element element, int offset, String name, String prefix) {
       this.element = element;
       this.offset = offset;
       this.name = name;
+      this.prefix = prefix;
     }
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).addValue(element).addValue(offset).addValue(name.length()).toString();
+      return Objects.toStringHelper(this).addValue(element).addValue(offset).addValue(name.length()).addValue(
+          prefix).toString();
     }
   }
 
@@ -115,42 +124,68 @@ public class IndexContributorTest extends EngineTestCase {
    * Asserts that actual {@link Location} has given properties.
    */
   private static void assertLocation(Location actual, Element expectedElement, int expectedOffset,
-      String expectedNameForLength) {
+      String expectedNameForLength, String expectedPrefix) {
     assertEquals(expectedElement, actual.getElement());
     assertEquals(expectedOffset, actual.getOffset());
     assertEquals(expectedNameForLength.length(), actual.getLength());
-    assertSame(null, actual.getImportPrefix());
+    assertEquals(expectedPrefix, actual.getImportPrefix());
   }
 
   /**
-   * Asserts that actual {@link Location} has given properties.
+   * Asserts that given list of {@link RecordedRelation} has no item with specified properties.
    */
-  private static void assertLocation(Location actual, ExpectedLocation expected) {
-    assertLocation(actual, expected.element, expected.offset, expected.name);
+  private static void assertNoRecordedRelation(List<RecordedRelation> recordedRelations,
+      Element element, Relationship relationship, ExpectedLocation location) {
+    for (RecordedRelation recordedRelation : recordedRelations) {
+      if (equalsRecordedRelation(recordedRelation, element, relationship, location)) {
+        fail("not expected: " + recordedRelation);
+      }
+    }
   }
 
+  /**
+   * Asserts that given list of {@link RecordedRelation} has item with expected properties.
+   */
   private static void assertRecordedRelation(List<RecordedRelation> recordedRelations,
       Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
     for (RecordedRelation recordedRelation : recordedRelations) {
-      try {
-        assertRecordedRelation(
-            recordedRelation,
-            expectedElement,
-            expectedRelationship,
-            expectedLocation);
+      if (equalsRecordedRelation(
+          recordedRelation,
+          expectedElement,
+          expectedRelationship,
+          expectedLocation)) {
         return;
-      } catch (Throwable e) {
       }
     }
     fail("not found " + expectedElement + " " + expectedRelationship + " in " + expectedLocation
         + " in\n" + Joiner.on("\n").join(recordedRelations));
   }
 
-  private static void assertRecordedRelation(RecordedRelation recordedRelation,
-      Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
-    assertEquals(expectedElement, recordedRelation.element);
-    assertSame(expectedRelationship, recordedRelation.relation);
-    assertLocation(recordedRelation.location, expectedLocation);
+  /**
+   * Asserts that there are two relations with same location.
+   */
+  private static void assertRecordedRelations(List<RecordedRelation> relations, Element element,
+      Relationship r1, Relationship r2, ExpectedLocation expectedLocation) {
+    assertRecordedRelation(relations, element, r1, expectedLocation);
+    assertRecordedRelation(relations, element, r2, expectedLocation);
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Location} has specified expected properties.
+   */
+  private static boolean equalsLocation(Location actual, Element expectedElement,
+      int expectedOffset, String expectedNameForLength, String expectedPrefix) {
+    return Objects.equal(expectedElement, actual.getElement())
+        && Objects.equal(expectedOffset, actual.getOffset())
+        && Objects.equal(expectedNameForLength.length(), actual.getLength())
+        && Objects.equal(expectedPrefix, actual.getImportPrefix());
+  }
+
+  /**
+   * @return <code>true</code> if given {@link Location} has specified expected properties.
+   */
+  private static boolean equalsLocation(Location actual, ExpectedLocation expected) {
+    return equalsLocation(actual, expected.element, expected.offset, expected.name, expected.prefix);
   }
 
 //  private static <T extends Element> T mockElement(Class<T> clazz, Element enclosingElement,
@@ -160,13 +195,11 @@ public class IndexContributorTest extends EngineTestCase {
 //    return element;
 //  }
 
-  /**
-   * Asserts that there are two relations with same location.
-   */
-  private static void assertRecordedRelations(List<RecordedRelation> relations, Element element,
-      Relationship r1, Relationship r2, ExpectedLocation expectedLocation) {
-    assertRecordedRelation(relations, element, r1, expectedLocation);
-    assertRecordedRelation(relations, element, r2, expectedLocation);
+  private static boolean equalsRecordedRelation(RecordedRelation recordedRelation,
+      Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
+    return Objects.equal(expectedElement, recordedRelation.element)
+        && expectedRelationship == recordedRelation.relation
+        && (expectedLocation == null || equalsLocation(recordedRelation.location, expectedLocation));
   }
 
 //  private static SimpleIdentifier mockSimpleIdentifier(Element element, int offset, String name) {
@@ -197,82 +230,11 @@ public class IndexContributorTest extends EngineTestCase {
 
   private CompilationUnit testUnit;
 
-  public void test_accessByQualified_field() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static myField;",
-        "}",
-        "main() {",
-        "  print(A.myField);",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField);").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
-  }
-
-  public void test_accessByUnqualified_field() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var myField;",
-        "  main() {",
-        "    print(myField);",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    Element fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField);").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
-  }
-
-  public void test_accessByUnqualified_parameter() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  main(var p) {",
-        "    print(p);",
-        "  }",
-        "}");
-    // set elements
-    MethodElement enclosingElement = getElement("main(");
-    ParameterElement parameterElement = getElement("p) {");
-    findSimpleIdentifier("p);").setElement(parameterElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        parameterElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new ExpectedLocation(enclosingElement, getOffset("p);"), "p"));
-  }
-
   public void test_createElementLocation() throws Exception {
     ElementLocation elementLocation = mock(ElementLocation.class);
     Element element = mockElement(Element.class, elementLocation, 42, "myName");
     Location location = IndexContributor.createElementLocation(element);
-    assertLocation(location, element, 42, "myName");
+    assertLocation(location, element, 42, "myName", null);
   }
 
   public void test_createElementLocation_null() throws Exception {
@@ -306,6 +268,7 @@ public class IndexContributorTest extends EngineTestCase {
         libraryElement,
         IndexConstants.DEFINES_CLASS_ALIAS,
         new ExpectedLocation(classElement, getOffset("MyClass ="), "MyClass"));
+    assertNoRecordedRelation(relations, classElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesFunction() throws Exception {
@@ -320,6 +283,7 @@ public class IndexContributorTest extends EngineTestCase {
         libraryElement,
         IndexConstants.DEFINES_FUNCTION,
         new ExpectedLocation(functionElement, getOffset("myFunction() {}"), "myFunction"));
+    assertNoRecordedRelation(relations, functionElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesFunctionType() throws Exception {
@@ -334,6 +298,7 @@ public class IndexContributorTest extends EngineTestCase {
         libraryElement,
         IndexConstants.DEFINES_FUNCTION_TYPE,
         new ExpectedLocation(typeAliasElement, getOffset("MyFunction"), "MyFunction"));
+    assertNoRecordedRelation(relations, typeAliasElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesVariable() throws Exception {
@@ -348,6 +313,97 @@ public class IndexContributorTest extends EngineTestCase {
         libraryElement,
         IndexConstants.DEFINES_VARIABLE,
         new ExpectedLocation(varElement, getOffset("myVar"), "myVar"));
+    assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isAccessByQualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static myField;",
+        "}",
+        "main() {",
+        "  print(A.myField);",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FieldElement fieldElement = getElement("myField;");
+    findSimpleIdentifier("myField);").setElement(fieldElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldElement,
+        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+  }
+
+  public void test_isAccessByUnqualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  main() {",
+        "    print(myField);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    Element fieldElement = getElement("myField;");
+    findSimpleIdentifier("myField);").setElement(fieldElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+  }
+
+  public void test_isAccessByUnqualified_ParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main2(var p) {",
+        "  print(p);",
+        "}");
+    // set elements
+    Element mainElement = getElement("main2(");
+    ParameterElement parameterElement = getElement("p) {");
+    findSimpleIdentifier("p);").setElement(parameterElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        parameterElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("p);"), "p"));
+  }
+
+  public void test_isAccessByUnqualified_VariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(v);",
+        "}");
+    // set elements
+    Element mainElement = getElement("main(");
+    VariableElement variableElement = mock(VariableElement.class);
+    findSimpleIdentifier("v);").setElement(variableElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        variableElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("v);"), "v"));
   }
 
   public void test_isExtendedBy_ClassDeclaration() throws Exception {
@@ -444,7 +500,30 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(classElementC, getOffset("B; // 3"), "B"));
   }
 
-  public void test_isInvokedByX_constructor() throws Exception {
+  public void test_isInvokedByQualified_function() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.myFunction();",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    FunctionElement functionElement = mock(FunctionElement.class);
+    findSimpleIdentifier("myFunction();").setElement(functionElement);
+    findSimpleIdentifier("pref.myFunction").setElement(libraryElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        functionElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myFunction();"), "myFunction", "pref"));
+  }
+
+  public void test_isInvokedByUnqualified_ConstructorElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -457,7 +536,7 @@ public class IndexContributorTest extends EngineTestCase {
         "}",
         "");
     // set elements
-    FunctionElement mainElement = getElement("main() {");
+    Element mainElement = getElement("main() {");
     ConstructorElement unnamedElement = findNode(ConstructorDeclaration.class, "A()").getElement();
     ConstructorElement namedElement = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
     findNode(ConstructorName.class, "A();").setElement(unnamedElement);
@@ -478,7 +557,7 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("A.foo();"), "A.foo"));
   }
 
-  public void test_isInvokedByX_function() throws Exception {
+  public void test_isInvokedByUnqualified_FunctionElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "foo() {}",
@@ -487,7 +566,7 @@ public class IndexContributorTest extends EngineTestCase {
         "}",
         "");
     // set elements
-    FunctionElement mainElement = getElement("main() {");
+    Element mainElement = getElement("main() {");
     FunctionElement fooElement = getElement("foo() {}");
     findSimpleIdentifier("foo();").setElement(fooElement);
     // index
@@ -499,9 +578,10 @@ public class IndexContributorTest extends EngineTestCase {
         fooElement,
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isInvokedByX_method() throws Exception {
+  public void test_isInvokedByUnqualified_MethodElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -512,7 +592,7 @@ public class IndexContributorTest extends EngineTestCase {
         "  }",
         "}");
     // set elements
-    MethodElement mainElement = getElement("main() {");
+    Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
     findSimpleIdentifier("foo(); // 1").setElement(fooElement);
     findSimpleIdentifier("foo(); // 2").setElement(fooElement);
@@ -530,6 +610,7 @@ public class IndexContributorTest extends EngineTestCase {
         fooElement,
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new ExpectedLocation(mainElement, getOffset("foo(); // 2"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_isMixedInBy_ClassDeclaration() throws Exception {
@@ -574,6 +655,119 @@ public class IndexContributorTest extends EngineTestCase {
         IndexConstants.IS_MIXED_IN_BY,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(classElementC, getOffset("A; // 2"), "A"));
+  }
+
+  public void test_isModifiedByQualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static myField;",
+        "}",
+        "main() {",
+        "  A.myField = 1;",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FieldElement fieldElement = getElement("myField;");
+    findSimpleIdentifier("myField = 1").setElement(fieldElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldElement,
+        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
+  }
+
+  public void test_isModifiedByQualified_VariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.myTopLevelVar = 0;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    VariableElement varElement = mock(VariableElement.class);
+    findSimpleIdentifier("myTopLevelVar = 0;").setElement(varElement);
+    findSimpleIdentifier("pref.myTopLevelVar").setElement(libraryElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        varElement,
+        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myTopLevelVar = 0;"), "myTopLevelVar", "pref"));
+  }
+
+  public void test_isModifiedByUnqualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  main() {",
+        "    myField = 1;",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    Element fieldElement = getElement("myField;");
+    findSimpleIdentifier("myField = 1").setElement(fieldElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldElement,
+        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
+  }
+
+  public void test_isModifiedByUnqualified_ParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main2(var p) {",
+        "  p = 1;",
+        "}");
+    // set elements
+    Element mainElement = getElement("main2(");
+    ParameterElement parameterElement = getElement("p) {");
+    findSimpleIdentifier("p = 1").setElement(parameterElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        parameterElement,
+        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
+  }
+
+  public void test_isModifiedByUnqualified_VariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  myTopLevelVar = 0;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    VariableElement varElement = mock(VariableElement.class);
+    findSimpleIdentifier("myTopLevelVar = 0;").setElement(varElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        varElement,
+        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myTopLevelVar = 0;"), "myTopLevelVar"));
   }
 
   public void test_isReferencedBy_ClassElement() throws Exception {
@@ -625,6 +819,29 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(functionElement, getOffset("A.field); // 3"), "A"));
   }
 
+  public void test_isReferencedBy_ClassElement_withPrefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.MyClass v;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    LibraryElement libraryElement = mock(LibraryElement.class);
+    ClassElement classElement = mock(ClassElement.class);
+    findSimpleIdentifier("MyClass v;").setElement(classElement);
+    findSimpleIdentifier("pref.MyClass").setElement(libraryElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("MyClass v;"), "MyClass", "pref"));
+  }
+
   public void test_isReferencedBy_ClassTypeAlias() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -654,6 +871,77 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(functionElement, getOffset("B v"), "B"));
   }
 
+  public void test_isReferencedBy_FunctionElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {}",
+        "main() {",
+        "  print(foo);",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    FunctionElement referencedElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+  }
+
+  public void test_isReferencedBy_LabelElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  L: while(true) {",
+        "    break L;",
+        "  }",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    LabelElement referencedElement = getElement("L:");
+    findSimpleIdentifier("L;").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("L;"), "L"));
+  }
+
+  public void test_isReferencedBy_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    print(foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+  }
+
   public void test_isReferencedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -663,7 +951,7 @@ public class IndexContributorTest extends EngineTestCase {
         "}",
         "");
     // set elements
-    FunctionElement enclosingElement = getElement("main(");
+    Element mainElement = getElement("main(");
     ParameterElement parameterElement = getElement("p}) {");
     findSimpleIdentifier("p: 1").setElement(parameterElement);
     // index
@@ -674,7 +962,50 @@ public class IndexContributorTest extends EngineTestCase {
         relations,
         parameterElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(enclosingElement, getOffset("p: 1"), "p"));
+        new ExpectedLocation(mainElement, getOffset("p: 1"), "p"));
+  }
+
+  public void test_isReferencedBy_PrefixElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.myVar = 1;",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    PrefixElement prefixElement = mock(PrefixElement.class);
+    findSimpleIdentifier("pref.myVar").setElement(prefixElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        prefixElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
+  }
+
+  public void test_isReferencedBy_TypeAliasElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef A();",
+        "main2(A p) {",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main2(");
+    TypeAliasElement classElementA = getElement("A();");
+    findSimpleIdentifier("A p").setElement(classElementA);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        classElementA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("A p)"), "A"));
   }
 
   public void test_isReferencedBy_TypeVariableElement() throws Exception {
@@ -701,77 +1032,6 @@ public class IndexContributorTest extends EngineTestCase {
         typeVariableElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(classElementA, getOffset("T f"), "T"));
-  }
-
-  public void test_modifiedByQualified_field() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static myField;",
-        "}",
-        "main() {",
-        "  A.myField = 1;",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField = 1").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
-  }
-
-  public void test_modifiedByUnqualified_field() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var myField;",
-        "  main() {",
-        "    myField = 1;",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    Element fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField = 1").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
-  }
-
-  public void test_modifiedByUnqualified_parameter() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  main(var p) {",
-        "    p = 1;",
-        "  }",
-        "}");
-    // set elements
-    MethodElement mainElement = getElement("main(");
-    ParameterElement parameterElement = getElement("p) {");
-    findSimpleIdentifier("p = 1").setElement(parameterElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        parameterElement,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
   }
 
   public void test_unresolvedUnit() throws Exception {

@@ -44,10 +44,15 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -91,7 +96,7 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
         }
       }
     }
-    // "prefix.field"
+    // "prefix.Type" or "prefix.topLevelVariable"
     if (node.getParent() instanceof PrefixedIdentifier) {
       PrefixedIdentifier propertyAccess = (PrefixedIdentifier) node.getParent();
       SimpleIdentifier qualifier = propertyAccess.getPrefix();
@@ -112,6 +117,9 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     }
     if (node instanceof ClassTypeAlias) {
       return ((ClassTypeAlias) node).getName();
+    }
+    if (node instanceof FunctionTypeAlias) {
+      return ((FunctionTypeAlias) node).getName();
     }
     if (node instanceof FunctionDeclaration) {
       return ((FunctionDeclaration) node).getName();
@@ -141,11 +149,9 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
    *         identifier or method invocation.
    */
   private static boolean isQualified(SimpleIdentifier node) {
-    if (node.getParent() instanceof PrefixedIdentifier) {
-      return ((PrefixedIdentifier) node.getParent()).getIdentifier() == node;
-    }
-    if (node.getParent() instanceof MethodInvocation) {
-      return ((MethodInvocation) node.getParent()).getMethodName() == node;
+    ASTNode parent = node.getParent();
+    if (parent instanceof PrefixedIdentifier) {
+      return ((PrefixedIdentifier) parent).getIdentifier() == node;
     }
     return false;
   }
@@ -335,10 +341,14 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
       return null;
     }
     Element element = node.getElement();
-    if (element instanceof ClassElement || element instanceof TypeVariableElement) {
+    if (element instanceof ClassElement || element instanceof TypeAliasElement
+        || element instanceof TypeVariableElement || element instanceof FunctionElement
+        || element instanceof MethodElement || element instanceof LabelElement
+        || element instanceof PrefixElement) {
       Location location = createLocation(node);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    } else if (element instanceof FieldElement || element instanceof ParameterElement) {
+    } else if (element instanceof FieldElement || element instanceof ParameterElement
+        || element instanceof VariableElement) {
       Location location = createLocation(node);
       if (node.inGetterContext()) {
         if (isQualified(node)) {
