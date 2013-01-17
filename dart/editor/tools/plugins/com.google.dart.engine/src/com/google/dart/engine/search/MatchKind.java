@@ -13,7 +13,8 @@
  */
 package com.google.dart.engine.search;
 
-import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
 
 /**
  * Instances of the enum <code>MatchKind</code> represent the kind of reference that was found when
@@ -41,6 +42,11 @@ public enum MatchKind {
   FUNCTION_EXECUTION,
 
   /**
+   * A reference to a function in which the function is being referenced.
+   */
+  FUNCTION_REFERENCE,
+
+  /**
    * A reference to a function type.
    */
   FUNCTION_TYPE_REFERENCE,
@@ -51,14 +57,14 @@ public enum MatchKind {
   IMPORT_REFERENCE,
 
   /**
-   * A reference to a {@link CompilationUnit}.
-   */
-  FILE_REFERENCE,
-
-  /**
    * A reference to a class that is implementing a specified type.
    */
   INTERFACE_IMPLEMENTED,
+
+  /**
+   * A reference to a {@link LibraryElement}.
+   */
+  LIBRARY_REFERENCE,
 
   /**
    * A reference to a method in which the method is being invoked.
@@ -78,5 +84,20 @@ public enum MatchKind {
   /**
    * A reference to a type.
    */
-  TYPE_REFERENCE;
+  TYPE_REFERENCE,
+
+  /**
+   * A reference to a {@link CompilationUnitElement}.
+   */
+  UNIT_REFERENCE,
+
+  /**
+   * A reference to a variable in which the variable's value is being read.
+   */
+  VARIABLE_READ,
+
+  /**
+   * A reference to a variable in which the variables's value is being written.
+   */
+  VARIABLE_WRITE;
 }

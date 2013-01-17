@@ -44,6 +44,34 @@ public class SearchMatchTest extends EngineTestCase {
     assertEquals(1, SearchMatch.SORT_BY_ELEMENT_NAME.compare(matchB, matchA));
   }
 
+  public void test_equals() throws Exception {
+    Element elementA = mock(Element.class);
+    Element elementB = mock(Element.class);
+    when(elementA.getName()).thenReturn("A");
+    when(elementB.getName()).thenReturn("B");
+    SearchMatch matchA = new SearchMatch(
+        MatchQuality.EXACT,
+        MatchKind.TYPE_REFERENCE,
+        elementA,
+        new SourceRange(10, 5));
+    // not SearchMatch
+    assertFalse(matchA.equals(null));
+    // same object
+    assertTrue(matchA.equals(matchA));
+    // same properties
+    {
+      SearchMatch matchB = new SearchMatch(
+          MatchQuality.EXACT,
+          MatchKind.TYPE_REFERENCE,
+          elementA,
+          new SourceRange(10, 5));
+      assertTrue(matchA.equals(matchB));
+      // change "qualified"
+      matchB.setQualified(true);
+      assertFalse(matchA.equals(matchB));
+    }
+  }
+
   public void test_new() throws Exception {
     SearchMatch match = new SearchMatch(
         MatchQuality.EXACT,

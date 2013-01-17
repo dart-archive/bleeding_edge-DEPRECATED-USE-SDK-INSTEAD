@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.search;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -78,6 +79,20 @@ public class SearchMatch {
     this.kind = kind;
     this.element = element;
     this.sourceRange = sourceRange;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof SearchMatch)) {
+      return false;
+    }
+    if (obj == this) {
+      return true;
+    }
+    SearchMatch o = (SearchMatch) obj;
+    return kind == o.kind && quality == o.quality && qualified == o.qualified
+        && Objects.equal(importPrefix, o.importPrefix) && Objects.equal(sourceRange, o.sourceRange)
+        && Objects.equal(element, o.element);
   }
 
   /**

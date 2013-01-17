@@ -13,6 +13,17 @@
  */
 package com.google.dart.engine.search;
 
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.VariableElement;
+
 import java.util.List;
 
 /**
@@ -74,33 +85,60 @@ public interface SearchEngine {
 //   */
 //  public void searchImplementors(ClassElement type, SearchScope scope, SearchFilter filter,
 //      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given type within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param type the type being referenced by the found matches
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(ClassElement type, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for references to the given type within the given scope.
-//   * 
-//   * @param type the type being referenced by the found matches
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given type within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param type the type being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(ClassElement type, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given type within the given scope.
+   * 
+   * @param type the type being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given {@link CompilationUnitElement} within the
+   * given scope. Return all matches that pass the optional filter.
+   * 
+   * @param unit the {@link CompilationUnitElement} being referenced by the found matches
+   * @param scope the scope containing the {@link CompilationUnitElement} references to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(CompilationUnitElement unit, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given {@link CompilationUnitElement} within the given scope.
+   * 
+   * @param unit the {@link CompilationUnitElement} being referenced by the found matches
+   * @param scope the scope containing the {@link CompilationUnitElement} references to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(CompilationUnitElement unit, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
 
   // TODO(scheglov) decide what to use here - ImportSpecification?
 //  /**
@@ -130,168 +168,225 @@ public interface SearchEngine {
 //  public void searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
 //      SearchListener listener) throws SearchException;
 
-//  /**
-//   * Synchronously search for references to the given field within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param field the field being referenced by the found matches
-//   * @param scope the scope containing the field declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(FieldElement field, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for references to the given field within the given scope.
-//   * 
-//   * @param field the field being referenced by the found matches
-//   * @param scope the scope containing the field declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given function within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param function the function being referenced by the found matches
-//   * @param scope the scope containing the function declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(FunctionElement function, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for references to the given function within the given scope.
-//   * 
-//   * @param function the function being referenced by the found matches
-//   * @param scope the scope containing the function declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(FunctionElement function, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given method within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param method the method being referenced by the found matches
-//   * @param scope the scope containing the method declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(Method method, SearchScope scope, SearchFilter filter)
-//      throws SearchException;
-//
-//  /**
-//   * Search for references to the given method within the given scope.
-//   * 
-//   * @param method the method being referenced by the found matches
-//   * @param scope the scope containing the method declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(Method method, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given {@link IFile} within the given scope. Return
-//   * all matches that pass the optional filter.
-//   * 
-//   * @param file the {@link IFile} being referenced by the found matches
-//   * @param scope the scope containing the {@link IFile} declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(Source file, SearchScope scope, SearchFilter filter)
-//      throws SearchException;
-//
-//  /**
-//   * Search for references to the given {@link IFile} within the given scope.
-//   * 
-//   * @param file the {@link IFile} being referenced by the found matches
-//   * @param scope the scope containing the {@link IFile} declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(Source file, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given function type alias within the given scope.
-//   * Return all matches that pass the optional filter.
-//   * 
-//   * @param alias the function type alias being referenced by the found matches
-//   * @param scope the scope containing the function type alias declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(TypeAliasElement alias, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for references to the given function type alias within the given scope.
-//   * 
-//   * @param alias the function type alias being referenced by the found matches
-//   * @param scope the scope containing the function type alias declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
-//  /**
-//   * Synchronously search for references to the given variable within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param variable the variable being referenced by the found matches
-//   * @param scope the scope containing the variable declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(VariableElement variable, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for references to the given variable within the given scope.
-//   * 
-//   * @param variable the variable being referenced by the found matches
-//   * @param scope the scope containing the variable declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-//
+  /**
+   * Synchronously search for references to the given {@link Element} within the given scope. This
+   * method will call corresponding <code>searchReferences</code> method depending on concrete type
+   * of the given {@link Element}.
+   * 
+   * @param element the type being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(Element element, SearchScope scope, SearchFilter filter)
+      throws SearchException;
+
+  /**
+   * Search for references to the given type within the given scope. This method will call
+   * corresponding <code>searchReferences</code> method depending on concrete type of the given
+   * {@link Element}.
+   * 
+   * @param type the type being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(Element element, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given field within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param field the field being referenced by the found matches
+   * @param scope the scope containing the field declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(FieldElement field, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given field within the given scope.
+   * 
+   * @param field the field being referenced by the found matches
+   * @param scope the scope containing the field declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given function within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param function the function being referenced by the found matches
+   * @param scope the scope containing the function declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(FunctionElement function, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given function within the given scope.
+   * 
+   * @param function the function being referenced by the found matches
+   * @param scope the scope containing the function declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(FunctionElement function, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given {@link LibraryElement} within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param library the {@link LibraryElement} being referenced by the found matches
+   * @param scope the scope containing the {@link LibraryElement} references to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(LibraryElement library, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given {@link LibraryElement} within the given scope.
+   * 
+   * @param library the {@link LibraryElement} being referenced by the found matches
+   * @param scope the scope containing the {@link LibraryElement} references to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(LibraryElement library, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given method within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param method the method being referenced by the found matches
+   * @param scope the scope containing the method declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(MethodElement method, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given method within the given scope.
+   * 
+   * @param method the method being referenced by the found matches
+   * @param scope the scope containing the method declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(MethodElement method, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given parameter within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param parameter the parameter being referenced by the found matches
+   * @param scope the scope containing the parameter declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(ParameterElement parameter, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given parameter within the given scope.
+   * 
+   * @param parameter the parameter being referenced by the found matches
+   * @param scope the scope containing the parameter declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(ParameterElement parameter, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given function type alias within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param alias the function type alias being referenced by the found matches
+   * @param scope the scope containing the function type alias declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(TypeAliasElement alias, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given function type alias within the given scope.
+   * 
+   * @param alias the function type alias being referenced by the found matches
+   * @param scope the scope containing the function type alias declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given variable within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param variable the variable being referenced by the found matches
+   * @param scope the scope containing the variable declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(VariableElement variable, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given variable within the given scope.
+   * 
+   * @param variable the variable being referenced by the found matches
+   * @param scope the scope containing the variable declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
 //  /**
 //   * Synchronously search for subtypes of the given type within the given scope. Return all matches
 //   * that pass the optional filter.
