@@ -68,10 +68,6 @@
                style="push"
                icon="icons/full/obj16/rem_all_brk.gif">
          </command>
-         <command
-               commandId="com.google.dart.tools.debug.ui.toggleBreakOnExceptions"
-               style="toggle">
-         </command>
       </menuContribution>
    </extension>
    <extension

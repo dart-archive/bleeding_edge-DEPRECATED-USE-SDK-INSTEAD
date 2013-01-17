@@ -335,14 +335,6 @@
             id="com.google.dart.tools.debug.ui.removeBreakpoints"
             name="%removeBreakpointsCommandName">
       </command>
-      <command
-            categoryId="org.eclipse.ui.category.window"
-            defaultHandler="com.google.dart.tools.debug.ui.launch.ToggleBreakOnExceptionsHandler"
-            description="%toggleBreakOnExceptionsName"
-            id="com.google.dart.tools.debug.ui.toggleBreakOnExceptions"
-            name="%toggleBreakOnExceptionsName">
-            <state class="org.eclipse.jface.commands.ToggleState" id="STYLE"/>
-      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
