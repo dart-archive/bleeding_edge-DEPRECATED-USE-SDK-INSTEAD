@@ -15,6 +15,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -48,11 +49,11 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -137,6 +138,11 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       return ((SimpleFormalParameter) node).getIdentifier();
     }
     return null;
+  }
+
+  private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
+    return node.getParent() instanceof PrefixedIdentifier
+        && ((PrefixedIdentifier) node.getParent()).getIdentifier() == node;
   }
 
   /**
@@ -365,7 +371,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof TypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
-        || element instanceof PrefixElement) {
+        || element instanceof ImportElement) {
       Location location = createLocation(node);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldElement || element instanceof ParameterElement
@@ -386,6 +392,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         }
       }
     }
+    recordImportElementReferenceWithoutPrefix(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -467,6 +474,26 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * Records {@link ImportElement} reference if given {@link SimpleIdentifier} references some
+   * top-level element and not qualified with import prefix.
+   */
+  private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
+    Element element = node.getElement();
+    if (element != null && element.getEnclosingElement() instanceof LibraryElement
+        && !isIdentifierInPrefixedIdentifier(node)) {
+      LibraryElement importLibraryElement = (LibraryElement) element.getEnclosingElement();
+      for (ImportElement importElement : libraryElement.getImports()) {
+        if (importElement.getPrefix() == null
+            && Objects.equal(importElement.getImportedLibrary(), importLibraryElement)) {
+          Location location = createLocation(node.getOffset(), 0, null);
+          recordRelationship(importElement, IndexConstants.IS_REFERENCED_BY, location);
+          break;
+        }
+      }
+    }
   }
 
   /**

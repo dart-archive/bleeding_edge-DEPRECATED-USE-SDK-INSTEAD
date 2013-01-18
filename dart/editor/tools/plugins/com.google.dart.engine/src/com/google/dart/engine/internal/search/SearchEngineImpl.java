@@ -18,6 +18,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -298,6 +299,9 @@ public class SearchEngineImpl implements SearchEngine {
         case FUNCTION:
           searchReferences((FunctionElement) element, scope, filter, listener);
           return;
+        case IMPORT:
+          searchReferences((ImportElement) element, scope, filter, listener);
+          return;
         case LIBRARY:
           searchReferences((LibraryElement) element, scope, filter, listener);
           return;
@@ -317,29 +321,6 @@ public class SearchEngineImpl implements SearchEngine {
     }
     listener.searchComplete();
   }
-
-//  @Override
-//  public List<SearchMatch> searchReferences(final DartImport imprt, final SearchScope scope,
-//      final SearchFilter filter) throws SearchException {
-//    return gatherResults(new SearchRunner() {
-//      @Override
-//      public void performSearch(SearchListener listener) throws SearchException {
-//        searchReferences(imprt, scope, filter, listener);
-//      }
-//    });
-//  }
-//
-//  @Override
-//  public void searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException {
-//    if (listener == null) {
-//      throw new IllegalArgumentException("listener cannot be null");
-//    }
-//    index.getRelationships(
-//        createElement(imprt),
-//        IndexConstants.IS_REFERENCED_BY,
-//        new RelationshipCallbackImpl(MatchKind.IMPORT_REFERENCE, applyFilter(filter, listener)));
-//  }
 
   @Override
   public List<SearchMatch> searchReferences(final FieldElement field, final SearchScope scope,
@@ -426,6 +407,28 @@ public class SearchEngineImpl implements SearchEngine {
         function,
         IndexConstants.IS_ACCESSED_BY_QUALIFIED,
         newCallback(MatchKind.FUNCTION_REFERENCE, listener));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final ImportElement imp, final SearchScope scope,
+      final SearchFilter filter) throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(imp, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(ImportElement imp, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    index.getRelationships(
+        imp,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.IMPORT_REFERENCE, listener));
   }
 
   @Override

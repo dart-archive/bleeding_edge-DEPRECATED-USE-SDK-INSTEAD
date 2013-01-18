@@ -34,11 +34,11 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -1030,6 +1030,57 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
   }
 
+  public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  myVar = 1;",
+        "}",
+        "");
+    // set elements
+    ImportElement importElement = mock(ImportElement.class);
+    LibraryElement importedlibrary = mock(LibraryElement.class);
+    when(importElement.getImportedLibrary()).thenReturn(importedlibrary);
+    when(libraryElement.getImports()).thenReturn(new ImportElement[] {importElement});
+    Element mainElement = getElement("main(");
+    {
+      VariableElement variableElement = mock(VariableElement.class);
+      when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
+      findSimpleIdentifier("myVar").setElement(variableElement);
+    }
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("myVar = 1"), ""));
+  }
+
+  public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.myVar = 1;",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    ImportElement importElement = mock(ImportElement.class);
+    findSimpleIdentifier("pref.myVar").setElement(importElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        importElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
+  }
+
   public void test_isReferencedBy_LabelElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1115,28 +1166,6 @@ public class IndexContributorTest extends EngineTestCase {
         parameterElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, getOffset("p: 1"), "p"));
-  }
-
-  public void test_isReferencedBy_PrefixElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  pref.myVar = 1;",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main(");
-    PrefixElement prefixElement = mock(PrefixElement.class);
-    findSimpleIdentifier("pref.myVar").setElement(prefixElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        prefixElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
   }
 
   public void test_isReferencedBy_TypeAliasElement() throws Exception {

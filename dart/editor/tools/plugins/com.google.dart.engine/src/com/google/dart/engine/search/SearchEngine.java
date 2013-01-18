@@ -18,6 +18,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -140,34 +141,6 @@ public interface SearchEngine {
   public void searchReferences(CompilationUnitElement unit, SearchScope scope, SearchFilter filter,
       SearchListener listener) throws SearchException;
 
-  // TODO(scheglov) decide what to use here - ImportSpecification?
-//  /**
-//   * Synchronously search for references to the given {@link DartImport} within the given scope.
-//   * Return all matches that pass the optional filter.
-//   * 
-//   * @param imprt the {@link DartImport} being referenced by the found matches
-//   * @param scope the scope containing the {@link DartImport} declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter)
-//      throws SearchException;
-//
-//  /**
-//   * Search for references to the given {@link DartImport} within the given scope.
-//   * 
-//   * @param imprt the {@link DartImport} being referenced by the found matches
-//   * @param scope the scope containing the {@link DartImport} declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchReferences(DartImport imprt, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
-
   /**
    * Synchronously search for references to the given {@link Element} within the given scope. This
    * method will call corresponding <code>searchReferences</code> method depending on concrete type
@@ -250,6 +223,33 @@ public interface SearchEngine {
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(FunctionElement function, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given import within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param imp the import being referenced by the found matches
+   * @param scope the scope containing the type declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(ImportElement imp, SearchScope scope,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for references to the given type import the given scope.
+   * 
+   * @param imp the import being referenced by the found matches
+   * @param scope the scope containing the import declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(ImportElement imp, SearchScope scope, SearchFilter filter,
       SearchListener listener) throws SearchException;
 
   /**

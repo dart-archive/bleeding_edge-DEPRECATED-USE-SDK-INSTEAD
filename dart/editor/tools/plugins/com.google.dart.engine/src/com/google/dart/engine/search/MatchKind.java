@@ -14,6 +14,7 @@
 package com.google.dart.engine.search;
 
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 
 /**
@@ -52,7 +53,7 @@ public enum MatchKind {
   FUNCTION_TYPE_REFERENCE,
 
   /**
-   * A reference to a {@link DartImport}.
+   * A reference to a {@link ImportElement}.
    */
   IMPORT_REFERENCE,
 

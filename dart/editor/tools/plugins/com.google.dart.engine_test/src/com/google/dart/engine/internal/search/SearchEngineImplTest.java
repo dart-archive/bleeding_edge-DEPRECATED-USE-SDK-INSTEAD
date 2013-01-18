@@ -21,6 +21,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -363,6 +364,27 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.FUNCTION_EXECUTION, 2, 20, true),
         new ExpectedMatch(elementC, MatchKind.FUNCTION_REFERENCE, 3, 30, false),
         new ExpectedMatch(elementD, MatchKind.FUNCTION_REFERENCE, 4, 40, true));
+  }
+
+  public void test_searchReferences_ImportElement() throws Exception {
+    ImportElement referencedElement = mock(ImportElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.IMPORT);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 0, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(ImportElement.class, referencedElement);
+    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.IMPORT_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.IMPORT_REFERENCE, 10, 0));
   }
 
   public void test_searchReferences_LibraryElement() throws Exception {
