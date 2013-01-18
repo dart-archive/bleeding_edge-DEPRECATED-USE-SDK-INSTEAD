@@ -37,9 +37,9 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
@@ -83,7 +83,7 @@ public class NewApplicationCreationPage extends WizardPage {
   private String defaultLocation;
 
   private Button generateContentButton;
-  private ListViewer samplesListViewer;
+  private TableViewer samplesViewer;
 
   /**
    * Creates a new project creation wizard page.
@@ -188,15 +188,16 @@ public class NewApplicationCreationPage extends WizardPage {
     Label spacer = new Label(contentGroup, SWT.SEPARATOR | SWT.HORIZONTAL);
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(spacer);
 
-    samplesListViewer = new ListViewer(contentGroup);
-    samplesListViewer.setLabelProvider(new LabelProvider());
-    samplesListViewer.setContentProvider(new ArrayContentProvider());
+    samplesViewer = new TableViewer(contentGroup, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER
+        | SWT.FULL_SELECTION);
+    samplesViewer.setLabelProvider(new LabelProvider());
+    samplesViewer.setContentProvider(new ArrayContentProvider());
     List<AbstractSample> samples = AbstractSample.getAllSamples();
-    samplesListViewer.setInput(samples);
+    samplesViewer.setInput(samples);
     GridDataFactory.fillDefaults().hint(-1, 60).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
-        samplesListViewer.getControl());
-    samplesListViewer.setSelection(new StructuredSelection(samples.get(0)));
-    samplesListViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+        samplesViewer.getControl());
+    samplesViewer.setSelection(new StructuredSelection(samples.get(0)));
+    samplesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
         updateMessageAndEnablement();
@@ -245,7 +246,7 @@ public class NewApplicationCreationPage extends WizardPage {
 
   protected AbstractSample getCurrentSample() {
     if (generateContentButton.getSelection()) {
-      IStructuredSelection selection = (IStructuredSelection) samplesListViewer.getSelection();
+      IStructuredSelection selection = (IStructuredSelection) samplesViewer.getSelection();
 
       if (selection.isEmpty()) {
         return null;
@@ -347,7 +348,7 @@ public class NewApplicationCreationPage extends WizardPage {
     AbstractSample sample = getCurrentSample();
     setMessage(sample == null ? null : sample.getDescription());
 
-    samplesListViewer.getList().setEnabled(generateContentButton.getSelection());
+    samplesViewer.getTable().setEnabled(generateContentButton.getSelection());
   }
 
   private IStatus validate() {
