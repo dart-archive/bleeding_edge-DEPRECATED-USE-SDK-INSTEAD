@@ -1064,12 +1064,20 @@ public class IndexContributorTest extends EngineTestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  pref.myVar = 1;",
+        "  pref.MyClass m;",
         "}",
         "");
     // set elements
     Element mainElement = getElement("main(");
+    LibraryElement importedlibrary = mock(LibraryElement.class);
     ImportElement importElement = mock(ImportElement.class);
+    when(importElement.getImportedLibrary()).thenReturn(importedlibrary);
     findSimpleIdentifier("pref.myVar").setElement(importElement);
+    {
+      VariableElement variableElement = mock(VariableElement.class);
+      when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
+      findSimpleIdentifier("myVar").setElement(variableElement);
+    }
     // index
     index.visitCompilationUnit(testUnit);
     // verify

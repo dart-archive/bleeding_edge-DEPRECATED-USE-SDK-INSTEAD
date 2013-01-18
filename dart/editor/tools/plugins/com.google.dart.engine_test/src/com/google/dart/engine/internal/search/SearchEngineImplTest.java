@@ -123,7 +123,6 @@ public class SearchEngineImplTest extends EngineTestCase {
   private final Element elementA = mock(Element.class);
   private final Element elementB = mock(Element.class);
   private final Element elementC = mock(Element.class);
-
   private final Element elementD = mock(Element.class);
 
   public void test_searchDeclarations_String() throws Exception {
@@ -583,6 +582,36 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.VARIABLE_READ, 2, 20, true),
         new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 3, 30, false),
         new ExpectedMatch(elementD, MatchKind.VARIABLE_WRITE, 4, 40, true));
+  }
+
+  public void test_searchSubtypes() throws Exception {
+    final ClassElement referencedElement = mock(ClassElement.class);
+    {
+      Location locationA = new Location(elementA, 10, 1, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_EXTENDED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 20, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_MIXED_IN_BY, locationB);
+    }
+    {
+      Location locationC = new Location(elementC, 30, 3, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_IMPLEMENTED_BY, locationC);
+    }
+    // search matches
+    List<SearchMatch> matches = runSearch(new SearchRunner<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        return engine.searchSubtypes(referencedElement, filter);
+      }
+    });
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.EXTENDS_REFERENCE, 10, 1),
+        new ExpectedMatch(elementB, MatchKind.WITH_REFERENCE, 20, 2),
+        new ExpectedMatch(elementC, MatchKind.IMPLEMENTS_REFERENCE, 30, 3));
   }
 
   public void test_searchTypeDeclarations_async() throws Exception {

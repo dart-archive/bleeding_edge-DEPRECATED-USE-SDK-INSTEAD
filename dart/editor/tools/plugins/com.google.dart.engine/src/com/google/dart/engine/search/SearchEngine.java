@@ -413,6 +413,19 @@ public interface SearchEngine {
       SearchListener listener) throws SearchException;
 
   /**
+   * Search for references to the given variable within the given scope.
+   * 
+   * @param variable the variable being referenced by the found matches
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(VariableElement variable, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
    * Synchronously search for references to the given variable within the given scope. Return all
    * matches that pass the optional filter.
    * 
@@ -426,45 +439,29 @@ public interface SearchEngine {
       SearchFilter filter) throws SearchException;
 
   /**
-   * Search for references to the given variable within the given scope.
+   * Synchronously search for subtypes of the given type within the given scope. Return all matches
+   * that pass the optional filter.
    * 
-   * @param variable the variable being referenced by the found matches
-   * @param scope the scope containing the variable declarations to be searched
+   * @param type the type being subtyped by the found matches
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchSubtypes(ClassElement type, SearchFilter filter)
+      throws SearchException;
+
+  /**
+   * Search for subtypes of the given type within the given scope.
+   * 
+   * @param type the type being subtyped by the found matches
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @throws SearchException if the results could not be computed
    */
-  public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
-
-//  /**
-//   * Synchronously search for subtypes of the given type within the given scope. Return all matches
-//   * that pass the optional filter.
-//   * 
-//   * @param type the type being subtyped by the found matches
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter)
-//      throws SearchException;
-//
-//  /**
-//   * Search for subtypes of the given type within the given scope.
-//   * 
-//   * @param type the type being subtyped by the found matches
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
+  public void searchSubtypes(ClassElement type, SearchFilter filter, SearchListener listener)
+      throws SearchException;
 
   /**
    * Synchronously search for all of the type declarations that are defined in the given scope and

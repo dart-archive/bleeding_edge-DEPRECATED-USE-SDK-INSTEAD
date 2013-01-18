@@ -141,8 +141,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
-    return node.getParent() instanceof PrefixedIdentifier
-        && ((PrefixedIdentifier) node.getParent()).getIdentifier() == node;
+    ASTNode parent = node.getParent();
+    return parent instanceof PrefixedIdentifier
+        && ((PrefixedIdentifier) parent).getIdentifier() == node;
   }
 
   /**

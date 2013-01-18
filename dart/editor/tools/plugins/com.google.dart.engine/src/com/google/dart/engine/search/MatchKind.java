@@ -23,9 +23,9 @@ import com.google.dart.engine.element.LibraryElement;
  */
 public enum MatchKind {
   /**
-   * The kind that is used when the match does not represent a reference to an element.
+   * A reference to a type in which the type was extended.
    */
-  NOT_A_REFERENCE,
+  EXTENDS_REFERENCE,
 
   /**
    * A reference to a field in which the field's value is being read.
@@ -51,6 +51,10 @@ public enum MatchKind {
    * A reference to a function type.
    */
   FUNCTION_TYPE_REFERENCE,
+  /**
+   * A reference to a type in which the type was implemented.
+   */
+  IMPLEMENTS_REFERENCE,
 
   /**
    * A reference to a {@link ImportElement}.
@@ -91,6 +95,10 @@ public enum MatchKind {
    * A reference to a named parameter in invocation.
    */
   NAMED_PARAMETER_REFERENCE,
+  /**
+   * The kind that is used when the match does not represent a reference to an element.
+   */
+  NOT_A_REFERENCE,
 
   /**
    * A reference to a type.
@@ -110,5 +118,10 @@ public enum MatchKind {
   /**
    * A reference to a variable in which the variables's value is being written.
    */
-  VARIABLE_WRITE;
+  VARIABLE_WRITE,
+
+  /**
+   * A reference to a type in which the type was mixed in.
+   */
+  WITH_REFERENCE;
 }

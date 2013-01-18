@@ -338,7 +338,7 @@ public class SearchEngineImpl implements SearchEngine {
           searchReferences((TypeAliasElement) element, scope, filter, listener);
           return;
         case VARIABLE:
-          searchReferences((VariableElement) element, scope, filter, listener);
+          searchReferences((VariableElement) element, filter, listener);
           return;
       }
     }
@@ -591,18 +591,7 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public List<SearchMatch> searchReferences(final VariableElement variable,
-      final SearchScope scope, final SearchFilter filter) throws SearchException {
-    return gatherResults(new SearchRunner() {
-      @Override
-      public void performSearch(SearchListener listener) throws SearchException {
-        searchReferences(variable, scope, filter, listener);
-      }
-    });
-  }
-
-  @Override
-  public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
+  public void searchReferences(VariableElement variable, SearchFilter filter,
       SearchListener listener) throws SearchException {
     assert listener != null;
     listener = applyFilter(filter, listener);
@@ -625,38 +614,48 @@ public class SearchEngineImpl implements SearchEngine {
         new RelationshipCallbackImpl(MatchKind.VARIABLE_WRITE, listener));
   }
 
-//  @Override
-//  public List<SearchMatch> searchSubtypes(final Type type, final SearchScope scope,
-//      final SearchFilter filter) throws SearchException {
-//    return gatherResults(new SearchRunner() {
-//      @Override
-//      public void performSearch(SearchListener listener) throws SearchException {
-//        searchSubtypes(type, scope, filter, listener);
-//      }
-//    });
-//  }
-//
-//  @Override
-//  public void searchSubtypes(Type type, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException {
-//    if (listener == null) {
-//      throw new IllegalArgumentException("listener cannot be null");
-//    }
-//    SearchListener filteredListener = new CountingSearchListener(3, applyFilter(filter, listener));
-//    index.getRelationships(
-//        createElement(type),
-//        IndexConstants.IS_EXTENDED_BY,
-//        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
-//    index.getRelationships(
-//        createElement(type),
-//        IndexConstants.IS_MIXED_IN_BY,
-//        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
-//    index.getRelationships(
-//        createElement(type),
-//        IndexConstants.IS_IMPLEMENTED_BY,
-//        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, filteredListener));
-//  }
-//
+  @Override
+  public List<SearchMatch> searchReferences(final VariableElement variable,
+      final SearchScope scope, final SearchFilter filter) throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(variable, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public List<SearchMatch> searchSubtypes(final ClassElement type, final SearchFilter filter)
+      throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchSubtypes(type, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchSubtypes(ClassElement type, SearchFilter filter, SearchListener listener)
+      throws SearchException {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(3, listener);
+    index.getRelationships(
+        type,
+        IndexConstants.IS_EXTENDED_BY,
+        newCallback(MatchKind.EXTENDS_REFERENCE, listener));
+    index.getRelationships(
+        type,
+        IndexConstants.IS_MIXED_IN_BY,
+        newCallback(MatchKind.WITH_REFERENCE, listener));
+    index.getRelationships(
+        type,
+        IndexConstants.IS_IMPLEMENTED_BY,
+        newCallback(MatchKind.IMPLEMENTS_REFERENCE, listener));
+  }
+
 ////  @Override
 ////  public List<SearchMatch> searchSupertypes(final Type type, final SearchScope scope,
 ////      final SearchFilter filter) throws SearchException {
