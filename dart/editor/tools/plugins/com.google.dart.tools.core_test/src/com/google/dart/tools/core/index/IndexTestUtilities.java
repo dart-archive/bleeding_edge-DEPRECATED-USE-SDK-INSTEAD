@@ -47,7 +47,7 @@ public class IndexTestUtilities {
   public static String getAttribute(final Index index, final Element element,
       final Attribute attribute) {
     final StoringAttributeCallback listener = new StoringAttributeCallback();
-    TestUtilities.wait(500, new TestUtilities.ThreadController() {
+    TestUtilities.wait(2000, new TestUtilities.ThreadController() {
       @Override
       public void startThread() {
         index.getAttribute(element, attribute, listener);
@@ -65,7 +65,7 @@ public class IndexTestUtilities {
   public static Location[] getRelationships(final Index index, final Element element,
       final Relationship relationship) {
     final StoringRelationshipCallback callback = new StoringRelationshipCallback();
-    TestUtilities.wait(500, new TestUtilities.ThreadController() {
+    TestUtilities.wait(2000, new TestUtilities.ThreadController() {
       @Override
       public void startThread() {
         index.getRelationships(element, relationship, callback);
