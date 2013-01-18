@@ -103,6 +103,20 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_classInner() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  public static class B {",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "}",
+        "class B {",
+        "}");
+  }
+
   public void test_classTypeParameters() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -110,7 +124,11 @@ public class SyntaxTranslatorTest extends TestCase {
         "  void test(K k, V v) {",
         "  }",
         "}");
-    assertDartSource("class A<K, V extends String> {", "  void test(K k, V v) {", "  }", "}");
+    assertDartSource(//
+        "class A<K, V extends String> {",
+        "  void test(K k, V v) {",
+        "  }",
+        "}");
   }
 
   public void test_commentDoc_class() throws Exception {
@@ -1461,6 +1479,24 @@ public class SyntaxTranslatorTest extends TestCase {
         "    int v6;",
         "    double v7;",
         "    double v8;",
+        "  }",
+        "}");
+  }
+
+  public void test_typeWildcard() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void test() {",
+        "    List<?> v1;",
+        "    List<? extends String> v2;",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "  void test() {",
+        "    List<Object> v1;",
+        "    List<String> v2;",
         "  }",
         "}");
   }

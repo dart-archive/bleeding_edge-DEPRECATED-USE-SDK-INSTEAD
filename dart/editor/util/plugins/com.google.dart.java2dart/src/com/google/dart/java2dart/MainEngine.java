@@ -97,6 +97,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(ASTFactory.libraryDirective("engine", "ast"));
     unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    unit.getDirectives().add(ASTFactory.importDirective("scanner.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "ast/")) {

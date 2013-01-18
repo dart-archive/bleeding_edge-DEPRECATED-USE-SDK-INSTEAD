@@ -9,10 +9,12 @@ class Character {
   } 
 }
 
-abstract class CharBuffer {
-  int charAt(int);
-  int length();
-  String subSequence(int start, int end);
+class CharBuffer {
+  final String _content;
+  CharBuffer(this._content);
+  int charAt(int index) => _content.charCodeAt(index);
+  int length() => _content.length;
+  String subSequence(int start, int end) => _content.substring(start, end);
 }
 
 class JavaString {

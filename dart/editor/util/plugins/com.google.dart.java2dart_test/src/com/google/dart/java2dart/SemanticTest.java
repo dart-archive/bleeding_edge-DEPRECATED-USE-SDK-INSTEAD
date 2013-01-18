@@ -301,7 +301,6 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
-  // TODO(scheglov) does not work yet
   public void test_enum_constantWithSubclass() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -359,6 +358,38 @@ public class SemanticTest extends AbstractSemanticTest {
             "  Test_EOF(String ___name, int ___ordinal, int p) : super.con2(___name, ___ordinal, p);",
             "  void foo() {",
             "    print(2);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_enum_inner() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public enum MyEnum {",
+            "    ONE, TWO;",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "}",
+            "class MyEnum {",
+            "  String __name;",
+            "  int __ordinal = 0;",
+            "  static final MyEnum ONE = new MyEnum('ONE', 0);",
+            "  static final MyEnum TWO = new MyEnum('TWO', 1);",
+            "  static final List<MyEnum> values = [ONE, TWO];",
+            "  String toString() {",
+            "    return __name;",
             "  }",
             "}"),
         getFormattedSource(unit));

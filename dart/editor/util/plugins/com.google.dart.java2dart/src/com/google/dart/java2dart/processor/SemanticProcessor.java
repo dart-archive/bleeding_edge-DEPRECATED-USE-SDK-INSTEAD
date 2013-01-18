@@ -15,6 +15,7 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ListLiteral;
@@ -35,6 +36,7 @@ public abstract class SemanticProcessor {
   protected static void replaceNode(ASTNode node, ASTNode replacement) {
     ASTNode parent = node.getParent();
     Class<? extends ASTNode> parentClass = parent.getClass();
+    // try get/set methods
     try {
       for (Method getMethod : parentClass.getMethods()) {
         String getName = getMethod.getName();
@@ -49,7 +51,7 @@ public abstract class SemanticProcessor {
     } catch (Throwable e) {
       ExecutionUtils.propagate(e);
     }
-    // not found
+    // special cases
     if (parent instanceof ListLiteral) {
       List<Expression> elements = ((ListLiteral) parent).getElements();
       int index = elements.indexOf(node);
@@ -58,6 +60,15 @@ public abstract class SemanticProcessor {
         return;
       }
     }
+    if (parent instanceof ArgumentList) {
+      List<Expression> arguments = ((ArgumentList) parent).getArguments();
+      int index = arguments.indexOf(node);
+      if (index != -1) {
+        arguments.set(index, (Expression) replacement);
+        return;
+      }
+    }
+    // not found
     throw new UnsupportedOperationException("" + parentClass);
 //    if (parent instanceof ConditionalExpression) {
 //      ConditionalExpression p = (ConditionalExpression) parent;

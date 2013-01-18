@@ -94,6 +94,7 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
@@ -1255,8 +1256,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
       org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
       constructorImpl = null;
-      if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
+      if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration
+          || javaBodyDecl instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
         // TODO(scheglov) support for inner classes
+        ClassDeclaration innerClassDeclaration = translate(javaBodyDecl);
+        artificialUnitDeclarations.add(innerClassDeclaration);
       } else {
         ClassMember member = translate(javaBodyDecl);
         members.add(member);
@@ -1330,6 +1334,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         (Expression) translate(node.getExpression()),
         null,
         (Statement) translate(node.getBody())));
+  }
+
+  @Override
+  public boolean visit(org.eclipse.jdt.core.dom.WildcardType node) {
+    org.eclipse.jdt.core.dom.Type javaBoundType = node.getBound();
+    if (javaBoundType == null) {
+      return done(ASTFactory.typeName("Object"));
+    } else {
+      return done(translate(javaBoundType));
+    }
   }
 
   /**
