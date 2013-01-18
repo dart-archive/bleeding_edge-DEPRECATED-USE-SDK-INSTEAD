@@ -469,6 +469,38 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertFalse(typeA.isSubtypeOf(typeC));
   }
 
+  public void test_isSubtypeOf_interface() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    elementC.setInterfaces(new Type[] {typeB});
+
+    assertTrue(typeC.isSubtypeOf(typeB));
+    assertTrue(typeC.isSubtypeOf(typeObject));
+    assertTrue(typeC.isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(typeC));
+  }
+
+  public void test_isSubtypeOf_mixins() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    elementC.setMixins(new Type[] {typeB});
+
+    assertTrue(typeC.isSubtypeOf(typeB));
+    assertTrue(typeC.isSubtypeOf(typeObject));
+    assertFalse(typeC.isSubtypeOf(typeA));
+    assertFalse(typeA.isSubtypeOf(typeC));
+  }
+
   public void test_isSubtypeOf_object() {
     ClassElement elementA = classElement("A");
     InterfaceType typeA = (InterfaceType) elementA.getType();
@@ -507,6 +539,38 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     InterfaceType typeC = (InterfaceType) elementC.getType();
     assertFalse(typeC.isSupertypeOf(typeA));
     assertTrue(typeA.isSupertypeOf(typeC));
+  }
+
+  public void test_isSupertypeOf_interface() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    elementC.setInterfaces(new Type[] {typeB});
+
+    assertTrue(typeB.isSupertypeOf(typeC));
+    assertTrue(typeObject.isSupertypeOf(typeC));
+    assertTrue(typeA.isSupertypeOf(typeC));
+    assertFalse(typeC.isSupertypeOf(typeA));
+  }
+
+  public void test_isSupertypeOf_mixins() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = (InterfaceType) elementA.getSupertype();
+    InterfaceType typeA = (InterfaceType) elementA.getType();
+    InterfaceType typeB = (InterfaceType) elementB.getType();
+    InterfaceType typeC = (InterfaceType) elementC.getType();
+    elementC.setMixins(new Type[] {typeB});
+
+    assertTrue(typeB.isSupertypeOf(typeC));
+    assertTrue(typeObject.isSupertypeOf(typeC));
+    assertFalse(typeA.isSupertypeOf(typeC));
+    assertFalse(typeC.isSupertypeOf(typeA));
   }
 
   public void test_isSupertypeOf_object() {
