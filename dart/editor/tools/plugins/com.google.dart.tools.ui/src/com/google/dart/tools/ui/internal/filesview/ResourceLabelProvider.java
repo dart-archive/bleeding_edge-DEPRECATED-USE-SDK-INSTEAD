@@ -52,6 +52,8 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
 
   private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png";
 
+  private static final String PACKAGE_ICON = "icons/full/obj16/package_obj.gif";
+
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
   private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
@@ -131,6 +133,9 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
         if (DartCore.isPackagesDirectory(folder)) {
           return DartToolsPlugin.getImage(PACKAGES_FOLDER_ICON);
         }
+        if (DartCore.isPackagesResource(folder)) {
+          return DartToolsPlugin.getImage(PACKAGE_ICON);
+        }
       }
 
     }
@@ -153,13 +158,14 @@ public class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvid
       try {
 
         if (resource instanceof IFolder) {
-
+          if (DartCore.isPackagesDirectory((IFolder) resource)) {
+            string.append(" [package:]", StyledString.QUALIFIER_STYLER);
+          }
           String version = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);
           if (version != null) {
             string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER);
             return string;
           }
-
         }
 
         DartElement dartElement = DartCore.create(resource);
