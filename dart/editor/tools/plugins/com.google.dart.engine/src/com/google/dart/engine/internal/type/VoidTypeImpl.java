@@ -49,7 +49,7 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   @Override
   public boolean isSubtypeOf(Type type) {
     // The only subtype relations that pertain to void are therefore:
-    // void <: void(by reflexivity)
+    // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
     // void <: dynamic (as dynamic is a supertype of all types)
     return this.equals(type) || type.equals(InterfaceTypeImpl.getDynamic());

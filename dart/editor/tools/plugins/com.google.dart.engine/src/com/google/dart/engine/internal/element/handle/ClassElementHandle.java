@@ -20,7 +20,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.InterfaceType;
 
 /**
  * Instances of the class {@code ClassElementHandle} implement a handle to a {@code ClassElement}.
@@ -55,7 +55,7 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
-  public Type[] getInterfaces() {
+  public InterfaceType[] getInterfaces() {
     return getActualElement().getInterfaces();
   }
 
@@ -70,17 +70,17 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
-  public Type[] getMixins() {
+  public InterfaceType[] getMixins() {
     return getActualElement().getMixins();
   }
 
   @Override
-  public Type getSupertype() {
+  public InterfaceType getSupertype() {
     return getActualElement().getSupertype();
   }
 
   @Override
-  public Type getType() {
+  public InterfaceType getType() {
     return getActualElement().getType();
   }
 

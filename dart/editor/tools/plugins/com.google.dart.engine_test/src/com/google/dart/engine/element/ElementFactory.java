@@ -24,6 +24,7 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -40,11 +41,7 @@ public final class ElementFactory {
    */
   private static ClassElement objectElement;
 
-  public static ClassElement classElement(String typeName, String... parameterNames) {
-    return classElement(typeName, getObject().getType(), parameterNames);
-  }
-
-  public static ClassElement classElement(String typeName, Type superclassType,
+  public static ClassElement classElement(String typeName, InterfaceType superclassType,
       String... parameterNames) {
     ClassElementImpl element = new ClassElementImpl(identifier(typeName));
     element.setSupertype(superclassType);
@@ -69,9 +66,13 @@ public final class ElementFactory {
     return element;
   }
 
+  public static ClassElement classElement(String typeName, String... parameterNames) {
+    return classElement(typeName, getObject().getType(), parameterNames);
+  }
+
   public static ClassElement getObject() {
     if (objectElement == null) {
-      objectElement = classElement("Object", (Type) null);
+      objectElement = classElement("Object", (InterfaceType) null);
     }
     return objectElement;
   }

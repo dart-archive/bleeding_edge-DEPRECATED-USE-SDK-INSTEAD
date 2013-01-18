@@ -21,8 +21,8 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.internal.type.TypeImpl;
-import com.google.dart.engine.type.Type;
+import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.type.InterfaceType;
 
 /**
  * Instances of the class {@code ClassElementImpl} implement a {@code ClassElement}.
@@ -47,12 +47,12 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * An array containing all of the mixins that are applied to the class being extended in order to
    * derive the superclass of this class.
    */
-  private Type[] mixins = TypeImpl.EMPTY_ARRAY;
+  private InterfaceType[] mixins = InterfaceTypeImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the interfaces that are implemented by this class.
    */
-  private Type[] interfaces = TypeImpl.EMPTY_ARRAY;
+  private InterfaceType[] interfaces = InterfaceTypeImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the methods contained in this class.
@@ -62,12 +62,12 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   /**
    * The superclass of the class, or {@code null} if the class does not have an explicit superclass.
    */
-  private Type supertype;
+  private InterfaceType supertype;
 
   /**
    * The type defined by the class.
    */
-  private Type type;
+  private InterfaceType type;
 
   /**
    * An array containing all of the type variables defined for this class.
@@ -134,7 +134,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
-  public Type[] getInterfaces() {
+  public InterfaceType[] getInterfaces() {
     return interfaces;
   }
 
@@ -149,17 +149,17 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
-  public Type[] getMixins() {
+  public InterfaceType[] getMixins() {
     return mixins;
   }
 
   @Override
-  public Type getSupertype() {
+  public InterfaceType getSupertype() {
     return supertype;
   }
 
   @Override
-  public Type getType() {
+  public InterfaceType getType() {
     return type;
   }
 
@@ -223,7 +223,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * 
    * @param the interfaces that are implemented by this class
    */
-  public void setInterfaces(Type[] interfaces) {
+  public void setInterfaces(InterfaceType[] interfaces) {
     this.interfaces = interfaces;
   }
 
@@ -245,7 +245,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * 
    * @param mixins the mixins that are applied to derive the superclass of this class
    */
-  public void setMixins(Type[] mixins) {
+  public void setMixins(InterfaceType[] mixins) {
     this.mixins = mixins;
   }
 
@@ -254,7 +254,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * 
    * @param supertype the superclass of the class
    */
-  public void setSupertype(Type supertype) {
+  public void setSupertype(InterfaceType supertype) {
     this.supertype = supertype;
   }
 
@@ -263,7 +263,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    * 
    * @param type the type defined by the class
    */
-  public void setType(Type type) {
+  public void setType(InterfaceType type) {
     this.type = type;
   }
 

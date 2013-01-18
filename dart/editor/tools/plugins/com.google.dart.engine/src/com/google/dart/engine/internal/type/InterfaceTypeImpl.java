@@ -30,6 +30,10 @@ import java.util.Set;
  * type.
  */
 public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
+  /**
+   * An empty array of types.
+   */
+  public static final InterfaceType[] EMPTY_ARRAY = new InterfaceType[0];
 
   /**
    * This method computes the longest inheritance path from some passed {@link Type} to Object.
