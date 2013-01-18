@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- * 
+ *
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.eclipse.org/legal/epl-v10.html
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class MapStructureType implements ILogicalStructureTypeDelegate {
   // TODO(devoncarew): add a unit test to ensure that these classes are available.
-  private static final String CLASS_HASH_SET_IMPL = "_HashSetImpl";
+  private static final String CLASS_HASH_SET = "HashSet";
 
   //private static final String CLASS_LINKED_HASH_MAP_IMPL = "_LinkedHashMapImpl";
 
@@ -55,7 +55,7 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
         return createHashMap(value);
       }
 
-      if (CLASS_HASH_SET_IMPL.equals(value.getReferenceTypeName())) {
+      if (CLASS_HASH_SET.equals(value.getReferenceTypeName())) {
         return createHashSet(value);
       }
     } catch (Throwable t) {
@@ -72,8 +72,8 @@ public class MapStructureType implements ILogicalStructureTypeDelegate {
     }
 
     try {
-      // _HashSetImpl
-      if (CLASS_HASH_SET_IMPL.equals(value.getReferenceTypeName())) {
+      // HashSet
+      if (CLASS_HASH_SET.equals(value.getReferenceTypeName())) {
         return true;
       }
 

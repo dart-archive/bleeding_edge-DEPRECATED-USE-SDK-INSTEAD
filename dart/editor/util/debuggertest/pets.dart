@@ -29,16 +29,16 @@ class Cat implements Animal {
   bool livesWith(Animal other) => other is Cat;
 
   final String _color = "blue";
-  
+
   String get color {
     return _color;
   }
-  
+
   set color(String val) {
     // nothing to do
     val = "${val}";
   }
-  
+
   void performAction() {
     print("m${_eo()}w");
   }
@@ -199,7 +199,7 @@ void checkTypes() {
   // TODO: empty maps
   var emptyMap = {};
 
-  // display sets (_HashSetImpl)
+  // display sets (HashSet)
   var set = new Set();
   set.add(1);
   set.add(2);
@@ -211,14 +211,14 @@ void checkTypes() {
 
 void createARealBigArray() {
   var arr = new List<int>(120);
-  
+
   for (int i = 0; i < arr.length; i++) {
     arr[i] = i * 10;
   }
-  
+
   print("big array created");
-  
+
   arr[0] = "assdsdf";
-  
+
   arr[0]++;
 }
