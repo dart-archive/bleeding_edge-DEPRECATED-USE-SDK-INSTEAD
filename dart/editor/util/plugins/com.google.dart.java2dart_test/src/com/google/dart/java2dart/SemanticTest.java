@@ -14,58 +14,14 @@
 
 package com.google.dart.java2dart;
 
-import com.google.common.base.Joiner;
-import com.google.common.io.Files;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
-
-import junit.framework.TestCase;
-
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 
 /**
  * Test for general Java semantics to Dart translation.
  */
-public class SemanticTest extends TestCase {
-
-  static void printFormattedSource(ASTNode node) {
-    String source = getFormattedSource(node);
-    String[] lines = StringUtils.split(source, '\n');
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
-      System.out.print("\"");
-      System.out.print(line);
-      if (i != lines.length - 1) {
-        System.out.println("\",");
-      } else {
-        System.out.println("\"");
-      }
-    }
-  }
-
-  /**
-   * @return the formatted Dart source dump of the given {@link ASTNode}.
-   */
-  private static String getFormattedSource(ASTNode node) {
-    PrintStringWriter writer = new PrintStringWriter();
-    node.accept(new ToFormattedSourceVisitor(writer));
-    return writer.toString();
-  }
-
-  /**
-   * @return the single {@link String} with "\n" separated lines.
-   */
-  private static String toString(String... lines) {
-    return Joiner.on("\n").join(lines);
-  }
-
-  private File tmpFolder;
+public class SemanticTest extends AbstractSemanticTest {
 
   public void test_buildSingleDartUnit() throws Exception {
     setFileLines(
@@ -778,27 +734,5 @@ public class SemanticTest extends TestCase {
             "  }",
             "}"),
         getFormattedSource(unit));
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    tmpFolder = Files.createTempDir();
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    FileUtils.deleteDirectory(tmpFolder);
-    super.tearDown();
-  }
-
-  /**
-   * Sets the content of the file with given path relative to {@link #tmpFolder}.
-   */
-  private File setFileLines(String path, String content) throws Exception {
-    File toFile = new File(tmpFolder, path);
-    Files.createParentDirs(toFile);
-    Files.write(content, toFile, Charsets.UTF_8);
-    return toFile;
   }
 }

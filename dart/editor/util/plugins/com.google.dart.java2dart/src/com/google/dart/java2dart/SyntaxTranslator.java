@@ -101,15 +101,15 @@ import com.google.dart.java2dart.util.RunnableEx;
 import static com.google.dart.java2dart.util.ASTFactory.TOKEN_FINAL;
 import static com.google.dart.java2dart.util.ASTFactory.TOKEN_NEW;
 import static com.google.dart.java2dart.util.ASTFactory.TOKEN_STATIC;
-import static com.google.dart.java2dart.util.ASTFactory.integerLiteral;
-import static com.google.dart.java2dart.util.ASTFactory.listType;
 import static com.google.dart.java2dart.util.ASTFactory.assignmentStatement;
 import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.newFormalParameterList;
-import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreation;
+import static com.google.dart.java2dart.util.ASTFactory.integerLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.listLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.listType;
+import static com.google.dart.java2dart.util.ASTFactory.newFormalParameterList;
+import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.stringLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
@@ -120,6 +120,7 @@ import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
@@ -936,7 +937,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     Expression target = (Expression) translate(node.getExpression());
     ArgumentList argumentList = translateArgumentList(binding, node.arguments());
     SimpleIdentifier name = translateSimpleName(node.getName());
-    return done(new MethodInvocation(target, null, name, argumentList));
+    MethodInvocation invocation = new MethodInvocation(target, null, name, argumentList);
+    context.putNodeBinding(invocation, binding);
+    return done(invocation);
   }
 
   @Override
@@ -1089,9 +1092,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SimpleType node) {
-    return done(new TypeName(
+    ITypeBinding binding = node.resolveBinding();
+    TypeName typeName = new TypeName(
         translateSimpleName((org.eclipse.jdt.core.dom.SimpleName) node.getName()),
-        null));
+        null);
+    context.putNodeBinding(typeName, binding);
+    return done(typeName);
   }
 
   @Override
@@ -1249,10 +1255,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
       org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
       constructorImpl = null;
-      ClassMember member = translate(javaBodyDecl);
-      members.add(member);
-      if (constructorImpl != null) {
-        members.add(constructorImpl);
+      if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
+        // TODO(scheglov) support for inner classes
+      } else {
+        ClassMember member = translate(javaBodyDecl);
+        members.add(member);
+        if (constructorImpl != null) {
+          members.add(constructorImpl);
+        }
       }
     }
     return done(new ClassDeclaration(

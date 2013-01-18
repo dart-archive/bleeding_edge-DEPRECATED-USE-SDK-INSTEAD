@@ -19,10 +19,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
@@ -84,11 +86,13 @@ public class Context {
 
   private final Map<String, String> renameMap = Maps.newHashMap();
 
-  private final CompilationUnit dartUnit = new CompilationUnit(null, null, null, null, null);
+  private final CompilationUnit dartUniverse = new CompilationUnit(null, null, null, null, null);
+  private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
   // information about names
   private final Set<String> usedNames = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToBinding = Maps.newHashMap();
   private final Map<String, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
+  private final Map<ASTNode, Object> nodeToBinding = Maps.newHashMap();
   // information about constructors
   private int technicalConstructorIndex;
   private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
@@ -134,6 +138,17 @@ public class Context {
     sourceFolders.add(folder);
   }
 
+  public Map<File, List<CompilationUnitMember>> getFileToMembers() {
+    return fileToMembers;
+  }
+
+  /**
+   * @return some Java binding for the given Dart {@link ASTNode}.
+   */
+  public Object getNodeBinding(ASTNode node) {
+    return nodeToBinding.get(node);
+  }
+
   public CompilationUnit translate() throws Exception {
     // sort source files
     Collections.sort(sourceFiles);
@@ -157,12 +172,12 @@ public class Context {
       }
     }
     // run processors
-    ensureFieldInitializers(dartUnit);
-    ensureUniqueClassMemberNames(dartUnit);
-    ensureNoVariableNameReferenceFromInitializer(dartUnit);
-    renameConstructors(dartUnit);
+    ensureFieldInitializers(dartUniverse);
+    ensureUniqueClassMemberNames(dartUniverse);
+    ensureNoVariableNameReferenceFromInitializer(dartUniverse);
+    renameConstructors(dartUniverse);
     // done
-    return dartUnit;
+    return dartUniverse;
   }
 
   /**
@@ -197,6 +212,13 @@ public class Context {
    */
   void putConstructorNameSignature(SimpleIdentifier name, String signature) {
     constructorNameToBinding.put(name, signature);
+  }
+
+  /**
+   * Remembers some Java binding for the given Dart {@link ASTNode}.
+   */
+  void putNodeBinding(ASTNode node, Object binding) {
+    nodeToBinding.put(node, binding);
   }
 
   /**
@@ -281,11 +303,11 @@ public class Context {
 
   private void ensureUniqueClassMemberNames(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
-      private final Set<String> usedNames2 = Sets.newHashSet();
+      private final Set<String> usedClassMemberNames = Sets.newHashSet();
 
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
-        usedNames2.clear();
+        usedClassMemberNames.clear();
         // ensure unique method names (and prefer to keep method name over field name)
         for (ClassMember member : node.getMembers()) {
           if (member instanceof MethodDeclaration) {
@@ -310,7 +332,7 @@ public class Context {
         if (declarationName instanceof SimpleIdentifier) {
           SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
           String name = declarationIdentifier.getName();
-          if (usedNames2.contains(name)) {
+          if (usedClassMemberNames.contains(name)) {
             String newName = generateUniqueName(name);
             // rename binding
             if (!newName.equals(name)) {
@@ -319,7 +341,7 @@ public class Context {
             }
           }
           // remember that name is used
-          usedNames2.add(name);
+          usedClassMemberNames.add(name);
         }
       }
     });
@@ -492,8 +514,19 @@ public class Context {
   private void translateSyntax() throws Exception {
     for (File javaFile : sourceFiles) {
       org.eclipse.jdt.core.dom.CompilationUnit javaUnit = parseJavaFile(javaFile);
-      CompilationUnit singleDartUnit = SyntaxTranslator.translate(this, javaUnit);
-      dartUnit.getDeclarations().addAll(singleDartUnit.getDeclarations());
+      CompilationUnit dartUnit = SyntaxTranslator.translate(this, javaUnit);
+      List<CompilationUnitMember> dartDeclarations = dartUnit.getDeclarations();
+      // add to the Dart universe
+      dartUniverse.getDeclarations().addAll(dartDeclarations);
+      // add to the File map
+      {
+        List<CompilationUnitMember> fileMembers = fileToMembers.get(javaFile);
+        if (fileMembers == null) {
+          fileMembers = Lists.newArrayList();
+          fileToMembers.put(javaFile, fileMembers);
+        }
+        fileMembers.addAll(dartDeclarations);
+      }
     }
   }
 }

@@ -140,7 +140,7 @@ public class PropertyAccess extends Expression {
    * @return {@code true} if this expression is cascaded
    */
   public boolean isCascaded() {
-    return operator.getType() == TokenType.PERIOD_PERIOD;
+    return operator != null && operator.getType() == TokenType.PERIOD_PERIOD;
   }
 
   /**

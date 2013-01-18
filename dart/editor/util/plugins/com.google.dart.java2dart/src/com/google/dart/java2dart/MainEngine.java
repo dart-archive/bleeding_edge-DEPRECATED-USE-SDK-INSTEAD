@@ -14,29 +14,138 @@
 
 package com.google.dart.java2dart;
 
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
+import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
+import com.google.dart.java2dart.processor.SemanticProcessor;
+import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import java.io.File;
+import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * Translates some parts of "com.google.dart.engine" project.
  */
 public class MainEngine {
+  private static final Context context = new Context();
+  private static File engineFolder;
+  private static CompilationUnit dartUnit;
+
+  private static final List<SemanticProcessor> PROCESSORS = ImmutableList.of(
+      ObjectSemanticProcessor.INSTANCE,
+      CollectionSemanticProcessor.INSTANCE);
+
   public static void main(String[] args) throws Exception {
-    File engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
+    engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
-    Context context = new Context();
     context.addSourceFolder(engineFolder);
+    context.addSourceFile(new File(engineFolder, "com/google/dart/engine/source/Source.java"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast"));
     // translate into single CompilationUnit
-    CompilationUnit dartUnit = context.translate();
-    // TODO(scheglov) dump as single source
-    String dartSource = getFormattedSource(dartUnit);
-    System.out.println(dartSource);
+    dartUnit = context.translate();
+    // run processors
+    for (SemanticProcessor processor : PROCESSORS) {
+      processor.process(context, dartUnit);
+    }
+    // dump as several libraries
+    Files.copy(new File("resources/javalib.dart"), new File(
+        "/Users/scheglov/dart/Engine/javalib.dart"));
+    {
+      CompilationUnit library = buildSourceLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File("/Users/scheglov/dart/Engine/source.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildErrorLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File("/Users/scheglov/dart/Engine/error.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildScannerLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File("/Users/scheglov/dart/Engine/scanner.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildAstLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File("/Users/scheglov/dart/Engine/ast.dart"),
+          Charsets.UTF_8);
+    }
+//    String dartSource = getFormattedSource(dartUnit);
+//    System.out.println(dartSource);
+  }
+
+  private static CompilationUnit buildAstLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "ast"));
+    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "ast/")) {
+        unit.getDeclarations().addAll(entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildErrorLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "error"));
+    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    unit.getDirectives().add(ASTFactory.importDirective("source.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "error/")) {
+        unit.getDeclarations().addAll(entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildScannerLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "scanner"));
+    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    unit.getDirectives().add(ASTFactory.importDirective("source.dart", null));
+    unit.getDirectives().add(ASTFactory.importDirective("error.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "scanner/")) {
+        unit.getDeclarations().addAll(entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildSourceLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "source"));
+    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "source/")) {
+        unit.getDeclarations().addAll(entry.getValue());
+      }
+    }
+    return unit;
   }
 
   /**
@@ -46,5 +155,14 @@ public class MainEngine {
     PrintStringWriter writer = new PrintStringWriter();
     node.accept(new ToFormattedSourceVisitor(writer));
     return writer.toString();
+  }
+
+  /**
+   * @param enginePackage the sub-package in <code>com/google/dart/engine</code>.
+   * @return <code>true</code> if given {@link File} is located in sub-package of Engine project.
+   */
+  private static boolean isEnginePath(File file, String enginePackage) {
+    return file.getAbsolutePath().startsWith(
+        engineFolder.getAbsolutePath() + "/com/google/dart/engine/" + enginePackage);
   }
 }

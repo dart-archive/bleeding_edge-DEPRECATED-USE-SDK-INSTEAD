@@ -517,6 +517,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
+    nl();
     return null;
   }
 
@@ -597,6 +598,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     writer.print("library ");
     visit(node.getName());
     writer.print(';');
+    nl();
     return null;
   }
 
@@ -735,8 +737,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     if (node.isCascaded()) {
       writer.print("..");
     } else {
-      visit(node.getTarget());
-      writer.print('.');
+      visit(node.getTarget(), ".");
     }
     visit(node.getPropertyName());
     return null;

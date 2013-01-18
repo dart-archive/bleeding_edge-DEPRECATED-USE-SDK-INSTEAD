@@ -16,6 +16,8 @@ package com.google.dart.java2dart.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 
 /**
  * Helper for JDT integration.
@@ -110,6 +112,43 @@ public class JavaUtils {
       return signature.substring(0, closeParenIndex + 1) + signature.substring(parameterIndex);
     }
     return signature;
+  }
+
+  /**
+   * @return <code>true</code> if given {@link IMethodBinding} is method defined in the class with
+   *         required name.
+   */
+  public static boolean isMethodInClass(Object bindingObject, String reqClassName) {
+    if (bindingObject instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) bindingObject;
+      return isSubtype(binding.getDeclaringClass(), reqClassName);
+    }
+    return false;
+  }
+
+  private static String getQualifiedName(ITypeBinding binding) {
+    String name = binding.getQualifiedName();
+    if (name.contains("<")) {
+      name = StringUtils.substringBefore(name, "<");
+    }
+    return name;
+  }
+
+  private static boolean isSubtype(ITypeBinding binding, String reqClassName) {
+    if (binding != null) {
+      if (getQualifiedName(binding).equals(reqClassName)) {
+        return true;
+      }
+      for (ITypeBinding intf : binding.getInterfaces()) {
+        if (isSubtype(intf, reqClassName)) {
+          return true;
+        }
+      }
+      if (isSubtype(binding.getSuperclass(), reqClassName)) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
