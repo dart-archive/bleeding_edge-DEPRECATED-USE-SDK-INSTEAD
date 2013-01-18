@@ -90,13 +90,15 @@ public class ContextTest extends AbstractDartCoreTest {
     assertLibraryParsed(coreLib, coreLibFile, false);
     assertLibraryResolved(coreLib, false);
 
-    context.getIdleTask().perform();
-    context.getIdleTask().perform();
+    long end = System.currentTimeMillis() + FIVE_MINUTES_MS;
+    while (!isLibraryParsed(coreLib, coreLibFile) && System.currentTimeMillis() < end) {
+      context.getIdleTask().perform();
+    }
 
     assertLibraryParsed(coreLib, coreLibFile, true);
     assertLibraryResolved(coreLib, false);
 
-    long end = System.currentTimeMillis() + FIVE_MINUTES_MS;
+    end = System.currentTimeMillis() + FIVE_MINUTES_MS;
     Task idleTask = context.getIdleTask();
     while (idleTask != null && System.currentTimeMillis() < end) {
       idleTask.perform();
@@ -216,18 +218,9 @@ public class ContextTest extends AbstractDartCoreTest {
 
   private void assertLibraryParsed(Object cachedLib, File libraryFile, boolean expected)
       throws Exception {
-    // Library.getDartUnit(libraryFile) != null
-    Method method = cachedLib.getClass().getDeclaredMethod("getDartUnit", File.class);
-    method.setAccessible(true);
-    try {
-      boolean isParsed = method.invoke(cachedLib, libraryFile) != null;
-      if (isParsed == expected) {
-        return;
-      }
-    } catch (InvocationTargetException e) {
-      throw (Exception) e.getCause();
+    if (isLibraryParsed(cachedLib, libraryFile) != expected) {
+      fail("Expected cached library to be parsed");
     }
-    fail("Expected cached library to be parsed");
   }
 
   private void assertLibraryResolved(Object cachedLib, boolean expected) throws Exception {
@@ -251,6 +244,18 @@ public class ContextTest extends AbstractDartCoreTest {
     listener.assertErrorCount(expectedErrorCount);
     listener.assertNoDuplicates();
     listener.assertNoDiscards();
+  }
+
+  private boolean isLibraryParsed(Object cachedLib, File libraryFile) throws NoSuchMethodException,
+      IllegalAccessException, Exception {
+    // Library.getDartUnit(libraryFile) != null
+    Method method = cachedLib.getClass().getDeclaredMethod("getDartUnit", File.class);
+    method.setAccessible(true);
+    try {
+      return method.invoke(cachedLib, libraryFile) != null;
+    } catch (InvocationTargetException e) {
+      throw (Exception) e.getCause();
+    }
   }
 
   private void readCache(CacheReader reader, int packageContextCount) throws Exception {
