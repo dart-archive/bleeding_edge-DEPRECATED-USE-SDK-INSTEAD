@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
@@ -316,7 +317,7 @@ public class IndexContributorTest extends EngineTestCase {
     assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isAccessByQualified_FieldElement() throws Exception {
+  public void test_isAccessedByQualified_FieldElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -340,7 +341,55 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
   }
 
-  public void test_isAccessByUnqualified_FieldElement() throws Exception {
+  public void test_isAccessedByQualified_FunctionElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {}",
+        "main() {",
+        "  print(this.foo);",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    FunctionElement referencedElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+  }
+
+  public void test_isAccessedByQualified_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    print(this.foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isAccessedByUnqualified_FieldElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -364,7 +413,55 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
   }
 
-  public void test_isAccessByUnqualified_ParameterElement() throws Exception {
+  public void test_isAccessedByUnqualified_FunctionElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {}",
+        "main() {",
+        "  print(foo);",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    FunctionElement referencedElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+  }
+
+  public void test_isAccessedByUnqualified_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    print(foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isAccessedByUnqualified_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main2(var p) {",
@@ -385,7 +482,7 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("p);"), "p"));
   }
 
-  public void test_isAccessByUnqualified_VariableElement() throws Exception {
+  public void test_isAccessedByUnqualified_VariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -523,6 +620,54 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("myFunction();"), "myFunction", "pref"));
   }
 
+  public void test_isInvokedByQualified_FunctionElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  pref.foo();",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FunctionElement fooElement = mock(FunctionElement.class);
+    findSimpleIdentifier("foo();").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isInvokedByQualified_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    this.foo();",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo();").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
   public void test_isInvokedByUnqualified_ConstructorElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -587,15 +732,13 @@ public class IndexContributorTest extends EngineTestCase {
         "class A {",
         "  foo() {}",
         "  main() {",
-        "    foo(); // 1",
-        "    this.foo(); // 2",
+        "    foo();",
         "  }",
         "}");
     // set elements
     Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo(); // 1").setElement(fooElement);
-    findSimpleIdentifier("foo(); // 2").setElement(fooElement);
+    findSimpleIdentifier("foo();").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -604,12 +747,7 @@ public class IndexContributorTest extends EngineTestCase {
         relations,
         fooElement,
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo(); // 1"), "foo"));
-    assertRecordedRelation(
-        relations,
-        fooElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo(); // 2"), "foo"));
+        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -871,18 +1009,16 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(functionElement, getOffset("B v"), "B"));
   }
 
-  public void test_isReferencedBy_FunctionElement() throws Exception {
+  public void test_isReferencedBy_CompilationUnitElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "main() {",
-        "  print(foo);",
-        "}",
+        "library myLib;",
+        "part 'SomeUnit.dart';",
         "");
     // set elements
-    Element mainElement = getElement("main(");
-    FunctionElement referencedElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(referencedElement);
+    Element mainElement = unitElement;
+    CompilationUnitElement referencedElement = mock(CompilationUnitElement.class);
+    findNode(Directive.class, "part 'SomeUnit.dart'").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -891,7 +1027,7 @@ public class IndexContributorTest extends EngineTestCase {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, getOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {
@@ -918,28 +1054,44 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("L;"), "L"));
   }
 
-  public void test_isReferencedBy_MethodElement() throws Exception {
+  public void test_isReferencedBy_LibraryElement_export() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  foo() {}",
-        "  main() {",
-        "    print(foo);",
-        "  }",
-        "}");
+        "export 'SomeLib.dart';",
+        "");
     // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(fooElement);
+    Element mainElement = unitElement;
+    LibraryElement referencedElement = mock(LibraryElement.class);
+    findNode(Directive.class, "export 'SomeLib.dart'").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        fooElement,
+        referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, getOffset("'SomeLib.dart'"), "'SomeLib.dart'"));
+  }
+
+  public void test_isReferencedBy_LibraryElement_import() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'SomeLib.dart';",
+        "");
+    // set elements
+    Element mainElement = unitElement;
+    LibraryElement referencedElement = mock(LibraryElement.class);
+    findNode(Directive.class, "import 'SomeLib.dart'").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("'SomeLib.dart'"), "'SomeLib.dart'"));
   }
 
   public void test_isReferencedBy_ParameterElement() throws Exception {

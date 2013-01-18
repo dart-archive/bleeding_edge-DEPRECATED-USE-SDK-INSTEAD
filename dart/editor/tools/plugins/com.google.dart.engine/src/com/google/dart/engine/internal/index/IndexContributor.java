@@ -31,7 +31,10 @@ import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.NamespaceDirective;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
@@ -39,7 +42,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
-import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -65,7 +68,7 @@ import java.util.LinkedList;
 /**
  * Visits resolved AST and adds relationships into {@link IndexStore}.
  */
-public class IndexContributor extends RecursiveASTVisitor<Void> {
+public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   /**
    * @return the {@link Location} representing location of the {@link Element}.
@@ -152,6 +155,9 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     ASTNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier) {
       return ((PrefixedIdentifier) parent).getIdentifier() == node;
+    }
+    if (parent instanceof PropertyAccess) {
+      return ((PropertyAccess) parent).getPropertyName() == node;
     }
     return false;
   }
@@ -333,6 +339,22 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitNamespaceDirective(NamespaceDirective node) {
+    Element element = node.getElement();
+    Location location = createLocation(node.getLibraryUri());
+    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitNamespaceDirective(node);
+  }
+
+  @Override
+  public Void visitPartDirective(PartDirective node) {
+    Element element = node.getElement();
+    Location location = createLocation(node.getPartUri());
+    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitPartDirective(node);
+  }
+
+  @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     if (isNameInDeclaration(node)) {
       return null;
@@ -342,13 +364,13 @@ public class IndexContributor extends RecursiveASTVisitor<Void> {
     }
     Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof TypeAliasElement
-        || element instanceof TypeVariableElement || element instanceof FunctionElement
-        || element instanceof MethodElement || element instanceof LabelElement
+        || element instanceof TypeVariableElement || element instanceof LabelElement
         || element instanceof PrefixElement) {
       Location location = createLocation(node);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldElement || element instanceof ParameterElement
-        || element instanceof VariableElement) {
+        || element instanceof VariableElement || element instanceof FunctionElement
+        || element instanceof MethodElement) {
       Location location = createLocation(node);
       if (node.inGetterContext()) {
         if (isQualified(node)) {
