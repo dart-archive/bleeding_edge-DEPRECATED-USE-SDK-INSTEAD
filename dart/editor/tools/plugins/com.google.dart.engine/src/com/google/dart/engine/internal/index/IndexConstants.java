@@ -98,6 +98,12 @@ public interface IndexConstants {
   Relationship IS_ACCESSED_BY_UNQUALIFIED = Relationship.getRelationship("is-accessed-by-unqualified");
 
   /**
+   * The relationship used to indicate that a name (the left-operand) is defined at a specific
+   * location (the right operand).
+   */
+  Relationship IS_DEFINED_BY = Relationship.getRelationship("is-defined-by");
+
+  /**
    * The relationship used to indicate that a type (the left-operand) is extended by a type at a
    * specific location (the right operand).
    */

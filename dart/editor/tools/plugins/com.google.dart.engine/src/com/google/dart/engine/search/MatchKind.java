@@ -78,6 +78,16 @@ public enum MatchKind {
   METHOD_REFERENCE,
 
   /**
+   * A declaration of a name.
+   */
+  NAME_DECLARATION,
+
+  /**
+   * A reference to a name.
+   */
+  NAME_REFERENCE,
+
+  /**
    * A reference to a named parameter in invocation.
    */
   NAMED_PARAMETER_REFERENCE,

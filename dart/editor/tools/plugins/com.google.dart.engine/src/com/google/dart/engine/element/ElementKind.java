@@ -30,6 +30,7 @@ public enum ElementKind {
   LABEL,
   LIBRARY,
   METHOD,
+  NAME,
   PARAMETER,
   PREFIX,
   SETTER,

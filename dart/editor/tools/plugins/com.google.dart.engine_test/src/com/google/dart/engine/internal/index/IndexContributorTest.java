@@ -1145,6 +1145,68 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("'SomeLib.dart'"), "'SomeLib.dart'"));
   }
 
+  public void test_isReferencedBy_NameElement_class() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  A a = new A();",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    Element varElement = getElement("a =");
+    ClassElement classElementA = getElement("A {}");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("A");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(classElementA, getOffset("A {}"), "A"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("A a = "), "A"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(varElement, getOffset("A();"), "A"));
+  }
+
+  public void test_isReferencedBy_NameElement_field() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int myField;",
+        "}",
+        "main2(var a) {",
+        "  print(a.myField);",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main2(");
+    FieldElement fieldElement = getElement("myField;");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("myField");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(fieldElement, getOffset("myField;"), "myField"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+  }
+
   public void test_isReferencedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

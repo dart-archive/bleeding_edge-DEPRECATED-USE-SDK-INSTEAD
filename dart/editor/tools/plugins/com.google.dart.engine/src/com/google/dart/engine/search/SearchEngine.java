@@ -34,31 +34,29 @@ import java.util.List;
 public interface SearchEngine {
 
   /**
-   * Synchronously search for all functions matching the given pattern within the given scope.
-   * Return all matches that pass the optional filter.
+   * Synchronously search for declarations of the given name within the given scope. Return all
+   * matches that pass the optional filter.
    * 
-   * @param scope the scope containing the function declarations to be searched
-   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param name the name being declared by the found matches
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
    */
-  public List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter) throws SearchException;
+  public List<SearchMatch> searchDeclarations(String name, SearchFilter filter)
+      throws SearchException;
 
   /**
-   * Search for all functions matching the given pattern within the given scope.
+   * Search for declarations of the given name within the given scope.
    * 
-   * @param scope the scope containing the function declarations to be searched
-   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param name the name being declared by the found matches
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @throws SearchException if the results could not be computed
    */
-  public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter, SearchListener listener) throws SearchException;
+  public void searchDeclarations(String name, SearchFilter filter, SearchListener listener)
+      throws SearchException;
 
 //  /**
 //   * Synchronously search for implementors of the given type within the given scope. Return all
@@ -86,6 +84,33 @@ public interface SearchEngine {
 //   */
 //  public void searchImplementors(ClassElement type, SearchScope scope, SearchFilter filter,
 //      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for all functions matching the given pattern within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param scope the scope containing the function declarations to be searched
+   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter) throws SearchException;
+
+  /**
+   * Search for all functions matching the given pattern within the given scope.
+   * 
+   * @param scope the scope containing the function declarations to be searched
+   * @param pattern the pattern used to determine which function declarations are to be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
+      SearchFilter filter, SearchListener listener) throws SearchException;
 
   /**
    * Synchronously search for references to the given type within the given scope. Return all
@@ -331,6 +356,33 @@ public interface SearchEngine {
    * @throws SearchException if the results could not be computed
    */
   public void searchReferences(ParameterElement parameter, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for references to the given name within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param name the name being referenced by the found matches
+   * @param scope the scope containing the name declarations to be searched
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchReferences(String name, SearchScope scope, SearchFilter filter)
+      throws SearchException;
+
+  /**
+   * Search for references to the given name within the given scope.
+   * 
+   * @param name the name being referenced by the found matches
+   * @param scope the scope containing the name declarations to be searched
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchReferences(String name, SearchScope scope, SearchFilter filter,
       SearchListener listener) throws SearchException;
 
   /**

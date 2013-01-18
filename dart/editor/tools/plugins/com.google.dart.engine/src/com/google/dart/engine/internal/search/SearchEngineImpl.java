@@ -29,6 +29,7 @@ import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.internal.index.IndexConstants;
+import com.google.dart.engine.internal.index.NameElementImpl;
 import com.google.dart.engine.internal.search.listener.CountingSearchListener;
 import com.google.dart.engine.internal.search.listener.FilteredSearchListener;
 import com.google.dart.engine.internal.search.listener.GatheringSearchListener;
@@ -208,6 +209,28 @@ public class SearchEngineImpl implements SearchEngine {
 //        IndexConstants.IS_REFERENCED_BY,
 //        new RelationshipCallbackImpl(MatchKind.TYPE_REFERENCE, applyFilter(filter, listener)));
 //  }
+
+  @Override
+  public List<SearchMatch> searchDeclarations(final String name, final SearchFilter filter)
+      throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchDeclarations(name, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchDeclarations(String name, SearchFilter filter, SearchListener listener)
+      throws SearchException {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_DEFINED_BY,
+        newCallback(MatchKind.NAME_DECLARATION, listener));
+  }
 
   @Override
   public List<SearchMatch> searchFunctionDeclarations(final SearchScope scope,
@@ -521,6 +544,28 @@ public class SearchEngineImpl implements SearchEngine {
         parameter,
         IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
         new RelationshipCallbackImpl(MatchKind.VARIABLE_WRITE, listener));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final String name, final SearchScope scope,
+      final SearchFilter filter) throws SearchException {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) throws SearchException {
+        searchReferences(name, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(String name, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.NAME_REFERENCE, listener));
   }
 
   @Override

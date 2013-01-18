@@ -33,6 +33,7 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexImpl;
+import com.google.dart.engine.internal.index.NameElementImpl;
 import com.google.dart.engine.internal.index.operation.IndexOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
@@ -95,6 +96,11 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
   }
 
+  private static interface SearchRunner<T> {
+    T run(OperationQueue queue, OperationProcessor processor, Index index, SearchEngine engine)
+        throws Exception;
+  }
+
   private static void assertMatches(List<SearchMatch> matches, ExpectedMatch... expectedMatches) {
     assertThat(matches).hasSize(expectedMatches.length);
     for (int i = 0; i < expectedMatches.length; i++) {
@@ -111,14 +117,39 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   private final IndexStore indexStore = IndexFactory.newMemoryIndexStore();
-
   private SearchScope scope;
   private SearchPattern pattern = null;
   private SearchFilter filter = null;
   private final Element elementA = mock(Element.class);
   private final Element elementB = mock(Element.class);
   private final Element elementC = mock(Element.class);
+
   private final Element elementD = mock(Element.class);
+
+  public void test_searchDeclarations_String() throws Exception {
+    Element referencedElement = new NameElementImpl("test");
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = runSearch(new SearchRunner<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        return engine.searchDeclarations("test", filter);
+      }
+    });
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NAME_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NAME_DECLARATION, 10, 20));
+  }
 
   public void test_searchFunctionDeclarations() throws Exception {
     LibraryElement library = mock(LibraryElement.class);
@@ -471,6 +502,25 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 2, 20, false));
   }
 
+  public void test_searchReferences_String() throws Exception {
+    Element referencedElement = new NameElementImpl("test");
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(String.class, "test");
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NAME_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NAME_REFERENCE, 10, 20));
+  }
+
   public void test_searchReferences_TypeAliasElement() throws Exception {
     TypeAliasElement referencedElement = mock(TypeAliasElement.class);
     when(referencedElement.getKind()).thenReturn(ElementKind.TYPE_ALIAS);
@@ -662,7 +712,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
   }
 
-  private List<SearchMatch> doSearchAsync(String methodName) throws Exception {
+  private <T> T runSearch(SearchRunner<T> runner) throws Exception {
     final OperationQueue queue = new OperationQueue();
     final OperationProcessor processor = new OperationProcessor(queue);
     final Index index = new IndexImpl(indexStore, queue, processor);
@@ -674,102 +724,96 @@ public class SearchEngineImplTest extends EngineTestCase {
           processor.run();
         }
       }.start();
-      final CountDownLatch latch = new CountDownLatch(1);
-      final List<SearchMatch> matches = Lists.newArrayList();
-      engine.getClass().getMethod(
-          methodName,
-          SearchScope.class,
-          SearchPattern.class,
-          SearchFilter.class,
-          SearchListener.class).invoke(engine, scope, pattern, filter, new SearchListener() {
-        @Override
-        public void matchFound(SearchMatch match) {
-          matches.add(match);
-        }
-
-        @Override
-        public void searchComplete() {
-          latch.countDown();
-        }
-      });
-      latch.await(1, TimeUnit.SECONDS);
-      return matches;
+      return runner.run(queue, processor, index, engine);
     } finally {
       processor.stop(false);
     }
   }
 
+  private List<SearchMatch> searchDeclarationsAsync(final String methodName) throws Exception {
+    return runSearch(new SearchRunner<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        final CountDownLatch latch = new CountDownLatch(1);
+        final List<SearchMatch> matches = Lists.newArrayList();
+        engine.getClass().getMethod(
+            methodName,
+            SearchScope.class,
+            SearchPattern.class,
+            SearchFilter.class,
+            SearchListener.class).invoke(engine, scope, pattern, filter, new SearchListener() {
+          @Override
+          public void matchFound(SearchMatch match) {
+            matches.add(match);
+          }
+
+          @Override
+          public void searchComplete() {
+            latch.countDown();
+          }
+        });
+        latch.await(1, TimeUnit.SECONDS);
+        return matches;
+      }
+    });
+  }
+
   @SuppressWarnings("unchecked")
-  private List<SearchMatch> doSearchSync(String methodName) throws Exception {
-    final OperationQueue queue = new OperationQueue();
-    final OperationProcessor processor = new OperationProcessor(queue);
-    final Index index = new IndexImpl(indexStore, queue, processor);
-    final SearchEngine engine = SearchEngineFactory.createSearchEngine(index);
-    try {
-      new Thread() {
-        @Override
-        public void run() {
-          processor.run();
-        }
-      }.start();
-      return (List<SearchMatch>) engine.getClass().getMethod(
-          methodName,
-          SearchScope.class,
-          SearchPattern.class,
-          SearchFilter.class).invoke(engine, scope, pattern, filter);
-    } finally {
-      processor.stop(false);
-    }
+  private List<SearchMatch> searchDeclarationsSync(final String methodName) throws Exception {
+    return runSearch(new SearchRunner<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        return (List<SearchMatch>) engine.getClass().getMethod(
+            methodName,
+            SearchScope.class,
+            SearchPattern.class,
+            SearchFilter.class).invoke(engine, scope, pattern, filter);
+      }
+    });
   }
 
   private List<SearchMatch> searchFunctionDeclarationsAsync() throws Exception {
-    return doSearchAsync("searchFunctionDeclarations");
+    return searchDeclarationsAsync("searchFunctionDeclarations");
   }
 
   private List<SearchMatch> searchFunctionDeclarationsSync() throws Exception {
-    return doSearchSync("searchFunctionDeclarations");
+    return searchDeclarationsSync("searchFunctionDeclarations");
   }
 
   @SuppressWarnings("unchecked")
-  private List<SearchMatch> searchReferencesSync(Class<? extends Element> clazz, Element element)
+  private List<SearchMatch> searchReferencesSync(final Class<?> clazz, final Object element)
       throws Exception {
-    final OperationQueue queue = new OperationQueue();
-    final OperationProcessor processor = new OperationProcessor(queue);
-    final Index index = new IndexImpl(indexStore, queue, processor);
-    final SearchEngine engine = SearchEngineFactory.createSearchEngine(index);
-    try {
-      new Thread() {
-        @Override
-        public void run() {
-          processor.run();
-        }
-      }.start();
-      // pass some operation to wait if search will not call processor
-      queue.enqueue(mock(IndexOperation.class));
-      // run actual search
-      return (List<SearchMatch>) engine.getClass().getMethod(
-          "searchReferences",
-          clazz,
-          SearchScope.class,
-          SearchFilter.class).invoke(engine, element, scope, filter);
-    } finally {
-      processor.stop(false);
-    }
+    return runSearch(new SearchRunner<List<SearchMatch>>() {
+      @Override
+      public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
+          SearchEngine engine) throws Exception {
+        // pass some operation to wait if search will not call processor
+        queue.enqueue(mock(IndexOperation.class));
+        // run actual search
+        return (List<SearchMatch>) engine.getClass().getMethod(
+            "searchReferences",
+            clazz,
+            SearchScope.class,
+            SearchFilter.class).invoke(engine, element, scope, filter);
+      }
+    });
   }
 
   private List<SearchMatch> searchTypeDeclarationsAsync() throws Exception {
-    return doSearchAsync("searchTypeDeclarations");
+    return searchDeclarationsAsync("searchTypeDeclarations");
   }
 
   private List<SearchMatch> searchTypeDeclarationsSync() throws Exception {
-    return doSearchSync("searchTypeDeclarations");
+    return searchDeclarationsSync("searchTypeDeclarations");
   }
 
   private List<SearchMatch> searchVariableDeclarationsAsync() throws Exception {
-    return doSearchAsync("searchVariableDeclarations");
+    return searchDeclarationsAsync("searchVariableDeclarations");
   }
 
   private List<SearchMatch> searchVariableDeclarationsSync() throws Exception {
-    return doSearchSync("searchVariableDeclarations");
+    return searchDeclarationsSync("searchVariableDeclarations");
   }
 }

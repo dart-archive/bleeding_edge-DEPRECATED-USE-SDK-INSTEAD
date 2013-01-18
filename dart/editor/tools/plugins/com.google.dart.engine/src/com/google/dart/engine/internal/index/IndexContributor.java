@@ -362,22 +362,27 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    Element nameElement = new NameElementImpl(node.getName());
+    Location location = createLocation(node);
+    // name in declaration
     if (isNameInDeclaration(node)) {
+      recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
       return null;
     }
+    // name is referenced
+    recordRelationship(nameElement, IndexConstants.IS_REFERENCED_BY, location);
     if (isAlreadyHandledName(node)) {
       return null;
     }
+    // record specific relations
     Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof TypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
         || element instanceof ImportElement) {
-      Location location = createLocation(node);
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof FieldElement || element instanceof ParameterElement
         || element instanceof VariableElement || element instanceof FunctionElement
         || element instanceof MethodElement) {
-      Location location = createLocation(node);
       if (node.inGetterContext()) {
         if (isQualified(node)) {
           recordRelationship(element, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
@@ -406,6 +411,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_VARIABLE, location);
     }
     return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @Override
+  public Void visitVariableDeclaration(VariableDeclaration node) {
+    VariableElement element = node.getElement();
+    enterScope(element);
+    try {
+      return super.visitVariableDeclaration(node);
+    } finally {
+      exitScope();
+    }
   }
 
   /**
