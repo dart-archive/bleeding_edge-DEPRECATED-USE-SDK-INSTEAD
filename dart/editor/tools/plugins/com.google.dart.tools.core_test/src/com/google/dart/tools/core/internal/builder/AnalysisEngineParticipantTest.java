@@ -39,7 +39,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     private ArrayList<Object> called = new ArrayList<Object>();
 
-    public MockDeltaProcessor(Project project, ProjectUpdater updater) {
+    public MockDeltaProcessor(Project project, DeltaListener updater) {
       super(project, updater);
     }
 

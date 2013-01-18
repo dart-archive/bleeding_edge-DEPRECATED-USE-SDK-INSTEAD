@@ -24,7 +24,7 @@ import org.eclipse.core.resources.IContainer;
  * {@link DeltaProcessor} listener for updating a {@link Project} and its contained
  * {@link AnalysisContext}s.
  */
-public class ProjectUpdater {
+public class ProjectUpdater implements DeltaListener {
 
   private boolean notifyChanged;
 
@@ -38,16 +38,12 @@ public class ProjectUpdater {
     this.notifyChanged = notifyChanged;
   }
 
-  /**
-   * Called when a source file in the "packages" directory has been added
-   */
+  @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
     packageSourceChanged(event);
   }
 
-  /**
-   * Called when a source file in the "packages" directory has changed
-   */
+  @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
     if (notifyChanged) {
       Source source = event.getSource();
@@ -57,24 +53,17 @@ public class ProjectUpdater {
     }
   }
 
-  /**
-   * Called when a folder containing source files in the "packages" directory or the "packages"
-   * directory itself has been removed
-   */
+  @Override
   public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
     sourcesDeleted(event);
   }
 
-  /**
-   * Called when a source file in the "packages" directory has been removed
-   */
+  @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
     sourceRemoved(event);
   }
 
-  /**
-   * Called when a pubspec.yaml file has been added
-   */
+  @Override
   public void pubspecAdded(ResourceDeltaEvent event) {
     // Notify project when pubspec is added.
     // Pubspec changes will be processed by pubspec build participant
@@ -82,23 +71,17 @@ public class ProjectUpdater {
     event.getProject().pubspecAdded(event.getResource().getParent());
   }
 
-  /**
-   * Called when a pubspec.yaml file has changed
-   */
+  @Override
   public void pubspecChanged(ResourceDeltaEvent event) {
     // ignored
   }
 
-  /**
-   * Called when a pubspec.yaml file has been removed
-   */
+  @Override
   public void pubspecRemoved(ResourceDeltaEvent event) {
     event.getProject().pubspecRemoved(event.getResource().getParent());
   }
 
-  /**
-   * Called when a source file has been added
-   */
+  @Override
   public void sourceAdded(SourceDeltaEvent event) {
     Source source = event.getSource();
     if (source != null) {
@@ -107,9 +90,7 @@ public class ProjectUpdater {
     }
   }
 
-  /**
-   * Called when a source file has changed
-   */
+  @Override
   public void sourceChanged(SourceDeltaEvent event) {
     if (notifyChanged) {
       Source source = event.getSource();
@@ -119,9 +100,7 @@ public class ProjectUpdater {
     }
   }
 
-  /**
-   * Called when a folder containing source files has been removed
-   */
+  @Override
   public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
     // If the container is part of a larger context (context == parentContext)
     // then remove the contained sources from the larger context
@@ -131,9 +110,7 @@ public class ProjectUpdater {
     event.getProject().discardContextsIn((IContainer) event.getResource());
   }
 
-  /**
-   * Called when a source file has been removed
-   */
+  @Override
   public void sourceRemoved(SourceDeltaEvent event) {
     Source source = event.getSource();
     if (source != null) {

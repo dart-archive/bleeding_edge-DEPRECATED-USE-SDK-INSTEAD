@@ -1,3 +1,16 @@
+/*
+ * Copyright 2013 Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
@@ -100,7 +113,7 @@ public class DeltaProcessor {
   }
 
   private final Project project;
-  private final ProjectUpdater updater;
+  private final DeltaListener listener;
   private AnalysisContext context;
   private Event event;
 
@@ -108,11 +121,12 @@ public class DeltaProcessor {
    * Construct a new instance for updating the specified project.
    * 
    * @param project the project being updated (not {@code null})
-   * @param updater the object used to update the specified project (not {@code null})
+   * @param listeners objects interested in receiving change information (not {@code null}, contains
+   *          no {@code null}s)
    */
-  public DeltaProcessor(Project project, ProjectUpdater updater) {
+  public DeltaProcessor(Project project, DeltaListener... listeners) {
     this.project = project;
-    this.updater = updater;
+    this.listener = DeltaListenerList.newFor(listeners);
   }
 
   /**
@@ -165,13 +179,13 @@ public class DeltaProcessor {
             event.setResource(resource);
             switch (delta.getKind()) {
               case ADDED:
-                updater.pubspecAdded(event);
+                listener.pubspecAdded(event);
                 break;
               case CHANGED:
-                updater.pubspecChanged(event);
+                listener.pubspecChanged(event);
                 break;
               case REMOVED:
-                updater.pubspecRemoved(event);
+                listener.pubspecRemoved(event);
                 break;
               default:
                 break;
@@ -184,13 +198,13 @@ public class DeltaProcessor {
             event.setResource(resource);
             switch (delta.getKind()) {
               case ADDED:
-                updater.sourceAdded(event);
+                listener.sourceAdded(event);
                 break;
               case CHANGED:
-                updater.sourceChanged(event);
+                listener.sourceChanged(event);
                 break;
               case REMOVED:
-                updater.sourceRemoved(event);
+                listener.sourceRemoved(event);
                 break;
               default:
                 break;
@@ -219,7 +233,7 @@ public class DeltaProcessor {
             return setContextFor((IContainer) resource);
           case REMOVED:
             event.setResource(resource);
-            updater.sourceContainerRemoved(event);
+            listener.sourceContainerRemoved(event);
             return false;
           default:
             return false;
@@ -252,7 +266,7 @@ public class DeltaProcessor {
         break;
       case REMOVED:
         event.setResource(packagesContainer);
-        updater.packageSourceContainerRemoved(event);
+        listener.packageSourceContainerRemoved(event);
         return;
       default:
         return;
@@ -276,13 +290,13 @@ public class DeltaProcessor {
               event.setResource(resource);
               switch (delta.getKind()) {
                 case ADDED:
-                  updater.packageSourceAdded(event);
+                  listener.packageSourceAdded(event);
                   break;
                 case CHANGED:
-                  updater.packageSourceChanged(event);
+                  listener.packageSourceChanged(event);
                   break;
                 case REMOVED:
-                  updater.packageSourceRemoved(event);
+                  listener.packageSourceRemoved(event);
                   break;
                 default:
                   break;
@@ -301,7 +315,7 @@ public class DeltaProcessor {
               return true;
             case REMOVED:
               event.setResource(resource);
-              updater.packageSourceContainerRemoved(event);
+              listener.packageSourceContainerRemoved(event);
               return false;
             default:
               return false;
@@ -355,7 +369,7 @@ public class DeltaProcessor {
     if (proxy.getType() == FILE) {
       if (isDartLikeFileName(name)) {
         event.setProxy(proxy);
-        updater.packageSourceAdded(event);
+        listener.packageSourceAdded(event);
       }
       return false;
     }
@@ -382,14 +396,14 @@ public class DeltaProcessor {
       // Notify listener of new pubspec.yaml files
       if (name.equals(PUBSPEC_FILE_NAME)) {
         event.setProxy(proxy);
-        updater.pubspecAdded(event);
+        listener.pubspecAdded(event);
         return false;
       }
 
       // Notify listener of new source files
       if (isDartLikeFileName(name)) {
         event.setProxy(proxy);
-        updater.sourceAdded(event);
+        listener.sourceAdded(event);
         return false;
       }
 
