@@ -25,8 +25,10 @@ import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
 import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
 import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
+import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
@@ -68,6 +70,11 @@ public class DartUIStartup implements IStartup {
       long start = System.currentTimeMillis();
 
       try {
+
+        if (!getThread().isInterrupted()) {
+          reportPlatformStatistics(); //Early report statistics to aid debugging in case of crash
+        }
+
         if (!getThread().isInterrupted()) {
           modelWarmup();
 
@@ -97,6 +104,10 @@ public class DartUIStartup implements IStartup {
       } catch (Throwable throwable) {
         // Catch any runtime exceptions that occur during warmup and log them.
         DartToolsPlugin.log("Exception occured during editor warmup", throwable);
+        long delta = System.currentTimeMillis() - start;
+        Instrumentation.operation("DartUIStartup.exception").with("Exception", throwable.toString()).with(
+            "TimeSinceStartup",
+            delta).log();
       }
 
       synchronized (startupSync) {
@@ -218,6 +229,20 @@ public class DartUIStartup implements IStartup {
           });
         }
       });
+    }
+
+    /**
+     * Report core statistics about the executing platform to instrumentation system
+     */
+    private void reportPlatformStatistics() {
+      Instrumentation.metric("DartUIStartup").with("BuildDate", DartCore.getBuildDate()).with(
+          "BuildID",
+          DartCore.getBuildId()).with("Version", DartCore.getVersion()).with(
+          "SDKVersion",
+          DartSdkManager.getManager().getSdk().getSdkVersion()).with(
+          "OSVersion",
+          FeedbackUtils.getOSName()).log();
+
     }
 
     /**
