@@ -14,8 +14,8 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.UniverseElement;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.UniverseElement;
 
 /**
  * Constants used when populating and accessing the index.
@@ -27,7 +27,7 @@ public interface IndexConstants {
 //  Resource DYNAMIC = new Resource("--dynamic--");
 
   /**
-   * An element used to represent the workspace.
+   * An element used to represent the universe.
    */
   Element UNIVERSE = UniverseElement.INSTANCE;
 

@@ -145,7 +145,7 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
   }
 
-  public void test_searchFunctionDeclarations_inWorkspace() throws Exception {
+  public void test_searchFunctionDeclarations_inUniverse() throws Exception {
     {
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(
@@ -160,7 +160,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           IndexConstants.DEFINES_FUNCTION,
           locationB);
     }
-    scope = SearchScopeFactory.createWorkspaceScope();
+    scope = SearchScopeFactory.createUniverseScope();
     // search matches
     List<SearchMatch> matches = searchFunctionDeclarationsSync();
     // verify

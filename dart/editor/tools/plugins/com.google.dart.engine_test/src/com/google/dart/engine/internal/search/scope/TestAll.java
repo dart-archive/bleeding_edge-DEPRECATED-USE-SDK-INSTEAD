@@ -22,7 +22,7 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(LibrarySearchScopeTest.class);
-    suite.addTestSuite(WorkspaceSearchScopeTest.class);
+    suite.addTestSuite(UniverseSearchScopeTest.class);
     return suite;
   }
 }

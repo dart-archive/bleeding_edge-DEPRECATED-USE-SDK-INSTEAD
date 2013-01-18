@@ -11,18 +11,23 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal.search.scope;
+package com.google.dart.engine.internal.index;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.index.UniverseElement;
+import com.google.dart.engine.internal.element.ElementImpl;
 
 /**
- * Instances of the class <code>WorkspaceSearchScope</code> implement a search scope that
- * encompasses everything in the workspace.
+ * Implementation of {@link UniverseElement}.
  */
-public class WorkspaceSearchScope implements SearchScope {
+public class UniverseElementImpl extends ElementImpl implements UniverseElement {
+
+  public UniverseElementImpl() {
+    super("--universe--", -1);
+  }
+
   @Override
-  public boolean encloses(Element element) {
-    return true;
+  public ElementKind getKind() {
+    return ElementKind.UNIVERSE;
   }
 }

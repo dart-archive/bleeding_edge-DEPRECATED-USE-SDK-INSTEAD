@@ -13,21 +13,15 @@
  */
 package com.google.dart.engine.internal.search.scope;
 
-import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchScope;
 
-import static org.mockito.Mockito.mock;
-
-public class WorkspaceSearchScopeTest extends EngineTestCase {
-  private final SearchScope scope = new WorkspaceSearchScope();
-  private final Element element = mock(Element.class);
-
-  public void test_anyElement() throws Exception {
-    assertTrue(scope.encloses(element));
-  }
-
-  public void test_nullElement() throws Exception {
-    assertTrue(scope.encloses(null));
+/**
+ * The {@link SearchScope} that encompasses everything in the universe.
+ */
+public class UniverseSearchScope implements SearchScope {
+  @Override
+  public boolean encloses(Element element) {
+    return true;
   }
 }

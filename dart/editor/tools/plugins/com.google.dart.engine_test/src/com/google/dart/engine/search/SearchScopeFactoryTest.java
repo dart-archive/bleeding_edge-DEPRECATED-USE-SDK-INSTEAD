@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.search.scope.LibrarySearchScope;
-import com.google.dart.engine.internal.search.scope.WorkspaceSearchScope;
+import com.google.dart.engine.internal.search.scope.UniverseSearchScope;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -43,8 +43,8 @@ public class SearchScopeFactoryTest extends EngineTestCase {
     assertThat(scope).isInstanceOf(LibrarySearchScope.class);
   }
 
-  public void test_createWorkspaceScope() throws Exception {
-    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
-    assertThat(scope).isInstanceOf(WorkspaceSearchScope.class);
+  public void test_createUniverseScope() throws Exception {
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
+    assertThat(scope).isInstanceOf(UniverseSearchScope.class);
   }
 }

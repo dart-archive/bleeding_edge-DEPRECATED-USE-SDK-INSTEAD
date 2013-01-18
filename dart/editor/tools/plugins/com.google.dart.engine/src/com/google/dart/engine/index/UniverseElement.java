@@ -11,9 +11,10 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.element;
+package com.google.dart.engine.index;
 
-import com.google.dart.engine.internal.element.UniverseElementImpl;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.internal.index.UniverseElementImpl;
 
 /**
  * The interface {@code UniverseElement} defines element to use when we want to request "defines"

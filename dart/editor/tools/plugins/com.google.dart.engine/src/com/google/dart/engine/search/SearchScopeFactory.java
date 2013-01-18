@@ -15,7 +15,7 @@ package com.google.dart.engine.search;
 
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.search.scope.LibrarySearchScope;
-import com.google.dart.engine.internal.search.scope.WorkspaceSearchScope;
+import com.google.dart.engine.internal.search.scope.UniverseSearchScope;
 
 import java.util.Collection;
 
@@ -25,10 +25,10 @@ import java.util.Collection;
  */
 public final class SearchScopeFactory {
   /**
-   * A search scope that encompasses everything in the workspace. Because it does not hold any state
-   * there is no reason not to share a single instance.
+   * A search scope that encompasses everything in the "universe". Because it does not hold any
+   * state there is no reason not to share a single instance.
    */
-  private static final SearchScope WORKSPACE_SCOPE = new WorkspaceSearchScope();
+  private static final SearchScope UNIVERSE_SCOPE = new UniverseSearchScope();
 
   /**
    * Create a search scope that encompasses everything in the given library.
@@ -61,12 +61,12 @@ public final class SearchScopeFactory {
   }
 
   /**
-   * Create a search scope that encompasses everything in the workspace.
+   * Create a search scope that encompasses everything in the universe.
    * 
    * @return the search scope that was created
    */
-  public static SearchScope createWorkspaceScope() {
-    return WORKSPACE_SCOPE;
+  public static SearchScope createUniverseScope() {
+    return UNIVERSE_SCOPE;
   }
 
   /**

@@ -11,22 +11,23 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal.element;
+package com.google.dart.engine.internal.search.scope;
 
-import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.UniverseElement;
+import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.search.SearchScope;
 
-/**
- * Implementation of {@link UniverseElement}.
- */
-public class UniverseElementImpl extends ElementImpl implements UniverseElement {
+import static org.mockito.Mockito.mock;
 
-  public UniverseElementImpl() {
-    super("--universe--", -1);
+public class UniverseSearchScopeTest extends EngineTestCase {
+  private final SearchScope scope = new UniverseSearchScope();
+  private final Element element = mock(Element.class);
+
+  public void test_anyElement() throws Exception {
+    assertTrue(scope.encloses(element));
   }
 
-  @Override
-  public ElementKind getKind() {
-    return ElementKind.UNIVERSE;
+  public void test_nullElement() throws Exception {
+    assertTrue(scope.encloses(null));
   }
 }
