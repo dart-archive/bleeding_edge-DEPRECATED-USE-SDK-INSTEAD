@@ -138,7 +138,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("some.dart", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesChanged(projectContainer, true, true, projectContainer.getMockFile("some.dart"));
@@ -148,7 +148,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("some.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesChanged(projectContainer, false, true, projectContainer.getMockFile("some.dart"));
@@ -159,7 +159,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add("some.dart", REMOVED);
     MockResource removedFile = projectContainer.remove("some.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesDeleted(projectContainer, removedFile);
@@ -169,7 +169,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("myapp").add("other.dart", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesChanged(appContainer, true, true, appContainer.getMockFile("other.dart"));
@@ -179,7 +179,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("myapp").add("other.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesChanged(appContainer, false, true, appContainer.getMockFile("other.dart"));
@@ -189,7 +189,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(".svn").add("foo.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -198,7 +198,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
   public void test_traverse_folder1() throws Exception {
     MockFolder web = projectContainer.getMockFolder("web");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(web);
 
     assertSourcesChanged(
@@ -212,7 +212,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
   public void test_traverse_folder1a() throws Exception {
     MockFolder web = projectContainer.getMockFolder("web");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, false));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(false));
     processor.traverse(web);
 
     assertSourcesChanged(
@@ -227,7 +227,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("web", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     MockFolder web = projectContainer.getMockFolder("web");
@@ -244,7 +244,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add("web", REMOVED);
     MockContainer removedFolder = (MockContainer) projectContainer.remove("web");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     MockContext context = (MockContext) project.getContext(projectContainer);
@@ -262,7 +262,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(appContainer, ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoContextChanges((MockContext) project.getContext(projectContainer));
@@ -292,7 +292,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add(appContainer, REMOVED);
     projectContainer.remove(appContainer.getName());
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoContextChanges((MockContext) project.getContext(projectContainer));
@@ -307,7 +307,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(".svn", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -318,7 +318,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add(".svn", REMOVED);
     projectContainer.remove(".svn");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -327,7 +327,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
   public void test_traverse_folder4Removed() throws Exception {
     MockDelta delta = new MockDelta(projectContainer, REMOVED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoContextChanges((MockContext) project.getContext(projectContainer));
@@ -342,7 +342,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertPackagesDartSourcesChanged();
@@ -352,7 +352,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     MockFolder pkg1 = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME).getMockFolder("pkg1");
@@ -363,7 +363,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     MockFolder pkg1 = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME).getMockFolder("pkg1");
@@ -376,7 +376,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockFolder pkg = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME).getMockFolder("pkg1");
     MockFile removedFile = (MockFile) pkg.remove("bar.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesDeleted(projectContainer, removedFile);
@@ -388,7 +388,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
     MockFolder pkg1 = (MockFolder) packages.remove("pkg1");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertSourcesDeleted(projectContainer, pkg1);
@@ -398,7 +398,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("web").add(PACKAGES_DIRECTORY_NAME).add("pkg1", ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -408,7 +408,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("web").add(PACKAGES_DIRECTORY_NAME).add("pkg1").add("bar.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -420,7 +420,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockFolder web = projectContainer.getMockFolder("web");
     web.getMockFolder(PACKAGES_DIRECTORY_NAME).getMockFolder("pkg1").remove("bar.dart");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -432,7 +432,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockFolder web = projectContainer.getMockFolder("web");
     web.getMockFolder(PACKAGES_DIRECTORY_NAME).remove("pkg1");
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -442,7 +442,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME, ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertPackagesDartSourcesChanged();
@@ -452,7 +452,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(PACKAGES_DIRECTORY_NAME, REMOVED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     MockFolder packages = projectContainer.getMockFolder(PACKAGES_DIRECTORY_NAME);
@@ -463,7 +463,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("web").add(PACKAGES_DIRECTORY_NAME, ADDED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -473,7 +473,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add("web").add(PACKAGES_DIRECTORY_NAME, REMOVED);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoChanges();
@@ -484,7 +484,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add(PUBSPEC_FILE_NAME, ADDED);
     project.assertPubspecAdded();
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoContextChanges((MockContext) project.getContext(projectContainer));
@@ -500,7 +500,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     delta.add(PUBSPEC_FILE_NAME, REMOVED);
     projectContainer.remove(PUBSPEC_FILE_NAME);
 
-    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(project, true));
+    DeltaProcessor processor = new DeltaProcessor(project, new ProjectUpdater(true));
     processor.traverse(delta);
 
     assertNoContextChanges((MockContext) project.getContext(projectContainer));

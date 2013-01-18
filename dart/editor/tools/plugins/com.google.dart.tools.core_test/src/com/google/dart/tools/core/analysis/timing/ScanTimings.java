@@ -251,7 +251,7 @@ public class ScanTimings extends TestCase {
 
       @Override
       protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
-        return new DeltaProcessor(project, new ProjectUpdater(project, true)) {
+        return new DeltaProcessor(project, new ProjectUpdater(true)) {
           @Override
           protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
             checkName(name);

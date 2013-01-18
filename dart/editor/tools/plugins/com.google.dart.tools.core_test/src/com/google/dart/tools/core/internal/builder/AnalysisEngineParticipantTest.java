@@ -122,7 +122,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
       assertNotNull(project);
       if (processor == null) {
-        processor = new MockDeltaProcessor(project, new ProjectUpdater(project, notifyChanged));
+        processor = new MockDeltaProcessor(project, new ProjectUpdater(notifyChanged));
       }
       return processor;
     }

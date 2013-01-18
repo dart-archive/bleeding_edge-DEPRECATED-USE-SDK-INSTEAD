@@ -138,7 +138,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @return the delta processor (not {@code null})
    */
   protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
-    return new DeltaProcessor(project, new ProjectUpdater(project, notifyChanged));
+    return new DeltaProcessor(project, new ProjectUpdater(notifyChanged));
   }
 
   /**

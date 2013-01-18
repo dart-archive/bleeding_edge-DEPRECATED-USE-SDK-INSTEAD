@@ -2,6 +2,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 
@@ -10,7 +11,6 @@ import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -30,9 +30,79 @@ import static org.eclipse.core.resources.IResourceDelta.REMOVED;
  */
 public class DeltaProcessor {
 
+  private class Event implements SourceDeltaEvent, SourceContainerDeltaEvent {
+
+    private IResource resource;
+    private Source source;
+    private IResourceProxy proxy;
+    private SourceContainer sourceContainer;
+
+    @Override
+    public AnalysisContext getContext() {
+      return context;
+    }
+
+    @Override
+    public Project getProject() {
+      return project;
+    }
+
+    @Override
+    public IResource getResource() {
+      if (resource == null) {
+        resource = proxy.requestResource();
+      }
+      return resource;
+    }
+
+    @Override
+    public Source getSource() {
+      if (source == null) {
+        IPath location = getResource().getLocation();
+        if (location != null) {
+          source = context.getSourceFactory().forFile(location.toFile());
+        } else {
+          logNoLocation(getResource());
+        }
+      }
+      return source;
+    }
+
+    @Override
+    public SourceContainer getSourceContainer() {
+      if (sourceContainer == null) {
+        IPath location = getResource().getLocation();
+        if (location != null) {
+          sourceContainer = context.getSourceFactory().forDirectory(location.toFile());
+        } else {
+          logNoLocation(getResource());
+        }
+      }
+      return sourceContainer;
+    }
+
+    @Override
+    public boolean isTopContainerInContext() {
+      return DeltaProcessor.this.isTopContainerInContext((IContainer) getResource());
+    }
+
+    void setProxy(IResourceProxy proxy) {
+      this.proxy = proxy;
+      this.resource = null;
+      this.source = null;
+    }
+
+    void setResource(IResource resource) {
+      this.proxy = null;
+      this.resource = resource;
+      this.source = null;
+    }
+  }
+
   private final Project project;
   private final ProjectUpdater updater;
   private AnalysisContext context;
+  private Event event;
 
   /**
    * Construct a new instance for updating the specified project.
@@ -53,7 +123,9 @@ public class DeltaProcessor {
    * @param resource the container of resources to be recursively traversed
    */
   public void traverse(IContainer resource) throws CoreException {
+    event = new Event();
     processResources(resource);
+    event = null;
   }
 
   /**
@@ -64,7 +136,9 @@ public class DeltaProcessor {
    * @param delta the delta describing the resource changes
    */
   public void traverse(IResourceDelta delta) throws CoreException {
+    event = new Event();
     processDelta(delta);
+    event = null;
   }
 
   /**
@@ -88,15 +162,16 @@ public class DeltaProcessor {
 
           // Notify listeners of changes to the pubspec.yaml file
           if (name.equals(PUBSPEC_FILE_NAME)) {
+            event.setResource(resource);
             switch (delta.getKind()) {
               case ADDED:
-                updater.pubspecAdded((IFile) resource);
+                updater.pubspecAdded(event);
                 break;
               case CHANGED:
-                updater.pubspecChanged((IFile) resource);
+                updater.pubspecChanged(event);
                 break;
               case REMOVED:
-                updater.pubspecRemoved((IFile) resource);
+                updater.pubspecRemoved(event);
                 break;
               default:
                 break;
@@ -106,32 +181,16 @@ public class DeltaProcessor {
 
           // Notify context of Dart source that have been added, changed, or removed
           if (isDartLikeFileName(name)) {
-            IPath location = resource.getLocation();
+            event.setResource(resource);
             switch (delta.getKind()) {
               case ADDED:
-                if (location != null) {
-                  Source source = context.getSourceFactory().forFile(location.toFile());
-                  updater.sourceAdded((IFile) resource, source);
-                } else {
-                  logNoLocation(resource);
-                }
+                updater.sourceAdded(event);
                 break;
               case CHANGED:
-                if (location != null) {
-                  Source source = context.getSourceFactory().forFile(location.toFile());
-                  updater.sourceChanged((IFile) resource, source);
-                } else {
-                  logNoLocation(resource);
-                }
+                updater.sourceChanged(event);
                 break;
               case REMOVED:
-                Source source = null;
-                if (location != null) {
-                  source = context.getSourceFactory().forFile(location.toFile());
-                } else {
-                  logNoLocation(resource);
-                }
-                updater.sourceRemoved((IFile) resource, source);
+                updater.sourceRemoved(event);
                 break;
               default:
                 break;
@@ -159,7 +218,8 @@ public class DeltaProcessor {
             // Cache the context and traverse child resource changes
             return setContextFor((IContainer) resource);
           case REMOVED:
-            updater.containerRemoved((IContainer) resource);
+            event.setResource(resource);
+            updater.sourceContainerRemoved(event);
             return false;
           default:
             return false;
@@ -177,12 +237,8 @@ public class DeltaProcessor {
 
     // Only process the top level "packages" folder in any given context
     IResource packagesContainer = delta.getResource();
-    IContainer parent = packagesContainer.getParent();
-    if (parent.getType() != PROJECT) {
-      AnalysisContext parentContext = project.getContext(parent.getParent());
-      if (context == parentContext) {
-        return;
-      }
+    if (!isTopContainerInContext(packagesContainer.getParent())) {
+      return;
     }
 
     switch (delta.getKind()) {
@@ -191,11 +247,15 @@ public class DeltaProcessor {
           processPackagesResources(child);
         }
         return;
+      case CHANGED:
+        // Fall through to traverse child resource changes
+        break;
       case REMOVED:
-        updater.packageSourcesRemoved((IContainer) packagesContainer);
+        event.setResource(packagesContainer);
+        updater.packageSourceContainerRemoved(event);
         return;
       default:
-        break;
+        return;
     }
 
     for (IResourceDelta childDelta : delta.getAffectedChildren()) {
@@ -213,15 +273,16 @@ public class DeltaProcessor {
           // Notify context of any Dart source files that have been added, changed, or removed
           if (resource.getType() == IResource.FILE) {
             if (isDartLikeFileName(name)) {
+              event.setResource(resource);
               switch (delta.getKind()) {
                 case ADDED:
-                  updater.packageSourceAdded((IFile) resource);
+                  updater.packageSourceAdded(event);
                   break;
                 case CHANGED:
-                  updater.packageSourceChanged((IFile) resource);
+                  updater.packageSourceChanged(event);
                   break;
                 case REMOVED:
-                  updater.packageSourceRemoved((IFile) resource);
+                  updater.packageSourceRemoved(event);
                   break;
                 default:
                   break;
@@ -235,14 +296,16 @@ public class DeltaProcessor {
             case ADDED:
               processPackagesResources(resource);
               return false;
+            case CHANGED:
+              // Recursively visit changed resources
+              return true;
             case REMOVED:
-              updater.packageSourcesRemoved((IContainer) resource);
+              event.setResource(resource);
+              updater.packageSourceContainerRemoved(event);
               return false;
             default:
-              break;
+              return false;
           }
-
-          return true;
         }
       });
     }
@@ -291,7 +354,8 @@ public class DeltaProcessor {
     // Notify context of any Dart source files that have been added
     if (proxy.getType() == FILE) {
       if (isDartLikeFileName(name)) {
-        updater.packageSource(proxy);
+        event.setProxy(proxy);
+        updater.packageSourceAdded(event);
       }
       return false;
     }
@@ -307,30 +371,42 @@ public class DeltaProcessor {
    * @param name the resource name (not {@code null})
    */
   protected boolean visitProxy(IResourceProxy proxy, String name) {
+
     // Ignore hidden resources and nested packages directories
     if (name.startsWith(".") || name.equals(PACKAGES_DIRECTORY_NAME)) {
       return false;
     }
 
-    // Notify context of any Dart source files that have been added
     if (proxy.getType() == FILE) {
+
+      // Notify listener of new pubspec.yaml files
       if (name.equals(PUBSPEC_FILE_NAME)) {
-        updater.pubspec(proxy);
-      } else if (isDartLikeFileName(name)) {
-        IFile resource = (IFile) proxy.requestResource();
-        IPath location = resource.getLocation();
-        if (location != null) {
-          Source source = context.getSourceFactory().forFile(location.toFile());
-          updater.sourceAdded(resource, source);
-        } else {
-          logNoLocation(resource);
-        }
+        event.setProxy(proxy);
+        updater.pubspecAdded(event);
+        return false;
       }
+
+      // Notify listener of new source files
+      if (isDartLikeFileName(name)) {
+        event.setProxy(proxy);
+        updater.sourceAdded(event);
+        return false;
+      }
+
       return false;
     }
 
     // Cache the context and traverse child resource changes
     return setContextFor((IContainer) proxy.requestResource());
+  }
+
+  private boolean isTopContainerInContext(IContainer container) {
+    if (container.getType() == PROJECT) {
+      return true;
+    }
+    AnalysisContext context = project.getContext(container);
+    AnalysisContext parentContext = project.getContext(container.getParent());
+    return context != parentContext;
   }
 
   private void logNoLocation(IResource resource) {
@@ -349,11 +425,7 @@ public class DeltaProcessor {
     if (nextContext == null) {
       return false;
     }
-    if (context == nextContext) {
-      return true;
-    }
     context = nextContext;
-    updater.visitContext(container, context);
     return true;
   }
 }
