@@ -17,6 +17,7 @@ package com.google.dart.tools.ui.web.pubspec;
 import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -59,7 +60,6 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
   private static String NAME_MESSAGE_KEY = "nameMessage";
   private static String VERSION_MESSAGE_KEY = "versionMessage";
-  private static String VERSION_EXPRESSION = "(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
   private Control lastFocusControl;
 
@@ -369,7 +369,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   }
 
   private boolean validateVersion(String version) {
-    if (version.isEmpty() || version.matches(VERSION_EXPRESSION)) {
+    if (version.isEmpty() || version.matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION)) {
       form.getMessageManager().removeMessage(VERSION_MESSAGE_KEY, versionText);
       return true;
     }

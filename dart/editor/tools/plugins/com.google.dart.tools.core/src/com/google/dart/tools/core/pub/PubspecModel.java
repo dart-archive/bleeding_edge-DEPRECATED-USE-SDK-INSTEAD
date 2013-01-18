@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.pub;
 
+import com.google.dart.tools.core.pub.DependencyObject.Type;
 import com.google.dart.tools.core.utilities.yaml.PubYamlObject;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
@@ -187,9 +188,9 @@ public class PubspecModel {
     }
     Map<String, Object> dependenciesMap = new HashMap<String, Object>();
     for (DependencyObject dep : dependencies) {
-      if (!dep.isGitDependency()) {
+      if (dep.getType().equals(Type.HOSTED)) {
         dependenciesMap.put(dep.getName(), dep.getVersion());
-      } else {
+      } else if (dep.getType().equals(Type.GIT)) {
         Map<String, Object> gitMap = new HashMap<String, Object>();
         if (dep.getGitRef() != null && !dep.getGitRef().isEmpty()) {
           Map<String, String> map = new HashMap<String, String>();
@@ -203,6 +204,10 @@ public class PubspecModel {
           gitMap.put("version", dep.getVersion());
         }
         dependenciesMap.put(dep.getName(), gitMap);
+      } else {
+        Map<String, Object> pathMap = new HashMap<String, Object>();
+        pathMap.put("path", dep.getPath());
+        dependenciesMap.put(dep.getName(), pathMap);
       }
     }
     pubYamlObject.dependencies = dependenciesMap;
@@ -238,8 +243,12 @@ public class PubspecModel {
             if (key.equals("version")) {
               d.setVersion((String) values.get(key));
             }
+            if (key.equals("path")) {
+              d.setPath((String) values.get(key));
+              d.setType(Type.LOCAL);
+            }
             if (key.equals("git")) {
-              d.setGitDependency(true);
+              d.setType(Type.GIT);
               Object fields = values.get(key);
               if (fields instanceof String) {
                 d.setPath((String) fields);

@@ -33,7 +33,8 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "    git: git://github.com/munificent/kittens.git\n" + "  kittens2: \n" + "    git:\n"
       + "      url: git://github.com/munificent/kittens.git\n" + "      ref: some-branch\n"
       + "  marker_prof:\n" + "    git: https://github.com/johnmccutchan/markerprof.git\n"
-      + "  vector_math:\n" + "    git: https://github.com/johnmccutchan/DartVectorMath.git";
+      + "  vector_math:\n" + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n"
+      + "  unittest:\n" + "     path:../../unittest-0.1.1/lib";
 
   private static String yamlStringWithErrors = "name: web_components\n"
       + "\tdescription: an easy way to build web apps in Dart\n" + "author:";
@@ -54,7 +55,7 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
   }
 
   // Assert lock file contents can be parsed and version info extracted 
-  public void test_getPackageVerionMap() {
+  public void test_getPackageVersionMap() {
     Map<String, String> map = PubYamlUtils.getPackageVersionMap(yamlLockFile);
     assertNotNull(map);
     assertEquals(2, map.size());
@@ -89,6 +90,18 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     LOG.assertEntries(IStatus.ERROR);
   }
 
+  public void test_patternForPackageVersion() {
+    assertTrue("1.0.0-alpha".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.0.0-alpha.1".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.0.0-0.3.7".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.0.0-x.7.z.92".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.1.12+build.1".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.34.78+0.3.7".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertTrue("1.3.7+build.11.e0f985a".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+    assertFalse("1.3.a-x.0.0".matches(PubYamlUtils.PACKAGE_VERSION_EXPRESSION));
+
+  }
+
   public void test_patternForPubspecNameLine() {
     Matcher m = Pattern.compile(PubYamlUtils.PATTERN_PUBSPEC_NAME_LINE).matcher(pubspecYamlString);
     assertTrue(m.find());
@@ -104,6 +117,17 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertTrue(m.find());
     assertEquals(1, m.groupCount());
     assertEquals("name: sample", m.group(1));
+  }
+
+  public void test_patternForVersionContraints() {
+    assertTrue(PubYamlUtils.isValidVersionConstraint(">=1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraint("=>1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraint("<=1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraint("=<1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraint(">1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraint("<1.2.3"));
+    assertFalse(PubYamlUtils.isValidVersionConstraint("=1.2.3"));
+    assertFalse(PubYamlUtils.isValidVersionConstraint("an"));
   }
 
   private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {

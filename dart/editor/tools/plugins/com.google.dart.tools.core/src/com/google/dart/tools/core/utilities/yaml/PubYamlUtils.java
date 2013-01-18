@@ -94,7 +94,9 @@ public class PubYamlUtils {
     }
   }
 
+  public static String PACKAGE_VERSION_EXPRESSION = "(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
   public static String PATTERN_PUBSPEC_NAME_LINE = "(?m)^(?:(?!--|').|'(?:''|[^'])*')*(name:.*)$";
+  public static String VERSION_CONTSTRAINTS_EXPRESSION = "([=]{0,1}[<>]?)|([<>]?[=]{0,1})(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
 
   /**
    * Return a yaml string for the given {@link PubYamlObject}
@@ -172,6 +174,37 @@ public class PubYamlUtils {
       }
     }
     return null;
+  }
+
+  public static boolean isValidVersionConstraint(String string) {
+
+    int index = 0;
+    while (index + 1 <= string.length() && !string.substring(index, index + 1).matches("[0-9]")) {
+      index++;
+    }
+    if (index == string.length()) {
+      return false;
+    }
+    if (index > 2) { // can be single [<>] or two char length [=][<>] 
+      return false;
+    }
+    if (index == 1) {
+      String substring = string.substring(0, 1);
+      if (!substring.equals("<") && !substring.equals(">")) {
+        return false;
+      }
+    }
+    if (index == 2) {
+      String substring = string.substring(0, 2);
+      if (!substring.equals(">=") && !substring.equals("<=") && !substring.equals("=>")
+          && !substring.equals("=<")) {
+        return false;
+      }
+    }
+    if (string.substring(index).matches(PACKAGE_VERSION_EXPRESSION)) {
+      return true;
+    }
+    return false;
   }
 
   /**

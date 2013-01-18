@@ -18,13 +18,19 @@ package com.google.dart.tools.core.pub;
  */
 public class DependencyObject {
 
+  public enum Type {
+    HOSTED,
+    GIT,
+    LOCAL;
+  }
+
   private PubspecModel model;
 
   private String name;
   private String version = "any";
   private String path;
   private String ref;
-  private boolean isGit = false;
+  private Type type = Type.HOSTED;
 
   public DependencyObject(String name) {
     this.name = name;
@@ -42,9 +48,6 @@ public class DependencyObject {
       return false;
     }
     DependencyObject other = (DependencyObject) obj;
-    if (isGit != other.isGit) {
-      return false;
-    }
     if (name == null) {
       if (other.name != null) {
         return false;
@@ -64,6 +67,9 @@ public class DependencyObject {
         return false;
       }
     } else if (!ref.equals(other.ref)) {
+      return false;
+    }
+    if (type != other.type) {
       return false;
     }
     if (version == null) {
@@ -92,6 +98,10 @@ public class DependencyObject {
     return path;
   }
 
+  public Type getType() {
+    return type;
+  }
+
   public String getVersion() {
     return version;
   }
@@ -100,20 +110,12 @@ public class DependencyObject {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + (isGit ? 1231 : 1237);
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((path == null) ? 0 : path.hashCode());
     result = prime * result + ((ref == null) ? 0 : ref.hashCode());
+    result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     return result;
-  }
-
-  public boolean isGitDependency() {
-    return isGit;
-  }
-
-  public void setGitDependency(boolean isGit) {
-    this.isGit = isGit;
   }
 
   public void setGitRef(String gitRef) {
@@ -130,6 +132,10 @@ public class DependencyObject {
 
   public void setPath(String path) {
     this.path = path;
+  }
+
+  public void setType(Type type) {
+    this.type = type;
   }
 
   public void setVersion(String version) {

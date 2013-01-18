@@ -14,6 +14,8 @@
 package com.google.dart.tools.ui.web.pubspec;
 
 import com.google.dart.tools.core.pub.DependencyObject;
+import com.google.dart.tools.core.pub.DependencyObject.Type;
+import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -49,7 +51,6 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
   private static String EMPTY_STRING = "";
   private static String[] sourceList = {"git", "pub.dartlang.org"};
-  private static String VERSION_CONTSTRAINTS_EXPRESSION = "([=]{0,1}[<>]?)|[<>]?[=]{0,1})(\\d+\\.){2}\\d+([\\+-]([\\.a-zA-Z0-9-])*)?";
   private static String VERSION_CONTSTRAINTS_KEY = "versionConstraints";
 
   private DependencyObject input;
@@ -105,10 +106,9 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       @Override
       public void modifyText(ModifyEvent e) {
         if (input != null) {
-          //(TODO(keertip): enable once regex is right
-//          if (validateVersionConstriants(versionText.getText())) {
-          input.setVersion(versionText.getText());
-//          }
+          if (validateVersionConstriants(versionText.getText())) {
+            input.setVersion(versionText.getText());
+          }
           setTextDirty();
         }
       }
@@ -143,9 +143,9 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       @Override
       public void widgetSelected(SelectionEvent e) {
         if (sourceCombo.getSelectionIndex() == 0) {
-          updateModelandSourceFields(true);
+          updateModelandSourceFields(true, Type.GIT);
         } else {
-          updateModelandSourceFields(false);
+          updateModelandSourceFields(false, Type.HOSTED);
         }
         setTextDirty();
       }
@@ -220,23 +220,23 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     if (input != null) {
       nameText.setText(input.getName() != null ? input.getName() : EMPTY_STRING);
       versionText.setText(input.getVersion() != null ? input.getVersion() : EMPTY_STRING);
-      if (input.isGitDependency()) {
+      if (input.getType().equals(Type.GIT)) {
         sourceCombo.select(0);
-        updateModelandSourceFields(true);
+        updateModelandSourceFields(true, Type.GIT);
         pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
         gitrefText.setText(input.getGitRef() != null ? input.getGitRef() : EMPTY_STRING);
-      } else {
+      } else if (input.getType().equals(Type.HOSTED)) {
         sourceCombo.select(1);
         pathText.setText(EMPTY_STRING);
         gitrefText.setText(EMPTY_STRING);
-        updateModelandSourceFields(false);
+        updateModelandSourceFields(false, Type.HOSTED);
       }
     }
   }
 
-  private void updateModelandSourceFields(boolean value) {
+  private void updateModelandSourceFields(boolean value, Type type) {
     if (input != null) {
-      input.setGitDependency(value);
+      input.setType(type);
     }
     pathLabel.setVisible(value);
     pathText.setVisible(value);
@@ -244,7 +244,6 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     gitrefText.setVisible(value);
   }
 
-  @SuppressWarnings("unused")
   private boolean validateVersionConstriants(String version) {
     boolean isValid = true;
 
@@ -254,7 +253,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
         isValid = false;
       } else {
         for (String ver : versions) {
-          if (!ver.matches(VERSION_CONTSTRAINTS_EXPRESSION)) {
+          if (!PubYamlUtils.isValidVersionConstraint(ver)) {
             isValid = false;
           }
         }
