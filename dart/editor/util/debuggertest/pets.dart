@@ -1,6 +1,7 @@
 
 library pets;
 
+import 'dart:collection' show DoubleLinkedQueue;
 import 'dart:isolate';
 import 'dart:math';
 

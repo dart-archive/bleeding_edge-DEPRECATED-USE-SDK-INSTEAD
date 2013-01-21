@@ -4,6 +4,8 @@
 
 library Money;
 
+import 'dart:collection' show Queue;
+
 part "complex_money.dart";
 part "currency_exchange.dart";
 part "currency.dart";
