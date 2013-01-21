@@ -514,18 +514,6 @@ public class VmConnection {
     listeners.remove(listener);
   }
 
-  /**
-   * Remove the single, special system breakpoint at the first line of source in main().
-   * 
-   * @throws IOException
-   */
-  public void removeSystemBreakpoint(VmIsolate isolate) throws IOException {
-    // TODO(devoncarew): This code will need to be updated if the VM no longer uses a user
-    // breakpoint to stop on the first line of main().
-
-    removeBreakpoint(isolate, new VmBreakpoint("", -1, 1));
-  }
-
   public void resume(VmIsolate isolate) throws IOException {
     sendSimpleCommand("resume", isolate.getId(), resumeOnSuccess(isolate));
   }

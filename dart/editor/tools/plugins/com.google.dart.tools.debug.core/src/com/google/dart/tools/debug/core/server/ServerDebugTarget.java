@@ -447,13 +447,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private void firstIsolateInit(VmIsolate isolate) {
-    try {
-      // We need to remove this before any other breakpoints are set.
-      connection.removeSystemBreakpoint(isolate);
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     // Turn on break-on-exceptions.
     if (DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
