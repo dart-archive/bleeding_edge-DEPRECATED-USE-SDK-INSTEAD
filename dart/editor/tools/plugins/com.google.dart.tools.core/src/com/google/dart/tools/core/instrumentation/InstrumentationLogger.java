@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.core.instrumentation;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -57,10 +58,18 @@ public class InstrumentationLogger {
 
   private static IInstrumentationLogger logger = null;
 
-  public static IInstrumentationLogger getLogger() {
+  /**
+   * Ensure that the instrumentation system has started and if a logger is available that it is
+   * registered
+   */
+  public static void ensureLoggerStarted() {
     if (logger == null) {
       init();
     }
+  }
+
+  public static IInstrumentationLogger getLogger() {
+    ensureLoggerStarted();
 
     return logger;
   }
@@ -78,7 +87,15 @@ public class InstrumentationLogger {
       IConfigurationElement element = elements[0];
 
       try {
+
+        //Setup old logger
         logger = (IInstrumentationLogger) element.createExecutableExtension("class");
+
+        //Setup new logger
+
+        if (logger instanceof com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) {
+          Instrumentation.setLogger((com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) logger);
+        }
 
         return;
       } catch (Throwable t) {

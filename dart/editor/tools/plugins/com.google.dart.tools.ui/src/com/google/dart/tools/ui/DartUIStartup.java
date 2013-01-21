@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.index.NotifyCallback;
+import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -66,6 +67,9 @@ public class DartUIStartup implements IStartup {
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+
+      //Pre-start the instrumentation logger if it's registered
+      InstrumentationLogger.ensureLoggerStarted();
 
       long start = System.currentTimeMillis();
 
