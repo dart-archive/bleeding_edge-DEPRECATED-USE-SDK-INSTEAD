@@ -77,7 +77,7 @@ public class CacheReader {
 
     // Normal case... read a line
 
-    reader.mark(1);
+    reader.mark(2);
     int ch = reader.read();
     if (ch == -1) {
       throw new IOException("Unexpected EOF when reading string");
