@@ -123,6 +123,13 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     model = ((PubspecEditor) page.getEditor()).getModel();
   }
 
+  @Override
+  public void createContent(IManagedForm managedForm, Composite parent) {
+    super.createContent(managedForm, parent);
+
+    sashForm.setWeights(new int[] {40, 60});
+  }
+
   public TableViewer getViewer() {
     return viewer;
   }
@@ -209,7 +216,6 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     viewer.setLabelProvider(new MasterLabelProvider());
     viewer.setInput(page.getEditor().getEditorInput());
     model.addModelListener(this);
-
   }
 
   @Override
