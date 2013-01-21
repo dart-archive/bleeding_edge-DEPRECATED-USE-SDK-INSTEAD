@@ -52,6 +52,8 @@ public class DartPerspective implements IPerspectiveFactory {
 
     topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
     topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
+    topLeft.addPlaceholder(DartUI.ID_TYPE_HIERARCHY);
+    topLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
 
     // Bottom left: Property Sheet view
     IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(BL,
@@ -80,6 +82,7 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addShowViewShortcut(IPageLayout.ID_PROBLEM_VIEW);
     layout.addShowViewShortcut(IPageLayout.ID_TASK_LIST);
     layout.addShowViewShortcut(IPageLayout.ID_PROJECT_EXPLORER);
+    layout.addShowViewShortcut(DartUI.ID_TYPE_HIERARCHY);
 
     // new actions - wizards
     layout.addNewWizardShortcut(WIZARD_NEW_PROJECT);
