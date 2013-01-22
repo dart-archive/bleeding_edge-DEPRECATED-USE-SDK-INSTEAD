@@ -53,4 +53,9 @@ public class ElementQuerySpecification extends QuerySpecification {
     return element;
   }
 
+  @Override
+  public boolean hasElement() {
+    return true;
+  }
+
 }

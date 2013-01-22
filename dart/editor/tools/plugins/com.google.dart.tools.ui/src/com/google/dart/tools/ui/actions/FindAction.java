@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -37,6 +39,7 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.search.ElementQuerySpecification;
+import com.google.dart.tools.ui.search.NodeQuerySpecification;
 import com.google.dart.tools.ui.search.QuerySpecification;
 
 import org.eclipse.core.runtime.IAdaptable;
@@ -93,7 +96,21 @@ public abstract class FindAction extends SelectionDispatchAction {
 
     // will return true except for debugging purposes.
     try {
-      performNewSearch(element);
+      performNewSearch(new DartSearchQuery(createQuery(element)));
+    } catch (DartModelException ex) {
+      ExceptionHandler.handle(
+          ex,
+          getShell(),
+          SearchMessages.Search_Error_search_notsuccessful_title,
+          SearchMessages.Search_Error_search_notsuccessful_message);
+    } catch (InterruptedException e) {
+      // cancelled
+    }
+  }
+
+  public void run(DartNode node) {
+    try {
+      performNewSearch(new DartSearchQuery(createQuery(node)));
     } catch (DartModelException ex) {
       ExceptionHandler.handle(
           ex,
@@ -130,19 +147,28 @@ public abstract class FindAction extends SelectionDispatchAction {
     int offset = selection.getOffset();
     DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);
     DartElement dartElement = elementLocator.searchWithin(ast);
-    if (dartElement == null) {
-      if (editor != null) {
-        IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
-        if (statusLine != null) {
-          statusLine.setMessage(true, SearchMessages.FindAction_unresolvable_selection, null);
-        }
-      }
-    }
     if (canOperateOn(dartElement)) {
       run(dartElement);
+      return;
     } else {
-      showOperationUnavailableDialog();
+      NodeFinder finder = NodeFinder.find(ast, offset, selection.getLength());
+      DartNode node = finder.getCoveredNode();
+      if (node == null) {
+        node = finder.getCoveringNode();
+      }
+      if (node != null) {
+        run(node);
+        return;
+      }
     }
+    // not reached on successful search
+    if (editor != null) {
+      IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
+      if (statusLine != null) {
+        statusLine.setMessage(true, SearchMessages.FindAction_unresolvable_selection, null);
+      }
+    }
+    showOperationUnavailableDialog();
   }
 
   @Override
@@ -184,6 +210,14 @@ public abstract class FindAction extends SelectionDispatchAction {
       InterruptedException {
     SearchScope scope = SearchScopeFactory.createWorkspaceScope();
     return new ElementQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
+  }
+
+  /**
+   * Creates a query for the given element.
+   */
+  QuerySpecification createQuery(DartNode element) throws DartModelException, InterruptedException {
+    SearchScope scope = SearchScopeFactory.createWorkspaceScope();
+    return new NodeQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
   }
 
   DartElement getDartElement(IStructuredSelection selection, boolean silent) {
@@ -310,9 +344,8 @@ public abstract class FindAction extends SelectionDispatchAction {
     }
   }
 
-  private void performNewSearch(DartElement element) throws DartModelException,
+  private void performNewSearch(DartSearchQuery query) throws DartModelException,
       InterruptedException {
-    DartSearchQuery query = new DartSearchQuery(createQuery(element));
     if (query.canRunInBackground()) {
       NewSearchUI.runQueryInBackground(query);
     } else {

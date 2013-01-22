@@ -13,7 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -226,7 +228,19 @@ public class ActionUtil {
   }
 
   public static boolean isFindDeclarationsAvailable(DartElementSelection selection) {
-    return !selection.isEmpty() && selection.getFirstElement() instanceof Method;
+    if (!selection.isEmpty() && selection.getFirstElement() instanceof Method) {
+      return true;
+    }
+    DartNode node = selection.resolveCoveringNode();
+    if (node != null) {
+      if (node instanceof DartIdentifier) {
+        DartIdentifier id = (DartIdentifier) node;
+        if (id.getParent() instanceof DartPropertyAccess) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   public static boolean isFindUsesAvailable(DartElementSelection selection) {

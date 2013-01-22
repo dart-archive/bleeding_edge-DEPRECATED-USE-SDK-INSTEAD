@@ -74,6 +74,14 @@ public abstract class QuerySpecification {
     return scopeDescription;
   }
 
+  public boolean hasElement() {
+    return false;
+  }
+
+  public boolean hasNode() {
+    return false;
+  }
+
   public boolean isDeclarationsSearch() {
     return (getLimitTo() & LIMIT_DECLARATIONS) == LIMIT_DECLARATIONS;
   }

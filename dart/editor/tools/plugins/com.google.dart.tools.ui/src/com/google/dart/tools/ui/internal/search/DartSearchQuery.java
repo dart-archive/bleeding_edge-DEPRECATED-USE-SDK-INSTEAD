@@ -13,11 +13,15 @@
  */
 package com.google.dart.tools.ui.internal.search;
 
+import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartFunctionTypeAlias;
 import com.google.dart.tools.core.model.DartImport;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
@@ -31,6 +35,8 @@ import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchException;
 import com.google.dart.tools.core.search.SearchListener;
 import com.google.dart.tools.core.search.SearchMatch;
+import com.google.dart.tools.core.search.SearchPattern;
+import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
@@ -44,6 +50,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.search.ElementQuerySpecification;
+import com.google.dart.tools.ui.search.NodeQuerySpecification;
 import com.google.dart.tools.ui.search.PatternQuerySpecification;
 import com.google.dart.tools.ui.search.QuerySpecification;
 
@@ -52,6 +59,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+
+import java.util.List;
 
 /**
  * Represents a particular Dart search query (for example,
@@ -218,7 +227,7 @@ public class DartSearchQuery implements ISearchQuery {
     SearchResultCollector collector = new SearchResultCollector(textResult);
     SearchScope scope = patternData.getScope();
 
-    if (patternData instanceof ElementQuerySpecification) {
+    if (patternData.hasElement()) {
       DartElement element = ((ElementQuerySpecification) patternData).getElement();
       if (!element.exists()) {
         String patternString = DartElementLabels.getElementLabel(
@@ -243,6 +252,25 @@ public class DartSearchQuery implements ISearchQuery {
         DartToolsPlugin.log(ex);
       }
 
+    } else if (patternData.hasNode()) {
+
+      DartNode node = ((NodeQuerySpecification) patternData).getNode();
+      if (node instanceof DartIdentifier) {
+        DartIdentifier id = (DartIdentifier) node;
+
+        try {
+          if (patternData.isReferencesSearch()) {
+            searchForReferences(engine, id, scope, collector, monitor);
+          }
+          if (patternData.isDeclarationsSearch()) {
+            searchForDeclarations(engine, id, scope, collector, monitor);
+          }
+        } catch (SearchException e) {
+          DartToolsPlugin.log(e);
+        } catch (CoreException ex) {
+          DartToolsPlugin.log(ex);
+        }
+      }
     }
 
 //      engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, fPatternData.getScope(), collector, mainSearchPM);
@@ -298,11 +326,34 @@ public class DartSearchQuery implements ISearchQuery {
     return patternData;
   }
 
+  private void addResult(String name, DartElement element, SearchResultCollector listener)
+      throws DartModelException {
+    SourceRange range = null;
+    switch (element.getElementType()) {
+      case DartElement.FIELD:
+        Field field = (Field) element;
+        range = field.getNameRange();
+        break;
+      default:
+        return;
+    }
+    SearchMatch match = new SearchMatch(MatchQuality.EXACT, element, range);
+    listener.matchFound(match);
+  }
+
   private String getSearchPatternDescription() {
-    if (patternData instanceof ElementQuerySpecification) {
+    if (patternData.hasElement()) {
       DartElement element = ((ElementQuerySpecification) patternData).getElement();
       return DartElementLabels.getElementLabel(element, DartElementLabels.ALL_DEFAULT
           | DartElementLabels.ALL_FULLY_QUALIFIED | DartElementLabels.USE_RESOLVED);
+    } else if (patternData.hasNode()) {
+      // TODO(messick): Make this better, if needed.
+      DartNode node = ((NodeQuerySpecification) patternData).getNode();
+      if (node instanceof DartIdentifier) {
+        return ((DartIdentifier) node).getName();
+      } else {
+        return node.getObjectIdentifier();
+      }
     }
     return BasicElementLabels.getFilePattern(((PatternQuerySpecification) patternData).getPattern());
   }
@@ -337,6 +388,30 @@ public class DartSearchQuery implements ISearchQuery {
     }
   }
 
+  private void searchForDeclarations(SearchEngine engine, DartIdentifier identifier,
+      SearchScope scope, SearchResultCollector listener, IProgressMonitor monitor)
+      throws CoreException, SearchException {
+    // Index lacks relationships required to do direct search, so first get all classes
+    String name = identifier.getName();
+    boolean isProperty = identifier.getParent() instanceof DartPropertyAccess;
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    List<SearchMatch> allMatches = engine.searchTypeDeclarations(scope, pattern, null, monitor);
+    // Then see if the type or a child of the type matches the given name
+    for (SearchMatch typeMatch : allMatches) {
+      DartElement type = typeMatch.getElement();
+      if (!isProperty) {
+        if (type.getElementName().equals(name)) {
+          addResult(name, type, listener);
+        }
+      }
+      for (DartElement child : type.getChildren()) {
+        if (child.getElementName().equals(name)) {
+          addResult(name, child, listener);
+        }
+      }
+    }
+  }
+
   private void searchForReferences(SearchEngine engine, DartElement element, SearchScope scope,
       SearchResultCollector collector, IProgressMonitor monitor) throws SearchException {
     switch (element.getElementType()) {
@@ -367,5 +442,9 @@ public class DartSearchQuery implements ISearchQuery {
       default:
         throw new UnsupportedOperationException("unsupported search type: " + element.getClass()); //$NON-NLS-1$
     }
+  }
+
+  private void searchForReferences(SearchEngine engine, DartIdentifier element, SearchScope scope,
+      SearchResultCollector collector, IProgressMonitor monitor) throws SearchException {
   }
 }
