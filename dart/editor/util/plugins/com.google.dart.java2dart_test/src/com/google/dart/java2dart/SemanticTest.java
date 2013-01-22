@@ -23,6 +23,82 @@ import java.io.File;
  */
 public class SemanticTest extends AbstractSemanticTest {
 
+  public void test_anonymousClass_extendsClass() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public Test(int i, double f) {",
+            "  }",
+            "  public static main() {",
+            "    Test v = new Test(1, 2.3) {",
+            "      void foo() {}",
+            "    };",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  Test(int i, double f) {",
+            "    _jtd_constructor_0_impl(i, f);",
+            "  }",
+            "  _jtd_constructor_0_impl(int i, double f) {",
+            "  }",
+            "  static main() {",
+            "    Test v = new Test_0(1, 2.3);",
+            "  }",
+            "}",
+            "class Test_0 extends Test {",
+            "  Test_0(int arg0, double arg1) : super(arg0, arg1);",
+            "  void foo() {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_anonymousClass_implementsInterface() throws Exception {
+    setFileLines(
+        "test/MyInterface.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public interface MyInterface {",
+            "}"));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public static main() {",
+            "    MyInterface v = new MyInterface() {",
+            "    };",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "abstract class MyInterface {",
+            "}",
+            "class Test {",
+            "  static main() {",
+            "    MyInterface v = new MyInterface_0();",
+            "  }",
+            "}",
+            "class MyInterface_0 implements MyInterface {",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_buildSingleDartUnit() throws Exception {
     setFileLines(
         "test/Main.java",
@@ -355,7 +431,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             "class Test_EOF extends Test {",
-            "  Test_EOF(String ___name, int ___ordinal, int p) : super.con2(___name, ___ordinal, p);",
+            "  Test_EOF(String ___name, int ___ordinal, int arg0) : super.con2(___name, ___ordinal, arg0);",
             "  void foo() {",
             "    print(2);",
             "  }",
@@ -388,6 +464,41 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
+            "  String toString() {",
+            "    return __name;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_enum_noConstructor() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum Test {",
+            "  ONE(), TWO;",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  String __name;",
+            "  int __ordinal = 0;",
+            "  static final Test ONE = new Test('ONE', 0);",
+            "  static final Test TWO = new Test('TWO', 1);",
+            "  static final List<Test> values = [ONE, TWO];",
+            "  Test(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_0_impl(___name, ___ordinal);",
+            "  }",
+            "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
+            "  }",
             "  String toString() {",
             "    return __name;",
             "  }",
@@ -509,6 +620,78 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}"),
         getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_methods_hierarchy() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  void foo() {}",
+            "  void foo(int p) {}",
+            "  void foo(double p) {}",
+            "}",
+            ""));
+    setFileLines(
+        "test/Test2.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test2 extends Test {",
+            "  void foo() {}",
+            "  void foo(int p) {}",
+            "  void foo(double p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void foo() {",
+            "  }",
+            "  void foo2(int p) {",
+            "  }",
+            "  void foo3(double p) {",
+            "  }",
+            "}",
+            "class Test2 extends Test {",
+            "  void foo() {",
+            "  }",
+            "  void foo2(int p) {",
+            "  }",
+            "  void foo3(double p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_methods_with() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  void with() {}",
+            "  void with(int p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(toString(//
+        "class Test {",
+        "  void with2() {",
+        "  }",
+        "  void with3(int p) {",
+        "  }",
+        "}"), getFormattedSource(unit));
   }
 
   public void test_giveUniqueName_variableInitializer() throws Exception {
@@ -641,6 +824,62 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_statementSwitch_enum() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum A {",
+            "  ONE, TWO;",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B {",
+            "  void main(A p) {",
+            "    switch (p) {",
+            "      case ONE:",
+            "        print(1);",
+            "        break;",
+            "      case TWO:",
+            "        print(2);",
+            "        break;",
+            "    }",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  String __name;",
+            "  int __ordinal = 0;",
+            "  static final A ONE = new A('ONE', 0);",
+            "  static final A TWO = new A('TWO', 1);",
+            "  static final List<A> values = [ONE, TWO];",
+            "  String toString() {",
+            "    return __name;",
+            "  }",
+            "}",
+            "class B {",
+            "  void main(A p) {",
+            "    if (p == A.ONE) {",
+            "      print(1);",
+            "    } else if (p == A.TWO) {",
+            "      print(2);",
+            "    }",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_superConstructorInvocation() throws Exception {
     setFileLines(
         "test/A.java",
@@ -734,6 +973,75 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}"),
         getFormattedSource(unit));
+  }
+
+  public void test_thisInFieldInitializer_hasConstructors() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Object foo = this;",
+            "  Object bar = this;",
+            "  public Test() {",
+            "    print(1);",
+            "  }",
+            "  public Test(int p) {",
+            "    print(2);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  Object foo;",
+            "  Object bar;",
+            "  Test() {",
+            "    _jtd_constructor_0_impl();",
+            "  }",
+            "  _jtd_constructor_0_impl() {",
+            "    this.foo = this;",
+            "    this.bar = this;",
+            "    print(1);",
+            "  }",
+            "  Test.con1(int p) {",
+            "    _jtd_constructor_1_impl(p);",
+            "  }",
+            "  _jtd_constructor_1_impl(int p) {",
+            "    this.foo = this;",
+            "    this.bar = this;",
+            "    print(2);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_thisInFieldInitializer_noConstructor() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Object foo = this;",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(toString(//
+        "class Test {",
+        "  Object foo;",
+        "  Test() {",
+        "    this.foo = this;",
+        "  }",
+        "}"), getFormattedSource(unit));
   }
 
   public void test_varArgs() throws Exception {

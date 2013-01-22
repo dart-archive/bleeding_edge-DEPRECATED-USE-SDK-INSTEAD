@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
@@ -74,10 +75,6 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
-import com.google.dart.engine.ast.SwitchCase;
-import com.google.dart.engine.ast.SwitchDefault;
-import com.google.dart.engine.ast.SwitchMember;
-import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TryStatement;
@@ -95,6 +92,7 @@ import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.ASTFactory;
+import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
@@ -114,6 +112,7 @@ import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.stringLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -123,7 +122,6 @@ import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -332,7 +330,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.CastExpression node) {
     Expression expression = translate(node.getExpression());
-    return done(expression);
+    TypeName typeName = translate(node.getType());
+    return done(new AsExpression(expression, null, typeName));
   }
 
   @Override
@@ -360,9 +359,21 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.ClassInstanceCreation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
     String signature = getBindingSignature(binding);
+    TypeName typeNameNode = (TypeName) translate(node.getType());
+    {
+      AnonymousClassDeclaration anoDeclaration = node.getAnonymousClassDeclaration();
+      if (anoDeclaration != null) {
+        signature = anoDeclaration.resolveBinding().getSuperclass().getKey()
+            + StringUtils.substringAfter(signature, ";");
+        String name = typeNameNode.getName().getName();
+        name = name + "_" + context.generateTechnicalAnonymousClassIndex();
+        declareInnerClass(signature, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);
+        typeNameNode = typeName(name);
+      }
+    }
     InstanceCreationExpression creation = new InstanceCreationExpression(
         TOKEN_NEW,
-        new ConstructorName((TypeName) translate(node.getType()), null, null),
+        new ConstructorName(typeNameNode, null, null),
         translateArgumentList(binding, node.arguments()));
     context.getConstructorDescription(signature).instanceCreations.add(creation);
     return done(creation);
@@ -464,75 +475,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       AnonymousClassDeclaration anoClassDeclaration = node.getAnonymousClassDeclaration();
       if (anoClassDeclaration != null) {
         innerClassName = enumTypeName + "_" + fieldName;
-        ClassDeclaration innerClass = new ClassDeclaration(
-            null,
-            null,
-            null,
-            null,
-            simpleIdentifier(innerClassName),
-            null,
-            new ExtendsClause(null, new TypeName(simpleIdentifier(enumTypeName), null)),
-            null,
-            null,
-            null,
-            null,
-            null);
-        artificialUnitDeclarations.add(innerClass);
-        {
-          List<FormalParameter> parameters = Lists.newArrayList();
-          List<Expression> arguments = Lists.newArrayList();
-          {
-            for (Object javaBodyDeclaration : parentEnum.bodyDeclarations()) {
-              if (javaBodyDeclaration instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
-                org.eclipse.jdt.core.dom.MethodDeclaration javaMethod = (org.eclipse.jdt.core.dom.MethodDeclaration) javaBodyDeclaration;
-                if (javaMethod.isConstructor()) {
-                  String javaMethodSignature = getBindingSignature(javaMethod.resolveBinding());
-                  if (Objects.equal(javaMethodSignature, constructorSignature)) {
-                    parameters.add(simpleFormalParameter("String", "___name"));
-                    arguments.add(simpleIdentifier("___name"));
-                    parameters.add(simpleFormalParameter("int", "___ordinal"));
-                    arguments.add(simpleIdentifier("___ordinal"));
-                    for (Object javaParameter0 : javaMethod.parameters()) {
-                      org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (SingleVariableDeclaration) javaParameter0;
-                      TypeName dartParameterType = translate(javaParameter.getType());
-                      String parameterName = javaParameter.getName().getIdentifier();
-                      parameters.add(simpleFormalParameter(dartParameterType, parameterName));
-                      arguments.add(simpleIdentifier(parameterName));
-                    }
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          FormalParameterList parameterList = newFormalParameterList(parameters);
-          ArgumentList argList = new ArgumentList(null, arguments, null);
-          SuperConstructorInvocation superCI = new SuperConstructorInvocation(
-              null,
-              null,
-              null,
-              argList);
-          context.getConstructorDescription(constructorSignature).superInvocations.add(superCI);
-          ConstructorDeclaration innerConstructor = new ConstructorDeclaration(
-              null,
-              null,
-              null,
-              null,
-              null,
-              simpleIdentifier(innerClassName),
-              null,
-              null,
-              parameterList,
-              null,
-              ImmutableList.<ConstructorInitializer> of(superCI),
-              null,
-              new EmptyFunctionBody(null));
-          innerClass.getMembers().add(innerConstructor);
-        }
-        for (Object javaBodyDeclaration : anoClassDeclaration.bodyDeclarations()) {
-          ClassMember classMember = translate((org.eclipse.jdt.core.dom.ASTNode) javaBodyDeclaration);
-          innerClass.getMembers().add(classMember);
-        }
+        declareInnerClass(constructorSignature, anoClassDeclaration, innerClassName, new String[] {
+            "String", "___name", "int", "___ordinal"});
       }
     }
     // prepare field type
@@ -566,6 +510,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   public boolean visit(org.eclipse.jdt.core.dom.EnumDeclaration node) {
     SimpleIdentifier name = translateSimpleName(node.getName());
     // implements
@@ -600,6 +545,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         members.add(valuesDeclaration);
       }
       // body declarations
+      boolean hasConstructor = false;
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
         constructorImpl = null;
@@ -607,6 +553,22 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         members.add(member);
         if (constructorImpl != null) {
           members.add(constructorImpl);
+          hasConstructor = true;
+        }
+      }
+      // add default constructor, use artificial constructor
+      if (!hasConstructor) {
+        org.eclipse.jdt.core.dom.MethodDeclaration ac = node.getAST().newMethodDeclaration();
+        try {
+          ac.setConstructor(true);
+          ac.setName(node.getAST().newSimpleName(name.getName()));
+          ac.setBody(node.getAST().newBlock());
+          node.bodyDeclarations().add(ac);
+          ConstructorDeclaration innerConstructor = translate(ac);
+          members.add(innerConstructor);
+          members.add(constructorImpl);
+        } finally {
+          node.bodyDeclarations().remove(ac);
         }
       }
       // toString()
@@ -825,6 +787,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.MethodDeclaration node) {
+    IMethodBinding binding = node.resolveBinding();
     boolean isEnumConstructor = node.isConstructor()
         && node.getParent() instanceof org.eclipse.jdt.core.dom.EnumDeclaration;
     // parameters
@@ -897,7 +860,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       Statement conStatement = new ExpressionStatement(implInvocation, null);
       Block constructorBody = new Block(null, Lists.newArrayList(conStatement), null);
       SimpleIdentifier nameNode = simpleIdentifier(constructorDeclName);
-      String signature = getBindingSignature(node.resolveBinding());
+      String signature = getBindingSignature(binding);
       context.getConstructorDescription(signature).declName = constructorDeclName;
       context.getConstructorDescription(signature).implName = constructorImplName;
       context.putConstructorNameSignature(nameNode, signature);
@@ -918,6 +881,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     } else {
       Token modifierKeyword = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers())
           ? new KeywordToken(Keyword.STATIC, 0) : null;
+      SimpleIdentifier dartMethodName = translateSimpleName(node.getName());
+      // bind method name to the overridden signature (to rename them simultaneously)
+      if (binding != null) {
+        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(binding, true);
+        if (overriddenMethod != null) {
+          putReference(overriddenMethod, dartMethodName);
+        }
+      }
+      // done
       return done(new MethodDeclaration(
           translateJavadoc(node),
           null,
@@ -926,7 +898,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           (TypeName) translate(node.getReturnType2()),
           null,
           null,
-          translateSimpleName(node.getName()),
+          dartMethodName,
           parameterList,
           body));
     }
@@ -1038,8 +1010,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     if ("float".equals(name)) {
       name = "double";
     }
-    TypeName type = new TypeName(simpleIdentifier(name), null);
-    return done(type);
+    return done(typeName(name));
   }
 
   @Override
@@ -1065,8 +1036,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     putReference(node.resolveBinding(), result);
     // may be statically imported field, generate PrefixedIdentifier
     {
-      IBinding binding = node.resolveBinding();
       org.eclipse.jdt.core.dom.StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
+      IBinding binding = node.resolveBinding();
       if (binding instanceof IVariableBinding) {
         org.eclipse.jdt.core.dom.IVariableBinding variableBinding = (org.eclipse.jdt.core.dom.IVariableBinding) binding;
         org.eclipse.jdt.core.dom.ASTNode parent = node.getParent();
@@ -1075,6 +1046,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             || locationInParent == org.eclipse.jdt.core.dom.ConstructorInvocation.ARGUMENTS_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.SuperConstructorInvocation.ARGUMENTS_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.Assignment.RIGHT_HAND_SIDE_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.SwitchCase.EXPRESSION_PROPERTY
             || parent instanceof org.eclipse.jdt.core.dom.InfixExpression
             || parent instanceof org.eclipse.jdt.core.dom.ConditionalExpression) {
           if (variableBinding.getDeclaringClass() != null
@@ -1094,9 +1066,24 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SimpleType node) {
     ITypeBinding binding = node.resolveBinding();
-    TypeName typeName = new TypeName(
-        translateSimpleName((org.eclipse.jdt.core.dom.SimpleName) node.getName()),
-        null);
+    String name = node.getName().toString();
+    if ("Void".equals(name)) {
+      name = "Object";
+    }
+    if ("Boolean".equals(name)) {
+      name = "bool";
+    }
+    if ("Short".equals(name) || "Integer".equals(name) || "Long".equals(name)) {
+      name = "int";
+    }
+    if ("Float".equals(name) || "Double".equals(name)) {
+      name = "double";
+    }
+    if ("BigInteger".equals(name)) {
+      name = "int";
+    }
+    // done
+    TypeName typeName = typeName(name);
     context.putNodeBinding(typeName, binding);
     return done(typeName);
   }
@@ -1151,35 +1138,56 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SwitchStatement node) {
-    List<SwitchMember> members = Lists.newArrayList();
-    {
-      SwitchMember switchCase = null;
-      for (Iterator<?> I = node.statements().iterator(); I.hasNext();) {
-        Object javaMember = I.next();
-        if (javaMember instanceof org.eclipse.jdt.core.dom.SwitchCase) {
-          org.eclipse.jdt.core.dom.SwitchCase javaCase = (org.eclipse.jdt.core.dom.SwitchCase) javaMember;
-          Expression switchExpr = translate(javaCase.getExpression());
-          if (switchExpr != null) {
-            switchCase = new SwitchCase(null, null, switchExpr, null, null);
+    IfStatement mainIfStatement = null;
+    IfStatement targetIfStatement = null;
+    Block ifBlock = null;
+    Expression ifCondition = null;
+    for (Iterator<?> I = node.statements().iterator(); I.hasNext();) {
+      Object javaMember = I.next();
+      if (javaMember instanceof org.eclipse.jdt.core.dom.SwitchCase) {
+        org.eclipse.jdt.core.dom.SwitchCase javaCase = (org.eclipse.jdt.core.dom.SwitchCase) javaMember;
+        if (javaCase.getExpression() != null) {
+          Expression condition = new BinaryExpression(
+              (Expression) translate(node.getExpression()),
+              new Token(TokenType.EQ_EQ, 0),
+              (Expression) translate(javaCase.getExpression()));
+          if (ifCondition == null) {
+            ifCondition = condition;
+            ifBlock = new Block(null, Lists.<Statement> newArrayList(), null);
+            IfStatement ifStatement = new IfStatement(
+                null,
+                null,
+                condition,
+                null,
+                ifBlock,
+                null,
+                null);
+            if (mainIfStatement == null) {
+              mainIfStatement = ifStatement;
+            } else {
+              targetIfStatement.setElseStatement(ifStatement);
+            }
+            targetIfStatement = ifStatement;
           } else {
-            switchCase = new SwitchDefault(null, null, null, null);
+            ifCondition = new BinaryExpression(
+                ifCondition,
+                new Token(TokenType.BAR_BAR, 0),
+                condition);
+            targetIfStatement.setCondition(ifCondition);
           }
-          members.add(switchCase);
         } else {
-          Assert.isTrue(switchCase != null);
-          switchCase.getStatements().add(
-              (Statement) translate((org.eclipse.jdt.core.dom.Statement) javaMember));
+          ifBlock = new Block(null, Lists.<Statement> newArrayList(), null);
+          targetIfStatement.setElseStatement(ifBlock);
+        }
+      } else {
+        ifCondition = null;
+        Statement statement = translate((org.eclipse.jdt.core.dom.Statement) javaMember);
+        if (!(statement instanceof BreakStatement)) {
+          ifBlock.getStatements().add(statement);
         }
       }
     }
-    return done(new SwitchStatement(
-        null,
-        null,
-        (Expression) translate(node.getExpression()),
-        null,
-        null,
-        members,
-        null));
+    return done(mainIfStatement);
   }
 
   @Override
@@ -1252,23 +1260,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       implementsClause = new ImplementsClause(null, interfaces);
     }
     // members
-    List<ClassMember> members = Lists.newArrayList();
-    for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
-      org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
-      constructorImpl = null;
-      if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration
-          || javaBodyDecl instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
-        // TODO(scheglov) support for inner classes
-        ClassDeclaration innerClassDeclaration = translate(javaBodyDecl);
-        artificialUnitDeclarations.add(innerClassDeclaration);
-      } else {
-        ClassMember member = translate(javaBodyDecl);
-        members.add(member);
-        if (constructorImpl != null) {
-          members.add(constructorImpl);
-        }
-      }
-    }
+    List<ClassMember> members = translateBodyDeclarations(node.bodyDeclarations());
     return done(new ClassDeclaration(
         translateJavadoc(node),
         null,
@@ -1346,6 +1338,91 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
   }
 
+  private void declareInnerClass(String constructorSignature,
+      AnonymousClassDeclaration anoClassDeclaration, String innerClassName,
+      String[] additionalParameters) {
+    ITypeBinding superTypeBinding = anoClassDeclaration.resolveBinding().getSuperclass();
+    ExtendsClause extendsClause = null;
+    ImplementsClause implementsClause = null;
+    {
+      ITypeBinding[] superInterfaces = anoClassDeclaration.resolveBinding().getInterfaces();
+      if (superInterfaces.length != 0) {
+        TypeName superType = typeName(superInterfaces[0].getName());
+        implementsClause = new ImplementsClause(null, ImmutableList.of(superType));
+      } else {
+        TypeName superType = typeName(superTypeBinding.getName());
+        extendsClause = new ExtendsClause(null, superType);
+      }
+    }
+    ClassDeclaration innerClass = new ClassDeclaration(
+        null,
+        null,
+        null,
+        null,
+        simpleIdentifier(innerClassName),
+        null,
+        extendsClause,
+        null,
+        implementsClause,
+        null,
+        null,
+        null);
+    artificialUnitDeclarations.add(innerClass);
+    if (extendsClause != null) {
+      List<FormalParameter> parameters = Lists.newArrayList();
+      List<Expression> arguments = Lists.newArrayList();
+      // find "super" constructor
+      for (IMethodBinding superMethod : superTypeBinding.getDeclaredMethods()) {
+        if (superMethod.isConstructor()) {
+          String superMethodSignature = getBindingSignature(superMethod);
+          if (Objects.equal(superMethodSignature, constructorSignature)) {
+            // additional parameters
+            for (int i = 0; i < additionalParameters.length / 2; i++) {
+              parameters.add(simpleFormalParameter(
+                  additionalParameters[2 * i + 0],
+                  additionalParameters[2 * i + 1]));
+              arguments.add(simpleIdentifier(additionalParameters[2 * i + 1]));
+            }
+            // "declared" parameters
+            ITypeBinding[] parameterTypes = superMethod.getParameterTypes();
+            for (int i = 0; i < parameterTypes.length; i++) {
+              TypeName dartParameterType = typeName(parameterTypes[i].getName());
+              String parameterName = "arg" + i;
+              parameters.add(simpleFormalParameter(dartParameterType, parameterName));
+              arguments.add(simpleIdentifier(parameterName));
+            }
+            // done, we found and processed "super" constructor
+            break;
+          }
+        }
+      }
+      // declare "inner" constructor
+      FormalParameterList parameterList = newFormalParameterList(parameters);
+      ArgumentList argList = new ArgumentList(null, arguments, null);
+      SuperConstructorInvocation superCI = new SuperConstructorInvocation(null, null, null, argList);
+      context.getConstructorDescription(constructorSignature).superInvocations.add(superCI);
+      ConstructorDeclaration innerConstructor = new ConstructorDeclaration(
+          null,
+          null,
+          null,
+          null,
+          null,
+          simpleIdentifier(innerClassName),
+          null,
+          null,
+          parameterList,
+          null,
+          ImmutableList.<ConstructorInitializer> of(superCI),
+          null,
+          new EmptyFunctionBody(null));
+      innerClass.getMembers().add(innerConstructor);
+    }
+    for (Object javaBodyDeclaration : anoClassDeclaration.bodyDeclarations()) {
+      ClassMember classMember = translate((org.eclipse.jdt.core.dom.ASTNode) javaBodyDeclaration);
+      innerClass.getMembers().add(classMember);
+    }
+  }
+
   /**
    * Set {@link #result} and return <code>false</code> - we don't want normal JDT visiting.
    */
@@ -1420,6 +1497,27 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   private ArgumentList translateArgumentList0(List<?> javaArguments) {
     List<Expression> arguments = translateExpressionList(javaArguments);
     return new ArgumentList(null, arguments, null);
+  }
+
+  private List<ClassMember> translateBodyDeclarations(List<?> javaBodyDeclarations) {
+    List<ClassMember> members = Lists.newArrayList();
+    for (Iterator<?> I = javaBodyDeclarations.iterator(); I.hasNext();) {
+      org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
+      constructorImpl = null;
+      if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration
+          || javaBodyDecl instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
+        // TODO(scheglov) support for inner classes
+        ClassDeclaration innerClassDeclaration = translate(javaBodyDecl);
+        artificialUnitDeclarations.add(innerClassDeclaration);
+      } else {
+        ClassMember member = translate(javaBodyDecl);
+        members.add(member);
+        if (constructorImpl != null) {
+          members.add(constructorImpl);
+        }
+      }
+    }
+    return members;
   }
 
   /**

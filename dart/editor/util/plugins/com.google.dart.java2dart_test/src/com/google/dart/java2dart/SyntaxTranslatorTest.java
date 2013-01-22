@@ -117,6 +117,22 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_classTypeArguments_Void() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class Test<T> {",
+        "  void main() {",
+        "    new Test<Void>();",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class Test<T> {",
+        "  void main() {",
+        "    new Test<Object>();",
+        "  }",
+        "}");
+  }
+
   public void test_classTypeParameters() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -349,18 +365,18 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
-  public void test_expressionCast_byte() throws Exception {
+  public void test_expressionCast() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  void test() {",
-        "    byte b = (byte) 0;",
+        "public class Test {",
+        "  void main(Object p) {",
+        "    print((Integer) p);",
         "  }",
         "}");
     assertDartSource(//
-        "class A {",
-        "  void test() {",
-        "    int b = 0;",
+        "class Test {",
+        "  void main(Object p) {",
+        "    print(p as int);",
         "  }",
         "}");
   }
@@ -1281,8 +1297,8 @@ public class SyntaxTranslatorTest extends TestCase {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
-        "  void test() {",
-        "    switch (0) {",
+        "  void main(int p) {",
+        "    switch (p) {",
         "      case 1:",
         "        print(1);",
         "        break;",
@@ -1296,20 +1312,15 @@ public class SyntaxTranslatorTest extends TestCase {
         "    }",
         "  }",
         "}");
-    assertDartSource(//
+    assertDartSource(
         "class A {",
-        "  void test() {",
-        "    switch (0) {",
-        "      case 1: ",
-        "        print(1);",
-        "        break;",
-        "      case 2: ",
-        "      case 3: ",
-        "        print(2);",
-        "        break;",
-        "      default: ",
-        "        print(3);",
-        "        break;",
+        "  void main(int p) {",
+        "    if (p == 1) {",
+        "      print(1);",
+        "    } else if (p == 2 || p == 3) {",
+        "      print(2);",
+        "    } else {",
+        "      print(3);",
         "    }",
         "  }",
         "}");
@@ -1497,6 +1508,48 @@ public class SyntaxTranslatorTest extends TestCase {
         "  void test() {",
         "    List<Object> v1;",
         "    List<String> v2;",
+        "  }",
+        "}");
+  }
+
+  public void test_typeWrapper() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  Void testVoid() {return null;}",
+        "  Boolean testBoolean() {return null;}",
+        "  Short testShort() {return null;}",
+        "  Integer testInteger() {return null;}",
+        "  Long testLong() {return null;}",
+        "  Float testFloat() {return null;}",
+        "  Double testDouble() {return null;}",
+        "  BigInteger testBigInteger() {return null;}",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  void testVoid() {",
+        "    return null;",
+        "  }",
+        "  bool testBoolean() {",
+        "    return null;",
+        "  }",
+        "  int testShort() {",
+        "    return null;",
+        "  }",
+        "  int testInteger() {",
+        "    return null;",
+        "  }",
+        "  int testLong() {",
+        "    return null;",
+        "  }",
+        "  double testFloat() {",
+        "    return null;",
+        "  }",
+        "  double testDouble() {",
+        "    return null;",
+        "  }",
+        "  int testBigInteger() {",
+        "    return null;",
         "  }",
         "}");
   }

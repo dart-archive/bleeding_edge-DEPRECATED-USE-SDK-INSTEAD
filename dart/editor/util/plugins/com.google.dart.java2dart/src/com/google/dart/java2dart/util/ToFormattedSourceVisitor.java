@@ -208,7 +208,13 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   public Void visitComment(Comment node) {
     Token token = node.getBeginToken();
     while (token != null) {
+      boolean firstLine = true;
       for (String line : StringUtils.split(token.getLexeme(), '\n')) {
+        if (firstLine) {
+          firstLine = false;
+        } else {
+          line = StringUtils.replace(line, "/*", "/ *");
+        }
         writer.print(line);
         writer.print("\n");
         indent();
@@ -233,7 +239,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     visit(scriptTag);
     String prefix = scriptTag == null ? "" : " ";
     visitList(prefix, directives, "\n");
-    prefix = scriptTag == null && directives.isEmpty() ? "" : " ";
+    prefix = scriptTag == null && directives.isEmpty() ? "" : "\n\n";
     visitList(prefix, node.getDeclarations(), "\n");
     return null;
   }
@@ -517,7 +523,6 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
-    nl();
     return null;
   }
 

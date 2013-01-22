@@ -17,6 +17,30 @@ package com.google.dart.java2dart.processor;
  * Test for {@link ObjectSemanticProcessor}.
  */
 public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
+  public void test_Boolean_TRUE() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public Object testTrue() {",
+        "    return Boolean.TRUE;",
+        "  }",
+        "  public Object testFalse() {",
+        "    return Boolean.FALSE;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  Object testTrue() {",
+        "    return true;",
+        "  }",
+        "  Object testFalse() {",
+        "    return false;",
+        "  }",
+        "}");
+  }
+
   public void test_Enum_values() throws Exception {
     setFileLines(
         "test/MyEnum.java",
@@ -39,6 +63,30 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  List<MyEnum> foo() {",
         "    return MyEnum.values;",
+        "  }",
+        "}");
+  }
+
+  public void test_Integer_MAX_VALUE() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public Object testMin() {",
+        "    return Integer.MIN_VALUE;",
+        "  }",
+        "  public Object testMax() {",
+        "    return Integer.MAX_VALUE;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Object testMin() {",
+        "    return -2147483648;",
+        "  }",
+        "  Object testMax() {",
+        "    return 2147483647;",
         "  }",
         "}");
   }
@@ -77,6 +125,85 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  Object o;",
         "  int get hashCode {",
         "    return o.hashCode;",
+        "  }",
+        "}");
+  }
+
+  public void test_PrimitiveWrapper_operations() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.math.BigInteger;",
+        "public class Test {",
+        "  public void testBoolean(Boolean a, Boolean b) {",
+        "    print(a.booleanValue());",
+        "  }",
+        "  public void testDouble(Double a, Double b) {",
+        "    print(Double.valueOf(1.2));",
+        "    print(a.doubleValue() + b.doubleValue());",
+        "    print(a.equals(b));",
+        "    print(!a.equals(b));",
+        "    print(Math.floor(3.3 / 2).longValue());",
+        "  }",
+        "  public void testBigInteger(BigInteger a, BigInteger b) {",
+        "    print(BigInteger.valueOf(42));",
+        "    print(a.intValue());",
+        "    print(a.equals(b));",
+        "    print(!a.equals(b));",
+        "    print(a.and(b));",
+        "    print(a.or(b));",
+        "    print(a.xor(b));",
+        "    print(a.add(b));",
+        "    print(a.subtract(b));",
+        "    print(a.multiply(b));",
+        "    print(a.divide(b));",
+        "    print(a.shiftLeft(b));",
+        "    print(a.shiftRight(b));",
+        "    print(a.not());",
+        "    print(a.negate());",
+        "  }",
+        "  public void testString(String a, String b) {",
+        "    print(a.equals(b));",
+        "    print(!a.equals(b));",
+        "  }",
+        "  private static void print(Object p) {",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void testBoolean(bool a, bool b) {",
+        "    print(a);",
+        "  }",
+        "  void testDouble(double a, double b) {",
+        "    print(1.2);",
+        "    print(a + b);",
+        "    print(a == b);",
+        "    print(a != b);",
+        "    print(3.3 ~/ 2);",
+        "  }",
+        "  void testBigInteger(int a, int b) {",
+        "    print(42);",
+        "    print(a);",
+        "    print(a == b);",
+        "    print(a != b);",
+        "    print(a & b);",
+        "    print(a | b);",
+        "    print(a ^ b);",
+        "    print(a + b);",
+        "    print(a - b);",
+        "    print(a * b);",
+        "    print(a / b);",
+        "    print(a << b);",
+        "    print(a >> b);",
+        "    print(~a);",
+        "    print(-a);",
+        "  }",
+        "  void testString(String a, String b) {",
+        "    print(a == b);",
+        "    print(a != b);",
+        "  }",
+        "  static void print(Object p) {",
         "  }",
         "}");
   }

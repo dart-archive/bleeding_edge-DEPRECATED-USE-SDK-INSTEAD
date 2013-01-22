@@ -19,13 +19,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.Token;
@@ -47,9 +48,9 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
   @Override
   public void process(final Context context, CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
-
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
+        super.visitMethodInvocation(node);
         List<Expression> arguments = node.getArgumentList().getArguments();
         SimpleIdentifier nameNode = node.getMethodName();
         if (isMethodInClass(node, "size", "java.util.Collection")) {
@@ -72,6 +73,18 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, new IndexExpression(node.getTarget(), null, arguments.get(0), null));
           return null;
         }
+        if (isMethodInClass(node, "toArray", "java.util.List")) {
+          replaceNode(
+              node,
+              new InstanceCreationExpression(ASTFactory.TOKEN_NEW, new ConstructorName(
+                  ASTFactory.typeName("List"),
+                  null,
+                  ASTFactory.simpleIdentifier("from")), new ArgumentList(
+                  null,
+                  ImmutableList.of(node.getTarget()),
+                  null)));
+          return null;
+        }
         if (isMethodInClass(node, "put", "java.util.Map")) {
           Assert.isTrue(node.getParent() instanceof ExpressionStatement);
           IndexExpression indexExpression = new IndexExpression(
@@ -89,10 +102,6 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(ASTFactory.identifierToken("removeAt"));
           return null;
         }
-        if (isMethodInClass(node, "toArray", "com.google.dart.engine.utilities.collection.IntList")) {
-          replaceNode(node, node.getTarget());
-          return null;
-        }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
           replaceNode(
               node,
@@ -103,7 +112,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
                   new ArgumentList(null, null, null)));
           return null;
         }
-        return super.visitMethodInvocation(node);
+        return null;
       }
 
       @Override
@@ -111,12 +120,6 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
-          if ("IntList".equals(name)) {
-            replaceNode(node, new TypeName(
-                ASTFactory.simpleIdentifier("List"),
-                new TypeArgumentList(null, ImmutableList.of(ASTFactory.typeName("int")), null)));
-            return null;
-          }
           if ("ArrayList".equals(name)) {
             replaceNode(nameNode, ASTFactory.simpleIdentifier("List"));
             return null;

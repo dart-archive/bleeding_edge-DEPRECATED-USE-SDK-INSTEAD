@@ -96,41 +96,6 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  /**
-   * Specific for Dart Analysis Engine.
-   */
-  public void test_IntList() throws Exception {
-    setFileLines(
-        "com/google/dart/engine/utilities/collection/IntList.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package com.google.dart.engine.utilities.collection;",
-            "public class IntList {",
-            "  public void add(Object o) {}",
-            "  public int[] toArray() {return null;}",
-            "}"));
-    translateSingleFile(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "package test;",
-        "import com.google.dart.engine.utilities.collection.IntList;",
-        "public class Test {",
-        "  public int[] foo() {",
-        "    IntList lineStarts = new IntList();",
-        "    lineStarts.add(42);",
-        "    return lineStarts.toArray();",
-        "  }",
-        "}");
-    CollectionSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource(
-        "class Test {",
-        "  List<int> foo() {",
-        "    List<int> lineStarts = new List<int>();",
-        "    lineStarts.add(42);",
-        "    return lineStarts;",
-        "  }",
-        "}");
-  }
-
   public void test_List_get() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -165,6 +130,25 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  void foo(List<String> items) {",
         "    items.removeAt(2);",
+        "  }",
+        "}");
+  }
+
+  public void test_List_toArray() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "public class Test {",
+        "  String[] foo(List<String> items) {",
+        "    return items.toArray(new String[items.length]);",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  List<String> foo(List<String> items) {",
+        "    return new List.from(items);",
         "  }",
         "}");
   }

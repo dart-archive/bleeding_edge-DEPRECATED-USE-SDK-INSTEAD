@@ -15,11 +15,15 @@
 package com.google.dart.java2dart;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
@@ -27,20 +31,26 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.JavaUtils;
 
@@ -59,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Context information for Java to Dart translation.
@@ -80,6 +91,8 @@ public class Context {
     }
   }
 
+  private static boolean TIMING = false;
+
   private static final String[] JAVA_EXTENSION = {"java"};
   private final List<File> sourceFolders = Lists.newArrayList();
   private final List<File> sourceFiles = Lists.newArrayList();
@@ -88,7 +101,9 @@ public class Context {
 
   private final CompilationUnit dartUniverse = new CompilationUnit(null, null, null, null, null);
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
+  private final Map<CompilationUnitMember, File> memberToFile = Maps.newHashMap();
   // information about names
+  private static final Set<String> forbiddenNames = ImmutableSet.of("with");
   private final Set<String> usedNames = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToBinding = Maps.newHashMap();
   private final Map<String, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
@@ -99,6 +114,7 @@ public class Context {
   private final Map<SimpleIdentifier, String> constructorNameToBinding = Maps.newHashMap();
   // information about inner classes
   private int technicalInnerClassIndex;
+  private int technicalAnonymousClassIndex;
 
   /**
    * Specifies that field with given signature should be renamed before normalizing member names.
@@ -142,6 +158,10 @@ public class Context {
     return fileToMembers;
   }
 
+  public Map<CompilationUnitMember, File> getMemberToFile() {
+    return memberToFile;
+  }
+
   /**
    * @return some Java binding for the given Dart {@link ASTNode}.
    */
@@ -172,12 +192,28 @@ public class Context {
       }
     }
     // run processors
-    ensureFieldInitializers(dartUniverse);
-    ensureUniqueClassMemberNames(dartUniverse);
-    ensureNoVariableNameReferenceFromInitializer(dartUniverse);
-    renameConstructors(dartUniverse);
+    {
+      long startTime = System.nanoTime();
+      {
+        ensureFieldInitializers(dartUniverse);
+        dontUseThisInFieldInitializers(dartUniverse);
+        ensureUniqueClassMemberNames(dartUniverse);
+        ensureNoVariableNameReferenceFromInitializer(dartUniverse);
+        renameConstructors(dartUniverse);
+      }
+      if (TIMING) {
+        System.out.println("contextProcessors: " + (System.nanoTime() - startTime) / 1000000);
+      }
+    }
     // done
     return dartUniverse;
+  }
+
+  /**
+   * @return the "technical" name for the top-level Dart class for Java anonymous class.
+   */
+  int generateTechnicalAnonymousClassIndex() {
+    return technicalAnonymousClassIndex++;
   }
 
   /**
@@ -238,6 +274,93 @@ public class Context {
     }
     // remember global name
     usedNames.add(identifier.getName());
+  }
+
+  private void dontUseThisInFieldInitializers(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        processClass(node);
+        return super.visitClassDeclaration(node);
+      }
+
+      private void addAssignmentsToBlock(Block block, Map<SimpleIdentifier, Expression> initializers) {
+        int index = 0;
+        for (Entry<SimpleIdentifier, Expression> entry : initializers.entrySet()) {
+          block.getStatements().add(
+              index++,
+              new ExpressionStatement(new AssignmentExpression(new PropertyAccess(
+                  new ThisExpression(null),
+                  null,
+                  entry.getKey()), new Token(TokenType.EQ, 0), entry.getValue()), null));
+        }
+      }
+
+      private void processClass(final ClassDeclaration classDeclaration) {
+        final Map<SimpleIdentifier, Expression> thisInitializers = Maps.newLinkedHashMap();
+        // find field initializers which use "this"
+        classDeclaration.accept(new RecursiveASTVisitor<Void>() {
+          @Override
+          public Void visitVariableDeclaration(VariableDeclaration node) {
+            if (node.getParent().getParent() instanceof FieldDeclaration) {
+              if (hasThisExpression(node)) {
+                thisInitializers.put(node.getName(), node.getInitializer());
+                node.setInitializer(null);
+              }
+            }
+            return super.visitVariableDeclaration(node);
+          }
+
+          private boolean hasThisExpression(ASTNode node) {
+            final AtomicBoolean result = new AtomicBoolean();
+            node.accept(new GeneralizingASTVisitor<Void>() {
+              @Override
+              public Void visitThisExpression(ThisExpression node) {
+                result.set(true);
+                return super.visitThisExpression(node);
+              }
+            });
+            return result.get();
+          }
+        });
+        // add field assignment for each "this" field initializer
+        if (thisInitializers.isEmpty()) {
+          return;
+        }
+        boolean foundImpl = false;
+        for (ClassMember classMember : classDeclaration.getMembers()) {
+          if (classMember instanceof MethodDeclaration) {
+            MethodDeclaration method = (MethodDeclaration) classMember;
+            String methodName = method.getName().getName();
+            if (methodName.startsWith("_jtd_constructor_") && methodName.endsWith("_impl")) {
+              foundImpl = true;
+              Block block = ((BlockFunctionBody) method.getBody()).getBlock();
+              addAssignmentsToBlock(block, thisInitializers);
+            }
+          }
+        }
+        // no "_impl", generate default constructor
+        if (!foundImpl) {
+          Block block = new Block(null, null, null);
+          addAssignmentsToBlock(block, thisInitializers);
+          ConstructorDeclaration constructor = new ConstructorDeclaration(
+              null,
+              null,
+              null,
+              null,
+              null,
+              classDeclaration.getName(),
+              null,
+              null,
+              new FormalParameterList(null, null, null, null, null),
+              null,
+              null,
+              null,
+              new BlockFunctionBody(block));
+          classDeclaration.getMembers().add(constructor);
+        }
+      }
+    });
   }
 
   private void ensureFieldInitializers(CompilationUnit unit) {
@@ -332,7 +455,7 @@ public class Context {
         if (declarationName instanceof SimpleIdentifier) {
           SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
           String name = declarationIdentifier.getName();
-          if (usedClassMemberNames.contains(name)) {
+          if (forbiddenNames.contains(name) || usedClassMemberNames.contains(name)) {
             String newName = generateUniqueName(name);
             // rename binding
             if (!newName.equals(name)) {
@@ -512,12 +635,24 @@ public class Context {
    * Translate {@link #sourceFiles} into Dart AST in {@link #dartUnits}.
    */
   private void translateSyntax() throws Exception {
+    long startTime;
+    long translatedFiles = 0;
+    long parseJavaTime = 0;
+    long syntaxTranslateTime = 0;
     for (File javaFile : sourceFiles) {
+      startTime = System.nanoTime();
       org.eclipse.jdt.core.dom.CompilationUnit javaUnit = parseJavaFile(javaFile);
+      parseJavaTime += System.nanoTime() - startTime;
+      //
+      startTime = System.nanoTime();
       CompilationUnit dartUnit = SyntaxTranslator.translate(this, javaUnit);
       List<CompilationUnitMember> dartDeclarations = dartUnit.getDeclarations();
       // add to the Dart universe
       dartUniverse.getDeclarations().addAll(dartDeclarations);
+      // add to the CompilationUnitMember map
+      for (CompilationUnitMember member : dartDeclarations) {
+        memberToFile.put(member, javaFile);
+      }
       // add to the File map
       {
         List<CompilationUnitMember> fileMembers = fileToMembers.get(javaFile);
@@ -527,6 +662,13 @@ public class Context {
         }
         fileMembers.addAll(dartDeclarations);
       }
+      syntaxTranslateTime += System.nanoTime() - startTime;
+      translatedFiles++;
+    }
+    if (TIMING) {
+      System.out.println("translatedFiles: " + translatedFiles);
+      System.out.println("parseJavaTime: " + parseJavaTime / 1000000);
+      System.out.println("syntaxTranslateTime: " + syntaxTranslateTime / 1000000);
     }
   }
 }
