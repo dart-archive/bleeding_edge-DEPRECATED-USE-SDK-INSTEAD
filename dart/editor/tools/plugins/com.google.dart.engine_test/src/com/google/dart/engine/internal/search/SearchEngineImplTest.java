@@ -140,7 +140,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       @Override
       public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
           SearchEngine engine) throws Exception {
-        return engine.searchDeclarations("test", filter);
+        return engine.searchDeclarations("test", scope, filter);
       }
     });
     // verify
@@ -266,6 +266,29 @@ public class SearchEngineImplTest extends EngineTestCase {
         matches,
         new ExpectedMatch(elementA, MatchKind.TYPE_REFERENCE, 1, 2),
         new ExpectedMatch(elementB, MatchKind.TYPE_REFERENCE, 10, 20));
+  }
+
+  public void test_searchReferences_ClassElement_useScope() throws Exception {
+    LibraryElement libraryA = mock(LibraryElement.class);
+    LibraryElement libraryB = mock(LibraryElement.class);
+    ClassElement referencedElement = mock(ClassElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.CLASS);
+    {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(libraryA);
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      when(elementB.getAncestor(LibraryElement.class)).thenReturn(libraryB);
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches, in "libraryA"
+    scope = SearchScopeFactory.createLibraryScope(libraryA);
+    List<SearchMatch> matches = searchReferencesSync(ClassElement.class, referencedElement);
+    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    // verify
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.TYPE_REFERENCE, 1, 2));
   }
 
   public void test_searchReferences_ClassElement_withPrefix() throws Exception {
@@ -603,7 +626,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       @Override
       public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
           SearchEngine engine) throws Exception {
-        return engine.searchSubtypes(referencedElement, filter);
+        return engine.searchSubtypes(referencedElement, scope, filter);
       }
     });
     // verify
@@ -617,6 +640,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchTypeDeclarations_async() throws Exception {
     LibraryElement library = mock(LibraryElement.class);
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
     }
@@ -630,6 +654,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchTypeDeclarations_class() throws Exception {
     LibraryElement library = mock(LibraryElement.class);
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS, locationA);
     }
@@ -643,6 +668,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchTypeDeclarations_classAlias() throws Exception {
     LibraryElement library = mock(LibraryElement.class);
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_CLASS_ALIAS, locationA);
     }
@@ -656,6 +682,7 @@ public class SearchEngineImplTest extends EngineTestCase {
   public void test_searchTypeDeclarations_functionType() throws Exception {
     LibraryElement library = mock(LibraryElement.class);
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION_TYPE, locationA);
     }
@@ -721,10 +748,12 @@ public class SearchEngineImplTest extends EngineTestCase {
 
   private void defineFunctionsAB(LibraryElement library) {
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION, locationA);
     }
     {
+      when(elementB.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationB = new Location(elementB, 10, 20, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_FUNCTION, locationB);
     }
@@ -732,10 +761,12 @@ public class SearchEngineImplTest extends EngineTestCase {
 
   private void defineVariablesAB(LibraryElement library) {
     {
+      when(elementA.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationA);
     }
     {
+      when(elementB.getAncestor(LibraryElement.class)).thenReturn(library);
       Location locationB = new Location(elementB, 10, 20, null);
       indexStore.recordRelationship(library, IndexConstants.DEFINES_VARIABLE, locationB);
     }

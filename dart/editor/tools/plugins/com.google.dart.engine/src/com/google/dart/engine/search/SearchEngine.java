@@ -42,7 +42,7 @@ public interface SearchEngine {
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
    */
-  public List<SearchMatch> searchDeclarations(String name, SearchFilter filter)
+  public List<SearchMatch> searchDeclarations(String name, SearchScope scope, SearchFilter filter)
       throws SearchException;
 
   /**
@@ -55,41 +55,15 @@ public interface SearchEngine {
    * @param listener the listener that will be notified when matches are found
    * @throws SearchException if the results could not be computed
    */
-  public void searchDeclarations(String name, SearchFilter filter, SearchListener listener)
-      throws SearchException;
-
-//  /**
-//   * Synchronously search for implementors of the given type within the given scope. Return all
-//   * matches that pass the optional filter.
-//   * 
-//   * @param type the interface being implemented by the results
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be returned, or
-//   *          <code>null</code> if all of the matches should be returned
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public List<SearchMatch> searchImplementors(ClassElement type, SearchScope scope,
-//      SearchFilter filter) throws SearchException;
-//
-//  /**
-//   * Search for implementors of the given type within the given scope.
-//   * 
-//   * @param type the interface being implemented by the results
-//   * @param scope the scope containing the type declarations to be searched
-//   * @param filter the filter used to determine which matches should be passed to the listener
-//   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-//   *          passed to the listener
-//   * @param listener the listener that will be notified when matches are found
-//   * @throws SearchException if the results could not be computed
-//   */
-//  public void searchImplementors(ClassElement type, SearchScope scope, SearchFilter filter,
-//      SearchListener listener) throws SearchException;
+  public void searchDeclarations(String name, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
 
   /**
    * Synchronously search for all functions matching the given pattern within the given scope.
    * Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the function declarations to be searched
+   * @param scope the scope containing the function declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which function declarations are to be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
@@ -101,7 +75,8 @@ public interface SearchEngine {
   /**
    * Search for all functions matching the given pattern within the given scope.
    * 
-   * @param scope the scope containing the function declarations to be searched
+   * @param scope the scope containing the function declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which function declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
@@ -117,7 +92,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param type the type being referenced by the found matches
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -129,7 +105,8 @@ public interface SearchEngine {
    * Search for references to the given type within the given scope.
    * 
    * @param type the type being referenced by the found matches
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -144,7 +121,8 @@ public interface SearchEngine {
    * given scope. Return all matches that pass the optional filter.
    * 
    * @param unit the {@link CompilationUnitElement} being referenced by the found matches
-   * @param scope the scope containing the {@link CompilationUnitElement} references to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -156,7 +134,8 @@ public interface SearchEngine {
    * Search for references to the given {@link CompilationUnitElement} within the given scope.
    * 
    * @param unit the {@link CompilationUnitElement} being referenced by the found matches
-   * @param scope the scope containing the {@link CompilationUnitElement} references to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -172,7 +151,8 @@ public interface SearchEngine {
    * of the given {@link Element}.
    * 
    * @param element the type being referenced by the found matches
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -186,7 +166,8 @@ public interface SearchEngine {
    * {@link Element}.
    * 
    * @param type the type being referenced by the found matches
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -201,7 +182,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param field the field being referenced by the found matches
-   * @param scope the scope containing the field declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -213,7 +195,8 @@ public interface SearchEngine {
    * Search for references to the given field within the given scope.
    * 
    * @param field the field being referenced by the found matches
-   * @param scope the scope containing the field declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -228,7 +211,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param function the function being referenced by the found matches
-   * @param scope the scope containing the function declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -240,7 +224,8 @@ public interface SearchEngine {
    * Search for references to the given function within the given scope.
    * 
    * @param function the function being referenced by the found matches
-   * @param scope the scope containing the function declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -255,7 +240,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param imp the import being referenced by the found matches
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -267,7 +253,8 @@ public interface SearchEngine {
    * Search for references to the given type import the given scope.
    * 
    * @param imp the import being referenced by the found matches
-   * @param scope the scope containing the import declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -282,7 +269,8 @@ public interface SearchEngine {
    * Return all matches that pass the optional filter.
    * 
    * @param library the {@link LibraryElement} being referenced by the found matches
-   * @param scope the scope containing the {@link LibraryElement} references to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -294,7 +282,8 @@ public interface SearchEngine {
    * Search for references to the given {@link LibraryElement} within the given scope.
    * 
    * @param library the {@link LibraryElement} being referenced by the found matches
-   * @param scope the scope containing the {@link LibraryElement} references to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -309,7 +298,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param method the method being referenced by the found matches
-   * @param scope the scope containing the method declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -321,7 +311,8 @@ public interface SearchEngine {
    * Search for references to the given method within the given scope.
    * 
    * @param method the method being referenced by the found matches
-   * @param scope the scope containing the method declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -336,7 +327,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param parameter the parameter being referenced by the found matches
-   * @param scope the scope containing the parameter declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -348,7 +340,8 @@ public interface SearchEngine {
    * Search for references to the given parameter within the given scope.
    * 
    * @param parameter the parameter being referenced by the found matches
-   * @param scope the scope containing the parameter declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -363,7 +356,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param name the name being referenced by the found matches
-   * @param scope the scope containing the name declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -375,7 +369,8 @@ public interface SearchEngine {
    * Search for references to the given name within the given scope.
    * 
    * @param name the name being referenced by the found matches
-   * @param scope the scope containing the name declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -390,7 +385,8 @@ public interface SearchEngine {
    * Return all matches that pass the optional filter.
    * 
    * @param alias the function type alias being referenced by the found matches
-   * @param scope the scope containing the function type alias declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -402,7 +398,8 @@ public interface SearchEngine {
    * Search for references to the given function type alias within the given scope.
    * 
    * @param alias the function type alias being referenced by the found matches
-   * @param scope the scope containing the function type alias declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
@@ -413,24 +410,12 @@ public interface SearchEngine {
       SearchListener listener) throws SearchException;
 
   /**
-   * Search for references to the given variable within the given scope.
-   * 
-   * @param variable the variable being referenced by the found matches
-   * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
-   */
-  public void searchReferences(VariableElement variable, SearchFilter filter,
-      SearchListener listener) throws SearchException;
-
-  /**
    * Synchronously search for references to the given variable within the given scope. Return all
    * matches that pass the optional filter.
    * 
    * @param variable the variable being referenced by the found matches
-   * @param scope the scope containing the variable declarations to be searched
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
    * @throws SearchException if the results could not be computed
@@ -439,35 +424,55 @@ public interface SearchEngine {
       SearchFilter filter) throws SearchException;
 
   /**
-   * Synchronously search for subtypes of the given type within the given scope. Return all matches
-   * that pass the optional filter.
+   * Search for references to the given variable within the given scope.
    * 
-   * @param type the type being subtyped by the found matches
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
-   */
-  public List<SearchMatch> searchSubtypes(ClassElement type, SearchFilter filter)
-      throws SearchException;
-
-  /**
-   * Search for subtypes of the given type within the given scope.
-   * 
-   * @param type the type being subtyped by the found matches
+   * @param variable the variable being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
    * @param listener the listener that will be notified when matches are found
    * @throws SearchException if the results could not be computed
    */
-  public void searchSubtypes(ClassElement type, SearchFilter filter, SearchListener listener)
+  public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
+
+  /**
+   * Synchronously search for subtypes of the given type within the given scope. Return all matches
+   * that pass the optional filter.
+   * 
+   * @param type the type being subtyped by the found matches
+   * @param scope the scope containing the subtypes to be searched, may be <code>null</code> if all
+   *          subtypes should be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned
+   * @throws SearchException if the results could not be computed
+   */
+  public List<SearchMatch> searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter)
       throws SearchException;
+
+  /**
+   * Search for subtypes of the given type within the given scope.
+   * 
+   * @param type the type being subtyped by the found matches
+   * @param scope the scope containing the subtypes to be searched, may be <code>null</code> if all
+   *          subtypes should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found
+   * @throws SearchException if the results could not be computed
+   */
+  public void searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter,
+      SearchListener listener) throws SearchException;
 
   /**
    * Synchronously search for all of the type declarations that are defined in the given scope and
    * match the given pattern. Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the type declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener, or
    *          <code>null</code> if all of the matches should be passed to the listener
@@ -481,7 +486,8 @@ public interface SearchEngine {
    * Search for all of the type declarations that are defined in the given scope and match the given
    * pattern.
    * 
-   * @param scope the scope containing the type declarations to be searched
+   * @param scope the scope containing the type declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
@@ -496,7 +502,8 @@ public interface SearchEngine {
    * Synchronously search for all variables matching the given pattern within the given scope.
    * Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the variable declarations to be searched
+   * @param scope the scope containing the variable declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which variable declarations are to be returned
    * @param filter the filter used to determine which matches should be returned, or
    *          <code>null</code> if all of the matches should be returned
@@ -508,7 +515,8 @@ public interface SearchEngine {
   /**
    * Search for all variables matching the given pattern within the given scope.
    * 
-   * @param scope the scope containing the variable declarations to be searched
+   * @param scope the scope containing the variable declarations to be searched, may be
+   *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which variable declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
