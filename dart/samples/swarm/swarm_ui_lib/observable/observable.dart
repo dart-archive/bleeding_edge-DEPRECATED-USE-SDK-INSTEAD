@@ -162,6 +162,8 @@ class ObservableList<T>
     recordGlobalChange();
   }
 
+  List<T> get reversed => new ReversedListView<T>(this, 0, null);
+
   void sort([int compare(var a, var b)]) {
     if (compare == null) compare = Comparable.compare;
     _internal.sort(compare);
