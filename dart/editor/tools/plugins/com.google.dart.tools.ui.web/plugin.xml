@@ -50,7 +50,7 @@
       
       <editor
             class="com.google.dart.tools.ui.web.pubspec.PubspecEditor"
-            default="false"
+            default="true"
             filenames="pubspec.yaml"
             icon="icons/pubspec.png"
             id="com.google.dart.tools.ui.editor.pubspec"
@@ -78,52 +78,6 @@
             name="Dart JSON Editor"
             default="true">
       </editor>
-   </extension>
-   
-   <!-- pubspec extensions -->
-   
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            allPopups="false"
-            locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
-         <command
-               commandId="com.google.dart.tools.ui.web.command.openPubspecEditor"
-               label="Open with Pubspec Editor"
-               style="push"
-               tooltip="Open Pubspec Editor">
-                 <visibleWhen
-                  checkEnabled="false">
-                  <with
-                     variable="selection">
-                      <and>
-                          <count
-                                value="1">
-                          </count>
-                       <iterate>
-                        <adapt
-                             type="org.eclipse.core.resources.IResource">
-                          <test
-                                property="org.eclipse.core.resources.name"
-                                value="pubspec.yaml">
-                          </test>
-                       </adapt>
-                     </iterate>     
-                 </and>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-   </extension>
-   
-   <extension
-         point="org.eclipse.ui.commands">
-      <command
-            defaultHandler="com.google.dart.tools.ui.web.pubspec.actions.OpenPubspecEditorHandler"
-            description="Opens the Pubspec Editor"
-            id="com.google.dart.tools.ui.web.command.openPubspecEditor"
-            name="Open with Pubspec Editor">
-      </command>
    </extension>
    
    <!-- JSON extensions -->

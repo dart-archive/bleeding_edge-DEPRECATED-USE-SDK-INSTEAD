@@ -189,7 +189,11 @@ public class PubspecModel {
     Map<String, Object> dependenciesMap = new HashMap<String, Object>();
     for (DependencyObject dep : dependencies) {
       if (dep.getType().equals(Type.HOSTED)) {
-        dependenciesMap.put(dep.getName(), dep.getVersion());
+        if (dep.getVersion().isEmpty()) {
+          dependenciesMap.put(dep.getName(), "any");
+        } else {
+          dependenciesMap.put(dep.getName(), dep.getVersion());
+        }
       } else if (dep.getType().equals(Type.GIT)) {
         Map<String, Object> gitMap = new HashMap<String, Object>();
         if (dep.getGitRef() != null && !dep.getGitRef().isEmpty()) {
@@ -200,7 +204,7 @@ public class PubspecModel {
         } else {
           gitMap.put("git", dep.getPath());
         }
-        if (!dep.getVersion().equals("any")) {
+        if (!dep.getVersion().equals("any") && !dep.getVersion().isEmpty()) {
           gitMap.put("version", dep.getVersion());
         }
         dependenciesMap.put(dep.getName(), gitMap);
