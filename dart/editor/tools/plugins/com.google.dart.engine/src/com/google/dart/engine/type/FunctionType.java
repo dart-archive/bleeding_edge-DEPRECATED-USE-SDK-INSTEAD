@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.type;
 
-import com.google.dart.engine.element.ExecutableElement;
-
 import java.util.Map;
 
 /**
@@ -32,9 +30,6 @@ import java.util.Map;
  * </ol>
  */
 public interface FunctionType extends Type {
-  @Override
-  public ExecutableElement getElement();
-
   /**
    * Return a map from the names of named parameters to the types of the named parameters of this
    * type of function. The entries in the map will be iterated in the same order as the order in
@@ -69,6 +64,17 @@ public interface FunctionType extends Type {
    * @return the type of object returned by this type of function
    */
   public Type getReturnType();
+
+  /**
+   * Return an array containing the actual types of the type arguments. If this type's element does
+   * not have type parameters, then the array should be empty (although it is possible for type
+   * arguments to be erroneously declared). If the element has type parameters and the actual type
+   * does not explicitly include argument values, then the type "dynamic" will be automatically
+   * provided.
+   * 
+   * @return the actual types of the type arguments
+   */
+  public Type[] getTypeArguments();
 
   /**
    * Return {@code true} if this type is a subtype of the given type.
@@ -137,6 +143,15 @@ public interface FunctionType extends Type {
    */
   @Override
   public boolean isSubtypeOf(Type type);
+
+  /**
+   * Return the type resulting from substituting the given arguments for this type's parameters.
+   * This is fully equivalent to {@code substitute(argumentTypes, getTypeArguments())}.
+   * 
+   * @param argumentTypes the actual type arguments being substituted for the type parameters
+   * @return the result of performing the substitution
+   */
+  public FunctionType substitute(Type[] argumentTypes);
 
   @Override
   public FunctionType substitute(Type[] argumentTypes, Type[] parameterTypes);

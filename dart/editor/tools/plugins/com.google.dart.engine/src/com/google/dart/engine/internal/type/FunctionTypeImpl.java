@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
@@ -75,6 +77,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
+   * An array containing the actual types of the type arguments.
+   */
+  private Type[] typeArguments = TypeImpl.EMPTY_ARRAY;
+
+  /**
    * An array containing the types of the normal parameters of this type of function. The parameter
    * types are in the same order as they appear in the declaration of the function.
    * 
@@ -109,6 +116,16 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     super(element, element == null ? null : element.getName());
   }
 
+  /**
+   * Initialize a newly created function type to be declared by the given element and to have the
+   * given name.
+   * 
+   * @param element the element representing the declaration of the function type
+   */
+  public FunctionTypeImpl(TypeAliasElement element) {
+    super(element, element == null ? null : element.getName());
+  }
+
   @Override
   public boolean equals(Object object) {
     if (!(object instanceof FunctionTypeImpl)) {
@@ -119,11 +136,6 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         && Arrays.equals(normalParameterTypes, otherType.normalParameterTypes)
         && Arrays.equals(optionalParameterTypes, otherType.optionalParameterTypes)
         && equals(namedParameterTypes, otherType.namedParameterTypes);
-  }
-
-  @Override
-  public ExecutableElement getElement() {
-    return (ExecutableElement) super.getElement();
   }
 
   @Override
@@ -144,6 +156,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @Override
   public Type getReturnType() {
     return returnType;
+  }
+
+  @Override
+  public Type[] getTypeArguments() {
+    return typeArguments;
   }
 
   @Override
@@ -197,6 +214,20 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     this.returnType = returnType;
   }
 
+  /**
+   * Set the actual types of the type arguments to the given types.
+   * 
+   * @param typeArguments the actual types of the type arguments
+   */
+  public void setTypeArguments(Type[] typeArguments) {
+    this.typeArguments = typeArguments;
+  }
+
+  @Override
+  public FunctionTypeImpl substitute(Type[] argumentTypes) {
+    return substitute(argumentTypes, getTypeArguments());
+  }
+
   @Override
   public FunctionTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     if (argumentTypes.length != parameterTypes.length) {
@@ -206,7 +237,9 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (argumentTypes.length == 0) {
       return this;
     }
-    FunctionTypeImpl newType = new FunctionTypeImpl(getElement());
+    Element element = getElement();
+    FunctionTypeImpl newType = (element instanceof ExecutableElement) ? new FunctionTypeImpl(
+        (ExecutableElement) element) : new FunctionTypeImpl((TypeAliasElement) element);
     newType.setReturnType(returnType.substitute(argumentTypes, parameterTypes));
     newType.setNormalParameterTypes(substitute(normalParameterTypes, argumentTypes, parameterTypes));
     newType.setOptionalParameterTypes(substitute(

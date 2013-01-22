@@ -54,6 +54,12 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertEquals(VoidTypeImpl.getInstance(), returnType);
   }
 
+  public void test_getTypeArguments() {
+    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    Type[] types = type.getTypeArguments();
+    assertLength(0, types);
+  }
+
   public void test_setNamedParameterTypes() {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     LinkedHashMap<String, Type> expectedTypes = new LinkedHashMap<String, Type>();
@@ -79,7 +85,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertEquals(expectedType, returnType);
   }
 
-  public void test_substitute_equal() {
+  public void test_setTypeArguments() {
+    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    Type expectedType = new TypeVariableTypeImpl(new TypeVariableElementImpl(identifier("C")));
+    type.setTypeArguments(new Type[] {expectedType});
+    Type[] arguments = type.getTypeArguments();
+    assertLength(1, arguments);
+    assertEquals(expectedType, arguments[0]);
+  }
+
+  public void test_substitute2_equal() {
     FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     TypeVariableTypeImpl parameterType = new TypeVariableTypeImpl(new TypeVariableElementImpl(
         identifier("E")));
@@ -109,7 +124,7 @@ public class FunctionTypeImplTest extends EngineTestCase {
     assertEquals(argumentType, namedParameters.get(namedParameterName));
   }
 
-  public void test_substitute_notEqual() {
+  public void test_substitute2_notEqual() {
     FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Type returnType = new InterfaceTypeImpl(new ClassElementImpl(identifier("R")));
     Type normalParameterType = new InterfaceTypeImpl(new ClassElementImpl(identifier("A")));
