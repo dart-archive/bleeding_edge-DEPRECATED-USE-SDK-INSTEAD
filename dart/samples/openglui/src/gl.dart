@@ -5,6 +5,8 @@
 /**
  * An HTML-based prototype implementation for GL.
  */
+
+// TODO(vsm): Move this out of the common directory.
 library gl_html;
 
 import 'dart:html';

@@ -13,7 +13,7 @@
             'dependencies': [
               'copy_extension',
               'copy_main',
-              '../../runtime/dart-runtime.gyp:android_embedder',
+              '../../../runtime/dart-runtime.gyp:android_embedder',
               'copy_embedder',
             ],
             'actions': [
@@ -46,7 +46,7 @@
             'copies': [ {
               'destination': 'assets/dart',
               'files': [
-                '../../runtime/embedders/openglui/common/gl.dart'
+                '../../../runtime/embedders/openglui/common/gl.dart'
               ],
             }],
           },
@@ -56,7 +56,7 @@
             'copies': [ {
               'destination': 'assets/dart',
               'files': [
-                '../../samples/simplegl/web/raytrace.dart'
+                '../src/raytrace.dart'
               ],
             }],
           },

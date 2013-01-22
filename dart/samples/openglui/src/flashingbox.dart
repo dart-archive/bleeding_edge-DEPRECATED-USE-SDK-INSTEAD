@@ -16,10 +16,11 @@ num b;
 /**
  * Invoked on initial startup.
  */
-void setup() {
+void setup(int width, int height) {
   r = 0;
   g = 0;
   b = 0;
+  resize(width, height);
 }
 
 void resize(int width, int height) {

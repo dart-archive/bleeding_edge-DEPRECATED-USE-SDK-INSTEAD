@@ -5,7 +5,7 @@
 library gl_driver;
 
 import 'dart:html';
-import 'gl.dart';
+import '../src/gl.dart';
 
 /**
  * A driver to run GL applications in the browser.

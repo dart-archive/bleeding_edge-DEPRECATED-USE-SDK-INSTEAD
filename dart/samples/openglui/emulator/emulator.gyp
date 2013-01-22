@@ -14,7 +14,7 @@
         ['OS=="linux" or OS=="mac"',
           {
             'dependencies': [
-              '../../runtime/dart-runtime.gyp:emulator_embedder',
+              '../../../runtime/dart-runtime.gyp:emulator_embedder',
               'mobile_emulator',
               'copy_dart_files'
             ]
@@ -28,8 +28,8 @@
       'copies': [ {
         'destination': '<(PRODUCT_DIR)',
         'files': [
-           '../../runtime/embedders/openglui/common/gl.dart',
-           '../../samples/simplegl/web/raytrace.dart'
+           '../../../runtime/embedders/openglui/common/gl.dart',
+           '../src/raytrace.dart'
         ],
       }],
     },
@@ -37,10 +37,10 @@
       'target_name': 'mobile_emulator',
       'type': 'executable',
       'dependencies': [
-        '../../runtime/dart-runtime.gyp:emulator_embedder',
+        '../../../runtime/dart-runtime.gyp:emulator_embedder',
       ],
       'include_dirs': [
-         '../../runtime',
+         '../../../runtime',
          '/usr/X11/include',
        ],
        'sources': [

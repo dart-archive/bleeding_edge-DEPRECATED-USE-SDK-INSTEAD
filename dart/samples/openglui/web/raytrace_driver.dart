@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'gl_driver.dart';
-import 'raytrace.dart';
+// TODO(vsm): Make this a package URL.
+import '../src/raytrace.dart';
 
 main() {
   wrapVertexArray = true;

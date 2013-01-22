@@ -3,6 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'gl_driver.dart';
-import 'flashingbox.dart';
+import '../src/flashingbox.dart';
 
 main() => glMain(setup, resize, draw);
