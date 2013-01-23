@@ -73,7 +73,13 @@ public class SimpleIdentifier extends Identifier {
   }
 
   /**
-   * Looks to see if this identifier is used to read value.
+   * Return {@code true} if this expression is computing a right-hand value.
+   * <p>
+   * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
+   * they mutually exclusive. In other words, it is possible for both methods to return {@code true}
+   * when invoked on the same node.
+   * 
+   * @return {@code true} if this expression is in a context where a getter will be invoked
    */
   public boolean inGetterContext() {
     ASTNode parent = getParent();
@@ -81,10 +87,11 @@ public class SimpleIdentifier extends Identifier {
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      if (prefixed.getIdentifier() == this) {
-        parent = prefixed.getParent();
-        target = prefixed;
+      if (prefixed.getIdentifier() != this) {
+        return false;
       }
+      parent = prefixed.getParent();
+      target = prefixed;
     }
     // analyze usage
     if (parent instanceof AssignmentExpression) {
@@ -97,7 +104,13 @@ public class SimpleIdentifier extends Identifier {
   }
 
   /**
-   * Looks to see if this identifier is used to write value.
+   * Return {@code true} if this expression is computing a left-hand value.
+   * <p>
+   * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
+   * they mutually exclusive. In other words, it is possible for both methods to return {@code true}
+   * when invoked on the same node.
+   * 
+   * @return {@code true} if this expression is in a context where a setter will be invoked
    */
   public boolean inSetterContext() {
     ASTNode parent = getParent();
@@ -105,22 +118,19 @@ public class SimpleIdentifier extends Identifier {
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      if (prefixed.getIdentifier() == this) {
-        parent = prefixed.getParent();
-        target = prefixed;
+      if (prefixed.getIdentifier() != this) {
+        return false;
       }
+      parent = prefixed.getParent();
+      target = prefixed;
     }
     // analyze usage
     if (parent instanceof PrefixExpression) {
-      PrefixExpression expr = (PrefixExpression) parent;
-      return expr.getOperand() == target && expr.getOperator().getType().isIncrementOperator();
-    }
-    if (parent instanceof PostfixExpression) {
+      return ((PrefixExpression) parent).getOperator().getType().isIncrementOperator();
+    } else if (parent instanceof PostfixExpression) {
       return true;
-    }
-    if (parent instanceof AssignmentExpression) {
-      AssignmentExpression expr = (AssignmentExpression) parent;
-      return expr.getLeftHandSide() == target;
+    } else if (parent instanceof AssignmentExpression) {
+      return ((AssignmentExpression) parent).getLeftHandSide() == target;
     }
     return false;
   }

@@ -21,6 +21,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(IndexExpressionTest.class);
     suite.addTestSuite(SimpleIdentifierTest.class);
     suite.addTest(com.google.dart.engine.ast.visitor.TestAll.suite());
     return suite;

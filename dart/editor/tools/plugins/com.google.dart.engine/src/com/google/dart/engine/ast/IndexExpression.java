@@ -15,6 +15,7 @@ package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code IndexExpression} represent an index expression.
@@ -186,6 +187,49 @@ public class IndexExpression extends Expression {
    */
   public Token getRightBracket() {
     return rightBracket;
+  }
+
+  /**
+   * Return {@code true} if this expression is computing a right-hand value.
+   * <p>
+   * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
+   * they mutually exclusive. In other words, it is possible for both methods to return {@code true}
+   * when invoked on the same node.
+   * 
+   * @return {@code true} if this expression is in a context where the operator '[]' will be invoked
+   */
+  public boolean inGetterContext() {
+    ASTNode parent = getParent();
+    if (parent instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) parent;
+      if (assignment.getLeftHandSide() == this
+          && assignment.getOperator().getType() == TokenType.EQ) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Return {@code true} if this expression is computing a left-hand value.
+   * <p>
+   * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
+   * they mutually exclusive. In other words, it is possible for both methods to return {@code true}
+   * when invoked on the same node.
+   * 
+   * @return {@code true} if this expression is in a context where the operator '[]=' will be
+   *         invoked
+   */
+  public boolean inSetterContext() {
+    ASTNode parent = getParent();
+    if (parent instanceof PrefixExpression) {
+      return ((PrefixExpression) parent).getOperator().getType().isIncrementOperator();
+    } else if (parent instanceof PostfixExpression) {
+      return true;
+    } else if (parent instanceof AssignmentExpression) {
+      return ((AssignmentExpression) parent).getLeftHandSide() == this;
+    }
+    return false;
   }
 
   @Override
