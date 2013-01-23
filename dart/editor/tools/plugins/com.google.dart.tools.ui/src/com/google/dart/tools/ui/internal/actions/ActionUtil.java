@@ -18,6 +18,8 @@ import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -25,6 +27,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.Messages;
@@ -230,8 +233,11 @@ public class ActionUtil {
   }
 
   public static boolean isFindDeclarationsAvailable(DartElementSelection selection) {
-    if (!selection.isEmpty() && selection.getFirstElement() instanceof Method) {
-      return true;
+    DartElement[] selectedElements = selection.toArray();
+    if (selectedElements.length > 0) {
+      if (selectedElements[0] instanceof Method || selectedElements[0] instanceof Field) {
+        return true;
+      }
     }
     DartNode node = getResolvedNodeFromSelection(selection);
     if (node != null) {
@@ -302,6 +308,19 @@ public class ActionUtil {
           return true;
         }
         if (node.getElement() != null && node.getElement().getType() != null) {
+          if (node.getParent() != null) {
+            DartNode parent = node.getParent().getParent();
+            // No need to "Open" a declaration if that's what is selected.
+            if (parent == null || parent instanceof DartUnit) {
+              return false;
+            }
+            if (parent instanceof com.google.dart.compiler.ast.DartFieldDefinition) {
+              return false;
+            }
+            if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
+              return false;
+            }
+          }
           return true;
         }
       }
@@ -370,6 +389,12 @@ public class ActionUtil {
         if (node.getParent() instanceof DartMethodDefinition) {
           node = ((DartMethodDefinition) node.getParent()).getName();
         }
+      }
+    } else if (node instanceof com.google.dart.compiler.ast.DartField) {
+      com.google.dart.compiler.ast.DartField field = (com.google.dart.compiler.ast.DartField) node;
+      SourceInfo info = field.getSourceInfo();
+      if (info.getOffset() == selection.getOffset() & info.getLength() == selection.getLength()) {
+        return field.getName();
       }
     }
     return node;

@@ -29,7 +29,6 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.MatchQuality;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
@@ -40,8 +39,6 @@ import com.google.dart.tools.core.search.SearchMatch;
 import com.google.dart.tools.core.search.SearchPattern;
 import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.search.internal.ui.text.BasicElementLabels;
 import com.google.dart.tools.search.internal.ui.text.SearchResultUpdater;
 import com.google.dart.tools.search.ui.ISearchQuery;
@@ -387,12 +384,11 @@ public class DartSearchQuery implements ISearchQuery {
 
   private void searchForDeclarations(SearchEngine engine, DartElement element, SearchScope scope,
       SearchFilter filter, SearchResultCollector listener, IProgressMonitor monitor)
-      throws CoreException {
+      throws CoreException, SearchException {
     switch (element.getElementType()) {
       case DartElement.CLASS_TYPE_ALIAS:
       case DartElement.FUNCTION_TYPE_ALIAS:
       case DartElement.FUNCTION:
-      case DartElement.FIELD:
       case DartElement.IMPORT:
       case DartElement.TYPE:
       case DartElement.TYPE_PARAMETER:
@@ -404,15 +400,11 @@ public class DartSearchQuery implements ISearchQuery {
         }
         break;
       }
+      case DartElement.FIELD:
       case DartElement.METHOD: {
-        MemberDeclarationsReferences memberInfo;
-        memberInfo = RenameAnalyzeUtil.findDeclarationsReferences((Method) element, monitor);
-        for (TypeMember member : memberInfo.declarations) {
-          SearchMatch match = new SearchMatch(MatchQuality.EXACT, member, member.getSourceRange());
-          if (filter == null || filter.passes(match)) {
-            listener.matchFound(match);
-          }
-        }
+        // There's no way to tell which hierarchy an untyped reference might refer to, so find all declarations.
+        DartIdentifier identifier = new DartIdentifier(element.getElementName());
+        searchForDeclarations(engine, identifier, scope, filter, listener, monitor);
         break;
       }
       default:
@@ -423,12 +415,13 @@ public class DartSearchQuery implements ISearchQuery {
   private void searchForDeclarations(SearchEngine engine, DartIdentifier identifier,
       SearchScope scope, SearchFilter filter, SearchListener listener, IProgressMonitor monitor)
       throws CoreException, SearchException {
-    // Index lacks relationships required to do direct search, so first get all classes
+    // Index lacks relationships required to do direct search, so first get all classes.
     String name = identifier.getName();
     boolean isProperty = identifier.getParent() instanceof DartPropertyAccess;
     SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
     List<SearchMatch> allMatches = engine.searchTypeDeclarations(scope, pattern, filter, monitor);
-    // Then see if the type or a child of the type matches the given name
+    // Then see if the type or a child of the type matches the given name.
+    // We are NOT looking for local function or local variable declarations.
     for (SearchMatch typeMatch : allMatches) {
       DartElement type = typeMatch.getElement();
       if (!isProperty) {
