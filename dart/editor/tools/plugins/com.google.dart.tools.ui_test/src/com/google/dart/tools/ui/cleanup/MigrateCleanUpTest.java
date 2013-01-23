@@ -1117,6 +1117,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     ICleanUp cleanUp = new Migrate_1M3_Future_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
         "main() {",
         "  Future future = null;",
         "  future.chain(null).transform(null).then(null);",
@@ -1124,9 +1125,31 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "");
     String expected = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
         "main() {",
         "  Future future = null;",
         "  future.then(null).then(null).then(null);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_Future_cascade() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_Future_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main() {",
+        "  Future future = null;",
+        "  future..chain(null)..transform(null)..then(null);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main() {",
+        "  Future future = null;",
+        "  future..then(null)..then(null)..then(null);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
@@ -1139,6 +1162,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     ICleanUp cleanUp = new Migrate_1M3_Future_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
         "main() {",
         "  Futures.wait(null);",
         "  Futures.forEach(null, null);",
@@ -1146,6 +1170,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "");
     String expected = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
         "main() {",
         "  Future.wait(null);",
         "  Future.forEach(null, null);",

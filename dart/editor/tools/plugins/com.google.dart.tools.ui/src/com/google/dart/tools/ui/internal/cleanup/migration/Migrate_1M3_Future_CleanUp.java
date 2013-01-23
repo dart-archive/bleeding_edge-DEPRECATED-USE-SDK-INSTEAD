@@ -41,9 +41,10 @@ public class Migrate_1M3_Future_CleanUp extends AbstractMigrateCleanUp {
         // chain/transform -> then
         if (Elements.isIdentifierName(nameNode, "chain")
             || Elements.isIdentifierName(nameNode, "transform")) {
-          Type targetType = node.getTarget().getType();
+          Type targetType = node.getRealTarget().getType();
           if (targetType instanceof InterfaceType) {
             if (isSubType((InterfaceType) targetType, "Future", "dart://core/core.dart")
+                || isSubType((InterfaceType) targetType, "Future", "dart://async/async.dart")
                 || TypeKind.of(targetType) == TypeKind.DYNAMIC) {
               addReplaceEdit(SourceRangeFactory.create(nameNode), "then");
             }
