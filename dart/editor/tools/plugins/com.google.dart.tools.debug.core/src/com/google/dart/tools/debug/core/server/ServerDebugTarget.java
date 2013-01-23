@@ -332,7 +332,8 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean isSuspended() {
-    for (IThread thread : threads) {
+    // Create a copy of the threads before iterating.
+    for (IThread thread : new ArrayList<IThread>(threads)) {
       if (thread.isSuspended()) {
         return true;
       }

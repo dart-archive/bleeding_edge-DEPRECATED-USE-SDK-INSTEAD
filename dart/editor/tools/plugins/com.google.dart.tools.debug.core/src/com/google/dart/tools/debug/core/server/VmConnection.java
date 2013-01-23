@@ -1002,6 +1002,14 @@ public class VmConnection {
             try {
               String str = builder.toString();
 
+              // TODO(devoncarew): we know this is occurring for exception text.
+              // Possibly from toString() invocations?
+              if (str.indexOf('\n') != -1) {
+                DartDebugCorePlugin.logError("bad json from vm: " + str);
+
+                str = str.replace("\n", "\\n");
+              }
+
               if (DartDebugCorePlugin.LOGGING) {
                 // Print the event / response from the VM.
                 System.out.println("<== " + str);
