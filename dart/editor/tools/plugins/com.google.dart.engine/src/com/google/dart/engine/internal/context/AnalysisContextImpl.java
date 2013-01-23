@@ -225,8 +225,18 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
+  }
+
+  @Override
+  public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override

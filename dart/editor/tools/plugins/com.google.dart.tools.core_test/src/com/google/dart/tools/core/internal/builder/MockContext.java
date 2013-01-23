@@ -104,8 +104,18 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException {
+    return new AnalysisError[] {};
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return factory;
+  }
+
+  @Override
+  public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException {
+    return new AnalysisError[] {};
   }
 
   @Override

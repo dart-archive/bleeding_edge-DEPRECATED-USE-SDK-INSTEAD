@@ -116,11 +116,31 @@ public interface AnalysisContext {
   public LibraryElement getLibraryElement(Source source);
 
   /**
+   * Return an array containing all of the semantic errors associated with the given source.
+   * 
+   * @param source the source whose errors are to be returned
+   * @return all of the semantic errors associated with the given source
+   * @throws AnalysisException if the errors could not be determined because the analysis could not
+   *           be performed
+   */
+  public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException;
+
+  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * 
    * @return the source factory used to create the sources that can be analyzed in this context
    */
   public SourceFactory getSourceFactory();
+
+  /**
+   * Return an array containing all of the syntax errors associated with the given source.
+   * 
+   * @param source the source whose errors are to be returned
+   * @return all of the syntax errors associated with the given source
+   * @throws AnalysisException if the errors could not be determined because the analysis could not
+   *           be performed
+   */
+  public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException;
 
   /**
    * Add the sources contained in the specified context to the receiver's collection of sources.
