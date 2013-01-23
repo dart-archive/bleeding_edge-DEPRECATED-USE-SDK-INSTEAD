@@ -264,7 +264,7 @@ of the build directory specified above.
 After building the Dart editor as described above,
 run the buildTests.xml ant script in the com.google.dart.tools.tests.feature_releng project
 
-    ant -f buildTest.xml -Dbuild.os=<os>
+    ant -f buildTests.xml -Dbuild.os=<os>
   where <os> is one of
     linux
     macos

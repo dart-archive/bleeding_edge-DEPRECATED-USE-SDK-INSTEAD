@@ -128,7 +128,7 @@
                  id="fs.eclipse.target.laincher" />
         <pathconvert property="eclipse.target.launcher.jar" refid="fs.eclipse.target.laincher" />
         <echo message="starting Eclipse with ${eclipse.target.launcher.jar}" />
-        <echo message=" runnign application ${build.eclipse.test_application}"/>
+        <echo message="running application ${build.eclipse.test_application}"/>
         <parallel>
             <sequential>
                 <echo message="running test listener" />
