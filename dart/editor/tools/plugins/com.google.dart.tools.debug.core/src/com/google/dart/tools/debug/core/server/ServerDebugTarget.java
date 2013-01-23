@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.server;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
@@ -450,12 +451,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   private void firstIsolateInit(VmIsolate isolate) {
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     // Turn on break-on-exceptions.
-    if (DartDebugCorePlugin.getPlugin().getBreakOnExceptions()) {
-      try {
-        connection.setPauseOnException(isolate, BreakOnExceptionsType.unhandled);
-      } catch (IOException e) {
-        DartDebugCorePlugin.logError(e);
-      }
+    try {
+      connection.setPauseOnException(isolate, getPauseType());
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
     }
 
     // Set up the existing breakpoints.
@@ -501,6 +500,19 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return null;
+  }
+
+  private BreakOnExceptionsType getPauseType() {
+    final BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
+    BreakOnExceptionsType pauseType = BreakOnExceptionsType.none;
+
+    if (boe == BreakOnExceptions.uncaught) {
+      pauseType = BreakOnExceptionsType.unhandled;
+    } else if (boe == BreakOnExceptions.all) {
+      pauseType = BreakOnExceptionsType.all;
+    }
+
+    return pauseType;
   }
 
   private String getUrlForResource(IFile file) {

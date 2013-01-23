@@ -14,15 +14,17 @@
 package com.google.dart.tools.debug.ui.internal.preferences;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -30,10 +32,9 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
  * The preference page for Dart debugging.
  */
 public class DebugPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
-
   public static final String PAGE_ID = "com.google.dart.tools.debug.debugPreferencePage"; //$NON-NLS-1$
 
-  private Button exceptionsCheckbox;
+  private Combo exceptionsCombo;
 
   /**
    * Create a new preference page.
@@ -49,7 +50,8 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
 
   @Override
   public boolean performOk() {
-    DartDebugCorePlugin.getPlugin().setBreakOnExceptions(exceptionsCheckbox.getSelection());
+    DartDebugCorePlugin.getPlugin().setBreakOnExceptions(
+        BreakOnExceptions.valueOf(exceptionsCombo.getText()));
 
     return true;
   }
@@ -70,11 +72,17 @@ public class DebugPreferencePage extends PreferencePage implements IWorkbenchPre
     Group group = new Group(composite, SWT.NONE);
     group.setText("Debugging");
     GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(group);
-    GridLayoutFactory.fillDefaults().numColumns(1).margins(8, 8).applyTo(group);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(group);
 
-    exceptionsCheckbox = new Button(group, SWT.CHECK);
-    exceptionsCheckbox.setText("Break on uncaught exceptions");
-    exceptionsCheckbox.setSelection(DartDebugCorePlugin.getPlugin().getBreakOnExceptions());
+    Label label = new Label(group, SWT.NONE);
+    label.setText("Break on exceptions:");
+
+    exceptionsCombo = new Combo(group, SWT.DROP_DOWN | SWT.READ_ONLY);
+    exceptionsCombo.setItems(new String[] {
+        BreakOnExceptions.none.toString(), BreakOnExceptions.uncaught.toString(),
+        BreakOnExceptions.all.toString()});
+
+    exceptionsCombo.select(exceptionsCombo.indexOf(DartDebugCorePlugin.getPlugin().getBreakOnExceptions().toString()));
   }
 
 }

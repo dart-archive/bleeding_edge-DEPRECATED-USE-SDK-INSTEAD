@@ -36,6 +36,12 @@ import java.io.IOException;
  */
 public class DartDebugCorePlugin extends Plugin {
 
+  public static enum BreakOnExceptions {
+    none,
+    uncaught,
+    all
+  }
+
   /**
    * The Dart Debug Core plug-in ID.
    */
@@ -87,7 +93,7 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_DEFAULT_BROWSER = "defaultBrowser";
 
-  public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnException";
+  public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
 
   /**
    * Create a Status object with the given message and this plugin's ID.
@@ -185,8 +191,18 @@ public class DartDebugCorePlugin extends Plugin {
 
   private IUserAgentManager userAgentManager;
 
-  public boolean getBreakOnExceptions() {
-    return getPrefs().getBoolean(PREFS_BREAK_ON_EXCEPTIONS, true);
+  public BreakOnExceptions getBreakOnExceptions() {
+    try {
+      String value = getPrefs().get(PREFS_BREAK_ON_EXCEPTIONS, null);
+
+      if (value == null) {
+        return BreakOnExceptions.uncaught;
+      } else {
+        return BreakOnExceptions.valueOf(value);
+      }
+    } catch (IllegalArgumentException iae) {
+      return BreakOnExceptions.uncaught;
+    }
   }
 
   /**
@@ -226,8 +242,8 @@ public class DartDebugCorePlugin extends Plugin {
     return userAgentManager;
   }
 
-  public void setBreakOnExceptions(boolean value) {
-    getPrefs().putBoolean(PREFS_BREAK_ON_EXCEPTIONS, value);
+  public void setBreakOnExceptions(BreakOnExceptions value) {
+    getPrefs().put(PREFS_BREAK_ON_EXCEPTIONS, value.toString());
 
     try {
       getPrefs().flush();

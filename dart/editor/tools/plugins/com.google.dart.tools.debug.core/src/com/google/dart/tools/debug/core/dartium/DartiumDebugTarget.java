@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
@@ -247,10 +248,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     if (enableBreakpoints) {
-      PauseOnExceptionsType pauseType = DartDebugCorePlugin.getPlugin().getBreakOnExceptions()
-          ? PauseOnExceptionsType.uncaught : PauseOnExceptionsType.none;
-
-      connection.getDebugger().setPauseOnExceptions(pauseType, createNavigateWebkitCallback(url));
+      connection.getDebugger().setPauseOnExceptions(
+          getPauseType(),
+          createNavigateWebkitCallback(url));
     } else {
       connection.getDebugger().setPauseOnExceptions(PauseOnExceptionsType.none);
     }
@@ -348,10 +348,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     if (breakpointManager != null) {
-      PauseOnExceptionsType pauseType = DartDebugCorePlugin.getPlugin().getBreakOnExceptions()
-          ? PauseOnExceptionsType.uncaught : PauseOnExceptionsType.none;
-
-      connection.getDebugger().setPauseOnExceptions(pauseType, createNavigateWebkitCallback(url));
+      connection.getDebugger().setPauseOnExceptions(
+          getPauseType(),
+          createNavigateWebkitCallback(url));
     } else {
       connection.getPage().navigate(url);
     }
@@ -414,6 +413,19 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   IStreamMonitor getOutputStreamMonitor() {
     return outputStreamMonitor;
+  }
+
+  private PauseOnExceptionsType getPauseType() {
+    final BreakOnExceptions boe = DartDebugCorePlugin.getPlugin().getBreakOnExceptions();
+    PauseOnExceptionsType pauseType = PauseOnExceptionsType.none;
+
+    if (boe == BreakOnExceptions.uncaught) {
+      pauseType = PauseOnExceptionsType.uncaught;
+    } else if (boe == BreakOnExceptions.all) {
+      pauseType = PauseOnExceptionsType.all;
+    }
+
+    return pauseType;
   }
 
 }
