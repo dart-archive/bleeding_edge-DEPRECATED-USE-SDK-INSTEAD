@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
+import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -249,8 +250,8 @@ public class LaunchUtils {
 
       }
     }
-    return new DartLibrary[] {};
 
+    return new DartLibrary[] {};
   }
 
   public static List<ILaunchConfiguration> getExistingLaunchesFor(IResource resource) {
@@ -422,6 +423,14 @@ public class LaunchUtils {
   public static boolean isLaunchableWith(IResource resource, ILaunchConfiguration config) {
     DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
 
+    IResource appResource = launchWrapper.getApplicationResource();
+
+    if (ObjectUtils.equals(appResource, resource)) {
+      return true;
+    }
+
+    // TODO: this does not use the launch configurations correctly
+
     DartLibrary[] testLibraries = LaunchUtils.getDartLibraries(resource);
     DartLibrary[] existingLibrary = LaunchUtils.getDartLibraries(launchWrapper.getApplicationResource());
 
@@ -430,9 +439,9 @@ public class LaunchUtils {
         if (testLibrary.equals(existingLibrary[0])) {
           return true;
         }
-
       }
     }
+
     return false;
   }
 

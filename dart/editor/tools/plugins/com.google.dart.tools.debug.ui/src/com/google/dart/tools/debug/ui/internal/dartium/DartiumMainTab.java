@@ -21,6 +21,7 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
+import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog.HtmlResourceFilter;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IContainer;
@@ -407,7 +408,10 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   protected void handleApplicationBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    AppSelectionDialog dialog = new AppSelectionDialog(getShell(), workspace.getRoot(), false, true);
+    AppSelectionDialog dialog = new AppSelectionDialog(
+        getShell(),
+        workspace.getRoot(),
+        new HtmlResourceFilter());
     dialog.setTitle(DartiumLaunchMessages.DartiumMainTab_SelectHtml);
     dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
     IPath path = new Path(htmlText.getText());

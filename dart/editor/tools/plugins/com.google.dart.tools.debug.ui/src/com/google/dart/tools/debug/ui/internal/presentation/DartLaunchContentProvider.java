@@ -58,9 +58,8 @@ public class DartLaunchContentProvider extends ElementContentProvider {
   private Object[] getLaunchChildren(ILaunch launch) throws CoreException {
     return launch.getDebugTargets();
 
-    // TODO(devoncarew): while this behavior is what we want, a selection provider is hard-coded
-    // to assume a normal debug object hierarchy. We lose the selection focus on pause that we
-    // want.
+    // While this behavior is what we want, a selection provider is hard-coded to assume a normal
+    // debug object hierarchy. We lose the selection focus on pause that we want.
 
 //    IDebugTarget debugTarget = launch.getDebugTarget();
 //

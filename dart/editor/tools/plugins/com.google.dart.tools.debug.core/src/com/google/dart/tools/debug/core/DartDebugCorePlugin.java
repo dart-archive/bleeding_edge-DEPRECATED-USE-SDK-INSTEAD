@@ -71,11 +71,11 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String BROWSER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.browserLaunchConfig";
 
-  public static final String REMOTE_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.remoteLaunchConfig";
-
   public static final String SERVER_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.serverLaunchConfig";
 
   public static final String DARTIUM_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.dartiumLaunchConfig";
+
+  public static final String CHROMEAPP_LAUNCH_CONFIG_ID = "com.google.dart.tools.debug.core.chromeAppLaunchConfig";
 
   private static IDebugEventSetListener debugEventListener;
 

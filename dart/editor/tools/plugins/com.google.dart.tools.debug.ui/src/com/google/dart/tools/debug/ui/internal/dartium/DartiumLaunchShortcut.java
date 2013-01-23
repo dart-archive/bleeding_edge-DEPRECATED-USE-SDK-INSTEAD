@@ -92,7 +92,6 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
     ILaunchConfiguration config = findConfig(resource);
 
     if (config == null) {
-
       // Create and launch a new configuration
       ILaunchManager manager = DebugPlugin.getDefault().getLaunchManager();
       ILaunchConfigurationType type = manager.getLaunchConfigurationType(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID);
@@ -120,21 +119,11 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
       }
     }
 
-    try {
-      ILaunchConfiguration configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
-      DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
-      launchWrapper.markAsLaunched();
-      LaunchUtils.clearDartiumConsoles();
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+    launchWrapper.markAsLaunched();
+    LaunchUtils.clearDartiumConsoles();
 
-      if (configCopy != null) {
-        DebugUITools.launch(configCopy, mode);
-      } else {
-        DebugUITools.launch(config, mode);
-      }
-    } catch (CoreException e) {
-      DartUtil.logError(e);
-    }
-
+    DebugUITools.launch(config, mode);
   }
 
   @Override

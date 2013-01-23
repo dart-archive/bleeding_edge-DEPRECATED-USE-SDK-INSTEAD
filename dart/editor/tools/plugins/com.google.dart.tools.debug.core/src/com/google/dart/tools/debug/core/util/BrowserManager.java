@@ -64,6 +64,41 @@ public class BrowserManager {
   /** A fragment of the initial page, used to search for it in a list of open tabs. */
   private static final String INITIAL_PAGE_FRAGMENT = "chrome://version";
 
+  /**
+   * Create a Chrome user data directory, and return the path to that directory.
+   * 
+   * @return the user data directory path
+   */
+  public static String getCreateUserDataDirectoryPath() {
+    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartium";
+
+    File dataDir = new File(dataDirPath);
+
+    if (!dataDir.exists()) {
+      dataDir.mkdir();
+    } else {
+      // Remove the "<dataDir>/Default/Current Tabs" file if it exists - it can cause old tabs to
+      // restore themselves when we launch the browser.
+      File defaultDir = new File(dataDir, "Default");
+
+      if (defaultDir.exists()) {
+        File tabInfoFile = new File(defaultDir, "Current Tabs");
+
+        if (tabInfoFile.exists()) {
+          tabInfoFile.delete();
+        }
+
+        File sessionInfoFile = new File(defaultDir, "Current Session");
+
+        if (sessionInfoFile.exists()) {
+          sessionInfoFile.delete();
+        }
+      }
+    }
+
+    return dataDirPath;
+  }
+
   public static BrowserManager getManager() {
     return manager;
   }
@@ -431,42 +466,6 @@ public class BrowserManager {
 
       sleep(25);
     }
-  }
-
-  /**
-   * Create a Chrome user data directory, and return the path to that directory.
-   * 
-   * @return the user data directory path
-   */
-  private String getCreateUserDataDirectoryPath() {
-    // TODO(devoncarew): delete old .dartiumSettings, .dartiumPrefs?
-    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartium";
-
-    File dataDir = new File(dataDirPath);
-
-    if (!dataDir.exists()) {
-      dataDir.mkdir();
-    } else {
-      // Remove the "<dataDir>/Default/Current Tabs" file if it exists - it can cause old tabs to
-      // restore themselves when we launch the browser.
-      File defaultDir = new File(dataDir, "Default");
-
-      if (defaultDir.exists()) {
-        File tabInfoFile = new File(defaultDir, "Current Tabs");
-
-        if (tabInfoFile.exists()) {
-          tabInfoFile.delete();
-        }
-
-        File sessionInfoFile = new File(defaultDir, "Current Session");
-
-        if (sessionInfoFile.exists()) {
-          sessionInfoFile.delete();
-        }
-      }
-    }
-
-    return dataDirPath;
   }
 
   private String getProcessStreamMessage(String output) {

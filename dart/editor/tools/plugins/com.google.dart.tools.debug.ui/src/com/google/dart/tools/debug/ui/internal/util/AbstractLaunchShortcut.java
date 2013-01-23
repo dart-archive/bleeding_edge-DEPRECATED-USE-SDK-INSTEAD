@@ -257,11 +257,12 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @return the Dart resource to be launched or <code>null</code>
    */
   protected IResource getLaunchableResource(Object originalResource) throws DartModelException {
-
     if (originalResource == null) {
       return null;
     }
+
     DartElement elem = null;
+
     if (originalResource instanceof IResource) {
       IResource resource = (IResource) originalResource;
       if (!resource.isAccessible()) {
@@ -286,20 +287,26 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
 
     if (elem instanceof DartProjectImpl) {
       DartLibrary[] libraries = ((DartProjectImpl) elem).getDartLibraries();
+
       if (libraries.length > 0) {
         Set<IResource> htmlFiles = new HashSet<IResource>();
+
         for (DartLibrary library : libraries) {
           IResource htmlFile = getHtmlFileFor(library);
+
           if (htmlFile != null) {
             htmlFiles.add(htmlFile);
           }
         }
+
         IResource[] files = htmlFiles.toArray(new IResource[htmlFiles.size()]);
         // TODO(keertip): need to handle the case of multiple html files
         return files[0];
       }
     }
+
     DartLibrary parentLibrary = elem.getAncestor(DartLibrary.class);
+
     return getHtmlFileFor(parentLibrary);
   }
 

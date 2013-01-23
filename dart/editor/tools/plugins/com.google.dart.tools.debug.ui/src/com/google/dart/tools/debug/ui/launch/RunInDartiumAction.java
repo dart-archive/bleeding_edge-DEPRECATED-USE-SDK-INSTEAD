@@ -16,11 +16,11 @@ package com.google.dart.tools.debug.ui.launch;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
@@ -54,28 +54,30 @@ public class RunInDartiumAction extends DartRunAbstractAction {
   @Override
   public void run() {
     IResource resource = LaunchUtils.getSelectedResource(window);
+
     try {
       if (resource != null) {
-
         List<ILaunchConfiguration> launchConfigs = LaunchUtils.getExistingLaunchesFor(resource);
+
         for (ILaunchConfiguration config : launchConfigs) {
           if (config.getType().getIdentifier().equals(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
-            ILaunchConfigurationWorkingCopy configCopy = config.copy(LaunchUtils.DARTIUM_LAUNCH_NAME);
             DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
             launchConfig.markAsLaunched();
             LaunchUtils.clearDartiumConsoles();
-            DebugUITools.launch(configCopy, ILaunchManager.DEBUG_MODE);
+            DebugUITools.launch(config, ILaunchManager.DEBUG_MODE);
             return;
           }
         }
+
         // new launch config
         ILaunchShortcut shortcut = LaunchUtils.getDartiumLaunchShortcut();
         ISelection selection = new StructuredSelection(resource);
         launch(shortcut, selection);
-
       }
-    } catch (Exception e) {
-      // TODO: handle exception
+    } catch (Exception exception) {
+      DebugErrorHandler.errorDialog(window.getShell(), "Error Launching", "Unable to launch "
+          + resource.getName() + ".", exception);
     }
   }
+
 }

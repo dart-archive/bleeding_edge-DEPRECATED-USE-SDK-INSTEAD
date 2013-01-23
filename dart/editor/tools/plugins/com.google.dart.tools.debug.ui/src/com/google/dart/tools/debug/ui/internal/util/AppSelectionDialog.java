@@ -14,30 +14,24 @@
 package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.FilteredResourcesSelectionDialog;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 /**
- * A dialog to choose a main launch config target (a, .dart or .html file).
+ * A dialog to choose a main launch configuration target.
  */
 public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
-  private boolean includeHtmlFiles;
-  private boolean includeDartFiles;
+  public static class HtmlResourceFilter implements IResourceFilter {
+    @Override
+    public boolean matches(IResource resource) {
+      return DartCore.isHTMLLikeFileName(resource.getName());
+    }
+  }
 
-  private Set<IResource> libraryResources;
+  private IResourceFilter filter;
 
   /**
    * Create a new AppSelectionDialog.
@@ -45,19 +39,10 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
    * @param shell
    * @param container
    */
-  public AppSelectionDialog(Shell shell, IContainer container) {
-    this(shell, container, true, false);
-  }
-
-  public AppSelectionDialog(Shell shell, IContainer container, boolean includeDartFiles,
-      boolean includeHtmlFiles) {
+  public AppSelectionDialog(Shell shell, IContainer container, IResourceFilter filter) {
     super(shell, false, container, IResource.FILE);
 
-    this.includeDartFiles = includeDartFiles;
-    this.includeHtmlFiles = includeHtmlFiles;
-    if (includeDartFiles) {
-      initializeLibraries();
-    }
+    this.filter = filter;
   }
 
   @Override
@@ -82,36 +67,9 @@ public class AppSelectionDialog extends FilteredResourcesSelectionDialog {
           return false;
         }
 
-        if (includeDartFiles && DartCore.isDartLikeFileName(resource.getName())) {
-          if (libraryResources.contains(resource)) {
-            return true;
-          }
-          return false;
-
-        } else if (includeHtmlFiles && (DartCore.isHTMLLikeFileName(resource.getName()))) {
-          return true;
-        } else {
-          return false;
-        }
+        return filter.matches(resource);
       }
     };
-  }
-
-  private void initializeLibraries() {
-    libraryResources = new HashSet<IResource>();
-    try {
-      List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
-      List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
-      libraries.removeAll(bundledLibraries);
-      for (DartLibrary library : libraries) {
-        if (library instanceof DartLibraryImpl && ((DartLibraryImpl) library).isServerApplication()) {
-          libraryResources.add(library.getCorrespondingResource());
-        }
-      }
-    } catch (DartModelException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
   }
 
 }

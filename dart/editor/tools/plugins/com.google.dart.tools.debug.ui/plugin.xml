@@ -94,6 +94,60 @@
       </shortcut>
    </extension>
    
+   <!-- Chrome App launch configuration -->
+   
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            configTypeID="com.google.dart.tools.debug.core.chromeAppLaunchConfig"
+            icon="icons/chrome_app.png"
+            id="com.google.dart.tools.debug.core.chromeAppLaunchConfigImage">
+      </launchConfigurationTypeImage>
+   </extension>
+
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            class="com.google.dart.tools.debug.ui.internal.chromeapp.ChromeAppTabGroup"
+            id="com.google.dart.tools.debug.core.chromeAppLaunchConfigTabGroup"
+            type="com.google.dart.tools.debug.core.chromeAppLaunchConfig"
+            description="Run a Chrome packaged app">
+      </launchConfigurationTabGroup>
+   </extension>
+   
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="com.google.dart.tools.debug.ui.internal.chromeapp.ChromeAppLaunchShortcut"
+            id="com.google.dart.tools.debug.ui.chromeAppLaunchShortcut"
+            label="%dart.chromeApplaunch.shortcut.label"
+            icon="icons/chrome_app.png"
+            modes="run,debug">
+         <configurationType
+               id="com.google.dart.tools.debug.core.chromeAppLaunchConfig">
+         </configurationType>
+         <contextualLaunch>
+            <enablement>
+               <with variable="selection">
+                  <count value="1">
+                  </count>
+                  <iterate>
+                     <adapt type="org.eclipse.core.resources.IResource">
+                        <or>
+                           <and>
+                              <test property="com.google.dart.tools.debug.isInDartProject"/>
+                              <test property="org.eclipse.core.resources.name" value="manifest.json"/>
+                           </and>
+                           <test property="com.google.dart.tools.debug.isDartProject"/>
+                        </or>
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+      </shortcut>
+   </extension>
+   
    <!-- Browser launch configuration -->
    <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">

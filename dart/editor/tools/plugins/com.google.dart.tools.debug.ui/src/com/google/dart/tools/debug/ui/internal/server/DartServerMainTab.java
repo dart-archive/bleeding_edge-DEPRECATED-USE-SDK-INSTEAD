@@ -14,9 +14,16 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
+import com.google.dart.tools.debug.ui.internal.util.IResourceFilter;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IFile;
@@ -48,10 +55,48 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 /**
  * 
  */
 public class DartServerMainTab extends AbstractLaunchConfigurationTab {
+  public static class ServerAppResourceFilter implements IResourceFilter {
+    private Set<IResource> serverLibraries = new HashSet<IResource>();
+
+    public ServerAppResourceFilter() {
+      try {
+        List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
+        List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
+
+        libraries.removeAll(bundledLibraries);
+
+        for (DartLibrary library : libraries) {
+          if (library instanceof DartLibraryImpl
+              && ((DartLibraryImpl) library).isServerApplication()) {
+            serverLibraries.add(library.getCorrespondingResource());
+          }
+        }
+      } catch (DartModelException e) {
+        DartDebugCorePlugin.logError(e);
+      }
+    }
+
+    @Override
+    public boolean matches(IResource resource) {
+      if (DartCore.isDartLikeFileName(resource.getName())) {
+        if (serverLibraries.contains(resource)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
+
   private Text scriptText;
   private Text argsText;
 
@@ -240,7 +285,10 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
   protected void handleScriptBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
-    AppSelectionDialog dialog = new AppSelectionDialog(getShell(), workspace.getRoot());
+    AppSelectionDialog dialog = new AppSelectionDialog(
+        getShell(),
+        workspace.getRoot(),
+        new ServerAppResourceFilter());
     dialog.setTitle("Select a Dart script to run");
     dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION);
     IPath path = new Path(scriptText.getText());

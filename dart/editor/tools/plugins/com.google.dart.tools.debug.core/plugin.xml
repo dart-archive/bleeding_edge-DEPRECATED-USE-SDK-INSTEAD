@@ -21,6 +21,15 @@
             sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
             sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
       </launchConfigurationType>
+      
+      <launchConfigurationType
+            delegate="com.google.dart.tools.debug.core.configs.ChromeAppLaunchConfigurationDelegate"
+            id="com.google.dart.tools.debug.core.chromeAppLaunchConfig"
+            modes="run,debug"
+            name="%launchconfig.chromeApp.name"
+            sourceLocatorId="com.google.dart.tools.debug.core.sourceLookupDirector"
+            sourcePathComputerId="com.google.dart.tools.debug.core.dartiumSourcePathComputer">
+      </launchConfigurationType>
    </extension>
 
    <!-- breakpoints -->
