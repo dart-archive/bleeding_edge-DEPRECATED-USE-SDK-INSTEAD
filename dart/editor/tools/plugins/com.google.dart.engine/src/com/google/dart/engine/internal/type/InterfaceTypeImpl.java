@@ -139,20 +139,6 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   private Type[] typeArguments = TypeImpl.EMPTY_ARRAY;
 
   /**
-   * The instance representing the type {@code dynamic}.
-   */
-  private static final InterfaceTypeImpl DYNAMIC_TYPE = new InterfaceTypeImpl("dynamic");
-
-  /**
-   * Return a shared instance of this class representing the type {@code dynamic}.
-   * 
-   * @return an instance of this class representing the type {@code dynamic}
-   */
-  public static InterfaceTypeImpl getDynamic() {
-    return DYNAMIC_TYPE;
-  }
-
-  /**
    * Initialize a newly created type to be declared by the given element.
    * 
    * @param element the element representing the declaration of the type
@@ -188,6 +174,10 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public Type getLeastUpperBound(Type type) {
+    Type dynamicType = DynamicTypeImpl.getInstance();
+    if (this == dynamicType || type == dynamicType) {
+      return dynamicType;
+    }
     // TODO (jwren) opportunity here for a better, faster algorithm if this turns out to be a bottle-neck
     if (type == null || !(type instanceof InterfaceType)) {
       return null;
@@ -309,7 +299,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public boolean isMoreSpecificThan(Type type) {
-    if (!(type instanceof InterfaceType)) {
+    if (type == DynamicTypeImpl.getInstance()) {
+      return true;
+    } else if (!(type instanceof InterfaceType)) {
       return false;
     }
     InterfaceType s = (InterfaceType) type;
@@ -330,7 +322,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // S is dynamic.
     //
-    if (s.equals(DYNAMIC_TYPE)) {
+    if (s == DynamicTypeImpl.getInstance()) {
       return true;
     }
     //
@@ -373,11 +365,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // TODO(brianwilkerson) This is an approximation that needs to be fixed once the type
     // substitution operation is implemented.
-    if (!(type instanceof InterfaceType)) {
+    if (type == DynamicTypeImpl.getInstance()) {
+      return true;
+    } else if (!(type instanceof InterfaceType)) {
       return false;
     } else if (this.equals(type)) {
-      return true;
-    } else if (this.equals(getDynamic())) {
       return true;
     }
     ClassElement element = getElement();

@@ -190,10 +190,6 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertNotNull(new InterfaceTypeImpl(new ClassElementImpl(identifier("A"))));
   }
 
-  public void test_getDynamic() {
-    assertNotNull(InterfaceTypeImpl.getDynamic());
-  }
-
   public void test_getElement() {
     ClassElementImpl typeElement = new ClassElementImpl(identifier("A"));
     InterfaceTypeImpl type = new InterfaceTypeImpl(typeElement);
@@ -426,7 +422,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_isMoreSpecificThan_dynamic() {
     InterfaceType type = classElement("A").getType();
-    assertTrue(type.isMoreSpecificThan(InterfaceTypeImpl.getDynamic()));
+    assertTrue(type.isMoreSpecificThan(DynamicTypeImpl.getInstance()));
   }
 
   public void test_isMoreSpecificThan_indirectSupertype() {
@@ -455,8 +451,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSubtypeOf_dynamic() {
     ClassElement elementA = classElement("A");
     InterfaceType typeA = elementA.getType();
-    assertTrue(InterfaceTypeImpl.getDynamic().isSubtypeOf(typeA));
-    assertFalse(typeA.isSubtypeOf(InterfaceTypeImpl.getDynamic()));
+    Type dynamicType = DynamicTypeImpl.getInstance();
+    assertFalse(dynamicType.isSubtypeOf(typeA));
+    assertTrue(typeA.isSubtypeOf(dynamicType));
   }
 
   public void test_isSubtypeOf_indirectSubtype() {
@@ -527,8 +524,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSupertypeOf_dynamic() {
     ClassElement elementA = classElement("A");
     InterfaceType typeA = elementA.getType();
-    assertFalse(InterfaceTypeImpl.getDynamic().isSupertypeOf(typeA));
-    assertTrue(typeA.isSupertypeOf(InterfaceTypeImpl.getDynamic()));
+    Type dynamicType = DynamicTypeImpl.getInstance();
+    assertTrue(dynamicType.isSupertypeOf(typeA));
+    assertFalse(typeA.isSupertypeOf(dynamicType));
   }
 
   public void test_isSupertypeOf_indirectSupertype() {

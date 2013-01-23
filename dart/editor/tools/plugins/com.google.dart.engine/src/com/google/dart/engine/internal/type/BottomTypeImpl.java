@@ -57,6 +57,12 @@ public class BottomTypeImpl extends TypeImpl {
   }
 
   @Override
+  public boolean isSupertypeOf(Type type) {
+    // bottom is a subtype of all types
+    return false;
+  }
+
+  @Override
   public BottomTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     return this;
   }
