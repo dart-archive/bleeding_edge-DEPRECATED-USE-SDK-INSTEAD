@@ -217,7 +217,9 @@ class AnalysisUtility {
     {
       final File htmlFile = HtmlAnalyzeHelper.getSourceHtmlFile(libraryFile);
       if (htmlFile != libraryFile) {
-        return new UrlLibrarySource(libUri, context.getLibraryManager()) {
+        return new UrlLibrarySource(
+            libUri,
+            PackageLibraryManagerProvider.getPackageLibraryManager(htmlFile)) {
           @Override
           public DartSource getSourceFor(String relPath) {
             if (libraryFile.getName().equals(relPath)) {
