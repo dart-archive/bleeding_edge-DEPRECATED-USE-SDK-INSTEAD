@@ -108,7 +108,7 @@ void main() {
 /** Triggers the click event, like [http://api.jquery.com/click/] */
 click(Element element) {
   // TODO(rnystrom): This should be on the DOM API somewhere.
-  MouseEvent event = new MouseEvent('click', window, 1, 0, 0, 0, 0, 0);
+  MouseEvent event = new MouseEvent('click');
   element.on.click.dispatch(event);
 }
 
