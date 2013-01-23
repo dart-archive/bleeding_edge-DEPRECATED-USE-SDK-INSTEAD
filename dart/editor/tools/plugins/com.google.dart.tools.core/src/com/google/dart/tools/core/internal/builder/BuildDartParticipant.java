@@ -17,9 +17,9 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.builder.AbstractBuildVisitor;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
-import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
@@ -43,9 +43,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import static org.eclipse.core.resources.IResource.FILE;
-import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +72,8 @@ public class BuildDartParticipant implements BuildParticipant {
   static final String ISSUE_MARKER = DartCore.PLUGIN_ID + ".buildDartIssue";
 
   private static final String CLEAN = "--clean";
+  private static final String FULL_BUILD = "--full";
+  private static final String MACHINE = "--machine";
 
   private static final String BUILD_LOG_NAME = ".buildlog";
 
@@ -109,33 +108,47 @@ public class BuildDartParticipant implements BuildParticipant {
     if (!shouldRunAnyBuildDart(event.getProject())) {
       return;
     }
-    event.traverse(new BuildVisitor() {
 
-      @Override
-      public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        IResource resource = delta.getResource();
-        if (resource.getType() != FILE) {
-          IFile builderFile = ((IContainer) resource).getFile(new Path(BUILD_DART_FILE_NAME));
-          if (shouldRunBuildDart(builderFile)) {
-            processDelta(builderFile, 0, delta, monitor);
-          }
-        }
-        return true;
-      }
+    if (event.isFullBuild()) {
+      event.traverse(new AbstractBuildVisitor() {
+        @Override
+        public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
+          if (proxy.getType() == IResource.FOLDER || proxy.getType() == IResource.PROJECT) {
+            IContainer container = (IContainer) proxy.requestResource();
 
-      @Override
-      public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-        if (proxy.getType() == FILE) {
-          if (proxy.getName().equals(BUILD_DART_FILE_NAME)) {
-            IFile builderFile = (IFile) proxy.requestResource();
+            IFile builderFile = container.getFile(new Path(BUILD_DART_FILE_NAME));
+
             if (shouldRunBuildDart(builderFile)) {
-              runBuildDart(builderFile, Arrays.asList(new String[] {}), monitor);
+              // Perform a full build.
+              runBuildDart(builderFile, Arrays.asList(FULL_BUILD), monitor);
+
+              return false;
             }
           }
+
+          return true;
         }
-        return true;
-      }
-    }, false);
+      }, false);
+    } else {
+      // Perform an incremental build.
+      event.traverse(new AbstractBuildVisitor() {
+        @Override
+        public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
+          IResource resource = delta.getResource();
+
+          if (resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT) {
+            IFile builderFile = ((IContainer) resource).getFile(new Path(BUILD_DART_FILE_NAME));
+
+            if (shouldRunBuildDart(builderFile)) {
+              processDelta(builderFile, 0, delta, monitor);
+              return false;
+            }
+          }
+
+          return true;
+        }
+      }, false);
+    }
   }
 
   /**
@@ -144,12 +157,13 @@ public class BuildDartParticipant implements BuildParticipant {
   @Override
   public void clean(CleanEvent event, final IProgressMonitor monitor) throws CoreException {
     deleteMarkers(event.getProject());
-    DartCore.clearResourceRemapping(event.getProject());
-    event.traverse(new CleanVisitor() {
 
+    DartCore.clearResourceRemapping(event.getProject());
+
+    event.traverse(new CleanVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
-        if (proxy.getType() == FILE) {
+        if (proxy.getType() == IResource.FILE) {
           if (proxy.getName().equals(BUILD_DART_FILE_NAME)) {
             IFile builderFile = (IFile) proxy.requestResource();
             if (shouldRunBuildDart(builderFile)) {
@@ -213,18 +227,15 @@ public class BuildDartParticipant implements BuildParticipant {
    */
   protected void runBuildDart(IFile builderFile, List<String> buildArgs, IProgressMonitor monitor)
       throws CoreException {
-
     StringBuilder msg = new StringBuilder();
     msg.append("Running ");
     msg.append(builderFile.getLocation());
-    if (buildArgs.size() > 0 && buildArgs.get(0).equals(CLEAN)) {
-      msg.append(" ");
-      msg.append(CLEAN);
-    }
+
     monitor.beginTask(msg.toString(), IProgressMonitor.UNKNOWN);
 
     IContainer container = builderFile.getParent();
     buildArgs = new ArrayList<String>(buildArgs);
+    buildArgs.add(0, MACHINE);
     String commandSummary = createCommandSummary(buildArgs);
 
     // If we're over the CLI length limit, instead of sending in a comprehensive list of all the
@@ -232,10 +243,12 @@ public class BuildDartParticipant implements BuildParticipant {
     if ((DartCore.isWindows() && commandSummary.length() > WIN_CLI_LIMIT)
         || (!DartCore.isWindows() && commandSummary.length() > GENERAL_CLI_LIMIT)) {
       buildArgs.clear();
-      commandSummary = "";
-    }
 
-    buildArgs.add(0, "--machine");
+      buildArgs.add(MACHINE);
+      buildArgs.add(FULL_BUILD);
+
+      commandSummary = createCommandSummary(buildArgs);
+    }
 
     // Trim long command summaries - used for verbose printing.
     if (commandSummary.length() > 100) {
@@ -515,7 +528,7 @@ public class BuildDartParticipant implements BuildParticipant {
     IContainer container = builderFile.getParent();
 
     // Always run build.dart in a project's root.
-    if (container.getType() == PROJECT) {
+    if (container.getType() == IResource.PROJECT) {
       return true;
     }
 

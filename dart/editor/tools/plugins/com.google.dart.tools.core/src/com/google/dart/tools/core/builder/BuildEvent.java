@@ -28,12 +28,18 @@ import org.eclipse.core.runtime.OperationCanceledException;
  * {@link #traverse(BuildParticipant, boolean)} to visit all resources to be processed
  */
 public class BuildEvent extends ParticipantEvent {
-
   private final IResourceDelta projectDelta;
 
   public BuildEvent(IResource resource, IResourceDelta delta, IProgressMonitor monitor) {
     super(resource, monitor);
     this.projectDelta = delta;
+  }
+
+  /**
+   * @return true if this build event represents a full (non-incremental) build
+   */
+  public boolean isFullBuild() {
+    return projectDelta == null;
   }
 
   /**
@@ -54,41 +60,41 @@ public class BuildEvent extends ParticipantEvent {
     // If there is no projectDelta, then traverse all resources in the project
     if (projectDelta == null) {
       traverseResources(visitor, getResource(), visitPackages);
-      return;
+    } else {
+      // Traverse only those resources that have changed
+      projectDelta.accept(new IResourceDeltaVisitor() {
+        @Override
+        public boolean visit(IResourceDelta delta) throws CoreException {
+          IResource resource = delta.getResource();
+
+          // Traverse added resources via proxy
+          if (delta.getKind() == IResourceDelta.ADDED) {
+            traverseResources(visitor, resource, visitPackages);
+            return false;
+          }
+
+          if (getMonitor().isCanceled()) {
+            throw new OperationCanceledException();
+          }
+
+          if (resource.getType() != IResource.FILE) {
+            String name = resource.getName();
+
+            // Skip "hidden" directories
+            if (name.startsWith(".")) {
+              return false;
+            }
+
+            // Visit "packages" directories only if specified
+            if (!visitPackages && name.equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+              return false;
+            }
+          }
+
+          return visitor.visit(delta, getMonitor());
+        }
+      });
     }
-
-    // Traverse only those resources that have changed
-    projectDelta.accept(new IResourceDeltaVisitor() {
-      @Override
-      public boolean visit(IResourceDelta delta) throws CoreException {
-        IResource resource = delta.getResource();
-
-        // Traverse added resources via proxy
-        if (delta.getKind() == IResourceDelta.ADDED) {
-          traverseResources(visitor, resource, visitPackages);
-          return false;
-        }
-
-        if (getMonitor().isCanceled()) {
-          throw new OperationCanceledException();
-        }
-
-        if (resource.getType() != IResource.FILE) {
-          String name = resource.getName();
-
-          // Skip "hidden" directories
-          if (name.startsWith(".")) {
-            return false;
-          }
-
-          // Visit "packages" directories only if specified
-          if (!visitPackages && name.equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-            return false;
-          }
-        }
-
-        return visitor.visit(delta, getMonitor());
-      }
-    });
   }
+
 }

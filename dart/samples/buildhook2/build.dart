@@ -35,7 +35,7 @@ void main() {
 }
 
 /**
- * Handle the --changed, --removed, --clean and --help command-line args.
+ * Handle --changed, --removed, --clean, --full, and --help command-line args.
  */
 void processArgs() {
   var parser = new ArgParser();
@@ -44,10 +44,13 @@ void processArgs() {
   parser.addOption("removed", help: "the file was removed since the last build",
       allowMultiple: true);
   parser.addFlag("clean", negatable: false, help: "remove any build artifacts");
+  parser.addFlag("full", negatable: false, help: "perform a full build");
   parser.addFlag("machine",
-    negatable: false, help: "write machine interface commands to stdout");
-  parser.addFlag("help", negatable: false, help: "displays this help and exit");
+    negatable: false, help: "produce warnings in a machine parseable format");
+  parser.addFlag("help", negatable: false, help: "display this help and exit");
+  
   var args = parser.parse(new Options().arguments);
+  
   if (args["help"]) {
     print(parser.getUsage());
     exit(0);
@@ -59,7 +62,7 @@ void processArgs() {
   useMachineInterface = args["machine"];
 
   cleanBuild = args["clean"];
-  fullBuild = changedFiles.isEmpty && removedFiles.isEmpty && !cleanBuild;
+  fullBuild = args["full"];
 }
 
 /**
