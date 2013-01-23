@@ -104,7 +104,9 @@ public class XmlParser {
   protected void startTag(Token startToken) {
     Token tagName = tokenizer.next();
 
-    XmlElement element = new XmlElement(tagName.getValue());
+    String tagNameStr = tagName == null ? "" : tagName.getValue();
+
+    XmlElement element = new XmlElement(tagNameStr);
 
     element.setStart(startToken);
 
@@ -136,7 +138,7 @@ public class XmlParser {
 
     getCurrentParent().addChild(element);
 
-    if (!autoClosed && !isSelfClosing(tagName.getValue())) {
+    if (!autoClosed && !isSelfClosing(tagNameStr)) {
       pushTag(element);
     }
   }
