@@ -804,7 +804,7 @@ def BuildUpdateSite(ant, revision, name, buildroot, buildout,
   status = ant.RunAnt('../com.google.dart.eclipse.feature_releng',
              'build.xml', revision, name, buildroot, buildout,
               editorpath, buildos, ['-Dbuild.dir=%s' % buildout])
-  #TODO(pquitslund): migrate to a bucket copy (rather than serial uploads)
+  StartBuildStep('upload_artifacts')
   UploadSite(buildout, "%s/%s" % (GSU_PATH_REV, 'eclipse-update'))
   UploadSite(buildout, "%s/%s" % (GSU_PATH_LATEST, 'eclipse-update'))
   return status

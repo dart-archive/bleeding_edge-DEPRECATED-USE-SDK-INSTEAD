@@ -182,8 +182,8 @@
 	      
 	      <!-- invoke PDE -->
         <sequential>
-            <java jar="${eclipse.dir}/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar" fork="true" 
-                  failonerror="false" errorproperty="pde.build.error">
+            <java jar="${eclipse.dir}/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar"
+                fork="true" failonerror="true">
                 <arg value="-data" />
                 <arg value="${build.dir}/workspace" />
                 <arg value="-application" />
@@ -198,24 +198,14 @@
                 <arg value="-DbuildDirectory=${build.dir}" />
                 <arg value="-DbaseLocation=${eclipse.dir}" />
                 <arg value="-Dbase=${build.dir}/base" />
-            	  <arg value="-Dbuild.revision=${build.revision}" />
+                <arg value="-Dbuild.revision=${build.revision}" />
                 <arg value="-noinput" />
                 <arg value="-vmargs" />
                 <arg value="-Xms256M" />
                 <arg value="-Xmx512M" />
             </java>
         </sequential>
-        
-        <echo message="PDE build exited: ${pde.build.error}" />
-        
-        <fail message="PDE build failed">
-            <condition>
-                <not>
-                    <equals arg1="" arg2="${pde.build.error}" trim="true" />
-                </not>
-            </condition>
-        </fail>
-	  	  
+
 	      <!-- use the P2 Publisher app to create a category in the update site -->
         <sequential>
             <java jar="${eclipse.dir}/plugins/org.eclipse.equinox.launcher_1.2.0.v20110502.jar" fork="true">
