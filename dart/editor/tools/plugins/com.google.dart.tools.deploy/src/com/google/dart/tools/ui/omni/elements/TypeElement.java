@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
@@ -32,7 +33,6 @@ import org.eclipse.ui.PartInitException;
 public class TypeElement extends OmniElement {
 
   private static final ImageDescriptor CLASS_ICON = DartPluginImages.DESC_DART_CLASS_PUBLIC;
-  private static final ImageDescriptor INTERFACE_ICON = DartPluginImages.DESC_DART_INTERFACE;
 
   private final Type type;
 
@@ -44,6 +44,9 @@ public class TypeElement extends OmniElement {
   @Override
   public void execute(String text) {
     try {
+
+      Instrumentation.operation("TypeElement.execute").with("text", type.getElementName());
+
       DartUI.openInEditor(type, true, true);
     } catch (PartInitException e) {
       DartToolsPlugin.log(e);

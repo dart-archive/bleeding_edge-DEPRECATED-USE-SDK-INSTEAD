@@ -30,7 +30,6 @@ import org.eclipse.ui.PlatformUI;
 public class OmniBoxImages {
 
   private static final ImageDescriptor CLASS_ICON = DartPluginImages.DESC_DART_CLASS_PUBLIC;
-  private static final ImageDescriptor INTERFACE_ICON = DartPluginImages.DESC_OBJS_INTERFACE;
   private static final ImageDescriptor FILE_SEARCH_ICON = DartToolsPlugin.getImageDescriptor("icons/full/obj16/file_search.gif"); //$NON-NLS-1$
 
   /**
