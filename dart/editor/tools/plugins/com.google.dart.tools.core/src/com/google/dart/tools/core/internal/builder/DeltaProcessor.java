@@ -113,7 +113,7 @@ public class DeltaProcessor {
   }
 
   private final Project project;
-  private final DeltaListener listener;
+  private DeltaListener listener;
   private AnalysisContext context;
   private Event event;
 
@@ -121,12 +121,18 @@ public class DeltaProcessor {
    * Construct a new instance for updating the specified project.
    * 
    * @param project the project being updated (not {@code null})
-   * @param listeners objects interested in receiving change information (not {@code null}, contains
-   *          no {@code null}s)
    */
-  public DeltaProcessor(Project project, DeltaListener... listeners) {
+  public DeltaProcessor(Project project) {
     this.project = project;
-    this.listener = DeltaListenerList.newFor(listeners);
+  }
+
+  /**
+   * Add a listener interested in receiving change information
+   * 
+   * @param listener the listener (not {@code null})
+   */
+  public void addDeltaListener(DeltaListener listener) {
+    this.listener = DeltaListenerList.add(this.listener, listener);
   }
 
   /**

@@ -18,26 +18,37 @@ import java.util.ArrayList;
 /**
  * A collection of {@link DeltaListener}s
  */
-class DeltaListenerList implements DeltaListener {
+public class DeltaListenerList implements DeltaListener {
 
   /**
-   * Answer a single listener that forwards events to each of the specified listeners. If there is
-   * only one specified listener, then that listener is returned.
+   * Answer a listener that broadcasts events to both the existing listener and the new listener
    * 
-   * @param listeners the listeners (not {@code null}, contains no {@code null}s)
-   * @return a listener (not {@code null})
+   * @param existingListener the existing listener or {@link DeltaListenerList} or {@code null} if
+   *          there is no existing listener
+   * @param newListener the listener to be added (not {@code null})
+   * @return a new composite listener (not {@code null})
    */
-  public static DeltaListener newFor(DeltaListener... listeners) {
-    if (listeners.length == 1) {
-      return listeners[0];
+  public static DeltaListener add(DeltaListener existingListener, DeltaListener newListener) {
+    if (existingListener == null) {
+      return newListener;
+    }
+    if (existingListener instanceof DeltaListenerList) {
+      DeltaListenerList list = (DeltaListenerList) existingListener;
+      if (list.children.size() == 0) {
+        return newListener;
+      }
+      list.children.add(newListener);
+      return list;
     }
     DeltaListenerList list = new DeltaListenerList();
-    for (DeltaListener listener : listeners) {
-      list.add(listener);
-    }
+    list.children.add(existingListener);
+    list.children.add(newListener);
     return list;
   }
 
+  /**
+   * The listeners to which events are broadcast
+   */
   private ArrayList<DeltaListener> children = new ArrayList<DeltaListener>();
 
   @Override
@@ -115,13 +126,5 @@ class DeltaListenerList implements DeltaListener {
     for (DeltaListener listener : children) {
       listener.sourceRemoved(event);
     }
-  }
-
-  void add(DeltaListener listener) {
-    children.add(listener);
-  }
-
-  void remove(DeltaListener listener) {
-    children.remove(listener);
   }
 }

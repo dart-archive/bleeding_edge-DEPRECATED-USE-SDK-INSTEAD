@@ -39,8 +39,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     private ArrayList<Object> called = new ArrayList<Object>();
 
-    public MockDeltaProcessor(Project project, DeltaListener updater) {
-      super(project, updater);
+    public MockDeltaProcessor(Project project) {
+      super(project);
     }
 
     @Override
@@ -119,10 +119,10 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    protected DeltaProcessor createProcessor(Project project, boolean notifyChanged) {
+    protected DeltaProcessor createProcessor(Project project) {
       assertNotNull(project);
       if (processor == null) {
-        processor = new MockDeltaProcessor(project, new ProjectUpdater(notifyChanged));
+        processor = new MockDeltaProcessor(project);
       }
       return processor;
     }
@@ -142,9 +142,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(delta);
+    participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
 
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
+    participant.processor.assertTraversed(delta);
     participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
   }
@@ -152,9 +154,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   public void test_build_noDelta() throws Exception {
     participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
     participant.processor.assertTraversed(projectContainer);
+    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
 
     participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
+    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
   }
