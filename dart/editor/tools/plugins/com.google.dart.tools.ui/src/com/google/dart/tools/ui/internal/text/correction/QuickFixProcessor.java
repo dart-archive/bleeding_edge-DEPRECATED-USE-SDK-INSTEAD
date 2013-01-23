@@ -282,7 +282,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
                 || errorCode == TypeErrorCode.CANNOT_BE_RESOLVED) {
               addFix_importLibrary_withField(location);
             }
-            if (errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR) {
+            if (errorCode == TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR) {
               addFix_createConstructor();
             }
             if (errorCode == TypeErrorCode.USE_INTEGER_DIVISION) {
@@ -311,7 +311,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
         || errorCode == TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED
         || errorCode == TypeErrorCode.IS_STATIC_METHOD_IN
         || errorCode == TypeErrorCode.NO_SUCH_TYPE
-        || errorCode == ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
+        || errorCode == TypeErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR
         || errorCode == TypeErrorCode.USE_INTEGER_DIVISION
         || errorCode == TypeErrorCode.NOT_A_FUNCTION_TYPE_FIELD
         || errorCode == DartCompilerErrorCode.MISSING_PART_OF_DIRECTIVE
