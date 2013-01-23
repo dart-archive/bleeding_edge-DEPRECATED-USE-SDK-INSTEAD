@@ -16,6 +16,9 @@ package com.google.dart.tools.core.generator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Create a sample Chrome packaged application.
+ */
 public class ChromePackagedAppSample extends AbstractSample {
 
   public ChromePackagedAppSample() {
@@ -26,11 +29,12 @@ public class ChromePackagedAppSample extends AbstractSample {
     templates.add(new String[] {
         ".settings/com.google.dart.tools.core.prefs",
         "dart2jsFlags=--disallow-unsafe-eval\neclipse.preferences.version=1\n"});
+    templates.add(new String[] {"build.dart", "@chrome/build.dart"});
     templates.add(new String[] {
         "pubspec.yaml",
         "name: {name}\ndescription: A sample chrome packaged application\n"
             + "dependencies:\n  browser: any\n  js: any\n"});
-    templates.add(new String[] {"readme.md", "@chrome/readme.md"});
+    templates.add(new String[] {"README.md", "@chrome/readme.md"});
 
     templates.add(new String[] {"web/dart_icon.png", "@chrome/dart_icon.png"});
     templates.add(new String[] {"web/main.js", "@chrome/main.js"});
@@ -40,8 +44,7 @@ public class ChromePackagedAppSample extends AbstractSample {
     templates.add(new String[] {"web/{name.lower}.css", "@chrome/sample.css"});
 
     setTemplates(templates);
-    // TODO: or open README.md?
-    setMainFile("web/{name.lower}.dart");
+    setMainFile("web/manifest.json");
   }
 
 }

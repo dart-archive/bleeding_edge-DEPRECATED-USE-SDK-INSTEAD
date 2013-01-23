@@ -17,6 +17,9 @@ package com.google.dart.tools.core.generator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Create a sample web application using the Web UI (web_ui) package.
+ */
 public class WebUiSample extends AbstractSample {
 
   public WebUiSample() {

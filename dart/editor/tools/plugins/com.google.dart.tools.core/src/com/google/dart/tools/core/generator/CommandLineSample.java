@@ -17,6 +17,9 @@ package com.google.dart.tools.core.generator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Create a simple command-line Dart application.
+ */
 public class CommandLineSample extends AbstractSample {
 
   public CommandLineSample() {

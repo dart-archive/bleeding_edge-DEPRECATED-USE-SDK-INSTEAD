@@ -16,6 +16,9 @@ package com.google.dart.tools.core.generator;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Create a sample web application with Pub support.
+ */
 public class WebAppSample extends AbstractSample {
 
   public WebAppSample() {
