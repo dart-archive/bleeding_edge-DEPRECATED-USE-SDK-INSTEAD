@@ -14,6 +14,8 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.tools.core.DartCore;
@@ -96,7 +98,7 @@ public class ActionUtil {
           text.append('\"');
         }
       } else {
-        DartNode node = selection.resolveCoveringNode();
+        DartNode node = getResolvedNodeFromSelection(selection);
         String src;
         if ((node instanceof com.google.dart.compiler.ast.DartIdentifier)
             && ((src = node.toSource()) != null)) {
@@ -231,11 +233,14 @@ public class ActionUtil {
     if (!selection.isEmpty() && selection.getFirstElement() instanceof Method) {
       return true;
     }
-    DartNode node = selection.resolveCoveringNode();
+    DartNode node = getResolvedNodeFromSelection(selection);
     if (node != null) {
       if (node instanceof DartIdentifier) {
         DartIdentifier id = (DartIdentifier) node;
         if (id.getParent() instanceof DartPropertyAccess) {
+          return true;
+        }
+        if (id.getParent() instanceof DartMethodInvocation) {
           return true;
         }
       }
@@ -244,8 +249,13 @@ public class ActionUtil {
   }
 
   public static boolean isFindUsesAvailable(DartElementSelection selection) {
-    return selection.toArray().length == 1
-        || selection.resolveCoveringNode() instanceof com.google.dart.compiler.ast.DartIdentifier;
+    DartNode node = getResolvedNodeFromSelection(selection);
+    if (node != null) {
+      if (node instanceof DartIdentifier) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static boolean isOnBuildPath(DartElement element) {
@@ -346,6 +356,23 @@ public class ActionUtil {
         ActionMessages.ActionUtil_not_possible,
         ActionMessages.ActionUtil_no_linked);
     return true;
+  }
+
+  private static DartNode getResolvedNodeFromSelection(DartTextSelection selection) {
+    DartNode node = null;
+    DartNode[] nodes = selection.resolveSelectedNodes();
+    if (nodes != null && nodes.length > 0) {
+      node = nodes[0];
+    }
+    if (node == null) {
+      node = selection.resolveCoveringNode();
+      if (node instanceof com.google.dart.compiler.ast.DartFunction) {
+        if (node.getParent() instanceof DartMethodDefinition) {
+          node = ((DartMethodDefinition) node.getParent()).getName();
+        }
+      }
+    }
+    return node;
   }
 
   private ActionUtil() {
