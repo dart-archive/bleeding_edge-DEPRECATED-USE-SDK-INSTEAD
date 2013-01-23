@@ -158,7 +158,7 @@ public class BuildDartParticipantTest extends AbstractDartCoreTest {
     Target target = new Target();
     MockContainer project = newPubProject2();
     MockFile builder0 = project.getMockFile(BUILD_DART_FILE_NAME);
-    MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
+    //MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
     MockDelta delta = new MockDelta(project);
     MockFile dart0 = project.getMockFile("some.dart");
     MockFile dart1 = project.getMockFile("some1.dart");
@@ -171,45 +171,45 @@ public class BuildDartParticipantTest extends AbstractDartCoreTest {
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
 
     // Ensure that build includes nested resources but excludes file nested under "packages"
-    target.assertCalls(builder0, builder1);
+    target.assertCalls(builder0);
     target.assertCall(
         builder0,
         "--changed=" + dart0.getName(),
         "--changed=" + dart1.getName(),
         "--changed=" + dart2.getFullPath().removeFirstSegments(1).toOSString());
-    target.assertCall(builder1, "--changed=" + dart2.getName());
+    //target.assertCall(builder1, "--changed=" + dart2.getName());
   }
 
   public void test_build_dart1_added() throws Exception {
     Target target = new Target();
     MockContainer project = newPubProject2();
     MockFile builder0 = project.getMockFile(BUILD_DART_FILE_NAME);
-    MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
+    //MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
     MockFile dart = project.getMockFile("myapp/other.dart");
     MockDelta delta = new MockDelta(project);
 
     delta.add("myapp").add("other.dart", ADDED);
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls(builder0, builder1);
+    target.assertCalls(builder0);
     target.assertCall(builder0, "--changed="
         + dart.getFullPath().removeFirstSegments(1).toOSString());
-    target.assertCall(builder1, "--changed=" + dart.getName());
+    //target.assertCall(builder1, "--changed=" + dart.getName());
   }
 
   public void test_build_dart1_changed() throws Exception {
     Target target = new Target();
     MockContainer project = newPubProject2();
     MockFile builder0 = project.getMockFile(BUILD_DART_FILE_NAME);
-    MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
+    //MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
     MockFile dart = project.getMockFile("myapp/other.dart");
     MockDelta delta = new MockDelta(project);
 
     delta.add("myapp").add(dart);
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
-    target.assertCalls(builder0, builder1);
+    target.assertCalls(builder0);
     target.assertCall(builder0, "--changed="
         + dart.getFullPath().removeFirstSegments(1).toOSString());
-    target.assertCall(builder1, "--changed=" + dart.getName());
+    //target.assertCall(builder1, "--changed=" + dart.getName());
   }
 
   public void test_build_dart2_changed() throws Exception {
@@ -254,13 +254,11 @@ public class BuildDartParticipantTest extends AbstractDartCoreTest {
     Target target = new Target();
     MockContainer project = newPubProject2();
     MockFile builder0 = project.getMockFile(BUILD_DART_FILE_NAME);
-    MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
 
-    target.assertCalls(builder0, builder1);
-    target.assertCall(builder0);
-    target.assertCall(builder1);
+    target.assertCalls(builder0);
+    target.assertCall(builder0, "--full");
   }
 
   public void test_build_full2() throws Exception {
@@ -268,15 +266,13 @@ public class BuildDartParticipantTest extends AbstractDartCoreTest {
     MockContainer project = newPubProject2();
     project.remove(PUBSPEC_FILE_NAME);
     MockFile builder0 = project.getMockFile(BUILD_DART_FILE_NAME);
-    MockFile builder1 = project.getMockFile("myapp/" + BUILD_DART_FILE_NAME);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
 
     // Should invoke builder0 even though it does not have a pubspec siblng
     // but because it is in the project root... legacy
     // And invoke builder1 because it is in an application directory (directory containing pubspec)
-    target.assertCalls(builder0, builder1);
-    target.assertCall(builder0);
-    target.assertCall(builder1);
+    target.assertCalls(builder0);
+    target.assertCall(builder0, "--full");
   }
 }
