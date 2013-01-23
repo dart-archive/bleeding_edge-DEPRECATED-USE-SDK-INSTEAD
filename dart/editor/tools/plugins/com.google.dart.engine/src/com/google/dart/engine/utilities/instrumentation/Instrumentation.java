@@ -85,7 +85,7 @@ public final class Instrumentation {
   /**
    * The current instrumentation logger.
    */
-  private static InstrumentationLogger CURENT_LOGGER = NULL_LOGGER;
+  private static InstrumentationLogger CURRENT_LOGGER = NULL_LOGGER;
 
   /**
    * Create an operation builder that can collect the data associated with an operation. The
@@ -96,7 +96,7 @@ public final class Instrumentation {
    * @return the operation builder that was created
    */
   public static OperationBuilder metric(String name) {
-    return CURENT_LOGGER.createMetric(name, -1);
+    return CURRENT_LOGGER.createMetric(name, -1);
   }
 
   /**
@@ -110,7 +110,7 @@ public final class Instrumentation {
    * @return the operation builder that was created
    */
   public static OperationBuilder metric(String name, long time) {
-    return CURENT_LOGGER.createMetric(name, time);
+    return CURRENT_LOGGER.createMetric(name, time);
   }
 
   /**
@@ -123,7 +123,7 @@ public final class Instrumentation {
    * @return the operation builder that was created
    */
   public static OperationBuilder operation(String name) {
-    return CURENT_LOGGER.createOperation(name, -1);
+    return CURRENT_LOGGER.createOperation(name, -1);
   }
 
   /**
@@ -137,7 +137,7 @@ public final class Instrumentation {
    * @return the operation builder that was created
    */
   public static OperationBuilder operation(String name, long time) {
-    return CURENT_LOGGER.createOperation(name, time);
+    return CURRENT_LOGGER.createOperation(name, time);
   }
 
   /**
@@ -146,7 +146,7 @@ public final class Instrumentation {
    * @param logger the logger that should receive instrumentation information
    */
   public static void setLogger(InstrumentationLogger logger) {
-    CURENT_LOGGER = logger == null ? NULL_LOGGER : logger;
+    CURRENT_LOGGER = logger == null ? NULL_LOGGER : logger;
   }
 
   /**
