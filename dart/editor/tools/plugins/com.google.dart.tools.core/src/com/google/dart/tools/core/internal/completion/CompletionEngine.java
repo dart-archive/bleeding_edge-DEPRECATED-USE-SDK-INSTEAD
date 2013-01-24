@@ -107,6 +107,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.search.MatchKind;
 import com.google.dart.tools.core.search.MatchQuality;
@@ -547,7 +548,11 @@ public class CompletionEngine {
               // interface x extends I!
               DartClass classDef = (DartClass) typeCompleter.getParent();
               boolean isClassDef = classDef.getSuperclass() == typeCompleter;
-              proposeClassOrInterfaceNamesForPrefix(identifier, isClassDef);
+              SourceInfo info = classDef.getSourceInfo();
+              String src = source.substring(info.getOffset(), info.getEnd());
+              // This isn't perfect but will do for now.
+              boolean isForWithClause = src.indexOf(C_WITH) >= 0;
+              proposeClassOrInterfaceNamesForPrefix(identifier, isClassDef, isForWithClause);
               break;
             case ClassMember:
               // class x { ! }
@@ -833,7 +838,7 @@ public class CompletionEngine {
             return null;
           }
         }
-        proposeClassOrInterfaceNamesForPrefix(null, isClassDef);
+        proposeClassOrInterfaceNamesForPrefix(null, isClassDef, withLoc >= 0);
       } else {
         if (isCompletionAfterDot && classSrc.length() > 5
             && classSrc.substring(classSrc.length() - 5).equals("this.")) {
@@ -1726,6 +1731,7 @@ public class CompletionEngine {
   private static final String C_VOID = "void";
   private static final String CORELIB_NAME = "dart.core";
   private static final String MAP_TYPE_NAME = "Map";
+  private static final String OBJECT_TYPE_NAME = "Object";
   private static final String LIST_TYPE_NAME = "List";
   /** Signature of Object.noSuchMethod(), which should not appear in proposal lists. */
   private static final String NO_SUCH_METHOD = "noSuchMethodStringList";
@@ -2687,7 +2693,7 @@ public class CompletionEngine {
   }
 
   private void createTypeCompletionsForTypeDecl(DartNode node, SearchMatch match, String prefix,
-      boolean isClassOnly, boolean isInterfaceOnly) {
+      boolean isClassOnly, boolean isInterfaceOnly, boolean isForWithClause) {
     DartElement element = match.getElement();
     if (!(element instanceof com.google.dart.tools.core.model.Type)) {
       return;
@@ -2703,6 +2709,24 @@ public class CompletionEngine {
     String name = type.getElementName();
     if (disallowPrivate && name.startsWith("_")) {
       return;
+    }
+    if (isForWithClause) {
+      try {
+        String superclassName = type.getSuperclassName();
+        if (superclassName != null && !superclassName.equals(OBJECT_TYPE_NAME)) {
+          return;
+        }
+//        if (type.hasSuperInvocation()) { // sigh ... not defined for core model
+//          return;
+//        }
+        for (Method method : type.getMethods()) {
+          if (method.isConstructor() && !method.isFactory() && !method.isImplicit()) {
+            return;
+          }
+        }
+      } catch (DartModelException ex) {
+        return;
+      }
     }
     InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
         CompletionProposal.TYPE_REF,
@@ -2930,14 +2954,21 @@ public class CompletionEngine {
     return buf.toString();
   }
 
-  private void proposeClassOrInterfaceNamesForPrefix(DartIdentifier identifier, boolean isClass) {
+  private void proposeClassOrInterfaceNamesForPrefix(DartIdentifier identifier, boolean isClass,
+      boolean isForWithClause) {
     List<SearchMatch> matches = findTypesWithPrefix(identifier);
     if (matches == null || matches.size() == 0) {
       return;
     }
     String prefix = extractFilterPrefix(identifier);
     for (SearchMatch match : matches) {
-      createTypeCompletionsForTypeDecl(identifier, match, prefix, isClass, !isClass);
+      createTypeCompletionsForTypeDecl(
+          identifier,
+          match,
+          prefix,
+          isClass,
+          !isClass,
+          isForWithClause);
     }
     createCompletionsForIdentifierPrefix(identifier, prefix);
   }
@@ -3026,7 +3057,7 @@ public class CompletionEngine {
     }
     String prefix = extractFilterPrefix(identifier);
     for (SearchMatch match : matches) {
-      createTypeCompletionsForTypeDecl(identifier, match, prefix, false, false);
+      createTypeCompletionsForTypeDecl(identifier, match, prefix, false, false, false);
     }
     createCompletionsForIdentifierPrefix(identifier, prefix);
   }
