@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.feedback;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -211,6 +212,9 @@ public class FeedbackSubmissionJob extends Job {
   }
 
   private int submitFeedback_text(URL serverURL, IProgressMonitor monitor) throws IOException {
+
+    long start = System.currentTimeMillis();
+
     ByteArrayOutputStream bout = new ByteArrayOutputStream(4096);
 
     writer.writeFeedback(bout);
@@ -267,6 +271,9 @@ public class FeedbackSubmissionJob extends Job {
     }
 
     connection.disconnect();
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("SubmitFeedback-Sent", elapsed).with("Feedback", bout.toString()).log();
 
     return data.length;
   }
