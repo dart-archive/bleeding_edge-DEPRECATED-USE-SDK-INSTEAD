@@ -113,6 +113,7 @@ public class MainEngine {
   private static CompilationUnit buildAstLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(ASTFactory.libraryDirective("engine", "ast"));
+    unit.getDirectives().add(ASTFactory.importDirective("dart:collection", null));
     unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
     unit.getDirectives().add(ASTFactory.importDirective("enginelib.dart", null));
     unit.getDirectives().add(ASTFactory.importDirective("scanner.dart", null));
@@ -155,6 +156,7 @@ public class MainEngine {
   private static CompilationUnit buildScannerLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(ASTFactory.libraryDirective("engine", "scanner"));
+    unit.getDirectives().add(ASTFactory.importDirective("dart:collection", null));
     unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
     unit.getDirectives().add(ASTFactory.importDirective("source.dart", null));
     unit.getDirectives().add(ASTFactory.importDirective("error.dart", null));

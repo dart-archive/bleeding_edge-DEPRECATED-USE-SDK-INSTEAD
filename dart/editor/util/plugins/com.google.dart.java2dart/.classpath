@@ -3,16 +3,16 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/com.google.dart.engine"/>
-	<classpathentry exported="true" kind="lib" path="third_party2/commons-io-2.4.jar" sourcepath="third_party2/commons-io-2.4-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party2/commons-lang3-3.1.jar" sourcepath="third_party2/commons-lang3-3.1-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party2/org.eclipse.jdt.core_3.7.3.v20120119-1537.jar" sourcepath="third_party2/org.eclipse.jdt.core.source_3.7.3.v20120119-1537.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.core.runtime_3.7.0.v20110110.jar" sourcepath="third_party2/org.eclipse.core.runtime.source_3.7.0.v20110110.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party2/org.eclipse.equinox.common_3.6.0.v20110523.jar" sourcepath="third_party2/org.eclipse.equinox.common.source_3.6.0.v20110523.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.core.resources_3.7.101.v20120125-1505.jar" sourcepath="third_party2/org.eclipse.core.resources.source_3.7.101.v20120125-1505.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.core.jobs_3.5.101.v20120113-1953.jar" sourcepath="third_party2/org.eclipse.core.jobs.source_3.5.101.v20120113-1953.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.osgi_3.7.2.v20120110-1415.jar" sourcepath="third_party2/org.eclipse.osgi.source_3.7.2.v20120110-1415.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.core.contenttype_3.4.100.v20110423-0524.jar" sourcepath="third_party2/org.eclipse.core.contenttype.source_3.4.100.v20110423-0524.jar"/>
-	<classpathentry kind="lib" path="third_party2/org.eclipse.equinox.preferences_3.4.2.v20120111-2020.jar" sourcepath="third_party2/org.eclipse.equinox.preferences.source_3.4.2.v20120111-2020.jar"/>
-	<classpathentry exported="true" kind="lib" path="third_party2/guava-13.0.1.jar" sourcepath="third_party2/guava-13.0.1-sources.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.contenttype_3.4.200.v20120523-2004.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.jobs_3.5.200.v20120521-2346.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.runtime_3.8.0.v20120521-2346.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.core.runtime.source_3.8.0.v20120521-2346.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.core.resources_3.8.1.v20120802-154922.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.core.resources.source_3.8.1.v20120802-154922.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.equinox.common_3.6.100.v20120522-1841.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.equinox.preferences_3.5.0.v20120522-1841.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.jdt.core_3.8.2.v20120814-155456.jar" sourcepath="third_party/eclipse/3.8.1/plugins/org.eclipse.jdt.core.source_3.8.2.v20120814-155456.jar"/>
+	<classpathentry kind="lib" path="third_party/eclipse/3.8.1/plugins/org.eclipse.osgi_3.8.1.v20120830-144521.jar"/>
+	<classpathentry kind="lib" path="third_party/commons-io/2.4/commons-io-2.4.jar" sourcepath="third_party/commons-io/2.4/commons-io-2.4-sources.jar"/>
+	<classpathentry kind="lib" path="third_party/commons-lang/3.1/commons-lang3-3.1.jar" sourcepath="third_party/commons-lang/3.1/commons-lang3-3.1-sources.jar"/>
+	<classpathentry kind="lib" path="third_party/guava/r13/guava-13.0.1.jar" sourcepath="third_party/guava/r13/guava-13.0.1-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

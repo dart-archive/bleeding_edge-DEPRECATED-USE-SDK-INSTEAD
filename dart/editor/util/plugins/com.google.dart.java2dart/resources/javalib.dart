@@ -97,6 +97,10 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
     elements.clear();
   }
 
+  void remove(Object element) {
+    return elements.remove(element);
+  }
+
   E removeAt(int index) {
     return elements.removeAt(index);
   }
@@ -104,6 +108,8 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   E removeLast() {
     return elements.removeLast();
   }
+
+  List<E> get reversed => elements.reversed;
 
   List<E> getRange(int start, int length) {
     return elements.getRange(start, length);

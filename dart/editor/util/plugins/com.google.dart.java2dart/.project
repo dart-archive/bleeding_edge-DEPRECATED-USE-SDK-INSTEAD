@@ -16,9 +16,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>third_party2</name>
+			<name>third_party</name>
 			<type>2</type>
-			<locationURI>NOT_APPROVED</locationURI>
+			<locationURI>DART_TRUNK/third_party</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
