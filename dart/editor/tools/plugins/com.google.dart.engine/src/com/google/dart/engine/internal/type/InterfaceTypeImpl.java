@@ -46,7 +46,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see InterfaceType#getLeastUpperBound(Type)
    */
   @VisibleForTesting
-  public static int computeLongestInheritancePathToObject(Type type) {
+  public static int computeLongestInheritancePathToObject(InterfaceType type) {
     return computeLongestInheritancePathToObject(type, 0);
   }
 
@@ -59,8 +59,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #getLeastUpperBound(Type)
    */
   @VisibleForTesting
-  public static Set<Type> computeSuperinterfaceSet(Type type) {
-    return computeSuperinterfaceSet(type, new HashSet<Type>());
+  public static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) {
+    return computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
   }
 
   /**
@@ -75,22 +75,19 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeLongestInheritancePathToObject(Type)
    * @see #getLeastUpperBound(Type)
    */
-  private static int computeLongestInheritancePathToObject(Type type, int depth) {
-    if (!(type instanceof InterfaceType)) {
-      return 0;
-    }
-    ClassElement classElement = ((InterfaceType) type).getElement();
+  private static int computeLongestInheritancePathToObject(InterfaceType type, int depth) {
+    ClassElement classElement = type.getElement();
     // Object case
     if (classElement.getSupertype() == null) {
       return depth;
     }
-    Type[] superinterfaces = classElement.getInterfaces();
+    InterfaceType[] superinterfaces = classElement.getInterfaces();
     int longestPath = 1;
     int pathLength;
     if (superinterfaces.length > 0) {
       // loop through each of the superinterfaces recursively calling this method and keeping track
       // of the longest path to return
-      for (Type superinterface : superinterfaces) {
+      for (InterfaceType superinterface : superinterfaces) {
         pathLength = computeLongestInheritancePathToObject(superinterface, depth + 1);
         if (pathLength > longestPath) {
           longestPath = pathLength;
@@ -98,7 +95,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     // finally, perform this same check on the super type
-    Type supertype = classElement.getSupertype();
+    InterfaceType supertype = classElement.getSupertype();
     pathLength = computeLongestInheritancePathToObject(supertype, depth + 1);
     if (pathLength > longestPath) {
       longestPath = pathLength;
@@ -116,16 +113,17 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * @see #computeSuperinterfaceSet(Type)
    * @see #getLeastUpperBound(Type)
    */
-  private static Set<Type> computeSuperinterfaceSet(Type type, HashSet<Type> set) {
+  private static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type,
+      HashSet<InterfaceType> set) {
     Element element = type.getElement();
     if (element != null && element instanceof ClassElement) {
       ClassElement classElement = (ClassElement) element;
-      Type[] superinterfaces = classElement.getInterfaces();
-      for (Type superinterface : superinterfaces) {
+      InterfaceType[] superinterfaces = classElement.getInterfaces();
+      for (InterfaceType superinterface : superinterfaces) {
         set.add(superinterface);
         computeSuperinterfaceSet(superinterface, set);
       }
-      Type supertype = classElement.getSupertype();
+      InterfaceType supertype = classElement.getSupertype();
       if (supertype != null) {
         set.add(supertype);
         computeSuperinterfaceSet(supertype, set);
@@ -188,8 +186,8 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     InterfaceType j = (InterfaceType) type;
 
     // compute set of supertypes
-    Set<Type> si = computeSuperinterfaceSet(i);
-    Set<Type> sj = computeSuperinterfaceSet(j);
+    Set<InterfaceType> si = computeSuperinterfaceSet(i);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
 
     // union si with i and sj with j
     si.add(i);
@@ -197,11 +195,11 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
     // compute intersection, reference as set 's'
     si.retainAll(sj);
-    Set<Type> s = si;
+    Set<InterfaceType> s = si;
 
     // define the list sn, a list containing the elements from set 's'
     //ArrayList<Type> sn = new ArrayList<Type>(s.size());
-    Type[] sn = s.toArray(new Type[s.size()]);
+    InterfaceType[] sn = s.toArray(new InterfaceType[s.size()]);
 
     // for each element in Set sn, compute the largest inheritance path to Object
     int[] depths = new int[sn.length];
