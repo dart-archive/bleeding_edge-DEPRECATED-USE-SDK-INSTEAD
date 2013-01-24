@@ -34,8 +34,10 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import java.beans.IntrospectionException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -117,6 +119,24 @@ public class PubYamlUtils {
       return null;
     }
 
+  }
+
+  /**
+   * Return a list of names of the dependencies specified in the pubspec
+   * 
+   * @param contents String contents of pubspec.yaml
+   * @return List<String> names of the packages specified as dependencies
+   */
+  @SuppressWarnings("unchecked")
+  public static List<String> getNamesOfDependencies(String contents) {
+    Map<String, Object> map = parsePubspecYamlToMap(contents);
+    if (map != null) {
+      Map<String, Object> dependecies = (Map<String, Object>) map.get("dependencies");
+      if (dependecies != null && !dependecies.isEmpty()) {
+        return new ArrayList<String>(dependecies.keySet());
+      }
+    }
+    return null;
   }
 
   /**

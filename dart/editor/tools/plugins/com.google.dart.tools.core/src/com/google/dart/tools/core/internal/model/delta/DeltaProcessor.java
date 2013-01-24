@@ -936,7 +936,7 @@ public class DeltaProcessor implements IDeltaProcessor {
   private boolean resetForPackagesChange(IResource deltaRes, int deltaKind) {
     if (deltaRes instanceof IFolder && DartCore.isPackagesDirectory((IFolder) deltaRes)) {
       if (deltaKind == DeltaProcessorDelta.CHANGED) {
-        ((DartProjectImpl) DartCore.create(deltaRes.getProject())).recomputePackageInfo();
+        // do nothing, builder takes care of this change
       } else {
         resetThisProjectCache((DartProjectImpl) DartCore.create(deltaRes.getProject()));
         return true;

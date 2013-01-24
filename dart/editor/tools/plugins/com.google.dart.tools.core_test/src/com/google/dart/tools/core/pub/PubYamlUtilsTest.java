@@ -19,6 +19,7 @@ import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.runtime.IStatus;
 
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -28,13 +29,13 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
 
   public static String pubspecYamlString = "name: web_components\n"
       + "description: an easy way to build web apps in Dart\n" + "author: dart team\n"
-      + "version: 0.0.1\n" + "dependencies: \n" + "  unittest: any\n" + "  args: any\n"
-      + "  html5lib: 0.0.4\n" + "  kittens:\n"
-      + "    git: git://github.com/munificent/kittens.git\n" + "  kittens2: \n" + "    git:\n"
-      + "      url: git://github.com/munificent/kittens.git\n" + "      ref: some-branch\n"
-      + "  marker_prof:\n" + "    git: https://github.com/johnmccutchan/markerprof.git\n"
-      + "  vector_math:\n" + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n"
-      + "  unittest:\n" + "     path:../../unittest-0.1.1/lib";
+      + "version: 0.0.1\n" + "dependencies: \n" + "  args: any\n" + "  html5lib: 0.0.4\n"
+      + "  kittens:\n" + "    git: git://github.com/munificent/kittens.git\n" + "  kittens2: \n"
+      + "    git:\n" + "      url: git://github.com/munificent/kittens.git\n"
+      + "      ref: some-branch\n" + "  marker_prof:\n"
+      + "    git: https://github.com/johnmccutchan/markerprof.git\n" + "  vector_math:\n"
+      + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n" + "  unittest:\n"
+      + "     path:../../unittest-0.1.1/lib";
 
   private static String yamlStringWithErrors = "name: web_components\n"
       + "\tdescription: an easy way to build web apps in Dart\n" + "author:";
@@ -52,6 +53,20 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     PubYamlObject object2 = PubYamlUtils.parsePubspecYamlToObject(yamlString);
     checkPubSpecsEqual(object1, object2);
 
+  }
+  
+  // Assert names of dependencies can be extracted from pubspec.yaml string
+  public void test_getNamesOfDependencies() {
+    List<String> dependencies = PubYamlUtils.getNamesOfDependencies(pubspecYamlString);
+    assertNotNull(dependencies);
+    assertEquals(7, dependencies.size());
+    assertTrue(dependencies.contains("unittest"));
+    assertTrue(dependencies.contains("html5lib"));
+    assertTrue(dependencies.contains("args"));
+    assertTrue(dependencies.contains("kittens2"));
+    assertTrue(dependencies.contains("kittens"));
+    assertTrue(dependencies.contains("marker_prof"));
+    assertTrue(dependencies.contains("vector_math"));
   }
 
   // Assert lock file contents can be parsed and version info extracted 
@@ -71,6 +86,8 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     name = PubYamlUtils.getPubspecName(yamlLockFile);
     assertNull(name);
   }
+
+
 
   // Assert pubspec file contents can be loaded into PubYamlObject
   public void test_parseYamlToObject() {

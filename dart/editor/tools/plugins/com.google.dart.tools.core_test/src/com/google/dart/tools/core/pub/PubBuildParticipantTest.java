@@ -48,6 +48,7 @@ public class PubBuildParticipantTest extends TestCase {
 
     private IContainer runPubContainer;
     private IResource lockFileProcessed;
+    private IResource pubspecProcessed;
 
     public void assertProcessLockFile(IResource expected) {
       boolean success = true;
@@ -58,6 +59,18 @@ public class PubBuildParticipantTest extends TestCase {
         return;
       }
       printFailMessage(expected, lockFileProcessed);
+
+    }
+
+    public void assertProcessPubspecFile(IResource expected) {
+      boolean success = true;
+      if (expected != pubspecProcessed) {
+        success = false;
+      }
+      if (success) {
+        return;
+      }
+      printFailMessage(expected, pubspecProcessed);
 
     }
 
@@ -79,6 +92,14 @@ public class PubBuildParticipantTest extends TestCase {
       assertNotNull(project);
       assertNotNull(monitor);
       lockFileProcessed = lockFile;
+    }
+
+    @Override
+    protected void processPubspecContents(IResource pubspec, IProject project,
+        IProgressMonitor monitor) {
+      assertNotNull(project);
+      assertNotNull(monitor);
+      pubspecProcessed = pubspec;
     }
 
     @Override
@@ -105,17 +126,21 @@ public class PubBuildParticipantTest extends TestCase {
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertRunPub(null);
+    target.assertProcessPubspecFile(null);
     target.assertProcessLockFile(null);
   }
 
   // Assert pub is run on project containing pubspec.yaml
+  // Assert pubspec file is processed
   public void test_build_full_pub() throws Exception {
     Target target = new Target();
     MockContainer project = newEmptyProject();
-    project.addFile(PUBSPEC_FILE_NAME);
+    MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
+    project.add(file);
 
     target.build(new BuildEvent(project, null, MONITOR), MONITOR);
     target.assertRunPub(project);
+    target.assertProcessPubspecFile(file);
     target.assertProcessLockFile(null);
   }
 
@@ -146,11 +171,13 @@ public class PubBuildParticipantTest extends TestCase {
     Target target = new Target();
     MockContainer project = TestProjects.newPubProject1();
 
+    MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
     MockDelta delta = new MockDelta(project);
-    delta.add(PUBSPEC_FILE_NAME, ADDED);
+    delta.add(file, ADDED);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(project);
+    target.assertProcessPubspecFile(file);
     target.assertProcessLockFile(null);
   }
 
@@ -159,11 +186,13 @@ public class PubBuildParticipantTest extends TestCase {
     Target target = new Target();
     MockContainer project = TestProjects.newPubProject1();
 
+    MockFile file = new MockFile(project, PUBSPEC_FILE_NAME);
     MockDelta delta = new MockDelta(project);
-    delta.add(PUBSPEC_FILE_NAME);
+    delta.add(file);
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(project);
+    target.assertProcessPubspecFile(file);
     target.assertProcessLockFile(null);
   }
 
@@ -179,6 +208,7 @@ public class PubBuildParticipantTest extends TestCase {
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(null);
+    target.assertProcessPubspecFile(null);
     target.assertProcessLockFile(null);
   }
 
@@ -194,6 +224,7 @@ public class PubBuildParticipantTest extends TestCase {
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(null);
+    target.assertProcessPubspecFile(null);
     target.assertProcessLockFile(null);
   }
 
@@ -207,6 +238,7 @@ public class PubBuildParticipantTest extends TestCase {
 
     target.build(new BuildEvent(project, delta, MONITOR), MONITOR);
     target.assertRunPub(null);
+    target.assertProcessPubspecFile(null);
     target.assertProcessLockFile(null);
   }
 

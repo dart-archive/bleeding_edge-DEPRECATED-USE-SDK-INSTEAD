@@ -509,6 +509,15 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
     }
   }
 
+  public List<String> getPackageDependencies() {
+    try {
+      return ((DartProjectInfo) getElementInfo()).getPackageDependencies();
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+      return null;
+    }
+  }
+
   @Override
   public IPath getPath() {
     return project.getFullPath();
@@ -598,18 +607,25 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
   }
 
   /**
-   * This should be called when the packages folder is created, deleted or changed so that the self
+   * This should be called when the pubspec file is created, deleted or changed so that the self
    * link to source can be verified and updated.
    */
-  public void recomputePackageInfo() {
+  public void recomputePackageInfo(IResource pubspecFile) {
     try {
-      ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(null);
-      IResource pubspec = project.findMember(DartCore.PUBSPEC_FILE_NAME);
-      if (pubspec != null) {
-        String name = PubYamlUtils.getPubspecName(IFileUtilities.getContents((IFile) pubspec));
-        if (name != null){
-          ((DartProjectInfo) getElementInfo()).setLinkedPackageDirName(name);
-        }      
+
+      DartProjectInfo info = ((DartProjectInfo) getElementInfo());
+      info.setLinkedPackageDirName(null);
+      info.setPackageDependencies(null);
+
+      if (pubspecFile == null) {
+        pubspecFile = project.findMember(DartCore.PUBSPEC_FILE_NAME);
+      }
+      if (pubspecFile != null) {
+        String contents = IFileUtilities.getContents((IFile) pubspecFile);
+        if (contents != null) {
+          info.setLinkedPackageDirName(PubYamlUtils.getPubspecName(contents));
+          info.setPackageDependencies(PubYamlUtils.getNamesOfDependencies(contents));
+        }
       }
 
     } catch (Exception exception) {
@@ -790,7 +806,7 @@ public class DartProjectImpl extends OpenableElementImpl implements DartProject 
       }
       projectInfo.setChildren(children.toArray(new DartElementImpl[children.size()]));
       // check for package self link
-      recomputePackageInfo();
+      recomputePackageInfo(null);
 
       return true;
     }

@@ -46,12 +46,26 @@ public class DartProjectInfo extends OpenableElementInfo {
   private String linkedPackageDirName;
 
   /**
+   * A list containing the names of the dependencies as specified in the pubspec.yaml file
+   */
+  private List<String> dependencies;
+
+  /**
    * Return a list containing the project-relative paths to all children in the project.
    * 
    * @return a list containing the project-relative paths to all children in the project
    */
   public List<String> getChildPaths() {
     return childPaths;
+  }
+
+  /**
+   * Return a list containing the names of all the dependencies specified in pubspec.yaml file
+   * 
+   * @return the dependencies
+   */
+  public List<String> getPackageDependencies() {
+    return dependencies;
   }
 
   /**
@@ -94,6 +108,15 @@ public class DartProjectInfo extends OpenableElementInfo {
    */
   public void setChildPaths(List<String> paths) {
     childPaths = paths;
+  }
+
+  /**
+   * Set the dependencies to the given list populated from information in pubspec.yaml
+   * 
+   * @param dependencies the dependencies to set
+   */
+  public void setPackageDependencies(List<String> dependencies) {
+    this.dependencies = dependencies;
   }
 
   /**

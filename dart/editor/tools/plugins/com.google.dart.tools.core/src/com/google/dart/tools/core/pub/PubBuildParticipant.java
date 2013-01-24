@@ -20,6 +20,7 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.builder.DartBuilder;
+import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IContainer;
@@ -30,6 +31,7 @@ import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -59,9 +61,15 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       if (delta.getKind() == IResourceDelta.CHANGED) {
         if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
           runPub(resource.getParent(), monitor);
+          processPubspecContents(resource, resource.getProject(), monitor);
         }
         if (resource.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
           processLockFileContents(resource, resource.getProject(), monitor);
+        }
+      }
+      if (delta.getKind() == IResourceDelta.REMOVED) {
+        if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
+          processPubspecContents(null, resource.getProject(), monitor);
         }
       }
     }
@@ -74,6 +82,10 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
     if (proxy.getType() == IResource.FILE) {
       if (proxy.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
         runPub(proxy.requestResource().getParent(), monitor);
+        processPubspecContents(
+            proxy.requestResource(),
+            proxy.requestResource().getProject(),
+            monitor);
       }
       if (proxy.getName().equals(DartCore.PUBSPEC_LOCK_FILE_NAME)) {
         processLockFileContents(
@@ -112,6 +124,23 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       }
       PubManager.getInstance().notifyListeners(lockFile.getParent());
     }
+  }
+
+  /**
+   * Process the pubspec file to extract name and dependencies and save in model (DartProjectImpl)
+   * 
+   * @param pubspec the pubspec.yaml file
+   * @param project IProject project for the pubspec file
+   * @param monitor the progress monitor
+   * @throws IOException
+   * @throws CoreException
+   */
+  protected void processPubspecContents(IResource pubspec, IProject project,
+      IProgressMonitor monitor) {
+
+    DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
+    dartProject.recomputePackageInfo(pubspec);
+
   }
 
   /**
