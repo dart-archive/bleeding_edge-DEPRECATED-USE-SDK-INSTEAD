@@ -39,7 +39,8 @@ import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 
 /**
- * Updates a {@link Project} based upon traversing {@link IResource} and {@link IResourceDelta}.
+ * {@code DeltaProcessor} traverses both {@link IResource} hierarchies and {@link IResourceDelta}s.
+ * As Dart related resources are encountered, registered {@link DeltaListener}s are notified.
  */
 public class DeltaProcessor {
 
@@ -118,9 +119,9 @@ public class DeltaProcessor {
   private Event event;
 
   /**
-   * Construct a new instance for updating the specified project.
+   * Construct a new instance for traversing project resources
    * 
-   * @param project the project being updated (not {@code null})
+   * @param project the project containing the resources being traversed (not {@code null})
    */
   public DeltaProcessor(Project project) {
     this.project = project;
@@ -136,11 +137,10 @@ public class DeltaProcessor {
   }
 
   /**
-   * Traverse the specified resources and update the associated {@link Project}. Contexts will be
-   * notified of new sources via {@link AnalysisContext#sourceAvailable(Source)}, and optionally
-   * notified of changed sources via {@link AnalysisContext#sourceChanged(Source)}.
+   * Traverse the specified resources in the associated {@link Project}. Listeners will be notified
+   * of Dart related resources.
    * 
-   * @param resource the container of resources to be recursively traversed
+   * @param resource the container of resources to be recursively traversed (not {@code null})
    */
   public void traverse(IContainer resource) throws CoreException {
     event = new Event();
@@ -149,11 +149,10 @@ public class DeltaProcessor {
   }
 
   /**
-   * Traverse the specified changes and update the associated {@link Project}. Contexts will be
-   * notified of changed sources via {@link AnalysisContext#sourceChanged(Source)}, and optionally
-   * notified of new sources via {@link AnalysisContext#sourceAvailable(Source)}.
+   * Traverse the specified resource changes in the associated {@link Project}. Listeners will be
+   * notified of Dart related resource changes.
    * 
-   * @param delta the delta describing the resource changes
+   * @param delta the delta describing the resource changes (not {@code null})
    */
   public void traverse(IResourceDelta delta) throws CoreException {
     event = new Event();
@@ -162,9 +161,9 @@ public class DeltaProcessor {
   }
 
   /**
-   * Traverse the specified changes and update the associated {@link Project}.
+   * Traverse the specified changes.
    * 
-   * @param delta the delta describing the resource changes
+   * @param delta the delta describing the resource changes (not {@code null})
    */
   protected void processDelta(IResourceDelta delta) throws CoreException {
     delta.accept(new IResourceDeltaVisitor() {
@@ -249,7 +248,7 @@ public class DeltaProcessor {
   }
 
   /**
-   * Process changes in the "packages" directory
+   * Traverse changes in the "packages" directory
    * 
    * @param delta the delta describing the resource changes (not {@code null})
    */
@@ -332,7 +331,7 @@ public class DeltaProcessor {
   }
 
   /**
-   * Process added resources in the "packages" directory
+   * Traverse added resources in the "packages" directory
    * 
    * @param resource the added resource (not {@code null})
    */
@@ -346,7 +345,7 @@ public class DeltaProcessor {
   }
 
   /**
-   * Traverse the specified resources and update the associated {@link Project}.
+   * Traverse the specified resources
    * 
    * @param resource the resources to be recursively traversed
    */
@@ -420,6 +419,9 @@ public class DeltaProcessor {
     return setContextFor((IContainer) proxy.requestResource());
   }
 
+  /**
+   * Return {@code true} if this container is a project or contains a pubspec.yaml
+   */
   private boolean isTopContainerInContext(IContainer container) {
     if (container.getType() == PROJECT) {
       return true;

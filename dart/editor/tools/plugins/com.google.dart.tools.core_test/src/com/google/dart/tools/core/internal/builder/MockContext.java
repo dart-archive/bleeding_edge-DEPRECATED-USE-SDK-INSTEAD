@@ -40,7 +40,6 @@ public class MockContext implements AnalysisContext {
   private boolean discarded = false;
   private SourceContainer extractedContainer = null;
   private AnalysisContext mergedContext = null;
-  private HashSet<Object> availableSources = new HashSet<Object>();
   private HashSet<Object> changedSources = new HashSet<Object>();
   private HashSet<Object> deletedSources = new HashSet<Object>();
 
@@ -147,7 +146,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public void sourceAvailable(Source source) {
-    availableSources.add(source);
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -163,10 +162,6 @@ public class MockContext implements AnalysisContext {
   @Override
   public void sourcesDeleted(SourceContainer container) {
     deletedSources.add(container);
-  }
-
-  void assertSourcesAvailable(IResource... expected) {
-    assertEqualContents(availableSources, expected);
   }
 
   void assertSourcesChanged(IResource... expected) {

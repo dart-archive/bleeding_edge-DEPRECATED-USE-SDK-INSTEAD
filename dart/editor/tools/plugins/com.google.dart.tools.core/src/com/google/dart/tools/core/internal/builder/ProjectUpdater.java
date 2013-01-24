@@ -85,7 +85,6 @@ public class ProjectUpdater implements DeltaListener {
   public void sourceAdded(SourceDeltaEvent event) {
     Source source = event.getSource();
     if (source != null) {
-      event.getContext().sourceAvailable(source);
       sourceChanged(event);
     }
   }
