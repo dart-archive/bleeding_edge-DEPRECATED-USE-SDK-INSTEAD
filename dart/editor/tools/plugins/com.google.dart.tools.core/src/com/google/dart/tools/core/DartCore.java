@@ -15,6 +15,7 @@ package com.google.dart.tools.core;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -950,7 +951,9 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param message an explanation of why the error occurred or what it means
    */
   public static void logError(String message) {
+
     getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, null));
+    Instrumentation.operation("DartCore.logError").with("Message", message).log();
   }
 
   /**
@@ -961,6 +964,9 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static void logError(String message, Throwable exception) {
     getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
+    Instrumentation.operation("DartCore.logError").with("Message", message).with(
+        "Exception",
+        exception != null ? exception.toString() : "null").log();
   }
 
   /**
@@ -970,6 +976,9 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static void logError(Throwable exception) {
     getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, exception.getMessage(), exception));
+    Instrumentation.operation("DartCore.logError").with(
+        "Exception",
+        exception != null ? exception.toString() : "null").log();
   }
 
   /**
@@ -991,6 +1000,9 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static void logInformation(String message, Throwable exception) {
     if (DartCoreDebug.VERBOSE) {
       getPluginLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
+      Instrumentation.operation("DartCore.logInformation").with(
+          "Exception",
+          exception != null ? exception.toString() : "null").with("message", message).log();
     }
   }
 
