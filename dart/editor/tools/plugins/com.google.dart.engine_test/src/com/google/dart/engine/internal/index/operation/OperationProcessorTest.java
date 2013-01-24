@@ -64,7 +64,6 @@ public class OperationProcessorTest extends EngineTestCase {
       operations.add(stopOperation);
     }
     // prepare OperationQueue to return elements from "operations"
-
     OperationQueue queue = mock(OperationQueue.class);
     when(queue.dequeue(anyInt())).then(new Answer<IndexOperation>() {
       @Override
@@ -194,5 +193,23 @@ public class OperationProcessorTest extends EngineTestCase {
     processor.stop(false);
     Source[] sources = processor.stop(false);
     assertExactElements(sources, new Object[] {source});
+  }
+
+  public void test_waitForRunning() throws Exception {
+    OperationQueue queue = mock(OperationQueue.class);
+    when(queue.getOperations()).thenReturn(ImmutableList.<IndexOperation> of());
+    // start processor
+    final OperationProcessor processor = new OperationProcessor(queue);
+    new Thread() {
+      @Override
+      public void run() {
+        processor.run();
+      }
+    }.start();
+    assertEquals(true, processor.waitForRunning());
+    // stop
+    processor.stop(true);
+    // cannot wait for "running" again
+    assertEquals(false, processor.waitForRunning());
   }
 }

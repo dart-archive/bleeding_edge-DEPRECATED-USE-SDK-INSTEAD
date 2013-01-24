@@ -784,6 +784,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           processor.run();
         }
       }.start();
+      processor.waitForRunning();
       return runner.run(queue, processor, index, engine);
     } finally {
       processor.stop(false);

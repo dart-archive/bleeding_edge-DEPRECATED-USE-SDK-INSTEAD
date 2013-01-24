@@ -145,9 +145,22 @@ public class OperationProcessor {
           return getUnanalyzedSources();
         }
       }
-      Uninterruptibles.sleepUninterruptibly(10, TimeUnit.MILLISECONDS);
+      Uninterruptibles.sleepUninterruptibly(1, TimeUnit.MILLISECONDS);
     }
     return getUnanalyzedSources();
+  }
+
+  /**
+   * Waits until processors will switch from "ready" to "running" state.
+   * 
+   * @return <code>true</code> if processor is now actually in "running" state, e.g. not in
+   *         "stopped" state.
+   */
+  public boolean waitForRunning() {
+    while (state == ProcessorState.READY) {
+      Thread.yield();
+    }
+    return state == ProcessorState.RUNNING;
   }
 
   /**
