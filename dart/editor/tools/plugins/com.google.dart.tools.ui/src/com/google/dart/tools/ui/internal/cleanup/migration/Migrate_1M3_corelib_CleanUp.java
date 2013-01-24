@@ -32,6 +32,7 @@ import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Elements;
+import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeKind;
@@ -42,6 +43,7 @@ import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_FOR_IN_STATEMENT_ITERABLE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
+import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 import static com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.isSubType;
 
@@ -98,11 +100,39 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
    */
   private static boolean isUsedAsIterable(DartNode node) {
     StructuralPropertyDescriptor locationInParent = getLocationInParent(node);
+    if (locationInParent == DART_VARIABLE_VALUE) {
+      final DartVariable variable = (DartVariable) node.getParent();
+      // may be assigned to the specific type
+      if (variable.getParent() instanceof DartVariableStatement) {
+        DartVariableStatement statement = (DartVariableStatement) variable.getParent();
+        if (statement.getTypeNode() != null) {
+          return false;
+        }
+      }
+      // check if variable is used only as Iterable
+      final VariableElement variableElement = variable.getElement();
+      final boolean result[] = new boolean[] {true};
+      node.getRoot().accept(new ASTVisitor<Void>() {
+        @Override
+        public Void visitIdentifier(DartIdentifier node) {
+          if (node.getElement() == variableElement && node != variable.getName()) {
+            result[0] &= isUsedAsIterable(node);
+          }
+          return super.visitIdentifier(node);
+        }
+      });
+      return result[0];
+    }
+    // used as iterable in for-in statement
     if (locationInParent == DART_FOR_IN_STATEMENT_ITERABLE) {
       return true;
     }
     if (locationInParent == DART_METHOD_INVOCATION_TARGET) {
-      return true;
+      DartMethodInvocation invocation = (DartMethodInvocation) node.getParent();
+      String name = invocation.getFunctionNameString();
+      return "mappedBy".equals(name) || "map".equals(name) || "where".equals(name)
+          || "filter".equals(name) || "contains".equals(name) || "forEach".equals(name)
+          || "reduce".equals(name) || "every".equals(name) || "some".equals(name);
     }
     return false;
   }
@@ -197,15 +227,12 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
               addReplaceEdit(SourceRangeFactory.create(nameNode), "mappedBy");
             }
             if (!isUsedAsIterable(node)) {
-              Type sourceType = node.getTarget().getType();
-              if (TypeKind.of(sourceType) == TypeKind.INTERFACE) {
-                String sourceTypeName = sourceType.getElement().getName();
-                if (sourceTypeName.equals("List")) {
-                  addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toList()");
-                }
-                if (sourceTypeName.equals("Set")) {
-                  addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toSet()");
-                }
+              String sourceTypeName = findSourceTypeName(node);
+              if (sourceTypeName.equals("List")) {
+                addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toList()");
+              }
+              if (sourceTypeName.equals("Set")) {
+                addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toSet()");
               }
             }
           }
@@ -294,6 +321,24 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
           addReplaceEdit(r, "  }" + eol);
           addReplaceEdit(r, "  " + elementTypeSource + " current => _current;" + eol);
         }
+      }
+
+      private String findSourceTypeName(DartExpression expression) {
+        if (expression instanceof DartMethodInvocation) {
+          DartMethodInvocation invocation = (DartMethodInvocation) expression;
+          DartExpression target = invocation.getTarget();
+          if (target != null) {
+            Type sourceType = target.getType();
+            if (TypeKind.of(sourceType) == TypeKind.INTERFACE) {
+              String sourceTypeName = sourceType.getElement().getName();
+              if (sourceTypeName.equals("List") || sourceTypeName.equals("Set")) {
+                return sourceTypeName;
+              }
+            }
+            return findSourceTypeName(target);
+          }
+        }
+        return null;
       }
 
       /**

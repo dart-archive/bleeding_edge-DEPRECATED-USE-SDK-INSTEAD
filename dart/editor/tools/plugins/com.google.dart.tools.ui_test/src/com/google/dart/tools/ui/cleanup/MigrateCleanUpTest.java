@@ -529,10 +529,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  List list;",
         "  list.last();",
         "",
-        "  Queue queue;",
-        "  queue.first();",
-        "  queue.last();",
-        "",
         "  Map map;",
         "  map.getKeys();",
         "  map.getValues();",
@@ -543,10 +539,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  List list;",
         "  list.last;",
-        "",
-        "  Queue queue;",
-        "  queue.first;",
-        "  queue.last;",
         "",
         "  Map map;",
         "  map.keys;",
@@ -1045,6 +1037,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new List();",
         "  var v1 = src.map((e) => true);",
+        "  print(v1[0]);",
         "  List v2 = src.map((e) => true);",
         "  for (var v3 in src.map((e) => true)) {}",
         "  src.map((e) => true).forEach((e) {print(e);});",
@@ -1055,6 +1048,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new List();",
         "  var v1 = src.mappedBy((e) => true).toList();",
+        "  print(v1[0]);",
         "  List v2 = src.mappedBy((e) => true).toList();",
         "  for (var v3 in src.mappedBy((e) => true)) {}",
         "  src.mappedBy((e) => true).forEach((e) {print(e);});",
@@ -1070,6 +1064,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new List();",
         "  var v1 = src.filter((e) => true);",
+        "  print(v1[0]);",
         "  List v2 = src.filter((e) => true);",
         "  for (var v3 in src.filter((e) => true)) {}",
         "  src.filter((e) => true).forEach((e) {print(e);});",
@@ -1080,9 +1075,55 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new List();",
         "  var v1 = src.where((e) => true).toList();",
+        "  print(v1[0]);",
         "  List v2 = src.where((e) => true).toList();",
         "  for (var v3 in src.where((e) => true)) {}",
         "  src.where((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_whereList_2() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v = src.filter((e) => true).filter((e) => true);",
+        "  print(v[0]);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new List();",
+        "  var v = src.where((e) => true).where((e) => true).toList();",
+        "  print(v[0]);",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  // XXX
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=8073
+   */
+  public void test_1M3_corelib_whereList_temporaryAssigned_usedAsIterableOnly() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var t = [1, 2].filter((x) => x < 2);",
+        "  for (var x in t) {}",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var t = [1, 2].where((x) => x < 2);",
+        "  for (var x in t) {}",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
@@ -1095,6 +1136,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new Set();",
         "  var v1 = src.filter((e) => true);",
+        "  v1.containsAll([]);",
         "  Set v2 = src.filter((e) => true);",
         "  for (var v3 in src.filter((e) => true)) {}",
         "  src.filter((e) => true).forEach((e) {print(e);});",
@@ -1105,9 +1147,31 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "main() {",
         "  var src = new Set();",
         "  var v1 = src.where((e) => true).toSet();",
+        "  v1.containsAll([]);",
         "  Set v2 = src.where((e) => true).toSet();",
         "  for (var v3 in src.where((e) => true)) {}",
         "  src.where((e) => true).forEach((e) {print(e);});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_whereSet_2() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new Set();",
+        "  var v = src.filter((e) => true).filter((e) => true);",
+        "  v.containsAll([]);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var src = new Set();",
+        "  var v = src.where((e) => true).where((e) => true).toSet();",
+        "  v.containsAll([]);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
