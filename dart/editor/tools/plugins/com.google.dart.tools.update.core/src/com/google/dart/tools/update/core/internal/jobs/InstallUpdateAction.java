@@ -33,7 +33,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
@@ -150,7 +149,7 @@ public class InstallUpdateAction extends Action {
       MessageDialog.openError(
           getShell(),
           UpdateJobMessages.InstallUpdateAction_errorTitle,
-          NLS.bind(UpdateJobMessages.InstallUpdateAction_errorMessage, th.getMessage()));
+          UpdateJobMessages.InstallUpdateAction_errorMessage);
     }
   }
 
