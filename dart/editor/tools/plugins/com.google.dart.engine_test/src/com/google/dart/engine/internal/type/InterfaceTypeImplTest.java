@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -219,6 +220,12 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertEquals(typeB, typeC.getLeastUpperBound(typeB));
   }
 
+  public void test_getLeastUpperBound_functionType() {
+    Type interfaceType = classElement("A").getType();
+    FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    assertNull(interfaceType.getLeastUpperBound(functionType));
+  }
+
   public void test_getLeastUpperBound_mixinCase() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
@@ -232,6 +239,11 @@ public class InterfaceTypeImplTest extends EngineTestCase {
         classElement("P").getType()});
     assertEquals(typeA, typeD.getLeastUpperBound(typeC));
     assertEquals(typeA, typeC.getLeastUpperBound(typeD));
+  }
+
+  public void test_getLeastUpperBound_null() {
+    Type interfaceType = classElement("A").getType();
+    assertNull(interfaceType.getLeastUpperBound(null));
   }
 
   public void test_getLeastUpperBound_object() {
@@ -434,7 +446,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertTrue(typeC.isMoreSpecificThan(typeA));
   }
 
-  public void test_isMoreSpecificThan_same() {
+  public void test_isMoreSpecificThan_self() {
     InterfaceType type = classElement("A").getType();
     assertTrue(type.isMoreSpecificThan(type));
   }
@@ -510,6 +522,39 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementA = classElement("A");
     InterfaceType typeA = elementA.getType();
     assertTrue(typeA.isSubtypeOf(typeA));
+  }
+
+  public void test_isSubtypeOf_typeArguments() {
+    ClassElement elementA = classElement("A", "E");
+    ClassElement elementI = classElement("I");
+    ClassElement elementJ = classElement("J", elementI.getType());
+    ClassElement elementK = classElement("K");
+    InterfaceType typeA = elementA.getType();
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeAK = new InterfaceTypeImpl(elementA);
+    typeAI.setTypeArguments(new Type[] {elementI.getType()});
+    typeAJ.setTypeArguments(new Type[] {elementJ.getType()});
+    typeAK.setTypeArguments(new Type[] {elementK.getType()});
+
+    // A<J> <: A<I> since J <: I
+    assertTrue(typeAJ.isSubtypeOf(typeAI));
+    assertFalse(typeAI.isSubtypeOf(typeAJ));
+
+    // A<I> <: A<I> since I <: I
+    assertTrue(typeAI.isSubtypeOf(typeAI));
+
+    // A <: A<I> and A <: A<J>
+    assertTrue(typeA.isSubtypeOf(typeAI));
+    assertTrue(typeA.isSubtypeOf(typeAJ));
+
+    // A<I> <: A and A<J> <: A
+    assertTrue(typeAI.isSubtypeOf(typeA));
+    assertTrue(typeAJ.isSubtypeOf(typeA));
+
+    // A<I> !<: A<K> and A<K> !<: A<I>
+    assertFalse(typeAI.isSubtypeOf(typeAK));
+    assertFalse(typeAK.isSubtypeOf(typeAI));
   }
 
   public void test_isSupertypeOf_directSupertype() {

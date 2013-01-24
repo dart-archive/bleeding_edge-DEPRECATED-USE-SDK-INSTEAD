@@ -76,7 +76,7 @@ public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
 
   @Override
   public boolean isSubtypeOf(Type type) {
-    return false;
+    return true;
   }
 
   @Override

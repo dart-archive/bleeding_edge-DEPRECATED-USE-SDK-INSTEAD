@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 
 import java.util.Arrays;
@@ -363,37 +364,62 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // T is a subtype of S, written T <: S, iff [bottom/dynamic]T << S
     //
-    // TODO(brianwilkerson) This is an approximation that needs to be fixed once the type
-    // substitution operation is implemented.
     if (type == DynamicTypeImpl.getInstance()) {
+      return true;
+    } else if (type instanceof TypeVariableType) {
       return true;
     } else if (!(type instanceof InterfaceType)) {
       return false;
     } else if (this.equals(type)) {
       return true;
     }
-    ClassElement element = getElement();
-    if (element == null) {
+    InterfaceType typeT = this;
+    InterfaceType typeS = (InterfaceType) type;
+    ClassElement elementT = getElement();
+    if (elementT == null) {
       return false;
     }
-    Type supertype = element.getSupertype();
+    typeT = substitute(typeArguments, TypeVariableTypeImpl.getTypes(elementT.getTypeVariables()));
+    if (typeT.equals(typeS)) {
+      return true;
+    } else if (ObjectUtilities.equals(elementT, typeS.getElement())) {
+      // For each of the type arguments return true if all type args from T is a subtype of all
+      // types from S.
+      Type[] typeTArgs = typeT.getTypeArguments();
+      Type[] typeSArgs = typeS.getTypeArguments();
+      if (typeTArgs.length != typeSArgs.length) {
+        // This case covers the case where two objects are being compared that have a different
+        // number of parameterized types.
+        return false;
+      }
+      for (int i = 0; i < typeTArgs.length; i++) {
+        // Recursively call isSubtypeOf the type arguments and return false if the T argument is not
+        // a subtype of the S argument.
+        if (!typeTArgs[i].isSubtypeOf(typeSArgs[i])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    Type supertype = elementT.getSupertype();
+    // The type is Object, return false.
     if (supertype == null) {
-      // The type is Object, return false.
       return false;
     }
-    Type[] interfaceTypes = element.getInterfaces();
+    Type[] interfaceTypes = elementT.getInterfaces();
     for (Type interfaceType : interfaceTypes) {
-      if (interfaceType.isSubtypeOf(type)) {
+      if (interfaceType.isSubtypeOf(typeS)) {
         return true;
       }
     }
-    Type[] mixinTypes = element.getMixins();
+    Type[] mixinTypes = elementT.getMixins();
     for (Type mixinType : mixinTypes) {
-      if (mixinType.equals(type)) {
+      if (mixinType.equals(typeS)) {
         return true;
       }
     }
-    return supertype.isSubtypeOf(type);
+    return supertype.isSubtypeOf(typeS);
   }
 
   /**
