@@ -15,7 +15,7 @@ class Uri extends uri.Uri {
    * values. For example, '?a=b&c=d&a=e' would be parsed as
    * [{'a':['b','e'],'c':['d']}].
    */
-  // TODO(jmesserly): consolidate with new Uri.fromString(...)
+  // TODO(jmesserly): consolidate with Uri.parse(...)
   static Map<String, List<String>> parseQuery(String queryString) {
     final queryParams = new Map<String, List<String>>();
     if (queryString.startsWith('?')) {
