@@ -47,7 +47,7 @@ String createHtmlResponse() {
   </style>
   <body>
     <br/><br/>
-    <p>Current time: ${new Date.now()}</p>
+    <p>Current time: ${new DateTime.now()}</p>
   </body>
 </html>
 ''';

@@ -64,15 +64,15 @@ class User {
     markActivity();
   }
 
-  void markActivity() { _lastActive = new Date.now(); }
-  Duration idleTime(Date now) => now.difference(_lastActive);
+  void markActivity() { _lastActive = new DateTime.now(); }
+  Duration idleTime(DateTime now) => now.difference(_lastActive);
 
   String get handle => _handle;
   String get sessionId => _sessionId;
 
   String _handle;
   String _sessionId;
-  Date _lastActive;
+  DateTime _lastActive;
 }
 
 
@@ -85,16 +85,16 @@ class Message {
       const [ "join", "message", "leave", "timeout"];
 
   Message.join(this._from)
-      : _received = new Date.now(), _type = JOIN;
+      : _received = new DateTime.now(), _type = JOIN;
   Message(this._from, this._message)
-      : _received = new Date.now(), _type = MESSAGE;
+      : _received = new DateTime.now(), _type = MESSAGE;
   Message.leave(this._from)
-      : _received = new Date.now(), _type = LEAVE;
+      : _received = new DateTime.now(), _type = LEAVE;
   Message.timeout(this._from)
-      : _received = new Date.now(), _type = TIMEOUT;
+      : _received = new DateTime.now(), _type = TIMEOUT;
 
   User get from => _from;
-  Date get received => _received;
+  DateTime get received => _received;
   String get message => _message;
   void set messageNumber(int n) { _messageNumber = n; }
 
@@ -109,7 +109,7 @@ class Message {
   }
 
   User _from;
-  Date _received;
+  DateTime _received;
   int _type;
   String _message;
   int _messageNumber;
@@ -196,7 +196,7 @@ class Topic {
   void _handleTimer(Timer timer) {
     Set inactiveSessions = new Set();
     // Collect all sessions which have not been active for some time.
-    Date now = new Date.now();
+    DateTime now = new DateTime.now();
     _activeUsers.forEach((String sessionId, User user) {
       if (user.idleTime(now).inMilliseconds > DEFAULT_IDLE_TIMEOUT) {
         inactiveSessions.add(sessionId);
@@ -502,7 +502,7 @@ class IsolatedServer {
               responseData["messages"] = messages;
               responseData["activeUsers"] = _topic.activeUsers;
               responseData["upTime"] =
-                  new Date.now().difference(_serverStart).inMilliseconds;
+                  new DateTime.now().difference(_serverStart).inMilliseconds;
             } else {
               responseData["disconnect"] = true;
             }
@@ -529,7 +529,7 @@ class IsolatedServer {
   void init() {
     _logRequests = false;
     _topic = new Topic();
-    _serverStart = new Date.now();
+    _serverStart = new DateTime.now();
     _messageCount = 0;
     _messageRate = new Rate();
 
@@ -616,7 +616,7 @@ class IsolatedServer {
   Topic _topic;
   Timer _cleanupTimer;
   Timer _loggingTimer;
-  Date _serverStart;
+  DateTime _serverStart;
 
   bool _logging;
   int _messageCount;
@@ -641,7 +641,7 @@ class Rate {
       : _timeRange = timeRange,
         _buckets = new List.fixedLength(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
-        _currentBucketTime = new Date.now().millisecondsSinceEpoch,
+        _currentBucketTime = new DateTime.now().millisecondsSinceEpoch,
         _sum = 0 {
     _bucketTimeRange = (_timeRange / buckets).toInt();
     for (int i = 0; i < _buckets.length; i++) {
@@ -666,7 +666,7 @@ class Rate {
   // matching the current time. Subtract all buckets vacated from the
   // sum as bucket for current time is located.
   void _timePassed() {
-    int time = new Date.now().millisecondsSinceEpoch;
+    int time = new DateTime.now().millisecondsSinceEpoch;
     if (time < _currentBucketTime + _bucketTimeRange) {
       // Still same bucket.
       return;

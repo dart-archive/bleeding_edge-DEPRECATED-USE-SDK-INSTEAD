@@ -14,12 +14,12 @@ class DateUtils {
 
   static const YESTERDAY = 'Yesterday';
 
-  static const MS_IN_WEEK = Date.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
+  static const MS_IN_WEEK = DateTime.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
 
-  // TODO(jmesserly): workaround for missing Date.fromDate in Dartium
+  // TODO(jmesserly): workaround for missing DateTime.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
   // Parse a string like: "Mon, 27 Jun 2011 15:22:00 -0700"
-  static Date fromString(String text) {
+  static DateTime fromString(String text) {
     final parts = text.split(' ');
     if (parts.length == 1) {
       return _parseIsoDate(text);
@@ -57,7 +57,7 @@ class DateUtils {
     int zoneOffset = int.parse(parts[5]) ~/ 100;
 
     // Pretend it's a UTC time
-    Date result = new Date.utc(year, month, day, hours, minutes, seconds, 0);
+    DateTime result = new DateTime.utc(year, month, day, hours, minutes, seconds, 0);
     // Shift it to the proper zone, but it's still a UTC time
     result = result.subtract(new Duration(hours: zoneOffset));
     // Then render it as a local time
@@ -65,11 +65,11 @@ class DateUtils {
   }
 
   /** Parse a string like: 2011-07-19T22:03:04.000Z */
-  // TODO(jmesserly): workaround for Date.fromDate, which has issues:
+  // TODO(jmesserly): workaround for DateTime.fromDate, which has issues:
   //   * on Dart VM it doesn't handle all of ISO 8601. See b/5055106.
   //   * on DartC it doesn't work on Safari. See b/5062557.
   // Remove this once that function is fully implemented
-  static Date _parseIsoDate(String text) {
+  static DateTime _parseIsoDate(String text) {
     void ensure(bool value) {
       if (!value) {
         throw 'bad date format, expected YYYY-MM-DDTHH:MM:SS.mmmZ: $text';
@@ -97,7 +97,7 @@ class DateUtils {
       milliseconds = int.parse(seconds[1]);
     }
 
-    return new Date(
+    return new DateTime(
         int.parse(date[0]),
         int.parse(date[1]),
         int.parse(date[2]),
@@ -114,13 +114,13 @@ class DateUtils {
    *  - if it's from the same week, just show the weekday
    *  - otherwise, show just the date
    */
-  static String toRecentTimeString(Date then) {
-    bool datesAreEqual(Date d1, Date d2) {
+  static String toRecentTimeString(DateTime then) {
+    bool datesAreEqual(DateTime d1, DateTime d2) {
       return (d1.year == d2.year) && (d1.month == d2.month) &&
           (d1.day == d2.day);
     }
 
-    final now = new Date.now();
+    final now = new DateTime.now();
     if (datesAreEqual(then, now)) {
       return toHourMinutesString(new Duration(
           days: 0,
@@ -130,7 +130,7 @@ class DateUtils {
           milliseconds: then.millisecond));
     }
 
-    final today = new Date(now.year, now.month, now.day, 0, 0, 0, 0);
+    final today = new DateTime(now.year, now.month, now.day, 0, 0, 0, 0);
     Duration delta = today.difference(then);
     if (delta.inMilliseconds < Duration.MILLISECONDS_PER_DAY) {
       return YESTERDAY;
@@ -148,14 +148,14 @@ class DateUtils {
     }
   }
 
-  // TODO(jmesserly): this is a workaround for unimplemented Date.weekday
+  // TODO(jmesserly): this is a workaround for unimplemented DateTime.weekday
   // Code inspired by v8/src/date.js
-  static int getWeekday(Date dateTime) {
-    final unixTimeStart = new Date(1970, 1, 1, 0, 0, 0, 0);
+  static int getWeekday(DateTime dateTime) {
+    final unixTimeStart = new DateTime(1970, 1, 1, 0, 0, 0, 0);
     int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
     int daysSince1970 = msSince1970 ~/ Duration.MILLISECONDS_PER_DAY;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + Date.THU) % Date.DAYS_IN_WEEK);
+    return ((daysSince1970 + DateTime.THU) % DateTime.DAYS_IN_WEEK);
   }
 
   /** Formats a time in H:MM A format */

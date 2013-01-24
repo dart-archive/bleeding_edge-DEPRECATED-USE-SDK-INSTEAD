@@ -8,7 +8,7 @@ part of common;
 
 class BenchUtil {
   static int get now {
-    return new Date.now().millisecondsSinceEpoch;
+    return new DateTime.now().millisecondsSinceEpoch;
   }
 
   static Map<String, Object> deserialize(String data) {

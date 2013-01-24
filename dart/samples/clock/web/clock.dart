@@ -47,18 +47,18 @@ class CountDownClock {
 
     createNumbers(parent, parent.clientWidth, parent.clientHeight);
 
-    updateTime(new Date.now());
+    updateTime(new DateTime.now());
 
     window.requestAnimationFrame(tick);
   }
 
   void tick(num time) {
-    updateTime(new Date.now());
+    updateTime(new DateTime.now());
     balls.tick(time);
     window.requestAnimationFrame(tick);
   }
 
-  void updateTime(Date now) {
+  void updateTime(DateTime now) {
     if (now.hour != displayedHour) {
       setDigits(pad2(now.hour), hours);
       displayedHour = now.hour;

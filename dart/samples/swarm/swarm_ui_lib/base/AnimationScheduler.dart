@@ -125,7 +125,7 @@ class AnimationScheduler {
       _setupInterval();
     }
     int numRemaining = 0;
-    int minTime = new Date.now().millisecondsSinceEpoch + MS_PER_FRAME;
+    int minTime = new DateTime.now().millisecondsSinceEpoch + MS_PER_FRAME;
 
     int len = _callbacks.length;
     for (final callback in _callbacks) {

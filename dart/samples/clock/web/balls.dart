@@ -31,7 +31,7 @@ class Balls {
   List<Ball> balls;
 
   Balls() :
-      lastTime = new Date.now().millisecondsSinceEpoch,
+      lastTime = new DateTime.now().millisecondsSinceEpoch,
       balls = new List<Ball>() {
     root = new DivElement();
     document.body.nodes.add(root);

@@ -119,7 +119,7 @@ class SolarSystem {
   }
 
   void draw(num _) {
-    num time = new Date.now().millisecondsSinceEpoch;
+    num time = new DateTime.now().millisecondsSinceEpoch;
 
     if (renderTime != null) {
       showFps((1000 / (time - renderTime)).round());

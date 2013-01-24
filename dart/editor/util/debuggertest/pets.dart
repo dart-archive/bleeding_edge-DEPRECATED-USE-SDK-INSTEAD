@@ -100,16 +100,16 @@ class Dog extends FloppyEars implements Animal {
 
   int fleaCount;
 
-  Date bornOn;
+  DateTime bornOn;
 
   Dog(this.name) {
     var rand = new Random();
     fleaCount = rand.nextInt(10);
-    bornOn = new Date.now();
+    bornOn = new DateTime.now();
   }
 
   Dog.withFleas(this.name, this.fleaCount) {
-    bornOn = new Date.now();
+    bornOn = new DateTime.now();
   }
 
   bool livesWith(Animal other) => true;

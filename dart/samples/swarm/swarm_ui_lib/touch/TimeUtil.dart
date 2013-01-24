@@ -11,6 +11,6 @@ part of touch;
  */
 class TimeUtil {
   static int now() {
-    return new Date.now().millisecondsSinceEpoch;
+    return new DateTime.now().millisecondsSinceEpoch;
   }
 }

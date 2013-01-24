@@ -221,7 +221,7 @@ class Solar3DApplication {
   num renderTime;
 
   void update(double time) {
-    num t = new Date.now().millisecondsSinceEpoch;
+    num t = new DateTime.now().millisecondsSinceEpoch;
 
     if (renderTime != null) {
       showFps((1000 / (t - renderTime)).round());

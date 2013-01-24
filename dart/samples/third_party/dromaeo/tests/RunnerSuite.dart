@@ -56,12 +56,12 @@ class Suite {
         // more smoothly as well.
         for (int i = 0; i < _N_RUNS; i++) {
           int runs = 0;
-          final int start = new Date.now().millisecondsSinceEpoch;
+          final int start = new DateTime.now().millisecondsSinceEpoch;
 
-          int cur = new Date.now().millisecondsSinceEpoch;
+          int cur = new DateTime.now().millisecondsSinceEpoch;
           while ((cur - start) < 1000) {
             test_();
-            cur = new Date.now().millisecondsSinceEpoch;
+            cur = new DateTime.now().millisecondsSinceEpoch;
             runs++;
           }
 
