@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
@@ -158,6 +159,9 @@ public class TypeProvider extends OmniProposalProvider {
       final String filterText) throws SearchException {
 
     if (!searchStarted) {
+
+      long start = System.currentTimeMillis();
+
       searchStarted = true;
 
       searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
@@ -186,6 +190,9 @@ public class TypeProvider extends OmniProposalProvider {
             }
           },
           progressMonitor);
+
+      long delta = System.currentTimeMillis() - start;
+      Instrumentation.metric("TypeProvider.doSearch", delta).log(); //$NON-NLS-1$
     }
 
     return results.toArray(new OmniElement[results.size()]);

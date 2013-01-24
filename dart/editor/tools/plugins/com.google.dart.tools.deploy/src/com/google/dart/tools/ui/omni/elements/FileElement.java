@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
@@ -45,6 +46,9 @@ public class FileElement extends OmniElement {
 
   @Override
   public void execute(String text) {
+
+    Instrumentation.operation("FileElement.searchResultSelected").with("text", text).log(); //$NON-NLS-1$
+
     try {
       final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
       if (window == null) {

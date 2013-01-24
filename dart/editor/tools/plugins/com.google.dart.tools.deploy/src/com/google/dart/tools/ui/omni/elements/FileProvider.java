@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -230,6 +231,8 @@ public class FileProvider extends OmniProposalProvider {
   @Override
   public OmniElement[] getElements(String stringPattern) {
 
+    long start = System.currentTimeMillis();
+
     String filenamePattern;
 
     int sep = stringPattern.lastIndexOf(IPath.SEPARATOR);
@@ -283,6 +286,9 @@ public class FileProvider extends OmniProposalProvider {
       return collector.getFiles();
     } catch (CoreException e) {
       DartToolsPlugin.log(e);
+    } finally {
+      long delta = System.currentTimeMillis() - start;
+      Instrumentation.metric("FileProvider.getElements", delta).log(); //$NON-NLS-1$
     }
     return EMPTY_ARRAY;
 

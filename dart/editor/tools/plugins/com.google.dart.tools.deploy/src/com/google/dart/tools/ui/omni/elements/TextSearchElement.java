@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.search.ui.actions.TextSearchAction;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
@@ -79,6 +80,9 @@ public class TextSearchElement extends OmniElement {
 
   @Override
   public void execute(String text) {
+
+    Instrumentation.operation("TextSearchElement.searchResultSelected").with("text", text).log(); //$NON-NLS-1$
+
     new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), searchText).run();
   }
 

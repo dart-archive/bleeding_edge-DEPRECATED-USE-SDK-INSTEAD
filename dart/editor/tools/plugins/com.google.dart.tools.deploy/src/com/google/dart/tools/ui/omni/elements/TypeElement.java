@@ -45,7 +45,8 @@ public class TypeElement extends OmniElement {
   public void execute(String text) {
     try {
 
-      Instrumentation.operation("TypeElement.execute").with("text", type.getElementName());
+      Instrumentation.operation("TypeElement.searchResultSelected").with("text", //$NON-NLS-1$
+          type.getElementName()).log();
 
       DartUI.openInEditor(type, true, true);
     } catch (PartInitException e) {
