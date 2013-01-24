@@ -14,11 +14,15 @@
 package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.ui.console.DartConsoleManager;
+import com.google.dart.tools.update.core.UpdateCore;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -26,6 +30,7 @@ import org.osgi.framework.Constants;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -40,6 +45,16 @@ public class Activator extends AbstractUIPlugin {
   private static Activator plugin;
 
   private static Map<ImageDescriptor, Image> imageCache = new HashMap<ImageDescriptor, Image>();
+
+  /**
+   * Delay for initialization of the update manager post startup,
+   */
+  private static final long UPDATE_MANAGER_INIT_DELAY = TimeUnit.MINUTES.toMillis(5);
+
+  /**
+   * Delay for installation cleanup post startup,
+   */
+  //private static final long INSTALLATION_CLEANUP_INIT_DELAY = TimeUnit.MINUTES.toMillis(3);
 
   /**
    * Create an error Status object with the given message and this plugin's ID.
@@ -116,6 +131,10 @@ public class Activator extends AbstractUIPlugin {
         new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
   }
 
+  //update jobs
+  private Job installationCleanupJob;
+  private Job managerInitializationJob;
+
   /**
    * The constructor
    */
@@ -128,17 +147,80 @@ public class Activator extends AbstractUIPlugin {
 
     plugin = this;
 
+    scheduleInstallationCleanup();
+    scheduleManagerStart();
+
     DartConsoleManager.initialize();
 
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
-    DartConsoleManager.shutdown();
 
-    plugin = null;
+    try {
 
-    super.stop(context);
+      DartConsoleManager.shutdown();
+      stopUpdateManager();
+
+    } finally {
+
+      plugin = null;
+      super.stop(context);
+
+    }
+  }
+
+  private void scheduleInstallationCleanup() {
+//TODO(pquitslund): enable after testing
+//    installationCleanupJob = new CleanupInstallationJob() {
+//      @Override
+//      protected IStatus run(IProgressMonitor monitor) {
+//        try {
+//          return super.run(monitor);
+//        } finally {
+//          installationCleanupJob = null;
+//        }
+//      }
+//    };
+//
+//    installationCleanupJob.schedule(INSTALLATION_CLEANUP_INIT_DELAY);
+  }
+
+  private void scheduleManagerStart() {
+    //wait a bit before checking for updates to avoid competing for resources at startup
+    //note that update checks can still be manually initiated
+    managerInitializationJob = new Job("Update manager initialization") {
+      @Override
+      protected IStatus run(IProgressMonitor monitor) {
+        //make doubly sure that the workbench is up and running 
+        if (PlatformUI.isWorkbenchRunning()) {
+          managerInitializationJob = null;
+          UpdateCore.getUpdateManager().start();
+        } else {
+          schedule(500);
+        }
+        return Status.OK_STATUS;
+      }
+    };
+    managerInitializationJob.setSystem(true);
+
+    managerInitializationJob.schedule(UPDATE_MANAGER_INIT_DELAY);
+  }
+
+  private void stopUpdateManager() {
+    Job initJob = managerInitializationJob;
+
+    if (initJob != null) {
+      initJob.cancel();
+    }
+
+    Job cleanupJob = installationCleanupJob;
+
+    if (cleanupJob != null) {
+      cleanupJob.cancel();
+    }
+
+    UpdateCore.getUpdateManager().stop();
   }
 
 }

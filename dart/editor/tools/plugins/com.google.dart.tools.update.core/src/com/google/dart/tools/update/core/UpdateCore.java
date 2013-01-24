@@ -18,15 +18,12 @@ import com.google.dart.tools.core.DartCoreDebug;
 
 import org.eclipse.core.filesystem.URIUtil;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -85,16 +82,6 @@ public class UpdateCore extends Plugin {
    * Preference key for auto checking for updates.
    */
   private static final String PREFS_AUTO_UPDATE_CHECK = "autoCheckUpdates";
-
-  /**
-   * Delay for initialization of the update manager post startup,
-   */
-  private static final long UPDATE_MANAGER_INIT_DELAY = TimeUnit.MINUTES.toMillis(5);
-
-  /**
-   * Delay for installation cleanup post startup,
-   */
-  //private static final long INSTALLATION_CLEANUP_INIT_DELAY = TimeUnit.MINUTES.toMillis(3);
 
   /**
    * Default update check interval.
@@ -328,9 +315,6 @@ public class UpdateCore extends Plugin {
 
   private IEclipsePreferences preferences;
 
-  private Job installationCleanupJob;
-  private Job managerInitializationJob;
-
   /**
    * Return the preferences node that contains the preferences for the Update Core plugin.
    * 
@@ -346,70 +330,13 @@ public class UpdateCore extends Plugin {
   @Override
   public void start(BundleContext context) throws Exception {
     PLUGIN = this;
-
-    scheduleInstallationCleanup();
-    scheduleManagerStart();
-
     super.start(context);
   }
 
   @Override
   public void stop(BundleContext context) throws Exception {
-    try {
-      Job initJob = managerInitializationJob;
-
-      if (initJob != null) {
-        initJob.cancel();
-      }
-
-      Job cleanupJob = installationCleanupJob;
-
-      if (cleanupJob != null) {
-        cleanupJob.cancel();
-      }
-
-      getUpdateManager().stop();
-    } finally {
-      super.stop(context);
-      PLUGIN = null;
-    }
-  }
-
-  private void scheduleInstallationCleanup() {
-//TODO(pquitslund): enable after testing
-//    installationCleanupJob = new CleanupInstallationJob() {
-//      @Override
-//      protected IStatus run(IProgressMonitor monitor) {
-//        try {
-//          return super.run(monitor);
-//        } finally {
-//          installationCleanupJob = null;
-//        }
-//      }
-//    };
-//
-//    installationCleanupJob.schedule(INSTALLATION_CLEANUP_INIT_DELAY);
-  }
-
-  private void scheduleManagerStart() {
-    //wait a bit before checking for updates to avoid competing for resources at startup
-    //note that update checks can still be manually initiated
-    managerInitializationJob = new Job("Update manager initialization") {
-      @Override
-      protected IStatus run(IProgressMonitor monitor) {
-        //make doubly sure that the workbench is up and running 
-        if (PlatformUI.isWorkbenchRunning()) {
-          managerInitializationJob = null;
-          getUpdateManager().start();
-        } else {
-          schedule(500);
-        }
-        return Status.OK_STATUS;
-      }
-    };
-    managerInitializationJob.setSystem(true);
-
-    managerInitializationJob.schedule(UPDATE_MANAGER_INIT_DELAY);
+    super.stop(context);
+    PLUGIN = null;
   }
 
 }

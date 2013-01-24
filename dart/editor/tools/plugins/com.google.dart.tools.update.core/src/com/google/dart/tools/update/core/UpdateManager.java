@@ -174,7 +174,7 @@ public class UpdateManager {
   /**
    * Start the update manager.
    */
-  void start() {
+  public void start() {
     downloadManager.start();
     enableAutoUpdateChecking(UpdateCore.isAutoUpdateCheckingEnabled());
   }
@@ -182,7 +182,7 @@ public class UpdateManager {
   /**
    * Stop the update manager.
    */
-  void stop() {
+  public void stop() {
     updateScheduler.stop();
     downloadManager.stop();
   }
