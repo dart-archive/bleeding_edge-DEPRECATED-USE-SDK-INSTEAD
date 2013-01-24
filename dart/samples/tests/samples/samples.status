@@ -4,15 +4,6 @@
 
 markdown_test: Fail # TODO(erikcorry) : Erik has a CL to fix this.
 
-[ $arch == x64 ]
-*: Skip
-
-[ $arch == simarm ]
-*: Skip
-
-[ $arch == arm ]
-*: Skip
-
 [ $browser ]
 chat/chat_server_test: Skip # Uses dart:io
 
@@ -86,3 +77,15 @@ lib/touch/touch_test: Fail # Expectation: Solver. Expect.approxEquals(expected:9
 
 [ $compiler == dart2js && $checked ]
 swarm/swarm_test: Fail # TypeError: Object #<HTMLParagraphElement> has no method 'get$text'
+
+[ $arch == arm ]
+*: Skip
+
+[ $arch == simarm ]
+*: Skip
+
+[ $arch == mips ]
+*: Skip
+
+[ $arch == simmips ]
+*: Skip
