@@ -15,6 +15,7 @@ package com.google.dart.tools.deploy;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
+import com.google.dart.tools.core.internal.perf.InstrumentationDataCarrier;
 import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.debug.core.util.ResourceServerManager;
 
@@ -58,6 +59,8 @@ public class DartIDEApplication implements IApplication {
     }
 
   }
+
+  private static long approximateStartTime = System.currentTimeMillis();
 
   /**
    * Value taken from <code>DartEditorCommandLineManager.PERF_FLAG</code>.
@@ -109,6 +112,9 @@ public class DartIDEApplication implements IApplication {
         System.out.println("Dart Editor build " + DartCore.getBuildIdOrDate()); //$NON-NLS-1$
         Performance.TIME_TO_START_ECLIPSE.log(DartEditorCommandLineManager.getStartTime());
       }
+
+      //Push the approximate start time to the carrier
+      InstrumentationDataCarrier.setApproximateStartTime(approximateStartTime);
 
       int returnCode = PlatformUI.createAndRunWorkbench(display, new ApplicationWorkbenchAdvisor(
           processor));

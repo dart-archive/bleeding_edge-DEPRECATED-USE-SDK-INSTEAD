@@ -23,6 +23,7 @@ import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
+import com.google.dart.tools.core.internal.perf.InstrumentationDataCarrier;
 import com.google.dart.tools.core.internal.perf.Performance;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartModelException;
@@ -113,6 +114,10 @@ public class DartUIStartup implements IStartup {
             "TimeSinceStartup",
             delta).log();
       }
+
+      long delta = System.currentTimeMillis()
+          - InstrumentationDataCarrier.getApproximateStartTime();
+      Instrumentation.metric("DartUIStartup-Complete-FromInitialTimeApproximation", delta).log();
 
       synchronized (startupSync) {
         startupJob = null;
