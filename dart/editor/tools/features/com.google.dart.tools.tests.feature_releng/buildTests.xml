@@ -51,13 +51,13 @@
                 <include name="org.eclipse.swt.*.jar" />
             </fileset>
         </path>
-        <property name="build.test.suite" value="com.google.dart.tools.core_test" />
+        <property name="build.test.suite" value="com.google.dart.tools.tests.buildbot_test" />
         <pathconvert pathsep=" " property="build.test.classname.list">
             <path>
                 <!-- Only include those files which end in 'Test.java', and do not 
                     start with 'Abstract'. -->
                 <fileset dir="${build.stage.plugins}/${build.test.suite}/src">
-                    <include name="com/google/dart/tools/core/TestAll.java" />
+                    <include name="com/google/dart/tools/tests/buildbot/TestAll.java" />
                 </fileset>
             </path>
             <!-- Convert path structure for each file into the fully-qualified class
