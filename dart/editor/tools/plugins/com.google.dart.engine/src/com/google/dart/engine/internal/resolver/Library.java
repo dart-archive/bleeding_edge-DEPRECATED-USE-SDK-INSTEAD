@@ -224,9 +224,9 @@ public class Library {
    * @return the library element representing this library
    */
   public LibraryElementImpl getLibraryElement() {
-    if (libraryElement == null) {
-      libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
-    }
+//    if (libraryElement == null) {
+//      libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
+//    }
     return libraryElement;
   }
 
