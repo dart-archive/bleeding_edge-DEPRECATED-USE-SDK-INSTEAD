@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -140,6 +141,17 @@ public class CompilationUnit extends ASTNode {
     return endToken;
   }
 
+  /**
+   * Return an array containing all of the errors associated with the receiver. If the receiver has
+   * not been resolved, then return {@code null}.
+   * 
+   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
+   *         been resolved
+   */
+  public AnalysisError[] getErrors() {
+    throw new UnsupportedOperationException();
+  }
+
   @Override
   public int getLength() {
     Token endToken = getEndToken();
@@ -166,6 +178,26 @@ public class CompilationUnit extends ASTNode {
    */
   public ScriptTag getScriptTag() {
     return scriptTag;
+  }
+
+  /**
+   * Return an array containing all of the semantic errors associated with the receiver. If the
+   * receiver has not been resolved, then return {@code null}.
+   * 
+   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
+   *         been resolved
+   */
+  public AnalysisError[] getSemanticErrors() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * Return an array containing all of the syntactic errors associated with the receiver.
+   * 
+   * @return an array of errors (not {@code null}, contains no {@code null}s).
+   */
+  public AnalysisError[] getSyntacticErrors() {
+    throw new UnsupportedOperationException();
   }
 
   /**

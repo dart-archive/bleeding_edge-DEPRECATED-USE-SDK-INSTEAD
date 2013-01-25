@@ -251,6 +251,10 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public CompilationUnit parse(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
   public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
       throws AnalysisException {
     synchronized (cacheLock) {

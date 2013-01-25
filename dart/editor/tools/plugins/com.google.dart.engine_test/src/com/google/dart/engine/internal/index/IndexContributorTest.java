@@ -46,6 +46,7 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.io.FileUtilities2;
@@ -1374,7 +1375,7 @@ public class IndexContributorTest extends EngineTestCase {
     testCode = createSource(lines);
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     TestSource source = new TestSource(null, FileUtilities2.createFile("Test.dart"), testCode);
-    testUnit = context.parse(source, null);
+    testUnit = ((AnalysisContextImpl) context).parse(source, null);
     // TODO(scheglov) replace parse() with requesting resolved unit
     testUnit.setElement(unitElement);
     //

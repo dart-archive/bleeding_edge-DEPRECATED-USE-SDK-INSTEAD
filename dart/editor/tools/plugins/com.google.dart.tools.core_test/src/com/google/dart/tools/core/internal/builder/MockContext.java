@@ -123,8 +123,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
-      throws AnalysisException {
+  public CompilationUnit parse(Source source) throws AnalysisException {
     return null;
   }
 

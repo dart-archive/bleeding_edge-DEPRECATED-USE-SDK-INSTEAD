@@ -97,6 +97,8 @@ public interface AnalysisContext {
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
    */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
   public AnalysisError[] getErrors(Source source) throws AnalysisException;
 
   /**
@@ -123,6 +125,8 @@ public interface AnalysisContext {
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
    */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
   public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException;
 
   /**
@@ -140,6 +144,8 @@ public interface AnalysisContext {
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
    */
+  // TODO (danrubel): review the situations under which this method is and should be called
+  // with an eye towards removing this method if it is not useful.
   public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException;
 
   /**
@@ -154,15 +160,14 @@ public interface AnalysisContext {
   public void mergeAnalysisContext(AnalysisContext context);
 
   /**
-   * Parse a single source to produce an AST structure.
+   * Parse a single source to produce an AST structure. The resulting AST structure may or may not
+   * be resolved, and may have a slightly different structure depending upon whether it is resolved.
    * 
    * @param source the source to be parsed
-   * @param errorListener the listener to which errors should be reported
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
-      throws AnalysisException;
+  public CompilationUnit parse(Source source) throws AnalysisException;
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.

@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.tools.core.DartCore;
 
@@ -117,13 +116,8 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
   private void parse(SourceDeltaEvent event) {
     final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     try {
-      event.getContext().parse(event.getSource(), new AnalysisErrorListener() {
-
-        @Override
-        public void onError(AnalysisError error) {
-          errors.add(error);
-        }
-      });
+      // TODO (danrubel): get errors from compilation unit
+      event.getContext().parse(event.getSource());
     } catch (AnalysisException e) {
       DartCore.logError("Exception parsing source: " + event.getSource(), e);
       return;
