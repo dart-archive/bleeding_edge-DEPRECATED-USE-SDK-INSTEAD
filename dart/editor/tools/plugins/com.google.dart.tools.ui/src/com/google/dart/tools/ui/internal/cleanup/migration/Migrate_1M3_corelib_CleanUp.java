@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartParameter;
+import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -244,7 +245,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       public Void visitNewExpression(DartNewExpression node) {
         ConstructorElement element = node.getElement();
         List<DartExpression> args = node.getArguments();
-        // new List(5)  --->  new Lixt.fixedLength(5)
+        // new List(5)  --->  new List.fixedLength(5)
         if (element != null && element.getConstructorType().getName().equals("List")
             && StringUtils.isEmpty(element.getName()) && args.size() == 1) {
           DartExpression arg = args.get(0);
@@ -255,6 +256,15 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
                   SourceRangeFactory.forEndStart(node.getConstructor(), arg),
                   ".fixedLength(");
             }
+          }
+        }
+        // new DateTime.fromString("...")  --->  DateTime.parse("...")
+        DartNode constructor = node.getConstructor();
+        if (constructor instanceof DartPropertyAccess) {
+          DartPropertyAccess prop = (DartPropertyAccess) constructor;
+          if (prop.getQualifier().toSource().equals("DateTime")
+              && prop.getName().toSource().equals("fromString") && args.size() == 1) {
+            addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "DateTime.parse(");
           }
         }
         return super.visitNewExpression(node);
