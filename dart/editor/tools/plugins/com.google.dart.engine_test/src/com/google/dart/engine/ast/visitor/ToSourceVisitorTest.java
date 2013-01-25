@@ -31,7 +31,6 @@ import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 
 public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitAdjacentStrings() {
@@ -575,7 +574,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitExportDirective_combinator() {
     assertSource(
         "export 'a.dart' show A;",
-        exportDirective("a.dart", list((Combinator) importShowCombinator(identifier("A")))));
+        exportDirective("a.dart", (Combinator) importShowCombinator(identifier("A"))));
   }
 
   public void test_visitExportDirective_combinators() {
@@ -583,11 +582,12 @@ public class ToSourceVisitorTest extends EngineTestCase {
         "export 'a.dart' show A hide B;",
         exportDirective(
             "a.dart",
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
+            importShowCombinator(identifier("A")),
+            importHideCombinator(identifier("B"))));
   }
 
   public void test_visitExportDirective_minimal() {
-    assertSource("export 'a.dart';", exportDirective("a.dart", new ArrayList<Combinator>()));
+    assertSource("export 'a.dart';", exportDirective("a.dart"));
   }
 
   public void test_visitExpressionFunctionBody() {
@@ -873,7 +873,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_combinator() {
     assertSource(
         "import 'a.dart' show A;",
-        importDirective("a.dart", null, list((Combinator) importShowCombinator(identifier("A")))));
+        importDirective("a.dart", null, importShowCombinator(identifier("A"))));
   }
 
   public void test_visitImportDirective_combinators() {
@@ -882,23 +882,22 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             null,
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
+            importShowCombinator(identifier("A")),
+            importHideCombinator(identifier("B"))));
   }
 
   public void test_visitImportDirective_minimal() {
-    assertSource("import 'a.dart';", importDirective("a.dart", null, new ArrayList<Combinator>()));
+    assertSource("import 'a.dart';", importDirective("a.dart", null));
   }
 
   public void test_visitImportDirective_prefix() {
-    assertSource(
-        "import 'a.dart' as p;",
-        importDirective("a.dart", "p", new ArrayList<Combinator>()));
+    assertSource("import 'a.dart' as p;", importDirective("a.dart", "p"));
   }
 
   public void test_visitImportDirective_prefix_combinator() {
     assertSource(
         "import 'a.dart' as p show A;",
-        importDirective("a.dart", "p", list((Combinator) importShowCombinator(identifier("A")))));
+        importDirective("a.dart", "p", importShowCombinator(identifier("A"))));
   }
 
   public void test_visitImportDirective_prefix_combinators() {
@@ -907,7 +906,8 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             "p",
-            list(importShowCombinator(identifier("A")), importHideCombinator(identifier("B")))));
+            importShowCombinator(identifier("A")),
+            importHideCombinator(identifier("B"))));
   }
 
   public void test_visitImportHideCombinator_multiple() {

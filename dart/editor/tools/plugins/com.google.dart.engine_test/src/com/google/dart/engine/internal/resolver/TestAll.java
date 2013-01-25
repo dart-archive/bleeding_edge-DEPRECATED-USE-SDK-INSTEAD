@@ -21,6 +21,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(LibraryTest.class);
     suite.addTestSuite(TypeProviderImplTest.class);
     return suite;
   }

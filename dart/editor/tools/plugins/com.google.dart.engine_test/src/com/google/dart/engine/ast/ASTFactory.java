@@ -333,17 +333,17 @@ public final class ASTFactory {
   }
 
   public static ExportDirective exportDirective(List<Annotation> metadata, String uri,
-      List<Combinator> combinators) {
+      Combinator... combinators) {
     return new ExportDirective(
         null,
         metadata,
         token(Keyword.EXPORT),
         string(uri),
-        combinators,
+        list(combinators),
         token(TokenType.SEMICOLON));
   }
 
-  public static ExportDirective exportDirective(String uri, List<Combinator> combinators) {
+  public static ExportDirective exportDirective(String uri, Combinator... combinators) {
     return exportDirective(new ArrayList<Annotation>(), uri, combinators);
   }
 
@@ -521,7 +521,7 @@ public final class ASTFactory {
   }
 
   public static ImportDirective importDirective(List<Annotation> metadata, String uri,
-      String prefix, List<Combinator> combinators) {
+      String prefix, Combinator... combinators) {
     return new ImportDirective(
         null,
         metadata,
@@ -529,12 +529,12 @@ public final class ASTFactory {
         string(uri),
         prefix == null ? null : token(Keyword.AS),
         prefix == null ? null : identifier(prefix),
-        combinators,
+        list(combinators),
         token(TokenType.SEMICOLON));
   }
 
   public static ImportDirective importDirective(String uri, String prefix,
-      List<Combinator> combinators) {
+      Combinator... combinators) {
     return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
   }
 
