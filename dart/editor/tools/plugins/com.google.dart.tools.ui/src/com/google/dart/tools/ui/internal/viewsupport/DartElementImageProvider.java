@@ -249,6 +249,9 @@ public class DartElementImageProvider {
         //TODO (pquitslund): top-level vars should have their own descriptors
         return getFieldImageDescriptor(false, var.isPrivate());
       }
+      case DartElement.CLASS_TYPE_ALIAS: {
+        return DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
+      }
       default:
         // ignore. Must be a new, yet unknown element
         // give an advanced IWorkbenchAdapter the chance

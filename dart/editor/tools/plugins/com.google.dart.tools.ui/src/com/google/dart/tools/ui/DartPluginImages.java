@@ -196,6 +196,9 @@ public class DartPluginImages {
   public static final ImageDescriptor DESC_DART_LIB_FILE = createUnManaged(T_DART, "library.png"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_DART_COMP_UNIT = createUnManaged(T_DART, "dart.png"); //$NON-NLS-1$
   public static final ImageDescriptor DESC_DART_HTML_FILE = createUnManaged(T_DART, "html.png"); //$NON-NLS-1$
+  public static final ImageDescriptor DESC_DART_CLASS_TYPE_ALIAS = createUnManaged(
+      T_DART,
+      "typevariable_obj.gif"); //$NON-NLS-1$
 
   public static final ImageDescriptor DESC_DART_FUNCTIONTYPE_PUBLIC = createUnManaged(
       T_DART,
