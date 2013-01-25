@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -86,6 +87,9 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
   @Override
   public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
+
+    long start = System.currentTimeMillis();
+
     mode = ILaunchManager.RUN_MODE;
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
@@ -149,6 +153,10 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("BrowserLaunchConfiguration-launch", elapsed).with("mode", mode).log();
+
   }
 
   private void launchInExternalBrowser(DartLaunchConfigWrapper launchConfig, final String url)

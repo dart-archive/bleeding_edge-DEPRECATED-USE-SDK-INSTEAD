@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.configs;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -57,6 +58,9 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
   @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
+
+    long start = System.currentTimeMillis();
+
     if (!ILaunchManager.RUN_MODE.equals(mode) && !ILaunchManager.DEBUG_MODE.equals(mode)) {
       throw new CoreException(DartDebugCorePlugin.createErrorStatus("Execution mode '" + mode
           + "' is not supported."));
@@ -144,6 +148,10 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     }
 
     monitor.done();
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ChromeAppLaunchLaunchConfiguration-launch", elapsed).with("mode", mode).log();
+
   }
 
   /**
