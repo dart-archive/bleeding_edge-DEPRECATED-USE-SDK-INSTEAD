@@ -8,6 +8,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.junit,
  com.google.dart.engine_test,
- com.google.dart.tools.core_test,
- com.google.dart.tools.ui_test
+ com.google.dart.tools.core_test
 Bundle-ClassPath: .
