@@ -23,6 +23,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.resolver.scope.Namespace;
 import com.google.dart.engine.resolver.scope.NamespaceBuilder;
@@ -40,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
@@ -169,16 +171,35 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
-    throw new UnsupportedOperationException();
-//    synchronized (cacheLock) {
-//      LibraryElement element = libraryElementCache.get(source);
-//      if (element == null) {
-//        // TODO(brianwilkerson) Build the library element.
-//        element = ...;
-//        libraryElementCache.put(source, element);
-//      }
-//      return element;
-//    }
+    synchronized (cacheLock) {
+      LibraryElement element = libraryElementCache.get(source);
+      if (element == null) {
+        RecordingErrorListener listener = new RecordingErrorListener();
+        LibraryResolver resolver = new LibraryResolver(this, listener);
+        try {
+          element = resolver.resolveLibrary(source, true);
+          // TODO(brianwilkerson) Cache the errors that were recorded by the listener.
+        } catch (AnalysisException exception) {
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Could not resolve the library " + source.getFullName(),
+              exception);
+        }
+      }
+      return element;
+    }
+  }
+
+  /**
+   * Return the element model corresponding to the library defined by the given source, or
+   * {@code null} if the element model does not yet exist.
+   * 
+   * @param source the source defining the library whose element model is to be returned
+   * @return the element model corresponding to the library defined by the given source
+   */
+  public LibraryElement getLibraryElementOrNull(Source source) {
+    synchronized (cacheLock) {
+      return libraryElementCache.get(source);
+    }
   }
 
   /**
@@ -266,6 +287,19 @@ public class AnalysisContextImpl implements AnalysisContext {
         parseCache.put(source, unit);
       }
       return unit;
+    }
+  }
+
+  /**
+   * Given a table mapping the source for the libraries represented by the corresponding elements to
+   * the elements representing the libraries, record those mappings.
+   * 
+   * @param elementMap a table mapping the source for the libraries represented by the elements to
+   *          the elements representing the libraries
+   */
+  public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
+    synchronized (cacheLock) {
+      libraryElementCache.putAll(elementMap);
     }
   }
 

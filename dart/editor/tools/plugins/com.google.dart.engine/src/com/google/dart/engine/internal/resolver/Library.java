@@ -96,7 +96,7 @@ public class Library {
     this.analysisContext = analysisContext;
     this.errorListener = errorListener;
     this.librarySource = librarySource;
-//    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElementOrNull(librarySource);
+    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElementOrNull(librarySource);
   }
 
   /**
