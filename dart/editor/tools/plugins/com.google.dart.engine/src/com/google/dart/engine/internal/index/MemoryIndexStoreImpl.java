@@ -43,7 +43,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
    * @return the {@link Source} which contains given {@link Element}, may be <code>null</code>.
    */
   @VisibleForTesting
-  static Source findSource(Element element) {
+  public static Source findSource(Element element) {
     while (element != null) {
       if (element instanceof LibraryElement) {
         element = ((LibraryElement) element).getDefiningCompilationUnit();

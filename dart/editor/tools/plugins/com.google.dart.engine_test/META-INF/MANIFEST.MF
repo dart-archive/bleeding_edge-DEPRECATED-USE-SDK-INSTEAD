@@ -14,4 +14,14 @@ Bundle-ClassPath: .,
  third_party/mockito/1.9.0/mockito-all-1.9.0.jar,
  third_party/fest/fest-util-1.1.6.jar,
  third_party/fest/fest-assert-1.4.jar
-Export-Package: com.google.dart.engine
+Export-Package: com.google.dart.engine,
+ com.google.dart.engine.ast,
+ com.google.dart.engine.index,
+ com.google.dart.engine.internal,
+ com.google.dart.engine.parser,
+ com.google.dart.engine.resolver,
+ com.google.dart.engine.scanner,
+ com.google.dart.engine.sdk,
+ com.google.dart.engine.search,
+ com.google.dart.engine.source,
+ com.google.dart.engine.utilities

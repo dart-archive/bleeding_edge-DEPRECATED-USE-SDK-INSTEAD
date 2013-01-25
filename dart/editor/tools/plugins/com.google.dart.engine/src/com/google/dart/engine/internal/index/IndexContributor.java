@@ -75,7 +75,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * @return the {@link Location} representing location of the {@link Element}.
    */
   @VisibleForTesting
-  static Location createElementLocation(Element element) {
+  public static Location createElementLocation(Element element) {
     if (element != null) {
       int offset = element.getNameOffset();
       int length = element.getName().length();
@@ -189,6 +189,19 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   public IndexContributor(IndexStore store) {
     this.store = store;
+  }
+
+  /**
+   * @return the inner-most enclosing {@link Element}, may be <code>null</code>.
+   */
+  @VisibleForTesting
+  public Element peekElement() {
+    for (Element element : elementStack) {
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -432,19 +445,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   void enterScope(Element element) {
     elementStack.addFirst(element);
     unnamedFunctionCount.push(0);
-  }
-
-  /**
-   * @return the inner-most enclosing {@link Element}, may be <code>null</code>.
-   */
-  @VisibleForTesting
-  Element peekElement() {
-    for (Element element : elementStack) {
-      if (element != null) {
-        return element;
-      }
-    }
-    return null;
   }
 
   /**
