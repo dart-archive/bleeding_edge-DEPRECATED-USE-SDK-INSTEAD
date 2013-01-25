@@ -46,6 +46,14 @@ public class MainEngine {
       EngineSemanticProcessor.INSTANCE);
 
   public static void main(String[] args) throws Exception {
+    if (args.length == 0) {
+      System.out.println("Usage: java2dart <target-folder>");
+      System.exit(0);
+    }
+    String targetFolder = args[0];
+    System.out.println("Generating files into " + targetFolder);
+    new File(targetFolder).mkdirs();
+    //
     engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
@@ -68,37 +76,40 @@ public class MainEngine {
       processor.process(context, dartUnit);
     }
     // dump as several libraries
-    String userHome = System.getProperty("user.home");
-    String engineDir = userHome + "/dart/Engine";
-    System.out.println("Generating files into " + engineDir);
-    new File(engineDir).mkdirs();
-    Files.copy(new File("resources/javalib.dart"), new File(engineDir + "/javalib.dart"));
-    Files.copy(new File("resources/enginelib.dart"), new File(userHome
-        + "/dart/Engine/enginelib.dart"));
+    Files.copy(new File("resources/javalib.dart"), new File(targetFolder + "/javalib.dart"));
+    Files.copy(new File("resources/enginelib.dart"), new File(targetFolder + "/enginelib.dart"));
     {
       CompilationUnit library = buildInstrumentationLibrary();
-      Files.write(getFormattedSource(library), new File(userHome
-          + "/dart/Engine/instrumentation.dart"), Charsets.UTF_8);
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/instrumentation.dart"),
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildSourceLibrary();
-      Files.write(getFormattedSource(library), new File(engineDir + "/source.dart"), Charsets.UTF_8);
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/source.dart"),
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildErrorLibrary();
-      Files.write(getFormattedSource(library), new File(engineDir + "/error.dart"), Charsets.UTF_8);
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/error.dart"),
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildScannerLibrary();
       Files.write(
           getFormattedSource(library),
-          new File(engineDir + "/scanner.dart"),
+          new File(targetFolder + "/scanner.dart"),
           Charsets.UTF_8);
     }
     // TODO(scheglov)
     {
       CompilationUnit library = buildAstLibrary();
-      File astFile = new File(engineDir + "/ast.dart");
+      File astFile = new File(targetFolder + "/ast.dart");
       Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
       Files.append(
           Files.toString(new File("resources/include_ast.dart"), Charsets.UTF_8),

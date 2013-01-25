@@ -20,10 +20,5 @@
 			<type>2</type>
 			<locationURI>DART_TRUNK/third_party</locationURI>
 		</link>
-		<link>
-			<name>third_party2</name>
-			<type>2</type>
-			<locationURI>NOT_APPROVED</locationURI>
-		</link>
 	</linkedResources>
 </projectDescription>
