@@ -159,7 +159,7 @@ public class DartSearchQuery implements ISearchQuery {
   }
 
   public String getResultLabel(int nMatches) {
-    return getSearchPatternDescription();
+    return getSearchPatternDescription() + " - " + getMatchCountString(nMatches);
 //TODO (pquitslund): add filter specific message label
 //    int limitTo= getMaskedLimitTo();
 //    if (nMatches == 1) {
@@ -203,10 +203,6 @@ public class DartSearchQuery implements ISearchQuery {
 //    }
   }
 
-//  private int getMaskedLimitTo() {
-//    return fPatternData.getLimitTo() & ~(IJavaSearchConstants.IGNORE_RETURN_TYPE | IJavaSearchConstants.IGNORE_DECLARING_TYPE);
-//  }
-
   @Override
   public ISearchResult getSearchResult() {
     if (result == null) {
@@ -216,6 +212,10 @@ public class DartSearchQuery implements ISearchQuery {
     }
     return result;
   }
+
+//  private int getMaskedLimitTo() {
+//    return fPatternData.getLimitTo() & ~(IJavaSearchConstants.IGNORE_RETURN_TYPE | IJavaSearchConstants.IGNORE_DECLARING_TYPE);
+//  }
 
   @Override
   public IStatus run(IProgressMonitor monitor) {
@@ -363,6 +363,10 @@ public class DartSearchQuery implements ISearchQuery {
     }
     SearchMatch match = new SearchMatch(MatchQuality.EXACT, element, range);
     listener.matchFound(match);
+  }
+
+  private String getMatchCountString(int nMatches) {
+    return nMatches + " match" + (nMatches != 1 ? "es" : "") + " in the workspace";
   }
 
   private String getSearchPatternDescription() {
