@@ -1,6 +1,6 @@
 name: todomvc
 description: TodoMVC built with the Dart Web UI package
-version: 0.0.5
+version: 0.0.6
 dependencies:
   browser: any
-  web_ui: ">=0.3.0+2 <0.3.1"
+  web_ui: ">=0.3.1 <0.3.2"
