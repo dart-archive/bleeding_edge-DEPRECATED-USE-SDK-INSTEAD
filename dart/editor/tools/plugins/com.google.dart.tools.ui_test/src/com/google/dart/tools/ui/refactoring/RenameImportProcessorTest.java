@@ -103,22 +103,26 @@ public final class RenameImportProcessorTest extends RefactoringTest {
 
   public void test_OK_multipleUnits_onReference() throws Exception {
     prepareUniqueLibraries();
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of Test;",
-        "foo1() {",
-        "  test.A a;",
-        "  test.B b;",
-        "}",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of Test;",
-        "foo2() {",
-        "  test.A a;",
-        "  test.B b;",
-        "}",
-        ""});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of Test;",
+            "foo1() {",
+            "  test.A a;",
+            "  test.B b;",
+            "}",
+            ""));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of Test;",
+            "foo2() {",
+            "  test.A a;",
+            "  test.B b;",
+            "}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library Test;",
@@ -141,22 +145,26 @@ public final class RenameImportProcessorTest extends RefactoringTest {
         "part 'Test1.dart';",
         "part 'Test2.dart';",
         "");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of Test;",
-        "foo1() {",
-        "  newName.A a;",
-        "  test.B b;",
-        "}",
-        ""});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of Test;",
-        "foo2() {",
-        "  newName.A a;",
-        "  test.B b;",
-        "}",
-        ""});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of Test;",
+            "foo1() {",
+            "  newName.A a;",
+            "  test.B b;",
+            "}",
+            ""));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of Test;",
+            "foo2() {",
+            "  newName.A a;",
+            "  test.B b;",
+            "}",
+            ""));
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
@@ -693,11 +701,8 @@ public final class RenameImportProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'newName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

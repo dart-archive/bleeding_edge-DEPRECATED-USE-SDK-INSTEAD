@@ -100,12 +100,14 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
    */
   @SuppressWarnings("deprecation")
   public void test_canEnableDeleteSource_false() throws Exception {
-    CompilationUnit functionsUnit = setUnitContent("Functions.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "test(a, b) {",
-        "  return a + b;",
-        "}",
-        ""});
+    CompilationUnit functionsUnit = setUnitContent(
+        "Functions.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "test(a, b) {",
+            "  return a + b;",
+            "}",
+            ""));
     functionsUnit.getResource().setReadOnly(true);
     try {
       setTestUnitContent(

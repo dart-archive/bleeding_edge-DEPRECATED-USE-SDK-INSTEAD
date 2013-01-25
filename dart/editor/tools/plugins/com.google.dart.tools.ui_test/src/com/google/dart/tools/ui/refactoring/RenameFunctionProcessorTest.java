@@ -150,17 +150,21 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "test() {}",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f() {",
-        "  test();",
-        "}"});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "test() {}",
+            ""));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f() {",
+            "  test();",
+            "}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library test;",
@@ -173,17 +177,21 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     DartFunction function = findElement(unit2, "test();");
     // do rename
     renameFunction(function, "newName");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "newName() {}",
-        ""});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f() {",
-        "  newName();",
-        "}"});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "newName() {}",
+            ""));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f() {",
+            "  newName();",
+            "}"));
   }
 
   public void test_OK_setter() throws Exception {
@@ -585,11 +593,8 @@ public final class RenameFunctionProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
     assertThat(showStatusMessages).hasSize(1);
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'newName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

@@ -33,105 +33,6 @@ import java.util.List;
  */
 public final class ExtractUtilsTest extends AbstractDartTest {
   /**
-   * Asserts that {@link ExtractUtils#getNodePrefix(DartNode)} in {@link #testUnit} has expected
-   * prefix.
-   */
-  private void assert_getNodePrefix(String nodePattern, String expectedPrefix) throws Exception {
-    // prepare AST
-    ExtractUtils utils = new ExtractUtils(testUnit);
-    // find node
-    int nodeOffset = findOffset(nodePattern);
-    DartVariableStatement node = findNode(
-        utils.getUnitNode(),
-        nodeOffset,
-        DartVariableStatement.class);
-    assertNotNull(node);
-    // assert prefix
-    assertEquals(expectedPrefix, utils.getNodePrefix(node));
-  }
-
-  private void assert_getType_methodInvocation(String returnType) throws Exception {
-    assertType(returnType, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  " + returnType + " m() {}",
-        "}",
-        "var x = new A().m();",
-        ""});
-  }
-
-  private void assert_getType_unqualifiedInvocation(String returnType) throws Exception {
-    assertType(returnType, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        returnType + " f() {}",
-        "var x = f();",
-        ""});
-  }
-
-  /**
-   * Asserts that each top-level variable has associative (or not) {@link DartBinaryExpression}
-   * value.
-   */
-  private void assert_isAssociative(boolean expected) throws DartModelException {
-    DartUnit unit = DartCompilerUtilities.resolveUnit(testUnit);
-    for (DartNode topLevelNode : unit.getTopLevelNodes()) {
-      if (topLevelNode instanceof DartFieldDefinition) {
-        DartFieldDefinition fieldDefinition = (DartFieldDefinition) topLevelNode;
-        List<DartField> fields = fieldDefinition.getFields();
-        if (fields.size() == 1) {
-          DartBinaryExpression expression = (DartBinaryExpression) fields.get(0).getValue();
-          assertEquals(expected, ExtractUtils.isAssociative(expression));
-        }
-      }
-    }
-  }
-
-  /**
-   * Asserts that value of the top-level field "x" in given source has the given type name.
-   */
-  private String assertType(String expectedTypeName, String[] lines) throws Exception {
-    DartExpression expression = getMarkerVariableExpression(lines);
-    String type = ExtractUtils.getTypeSource(expression);
-    if (expectedTypeName != null) {
-      assertNotNull(type);
-      assertEquals(expectedTypeName, type);
-    } else {
-      assertNull(type);
-    }
-    return type;
-  }
-
-  /**
-   * Simplified call to {@link #assertType(String, String[])} for single {@link DartExpression}
-   * without dependencies.
-   */
-  private void assertTypeSimple(String expectedType, String expression) throws Exception {
-    assertType(expectedType, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = " + expression + ";",
-        ""});
-  }
-
-  /**
-   * @return the {@link DartExpression} of top-level variable "x" in the given source.
-   */
-  private DartExpression getMarkerVariableExpression(String... lines) throws Exception {
-    setTestUnitContent(lines);
-    DartUnit unit = DartCompilerUtilities.resolveUnit(testUnit);
-    for (DartNode topLevelNode : unit.getTopLevelNodes()) {
-      if (topLevelNode instanceof DartFieldDefinition) {
-        DartFieldDefinition fieldDefinition = (DartFieldDefinition) topLevelNode;
-        List<DartField> fields = fieldDefinition.getFields();
-        if (fields.size() == 1 && fields.get(0).getName().getName().equals("x")) {
-          return fields.get(0).getValue();
-        }
-      }
-    }
-    fail("Field 'x' not found");
-    return null;
-  }
-
-  /**
    * Test for {@link ExtractUtils#covers(SourceRange, DartNode)}.
    */
   public void test_covers_SourceRange_DartNode() throws Exception {
@@ -368,27 +269,33 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_binaryExpression_unknownArg1() throws Exception {
-    assertType(null, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = unknown + 2;",
-        ""});
+    assertType(
+        null,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = unknown + 2;",
+            ""));
   }
 
   public void test_getType_binaryExpression_unknownArg2() throws Exception {
-    assertType("num", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = 1 + unknown;",
-        ""});
+    assertType(
+        "num",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = 1 + unknown;",
+            ""));
   }
 
   public void test_getType_getter() throws Exception {
-    assertType("int", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass {",
-        "  int get foo => 42;",
-        "}",
-        "var x = new MyClass().foo;",
-        ""});
+    assertType(
+        "int",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {",
+            "  int get foo => 42;",
+            "}",
+            "var x = new MyClass().foo;",
+            ""));
   }
 
   public void test_getType_literal_bool_false() throws Exception {
@@ -420,55 +327,67 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_methodInvocation_unknownTarget() throws Exception {
-    assertType(null, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = unknown.m();",
-        ""});
+    assertType(
+        null,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = unknown.m();",
+            ""));
   }
 
   public void test_getType_newExpression() throws Exception {
-    assertType("MyClass", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass {",
-        "}",
-        "var x = new MyClass();",
-        ""});
+    assertType(
+        "MyClass",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {",
+            "}",
+            "var x = new MyClass();",
+            ""));
   }
 
   public void test_getType_newExpression_factoryConstructor() throws Exception {
-    assertType("MyInterface", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "interface MyInterface default MyFactory {",
-        "}",
-        "class MyFactory {",
-        "}",
-        "var x = new MyInterface();",
-        ""});
+    assertType(
+        "MyInterface",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "interface MyInterface default MyFactory {",
+            "}",
+            "class MyFactory {",
+            "}",
+            "var x = new MyInterface();",
+            ""));
   }
 
   public void test_getType_newExpression_unknownConstructor() throws Exception {
-    assertType("MyClass", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass {",
-        "}",
-        "var x = new MyClass.unknown();",
-        ""});
+    assertType(
+        "MyClass",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {",
+            "}",
+            "var x = new MyClass.unknown();",
+            ""));
   }
 
   public void test_getType_newExpression_unknownType() throws Exception {
-    assertType(null, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = new Unknown();",
-        ""});
+    assertType(
+        null,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = new Unknown();",
+            ""));
   }
 
   public void test_getType_newExpression_withTypeArguments() throws Exception {
-    assertType("MyClass<String>", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass<T> {",
-        "}",
-        "var x = new MyClass<String>();",
-        ""});
+    assertType(
+        "MyClass<String>",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass<T> {",
+            "}",
+            "var x = new MyClass<String>();",
+            ""));
   }
 
   public void test_getType_null() throws Exception {
@@ -476,13 +395,15 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_propertyAccess() throws Exception {
-    assertType("int", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class MyClass {",
-        "  int prop;",
-        "}",
-        "var x = new MyClass().prop;",
-        ""});
+    assertType(
+        "int",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class MyClass {",
+            "  int prop;",
+            "}",
+            "var x = new MyClass().prop;",
+            ""));
   }
 
   public void test_getType_typedLiteral_List_noTypeArgument() throws Exception {
@@ -518,10 +439,12 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_unaryExpression_unknownArg() throws Exception {
-    assertType(null, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = -unknown;",
-        ""});
+    assertType(
+        null,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = -unknown;",
+            ""));
   }
 
   public void test_getType_unqualifiedInvocation_int() throws Exception {
@@ -553,26 +476,32 @@ public final class ExtractUtilsTest extends AbstractDartTest {
   }
 
   public void test_getType_variable() throws Exception {
-    assertType("int", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "int v = 1;",
-        "var x = v;",
-        ""});
+    assertType(
+        "int",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "int v = 1;",
+            "var x = v;",
+            ""));
   }
 
   public void test_getType_variable_unknown() throws Exception {
-    assertType(null, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "var x = unknown;",
-        ""});
+    assertType(
+        null,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = unknown;",
+            ""));
   }
 
   public void test_getType_variable_withTypeArguments() throws Exception {
-    assertType("List<String>", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "List<String> v = null;",
-        "var x = v;",
-        ""});
+    assertType(
+        "List<String>",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "List<String> v = null;",
+            "var x = v;",
+            ""));
   }
 
   /**
@@ -634,5 +563,110 @@ public final class ExtractUtilsTest extends AbstractDartTest {
         "var x_4 = new A().foo() + 2;",
         "");
     assert_isAssociative(true);
+  }
+
+  /**
+   * Asserts that {@link ExtractUtils#getNodePrefix(DartNode)} in {@link #testUnit} has expected
+   * prefix.
+   */
+  private void assert_getNodePrefix(String nodePattern, String expectedPrefix) throws Exception {
+    // prepare AST
+    ExtractUtils utils = new ExtractUtils(testUnit);
+    // find node
+    int nodeOffset = findOffset(nodePattern);
+    DartVariableStatement node = findNode(
+        utils.getUnitNode(),
+        nodeOffset,
+        DartVariableStatement.class);
+    assertNotNull(node);
+    // assert prefix
+    assertEquals(expectedPrefix, utils.getNodePrefix(node));
+  }
+
+  private void assert_getType_methodInvocation(String returnType) throws Exception {
+    assertType(
+        returnType,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  " + returnType + " m() {}",
+            "}",
+            "var x = new A().m();",
+            ""));
+  }
+
+  private void assert_getType_unqualifiedInvocation(String returnType) throws Exception {
+    assertType(
+        returnType,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            returnType + " f() {}",
+            "var x = f();",
+            ""));
+  }
+
+  /**
+   * Asserts that each top-level variable has associative (or not) {@link DartBinaryExpression}
+   * value.
+   */
+  private void assert_isAssociative(boolean expected) throws DartModelException {
+    DartUnit unit = DartCompilerUtilities.resolveUnit(testUnit);
+    for (DartNode topLevelNode : unit.getTopLevelNodes()) {
+      if (topLevelNode instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) topLevelNode;
+        List<DartField> fields = fieldDefinition.getFields();
+        if (fields.size() == 1) {
+          DartBinaryExpression expression = (DartBinaryExpression) fields.get(0).getValue();
+          assertEquals(expected, ExtractUtils.isAssociative(expression));
+        }
+      }
+    }
+  }
+
+  /**
+   * Asserts that value of the top-level field "x" in given source has the given type name.
+   */
+  private String assertType(String expectedTypeName, String[] lines) throws Exception {
+    DartExpression expression = getMarkerVariableExpression(lines);
+    String type = ExtractUtils.getTypeSource(expression);
+    if (expectedTypeName != null) {
+      assertNotNull(type);
+      assertEquals(expectedTypeName, type);
+    } else {
+      assertNull(type);
+    }
+    return type;
+  }
+
+  /**
+   * Simplified call to {@link #assertType(String, String[])} for single {@link DartExpression}
+   * without dependencies.
+   */
+  private void assertTypeSimple(String expectedType, String expression) throws Exception {
+    assertType(
+        expectedType,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "var x = " + expression + ";",
+            ""));
+  }
+
+  /**
+   * @return the {@link DartExpression} of top-level variable "x" in the given source.
+   */
+  private DartExpression getMarkerVariableExpression(String... lines) throws Exception {
+    setTestUnitContent(lines);
+    DartUnit unit = DartCompilerUtilities.resolveUnit(testUnit);
+    for (DartNode topLevelNode : unit.getTopLevelNodes()) {
+      if (topLevelNode instanceof DartFieldDefinition) {
+        DartFieldDefinition fieldDefinition = (DartFieldDefinition) topLevelNode;
+        List<DartField> fields = fieldDefinition.getFields();
+        if (fields.size() == 1 && fields.get(0).getName().getName().equals("x")) {
+          return fields.get(0).getValue();
+        }
+      }
+    }
+    fail("Field 'x' not found");
+    return null;
   }
 }

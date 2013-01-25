@@ -43,58 +43,70 @@ public final class OrganizeImportsTest extends RefactoringTest {
   }
 
   public void test_multiple() throws Exception {
-    CompilationUnit unitA = setUnitContent("LibA.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libA;",
-        "import 'fooB';",
-        "import 'fooA';",
-        ""});
-    CompilationUnit unitB = setUnitContent("LibB.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libB;",
-        "import 'barB';",
-        "import 'barA';",
-        ""});
+    CompilationUnit unitA = setUnitContent(
+        "LibA.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "import 'fooB';",
+            "import 'fooA';",
+            ""));
+    CompilationUnit unitB = setUnitContent(
+        "LibB.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libB;",
+            "import 'barB';",
+            "import 'barA';",
+            ""));
     doOrganize(unitA, unitB);
-    assertUnitContent(unitA, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libA;",
-        "import 'fooA';",
-        "import 'fooB';",
-        ""});
-    assertUnitContent(unitB, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libB;",
-        "import 'barA';",
-        "import 'barB';",
-        ""});
+    assertUnitContent(
+        unitA,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "import 'fooA';",
+            "import 'fooB';",
+            ""));
+    assertUnitContent(
+        unitB,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libB;",
+            "import 'barA';",
+            "import 'barB';",
+            ""));
   }
 
   public void test_multiple_withSingle() throws Exception {
-    CompilationUnit unitA = setUnitContent("LibA.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libA;",
-        "import 'fooB';",
-        "import 'fooA';",
-        ""});
+    CompilationUnit unitA = setUnitContent(
+        "LibA.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "import 'fooB';",
+            "import 'fooA';",
+            ""));
     doOrganize(unitA);
-    assertUnitContent(unitA, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library libA;",
-        "import 'fooA';",
-        "import 'fooB';",
-        ""});
+    assertUnitContent(
+        unitA,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "import 'fooA';",
+            "import 'fooB';",
+            ""));
   }
 
   public void test_notLibraryUnit() throws Exception {
-    String[] libLines = new String[] {
+    String[] libLines = formatLines(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library myLib;",
         "part 'Test.dart';",
         "",
         "import 'dart:io';",
         "import 'dart:isolate';",
-        ""};
+        "");
     CompilationUnit libUnit = setUnitContent("Lib.dart", libLines);
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",

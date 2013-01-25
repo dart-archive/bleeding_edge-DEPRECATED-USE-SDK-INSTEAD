@@ -216,10 +216,12 @@ public final class RenameAnalyzeUtilTest extends RefactoringTest {
   }
 
   public void test_getReferences_import() throws Exception {
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('Lib');",
-        "class A {}"});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('Lib');",
+            "class A {}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "#library('Test');",

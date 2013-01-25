@@ -99,17 +99,21 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "var test;",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f() {",
-        "  test = 1;",
-        "}"});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "var test;",
+            ""));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f() {",
+            "  test = 1;",
+            "}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library test;",
@@ -122,17 +126,21 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     DartVariableDeclaration variable = findElement(unit2, "test = 1;");
     // do rename
     renameVariable(variable, "newName");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "var newName;",
-        ""});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f() {",
-        "  newName = 1;",
-        "}"});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "var newName;",
+            ""));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f() {",
+            "  newName = 1;",
+            "}"));
   }
 
   /**
@@ -538,11 +546,8 @@ public final class RenameGlobalVariableProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'newName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'newName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

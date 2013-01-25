@@ -104,17 +104,21 @@ public final class RenameClassTypeAliasProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {}",
-        "typedef Test = Object with A;",
-        ""});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f(Test test) {",
-        "}"});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {}",
+            "typedef Test = Object with A;",
+            ""));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f(Test test) {",
+            "}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library test;",
@@ -127,17 +131,21 @@ public final class RenameClassTypeAliasProcessorTest extends RefactoringTest {
     DartClassTypeAlias classTypeAlias = findElement(unit2, "Test test");
     // do rename
     renameType(classTypeAlias, "NewName");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {}",
-        "typedef NewName = Object with A;",
-        ""});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f(NewName test) {",
-        "}"});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {}",
+            "typedef NewName = Object with A;",
+            ""));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f(NewName test) {",
+            "}"));
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {
@@ -536,11 +544,8 @@ public final class RenameClassTypeAliasProcessorTest extends RefactoringTest {
     assertThat(openInformationMessages).isEmpty();
     assertThat(showStatusMessages).hasSize(1);
     assertEquals(RefactoringStatus.ERROR, showStatusSeverities.get(0).intValue());
-    assertEquals("File 'Test/"
-        + unitName
-        + "' in library 'Test' already declares top-level "
-        + shadowName
-        + " 'NewName'", showStatusMessages.get(0));
+    assertEquals("File 'Test/" + unitName + "' in library 'Test' already declares top-level "
+        + shadowName + " 'NewName'", showStatusMessages.get(0));
     // no source changes
     assertEquals(source, testUnit.getSource());
   }

@@ -168,15 +168,17 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "  a.test = 2;",
         "}",
         "");
-    setUnitContent("User.dart", new String[] {
-        "library User;",
-        "import 'Test.dart';",
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "f2() {",
-        "  A a = new A();",
-        "  a.test = 3;",
-        "}",
-        ""});
+    setUnitContent(
+        "User.dart",
+        formatLines(
+            "library User;",
+            "import 'Test.dart';",
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "f2() {",
+            "  A a = new A();",
+            "  a.test = 3;",
+            "}",
+            ""));
     CompilationUnit userUnit = testProject.getUnit("User.dart");
     Field field = findElement("test = 1;");
     // do rename
@@ -200,15 +202,17 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
         "  a._newName = 2;",
         "}",
         "");
-    assertUnitContent(userUnit, new String[] {
-        "library User;",
-        "import 'Test.dart';",
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "f2() {",
-        "  A a = new A();",
-        "  a._newName = 3;",
-        "}",
-        ""});
+    assertUnitContent(
+        userUnit,
+        formatLines(
+            "library User;",
+            "import 'Test.dart';",
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "f2() {",
+            "  A a = new A();",
+            "  a._newName = 3;",
+            "}",
+            ""));
   }
 
   public void test_OK_addUnderscore_sameLibrary() throws Exception {
@@ -270,32 +274,38 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {",
-        "  int test = 1;",
-        "  int bar = 2;",
-        "  f1() {",
-        "    test = 3;",
-        "    bar = 4;",
-        "  }",
-        "}"});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f2() {",
-        "  A a = new A();",
-        "  a.test = 5;",
-        "}"});
-    setUnitContent("Test3.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class B extends A {",
-        "  f3() {",
-        "    test = 6;",
-        "  }",
-        "}"});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {",
+            "  int test = 1;",
+            "  int bar = 2;",
+            "  f1() {",
+            "    test = 3;",
+            "    bar = 4;",
+            "  }",
+            "}"));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f2() {",
+            "  A a = new A();",
+            "  a.test = 5;",
+            "}"));
+    setUnitContent(
+        "Test3.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class B extends A {",
+            "  f3() {",
+            "    test = 6;",
+            "  }",
+            "}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library test;",
@@ -310,32 +320,38 @@ public final class RenameFieldProcessorTest extends RefactoringTest {
     Field field = findElement(unit2, "test = 5;");
     // do rename
     renameField(field, "newName");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {",
-        "  int newName = 1;",
-        "  int bar = 2;",
-        "  f1() {",
-        "    newName = 3;",
-        "    bar = 4;",
-        "  }",
-        "}"});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f2() {",
-        "  A a = new A();",
-        "  a.newName = 5;",
-        "}"});
-    assertUnitContent(unit3, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class B extends A {",
-        "  f3() {",
-        "    newName = 6;",
-        "  }",
-        "}"});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {",
+            "  int newName = 1;",
+            "  int bar = 2;",
+            "  f1() {",
+            "    newName = 3;",
+            "    bar = 4;",
+            "  }",
+            "}"));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f2() {",
+            "  A a = new A();",
+            "  a.newName = 5;",
+            "}"));
+    assertUnitContent(
+        unit3,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class B extends A {",
+            "  f3() {",
+            "    newName = 6;",
+            "  }",
+            "}"));
   }
 
   public void test_OK_singleUnit_onDeclaration() throws Exception {

@@ -235,32 +235,38 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
   }
 
   public void test_OK_multipleUnits_onReference() throws Exception {
-    setUnitContent("Test1.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {",
-        "  test(var p) {}",
-        "  int bar = 2;",
-        "  f1() {",
-        "    test(3);",
-        "    bar = 4;",
-        "  }",
-        "}"});
-    setUnitContent("Test2.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f2() {",
-        "  A a = new A();",
-        "  a.test(5);",
-        "}"});
-    setUnitContent("Test3.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class B extends A {",
-        "  f3() {",
-        "    test(6);",
-        "  }",
-        "}"});
+    setUnitContent(
+        "Test1.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {",
+            "  test(var p) {}",
+            "  int bar = 2;",
+            "  f1() {",
+            "    test(3);",
+            "    bar = 4;",
+            "  }",
+            "}"));
+    setUnitContent(
+        "Test2.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f2() {",
+            "  A a = new A();",
+            "  a.test(5);",
+            "}"));
+    setUnitContent(
+        "Test3.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class B extends A {",
+            "  f3() {",
+            "    test(6);",
+            "  }",
+            "}"));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library test;",
@@ -275,32 +281,38 @@ public final class RenameMethodProcessorTest extends RefactoringTest {
     Method method = findElement(unit2, "test(5);");
     // do rename
     renameMethod(method, "newName");
-    assertUnitContent(unit1, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class A {",
-        "  newName(var p) {}",
-        "  int bar = 2;",
-        "  f1() {",
-        "    newName(3);",
-        "    bar = 4;",
-        "  }",
-        "}"});
-    assertUnitContent(unit2, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "f2() {",
-        "  A a = new A();",
-        "  a.newName(5);",
-        "}"});
-    assertUnitContent(unit3, new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part of test;",
-        "class B extends A {",
-        "  f3() {",
-        "    newName(6);",
-        "  }",
-        "}"});
+    assertUnitContent(
+        unit1,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class A {",
+            "  newName(var p) {}",
+            "  int bar = 2;",
+            "  f1() {",
+            "    newName(3);",
+            "    bar = 4;",
+            "  }",
+            "}"));
+    assertUnitContent(
+        unit2,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "f2() {",
+            "  A a = new A();",
+            "  a.newName(5);",
+            "}"));
+    assertUnitContent(
+        unit3,
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part of test;",
+            "class B extends A {",
+            "  f3() {",
+            "    newName(6);",
+            "  }",
+            "}"));
   }
 
   public void test_OK_namedConstructor_newName() throws Exception {

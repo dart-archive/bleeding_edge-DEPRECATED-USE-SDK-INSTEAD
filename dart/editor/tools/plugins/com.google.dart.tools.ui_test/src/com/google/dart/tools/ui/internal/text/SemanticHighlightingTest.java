@@ -354,16 +354,20 @@ public class SemanticHighlightingTest extends AbstractDartTest {
   }
 
   public void test_deprecated_libraryImport() throws Exception {
-    setUnitContent("ModernLib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library modernLib;",
-        ""});
-    setUnitContent("DeprecatedLib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "@deprecated",
-        "library deprecatedLib;",
-        "const deprecated = 0;",
-        ""});
+    setUnitContent(
+        "ModernLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library modernLib;",
+            ""));
+    setUnitContent(
+        "DeprecatedLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "@deprecated",
+            "library deprecatedLib;",
+            "const deprecated = 0;",
+            ""));
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library App;",
@@ -640,10 +644,8 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     for (HighlightedPosition position : positions) {
       Highlighting style = position.getHighlighting();
       SemanticHighlighting highlighting = styleToHighlighting.get(style);
-      if (highlighting != null
-          && highlighting.getPreferenceKey().equals(id)
-          && position.getOffset() == offset
-          && position.getLength() == length) {
+      if (highlighting != null && highlighting.getPreferenceKey().equals(id)
+          && position.getOffset() == offset && position.getLength() == length) {
         return;
       }
     }
@@ -667,10 +669,8 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     for (HighlightedPosition position : positions) {
       Highlighting style = position.getHighlighting();
       SemanticHighlighting highlighting = styleToHighlighting.get(style);
-      if (highlighting != null
-          && highlighting.getPreferenceKey().equals(id)
-          && position.getOffset() == offset
-          && position.getLength() == length) {
+      if (highlighting != null && highlighting.getPreferenceKey().equals(id)
+          && position.getOffset() == offset && position.getLength() == length) {
         fail("Position not expected id:" + id + " offset:" + offset + " length:" + length);
       }
     }

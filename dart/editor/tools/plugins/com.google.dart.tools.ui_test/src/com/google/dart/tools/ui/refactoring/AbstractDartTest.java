@@ -24,6 +24,13 @@ import org.eclipse.swt.widgets.Display;
 public abstract class AbstractDartTest extends AbstractDartCoreTest {
 
   /**
+   * Function to force formatter to put every string on separate line.
+   */
+  public static String[] formatLines(String... lines) {
+    return lines;
+  }
+
+  /**
    * Waits given number of milliseconds and runs events loop every 1 millisecond. At least one
    * events loop will be executed.
    */

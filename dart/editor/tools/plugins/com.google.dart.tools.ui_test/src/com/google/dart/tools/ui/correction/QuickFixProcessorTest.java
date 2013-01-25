@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -57,11 +57,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_addPartOf() throws Exception {
     proposalNamePrefix = "Add \"part of\" directive";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library MyApp;",
-        "part 'Test.dart';",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library MyApp;",
+            "part 'Test.dart';",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -83,10 +85,12 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
    */
   public void test_addPartOf_libraryWithoutDirective() throws Exception {
     proposalNamePrefix = "Add \"part of\" directive";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "part 'Test.dart';",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "part 'Test.dart';",
+            ""));
     setTestUnitContent("", "");
     assertNoQuickFix();
   }
@@ -527,10 +531,12 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_importLibrary_withFunction() throws Exception {
     proposalNamePrefix = "Import library";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "test() {}",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "test() {}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -568,11 +574,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   }
 
   public void test_importLibrary_withFunction_hasImportWithPrefix() throws Exception {
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Lib;",
-        "test() {}",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Lib;",
+            "test() {}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",
@@ -656,18 +664,22 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_importLibrary_withType_hasDirectiveImport() throws Exception {
     proposalNamePrefix = "Import library";
-    setUnitContent("LibA.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library A;",
-        "class AAA {",
-        "}",
-        ""});
-    setUnitContent("App.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library App;",
-        "import 'dart:core';",
-        "part 'Test.dart';",
-        ""});
+    setUnitContent(
+        "LibA.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            "class AAA {",
+            "}",
+            ""));
+    setUnitContent(
+        "App.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library App;",
+            "import 'dart:core';",
+            "part 'Test.dart';",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "part of App;",
@@ -695,12 +707,14 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_importLibrary_withType_hasImportWithPrefix() throws Exception {
     proposalNamePrefix = "Use imported library 'Lib.dart' with prefix 'lib'";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Lib;",
-        "class Test {",
-        "}",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Lib;",
+            "class Test {",
+            "}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",
@@ -720,11 +734,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_importLibrary_withType_noDirectives() throws Exception {
     proposalNamePrefix = "Import library";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class Test {",
-        "}",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Test {",
+            "}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -744,19 +760,27 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_importLibrary_withType_whenInvocationTarget() throws Exception {
     proposalNamePrefix = "Import library";
+    setUnitContent(
+        "Utils.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Utils {",
+            "  static int foo() => 42;",
+            "}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
-        "  var foo = JSON.parse('{\"foo\":1}');",
+        "  var v = Utils.foo();",
         "}",
         "");
     assertQuickFix(
         "// filler filler filler filler filler filler filler filler filler filler",
         "",
-        "import 'dart:json';",
+        "import 'Utils.dart';",
         "",
         "main() {",
-        "  var foo = JSON.parse('{\"foo\":1}');",
+        "  var v = Utils.foo();",
         "}",
         "");
   }
@@ -877,11 +901,13 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_unresolvedFunction_useSimilar_unqualified_fromLibrary_import() throws Exception {
     proposalNamePrefix = "Change to";
-    setUnitContent("MyLib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library my_lib;",
-        "sayHello() {}",
-        ""});
+    setUnitContent(
+        "MyLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library my_lib;",
+            "sayHello() {}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library app;",
@@ -958,13 +984,15 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
 
   public void test_useStaticAccess_method_importWithPrefix() throws Exception {
     proposalNamePrefix = "Change access to static using 'lib.A'";
-    setUnitContent("Lib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Lib;",
-        "class A {",
-        " static foo() {}",
-        "}",
-        ""});
+    setUnitContent(
+        "Lib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Lib;",
+            "class A {",
+            " static foo() {}",
+            "}",
+            ""));
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'Lib.dart' as lib;",

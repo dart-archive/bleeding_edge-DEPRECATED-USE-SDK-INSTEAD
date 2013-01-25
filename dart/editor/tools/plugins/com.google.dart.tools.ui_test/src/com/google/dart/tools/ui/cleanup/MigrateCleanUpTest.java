@@ -145,9 +145,13 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M1_library_empty() throws Exception {
-    setUnitContent("Main.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Main;", "part 'Test.dart';", ""});
+    setUnitContent(
+        "Main.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Main;",
+            "part 'Test.dart';",
+            ""));
     ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
     String initial = makeSource("");
     String expected = makeSource("part of Main;", "");
@@ -180,9 +184,13 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M1_library_partOf() throws Exception {
-    setUnitContent("Main.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Main;", "part 'Test.dart';", ""});
+    setUnitContent(
+        "Main.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Main;",
+            "part 'Test.dart';",
+            ""));
     ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
     String initial = makeSource(
         "// copyright copyright copyright copyright copyright copyright copyright",
@@ -210,9 +218,13 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M1_library_partOf_already() throws Exception {
-    setUnitContent("Main.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library Main;", "part 'Test.dart';", ""});
+    setUnitContent(
+        "Main.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library Main;",
+            "part 'Test.dart';",
+            ""));
     ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -251,9 +263,13 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
   }
 
   public void test_1M1_library_specialCharacters_part() throws Exception {
-    setUnitContent("Main.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "#library('dart:my-lib.new.dart');", "#source('Test.dart');", ""});
+    setUnitContent(
+        "Main.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "#library('dart:my-lib.new.dart');",
+            "#source('Test.dart');",
+            ""));
     ICleanUp cleanUp = new Migrate_1M1_library_CleanUp();
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -806,9 +822,13 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
 
   public void test_1M2_renameExceptions_qualifiedName() throws Exception {
     ICleanUp cleanUp = new Migrate_1M2_renameTypes_CleanUp();
-    setUnitContent("MyLib.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library myLib;", "class InvalidArgumentException() {}", ""});
+    setUnitContent(
+        "MyLib.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library myLib;",
+            "class InvalidArgumentException() {}",
+            ""));
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'MyLib.dart' as pref;",
@@ -1114,7 +1134,6 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
-  // XXX
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=8073

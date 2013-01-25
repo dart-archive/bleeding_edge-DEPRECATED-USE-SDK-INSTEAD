@@ -73,42 +73,54 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
 
   public void test_OK_noReferences() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    CompilationUnit unitA = setUnitContent("A.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        ""});
+    CompilationUnit unitA = setUnitContent(
+        "A.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            ""));
     // do move
     moveUnit(unitA, destination);
-    assertUnitContent(testProject.getUnit("aaa/A.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        ""});
+    assertUnitContent(
+        testProject.getUnit("aaa/A.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            ""));
   }
 
   public void test_OK_reference_inImport() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent("A.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "import 'B.dart';",
-        ""});
-    CompilationUnit unitB = setUnitContent("B.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "import 'A.dart';",
-        ""});
+    setUnitContent(
+        "A.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import 'B.dart';",
+            ""));
+    CompilationUnit unitB = setUnitContent(
+        "B.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import 'A.dart';",
+            ""));
     // do move
     moveUnit(unitB, destination);
-    assertUnitContent(testProject.getUnit("A.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "import 'aaa/B.dart';",
-        ""});
-    assertUnitContent(testProject.getUnit("aaa/B.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "import '../A.dart';",
-        ""});
+    assertUnitContent(
+        testProject.getUnit("A.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import 'aaa/B.dart';",
+            ""));
+    assertUnitContent(
+        testProject.getUnit("aaa/B.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import '../A.dart';",
+            ""));
   }
 
   /**
@@ -118,76 +130,100 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
   public void test_OK_reference_inImport_inDeepFolder() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
     testProject.createFolder("aaa/bbb");
-    setUnitContent("aaa/bbb/A.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "import 'B.dart';",
-        ""});
-    CompilationUnit unitB = setUnitContent("aaa/bbb/B.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "import 'A.dart';",
-        ""});
+    setUnitContent(
+        "aaa/bbb/A.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import 'B.dart';",
+            ""));
+    CompilationUnit unitB = setUnitContent(
+        "aaa/bbb/B.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import 'A.dart';",
+            ""));
     // do move
     moveUnit(unitB, destination);
-    assertUnitContent(testProject.getUnit("aaa/bbb/A.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "import '../B.dart';",
-        ""});
-    assertUnitContent(testProject.getUnit("aaa/B.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "import 'bbb/A.dart';",
-        ""});
+    assertUnitContent(
+        testProject.getUnit("aaa/bbb/A.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "import '../B.dart';",
+            ""));
+    assertUnitContent(
+        testProject.getUnit("aaa/B.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "import 'bbb/A.dart';",
+            ""));
   }
 
   public void test_OK_reference_inPart() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent("A.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "part 'B.dart';",
-        ""});
-    CompilationUnit unitB = setUnitContent("B.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "void foo() {}",
-        ""});
+    setUnitContent(
+        "A.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "part 'B.dart';",
+            ""));
+    CompilationUnit unitB = setUnitContent(
+        "B.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "void foo() {}",
+            ""));
     // do move
     moveUnit(unitB, destination);
-    assertUnitContent(testProject.getUnit("A.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library a;",
-        "part 'aaa/B.dart';",
-        ""});
-    assertUnitContent(testProject.getUnit("aaa/B.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "void foo() {}",
-        ""});
+    assertUnitContent(
+        testProject.getUnit("A.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library a;",
+            "part 'aaa/B.dart';",
+            ""));
+    assertUnitContent(
+        testProject.getUnit("aaa/B.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "void foo() {}",
+            ""));
   }
 
   public void test_OK_reference_toPart() throws Exception {
     IFolder destination = testProject.createFolder("aaa");
-    setUnitContent("A.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "void foo() {}",
-        ""});
-    CompilationUnit unitB = setUnitContent("B.dart", new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "part 'A.dart';",
-        ""});
+    setUnitContent(
+        "A.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "void foo() {}",
+            ""));
+    CompilationUnit unitB = setUnitContent(
+        "B.dart",
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "part 'A.dart';",
+            ""));
     // do move
     moveUnit(unitB, destination);
-    assertUnitContent(testProject.getUnit("A.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "void foo() {}",
-        ""});
-    assertUnitContent(testProject.getUnit("aaa/B.dart"), new String[] {
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "library b;",
-        "part '../A.dart';",
-        ""});
+    assertUnitContent(
+        testProject.getUnit("A.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "void foo() {}",
+            ""));
+    assertUnitContent(
+        testProject.getUnit("aaa/B.dart"),
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library b;",
+            "part '../A.dart';",
+            ""));
   }
 
 }

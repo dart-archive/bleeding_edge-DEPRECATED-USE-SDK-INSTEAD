@@ -114,21 +114,21 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
   public void test_OK_inSource_spaces_slashR_slashN() throws Exception {
     IFile targetFile = (IFile) testProject.setUnitContent("target.dart", "").getResource();
     setTestUnitContent(Joiner.on("\r\n").join(
-        new String[] {
+        formatLines(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('Test');",
             "#source('target.dart'); \t ",
             "// trailing comment",
-            ""}));
+            "")));
     assertTrue(targetFile.exists());
     // do delete
     deleteFile(targetFile);
     assertTestUnitContent(Joiner.on("\r\n").join(
-        new String[] {
+        formatLines(
             "// filler filler filler filler filler filler filler filler filler filler",
             "#library('Test');",
             "// trailing comment",
-            ""}));
+            "")));
     assertFileWasDeleted(targetFile);
   }
 
