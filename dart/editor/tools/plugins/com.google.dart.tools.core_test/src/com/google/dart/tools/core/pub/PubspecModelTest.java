@@ -66,6 +66,14 @@ public class PubspecModelTest extends TestCase {
     assertEquals("0.0.1", pubspecModel.getVersion());
     assertEquals("dart team", pubspecModel.getAuthor());
     assertEquals(7, pubspecModel.getDependecies().length);
+    assertEquals("", pubspecModel.getSdkVersion());
+  }
+
+  public void test_initialize2() {
+    PubspecModel pubspecModel = new PubspecModel(null);
+    pubspecModel.initialize(PubYamlUtilsTest.pubspecYamlString2);
+    assertEquals("web_components", pubspecModel.getName());
+    assertEquals(">=1.2.3 <2.0.0", pubspecModel.getSdkVersion());
   }
 
 }

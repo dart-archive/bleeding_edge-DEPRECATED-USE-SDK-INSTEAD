@@ -37,6 +37,11 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
       + "    git: https://github.com/johnmccutchan/DartVectorMath.git\n" + "  unittest:\n"
       + "     path:../../unittest-0.1.1/lib";
 
+  public static String pubspecYamlString2 = "name: web_components\n"
+      + "description: an easy way to build web apps in Dart\n" + "author: dart team\n"
+      + "environment: \n" + "  sdk: \">=1.2.3 <2.0.0\"\n" + "version: 0.0.1\n" + "dependencies: \n"
+      + "  unittest: any\n" + "  args: any\n";
+
   private static String yamlStringWithErrors = "name: web_components\n"
       + "\tdescription: an easy way to build web apps in Dart\n" + "author:";
 
@@ -54,7 +59,7 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     checkPubSpecsEqual(object1, object2);
 
   }
-  
+
   // Assert names of dependencies can be extracted from pubspec.yaml string
   public void test_getNamesOfDependencies() {
     List<String> dependencies = PubYamlUtils.getNamesOfDependencies(pubspecYamlString);
@@ -87,7 +92,12 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertNull(name);
   }
 
-
+  public void test_parseYaml2ToObject() {
+    PubYamlObject object = PubYamlUtils.parsePubspecYamlToObject(pubspecYamlString2);
+    assertNotNull(object);
+    assertEquals("web_components", object.name);
+    assertNotNull(object.environment);
+  }
 
   // Assert pubspec file contents can be loaded into PubYamlObject
   public void test_parseYamlToObject() {
@@ -98,6 +108,7 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
     assertEquals("0.0.1", object.version);
     assertEquals("dart team", object.author);
     assertNotNull(object.dependencies);
+    assertNull(object.environment);
   }
 
   // Assert  method returns for yaml with errors 

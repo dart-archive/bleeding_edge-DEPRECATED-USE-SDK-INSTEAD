@@ -22,12 +22,12 @@ import java.util.Map;
 public class PubYamlObject {
 
   public String name;
-
   public String version;
   public String author;
   public List<String> authors;
   public String description;
   public String homepage;
+  public Map<String, Object> environment;
   public Map<String, Object> dependencies;
 
   public PubYamlObject() {

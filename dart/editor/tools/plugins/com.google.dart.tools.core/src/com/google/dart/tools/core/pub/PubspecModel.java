@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 public class PubspecModel {
 
   private static String EMPTY_STRING = "";
+  private static String SDK_VERSION_KEY = "sdk";
 
   private ArrayList<IModelListener> modelListeners;
 
@@ -39,6 +40,8 @@ public class PubspecModel {
   private String description;
   private String author;
   private String homepage;
+  private String sdkVersion;
+
   private ArrayList<DependencyObject> dependencies;
 
   private String comments;
@@ -100,6 +103,10 @@ public class PubspecModel {
     return name;
   }
 
+  public String getSdkVersion() {
+    return sdkVersion;
+  }
+
   public String getVersion() {
     return version;
   }
@@ -153,13 +160,17 @@ public class PubspecModel {
     this.name = name;
   }
 
+  public void setSdkVersion(String sdkVersion) {
+    this.sdkVersion = sdkVersion;
+  }
+
   public void setVersion(String version) {
     this.version = version;
   }
 
   private void clearModelFields() {
     isDirty = false;
-    name = version = description = homepage = author = comments = EMPTY_STRING;
+    name = version = description = homepage = author = sdkVersion = comments = EMPTY_STRING;
     dependencies.clear();
   }
 
@@ -185,6 +196,11 @@ public class PubspecModel {
     }
     if (!homepage.isEmpty()) {
       pubYamlObject.homepage = homepage;
+    }
+    if (!sdkVersion.isEmpty()) {
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put(SDK_VERSION_KEY, sdkVersion);
+      pubYamlObject.environment = map;
     }
     Map<String, Object> dependenciesMap = new HashMap<String, Object>();
     for (DependencyObject dep : dependencies) {
@@ -288,6 +304,8 @@ public class PubspecModel {
           author += "," + object.authors.get(i);
         }
       }
+      sdkVersion = (String) ((object.environment != null) ? object.environment.get(SDK_VERSION_KEY)
+          : EMPTY_STRING);
       description = (object.description != null) ? object.description : EMPTY_STRING;
       homepage = (object.homepage != null) ? object.homepage : EMPTY_STRING;
       add(processDependencies(object.dependencies), IModelListener.REFRESH);
