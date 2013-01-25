@@ -17,6 +17,8 @@ import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
+import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.UrlDartSource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartBlock;
@@ -32,6 +34,7 @@ import com.google.dart.compiler.ast.DartFunction;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNewExpression;
@@ -96,6 +99,8 @@ import com.google.dart.tools.core.internal.completion.ast.TypeCompleter;
 import com.google.dart.tools.core.internal.completion.ast.TypeParameterCompleter;
 import com.google.dart.tools.core.internal.model.DartFunctionTypeAliasImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
+import com.google.dart.tools.core.internal.model.DartProjectImpl;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.internal.util.Messages;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -121,6 +126,7 @@ import com.google.dart.tools.core.search.SearchPatternFactory;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
+import com.google.dart.tools.core.utilities.net.URIUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
 import org.eclipse.core.runtime.IPath;
@@ -130,6 +136,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
 
 import java.io.File;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -989,6 +996,13 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitImportDirective(DartImportDirective node) {
+      String name = node.getLibraryUri().getValue();
+      createCompletionForImports(node, name);
+      return null;
+    }
+
+    @Override
     public Void visitMethodInvocation(DartMethodInvocation completionNode) {
       DartIdentifier functionName = completionNode.getFunctionName();
       int nameStart = functionName.getSourceInfo().getOffset();
@@ -1164,6 +1178,10 @@ public class CompletionEngine {
     @Override
     public Void visitStringLiteral(DartStringLiteral node) {
       DartNode parent = node.getParent();
+      if (parent instanceof DartImportDirective) {
+        parent.accept(new OuterCompletionProposer(parent));
+        return null;
+      }
       if (parent instanceof DartStringInterpolation) {
         DartStringInterpolation interp = (DartStringInterpolation) parent;
         List<DartStringLiteral> iStrings = interp.getStrings();
@@ -1736,6 +1754,10 @@ public class CompletionEngine {
   /** Signature of Object.noSuchMethod(), which should not appear in proposal lists. */
   private static final String NO_SUCH_METHOD = "noSuchMethodStringList";
   private static final String SETTER_PREFIX = "setter ";
+  private static final String PACKAGES_PATH = "/packages/";
+  private static final String LIB_DIRECTORY_NAME = "lib";
+  private static final String FORWARD_SLASH = "/";
+  private static final String LIB_PATH = FORWARD_SLASH + LIB_DIRECTORY_NAME + FORWARD_SLASH;
 
   /**
    * @param options
@@ -1850,9 +1872,7 @@ public class CompletionEngine {
     if (parsedUnit == null) {
       return;
     }
-    if (parsedUnit.getTopLevelNodes().isEmpty()) {
-      return;
-    }
+
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
 
     NodeFinder finder = NodeFinder.find(parsedUnit, completionPosition, 0);
@@ -1959,6 +1979,92 @@ public class CompletionEngine {
     }
   }
 
+  private boolean checkPrefixIsDartSdkLibrary(String prefix) {
+    if (PackageLibraryManager.DART_SCHEME_SPEC.startsWith(prefix)) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean checkPrefixIsPackageLibrary(String prefix) {
+    if (PackageLibraryManager.PACKAGE_SCHEME_SPEC.startsWith(prefix)) {
+      return true;
+    }
+    return false;
+  }
+
+  private void createCompletionForCurrentPackageImports(DartImportDirective node, String prefix,
+      List<DartLibrary> libraries, List<DartLibrary> librariesInLibFolder) {
+    if (!prefix.isEmpty()
+        && (PackageLibraryManager.DART_SCHEME_SPEC.equals(prefix) || PackageLibraryManager.PACKAGE_SCHEME_SPEC.equals(prefix))) {
+      return;
+    }
+    if (isCUInLibFolder(currentCompilationUnit)) {
+      createImportsFromList(node, prefix, librariesInLibFolder);
+    } else {
+      createImportsFromList(node, prefix, libraries);
+    }
+
+  }
+
+  private void createCompletionForImportLibraryName(DartImportDirective node, String prefix,
+      String name, int relevance) {
+    InternalCompletionProposal proposal = (InternalCompletionProposal) CompletionProposal.create(
+        CompletionProposal.TYPE_IMPORT,
+        actualCompletionPosition - offset);
+    proposal.setDeclarationSignature(new char[0]);
+    proposal.setCompletion(name.toCharArray());
+    proposal.setName(null);
+    proposal.setIsContructor(false);
+    proposal.setIsGetter(false);
+    proposal.setIsSetter(false);
+    proposal.setTypeName(null);
+    proposal.setReplaceRange(actualCompletionPosition, actualCompletionPosition + prefix.length());
+    proposal.setRelevance(relevance);
+    setSourceLoc(proposal, null, null);
+    if (!prefix.isEmpty() && !prefix.equals(PackageLibraryManager.PACKAGE_SCHEME_SPEC)
+        && !prefix.equals(PackageLibraryManager.DART_SCHEME_SPEC)) {
+      int sourceLoc = node.getLibraryUri().getSourceInfo().getOffset();
+      proposal.setReplaceRange(sourceLoc + 1 - offset, prefix.length() + sourceLoc + 1 - offset);
+      proposal.setTokenRange(sourceLoc + 1 - offset, prefix.length() + sourceLoc + 1 - offset);
+    }
+    requestor.accept(proposal);
+  }
+
+  private void createCompletionForImports(DartImportDirective node, String prefix) {
+    try {
+
+      List<DartLibrary> packages = new ArrayList<DartLibrary>();
+      List<DartLibrary> libraries = new ArrayList<DartLibrary>();
+      List<DartLibrary> librariesInLib = new ArrayList<DartLibrary>();
+
+      DartLibrary currentLibrary = currentCompilationUnit.getLibrary();
+      DartLibrary[] dartLibraries = currentLibrary.getDartProject().getDartLibraries();
+      for (DartLibrary library : dartLibraries) {
+        if (library.getUri().equals(currentLibrary.getUri())) {
+          // do nothing
+        } else if (library.getUri().toString().contains(PACKAGES_PATH)) {
+          packages.add(library);
+        } else if (isCUInLibFolder(library.getDefiningCompilationUnit())) {
+          librariesInLib.add(library);
+        } else {
+          libraries.add(library);
+        }
+      }
+
+      if (prefix == null) {
+        prefix = "";
+      }
+      createCompletionForSdkImports(node, prefix);
+      createCompletionForPubPackageImports(node, prefix, packages, librariesInLib);
+      createCompletionForCurrentPackageImports(node, prefix, libraries, librariesInLib);
+
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+    }
+
+  }
+
   private void createCompletionForIndexer(FieldElement field, boolean includeDeclaration,
       DartIdentifier node, String prefix) {
     if (!isIndexableType(field.getType())) {
@@ -1989,6 +2095,93 @@ public class CompletionEngine {
     setSourceLoc(proposal, node, prefix);
     proposal.setRelevance(1);
     requestor.accept(proposal);
+  }
+
+  private void createCompletionForPubPackageImports(DartImportDirective node, String prefix,
+      List<DartLibrary> packages, List<DartLibrary> librariesInLibFolder) {
+
+    if (!prefix.isEmpty() && !checkPrefixIsPackageLibrary(prefix)) {
+      return;
+    }
+    try {
+      if ((prefix.isEmpty() || !prefix.equals(PackageLibraryManager.PACKAGE_SCHEME_SPEC))
+          && (DartCore.getApplicationDirectory(currentCompilationUnit.getUnderlyingResource().getLocation().toFile()) != null)) {
+        createCompletionForImportLibraryName(
+            node,
+            prefix,
+            PackageLibraryManager.PACKAGE_SCHEME_SPEC,
+            2);
+        return;
+      }
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+      return;
+    }
+
+    // add only top level libraries to list (not in src or other folders)
+    List<String> packageDeps = ((DartProjectImpl) currentCompilationUnit.getDartProject()).getPackageDependencies();
+    Set<String> libraryNames = new HashSet<String>();
+    for (DartLibrary library : packages) {
+      try {
+        File libraryFile = library.getDefiningCompilationUnit().getUnderlyingResource().getLocation().toFile();
+        File grandParent = libraryFile.getParentFile().getParentFile();
+        if (DartCore.isPackagesDirectory(grandParent)) {
+          String libraryUriString = library.getUri().toString();
+          int index = libraryUriString.indexOf(PACKAGES_PATH) + PACKAGES_PATH.length();
+          String name = libraryUriString.substring(index);
+          for (String dependency : packageDeps) {
+            if (name.startsWith(dependency)) {
+              libraryNames.add(name);
+              break;
+            }
+          }
+        }
+      } catch (DartModelException e) {
+        DartCore.logError(e);
+      }
+    }
+
+    // add self linked package: 
+    if (!isCUInLibFolder(currentCompilationUnit)) {
+      String name = ((DartProjectImpl) currentCompilationUnit.getDartProject()).getSelfLinkedPackageDirName();
+      if (name != null) {
+        for (DartLibrary library : librariesInLibFolder) {
+          File parent;
+          try {
+            parent = library.getDefiningCompilationUnit().getUnderlyingResource().getLocation().toFile().getParentFile();
+            if (parent.getName().equals(LIB_DIRECTORY_NAME)) {
+              String libraryUriString = library.getUri().toString();
+              int index = libraryUriString.indexOf(LIB_PATH) + LIB_PATH.length();
+              String importName = name + FORWARD_SLASH + libraryUriString.substring(index);
+              createCompletionForImportLibraryName(node, prefix, importName, 2);
+              libraryNames.remove(importName);
+            }
+          } catch (DartModelException e) {
+            DartCore.logError(e);
+          }
+        }
+      }
+    }
+
+    for (String name : libraryNames) {
+      createCompletionForImportLibraryName(node, prefix, name, 1);
+    }
+
+  }
+
+  private void createCompletionForSdkImports(DartImportDirective node, String prefix) {
+    if (!prefix.isEmpty() && !checkPrefixIsDartSdkLibrary(prefix)) {
+      return;
+    }
+    if (prefix.isEmpty() || !prefix.equals(PackageLibraryManager.DART_SCHEME_SPEC)) {
+      createCompletionForImportLibraryName(node, prefix, PackageLibraryManager.DART_SCHEME_SPEC, 3);
+      return;
+    }
+
+    Collection<SystemLibrary> systemLibraries = PackageLibraryManagerProvider.getAnyLibraryManager().getSystemLibraries();
+    for (SystemLibrary library : systemLibraries) {
+      createCompletionForImportLibraryName(node, prefix, library.getShortName(), 1);
+    }
   }
 
   private void createCompletionsForAliasRef(FunctionAliasType funcAlias) {
@@ -2535,6 +2728,22 @@ public class CompletionEngine {
     }
   }
 
+  private void createImportsFromList(DartImportDirective node, String prefix,
+      List<DartLibrary> libraries) {
+
+    try {
+      URI baseUri = currentCompilationUnit.getUnderlyingResource().getParent().getLocationURI();
+      for (DartLibrary library : libraries) {
+        String name = URIUtilities.relativize(baseUri, library.getUri()).toString();
+        if (name.startsWith(prefix)) {
+          createCompletionForImportLibraryName(node, prefix, name, 1);
+        }
+      }
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+    }
+  }
+
   private void createProposalsForLiterals(DartNode node, String... names) {
     String prefix = extractFilterPrefix(node);
     for (String name : names) {
@@ -2911,6 +3120,20 @@ public class CompletionEngine {
       }
     }
     return false;
+  }
+
+  private boolean isCUInLibFolder(CompilationUnit cu) {
+    try {
+      String pathString = cu.getUnderlyingResource().getFullPath().toString();
+      if (pathString.indexOf(LIB_PATH) == -1) {
+        return false;
+      }
+      return true;
+    } catch (DartModelException e) {
+      DartCore.logError(e);
+      return false;
+    }
+
   }
 
   private boolean isIndexableType(Type type) {

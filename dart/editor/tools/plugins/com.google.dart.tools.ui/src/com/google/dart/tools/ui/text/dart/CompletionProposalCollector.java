@@ -440,6 +440,8 @@ public class CompletionProposalCollector extends CompletionRequestor {
       case CompletionProposal.LOCAL_VARIABLE_REF:
       case CompletionProposal.VARIABLE_DECLARATION:
         return createLocalVariableProposal(proposal);
+      case CompletionProposal.TYPE_IMPORT:
+        return createImportProposal(proposal);
 //      case CompletionProposal.ANNOTATION_ATTRIBUTE_REF:
 //        return createAnnotationAttributeReferenceProposal(proposal);
 //      case CompletionProposal.JAVADOC_BLOCK_TAG:
@@ -536,6 +538,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
       case CompletionProposal.VARIABLE_DECLARATION:
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
+      case CompletionProposal.TYPE_IMPORT:
 //      case CompletionProposal.JAVADOC_BLOCK_TAG:
 //      case CompletionProposal.JAVADOC_INLINE_TAG:
 //      case CompletionProposal.JAVADOC_PARAM_REF:
@@ -820,6 +823,15 @@ public class CompletionProposalCollector extends CompletionRequestor {
 //    adaptLength(proposal, javadocProposal);
 //    return proposal;
 //  }
+
+  private IDartCompletionProposal createImportProposal(CompletionProposal proposal) {
+    String completion = String.valueOf(proposal.getCompletion());
+    int start = proposal.getReplaceStart();
+    int length = getLength(proposal);
+    StyledString label = new StyledString(fLabelProvider.createSimpleLabel(proposal));//TODO(messick)
+    int relevance = computeRelevance(proposal);
+    return new DartCompletionProposal(completion, start, length, null, label, relevance);
+  }
 
   private IDartCompletionProposal createKeywordProposal(CompletionProposal proposal) {
     String completion = String.valueOf(proposal.getCompletion());

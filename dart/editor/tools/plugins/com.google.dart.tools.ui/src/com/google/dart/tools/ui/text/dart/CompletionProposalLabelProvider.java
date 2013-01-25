@@ -105,6 +105,7 @@ public class CompletionProposalLabelProvider {
         break;
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
+      case CompletionProposal.TYPE_IMPORT:
         descriptor = null;
         break;
       case CompletionProposal.JAVADOC_METHOD_REF:
@@ -166,6 +167,7 @@ public class CompletionProposalLabelProvider {
         return createSimpleLabelWithType(proposal);
       case CompletionProposal.KEYWORD:
       case CompletionProposal.LABEL_REF:
+      case CompletionProposal.TYPE_IMPORT:
         return createSimpleLabel(proposal);
       default:
         Assert.isTrue(false);

@@ -41,6 +41,7 @@ public class DartNoTypeCompletionProposalComputer extends DartCompletionProposal
     collector.setIgnored(CompletionProposal.LIBRARY_PREFIX, false);
     collector.setIgnored(CompletionProposal.POTENTIAL_METHOD_DECLARATION, false);
     collector.setIgnored(CompletionProposal.VARIABLE_DECLARATION, false);
+    collector.setIgnored(CompletionProposal.TYPE_IMPORT, false);
 
 //    collector.setIgnored(CompletionProposal.JAVADOC_BLOCK_TAG, true);
 //    collector.setIgnored(CompletionProposal.JAVADOC_FIELD_REF, true);

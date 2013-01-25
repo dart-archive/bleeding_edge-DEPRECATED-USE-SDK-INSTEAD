@@ -339,6 +339,11 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
         CompletionProposal.TYPE_REF,
         true);
 
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.TYPE_IMPORT,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+
     // Set the favorite list to propose static members - since 3.3
     collector.setFavoriteReferences(getFavoriteStaticMembers());
 
