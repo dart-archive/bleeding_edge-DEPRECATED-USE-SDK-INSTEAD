@@ -96,7 +96,7 @@ public class Library {
     this.analysisContext = analysisContext;
     this.errorListener = errorListener;
     this.librarySource = librarySource;
-    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElementOrNull(librarySource);
+//    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElementOrNull(librarySource);
   }
 
   /**
@@ -224,9 +224,9 @@ public class Library {
    * @return the library element representing this library
    */
   public LibraryElementImpl getLibraryElement() {
-//    if (libraryElement == null) {
-//      libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
-//    }
+    if (libraryElement == null) {
+      libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
+    }
     return libraryElement;
   }
 
