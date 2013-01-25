@@ -74,6 +74,25 @@ public class SourceFactory {
   }
 
   /**
+   * Return a source object representing the given absolute URI, or {@code null} if the URI is not a
+   * valid URI or if it is not an absolute URI.
+   * 
+   * @param absoluteUri the absolute URI to be resolved
+   * @return a source object representing the absolute URI
+   */
+  public Source forUri(String absoluteUri) {
+    try {
+      URI uri = new URI(null, null, absoluteUri, null);
+      if (uri.isAbsolute()) {
+        return resolveUri(null, uri);
+      }
+    } catch (URISyntaxException exception) {
+      // Fall through to return null
+    }
+    return null;
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
