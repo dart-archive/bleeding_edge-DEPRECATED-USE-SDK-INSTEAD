@@ -336,7 +336,7 @@ class View implements Positionable {
       changedComplete = true;
     });
 
-    window.requestLayoutFrame(() {
+    window.setImmediate(() {
       if (!changedComplete) {
         changed.complete(false);
       }
@@ -352,7 +352,7 @@ class View implements Positionable {
     // a good tradeoff?
     if (ViewLayout.hasCustomLayout(this)) {
       Completer sizeCompleter = new Completer<Size>();
-      window.requestLayoutFrame(() {
+      window.setImmediate(() {
         sizeCompleter.complete(
             new Size(_node.clientWidth, _node.clientHeight));
       });

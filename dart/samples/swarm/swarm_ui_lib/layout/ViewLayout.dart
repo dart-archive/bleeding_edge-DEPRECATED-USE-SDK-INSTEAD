@@ -29,12 +29,12 @@ abstract class Positionable {
 class LayoutParams {
   // TODO(jmesserly): should be const, but there's a bug in DartC preventing us
   // from calling "window." in an initializer. See b/5332777
-  Future<CssStyleDeclaration> style;
+  CssStyleDeclaration style;
 
   int get layer => 0;
 
   LayoutParams(Element node) {
-    style = node.computedStyle;
+    style = node.getComputedStyle();
   }
 }
 
@@ -105,7 +105,7 @@ class ViewLayout {
     return view.customStyle['display'] == "-dart-grid";
   }
 
-  CssStyleDeclaration get _style => layoutParams.style.value;
+  CssStyleDeclaration get _style => layoutParams.style;
 
   void cacheExistingBrowserLayout() {
     _offsetWidth = view.node.offsetWidth;
@@ -191,7 +191,7 @@ class ViewLayout {
   }
 
   int measureWidth(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style.value;
+    final style = layoutParams.style;
     if (mode == ContentSizeMode.MIN) {
       return _styleToPixels(
           style.minWidth, currentWidth, parent.currentWidth);
@@ -202,7 +202,7 @@ class ViewLayout {
   }
 
   int measureHeight(ViewLayout parent, ContentSizeMode mode) {
-    final style = layoutParams.style.value;
+    final style = layoutParams.style;
     if (mode == ContentSizeMode.MIN) {
       return _styleToPixels(
           style.minHeight, currentHeight, parent.currentHeight);

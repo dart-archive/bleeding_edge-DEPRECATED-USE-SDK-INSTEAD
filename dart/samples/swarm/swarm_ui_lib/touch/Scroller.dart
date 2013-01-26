@@ -233,9 +233,7 @@ class Scroller implements Draggable, MomentumDelegate {
     // The scrollable element must be relatively positioned.
     // TODO(jacobr): this assert fires asynchronously which could be confusing.
     if (_scrollTechnique == ScrollerScrollTechnique.RELATIVE_POSITIONING) {
-      _element.computedStyle.then((CssStyleDeclaration style) {
-        assert(style.position != "static");
-      });
+      assert(_element.getComputedStyle().position != "static");
     }
 
     _initLayer();
@@ -543,7 +541,7 @@ class Scroller implements Draggable, MomentumDelegate {
    * and maxPoint allowed for scrolling.
    */
   void _resize(Callback callback) {
-    window.requestLayoutFrame(() {
+    window.setImmediate(() {
       if (_lookupContentSizeDelegate != null) {
         _contentSize = _lookupContentSizeDelegate();
       } else {
