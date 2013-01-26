@@ -5,7 +5,7 @@
 library touch;
 
 import 'dart:async';
-import 'dart:collection' show Queue, DoubleLinkedQueue;
+import 'dart:collection' show Queue, DoubleLinkedQueue, DoubleLinkedQueueEntry;
 import 'dart:html';
 import 'dart:math' as Math;
 

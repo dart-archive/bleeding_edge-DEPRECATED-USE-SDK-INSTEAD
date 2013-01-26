@@ -5,6 +5,7 @@
 library observable;
 
 import 'dart:collection';
+import 'dart:collection-dev';
 
 part 'ChangeEvent.dart';
 part 'EventBatch.dart';
