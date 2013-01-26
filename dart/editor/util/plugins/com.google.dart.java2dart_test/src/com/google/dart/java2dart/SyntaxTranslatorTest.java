@@ -241,9 +241,7 @@ public class SyntaxTranslatorTest extends TestCase {
         "  String __name;",
         "  int __ordinal;",
         "  static final List<Direction> values = [];",
-        "  String toString() {",
-        "    return __name;",
-        "  }",
+        "  String toString() => __name;",
         "}");
   }
 
@@ -1259,9 +1257,7 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
     assertDartSource(//
         "class A {",
-        "  int foo() {",
-        "    return 42;",
-        "  }",
+        "  int foo() => 42;",
         "}");
   }
 
@@ -1527,30 +1523,14 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
     assertDartSource(
         "class A {",
-        "  void testVoid() {",
-        "    return null;",
-        "  }",
-        "  bool testBoolean() {",
-        "    return null;",
-        "  }",
-        "  int testShort() {",
-        "    return null;",
-        "  }",
-        "  int testInteger() {",
-        "    return null;",
-        "  }",
-        "  int testLong() {",
-        "    return null;",
-        "  }",
-        "  double testFloat() {",
-        "    return null;",
-        "  }",
-        "  double testDouble() {",
-        "    return null;",
-        "  }",
-        "  int testBigInteger() {",
-        "    return null;",
-        "  }",
+        "  Object testVoid() => null;",
+        "  bool testBoolean() => null;",
+        "  int testShort() => null;",
+        "  int testInteger() => null;",
+        "  int testLong() => null;",
+        "  double testFloat() => null;",
+        "  double testDouble() => null;",
+        "  int testBigInteger() => null;",
         "}");
   }
 

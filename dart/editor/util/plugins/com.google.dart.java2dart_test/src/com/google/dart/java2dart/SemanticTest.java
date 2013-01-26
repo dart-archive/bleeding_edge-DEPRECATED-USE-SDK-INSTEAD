@@ -426,9 +426,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void foo() {",
             "    print(1);",
             "  }",
-            "  String toString() {",
-            "    return __name;",
-            "  }",
+            "  String toString() => __name;",
             "}",
             "class Test_EOF extends Test {",
             "  Test_EOF(String ___name, int ___ordinal, int arg0) : super.con2(___name, ___ordinal, arg0);",
@@ -464,9 +462,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
-            "  String toString() {",
-            "    return __name;",
-            "  }",
+            "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
   }
@@ -499,9 +495,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "    __name = ___name;",
             "    __ordinal = ___ordinal;",
             "  }",
-            "  String toString() {",
-            "    return __name;",
-            "  }",
+            "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
   }
@@ -546,9 +540,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "    __name = ___name;",
             "    __ordinal = ___ordinal;",
             "  }",
-            "  String toString() {",
-            "    return __name;",
-            "  }",
+            "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
   }
@@ -577,9 +569,7 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "  int value2 = 0;",
-            "  int value() {",
-            "    return value2;",
-            "  }",
+            "  int value() => value2;",
             "  void bar() {",
             "    value();",
             "  }",
@@ -716,9 +706,7 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class Test {",
-            "  static int foo() {",
-            "    return 42;",
-            "  }",
+            "  static int foo() => 42;",
             "  static void bar() {",
             "    int foo2 = foo();",
             "    baz(foo2);",
@@ -864,9 +852,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final A ONE = new A('ONE', 0);",
             "  static final A TWO = new A('TWO', 1);",
             "  static final List<A> values = [ONE, TWO];",
-            "  String toString() {",
-            "    return __name;",
-            "  }",
+            "  String toString() => __name;",
             "}",
             "class B {",
             "  void main(A p) {",

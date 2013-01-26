@@ -62,6 +62,7 @@ import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -91,7 +92,6 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
@@ -101,6 +101,7 @@ import static com.google.dart.java2dart.util.ASTFactory.TOKEN_FINAL;
 import static com.google.dart.java2dart.util.ASTFactory.TOKEN_NEW;
 import static com.google.dart.java2dart.util.ASTFactory.TOKEN_STATIC;
 import static com.google.dart.java2dart.util.ASTFactory.assignmentStatement;
+import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreation;
 import static com.google.dart.java2dart.util.ASTFactory.integerLiteral;
@@ -582,10 +583,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           null,
           simpleIdentifier("toString"),
           new FormalParameterList(null, null, null, null, null),
-          new BlockFunctionBody(new Block(null, ImmutableList.<Statement> of(new ReturnStatement(
-              null,
-              simpleIdentifier("__name"),
-              null)), null))));
+          expressionFunctionBody(simpleIdentifier("__name"))));
     }
     return done(new ClassDeclaration(
         translateJavadoc(node),
@@ -818,9 +816,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
         Block bodyBlock = (Block) translate(javaBlock);
         body = new BlockFunctionBody(bodyBlock);
+        NodeList<Statement> statements = bodyBlock.getStatements();
         if (isEnumConstructor && !hasConstructorInvocation(node)) {
-          bodyBlock.getStatements().add(0, assignmentStatement("__ordinal", "___ordinal"));
-          bodyBlock.getStatements().add(0, assignmentStatement("__name", "___name"));
+          statements.add(0, assignmentStatement("__ordinal", "___ordinal"));
+          statements.add(0, assignmentStatement("__name", "___name"));
+        }
+        // convert "{ return foo; }" to "=> foo;"
+        if (statements.size() == 1 && statements.get(0) instanceof ReturnStatement) {
+          body = expressionFunctionBody(((ReturnStatement) statements.get(0)).getExpression());
         }
       } else {
         body = new EmptyFunctionBody(null);
@@ -1332,7 +1335,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.WildcardType node) {
     org.eclipse.jdt.core.dom.Type javaBoundType = node.getBound();
     if (javaBoundType == null) {
-      return done(ASTFactory.typeName("Object"));
+      return done(typeName("Object"));
     } else {
       return done(translate(javaBoundType));
     }

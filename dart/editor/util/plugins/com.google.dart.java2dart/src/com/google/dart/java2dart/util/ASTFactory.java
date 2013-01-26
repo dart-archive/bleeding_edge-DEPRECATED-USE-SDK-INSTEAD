@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
@@ -63,6 +64,15 @@ public class ASTFactory {
     return new ExpressionStatement(new AssignmentExpression(simpleIdentifier(leftName), new Token(
         TokenType.EQ,
         0), simpleIdentifier(rightName)), null);
+  }
+
+  /**
+   * <code>=> expression</code>
+   */
+  public static ExpressionFunctionBody expressionFunctionBody(Expression expression) {
+    return new ExpressionFunctionBody(new Token(TokenType.FUNCTION, 0), expression, new Token(
+        TokenType.SEMICOLON,
+        0));
   }
 
   /**

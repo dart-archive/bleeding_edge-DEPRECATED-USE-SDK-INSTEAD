@@ -69,12 +69,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource(
-        "class Test {",
-        "  bool foo(List<String> items) {",
-        "    return items.isEmpty;",
-        "  }",
-        "}");
+    assertFormattedSource("class Test {", "  bool foo(List<String> items) => items.isEmpty;", "}");
   }
 
   public void test_Collection_size() throws Exception {
@@ -88,12 +83,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource(
-        "class Test {",
-        "  int foo(List<String> items) {",
-        "    return items.length;",
-        "  }",
-        "}");
+    assertFormattedSource("class Test {", "  int foo(List<String> items) => items.length;", "}");
   }
 
   public void test_List_get() throws Exception {
@@ -107,12 +97,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource(
-        "class Test {",
-        "  String foo(List<String> items) {",
-        "    return items[2];",
-        "  }",
-        "}");
+    assertFormattedSource("class Test {", "  String foo(List<String> items) => items[2];", "}");
   }
 
   public void test_List_remove() throws Exception {
@@ -147,9 +132,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  List<String> foo(List<String> items) {",
-        "    return new List.from(items);",
-        "  }",
+        "  List<String> foo(List<String> items) => new List.from(items);",
         "}");
   }
 
