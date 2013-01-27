@@ -259,15 +259,20 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
             }
           }
         }
-        // new DateTime.fromString("...")  --->  DateTime.parse("...")
         DartNode constructor = node.getConstructor();
         if (constructor instanceof DartPropertyAccess) {
           DartPropertyAccess prop = (DartPropertyAccess) constructor;
           String typeName = prop.getQualifier().toSource();
           String accessor = prop.getName().toSource();
+          // new DateTime.fromString("...")  --->  DateTime.parse("...")
           if ((typeName.equals("Date") || typeName.equals("DateTime"))
               && accessor.equals("fromString") && args.size() == 1) {
             addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "DateTime.parse(");
+            return null;
+          }
+          // new Uri.fromString("...")  --->  Uri.parse("...")
+          if ((typeName.equals("Uri")) && accessor.equals("fromString") && args.size() == 1) {
+            addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "Uri.parse(");
             return null;
           }
         }
