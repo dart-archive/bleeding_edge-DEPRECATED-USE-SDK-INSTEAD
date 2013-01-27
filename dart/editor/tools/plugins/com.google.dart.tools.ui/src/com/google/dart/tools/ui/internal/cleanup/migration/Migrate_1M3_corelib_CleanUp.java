@@ -31,6 +31,7 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.resolver.ClassElement;
+import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -262,12 +263,28 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         DartNode constructor = node.getConstructor();
         if (constructor instanceof DartPropertyAccess) {
           DartPropertyAccess prop = (DartPropertyAccess) constructor;
-          if (prop.getQualifier().toSource().equals("DateTime")
-              && prop.getName().toSource().equals("fromString") && args.size() == 1) {
+          String typeName = prop.getQualifier().toSource();
+          String accessor = prop.getName().toSource();
+          if ((typeName.equals("Date") || typeName.equals("DateTime"))
+              && accessor.equals("fromString") && args.size() == 1) {
             addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "DateTime.parse(");
+            return null;
           }
         }
         return super.visitNewExpression(node);
+      }
+
+      @Override
+      public Void visitTypeNode(DartTypeNode node) {
+        Type type = node.getType();
+        if (type != null && type.getElement() instanceof ClassNodeElement) {
+          ClassNodeElement element = (ClassNodeElement) type.getElement();
+          if (element != null && element.getName().equals("Date")
+              && element.getLibrary().getName().equals("dart://core/core.dart")) {
+            addReplaceEdit(SourceRangeFactory.create(node), "DateTime");
+          }
+        }
+        return super.visitTypeNode(node);
       }
 
       @Override

@@ -184,7 +184,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M3_LIBRARY,
-                "Migrate to 1.0 M3 library (mainly Iterator, Iterable and List/Set changes)");
+                "Migrate to 1.0 M3 library (mainly Iterator, Iterable, DateTime, and List/Set changes)");
             createCheckButton(
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M3_FUTURE,

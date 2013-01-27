@@ -846,6 +846,41 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M3_corelib_Date_to_DateTime() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Date myDate;",
+        "  new Date();",
+        "  new Date.fromString('foo');",
+        "}",
+        "class Foo {",
+        "  main() {",
+        "    Date myDate;",
+        "    new Date();",
+        "    new Date.fromString('bar');",
+        "  }",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  DateTime myDate;",
+        "  new DateTime();",
+        "  DateTime.parse('foo');",
+        "}",
+        "class Foo {",
+        "  main() {",
+        "    DateTime myDate;",
+        "    new DateTime();",
+        "    DateTime.parse('bar');",
+        "  }",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M3_corelib_DateTime_parse() throws Exception {
     ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
     String initial = makeSource(
@@ -854,12 +889,22 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  new DateTime();",
         "  new DateTime.fromString('foo');",
         "}",
+        "class Foo {",
+        "  main() {",
+        "    new DateTime.fromString('bar');",
+        "  }",
+        "}",
         "");
     String expected = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  new DateTime();",
         "  DateTime.parse('foo');",
+        "}",
+        "class Foo {",
+        "  main() {",
+        "    DateTime.parse('bar');",
+        "  }",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
