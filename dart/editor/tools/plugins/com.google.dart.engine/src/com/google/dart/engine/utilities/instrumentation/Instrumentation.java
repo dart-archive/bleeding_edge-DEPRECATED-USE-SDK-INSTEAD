@@ -56,6 +56,11 @@ public final class Instrumentation {
       }
 
       @Override
+      public OperationBuilder with(String name, AsyncValue valueGenerator) {
+        return this;
+      }
+
+      @Override
       public OperationBuilder with(String name, long value) {
         return this;
       }
@@ -80,6 +85,7 @@ public final class Instrumentation {
     public OperationBuilder createOperation(String name, long time) {
       return NULL_BUILDER;
     }
+
   };
 
   /**

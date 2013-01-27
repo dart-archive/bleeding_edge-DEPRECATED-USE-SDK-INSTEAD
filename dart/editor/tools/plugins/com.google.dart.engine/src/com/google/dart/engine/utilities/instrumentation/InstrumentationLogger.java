@@ -45,4 +45,5 @@ public interface InstrumentationLogger {
    * @return the operation builder that was created
    */
   public OperationBuilder createOperation(String name, long time);
+
 }
