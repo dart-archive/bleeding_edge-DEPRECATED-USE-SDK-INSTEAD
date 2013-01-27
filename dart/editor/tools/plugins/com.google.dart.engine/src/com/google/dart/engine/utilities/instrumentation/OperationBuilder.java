@@ -28,6 +28,16 @@ public interface OperationBuilder {
   public void log();
 
   /**
+   * Lazily compute and append the given data to the data being collected by this builder.
+   * 
+   * @param name the name used to identify the data
+   * @param a function that will be executed in the background to return the value of the data to be
+   *          collected
+   * @return this builder
+   */
+  public OperationBuilder with(String name, AsyncValue valueGenerator);
+
+  /**
    * Append the given data to the data being collected by this builder.
    * 
    * @param name the name used to identify the data
@@ -53,4 +63,5 @@ public interface OperationBuilder {
    * @return this builder
    */
   public OperationBuilder with(String name, String[] value);
+
 }
