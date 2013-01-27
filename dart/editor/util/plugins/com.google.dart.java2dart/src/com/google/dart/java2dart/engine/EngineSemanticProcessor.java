@@ -15,7 +15,6 @@
 package com.google.dart.java2dart.engine;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
@@ -25,13 +24,13 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
-import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.JavaUtils;
+
+import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import java.util.Iterator;
 
@@ -42,7 +41,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
   public static final SemanticProcessor INSTANCE = new EngineSemanticProcessor();
 
   @Override
-  public void process(final Context context, CompilationUnit unit) {
+  public void process(final Context context, final CompilationUnit unit) {
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
     // remove NodeList, it is declared in enginelib.dart
     for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
@@ -84,9 +83,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
           if ("IntList".equals(name)) {
-            replaceNode(node, new TypeName(
-                ASTFactory.simpleIdentifier("List"),
-                new TypeArgumentList(null, ImmutableList.of(ASTFactory.typeName("int")), null)));
+            replaceNode(node, typeName("List", typeName("int")));
             return null;
           }
         }

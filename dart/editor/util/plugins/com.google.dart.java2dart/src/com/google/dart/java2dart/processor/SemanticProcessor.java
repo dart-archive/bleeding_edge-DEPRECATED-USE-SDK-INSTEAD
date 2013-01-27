@@ -19,6 +19,8 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ListLiteral;
+import com.google.dart.engine.ast.TypeArgumentList;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.ExecutionUtils;
 
@@ -30,6 +32,19 @@ import java.util.List;
  * library.
  */
 public abstract class SemanticProcessor {
+
+  /**
+   * @return the {@link ASTNode} of given {@link Class} which is given {@link ASTNode} itself, or
+   *         one of its parents.
+   */
+  @SuppressWarnings("unchecked")
+  public static <E extends ASTNode> E getAncestor(ASTNode node, Class<E> enclosingClass) {
+    while (node != null && !enclosingClass.isInstance(node)) {
+      node = node.getParent();
+    };
+    return (E) node;
+  }
+
   /**
    * Replaces "node" with "replacement" in parent of "node".
    */
@@ -65,6 +80,14 @@ public abstract class SemanticProcessor {
       int index = arguments.indexOf(node);
       if (index != -1) {
         arguments.set(index, (Expression) replacement);
+        return;
+      }
+    }
+    if (parent instanceof TypeArgumentList) {
+      List<TypeName> arguments = ((TypeArgumentList) parent).getArguments();
+      int index = arguments.indexOf(node);
+      if (index != -1) {
+        arguments.set(index, (TypeName) replacement);
         return;
       }
     }

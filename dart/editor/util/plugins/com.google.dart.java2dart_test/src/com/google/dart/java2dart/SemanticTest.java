@@ -99,6 +99,55 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_anonymousClass_referenceFinalVariables() throws Exception {
+    setFileLines(
+        "test/ErrorListener.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public interface ErrorListener {",
+            "  void onError();",
+            "}"));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public static void main() {",
+            "    final boolean[] hasErrors = {false};",
+            "    ErrorListener v = new ErrorListener() {",
+            "      void onError() {",
+            "        hasErrors[0] = true;",
+            "      }",
+            "    };",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "abstract class ErrorListener {",
+            "  void onError();",
+            "}",
+            "class Test {",
+            "  static void main() {",
+            "    List<bool> hasErrors = [false];",
+            "    ErrorListener v = new ErrorListener_0(hasErrors);",
+            "  }",
+            "}",
+            "class ErrorListener_0 implements ErrorListener {",
+            "  List<bool> hasErrors;",
+            "  ErrorListener_0(this.hasErrors);",
+            "  void onError() {",
+            "    hasErrors[0] = true;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_buildSingleDartUnit() throws Exception {
     setFileLines(
         "test/Main.java",
@@ -462,6 +511,13 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
+            "  MyEnum(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_0_impl(___name, ___ordinal);",
+            "  }",
+            "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
+            "  }",
             "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
@@ -684,6 +740,37 @@ public class SemanticTest extends AbstractSemanticTest {
         "}"), getFormattedSource(unit));
   }
 
+  public void test_giveUniqueName_variable_with() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static void foo() {",
+            "    int with = 42;",
+            "    bar(with);",
+            "  }",
+            "  static void bar(int p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static void foo() {",
+            "    int with2 = 42;",
+            "    bar(with2);",
+            "  }",
+            "  static void bar(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_giveUniqueName_variableInitializer() throws Exception {
     File file = setFileLines(
         "test/Test.java",
@@ -852,6 +939,13 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final A ONE = new A('ONE', 0);",
             "  static final A TWO = new A('TWO', 1);",
             "  static final List<A> values = [ONE, TWO];",
+            "  A(String ___name, int ___ordinal) {",
+            "    _jtd_constructor_0_impl(___name, ___ordinal);",
+            "  }",
+            "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+            "    __name = ___name;",
+            "    __ordinal = ___ordinal;",
+            "  }",
             "  String toString() => __name;",
             "}",
             "class B {",

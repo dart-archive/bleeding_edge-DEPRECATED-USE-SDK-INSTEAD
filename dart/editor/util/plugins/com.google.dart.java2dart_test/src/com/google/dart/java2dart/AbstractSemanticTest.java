@@ -47,6 +47,7 @@ public class AbstractSemanticTest extends TestCase {
     String[] lines = StringUtils.split(source, '\n');
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
+      line = StringUtils.replace(line, "\"", "\\\"");
       System.out.print("\"");
       System.out.print(line);
       if (i != lines.length - 1) {

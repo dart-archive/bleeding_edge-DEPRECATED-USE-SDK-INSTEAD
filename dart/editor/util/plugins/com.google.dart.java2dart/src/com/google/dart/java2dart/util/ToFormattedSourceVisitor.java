@@ -209,15 +209,15 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
     Token token = node.getBeginToken();
     while (token != null) {
       boolean firstLine = true;
-      for (String line : StringUtils.split(token.getLexeme(), '\n')) {
+      for (String line : StringUtils.split(token.getLexeme(), "\n")) {
         if (firstLine) {
           firstLine = false;
         } else {
+          line = " " + line.trim();
           line = StringUtils.replace(line, "/*", "/ *");
         }
         writer.print(line);
-        writer.print("\n");
-        indent();
+        nl2();
       }
       if (token == node.getEndToken()) {
         break;
@@ -960,7 +960,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   private void indent() {
-    writer.write(indentString);
+    writer.print(indentString);
   }
 
   private void indentDec() {

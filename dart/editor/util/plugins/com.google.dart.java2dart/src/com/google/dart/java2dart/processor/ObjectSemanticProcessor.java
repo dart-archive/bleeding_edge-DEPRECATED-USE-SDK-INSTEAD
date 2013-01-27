@@ -15,28 +15,47 @@
 package com.google.dart.java2dart.processor;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
-import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
+import com.google.dart.engine.ast.InterpolationExpression;
+import com.google.dart.engine.ast.InterpolationString;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringToken;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
-import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.JavaUtils;
+
+import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
+import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.integer;
+import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
+import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
+import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
+import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
+import static com.google.dart.java2dart.util.ASTFactory.string;
+import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.TokenFactory.token;
+
+import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.ITypeBinding;
+
+import java.util.List;
 
 /**
  * {@link SemanticProcessor} for Java <code>Object</code>.
@@ -44,15 +63,90 @@ import com.google.dart.java2dart.util.JavaUtils;
 public class ObjectSemanticProcessor extends SemanticProcessor {
   public static final SemanticProcessor INSTANCE = new ObjectSemanticProcessor();
 
+  private static List<Expression> gatherBinaryExpressions(BinaryExpression binary) {
+    List<Expression> expressions = Lists.newArrayList();
+    {
+      Expression left = binary.getLeftOperand();
+      if (left instanceof BinaryExpression) {
+        expressions.addAll(gatherBinaryExpressions((BinaryExpression) left));
+      } else {
+        expressions.add(left);
+      }
+    }
+    {
+      Expression right = binary.getRightOperand();
+      if (right instanceof BinaryExpression) {
+        expressions.addAll(gatherBinaryExpressions((BinaryExpression) right));
+      } else {
+        expressions.add(right);
+      }
+    }
+    return expressions;
+  }
+
+  private static boolean hasStringLiteral(List<Expression> expressions) {
+    for (Expression expression : expressions) {
+      if (expression instanceof SimpleStringLiteral) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Override
   public void process(final Context context, CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitBinaryExpression(BinaryExpression node) {
+        if (node.getOperator().getType() == TokenType.PLUS) {
+          List<Expression> expressions = gatherBinaryExpressions(node);
+          if (hasStringLiteral(expressions)) {
+            StringInterpolation interpolation = new StringInterpolation(null);
+            interpolation.getElements().add(new InterpolationString(token("\""), ""));
+            for (Expression expression : expressions) {
+              if (expression instanceof SimpleStringLiteral) {
+                String value = ((SimpleStringLiteral) expression).getValue();
+                interpolation.getElements().add(new InterpolationString(token(value), value));
+              } else {
+                interpolation.getElements().add(
+                    new InterpolationExpression(
+                        token(TokenType.OPEN_CURLY_BRACKET),
+                        expression,
+                        token(TokenType.CLOSE_CURLY_BRACKET)));
+              }
+            }
+            interpolation.getElements().add(new InterpolationString(token("\""), ""));
+            replaceNode(node, interpolation);
+          }
+        }
+        return super.visitBinaryExpression(node);
+      }
+
+      @Override
+      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        List<Expression> args = node.getArgumentList().getArguments();
+        if (node.getConstructorName().getType().getName().getName().equals("int")) {
+          if (args.size() == 1) {
+            replaceNode(node, methodInvocation(identifier("int"), "parse", args.get(0)));
+          } else {
+            replaceNode(
+                node,
+                methodInvocation(
+                    identifier("int"),
+                    "parse",
+                    args.get(0),
+                    namedExpression("radix", args.get(1))));
+          }
+        }
+        return super.visitInstanceCreationExpression(node);
+      }
+
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         if (node.getName() instanceof SimpleIdentifier) {
           String name = ((SimpleIdentifier) node.getName()).getName();
           if (name.equals("hashCode")) {
-            node.setOperatorKeyword(new KeywordToken(Keyword.GET, 0));
+            node.setOperatorKeyword(token(Keyword.GET));
             node.setParameters(null);
           }
         }
@@ -67,16 +161,33 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         NodeList<Expression> args = node.getArgumentList().getArguments();
         if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
             || isMethodInClass(node, "values", "java.lang.Enum")) {
-          Token period = node.getTarget() != null ? new Token(TokenType.PERIOD, 0) : null;
-          replaceNode(node, new PropertyAccess(node.getTarget(), period, nameNode));
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
           return null;
         }
         if (isMethodInClass(node, "charAt", "java.lang.String")) {
-          nameNode.setToken(ASTFactory.identifierToken("charCodeAt"));
+          nameNode.setToken(token("charCodeAt"));
+          return null;
+        }
+        if (isMethodInClass(node, "indexOf", "java.lang.String")) {
+          IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+          if (binding != null && binding.getParameterTypes().length >= 1
+              && binding.getParameterTypes()[0].getName().equals("int")) {
+            char c = (char) ((IntegerLiteral) args.get(0)).getValue().intValue();
+            replaceNode(args.get(0), string("" + c));
+          }
+          return null;
+        }
+        if (isMethodInClass(node, "print", "java.io.PrintWriter")) {
+          IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+          if (binding != null && binding.getParameterTypes().length >= 1
+              && binding.getParameterTypes()[0].getName().equals("char")) {
+            char c = (char) ((IntegerLiteral) args.get(0)).getValue().intValue();
+            replaceNode(args.get(0), string("" + c));
+          }
           return null;
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
-          replaceNode(node.getTarget(), ASTFactory.simpleIdentifier("JavaString"));
+          replaceNode(node.getTarget(), simpleIdentifier("JavaString"));
           return null;
         }
         if (name.equals("longValue") && node.getTarget() instanceof MethodInvocation) {
@@ -86,9 +197,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             if (args2.size() == 1 && args2.get(0) instanceof BinaryExpression) {
               BinaryExpression binary = (BinaryExpression) args2.get(0);
               if (binary.getOperator().getType() == TokenType.SLASH) {
-                replaceNode(node, new BinaryExpression(binary.getLeftOperand(), new Token(
-                    TokenType.TILDE_SLASH,
-                    0), binary.getRightOperand()));
+                replaceNode(
+                    node,
+                    binaryExpression(
+                        binary.getLeftOperand(),
+                        TokenType.TILDE_SLASH,
+                        binary.getRightOperand()));
                 return null;
               }
             }
@@ -98,6 +212,14 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             || isMethodInClass(node, "valueOf", "java.lang.Double")
             || isMethodInClass(node, "valueOf", "java.math.BigInteger")) {
           replaceNode(node, args.get(0));
+          return null;
+        }
+        if (isMethodInClass(node, "parseDouble", "java.lang.Double")) {
+          replaceNode(node, methodInvocation(identifier("double"), "parse", args.get(0)));
+          return null;
+        }
+        if (isMethodInClass(node, "toString", "java.lang.Integer")) {
+          replaceNode(node, methodInvocation(args.get(0), "toString"));
           return null;
         }
         if (isMethodInClass(node, "booleanValue", "java.lang.Boolean")
@@ -112,14 +234,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           ASTNode parent = node.getParent();
           if (parent instanceof PrefixExpression
               && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
-            replaceNode(parent, new BinaryExpression(node.getTarget(), new Token(
-                TokenType.BANG_EQ,
-                0), args.get(0)));
+            replaceNode(parent, binaryExpression(node.getTarget(), TokenType.BANG_EQ, args.get(0)));
           } else {
-            replaceNode(node, new BinaryExpression(
-                node.getTarget(),
-                new Token(TokenType.EQ_EQ, 0),
-                args.get(0)));
+            replaceNode(node, binaryExpression(node.getTarget(), TokenType.EQ_EQ, args.get(0)));
           }
           return null;
         }
@@ -145,9 +262,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             tokenType = TokenType.GT_GT;
           }
           if (tokenType != null) {
-            replaceNode(
-                node,
-                new BinaryExpression(node.getTarget(), new Token(tokenType, 0), args.get(0)));
+            replaceNode(node, binaryExpression(node.getTarget(), tokenType, args.get(0)));
             return null;
           }
         }
@@ -159,12 +274,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             tokenType = TokenType.MINUS;
           }
           if (tokenType != null) {
-            replaceNode(node, new PrefixExpression(new Token(tokenType, 0), node.getTarget()));
+            replaceNode(node, prefixExpression(tokenType, node.getTarget()));
             return null;
           }
         }
         if (isMethodInClass(node, "append", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, ASTFactory.simpleIdentifier("add"));
+          replaceNode(nameNode, simpleIdentifier("add"));
           return null;
         }
         return null;
@@ -176,10 +291,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           String targetName = ((SimpleIdentifier) node.getTarget()).getName();
           if (targetName.equals("Boolean")) {
             boolean value = node.getPropertyName().getName().equals("TRUE");
-            Token token = value ? new KeywordToken(Keyword.TRUE, 0) : new KeywordToken(
-                Keyword.FALSE,
-                0);
-            replaceNode(node, new BooleanLiteral(token, value));
+            replaceNode(node, booleanLiteral(value));
             return null;
           }
           if (targetName.equals("Integer")) {
@@ -189,9 +301,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             } else {
               value = Integer.MAX_VALUE;
             }
-            replaceNode(node, new IntegerLiteral(
-                new StringToken(TokenType.INT, "" + value, 0),
-                value));
+            replaceNode(node, integer(value));
             return null;
           }
         }
@@ -200,13 +310,26 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitTypeName(TypeName node) {
+        // in Dart we cannot use separate type parameters for methods, so we replace
+        // them with type bounds
+        if (getAncestor(node, MethodDeclaration.class) != null) {
+          Object binding = context.getNodeBinding(node);
+          if (binding instanceof ITypeBinding) {
+            ITypeBinding typeBinding = (ITypeBinding) binding;
+            if (typeBinding.isTypeVariable() && typeBinding.getDeclaringMethod() != null) {
+              replaceNode(node, typeName(typeBinding.getErasure().getName()));
+            }
+          }
+        }
+        // StringBuilder -> StringBuffer
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
           if (name.equals("StringBuilder")) {
-            replaceNode(nameNode, ASTFactory.simpleIdentifier("StringBuffer"));
+            replaceNode(nameNode, simpleIdentifier("StringBuffer"));
           }
         }
+        // done
         return super.visitTypeName(node);
       }
 

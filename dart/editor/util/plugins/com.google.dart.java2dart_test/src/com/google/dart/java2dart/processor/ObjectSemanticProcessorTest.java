@@ -37,6 +37,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Double_parseDouble() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public double foo(String p) {",
+        "    return Double.parseDouble(p);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  double foo(String p) => double.parse(p);",
+        "}");
+  }
+
   public void test_Enum_values() throws Exception {
     setFileLines(
         "test/MyEnum.java",
@@ -81,6 +97,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Integer_toString() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String foo(int p) {",
+        "    return Integer.toString(p);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  String foo(int p) => p.toString();",
+        "}");
+  }
+
   public void test_Integer_valueOf() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -94,6 +126,54 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  Object foo() => <Object> [42];",
+        "}");
+  }
+
+  /**
+   * In Dart method cannot have type parameters, so we replace them with bound.
+   */
+  public void test_methodTypeParameter() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test<E> {",
+        "  public E testA(E p) {",
+        "    return p;",
+        "  }",
+        "  public static <T extends String> T testB(T p) {",
+        "    return p;",
+        "  }",
+        "  public static <T> T testC(T p) {",
+        "    return p;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test<E> {",
+        "  E testA(E p) => p;",
+        "  static String testB(String p) => p;",
+        "  static Object testC(Object p) => p;",
+        "}");
+  }
+
+  public void test_newBigInteger_fromString() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.math.*;",
+        "public class Test {",
+        "  public void main(String p) {",
+        "    new BigInteger(p);",
+        "    new BigInteger(p, 16);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(String p) {",
+        "    int.parse(p);",
+        "    int.parse(p, radix: 16);",
+        "  }",
         "}");
   }
 
@@ -194,6 +274,25 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_PrintWriter_char() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.io.PrintWriter;",
+        "public class Test {",
+        "  public void main(PrintWriter p) {",
+        "    p.print('[');",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(PrintWriter p) {",
+        "    p.print('[');",
+        "  }",
+        "}");
+  }
+
   public void test_String_charAt() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -210,6 +309,26 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_concat() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String testA(String name, int position) {",
+        "    return \"Node \" + name + \" at \" + position;",
+        "  }",
+        "  public String testB(String firstName, String lastName) {",
+        "    return firstName + \".\" + lastName;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  String testA(String name, int position) => \"Node ${name} at ${position}\";",
+        "  String testB(String firstName, String lastName) => \"${firstName}.${lastName}\";",
+        "}");
+  }
+
   public void test_String_format() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -223,6 +342,26 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  String foo(String fmt, String name, int position) => JavaString.format(fmt, [name, position]);",
+        "}");
+  }
+
+  public void test_String_indexOf_char() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void main(String s) {",
+        "    s.indexOf('1');",
+        "    s.indexOf('2', 42);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(String s) {",
+        "    s.indexOf('1');",
+        "    s.indexOf('2', 42);",
+        "  }",
         "}");
   }
 

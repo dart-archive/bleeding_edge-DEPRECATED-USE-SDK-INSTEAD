@@ -241,6 +241,13 @@ public class SyntaxTranslatorTest extends TestCase {
         "  String __name;",
         "  int __ordinal;",
         "  static final List<Direction> values = [];",
+        "  Direction.jtd_constructor_0_decl(String ___name, int ___ordinal) {",
+        "    _jtd_constructor_0_impl(___name, ___ordinal);",
+        "  }",
+        "  _jtd_constructor_0_impl(String ___name, int ___ordinal) {",
+        "    __name = ___name;",
+        "    __ordinal = ___ordinal;",
+        "  }",
         "  String toString() => __name;",
         "}");
   }

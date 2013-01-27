@@ -15,12 +15,7 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
    * Initialize a newly created list of nodes to be empty.
    * @param owner the node that is the parent of each of the elements in the list
    */
-  factory NodeList(ASTNode owner) {
-    _jtd_constructor_73_impl(owner);
-  }
-  _jtd_constructor_73_impl(ASTNode owner) {
-    this.owner = owner;
-  }
+  NodeList(ASTNode this.owner);
   /**
    * Use the given visitor to visit each of the nodes in this list.
    * @param visitor the visitor to be used to visit the elements of this list
@@ -30,19 +25,17 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
       element.accept(visitor);
     }
   }
-//  void add(int index, E node) {
-//    owner.becomeParentOf(node);
-//    elements.add(index, node);
-//  }
-//  bool addAll(Collection<E> nodes) {
-//    if (nodes != null) {
-//      return super.addAll(nodes);
-//    }
-//    return false;
-//  }
-//  E get(int index) {
-//    return elements[index];
-//  }
+  void add(E node) {
+    owner.becomeParentOf(node);
+    elements.add(node);
+  }
+  bool addAll(Collection<E> nodes) {
+    if (nodes != null) {
+      super.addAll(nodes);
+      return true;
+    }
+    return false;
+  }
   /**
    * Return the first token included in this node's source range.
    * @return the first token included in this node's source range
@@ -70,14 +63,4 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
   ASTNode getOwner() {
     return owner;
   }
-//  E remove(int index) {
-//    return elements.removeAt(index);
-//  }
-//  E set(int index, E node) {
-//    owner.becomeParentOf(node);
-//    return elements.set(index, node);
-//  }
-//  int size() {
-//    return elements.length;
-//  }
 }

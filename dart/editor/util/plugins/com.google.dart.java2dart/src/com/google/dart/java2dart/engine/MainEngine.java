@@ -25,8 +25,10 @@ import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
-import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
+
+import static com.google.dart.java2dart.util.ASTFactory.importDirective;
+import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
 
 import java.io.File;
 import java.util.List;
@@ -38,6 +40,7 @@ import java.util.Map.Entry;
 public class MainEngine {
   private static final Context context = new Context();
   private static File engineFolder;
+  private static File engineFolder2;
   private static CompilationUnit dartUnit;
 
   private static final List<SemanticProcessor> PROCESSORS = ImmutableList.of(
@@ -55,6 +58,7 @@ public class MainEngine {
     new File(targetFolder).mkdirs();
     //
     engineFolder = new File("../../../tools/plugins/com.google.dart.engine/src");
+    engineFolder2 = new File("src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
     context.addSourceFolder(engineFolder);
@@ -67,8 +71,12 @@ public class MainEngine {
         "com/google/dart/engine/utilities/dart/ParameterKind.java"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
-    // TODO(scheglov)
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
+    context.addSourceFile(new File(
+        engineFolder2,
+        "com/google/dart/java2dart/util/ToFormattedSourceVisitor.java"));
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors
@@ -106,7 +114,6 @@ public class MainEngine {
           new File(targetFolder + "/scanner.dart"),
           Charsets.UTF_8);
     }
-    // TODO(scheglov)
     {
       CompilationUnit library = buildAstLibrary();
       File astFile = new File(targetFolder + "/ast.dart");
@@ -116,16 +123,24 @@ public class MainEngine {
           astFile,
           Charsets.UTF_8);
     }
+    {
+      CompilationUnit library = buildParserLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/parser.dart"),
+          Charsets.UTF_8);
+    }
     System.out.println("Translation complete");
   }
 
   private static CompilationUnit buildAstLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "ast"));
-    unit.getDirectives().add(ASTFactory.importDirective("dart:collection", null));
-    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("enginelib.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("scanner.dart", null));
+    unit.getDirectives().add(libraryDirective("engine", "ast"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
+    unit.getDirectives().add(importDirective("enginelib.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "ast/") || isEnginePath(file, "utilities/dart/ParameterKind")) {
@@ -137,9 +152,9 @@ public class MainEngine {
 
   private static CompilationUnit buildErrorLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "error"));
-    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("source.dart", null));
+    unit.getDirectives().add(libraryDirective("engine", "error"));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "error/")) {
@@ -151,8 +166,8 @@ public class MainEngine {
 
   private static CompilationUnit buildInstrumentationLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "instrumentation"));
-    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    unit.getDirectives().add(libraryDirective("engine", "instrumentation"));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "utilities/instrumentation/")) {
@@ -162,14 +177,34 @@ public class MainEngine {
     return unit;
   }
 
+  private static CompilationUnit buildParserLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "parser"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
+    unit.getDirectives().add(importDirective("enginelib.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+      File file = context.getMemberToFile().get(member);
+      if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")
+          || file.getName().equals("ToFormattedSourceVisitor.java")) {
+        unit.getDeclarations().add(member);
+      }
+    }
+    return unit;
+  }
+
   private static CompilationUnit buildScannerLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "scanner"));
-    unit.getDirectives().add(ASTFactory.importDirective("dart:collection", null));
-    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("source.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("error.dart", null));
-    unit.getDirectives().add(ASTFactory.importDirective("instrumentation.dart", null));
+    unit.getDirectives().add(libraryDirective("engine", "scanner"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(importDirective("instrumentation.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "scanner/")) {
@@ -181,8 +216,8 @@ public class MainEngine {
 
   private static CompilationUnit buildSourceLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(ASTFactory.libraryDirective("engine", "source"));
-    unit.getDirectives().add(ASTFactory.importDirective("javalib.dart", null));
+    unit.getDirectives().add(libraryDirective("engine", "source"));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "source/")) {

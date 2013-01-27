@@ -92,6 +92,25 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Comparator() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Comparator;",
+        "public class Test {",
+        "  Comparator<String> MY = new Comparator<String>() {",
+        "    public int compare(String a, String b) {",
+        "      return a.length() - b.length();",
+        "    }",
+        "  };",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  Comparator<String> MY = (String a, String b) => a.length() - b.length();",
+        "}");
+  }
+
   public void test_List_get() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

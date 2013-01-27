@@ -69,6 +69,14 @@ public class JavaUtils {
     return "L" + StringUtils.replace(name, ".", "/") + ";";
   }
 
+  public static String getQualifiedName(ITypeBinding binding) {
+    String name = binding.getQualifiedName();
+    if (name.contains("<")) {
+      name = StringUtils.substringBefore(name, "<");
+    }
+    return name;
+  }
+
   /**
    * @return the JDT signature with changed name.
    */
@@ -126,15 +134,7 @@ public class JavaUtils {
     return false;
   }
 
-  private static String getQualifiedName(ITypeBinding binding) {
-    String name = binding.getQualifiedName();
-    if (name.contains("<")) {
-      name = StringUtils.substringBefore(name, "<");
-    }
-    return name;
-  }
-
-  private static boolean isSubtype(ITypeBinding binding, String reqClassName) {
+  public static boolean isSubtype(ITypeBinding binding, String reqClassName) {
     if (binding != null) {
       if (getQualifiedName(binding).equals(reqClassName)) {
         return true;

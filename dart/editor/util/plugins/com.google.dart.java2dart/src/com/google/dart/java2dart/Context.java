@@ -61,6 +61,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.File;
 import java.util.Collection;
@@ -108,6 +109,8 @@ public class Context {
   private final Map<SimpleIdentifier, String> identifierToBinding = Maps.newHashMap();
   private final Map<String, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
   private final Map<ASTNode, Object> nodeToBinding = Maps.newHashMap();
+  private final Map<ASTNode, ITypeBinding> nodeToTypeBinding = Maps.newHashMap();
+  private final Map<InstanceCreationExpression, ClassDeclaration> anonymousDeclarations = Maps.newHashMap();
   // information about constructors
   private int technicalConstructorIndex;
   private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
@@ -154,6 +157,14 @@ public class Context {
     sourceFolders.add(folder);
   }
 
+  /**
+   * @return the artificial {@link ClassDeclaration}created for Java creation of anonymous class
+   *         declaration.
+   */
+  public ClassDeclaration getAnonymousDeclaration(InstanceCreationExpression creation) {
+    return anonymousDeclarations.get(creation);
+  }
+
   public Map<File, List<CompilationUnitMember>> getFileToMembers() {
     return fileToMembers;
   }
@@ -167,6 +178,13 @@ public class Context {
    */
   public Object getNodeBinding(ASTNode node) {
     return nodeToBinding.get(node);
+  }
+
+  /**
+   * @return some Java {@link ITypeBinding} for the given Dart {@link ASTNode}.
+   */
+  public ITypeBinding getNodeTypeBinding(ASTNode node) {
+    return nodeToTypeBinding.get(node);
   }
 
   public CompilationUnit translate() throws Exception {
@@ -243,6 +261,16 @@ public class Context {
   }
 
   /**
+   * Remembers artificial {@link ClassDeclaration} created for Java creation of anonymous class
+   * declaration.
+   */
+  void putAnonymousDeclaration(InstanceCreationExpression creation, ClassDeclaration declaration) {
+    if (declaration != null) {
+      anonymousDeclarations.put(creation, declaration);
+    }
+  }
+
+  /**
    * Remembers that given {@link SimpleIdentifier} used as name of the named
    * {@link ConstructorDeclaration} is reference to the given Java signature.
    */
@@ -255,6 +283,13 @@ public class Context {
    */
   void putNodeBinding(ASTNode node, Object binding) {
     nodeToBinding.put(node, binding);
+  }
+
+  /**
+   * Remembers Java {@link ITypeBinding} for the given Dart {@link ASTNode}.
+   */
+  void putNodeTypeBinding(ASTNode node, ITypeBinding binding) {
+    nodeToTypeBinding.put(node, binding);
   }
 
   /**
@@ -412,7 +447,7 @@ public class Context {
           if (initializer != null) {
             initializer.accept(this);
           }
-          if (hasNameReference) {
+          if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
             String newName = generateUniqueName(currentVariableName);
             renameIdentifier(node.getName(), newName);
           }
