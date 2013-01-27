@@ -55,7 +55,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource("class Test {", "  List<MyEnum> foo() => MyEnum.values;", "}");
+    assertFormattedSource(//
+        "class Test {",
+        "  List<MyEnum> foo() => MyEnum.values;",
+        "}");
   }
 
   public void test_Integer_MAX_VALUE() throws Exception {
@@ -105,7 +108,11 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource("class Test {", "  Object o;", "  int get hashCode => o.hashCode;", "}");
+    assertFormattedSource(//
+        "class Test {",
+        "  Object o;",
+        "  int get hashCode => o.hashCode;",
+        "}");
   }
 
   public void test_PrimitiveWrapper_operations() throws Exception {
@@ -197,7 +204,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource("class Test {", "  int foo(String s) => s.charCodeAt(0);", "}");
+    assertFormattedSource(//
+        "class Test {",
+        "  int foo(String s) => s.charCodeAt(0);",
+        "}");
   }
 
   public void test_String_format() throws Exception {
@@ -226,7 +236,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource("class Test {", "  int foo(String s) => s.length;", "}");
+    assertFormattedSource(//
+        "class Test {",
+        "  int foo(String s) => s.length;",
+        "}");
   }
 
   public void test_StringBuilder() throws Exception {
