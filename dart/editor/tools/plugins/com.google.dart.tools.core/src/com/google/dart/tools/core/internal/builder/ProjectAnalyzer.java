@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.builder;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
@@ -28,8 +29,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import java.util.ArrayList;
 
 /**
- * {@code ProjectAnalyzer} parses sources in a project and updates Eclipse markers. Attach instances
- * of {@code ProjectAnalyzer} to a delta processor via
+ * {@code ProjectAnalyzer} analyzes sources in a project and updates Eclipse markers. Attach
+ * instances of {@code ProjectAnalyzer} to a delta processor via
  * {@link DeltaProcessor#addDeltaListener(DeltaListener)} then call the appropriate
  * {@link DeltaProcessor} traverse method. Once the traverse method completes, call
  * {@link #updateMarkers()} to update the Eclipse markers.
@@ -38,9 +39,9 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
 
   private class ParseResult {
     private final IResource resource;
-    private final ArrayList<AnalysisError> errors;
+    private final AnalysisError[] errors;
 
-    public ParseResult(IResource resource, ArrayList<AnalysisError> errors) {
+    public ParseResult(IResource resource, AnalysisError[] errors) {
       this.resource = resource;
       this.errors = errors;
     }
@@ -114,14 +115,12 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
    * @param event the source event (not {@code null})
    */
   private void parse(SourceDeltaEvent event) {
-    final ArrayList<AnalysisError> errors = new ArrayList<AnalysisError>();
     try {
-      // TODO (danrubel): get errors from compilation unit
-      event.getContext().parse(event.getSource());
+      CompilationUnit unit = event.getContext().parse(event.getSource());
+      parseResults.add(new ParseResult(event.getResource(), unit.getSyntacticErrors()));
     } catch (AnalysisException e) {
       DartCore.logError("Exception parsing source: " + event.getSource(), e);
       return;
     }
-    parseResults.add(new ParseResult(event.getResource(), errors));
   }
 }

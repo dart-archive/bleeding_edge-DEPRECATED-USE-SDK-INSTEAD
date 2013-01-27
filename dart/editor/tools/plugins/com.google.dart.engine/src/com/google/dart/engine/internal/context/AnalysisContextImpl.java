@@ -273,9 +273,22 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public CompilationUnit parse(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
+    synchronized (cacheLock) {
+      CompilationUnit unit = parseCache.get(source);
+      if (unit == null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        Token token = scan(source, errorListener);
+        Parser parser = new Parser(source, errorListener);
+        unit = parser.parseCompilationUnit(token);
+        unit.setSyntacticErrors(errorListener.getErrors());
+        parseCache.put(source, unit);
+      }
+      return unit;
+    }
   }
 
+  // TODO (danrubel): Either remove this method 
+  // or ensure that the unit's syntax errors are cached in the unit itself
   public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
       throws AnalysisException {
     synchronized (cacheLock) {

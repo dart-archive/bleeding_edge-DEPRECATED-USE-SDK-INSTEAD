@@ -23,6 +23,11 @@ import com.google.dart.engine.source.Source;
  */
 public class AnalysisError {
   /**
+   * An empty array of errors used when no errors are expected.
+   */
+  public static final AnalysisError[] NO_ERRORS = new AnalysisError[0];
+
+  /**
    * The error code associated with the error.
    */
   private ErrorCode errorCode;

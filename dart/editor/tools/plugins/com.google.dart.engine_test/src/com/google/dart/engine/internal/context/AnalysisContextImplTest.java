@@ -32,6 +32,7 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
@@ -87,15 +88,31 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(new AnalysisContextImpl());
   }
 
-  public void test_getLibraryElement_source() {
-    AnalysisContextImpl context = createAnalysisContext();
-    Source source = new FileBasedSource(context.getSourceFactory(), createFile("/lib.dart"));
-    context.getSourceFactory().setContents(source, "library lib;");
-    Element element = context.getLibraryElement(source);
-    assertNotNull(element);
+  public void test_parse_no_errors() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library lib;");
+    CompilationUnit compilationUnit = context.parse(source);
+    assertEquals(0, compilationUnit.getSyntacticErrors().length);
+    // TODO (danrubel): assert no semantic errors
+//    assertEquals(null, compilationUnit.getSemanticErrors());
+//    assertEquals(null, compilationUnit.getErrors());
   }
 
-  public void test_parse() throws Exception {
+  public void test_parse_with_errors() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library {");
+    CompilationUnit compilationUnit = context.parse(source);
+    assertTrue("Expected syntax errors", compilationUnit.getSyntacticErrors().length > 0);
+    // TODO (danrubel): assert no semantic errors
+//  assertEquals(null, compilationUnit.getSemanticErrors());
+//  assertEquals(null, compilationUnit.getErrors());
+  }
+
+  public void test_parse_with_listener() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);

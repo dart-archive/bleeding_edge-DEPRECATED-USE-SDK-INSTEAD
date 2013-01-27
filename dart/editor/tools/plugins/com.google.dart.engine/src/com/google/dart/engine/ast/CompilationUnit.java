@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
@@ -79,6 +80,11 @@ public class CompilationUnit extends ASTNode {
    * been resolved.
    */
   private CompilationUnitElement element;
+
+  /**
+   * The syntax errors encountered when the receiver was parsed.
+   */
+  private AnalysisError[] syntacticErrors;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -197,7 +203,7 @@ public class CompilationUnit extends ASTNode {
    * @return an array of errors (not {@code null}, contains no {@code null}s).
    */
   public AnalysisError[] getSyntacticErrors() {
-    throw new UnsupportedOperationException();
+    return syntacticErrors;
   }
 
   /**
@@ -216,6 +222,15 @@ public class CompilationUnit extends ASTNode {
    */
   public void setScriptTag(ScriptTag scriptTag) {
     this.scriptTag = becomeParentOf(scriptTag);
+  }
+
+  /**
+   * Called by the {@link AnalysisContext} to cache the syntax errors when the unit is parsed.
+   * 
+   * @param errors an array of syntax errors (not {@code null}, contains no {@code null}s)
+   */
+  public void setSyntacticErrors(AnalysisError[] errors) {
+    this.syntacticErrors = errors;
   }
 
   @Override
