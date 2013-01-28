@@ -137,6 +137,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -226,6 +227,32 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       node = node.getParent();
     }
     return false;
+  }
+
+  private static int numberOfConstructors(org.eclipse.jdt.core.dom.ASTNode node) {
+    int count = 0;
+    if (node instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
+      org.eclipse.jdt.core.dom.TypeDeclaration typeDecl = (org.eclipse.jdt.core.dom.TypeDeclaration) node;
+      for (org.eclipse.jdt.core.dom.MethodDeclaration methodDecl : typeDecl.getMethods()) {
+        if (methodDecl.isConstructor()) {
+          count++;
+        }
+      }
+      return count;
+    }
+    if (node instanceof EnumDeclaration) {
+      EnumDeclaration enumDecl = (EnumDeclaration) node;
+      for (Object child : (List<?>) enumDecl.bodyDeclarations()) {
+        if (child instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
+          org.eclipse.jdt.core.dom.MethodDeclaration methodDecl = (org.eclipse.jdt.core.dom.MethodDeclaration) child;
+          if (methodDecl.isConstructor()) {
+            count++;
+          }
+        }
+      }
+      return count;
+    }
+    throw new UnsupportedOperationException("not implemented: " + node.getClass());
   }
 
   private final Context context;
@@ -597,7 +624,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         members.add(member);
         if (constructorImpl != null) {
           members.add(constructorImpl);
-          hasConstructor = true;
+        }
+        if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
+          if (((org.eclipse.jdt.core.dom.MethodDeclaration) javaBodyDecl).isConstructor()) {
+            hasConstructor = true;
+          }
         }
       }
       // add default constructor, use artificial constructor
@@ -610,7 +641,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           node.bodyDeclarations().add(ac);
           ConstructorDeclaration innerConstructor = translate(ac);
           members.add(innerConstructor);
-          members.add(constructorImpl);
+          if (constructorImpl != null) {
+            members.add(constructorImpl);
+          }
         } finally {
           node.bodyDeclarations().remove(ac);
         }
@@ -842,6 +875,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     // constructor
     if (node.isConstructor()) {
+      boolean multipleConstructors = numberOfConstructors(node.getParent()) > 1;
       List<ConstructorInitializer> initializers = Lists.newArrayList();
       if (superConstructorInvocation != null) {
         initializers.add(superConstructorInvocation);
@@ -849,11 +883,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       String technicalConstructorName = context.generateTechnicalConstructorName();
       String constructorDeclName = technicalConstructorName + "_decl";
       String constructorImplName = "_" + technicalConstructorName + "_impl";
-      constructorImpl = methodDeclaration(
-          null,
-          simpleIdentifier(constructorImplName),
-          parameterList,
-          body);
+      if (multipleConstructors) {
+        constructorImpl = methodDeclaration(
+            null,
+            simpleIdentifier(constructorImplName),
+            parameterList,
+            body);
+      }
       //
       List<Expression> implInvArgs = Lists.newArrayList();
       for (FormalParameter parameter : parameterList.getParameters()) {
@@ -865,15 +901,19 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       SimpleIdentifier nameNode = simpleIdentifier(constructorDeclName);
       String signature = getBindingSignature(binding);
       context.getConstructorDescription(signature).declName = constructorDeclName;
-      context.getConstructorDescription(signature).implName = constructorImplName;
+      context.getConstructorDescription(signature).implName = multipleConstructors
+          ? constructorImplName : constructorDeclName;
       context.putConstructorNameSignature(nameNode, signature);
+      if (multipleConstructors) {
+        body = blockFunctionBody(constructorBody);
+      }
       return done(constructorDeclaration(
           translateJavadoc(node),
           simpleIdentifier(node.getName().getIdentifier()),
           nameNode,
           parameterList,
           initializers,
-          blockFunctionBody(constructorBody)));
+          body));
     } else {
       boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
       SimpleIdentifier dartMethodName = translateSimpleName(node.getName());
