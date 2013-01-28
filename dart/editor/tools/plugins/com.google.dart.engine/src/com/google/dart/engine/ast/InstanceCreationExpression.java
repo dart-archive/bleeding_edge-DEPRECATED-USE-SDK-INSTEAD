@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -39,6 +40,12 @@ public class InstanceCreationExpression extends Expression {
    * The list of arguments to the constructor.
    */
   private ArgumentList argumentList;
+
+  /**
+   * The element associated with the constructor, or {@code null} if the AST structure has not been
+   * resolved or if the constructor could not be resolved.
+   */
+  private Element element;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -82,6 +89,16 @@ public class InstanceCreationExpression extends Expression {
     return constructorName;
   }
 
+  /**
+   * Return the element associated with the constructor, or {@code null} if the AST structure has
+   * not been resolved or if the constructor could not be resolved.
+   * 
+   * @return the element associated with the constructor
+   */
+  public Element getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return argumentList.getEndToken();
@@ -112,6 +129,15 @@ public class InstanceCreationExpression extends Expression {
    */
   public void setConstructorName(ConstructorName constructorName) {
     this.constructorName = constructorName;
+  }
+
+  /**
+   * Set the element associated with the constructor to the given element.
+   * 
+   * @param element the element associated with the constructor
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**

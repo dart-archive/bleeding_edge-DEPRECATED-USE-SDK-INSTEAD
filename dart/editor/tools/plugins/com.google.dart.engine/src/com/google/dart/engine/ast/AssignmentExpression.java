@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -40,6 +41,12 @@ public class AssignmentExpression extends Expression {
   private Expression rightHandSide;
 
   /**
+   * The element associated with the operator, or {@code null} if the AST structure has not been
+   * resolved, if the operator is not a compound operator, or if the operator could not be resolved.
+   */
+  private Element element;
+
+  /**
    * Initialize a newly created assignment expression.
    * 
    * @param leftHandSide the expression used to compute the left hand side
@@ -60,6 +67,18 @@ public class AssignmentExpression extends Expression {
   @Override
   public Token getBeginToken() {
     return leftHandSide.getBeginToken();
+  }
+
+  /**
+   * Return the element associated with the operator, or {@code null} if the AST structure has not
+   * been resolved, if the operator is not a compound operator, or if the operator could not be
+   * resolved. One example of the latter case is an operator that is not defined for the type of the
+   * left-hand operand.
+   * 
+   * @return the element associated with the operator
+   */
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -92,6 +111,15 @@ public class AssignmentExpression extends Expression {
    */
   public Expression getRightHandSide() {
     return rightHandSide;
+  }
+
+  /**
+   * Set the element associated with the operator to the given element.
+   * 
+   * @param element the element associated with the operator
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**
