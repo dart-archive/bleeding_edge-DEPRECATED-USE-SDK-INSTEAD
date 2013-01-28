@@ -137,7 +137,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           Element leftElement = leftType.getElement();
           if (leftElement != null) {
             Element method = lookupInHierarchy(leftElement, operator.getLexeme());
-            node.setElement(method);
+            if (method instanceof MethodElement) {
+              node.setElement((MethodElement) method);
+            } else {
+              // TODO(brianwilkerson) Do we need to handle this case?
+            }
           }
         }
       }
@@ -158,8 +162,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       Element member = lookupInHierarchy(leftTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+      } else if (member instanceof MethodElement) {
+        node.setElement((MethodElement) member);
       } else {
-        node.setElement(member);
+        // TODO(brianwilkerson) Do we need to handle this case?
       }
     }
     return null;
@@ -224,8 +230,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element member = lookupInHierarchy(arrayTypeElement, operator);
     if (member == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, node, operator);
+    } else if (member instanceof MethodElement) {
+      node.setElement((MethodElement) member);
     } else {
-      node.setElement(member);
+      // TODO(brianwilkerson) Do we need to handle this case?
     }
     return null;
   }
@@ -254,8 +262,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       Element member = lookupInHierarchy(operandTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+      } else if (member instanceof MethodElement) {
+        node.setElement((MethodElement) member);
       } else {
-        node.setElement(member);
+        // TODO(brianwilkerson) Do we need to handle this case?
       }
     }
     return null;
@@ -321,8 +331,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       Element member = lookupInHierarchy(operandTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+      } else if (member instanceof MethodElement) {
+        node.setElement((MethodElement) member);
       } else {
-        node.setElement(member);
+        // TODO(brianwilkerson) Do we need to handle this case?
       }
     }
     return null;

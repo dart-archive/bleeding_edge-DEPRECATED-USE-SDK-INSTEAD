@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -45,7 +45,7 @@ public class InstanceCreationExpression extends Expression {
    * The element associated with the constructor, or {@code null} if the AST structure has not been
    * resolved or if the constructor could not be resolved.
    */
-  private Element element;
+  private ConstructorElement element;
 
   /**
    * Initialize a newly created instance creation expression.
@@ -95,7 +95,7 @@ public class InstanceCreationExpression extends Expression {
    * 
    * @return the element associated with the constructor
    */
-  public Element getElement() {
+  public ConstructorElement getElement() {
     return element;
   }
 
@@ -136,7 +136,7 @@ public class InstanceCreationExpression extends Expression {
    * 
    * @param element the element associated with the constructor
    */
-  public void setElement(Element element) {
+  public void setElement(ConstructorElement element) {
     this.element = element;
   }
 

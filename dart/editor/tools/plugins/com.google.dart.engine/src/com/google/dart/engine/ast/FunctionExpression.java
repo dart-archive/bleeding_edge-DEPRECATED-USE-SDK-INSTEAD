@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -39,7 +39,7 @@ public class FunctionExpression extends Expression {
    * The element associated with the function, or {@code null} if the AST structure has not been
    * resolved.
    */
-  private Element element;
+  private ExecutableElement element;
 
   /**
    * Initialize a newly created function declaration.
@@ -84,7 +84,7 @@ public class FunctionExpression extends Expression {
    * 
    * @return the element associated with this function
    */
-  public Element getElement() {
+  public ExecutableElement getElement() {
     return element;
   }
 
@@ -123,7 +123,7 @@ public class FunctionExpression extends Expression {
    * 
    * @param element the element associated with this function
    */
-  public void setElement(Element element) {
+  public void setElement(ExecutableElement element) {
     this.element = element;
   }
 

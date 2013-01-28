@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -44,7 +44,7 @@ public class BinaryExpression extends Expression {
    * The element associated with the operator, or {@code null} if the AST structure has not been
    * resolved, if the operator is not user definable, or if the operator could not be resolved.
    */
-  private Element element;
+  private MethodElement element;
 
   /**
    * Initialize a newly created binary expression.
@@ -77,7 +77,7 @@ public class BinaryExpression extends Expression {
    * 
    * @return the element associated with the operator
    */
-  public Element getElement() {
+  public MethodElement getElement() {
     return element;
   }
 
@@ -118,7 +118,7 @@ public class BinaryExpression extends Expression {
    * 
    * @param element the element associated with the operator
    */
-  public void setElement(Element element) {
+  public void setElement(MethodElement element) {
     this.element = element;
   }
 
