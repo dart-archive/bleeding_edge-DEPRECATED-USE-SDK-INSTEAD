@@ -362,20 +362,29 @@ public class Context {
         if (thisInitializers.isEmpty()) {
           return;
         }
-        boolean foundImpl = false;
+        ConstructorDeclaration singleConstructor = null;
+        boolean hasImpl = false;
         for (ClassMember classMember : classDeclaration.getMembers()) {
+          if (classMember instanceof ConstructorDeclaration) {
+            singleConstructor = (ConstructorDeclaration) classMember;
+          }
           if (classMember instanceof MethodDeclaration) {
             MethodDeclaration method = (MethodDeclaration) classMember;
             String methodName = method.getName().getName();
             if (methodName.startsWith("_jtd_constructor_") && methodName.endsWith("_impl")) {
-              foundImpl = true;
+              hasImpl = true;
               Block block = ((BlockFunctionBody) method.getBody()).getBlock();
               addAssignmentsToBlock(block, thisInitializers);
             }
           }
         }
+        // no "_impl", add assignments to the single constructor
+        if (!hasImpl && singleConstructor != null) {
+          Block block = ((BlockFunctionBody) singleConstructor.getBody()).getBlock();
+          addAssignmentsToBlock(block, thisInitializers);
+        }
         // no "_impl", generate default constructor
-        if (!foundImpl) {
+        if (singleConstructor == null) {
           Block block = new Block(null, null, null);
           addAssignmentsToBlock(block, thisInitializers);
           ConstructorDeclaration constructor = new ConstructorDeclaration(

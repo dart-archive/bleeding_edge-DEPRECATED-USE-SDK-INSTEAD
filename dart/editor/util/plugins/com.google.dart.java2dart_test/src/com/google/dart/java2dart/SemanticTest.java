@@ -1040,7 +1040,72 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
-  public void test_thisInFieldInitializer_hasConstructors() throws Exception {
+  public void test_thisInFieldInitializer_noConstructor() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Object foo = this;",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(toString(//
+        "class Test {",
+        "  Object foo;",
+        "  Test() {",
+        "    this.foo = this;",
+        "  }",
+        "}"), getFormattedSource(unit));
+  }
+
+  public void test_thisInFieldInitializer_singleConstructor() throws Exception {
+    setFileLines(
+        "test/Super.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Super {",
+            "  public Super(int p) {",
+            "  }",
+            "}",
+            ""));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  Object foo = this;",
+            "  public Test(int p) {",
+            "    super(p);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Super {",
+            "  Super(int p) {",
+            "  }",
+            "}",
+            "class Test {",
+            "  Object foo;",
+            "  Test(int p) : super(p) {",
+            "    this.foo = this;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_thisInFieldInitializer_twoConstructors() throws Exception {
     setFileLines(
         "test/Test.java",
         toString(
@@ -1084,29 +1149,6 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}"),
         getFormattedSource(unit));
-  }
-
-  public void test_thisInFieldInitializer_noConstructor() throws Exception {
-    setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  Object foo = this;",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
-    assertEquals(toString(//
-        "class Test {",
-        "  Object foo;",
-        "  Test() {",
-        "    this.foo = this;",
-        "  }",
-        "}"), getFormattedSource(unit));
   }
 
   public void test_varArgs() throws Exception {

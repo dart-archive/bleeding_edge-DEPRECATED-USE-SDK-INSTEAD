@@ -4,6 +4,7 @@ import "javalib.dart";
 
 class Element {}
 class CompilationUnitElement extends Element {}
+class ExecutableElement extends Element {}
 class FunctionElement extends Element {}
 class TypeAliasElement extends Element {}
 class ClassElement extends Element {}
