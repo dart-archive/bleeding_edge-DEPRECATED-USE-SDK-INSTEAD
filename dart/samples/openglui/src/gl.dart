@@ -15,3 +15,5 @@ export 'dart:html' show Float32Array;
 
 WebGLRenderingContext gl;
 
+log(message) => window.console.log(message);
+

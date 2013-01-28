@@ -19,7 +19,11 @@ import 'dart:math' as Math;
 // no-op and some treat it as a syntax error. In particular, this line needs
 // to be removed to this this shader on a MAc.
 const FRAGMENT_PROGRAM = """
+// TODO(vsm): Remove this ifdef.  It's a temporary workaround to get
+// this sample running on the Mac desktop emulator.
+#ifdef GL_ES
   precision mediump float;
+#endif
 
   const vec3 lightDir = vec3(0.577350269, 0.577350269, -0.577350269);
   varying vec3 vPosition;
