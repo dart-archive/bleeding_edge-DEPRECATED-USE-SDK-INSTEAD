@@ -19,11 +19,11 @@ final InputElement slider = query("#slider");
 final Element notes = query("#notes");
 final num PHI = (sqrt(5) + 1) / 2;
 int seeds = 0;
-final CanvasRenderingContext2D context = 
+final CanvasRenderingContext2D context =
   (query("#canvas") as CanvasElement).context2d;
 
 void main() {
-  slider.on.change.add((e) => draw(), true);
+  slider.onChange.listen((e) => draw());
   draw();
 }
 

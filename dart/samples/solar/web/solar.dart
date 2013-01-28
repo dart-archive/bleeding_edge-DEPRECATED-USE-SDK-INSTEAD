@@ -35,7 +35,6 @@ void showFps(num fps) {
   query("#notes").text = "${fpsAverage.round().toInt()} fps";
 }
 
-// TODO: remove this once dart:html Point works cross-platform
 class Point {
   num x, y;
 
@@ -69,7 +68,7 @@ class SolarSystem {
 
   start() {
     // Measure the canvas element.
-    window.requestLayoutFrame(() {
+    window.setImmediate(() {
       _width = (canvas.parent as Element).clientWidth;
       _height = (canvas.parent as Element).clientHeight;
 

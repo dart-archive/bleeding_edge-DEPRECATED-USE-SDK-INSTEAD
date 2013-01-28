@@ -10,7 +10,11 @@
   </head>
   <body>
     <h2 id="status">Waiting for Dart to start</h2>
+
     <script type="application/dart" src="hi.dart"></script>
-    <script src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/client/dart.js"></script>
+
+    <!-- The preferred way to reference dart.js is to add a Pub dependency to
+         the 'browser' package and src 'packages/browser/dart.js'. -->
+    <script src="https://dart.googlecode.com/svn/branches/bleeding_edge/dart/pkg/browser/lib/dart.js"></script>
   </body>
 </html>

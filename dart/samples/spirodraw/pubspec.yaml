@@ -1,0 +1,4 @@
+name: spirodraw
+description: A 2D graphics demo
+dependencies:
+  browser: any

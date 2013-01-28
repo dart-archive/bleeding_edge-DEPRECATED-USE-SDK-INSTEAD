@@ -23,7 +23,7 @@ void main() {
   // Handle touch events.
   int touchStartX;
 
-  target.on.touchStart.add((TouchEvent event) {
+  target.onTouchStart.listen((TouchEvent event) {
     event.preventDefault();
 
     if (event.touches.length > 0) {
@@ -31,7 +31,7 @@ void main() {
     }
   });
 
-  target.on.touchMove.add((TouchEvent event) {
+  target.onTouchMove.listen((TouchEvent event) {
     event.preventDefault();
 
     if (touchStartX != null && event.touches.length > 0) {
@@ -47,14 +47,14 @@ void main() {
     }
   });
 
-  target.on.touchEnd.add((TouchEvent event) {
+  target.onTouchEnd.listen((TouchEvent event) {
     event.preventDefault();
 
     touchStartX = null;
   });
 
   // Handle key events.
-  document.on.keyDown.add((KeyboardEvent event) {
+  document.onKeyDown.listen((KeyboardEvent event) {
     switch (event.keyCode) {
       case KeyCode.LEFT:
         startSpin(target, -1);
@@ -65,7 +65,7 @@ void main() {
     }
   });
 
-  document.on.keyUp.add((event) => stopSpin());
+  document.onKeyUp.listen((event) => stopSpin());
 }
 
 void initialize3D() {
@@ -73,7 +73,7 @@ void initialize3D() {
 
   num childCount = target.children.length;
 
-  window.requestLayoutFrame(() {
+  window.setImmediate(() {
     num width = query("#target").clientWidth;
     figureWidth = (width / 2) ~/ tan(PI / childCount);
 

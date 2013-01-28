@@ -7,7 +7,7 @@ library spirodraw;
 import 'dart:html';
 import 'dart:math' as Math;
 
-part "ColorPicker.dart";
+part "colorpicker.dart";
 
 void main() {
   new Spirodraw().go();
@@ -23,7 +23,6 @@ class Spirodraw {
   InputElement fixedRadiusSlider, wheelRadiusSlider,
     penRadiusSlider, penWidthSlider, speedSlider;
   SelectElement inOrOut;
-  LabelElement numTurns;
   DivElement mainDiv;
   num lastX, lastY;
   int height, width, xc, yc;
@@ -49,26 +48,25 @@ class Spirodraw {
     penRadiusSlider = doc.query("#pen_radius");
     penWidthSlider = doc.query("#pen_width");
     speedSlider = doc.query("#speed");
-    numTurns = doc.query("#num_turns");
     mainDiv = doc.query("#main");
     frontCanvas = doc.query("#canvas");
     front = frontCanvas.context2d;
     backCanvas = new Element.tag("canvas");
     back = backCanvas.context2d;
     paletteElement = doc.query("#palette");
-    window.on.resize.add((event) => onResize(), true);
+    window.onResize.listen(onResize);
     initControlPanel();
   }
 
   void go() {
-    onResize();
+    onResize(null);
   }
 
-  void onResize() {
+  void onResize(Event event) {
     height = window.innerHeight;
     width = window.innerWidth - 270;
-    yc = height~/2;
-    xc = width~/2;
+    yc = height ~/ 2;
+    xc = width ~/ 2;
     frontCanvas..height = height
                ..width = width;
     backCanvas..height = height
@@ -77,18 +75,20 @@ class Spirodraw {
   }
 
   void initControlPanel() {
-    inOrOut.on.change.add((event) => refresh(), true);
-    fixedRadiusSlider.on.change.add((event) => refresh(), true);
-    wheelRadiusSlider.on.change.add((event) => refresh(), true);
-    speedSlider.on.change.add((event) => onSpeedChange(), true);
-    penRadiusSlider.on.change.add((event) => refresh(), true);
-    penWidthSlider.on.change.add((event) => onPenWidthChange(), true);
+    inOrOut.onChange.listen((_) => refresh());
+    fixedRadiusSlider.onChange.listen((_) => refresh());
+    wheelRadiusSlider.onChange.listen((_) => refresh());
+    speedSlider.onChange.listen(onSpeedChange);
+    penRadiusSlider.onChange.listen((_) => refresh());
+    penWidthSlider.onChange.listen(onPenWidthChange);
+
     colorPicker = new ColorPicker(paletteElement);
     colorPicker.addListener((String color) => onColorChange(color));
-    doc.query("#start").on.click.add((event) => start(), true);
-    doc.query("#stop").on.click.add((event) => stop(), true);
-    doc.query("#clear").on.click.add((event) => clear(), true);
-    doc.query("#lucky").on.click.add((event) => lucky(), true);
+
+    doc.query("#start").onClick.listen((_) => start());
+    doc.query("#stop").onClick.listen((_) => stop());
+    doc.query("#clear").onClick.listen((_) => clear());
+    doc.query("#lucky").onClick.listen((_) => lucky());
   }
 
   void onColorChange(String color) {
@@ -96,12 +96,12 @@ class Spirodraw {
     drawFrame(rad);
   }
 
-  void onSpeedChange() {
+  void onSpeedChange(Event event) {
     speed = speedSlider.valueAsNumber;
     stepSize = calcStepSize();
   }
 
-  void onPenWidthChange() {
+  void onPenWidthChange(Event event) {
     penWidth = penWidthSlider.valueAsNumber.toInt();
     drawFrame(rad);
   }
@@ -123,8 +123,7 @@ class Spirodraw {
     d = dUnits * R/RUnits;
     numPoints = calcNumPoints();
     maxTurns = calcTurns();
-    onSpeedChange();
-    numTurns.text = "0 / ${maxTurns}";
+    onSpeedChange(null);
     penWidth = penWidthSlider.valueAsNumber.toInt();
     drawFrame(0.0);
   }
@@ -141,7 +140,6 @@ class Spirodraw {
     return n~/2;
   }
 
-  // TODO return optimum step size in radians
   double calcStepSize() => speed / 100 * maxTurns / numPoints;
 
   void drawFrame(double theta) {
@@ -157,8 +155,6 @@ class Spirodraw {
     if (run && rad <= maxTurns * PI2) {
       rad+=stepSize;
       drawFrame(rad);
-      int nTurns = rad ~/ PI2;
-      numTurns.text = '${nTurns}/$maxTurns';
       window.requestAnimationFrame(animate);
     } else {
       stop();
@@ -213,7 +209,7 @@ class Spirodraw {
   void drawFixed() {
     if (animationEnabled) {
       front..beginPath()
-           ..setLineWidth(2)
+           ..lineWidth = 2
            ..strokeStyle = "gray"
            ..arc(xc, yc, R, 0, PI2, true)
            ..closePath()
@@ -238,7 +234,7 @@ class Spirodraw {
              ..closePath()
              ..stroke();
         // Draw center
-        front..setLineWidth(1)
+        front..lineWidth = 1
              ..beginPath()
              ..arc(wx, wy, 3, 0, PI2, true)
              ..fillStyle = "black"
@@ -282,7 +278,7 @@ class Spirodraw {
     if (lastX > 0) {
       back..beginPath()
           ..strokeStyle = penColor
-          ..setLineWidth(penWidth)
+          ..lineWidth = penWidth
           ..moveTo(lastX, lastY)
           ..lineTo(tx, ty)
           ..closePath()
@@ -291,14 +287,15 @@ class Spirodraw {
     lastX = tx;
     lastY = ty;
   }
-
 }
 
 int gcf(int n, int d) {
   if (n == d) return n;
   int max = Math.max(n, d);
+
   for (int i = max ~/ 2; i > 1; i--) {
     if ((n % i == 0) && (d % i == 0)) return i;
   }
+
   return 1;
 }

@@ -32,5 +32,5 @@ ${text.replaceAll('\n', '%0A')}
 
 void main() {
   final button = document.query('#button');
-  button.on.click.add((e) => run(), false);
+  button.onClick.listen((e) => run());
 }
