@@ -21,25 +21,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
-import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
-import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
-import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
-import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.ThisExpression;
@@ -47,12 +41,23 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringToken;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.JavaUtils;
+
+import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
+import static com.google.dart.java2dart.util.ASTFactory.block;
+import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.compilationUnit;
+import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.doubleLiteral;
+import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
+import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.integer;
+import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
+import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
+import static com.google.dart.java2dart.util.TokenFactory.token;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
@@ -100,7 +105,7 @@ public class Context {
 
   private final Map<String, String> renameMap = Maps.newHashMap();
 
-  private final CompilationUnit dartUniverse = new CompilationUnit(null, null, null, null, null);
+  private final CompilationUnit dartUniverse = compilationUnit();
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
   private final Map<CompilationUnitMember, File> memberToFile = Maps.newHashMap();
   // information about names
@@ -203,7 +208,7 @@ public class Context {
             + newSignature + "' is already used.");
         bindingToIdentifiers.put(newSignature, identifiers);
         for (SimpleIdentifier identifier : identifiers) {
-          identifier.setToken(new StringToken(TokenType.IDENTIFIER, newName, 0));
+          identifier.setToken(token(TokenType.IDENTIFIER, newName));
           identifierToBinding.remove(identifier);
           identifierToBinding.put(identifier, newSignature);
         }
@@ -324,10 +329,10 @@ public class Context {
         for (Entry<SimpleIdentifier, Expression> entry : initializers.entrySet()) {
           block.getStatements().add(
               index++,
-              new ExpressionStatement(new AssignmentExpression(new PropertyAccess(
-                  new ThisExpression(null),
-                  null,
-                  entry.getKey()), new Token(TokenType.EQ, 0), entry.getValue()), null));
+              expressionStatement(assignmentExpression(
+                  propertyAccess(thisExpression(), entry.getKey()),
+                  TokenType.EQ,
+                  entry.getValue())));
         }
       }
 
@@ -385,22 +390,14 @@ public class Context {
         }
         // no "_impl", generate default constructor
         if (singleConstructor == null) {
-          Block block = new Block(null, null, null);
+          Block block = block();
           addAssignmentsToBlock(block, thisInitializers);
-          ConstructorDeclaration constructor = new ConstructorDeclaration(
-              null,
-              null,
-              null,
-              null,
-              null,
+          ConstructorDeclaration constructor = constructorDeclaration(
               classDeclaration.getName(),
               null,
+              formalParameterList(),
               null,
-              new FormalParameterList(null, null, null, null, null),
-              null,
-              null,
-              null,
-              new BlockFunctionBody(block));
+              blockFunctionBody(block));
           classDeclaration.getMembers().add(constructor);
         }
       }
@@ -417,13 +414,13 @@ public class Context {
           if (variable.getInitializer() == null) {
             Expression initializer = null;
             if ("bool".equals(typeName)) {
-              initializer = new BooleanLiteral(new KeywordToken(Keyword.FALSE, 0), false);
+              initializer = booleanLiteral(false);
             }
             if ("int".equals(typeName)) {
-              initializer = new IntegerLiteral(new StringToken(TokenType.INT, "0", 0), 0);
+              initializer = integer(0);
             }
             if ("double".equals(typeName)) {
-              initializer = new IntegerLiteral(new StringToken(TokenType.DOUBLE, "0.0", 0), 0);
+              initializer = doubleLiteral(0.0);
             }
             if (initializer != null) {
               variable.setInitializer(initializer);
@@ -616,44 +613,32 @@ public class Context {
           node.setName(null);
         } else {
           // rename constructor
-          node.getName().setToken(new StringToken(TokenType.IDENTIFIER, name, 0));
+          node.getName().setToken(token(TokenType.IDENTIFIER, name));
           // set name in InstanceCreationExpression
           ConstructorDescription constructorDescription = bindingToConstructor.get(binding);
           {
             List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
             for (InstanceCreationExpression creation : creations) {
-              creation.getConstructorName().setName(
-                  new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, 0)));
+              creation.getConstructorName().setName(identifier(name));
             }
           }
           // set name in SuperConstructorInvocation
           {
             List<SuperConstructorInvocation> invocations = constructorDescription.superInvocations;
             for (SuperConstructorInvocation invocation : invocations) {
-              invocation.setConstructorName(new SimpleIdentifier(new StringToken(
-                  TokenType.IDENTIFIER,
-                  name,
-                  0)));
+              invocation.setConstructorName(identifier(name));
             }
           }
           // set name in invocation of implementation
           {
             List<SimpleIdentifier> invocations = constructorDescription.implInvocations;
             for (SimpleIdentifier identifier : invocations) {
-              identifier.setToken(new StringToken(
-                  TokenType.IDENTIFIER,
-                  constructorDescription.implName,
-                  0));
+              identifier.setToken(token(TokenType.IDENTIFIER, constructorDescription.implName));
             }
           }
         }
         // continue
         return super.visitConstructorDeclaration(node);
-      }
-
-      @Override
-      public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-        return super.visitInstanceCreationExpression(node);
       }
     });
   }
@@ -669,7 +654,7 @@ public class Context {
     bindingToIdentifiers.put(newSignature, identifiers);
     // update identifiers to the new name
     for (SimpleIdentifier identifier : identifiers) {
-      identifier.setToken(new StringToken(TokenType.IDENTIFIER, newName, 0));
+      identifier.setToken(token(TokenType.IDENTIFIER, newName));
       identifierToBinding.remove(identifier);
       identifierToBinding.put(identifier, newSignature);
     }

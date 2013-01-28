@@ -22,8 +22,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
-import com.google.dart.engine.ast.InterpolationExpression;
-import com.google.dart.engine.ast.InterpolationString;
+import com.google.dart.engine.ast.InterpolationElement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
@@ -43,6 +42,8 @@ import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
+import static com.google.dart.java2dart.util.ASTFactory.interpolationExpression;
+import static com.google.dart.java2dart.util.ASTFactory.interpolationString;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
@@ -75,11 +76,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
     }
     {
       Expression right = binary.getRightOperand();
-      if (right instanceof BinaryExpression) {
-        expressions.addAll(gatherBinaryExpressions((BinaryExpression) right));
-      } else {
-        expressions.add(right);
-      }
+      expressions.add(right);
     }
     return expressions;
   }
@@ -101,21 +98,18 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (node.getOperator().getType() == TokenType.PLUS) {
           List<Expression> expressions = gatherBinaryExpressions(node);
           if (hasStringLiteral(expressions)) {
-            StringInterpolation interpolation = new StringInterpolation(null);
-            interpolation.getElements().add(new InterpolationString(token("\""), ""));
+            List<InterpolationElement> elements = Lists.newArrayList();
+            elements.add(interpolationString("\"", ""));
             for (Expression expression : expressions) {
               if (expression instanceof SimpleStringLiteral) {
                 String value = ((SimpleStringLiteral) expression).getValue();
-                interpolation.getElements().add(new InterpolationString(token(value), value));
+                elements.add(interpolationString(value, value));
               } else {
-                interpolation.getElements().add(
-                    new InterpolationExpression(
-                        token(TokenType.OPEN_CURLY_BRACKET),
-                        expression,
-                        token(TokenType.CLOSE_CURLY_BRACKET)));
+                elements.add(interpolationExpression(expression));
               }
             }
-            interpolation.getElements().add(new InterpolationString(token("\""), ""));
+            elements.add(interpolationString("\"", ""));
+            StringInterpolation interpolation = string(elements);
             replaceNode(node, interpolation);
           }
         }

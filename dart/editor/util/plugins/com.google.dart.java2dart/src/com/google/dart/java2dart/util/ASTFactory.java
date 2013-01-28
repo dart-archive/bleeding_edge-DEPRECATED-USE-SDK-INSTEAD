@@ -341,6 +341,11 @@ public final class ASTFactory {
         emptyFunctionBody());
   }
 
+  public static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name,
+      FormalParameterList parameters, List<ConstructorInitializer> initializers, FunctionBody body) {
+    return constructorDeclaration(null, null, returnType, name, parameters, initializers, body);
+  }
+
   public static ConstructorDeclaration constructorDeclaration(Keyword constKeyword,
       Keyword factoryKeyword, Identifier returnType, String name, FormalParameterList parameters,
       List<ConstructorInitializer> initializers, FunctionBody body) {
@@ -1035,7 +1040,11 @@ public final class ASTFactory {
   }
 
   public static StringInterpolation string(InterpolationElement... elements) {
-    return new StringInterpolation(list(elements));
+    return string(list(elements));
+  }
+
+  public static StringInterpolation string(List<InterpolationElement> elements) {
+    return new StringInterpolation(elements);
   }
 
   public static SimpleStringLiteral string(String content) {
