@@ -278,4 +278,10 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     }
     this.typeVariables = typeVariables;
   }
+
+  @Override
+  public String toString() {
+    String name = getName();
+    return name == null ? "<unnamed class>" : "class " + name;
+  }
 }

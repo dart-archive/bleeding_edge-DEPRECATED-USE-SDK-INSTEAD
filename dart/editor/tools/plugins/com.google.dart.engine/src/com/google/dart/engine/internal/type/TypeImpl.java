@@ -95,4 +95,9 @@ public abstract class TypeImpl implements Type {
   public boolean isSupertypeOf(Type type) {
     return type.isSubtypeOf(this);
   }
+
+  @Override
+  public String toString() {
+    return name == null ? "<unnamed type>" : "type " + name;
+  }
 }

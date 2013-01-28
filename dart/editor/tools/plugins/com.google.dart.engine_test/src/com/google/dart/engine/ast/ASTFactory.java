@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.utilities.dart.ParameterKind;
@@ -941,6 +942,23 @@ public final class ASTFactory {
 
   public static TypeArgumentList typeArgumentList(TypeName... typeNames) {
     return new TypeArgumentList(token(TokenType.LT), list(typeNames), token(TokenType.GT));
+  }
+
+  /**
+   * Create a type name whose name has been resolved to the given element and whose type has been
+   * resolved to the type of the given element.
+   * <p>
+   * <b>Note:</b> This method does not correctly handle class elements that have type parameters.
+   * 
+   * @param element the element defining the type represented by the type name
+   * @return the type name that was created
+   */
+  public static TypeName typeName(ClassElement element) {
+    SimpleIdentifier name = identifier(element.getName());
+    name.setElement(element);
+    TypeName typeName = new TypeName(name, null);
+    typeName.setType(element.getType());
+    return typeName;
   }
 
   public static TypeName typeName(Identifier name, TypeName... arguments) {

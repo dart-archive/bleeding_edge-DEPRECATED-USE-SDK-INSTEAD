@@ -16,6 +16,7 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
@@ -68,6 +69,10 @@ public final class ElementFactory {
 
   public static ClassElement classElement(String typeName, String... parameterNames) {
     return classElement(typeName, getObject().getType(), parameterNames);
+  }
+
+  public static ConstructorElement constructorElement(String name) {
+    return new ConstructorElementImpl(name == null ? null : identifier(name));
   }
 
   public static ClassElement getObject() {
