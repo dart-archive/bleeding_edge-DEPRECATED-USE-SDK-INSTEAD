@@ -1,8 +1,8 @@
 /android_tools
+/chrome_api
 /cygwin
 /drt_resources
 /gyp
-/java
 /net_nss
 /nss
 /sqlite
