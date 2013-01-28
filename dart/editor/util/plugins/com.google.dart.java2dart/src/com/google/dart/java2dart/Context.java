@@ -41,6 +41,10 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.StringToken;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.util.JavaUtils;
 
@@ -409,6 +413,14 @@ public class Context {
       @Override
       public Void visitFieldDeclaration(FieldDeclaration node) {
         VariableDeclarationList fields = node.getFields();
+        // final fields should be initialized as part of the constructor 
+        // or already have an initializer
+        if (fields.getKeyword() instanceof KeywordToken) {
+          KeywordToken token = (KeywordToken) fields.getKeyword();
+          if (token.getKeyword() == Keyword.FINAL) {
+            return super.visitFieldDeclaration(node);
+          }
+        }
         String typeName = fields.getType().toString();
         for (VariableDeclaration variable : fields.getVariables()) {
           if (variable.getInitializer() == null) {

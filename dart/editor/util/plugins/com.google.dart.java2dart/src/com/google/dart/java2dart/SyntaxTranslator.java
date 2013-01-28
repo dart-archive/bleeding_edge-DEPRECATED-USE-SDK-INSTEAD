@@ -600,8 +600,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     // members
     List<ClassMember> members = Lists.newArrayList();
     {
-      members.add(fieldDeclaration(typeName("String"), variableDeclaration("__name")));
-      members.add(fieldDeclaration(typeName("int"), variableDeclaration("__ordinal")));
+      boolean multipleConstructors = numberOfConstructors(node) > 1;
       // constants
       List<Expression> valuesList = Lists.newArrayList();
       for (Object javaConst : node.enumConstants()) {
@@ -616,6 +615,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           listType(typeName(name), 1),
           variableDeclaration("values", listLiteral(valuesList))));
       // body declarations
+      members.add(fieldDeclaration(
+          false,
+          multipleConstructors ? null : Keyword.FINAL,
+          typeName("String"),
+          variableDeclaration("__name")));
+      members.add(fieldDeclaration(
+          false,
+          multipleConstructors ? null : Keyword.FINAL,
+          typeName("int"),
+          variableDeclaration("__ordinal")));
       boolean hasConstructor = false;
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
@@ -837,8 +846,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       List<FormalParameter> parameters = Lists.newArrayList();
       if (isEnumConstructor) {
-        parameters.add(simpleFormalParameter(typeName("String"), "___name"));
-        parameters.add(simpleFormalParameter(typeName("int"), "___ordinal"));
+        if (numberOfConstructors(node.getParent()) > 1) {
+          parameters.add(simpleFormalParameter(typeName("String"), "___name"));
+          parameters.add(simpleFormalParameter(typeName("int"), "___ordinal"));
+        } else {
+          parameters.add(fieldFormalParameter(null, null, "__name"));
+          parameters.add(fieldFormalParameter(null, null, "__ordinal"));
+        }
       }
       for (Iterator<?> I = node.parameters().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.SingleVariableDeclaration javaParameter = (org.eclipse.jdt.core.dom.SingleVariableDeclaration) I.next();
@@ -862,8 +876,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         body = new BlockFunctionBody(bodyBlock);
         NodeList<Statement> statements = bodyBlock.getStatements();
         if (isEnumConstructor && !hasConstructorInvocation(node)) {
-          statements.add(0, assignmentStatement("__ordinal", "___ordinal"));
-          statements.add(0, assignmentStatement("__name", "___name"));
+          if (numberOfConstructors(node.getParent()) > 1) {
+            statements.add(0, assignmentStatement("__ordinal", "___ordinal"));
+            statements.add(0, assignmentStatement("__name", "___name"));
+          }
         }
         // convert "{ return foo; }" to "=> foo;"
         if (statements.size() == 1 && statements.get(0) instanceof ReturnStatement) {
