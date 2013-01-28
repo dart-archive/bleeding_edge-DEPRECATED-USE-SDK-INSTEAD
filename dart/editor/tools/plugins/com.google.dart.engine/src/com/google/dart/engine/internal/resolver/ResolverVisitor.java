@@ -160,8 +160,10 @@ public class ResolverVisitor extends GeneralizingASTVisitor<Void> {
     try {
       enclosingType = node.getElement();
       nameScope = new ClassScope(nameScope, enclosingType);
+      typeAnalyzer.setThisType(enclosingType == null ? null : enclosingType.getType());
       super.visitClassDeclaration(node);
     } finally {
+      typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       nameScope = outerScope;
       enclosingType = outerType;
     }

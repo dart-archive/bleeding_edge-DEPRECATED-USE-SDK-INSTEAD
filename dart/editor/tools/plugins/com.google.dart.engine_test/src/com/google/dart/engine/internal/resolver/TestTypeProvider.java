@@ -269,30 +269,21 @@ public class TestTypeProvider implements TypeProvider {
     // Add the methods.
     //
     numElement.setMethods(new MethodElement[] {
-        methodElement("+", numType, numType),
-        methodElement("-", numType, numType),
-        methodElement("*", numType, numType),
-        methodElement("%", numType, numType),
-        methodElement("/", doubleType, numType),
-        methodElement("~/", numType, numType),
-        methodElement("-", numType),
-        methodElement("remainder", numType, numType),
-//        methodElement("<", boolType, numType),
-//        methodElement("<=", boolType, numType),
-//        methodElement(">", boolType, numType),
-//        methodElement(">=", boolType, numType),
-//        methodElement("isNaN", boolType),
-//        methodElement("isNegative", boolType),
-//        methodElement("isInfinite", boolType),
-        methodElement("abs", numType), methodElement("floor", numType),
-        methodElement("ceil", numType), methodElement("round", numType),
-        methodElement("truncate", numType), methodElement("toInt", intType),
-        methodElement("toDouble", doubleType),
-//        methodElement("toStringAsFixed", stringType, intType),
-//        methodElement("toStringAsExponential", stringType, intType),
-//        methodElement("toStringAsPrecision", stringType, intType),
-//        methodElement("toRadixString", stringType, intType),
-    });
+        methodElement("+", numType, numType), methodElement("-", numType, numType),
+        methodElement("*", numType, numType), methodElement("%", numType, numType),
+        methodElement("/", doubleType, numType), methodElement("~/", numType, numType),
+        methodElement("-", numType), methodElement("remainder", numType, numType),
+        methodElement("<", boolType, numType), methodElement("<=", boolType, numType),
+        methodElement(">", boolType, numType), methodElement(">=", boolType, numType),
+        methodElement("isNaN", boolType), methodElement("isNegative", boolType),
+        methodElement("isInfinite", boolType), methodElement("abs", numType),
+        methodElement("floor", numType), methodElement("ceil", numType),
+        methodElement("round", numType), methodElement("truncate", numType),
+        methodElement("toInt", intType), methodElement("toDouble", doubleType),
+        methodElement("toStringAsFixed", stringType, intType),
+        methodElement("toStringAsExponential", stringType, intType),
+        methodElement("toStringAsPrecision", stringType, intType),
+        methodElement("toRadixString", stringType, intType),});
     intElement.setMethods(new MethodElement[] {
         methodElement("&", intType, intType),
         methodElement("|", intType, intType),
@@ -305,7 +296,7 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("-", intType), methodElement("abs", intType),
         methodElement("round", intType), methodElement("floor", intType),
         methodElement("ceil", intType), methodElement("truncate", intType),
-//      methodElement("toString", stringType),
+        methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", intType, stringType),
     });
     doubleElement.setFields(new FieldElement[] {
@@ -322,8 +313,7 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("~/", doubleType, numType), methodElement("-", doubleType),
         methodElement("abs", doubleType), methodElement("round", doubleType),
         methodElement("floor", doubleType), methodElement("ceil", doubleType),
-        methodElement("truncate", doubleType),
-//      methodElement("toString", stringType),
+        methodElement("truncate", doubleType), methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", doubleType, stringType),
     });
   }

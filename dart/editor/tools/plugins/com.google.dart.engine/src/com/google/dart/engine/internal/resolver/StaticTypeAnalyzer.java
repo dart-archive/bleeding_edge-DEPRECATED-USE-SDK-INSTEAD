@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
-import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AsExpression;
@@ -64,7 +64,6 @@ import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -101,14 +100,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private ResolverVisitor resolver;
 
   /**
-   * The type representing the class containing the expressions being analyzed.
-   */
-  private InterfaceType thisType;
-
-  /**
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
+
+  /**
+   * The type representing the class containing the nodes being analyzed, or {@code null} if the
+   * nodes are not within a class.
+   */
+  private InterfaceType thisType;
 
   /**
    * Initialize a newly created type analyzer.
@@ -118,6 +118,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public StaticTypeAnalyzer(ResolverVisitor resolver) {
     this.resolver = resolver;
     typeProvider = resolver.getTypeProvider();
+  }
+
+  /**
+   * Set the type of the class being analyzed to the given type.
+   * 
+   * @param thisType the type representing the class containing the nodes being analyzed
+   */
+  public void setThisType(InterfaceType thisType) {
+    this.thisType = thisType;
   }
 
   /**
@@ -194,17 +203,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operator = node.getOperator().getType();
+    if (operator != TokenType.EQ) {
+      return recordReturnType(node, node.getElement());
+    }
     Type leftType = getType(node.getLeftHandSide());
     Type rightType = getType(node.getRightHandSide());
-    if (operator != TokenType.EQ) {
-      rightType = analyzeBinaryOperatorInvocation(
-          leftType,
-          operatorFromCompoundAssignment(operator));
-    }
-//    if (!rightType.isAssignableTo(leftType)) {
+    if (!rightType.isAssignableTo(leftType)) {
 //      // TODO(brianwilkerson) Report this error
 //      resolver.reportError(ResolverErrorCode.?, node.getRightHandSide());
-//    }
+    }
     return recordType(node, rightType);
   }
 
@@ -248,7 +255,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitBinaryExpression(BinaryExpression node) {
     TokenType operator = node.getOperator().getType();
-    Type leftType = getType(node.getLeftOperand());
     switch (operator) {
       case AMPERSAND_AMPERSAND:
       case BAR_BAR:
@@ -256,7 +262,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       case BANG_EQ:
         return recordType(node, typeProvider.getBoolType());
     }
-    return recordType(node, analyzeBinaryOperatorInvocation(leftType, operator));
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -275,8 +281,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitCascadeExpression(CascadeExpression node) {
-    Type targetType = getType(node.getTarget());
-    return recordType(node, targetType);
+    return recordType(node, getType(node.getTarget()));
   }
 
   @Override
@@ -424,12 +429,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    Element element = node.getElement();
-    if (!(element instanceof FunctionElement)) {
-      return recordType(node, typeProvider.getDynamicType());
-    }
-    FunctionType functionType = ((FunctionElement) element).getType();
-    return recordType(node, functionType.getReturnType());
+    return recordReturnType(node, node.getElement());
   }
 
   @Override
@@ -458,12 +458,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitIndexExpression(IndexExpression node) {
-    Type leftType = getType(node.getArray());
-    if (node.getParent() instanceof AssignmentExpression
-        && ((AssignmentExpression) node.getParent()).getLeftHandSide() == node) {
-      return recordType(node, analyzeBinaryOperatorInvocation(leftType, TokenType.INDEX_EQ));
-    }
-    return recordType(node, analyzeBinaryOperatorInvocation(leftType, TokenType.INDEX));
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -477,9 +472,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // TODO(brianwilkerson) This doesn't handle factory methods
-    Type instanceType = getType(node.getConstructorName().getType());
-    return recordType(node, instanceType);
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -606,8 +599,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    // TODO(brianwilkerson) Implement this.
-    return recordType(node, typeProvider.getDynamicType());
+    return recordReturnType(node, node.getMethodName().getElement());
   }
 
   @Override
@@ -681,7 +673,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return recordType(node, typeProvider.getBoolType());
     }
     // The other cases are equivalent to invoking a method.
-    return recordType(node, analyzeUnaryOperatorInvocation(getType(node.getOperand()), operator));
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -732,9 +724,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     // TODO Implement this
     Element element = node.getPropertyName().getElement();
     if (element instanceof MethodElement) {
-      // TODO(brianwilkerson) Return the function type defining the method.
-//      MethodElement method = (MethodElement) element;
-      return null;
+      return recordType(node, ((MethodElement) element).getType());
     } else if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
       if (accessor.isGetter()) {
@@ -819,15 +809,22 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (element == null) {
       // The error should have been generated by the element resolver.
       return null;
-    } else if (element instanceof ClassElement || element instanceof TypeVariableElement) {
+    } else if (element instanceof ClassElement) {
+      if (isTypeName(node)) {
+        return recordType(node, ((ClassElement) element).getType());
+      }
+      return recordType(node, typeProvider.getTypeType());
+    } else if (element instanceof TypeVariableElement) {
+      if (isTypeName(node)) {
+        return recordType(node, ((TypeVariableElement) element).getType());
+      }
       return recordType(node, typeProvider.getTypeType());
     } else if (element instanceof TypeAliasElement) {
       return recordType(node, ((TypeAliasElement) element).getType());
     } else if (element instanceof VariableElement) {
       return recordType(node, ((VariableElement) element).getType());
     } else if (element instanceof MethodElement) {
-      // TODO(brianwilkerson) Compute and return the function type of the given method.
-      return recordType(node, typeProvider.getDynamicType());
+      return recordType(node, ((MethodElement) element).getType());
     } else {
       // TODO(brianwilkerson) Compute and return the equivalent of 'this.id'.
       return recordType(node, typeProvider.getDynamicType());
@@ -854,7 +851,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitSuperExpression(SuperExpression node) {
-    return recordType(node, thisType.getSuperclass());
+    return recordType(
+        node,
+        thisType == null ? typeProvider.getDynamicType() : thisType.getSuperclass());
   }
 
   /**
@@ -945,44 +944,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return the type returned by invoking the given binary operator with operands of the given
-   * types.
-   * 
-   * @param receiverType the type of the receiver (target) of the operator
-   * @param operator the operator being invoked
-   * @return the static type of the operator
-   */
-  private Type analyzeBinaryOperatorInvocation(Type leftType, TokenType operator) {
-    return analyzeMethodInvocation(leftType, operator.getLexeme());
-  }
-
-  /**
-   * Return the type returned by invoking the given method.
-   * 
-   * @param receiverType the type of the receiver (target) of the method
-   * @param methodName the name of the method being invoked
-   * @return the static type of the method
-   */
-  private Type analyzeMethodInvocation(Type receiverType, String methodName) {
-    // TODO(brianwilkerson) Implement this.
-    return typeProvider.getDynamicType();
-  }
-
-  /**
-   * Return the type returned by invoking the given unary operator.
-   * 
-   * @param receiverType the type of the receiver (target) of the operator
-   * @param operator the operator being invoked
-   * @return the static type of the operator
-   */
-  private Type analyzeUnaryOperatorInvocation(Type receiverType, TokenType operator) {
-    if (operator == TokenType.MINUS) {
-      return analyzeMethodInvocation(receiverType, "unary-");
-    }
-    return analyzeMethodInvocation(receiverType, operator.getLexeme());
-  }
-
-  /**
    * Given a function expression, compute the return type of the function. The return type of
    * functions with a block body is {@code dynamicType}, with an expression body it is the type of
    * the expression.
@@ -1068,53 +1029,42 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return the binary operator that is invoked by the given compound assignment operator.
+   * Return {@code true} if the given node is being used as the name of a type.
    * 
-   * @param operator the assignment operator being mapped
-   * @return the binary operator that invoked by the given assignment operator
+   * @param node the node being tested
+   * @return {@code true} if the given node is being used as the name of a type
    */
-  private TokenType operatorFromCompoundAssignment(TokenType operator) {
-    switch (operator) {
-      case AMPERSAND_EQ:
-        return TokenType.AMPERSAND;
-      case BAR_EQ:
-        return TokenType.BAR;
-      case CARET_EQ:
-        return TokenType.CARET;
-      case GT_GT_EQ:
-        return TokenType.GT_GT;
-      case LT_LT_EQ:
-        return TokenType.LT_LT;
-      case MINUS_EQ:
-        return TokenType.MINUS;
-      case PERCENT_EQ:
-        return TokenType.PERCENT;
-      case PLUS_EQ:
-        return TokenType.PLUS;
-      case SLASH_EQ:
-        return TokenType.SLASH;
-      case STAR_EQ:
-        return TokenType.STAR;
-      case TILDE_SLASH_EQ:
-        return TokenType.TILDE_SLASH;
+  private boolean isTypeName(SimpleIdentifier node) {
+    ASTNode parent = node.getParent();
+    return parent instanceof TypeName
+        || (parent instanceof PrefixedIdentifier && parent.getParent() instanceof TypeName);
+  }
+
+  /**
+   * Record that the static type of the given node is the return type of the method or function
+   * represented by the given element.
+   * 
+   * @param expression the node whose type is to be recorded
+   * @param element the element representing the method or function invoked by the given node
+   */
+  private Void recordReturnType(Expression expression, Element element) {
+    if (element instanceof ExecutableElement) {
+      return recordType(expression, ((ExecutableElement) element).getType().getReturnType());
     }
-    // Internal error: Unmapped assignment operator.
-    AnalysisEngine.getInstance().getLogger().logError(
-        "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
-    return null;
+    return recordType(expression, typeProvider.getDynamicType());
   }
 
   /**
    * Record that the static type of the given node is the given type.
    * 
-   * @param node the node whose type is to be recorded
+   * @param expression the node whose type is to be recorded
    * @param type the static type of the node
    */
-  private Void recordType(Expression node, Type type) {
+  private Void recordType(Expression expression, Type type) {
     if (type == null) {
-      node.setStaticType(typeProvider.getDynamicType());
+      expression.setStaticType(typeProvider.getDynamicType());
     } else {
-      node.setStaticType(type);
+      expression.setStaticType(type);
     }
     return null;
   }

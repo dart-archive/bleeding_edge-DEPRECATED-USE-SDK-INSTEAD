@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ContinueStatement;
@@ -121,6 +123,26 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    */
   public ElementResolver(ResolverVisitor resolver) {
     this.resolver = resolver;
+  }
+
+  @Override
+  public Void visitAssignmentExpression(AssignmentExpression node) {
+    TokenType operator = node.getOperator().getType();
+    if (operator != TokenType.EQ) {
+      operator = operatorFromCompoundAssignment(operator);
+      Expression leftNode = node.getLeftHandSide();
+      if (leftNode != null) {
+        Type leftType = leftNode.getStaticType();
+        if (leftType != null) {
+          Element leftElement = leftType.getElement();
+          if (leftElement != null) {
+            Element method = lookupInHierarchy(leftElement, operator.getLexeme());
+            node.setElement(method);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   @Override
@@ -292,8 +314,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else if (operator.getType() == TokenType.MINUS_MINUS) {
         methodName = TokenType.MINUS.getLexeme();
       } else if (operator.getType() == TokenType.MINUS) {
-        // TODO(brianwilkerson) Replace this with the name of unary minus.
-        methodName = TokenType.MINUS.getLexeme();
+        methodName = "unary-";
       } else {
         methodName = operator.getLexeme();
       }
@@ -465,6 +486,43 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     return labelElement;
+  }
+
+  /**
+   * Return the binary operator that is invoked by the given compound assignment operator.
+   * 
+   * @param operator the assignment operator being mapped
+   * @return the binary operator that invoked by the given assignment operator
+   */
+  private TokenType operatorFromCompoundAssignment(TokenType operator) {
+    switch (operator) {
+      case AMPERSAND_EQ:
+        return TokenType.AMPERSAND;
+      case BAR_EQ:
+        return TokenType.BAR;
+      case CARET_EQ:
+        return TokenType.CARET;
+      case GT_GT_EQ:
+        return TokenType.GT_GT;
+      case LT_LT_EQ:
+        return TokenType.LT_LT;
+      case MINUS_EQ:
+        return TokenType.MINUS;
+      case PERCENT_EQ:
+        return TokenType.PERCENT;
+      case PLUS_EQ:
+        return TokenType.PLUS;
+      case SLASH_EQ:
+        return TokenType.SLASH;
+      case STAR_EQ:
+        return TokenType.STAR;
+      case TILDE_SLASH_EQ:
+        return TokenType.TILDE_SLASH;
+    }
+    // Internal error: Unmapped assignment operator.
+    AnalysisEngine.getInstance().getLogger().logError(
+        "Failed to map " + operator.getLexeme() + " to it's corresponding operator");
+    return operator;
   }
 
   /**

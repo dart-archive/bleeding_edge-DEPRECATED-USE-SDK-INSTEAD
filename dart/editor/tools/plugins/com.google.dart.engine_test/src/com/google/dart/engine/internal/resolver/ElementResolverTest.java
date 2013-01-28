@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ContinueStatement;
@@ -75,6 +76,21 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver resolver;
 
+  public void fail_visitAssignmentExpression() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFunctionExpressionInvocation() {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitImportDirective() {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
   public void fail_visitMethodInvocation() throws Exception {
     InterfaceType numType = typeProvider.getNumType();
     SimpleIdentifier left = identifier("i");
@@ -82,7 +98,27 @@ public class ElementResolverTest extends EngineTestCase {
     MethodInvocation invocation = methodInvocation(left, "abs");
     resolveNode(invocation);
     // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
-    assertEquals(numType.getElement().getMethods()[9], invocation.getMethodName().getElement());
+    assertSame(numType.getElement().getMethods()[9], invocation.getMethodName().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitPostfixExpression() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitPrefixedIdentifier() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitPrefixExpression() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitPropertyAccess() throws Exception {
+    fail("Not yet tested");
     listener.assertNoErrors();
   }
 
@@ -91,6 +127,16 @@ public class ElementResolverTest extends EngineTestCase {
     listener = new GatheringErrorListener();
     typeProvider = new TestTypeProvider();
     resolver = createResolver();
+  }
+
+  public void test_visitAssignmentExpression_simple() throws Exception {
+    AssignmentExpression expression = assignmentExpression(
+        identifier("x"),
+        TokenType.EQ,
+        integer(0));
+    resolveNode(expression);
+    assertNull(expression.getElement());
+    listener.assertNoErrors();
   }
 
   public void test_visitBinaryExpression() throws Exception { // _found and _notFound?
@@ -108,24 +154,28 @@ public class ElementResolverTest extends EngineTestCase {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     BreakStatement statement = breakStatement(label);
-    assertEquals(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolve(statement, labelElement));
+    listener.assertNoErrors();
   }
 
   public void test_visitBreakStatement_withoutLabel() throws Exception {
     BreakStatement statement = breakStatement();
     resolveStatement(statement, null);
+    listener.assertNoErrors();
   }
 
   public void test_visitContinueStatement_withLabel() throws Exception {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
     ContinueStatement statement = continueStatement(label);
-    assertEquals(labelElement, resolve(statement, labelElement));
+    assertSame(labelElement, resolve(statement, labelElement));
+    listener.assertNoErrors();
   }
 
   public void test_visitContinueStatement_withoutLabel() throws Exception {
     ContinueStatement statement = continueStatement();
     resolveStatement(statement, null);
+    listener.assertNoErrors();
   }
 
   public void test_visitIndexExpression_get() throws Exception {
@@ -136,7 +186,8 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier array = identifier("a");
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
-    assertEquals(getter, resolve(expression));
+    assertSame(getter, resolve(expression));
+    listener.assertNoErrors();
   }
 
   public void test_visitIndexExpression_set() throws Exception {
@@ -148,32 +199,22 @@ public class ElementResolverTest extends EngineTestCase {
     array.setStaticType(classA.getType());
     IndexExpression expression = indexExpression(array, identifier("i"));
     assignmentExpression(expression, TokenType.EQ, integer(0L));
-    assertEquals(setter, resolve(expression));
-  }
-
-  public void test_visitPostfixExpression() throws Exception {
-    // TODO(brianwilkerson) Implement this
-  }
-
-  public void test_visitPrefixedIdentifier() throws Exception {
-    // TODO(brianwilkerson) Implement this
-  }
-
-  public void test_visitPrefixExpression() throws Exception {
-    // TODO(brianwilkerson) Implement this
-  }
-
-  public void test_visitPropertyAccess() throws Exception {
-    // TODO(brianwilkerson) Implement this
+    assertSame(setter, resolve(expression));
+    listener.assertNoErrors();
   }
 
   public void test_visitSimpleIdentifier() throws Exception {
     VariableElementImpl element = new VariableElementImpl(identifier("i"));
     SimpleIdentifier node = identifier("i");
-    assertEquals(element, resolve(node, element));
+    assertSame(element, resolve(node, element));
     listener.assertNoErrors();
   }
 
+  /**
+   * Create the resolver used by the tests.
+   * 
+   * @return the resolver that was created
+   */
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk())));

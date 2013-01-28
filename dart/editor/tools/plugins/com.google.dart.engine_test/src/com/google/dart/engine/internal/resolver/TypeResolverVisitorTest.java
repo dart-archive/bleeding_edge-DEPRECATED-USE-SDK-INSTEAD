@@ -19,7 +19,6 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -35,9 +34,9 @@ import com.google.dart.engine.type.InterfaceType;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.extendsClause;
-import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.implementsClause;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.ast.ASTFactory.withClause;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -138,17 +137,5 @@ public class TypeResolverVisitorTest extends EngineTestCase {
       library.getLibraryScope().define(element);
     }
     node.accept(visitor);
-  }
-
-  /**
-   * Create a type name whose type has been resolved to the type of the given element.
-   * 
-   * @param element the element defining the type represented by the type name
-   * @return the type name that was created
-   */
-  private TypeName typeName(ClassElement element) {
-    TypeName name = new TypeName(identifier(element.getName()), null);
-    name.setType(element.getType());
-    return name;
   }
 }
