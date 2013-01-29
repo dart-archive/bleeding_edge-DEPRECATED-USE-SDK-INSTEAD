@@ -113,7 +113,9 @@ public interface AnalysisContext {
    * Parse and build an element model for the library defined by the given source.
    * 
    * @param source the source defining the library whose element model is to be returned
-   * @return the element model corresponding to the library defined by the given source
+   * @return the element model corresponding to the library defined by the given source or
+   *         {@code null} if the element model could not be determined because the analysis could
+   *         not be performed
    */
   public LibraryElement getLibraryElement(Source source);
 
@@ -174,12 +176,10 @@ public interface AnalysisContext {
    * 
    * @param source the source to be parsed and resolved
    * @param library the library defining the context in which the source file is to be resolved
-   * @param errorListener the listener to which errors should be reported
    * @return the result of resolving the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnit resolve(Source source, LibraryElement library,
-      AnalysisErrorListener errorListener) throws AnalysisException;
+  public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException;
 
   /**
    * Scan a single source to produce a token stream.

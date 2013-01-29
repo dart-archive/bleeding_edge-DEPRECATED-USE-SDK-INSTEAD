@@ -28,7 +28,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
-import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 public class AnalysisContextImplTest extends EngineTestCase {
@@ -67,9 +66,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory sourceFactory = context.getSourceFactory();
     Source source = sourceFactory.forFile(createFile("/lib.dart"));
     sourceFactory.setContents(source, "library lib;");
-    GatheringErrorListener listener = new GatheringErrorListener();
-    CompilationUnit compilationUnit = context.resolve(source, library(context, "lib"), listener);
+    CompilationUnit compilationUnit = context.resolve(source, null);
     assertNotNull(compilationUnit);
+//    assertLength(0, compilationUnit.getSyntacticErrors());
+//    assertLength(0, compilationUnit.getSemanticErrors());
+//    assertLength(0, compilationUnit.getErrors());
   }
 
   public void test_creation() {
@@ -82,7 +83,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
     Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library lib;");
     CompilationUnit compilationUnit = context.parse(source);
-    assertEquals(0, compilationUnit.getSyntacticErrors().length);
+    assertLength(0, compilationUnit.getSyntacticErrors());
     // TODO (danrubel): assert no semantic errors
 //    assertEquals(null, compilationUnit.getSemanticErrors());
 //    assertEquals(null, compilationUnit.getErrors());

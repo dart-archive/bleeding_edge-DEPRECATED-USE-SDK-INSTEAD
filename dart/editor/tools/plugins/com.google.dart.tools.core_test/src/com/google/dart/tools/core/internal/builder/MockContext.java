@@ -128,8 +128,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit resolve(Source source, LibraryElement library,
-      AnalysisErrorListener errorListener) throws AnalysisException {
+  public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
     return null;
   }
 
