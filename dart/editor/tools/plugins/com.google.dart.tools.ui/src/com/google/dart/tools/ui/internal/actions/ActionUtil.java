@@ -307,21 +307,25 @@ public class ActionUtil {
         if (type != null) {
           return true;
         }
-        if (node.getElement() != null && node.getElement().getType() != null) {
-          if (node.getParent() != null) {
-            DartNode parent = node.getParent().getParent();
-            // No need to "Open" a declaration if that's what is selected.
-            if (parent == null || parent instanceof DartUnit) {
-              return false;
+        try {
+          if (node.getElement() != null && node.getElement().getType() != null) {
+            if (node.getParent() != null) {
+              DartNode parent = node.getParent().getParent();
+              // No need to "Open" a declaration if that's what is selected.
+              if (parent == null || parent instanceof DartUnit) {
+                return false;
+              }
+              if (parent instanceof com.google.dart.compiler.ast.DartFieldDefinition) {
+                return false;
+              }
+              if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
+                return false;
+              }
             }
-            if (parent instanceof com.google.dart.compiler.ast.DartFieldDefinition) {
-              return false;
-            }
-            if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
-              return false;
-            }
+            return true;
           }
-          return true;
+        } catch (UnsupportedOperationException ex) {
+          // ignore it
         }
       }
     }
