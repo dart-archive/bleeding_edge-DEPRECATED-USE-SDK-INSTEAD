@@ -15,19 +15,16 @@ package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.internal.builder.LibraryElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
-import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.source.DartUriResolver;
-import com.google.dart.engine.source.FileUriResolver;
+import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -68,11 +65,9 @@ public class ResolverTestCase extends EngineTestCase {
 
   @Override
   public void setUp() {
-    sourceFactory = new SourceFactory(new FileUriResolver(), new DartUriResolver(
-        DartSdk.getDefaultSdk()));
     errorListener = new GatheringErrorListener();
-    analysisContext = new AnalysisContextImpl();
-    analysisContext.setSourceFactory(sourceFactory);
+    analysisContext = AnalysisContextFactory.contextWithCore();
+    sourceFactory = analysisContext.getSourceFactory();
   }
 
   /**
@@ -148,13 +143,8 @@ public class ResolverTestCase extends EngineTestCase {
    * @throws AnalysisException if the analysis could not be performed
    */
   protected void resolve(Source librarySource, Source... unitSources) throws AnalysisException {
-    LibraryElementBuilder builder = new LibraryElementBuilder(analysisContext, errorListener);
-    LibraryElement definingLibrary = builder.buildLibrary(librarySource);
-    Resolver resolver = new Resolver(definingLibrary, errorListener);
-    resolver.resolve(librarySource, analysisContext.parse(librarySource, errorListener));
-    for (Source unitSource : unitSources) {
-      resolver.resolve(unitSource, analysisContext.parse(unitSource, errorListener));
-    }
+    LibraryResolver resolver = new LibraryResolver(analysisContext, errorListener);
+    resolver.resolveLibrary(librarySource, true);
   }
 
   /**

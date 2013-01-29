@@ -36,8 +36,6 @@ public class ErrorResolverTest extends ResolverTestCase {
 
   public void test_breakLabelOnSwitchMember() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "class int {}",
-        "",
         "class A {",
         "  void m(int i) {",
         "    switch (i) {",
@@ -65,8 +63,6 @@ public class ErrorResolverTest extends ResolverTestCase {
 
   public void test_continueLabelOnSwitch() throws Exception {
     Source source = addSource("/a.dart", createSource(//
-        "class int {}",
-        "",
         "class A {",
         "  void m(int i) {",
         "    l: switch (i) {",
@@ -101,8 +97,6 @@ public class ErrorResolverTest extends ResolverTestCase {
 
   public void test_undefinedLabel() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "class int {}",
-        "",
         "class A {",
         "  void m(int i) {",
         "    while (i > 0) {",

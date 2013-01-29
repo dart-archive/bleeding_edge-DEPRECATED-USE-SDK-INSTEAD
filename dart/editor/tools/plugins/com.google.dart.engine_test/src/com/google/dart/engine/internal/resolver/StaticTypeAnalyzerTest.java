@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CatchClause;
+import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -359,6 +360,16 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitConditionalExpression_differentTypes() throws Exception {
+    // true ? 1.0 : 0
+    Expression node = conditionalExpression(
+        booleanLiteral(true),
+        resolvedDouble(1.0),
+        resolvedInteger(0));
+    assertSame(typeProvider.getNumType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
   public void test_visitConditionalExpression_invalid() throws Exception {
     // "" ? 1 : 0
     Expression node = conditionalExpression(
@@ -369,7 +380,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertErrors(ResolverErrorCode.NON_BOOLEAN_CONDITION);
   }
 
-  public void test_visitConditionalExpression_valid() throws Exception {
+  public void test_visitConditionalExpression_sameTypes() throws Exception {
     // true ? 1 : 0
     Expression node = conditionalExpression(
         booleanLiteral(true),
@@ -923,6 +934,18 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     } catch (Exception exception) {
       throw new IllegalArgumentException("Could not create analyzer", exception);
     }
+  }
+
+  /**
+   * Return an integer literal that has been resolved to the correct type.
+   * 
+   * @param value the value of the literal
+   * @return an integer literal that has been resolved to the correct type
+   */
+  private DoubleLiteral resolvedDouble(double value) {
+    DoubleLiteral literal = doubleLiteral(value);
+    literal.setStaticType(typeProvider.getDoubleType());
+    return literal;
   }
 
   /**
