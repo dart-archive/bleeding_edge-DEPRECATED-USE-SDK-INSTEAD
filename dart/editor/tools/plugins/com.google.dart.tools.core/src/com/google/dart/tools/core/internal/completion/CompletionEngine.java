@@ -1790,6 +1790,18 @@ public class CompletionEngine {
     if (monitor != null) {
       monitor.beginTask(Messages.engine_completing, IProgressMonitor.UNKNOWN);
     }
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // Use new completion engine.
+      com.google.dart.engine.services.completion.CompletionEngine engine;
+      AnalysisUtil util = new AnalysisUtil();
+      util.setRequestor(requestor);
+      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, util);
+      engine.complete(null, completionPosition);
+      if (metrics != null) {
+        metrics.completionEnd();
+      }
+      return;
+    }
     try {
       fileName = sourceUnit.getPath();
       // look for the node that ends before the cursor position,
@@ -2598,6 +2610,7 @@ public class CompletionEngine {
     } else {
       members = getAllElements(itype);
     }
+    members = filterNames(members);
     Set<String> previousNames = new HashSet<String>(members.size());
     for (Element elem : members) {
       if (!(elem instanceof FieldElement)) {
@@ -2650,7 +2663,7 @@ public class CompletionEngine {
       setSourceLoc(proposal, node, prefix);
       proposal.setRelevance(1);
       requestor.accept(proposal);
-      createCompletionForIndexer(field, includeDeclaration, node, prefix);
+//      createCompletionForIndexer(field, includeDeclaration, node, prefix);
     }
   }
 
@@ -2983,6 +2996,24 @@ public class CompletionEngine {
     return null;
   }
 
+  private List<Element> filterNames(List<Element> elements) {
+    List<Element> filtered = new ArrayList<Element>(elements.size());
+    Map<String, List<Element>> nameMap = new HashMap<String, List<Element>>(elements.size());
+    for (Element element : elements) {
+      String name = element.getName();
+      List<Element> namedElements = nameMap.get(name);
+      if (namedElements == null) {
+        namedElements = new ArrayList<Element>();
+        nameMap.put(name, namedElements);
+      }
+      namedElements.add(element);
+    }
+    for (List<Element> namedElements : nameMap.values()) {
+      filtered.add(findMostGeneral(namedElements));
+    }
+    return filtered;
+  }
+
   private List<Element> findAllElements(String prefix, DartNode parent) {
     // return all elements in parsedUnit library if no prefix specified
     // return empty collection if specified prefix is not defined for at least one library
@@ -3046,6 +3077,10 @@ public class CompletionEngine {
       }
       return result;
     }
+  }
+
+  private Element findMostGeneral(List<Element> elements) {
+    return elements.get(0);
   }
 
   private int findParamIndex(List<DartExpression> nodes) {
