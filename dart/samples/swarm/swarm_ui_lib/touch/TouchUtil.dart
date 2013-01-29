@@ -64,7 +64,7 @@ void _addEventListeners(Element node,
       touchCancelSub.cancel();
     };
 
-    node.onTouchStart.listen((e) {
+    Element.touchStartEvent.forTarget(node, useCapture: capture).listen((e) {
       touchMoveSub = Element.touchMoveEvent.forTarget(
           document, useCapture: capture).listen(onMove);
       touchEndSub = Element.touchEndEvent.forTarget(
@@ -74,7 +74,7 @@ void _addEventListeners(Element node,
       touchCancelSub = Element.touchCancelEvent.forTarget(
           document, useCapture: capture).listen(onCancelWrapper);
       return onStart(e);
-    }, capture);
+    });
   } else {
     onStart = mouseToTouchCallback(onStart);
     onMove = mouseToTouchCallback(onMove);
@@ -91,7 +91,7 @@ void _addEventListeners(Element node,
       touchCancelSub.cancel();
     };
 
-    node.onMouseDown.listen((e) {
+    Element.mouseDownEvent.forTarget(node, useCapture: capture).listen((e) {
       mouseMoveSub = Element.mouseMoveEvent.forTarget(
           document, useCapture: capture).listen(onMove);
       mouseUpSub = Element.mouseUpEvent.forTarget(
@@ -99,7 +99,7 @@ void _addEventListeners(Element node,
       touchCancelSub = Element.touchCancelEvent.forTarget(
           document, useCapture: capture).listen(onCancelWrapper);
       return onStart(e);
-    }, capture);
+    });
   }
 }
 
