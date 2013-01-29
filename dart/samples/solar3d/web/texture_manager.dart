@@ -54,7 +54,7 @@ class TextureManager {
     }
     ImageElement img = new ImageElement();
     Completer c = new Completer();
-    img.on.load.add((_) {
+    img.onLoad.listen((_) {
       gl.bindTexture(t.bindingPoint, t.texture);
       gl.texImage2D(t.bindingPoint,
                     0,
@@ -99,7 +99,7 @@ class TextureManager {
       ImageElement img = new ImageElement();
       Completer c = new Completer();
       futures.add(c.future);
-      img.on.load.add((_) {
+      img.onLoad.listen((_) {
         gl.bindTexture(WebGLRenderingContext.TEXTURE_2D, null);
         gl.bindTexture(WebGLRenderingContext.TEXTURE_CUBE_MAP, null);
         gl.bindTexture(t.bindingPoint, t.texture);

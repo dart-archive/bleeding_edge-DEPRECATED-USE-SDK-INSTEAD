@@ -8,8 +8,8 @@
 
 library solar3d;
 
+import 'dart:async';
 import 'dart:html';
-import 'dart:scalarlist';
 import 'dart:json' as json;
 import 'dart:math' as Math;
 
@@ -60,7 +60,7 @@ class Solar3DApplication {
     skyBox = new Skybox(glContext);
     orbitPath = new OrbitPath(glContext);
     // Measure the canvas element.
-    window.requestLayoutFrame(() {
+    window.setImmediate(() {
       canvas.width = (canvas.parent as Element).clientWidth;
       canvas.height = 400;
 
@@ -209,13 +209,13 @@ class Solar3DApplication {
 
   // Bind input event callbacks
   void bind() {
-    document.on.pointerLockChange.add(pointerLockChange);
-    canvas.on.click.add(clicked);
-    document.on.keyDown.add(keydown);
-    document.on.keyUp.add(keyup);
-    document.on.mouseMove.add(mouseMove);
-    window.on.mouseWheel.add(mouseWheel);
-    document.on.fullscreenChange.add(fullscreenChange);
+    document.onPointerLockChange.listen(pointerLockChange);
+    canvas.onClick.listen(clicked);
+    document.onKeyDown.listen(keydown);
+    document.onKeyUp.listen(keyup);
+    document.onMouseMove.listen(mouseMove);
+    window.onMouseWheel.listen(mouseWheel);
+    document.onFullscreenChange.listen(fullscreenChange);
   }
 
   num renderTime;

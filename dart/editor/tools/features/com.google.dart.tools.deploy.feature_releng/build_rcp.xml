@@ -192,8 +192,7 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="solar/**"/>
 
-                <!-- TODO(devoncarew): restore this when solar3d has been updated to the new libraries -->
-                <!-- include name="solar3d/**"/ -->
+                <include name="solar3d/**"/>
                 
                 <include name="sunflower/**"/>
 
