@@ -93,36 +93,6 @@ public abstract class SemanticProcessor {
     }
     // not found
     throw new UnsupportedOperationException("" + parentClass);
-//    if (parent instanceof ConditionalExpression) {
-//      ConditionalExpression p = (ConditionalExpression) parent;
-//      if (p.getThenExpression() == node) {
-//        p.setThenExpression((Expression) replacement);
-//        return;
-//      }
-//    }
-//    if (parent instanceof ReturnStatement) {
-//      ReturnStatement p = (ReturnStatement) parent;
-//      p.setExpression((Expression) replacement);
-//      return;
-//    }
-//    if (parent instanceof BinaryExpression) {
-//      BinaryExpression p = (BinaryExpression) parent;
-//      if (p.getLeftOperand() == node) {
-//        p.setLeftOperand((Expression) replacement);
-//        return;
-//      }
-//      if (p.getRightOperand() == node) {
-//        p.setRightOperand((Expression) replacement);
-//        return;
-//      }
-//    }
-//    if (parent instanceof VariableDeclaration) {
-//      VariableDeclaration p = (VariableDeclaration) parent;
-//      if (p.getInitializer() == node) {
-//        p.setInitializer((Expression) replacement);
-//        return;
-//      }
-//    }
   }
 
   abstract public void process(Context context, CompilationUnit unit);

@@ -168,7 +168,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   private static String getBindingSignature(org.eclipse.jdt.core.dom.IBinding binding) {
     if (binding != null) {
       String signature = binding.getKey();
-      return JavaUtils.getShortJdtSignature(signature);
+      return JavaUtils.getJdtSignature(signature);
     }
     return null;
   }
@@ -688,11 +688,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.FieldDeclaration node) {
+    boolean isNotPublic = !org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
     boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
-    return done(fieldDeclaration(
+    FieldDeclaration fieldDeclaration = fieldDeclaration(
         translateJavadoc(node),
         isStatic,
-        translateVariableDeclarationList(false, node.getType(), node.fragments())));
+        translateVariableDeclarationList(false, node.getType(), node.fragments()));
+    if (isNotPublic) {
+      context.putPrivateClassMember(fieldDeclaration);
+    }
+    return done(fieldDeclaration);
   }
 
   @Override
@@ -838,6 +843,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.MethodDeclaration node) {
+    boolean isNotPublic = !org.eclipse.jdt.core.dom.Modifier.isPublic(node.getModifiers());
     IMethodBinding binding = node.resolveBinding();
     boolean isEnumConstructor = node.isConstructor()
         && node.getParent() instanceof org.eclipse.jdt.core.dom.EnumDeclaration;
@@ -933,21 +939,17 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     } else {
       boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
       SimpleIdentifier dartMethodName = translateSimpleName(node.getName());
-      // bind method name to the overridden signature (to rename them simultaneously)
-      if (binding != null) {
-        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(binding, true);
-        if (overriddenMethod != null) {
-          putReference(overriddenMethod, dartMethodName);
-        }
-      }
-      // done
-      return done(methodDeclaration(
+      MethodDeclaration methodDeclaration = methodDeclaration(
           translateJavadoc(node),
           isStatic,
           (TypeName) translate(node.getReturnType2()),
           dartMethodName,
           parameterList,
-          body));
+          body);
+      if (isNotPublic) {
+        context.putPrivateClassMember(methodDeclaration);
+      }
+      return done(methodDeclaration);
     }
   }
 
@@ -1075,12 +1077,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SimpleName node) {
     IBinding binding = node.resolveBinding();
-    SimpleIdentifier result = new SimpleIdentifier(new StringToken(
-        TokenType.IDENTIFIER,
-        node.getIdentifier(),
-        0));
-    putReference(node.resolveBinding(), result);
-    context.putNodeBinding(result, binding);
+    SimpleIdentifier result = identifier(node.getIdentifier());
+    putReference(binding, result);
     // may be statically imported field, generate PrefixedIdentifier
     {
       org.eclipse.jdt.core.dom.StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
@@ -1439,9 +1437,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private void putReference(org.eclipse.jdt.core.dom.IBinding binding, SimpleIdentifier identifier) {
     if (binding != null) {
-      String signature = binding.getKey();
-      signature = JavaUtils.getShortJdtSignature(signature);
-      context.putReference(signature, identifier);
+      if (binding instanceof IMethodBinding) {
+        IMethodBinding methodBinding = (IMethodBinding) binding;
+        binding = methodBinding = methodBinding.getMethodDeclaration();
+        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(methodBinding, true);
+        if (overriddenMethod != null) {
+          binding = overriddenMethod;
+        }
+      }
+      context.putReference(identifier, binding, JavaUtils.getJdtSignature(binding));
     }
   }
 
@@ -1503,7 +1507,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       constructorImpl = null;
       if (javaBodyDecl instanceof org.eclipse.jdt.core.dom.TypeDeclaration
           || javaBodyDecl instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
-        // TODO(scheglov) support for inner classes
         ClassDeclaration innerClassDeclaration = translate(javaBodyDecl);
         artificialUnitDeclarations.add(innerClassDeclaration);
       } else {

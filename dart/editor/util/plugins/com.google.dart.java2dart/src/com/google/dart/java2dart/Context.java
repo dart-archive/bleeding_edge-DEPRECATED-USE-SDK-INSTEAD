@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -46,7 +45,6 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.block;
@@ -63,13 +61,13 @@ import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.FileASTRequestor;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.File;
@@ -101,8 +99,6 @@ public class Context {
     }
   }
 
-  private static boolean TIMING = false;
-
   private static final String[] JAVA_EXTENSION = {"java"};
   private final List<File> sourceFolders = Lists.newArrayList();
   private final List<File> sourceFiles = Lists.newArrayList();
@@ -115,8 +111,10 @@ public class Context {
   // information about names
   private static final Set<String> forbiddenNames = ImmutableSet.of("with");
   private final Set<String> usedNames = Sets.newHashSet();
-  private final Map<SimpleIdentifier, String> identifierToBinding = Maps.newHashMap();
-  private final Map<String, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
+  private final Set<ClassMember> privateClassMembers = Sets.newHashSet();
+  private final Map<SimpleIdentifier, String> identifierToName = Maps.newHashMap();
+  private final Map<String, Object> signatureToBinding = Maps.newHashMap();
+  private final Map<Object, List<SimpleIdentifier>> bindingToIdentifiers = Maps.newHashMap();
   private final Map<ASTNode, Object> nodeToBinding = Maps.newHashMap();
   private final Map<ASTNode, ITypeBinding> nodeToTypeBinding = Maps.newHashMap();
   private final Map<InstanceCreationExpression, ClassDeclaration> anonymousDeclarations = Maps.newHashMap();
@@ -166,6 +164,39 @@ public class Context {
     sourceFolders.add(folder);
   }
 
+  public void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      private String currentVariableName = null;
+      private boolean hasNameReference = false;
+
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        hasNameReference |= node.getName().equals(currentVariableName);
+        return super.visitSimpleIdentifier(node);
+      }
+
+      @Override
+      public Void visitVariableDeclaration(VariableDeclaration node) {
+        String oldVariableName = currentVariableName;
+        try {
+          currentVariableName = node.getName().getName();
+          hasNameReference = false;
+          Expression initializer = node.getInitializer();
+          if (initializer != null) {
+            initializer.accept(this);
+          }
+          if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
+            String newName = generateUniqueName(currentVariableName);
+            renameIdentifier(node.getName(), newName);
+          }
+        } finally {
+          currentVariableName = oldVariableName;
+        }
+        return null;
+      }
+    });
+  }
+
   /**
    * @return the artificial {@link ClassDeclaration}created for Java creation of anonymous class
    *         declaration.
@@ -176,6 +207,17 @@ public class Context {
 
   public Map<File, List<CompilationUnitMember>> getFileToMembers() {
     return fileToMembers;
+  }
+
+  /**
+   * We rename {@link SimpleIdentifier}s, but sometimes we need to know original name.
+   */
+  public String getIdentifierOriginalName(SimpleIdentifier identifier) {
+    String name = identifierToName.get(identifier);
+    if (name == null) {
+      name = identifier.getName();
+    }
+    return name;
   }
 
   public Map<CompilationUnitMember, File> getMemberToFile() {
@@ -196,6 +238,35 @@ public class Context {
     return nodeToTypeBinding.get(node);
   }
 
+  /**
+   * @return the Dart {@link ClassMember} which are generated from private Java elements.
+   */
+  public Set<ClassMember> getPrivateClassMembers() {
+    return privateClassMembers;
+  }
+
+  /**
+   * @return all references (actual references and declarations)
+   */
+  public List<SimpleIdentifier> getReferences(SimpleIdentifier target) {
+    Object binding = nodeToBinding.get(target);
+    List<SimpleIdentifier> references = bindingToIdentifiers.get(binding);
+    return references != null ? references : Lists.<SimpleIdentifier> newArrayList();
+  }
+
+  /**
+   * Sets the {@link SimpleIdentifier} name and updates all references.
+   */
+  public void renameIdentifier(SimpleIdentifier declarationIdentifier, String newName) {
+    // move identifiers to the new signature
+    Object binding = nodeToBinding.get(declarationIdentifier);
+    List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
+    // update identifiers to the new name
+    for (SimpleIdentifier identifier : identifiers) {
+      identifier.setToken(token(TokenType.IDENTIFIER, newName));
+    }
+  }
+
   public CompilationUnit translate() throws Exception {
     // sort source files
     Collections.sort(sourceFiles);
@@ -204,33 +275,22 @@ public class Context {
     // perform configured renames
     for (Entry<String, String> renameEntry : renameMap.entrySet()) {
       String signature = renameEntry.getKey();
-      List<SimpleIdentifier> identifiers = bindingToIdentifiers.remove(signature);
+      Object binding = signatureToBinding.get(signature);
+      List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
       if (identifiers != null) {
         String newName = renameEntry.getValue();
-        String newSignature = JavaUtils.getRenamedJdtSignature(signature, newName);
-        Assert.isLegal(!bindingToIdentifiers.containsKey(newSignature), "Signature '"
-            + newSignature + "' is already used.");
-        bindingToIdentifiers.put(newSignature, identifiers);
         for (SimpleIdentifier identifier : identifiers) {
           identifier.setToken(token(TokenType.IDENTIFIER, newName));
-          identifierToBinding.remove(identifier);
-          identifierToBinding.put(identifier, newSignature);
         }
       }
     }
     // run processors
     {
-      long startTime = System.nanoTime();
-      {
-        ensureFieldInitializers(dartUniverse);
-        dontUseThisInFieldInitializers(dartUniverse);
-        ensureUniqueClassMemberNames(dartUniverse);
-        ensureNoVariableNameReferenceFromInitializer(dartUniverse);
-        renameConstructors(dartUniverse);
-      }
-      if (TIMING) {
-        System.out.println("contextProcessors: " + (System.nanoTime() - startTime) / 1000000);
-      }
+      ensureFieldInitializers(dartUniverse);
+      dontUseThisInFieldInitializers(dartUniverse);
+      ensureUniqueClassMemberNames(dartUniverse);
+      ensureNoVariableNameReferenceFromInitializer(dartUniverse);
+      renameConstructors(dartUniverse);
     }
     // done
     return dartUniverse;
@@ -302,19 +362,28 @@ public class Context {
   }
 
   /**
-   * Remembers that "identifier" is reference to the given Java signature.
+   * Remembers that given {@link ClassMember} was created for private Java element.
    */
-  void putReference(String signature, SimpleIdentifier identifier) {
-    if (signature != null) {
+  void putPrivateClassMember(ClassMember member) {
+    privateClassMembers.add(member);
+  }
+
+  /**
+   * Remembers that "identifier" is reference to the given Java binding.
+   */
+  void putReference(SimpleIdentifier identifier, Object binding, String bindingSignature) {
+    if (binding != null) {
+      signatureToBinding.put(bindingSignature, binding);
+      identifierToName.put(identifier, identifier.getName());
       // remember binding for reference
-      identifierToBinding.put(identifier, signature);
+      nodeToBinding.put(identifier, binding);
       // add reference to binding
-      List<SimpleIdentifier> names = bindingToIdentifiers.get(signature);
-      if (names == null) {
-        names = Lists.newLinkedList();
-        bindingToIdentifiers.put(signature, names);
+      List<SimpleIdentifier> identifiers = bindingToIdentifiers.get(binding);
+      if (identifiers == null) {
+        identifiers = Lists.newLinkedList();
+        bindingToIdentifiers.put(binding, identifiers);
       }
-      names.add(identifier);
+      identifiers.add(identifier);
     }
     // remember global name
     usedNames.add(identifier.getName());
@@ -444,39 +513,6 @@ public class Context {
     });
   }
 
-  private void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      private String currentVariableName = null;
-      private boolean hasNameReference = false;
-
-      @Override
-      public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        hasNameReference |= node.getName().equals(currentVariableName);
-        return super.visitSimpleIdentifier(node);
-      }
-
-      @Override
-      public Void visitVariableDeclaration(VariableDeclaration node) {
-        String oldVariableName = currentVariableName;
-        try {
-          currentVariableName = node.getName().getName();
-          hasNameReference = false;
-          Expression initializer = node.getInitializer();
-          if (initializer != null) {
-            initializer.accept(this);
-          }
-          if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
-            String newName = generateUniqueName(currentVariableName);
-            renameIdentifier(node.getName(), newName);
-          }
-        } finally {
-          currentVariableName = oldVariableName;
-        }
-        return null;
-      }
-    });
-  }
-
   private void ensureUniqueClassMemberNames(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
       private final Set<String> usedClassMemberNames = Sets.newHashSet();
@@ -544,10 +580,15 @@ public class Context {
   /**
    * @return the Java AST of the given Java {@link File} in context of {@link #sourceFolders}.
    */
-  private org.eclipse.jdt.core.dom.CompilationUnit parseJavaFile(File javaFile) throws Exception {
-    String javaPath = javaFile.getAbsolutePath();
-    String javaName = StringUtils.substringAfterLast(javaPath, "/");
-    String javaSource = Files.toString(javaFile, Charsets.UTF_8);
+  private Map<File, CompilationUnit> parseJavaFiles(final List<File> javaFiles) throws Exception {
+    String paths[] = new String[javaFiles.size()];
+    final Map<String, File> pathToFile = Maps.newHashMap();
+    for (int i = 0; i < javaFiles.size(); i++) {
+      File javaFile = javaFiles.get(i);
+      String javaPath = javaFile.getAbsolutePath();
+      paths[i] = javaPath;
+      pathToFile.put(javaPath, javaFile);
+    }
     // prepare Java parser
     ASTParser parser = ASTParser.newParser(AST.JLS4);
     {
@@ -564,9 +605,17 @@ public class Context {
         JavaCore.COMPILER_DOC_COMMENT_SUPPORT,
         JavaCore.ENABLED));
     // do parse
-    parser.setUnitName(javaName);
-    parser.setSource(javaSource.toCharArray());
-    return (org.eclipse.jdt.core.dom.CompilationUnit) parser.createAST(null);
+    final Map<File, CompilationUnit> units = Maps.newLinkedHashMap();
+    parser.createASTs(paths, null, ArrayUtils.EMPTY_STRING_ARRAY, new FileASTRequestor() {
+      @Override
+      public void acceptAST(String sourceFilePath, org.eclipse.jdt.core.dom.CompilationUnit javaUnit) {
+        File astFile = pathToFile.get(sourceFilePath);
+        CompilationUnit dartUnit = SyntaxTranslator.translate(Context.this, javaUnit);
+        units.put(astFile, dartUnit);
+      }
+    },
+        null);
+    return units;
   }
 
   private void renameConstructors(CompilationUnit unit) {
@@ -656,37 +705,13 @@ public class Context {
   }
 
   /**
-   * Sets the {@link SimpleIdentifier} name and updates all references.
-   */
-  private void renameIdentifier(SimpleIdentifier declarationIdentifier, String newName) {
-    // move identifiers to the new signature
-    String signature = identifierToBinding.get(declarationIdentifier);
-    String newSignature = JavaUtils.getRenamedJdtSignature(signature, newName);
-    List<SimpleIdentifier> identifiers = bindingToIdentifiers.remove(signature);
-    bindingToIdentifiers.put(newSignature, identifiers);
-    // update identifiers to the new name
-    for (SimpleIdentifier identifier : identifiers) {
-      identifier.setToken(token(TokenType.IDENTIFIER, newName));
-      identifierToBinding.remove(identifier);
-      identifierToBinding.put(identifier, newSignature);
-    }
-  }
-
-  /**
    * Translate {@link #sourceFiles} into Dart AST in {@link #dartUnits}.
    */
   private void translateSyntax() throws Exception {
-    long startTime;
-    long translatedFiles = 0;
-    long parseJavaTime = 0;
-    long syntaxTranslateTime = 0;
-    for (File javaFile : sourceFiles) {
-      startTime = System.nanoTime();
-      org.eclipse.jdt.core.dom.CompilationUnit javaUnit = parseJavaFile(javaFile);
-      parseJavaTime += System.nanoTime() - startTime;
-      //
-      startTime = System.nanoTime();
-      CompilationUnit dartUnit = SyntaxTranslator.translate(this, javaUnit);
+    Map<File, CompilationUnit> unitMap = parseJavaFiles(sourceFiles);
+    for (Entry<File, CompilationUnit> entry : unitMap.entrySet()) {
+      File javaFile = entry.getKey();
+      CompilationUnit dartUnit = entry.getValue();
       List<CompilationUnitMember> dartDeclarations = dartUnit.getDeclarations();
       // add to the Dart universe
       dartUniverse.getDeclarations().addAll(dartDeclarations);
@@ -703,13 +728,6 @@ public class Context {
         }
         fileMembers.addAll(dartDeclarations);
       }
-      syntaxTranslateTime += System.nanoTime() - startTime;
-      translatedFiles++;
-    }
-    if (TIMING) {
-      System.out.println("translatedFiles: " + translatedFiles);
-      System.out.println("parseJavaTime: " + parseJavaTime / 1000000);
-      System.out.println("syntaxTranslateTime: " + syntaxTranslateTime / 1000000);
     }
   }
 }

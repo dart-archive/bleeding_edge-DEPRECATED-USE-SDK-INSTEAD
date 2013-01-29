@@ -16,6 +16,7 @@ package com.google.dart.java2dart.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
@@ -33,6 +34,35 @@ public class JavaUtils {
       parametersSignature.append(getJdtTypeName(parameterType));
     }
     return getJdtTypeName(className) + "." + methodName + "(" + parametersSignature + ")";
+  }
+
+  /**
+   * @return the JDT method or field signature without return type.
+   */
+  public static String getJdtSignature(IBinding binding) {
+    return getJdtSignature(binding.getKey());
+  }
+
+  /**
+   * @return the JDT method or field signature without return type.
+   */
+  public static String getJdtSignature(String signature) {
+    int closeParenIndex = signature.indexOf(')');
+    if (closeParenIndex != -1) {
+      // field
+      if (!signature.contains("(")) {
+        return signature.substring(0, closeParenIndex);
+      }
+      // method or parameter
+      int parameterIndex = signature.indexOf('#');
+      // method
+      if (parameterIndex == -1) {
+        return signature.substring(0, closeParenIndex + 1);
+      }
+      // method parameter
+      return signature.substring(0, closeParenIndex + 1) + signature.substring(parameterIndex);
+    }
+    return signature;
   }
 
   /**
@@ -98,28 +128,6 @@ public class JavaUtils {
     }
     // field
     return signature.substring(0, dotIndex + 1) + newName;
-  }
-
-  /**
-   * @return the JDT method or field signature without return type.
-   */
-  public static String getShortJdtSignature(String signature) {
-    int closeParenIndex = signature.indexOf(')');
-    if (closeParenIndex != -1) {
-      // field
-      if (!signature.contains("(")) {
-        return signature.substring(0, closeParenIndex);
-      }
-      // method or parameter
-      int parameterIndex = signature.indexOf('#');
-      // method
-      if (parameterIndex == -1) {
-        return signature.substring(0, closeParenIndex + 1);
-      }
-      // method parameter
-      return signature.substring(0, closeParenIndex + 1) + signature.substring(parameterIndex);
-    }
-    return signature;
   }
 
   /**

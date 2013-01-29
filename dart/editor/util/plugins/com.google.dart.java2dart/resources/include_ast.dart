@@ -40,21 +40,21 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
    * Return the first token included in this node's source range.
    * @return the first token included in this node's source range
    */
-  Token getBeginToken() {
+  Token get beginToken {
     if (elements.isEmpty) {
       return null;
     }
-    return elements[0].getBeginToken();
+    return elements[0].beginToken;
   }
   /**
    * Return the last token included in this node list's source range.
    * @return the last token included in this node list's source range
    */
-  Token getEndToken() {
+  Token get endToken {
     if (elements.isEmpty) {
       return null;
     }
-    return elements[elements.length - 1].getEndToken();
+    return elements[elements.length - 1].endToken;
   }
   /**
    * Return the node that is the parent of each of the elements in the list.

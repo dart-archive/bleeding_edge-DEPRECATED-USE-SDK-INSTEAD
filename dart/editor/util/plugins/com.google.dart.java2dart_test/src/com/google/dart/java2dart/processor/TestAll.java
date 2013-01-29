@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(ObjectSemanticProcessorTest.class);
     suite.addTestSuite(CollectionSemanticProcessorTest.class);
+    suite.addTestSuite(PropertySemanticProcessorTest.class);
     suite.addTestSuite(EngineSemanticProcessorTest.class);
     return suite;
   }

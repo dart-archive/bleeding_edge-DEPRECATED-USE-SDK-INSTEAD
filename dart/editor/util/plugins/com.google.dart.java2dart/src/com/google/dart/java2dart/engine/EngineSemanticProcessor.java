@@ -21,7 +21,6 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
@@ -33,6 +32,7 @@ import com.google.dart.java2dart.util.JavaUtils;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * {@link SemanticProcessor} for Engine.
@@ -42,7 +42,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
   @Override
   public void process(final Context context, final CompilationUnit unit) {
-    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    List<CompilationUnitMember> declarations = unit.getDeclarations();
     // remove NodeList, it is declared in enginelib.dart
     for (Iterator<CompilationUnitMember> iter = declarations.iterator(); iter.hasNext();) {
       CompilationUnitMember member = iter.next();

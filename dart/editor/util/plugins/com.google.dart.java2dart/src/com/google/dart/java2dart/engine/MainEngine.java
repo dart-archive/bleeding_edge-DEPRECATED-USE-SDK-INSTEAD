@@ -24,6 +24,7 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
+import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
@@ -46,6 +47,7 @@ public class MainEngine {
   private static final List<SemanticProcessor> PROCESSORS = ImmutableList.of(
       ObjectSemanticProcessor.INSTANCE,
       CollectionSemanticProcessor.INSTANCE,
+      PropertySemanticProcessor.INSTANCE,
       EngineSemanticProcessor.INSTANCE);
 
   public static void main(String[] args) throws Exception {
@@ -83,6 +85,8 @@ public class MainEngine {
     for (SemanticProcessor processor : PROCESSORS) {
       processor.process(context, dartUnit);
     }
+    // run this again, because we may introduce conflicts when convert methods to getters/setters
+    context.ensureNoVariableNameReferenceFromInitializer(dartUnit);
     // dump as several libraries
     Files.copy(new File("resources/javalib.dart"), new File(targetFolder + "/javalib.dart"));
     Files.copy(new File("resources/enginelib.dart"), new File(targetFolder + "/enginelib.dart"));

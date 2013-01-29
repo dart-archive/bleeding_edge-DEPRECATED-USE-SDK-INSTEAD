@@ -26,6 +26,18 @@ public class JavaUtilsTest extends TestCase {
         JavaUtils.getJdtMethodSignature("test.Main", "foo", new String[] {"double", "int"}));
   }
 
+  public void test_getJdtSignature() throws Exception {
+    assertEquals("Ltest/Main;", JavaUtils.getJdtSignature("Ltest/Main;"));
+    assertEquals("Ltest/Main;.myField", JavaUtils.getJdtSignature("Ltest/Main;.myField)I"));
+    assertEquals("Ltest/Main;.myMethod(DI)", JavaUtils.getJdtSignature("Ltest/Main;.myMethod(DI)V"));
+    assertEquals(
+        "Ltest/Main;.myMethod()",
+        JavaUtils.getJdtSignature("Ltest/Main;.myMethod()Ljava/lang/String"));
+    assertEquals(
+        "Ltest/Main;.myMethod(I)#myParameter",
+        JavaUtils.getJdtSignature("Ltest/Main;.myMethod(I)V#myParameter"));
+  }
+
   public void test_getJdtTypeName() throws Exception {
     assertEquals("Z", JavaUtils.getJdtTypeName("boolean"));
     assertEquals("B", JavaUtils.getJdtTypeName("byte"));
@@ -49,20 +61,6 @@ public class JavaUtilsTest extends TestCase {
     assertEquals(
         "Ltest/Main;.myMethod(DI)#newName",
         JavaUtils.getRenamedJdtSignature("Ltest/Main;.myMethod(DI)#oldName", "newName"));
-  }
-
-  public void test_getShortJdtSignature() throws Exception {
-    assertEquals("Ltest/Main;", JavaUtils.getShortJdtSignature("Ltest/Main;"));
-    assertEquals("Ltest/Main;.myField", JavaUtils.getShortJdtSignature("Ltest/Main;.myField)I"));
-    assertEquals(
-        "Ltest/Main;.myMethod(DI)",
-        JavaUtils.getShortJdtSignature("Ltest/Main;.myMethod(DI)V"));
-    assertEquals(
-        "Ltest/Main;.myMethod()",
-        JavaUtils.getShortJdtSignature("Ltest/Main;.myMethod()Ljava/lang/String"));
-    assertEquals(
-        "Ltest/Main;.myMethod(I)#myParameter",
-        JavaUtils.getShortJdtSignature("Ltest/Main;.myMethod(I)V#myParameter"));
   }
 
 }

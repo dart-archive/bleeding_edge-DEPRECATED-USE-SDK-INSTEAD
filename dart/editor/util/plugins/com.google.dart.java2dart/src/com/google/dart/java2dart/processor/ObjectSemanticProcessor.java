@@ -111,6 +111,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             elements.add(interpolationString("\"", ""));
             StringInterpolation interpolation = string(elements);
             replaceNode(node, interpolation);
+            return null;
           }
         }
         return super.visitBinaryExpression(node);
