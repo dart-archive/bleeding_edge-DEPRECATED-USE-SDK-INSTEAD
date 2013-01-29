@@ -58,7 +58,7 @@ void isolateMain() {
       ..classes = ['isolate', 'isolate${isolateName}']
       ..innerHtml = query('#isolateTemplate').innerHtml
       ..query('.isolateName').text = isolateName
-      ..query('.chirpButton').on.click.add((event) {
+      ..query('.chirpButton').onClick.listen((event) {
           chirpPort.send(
             'this is a chirp message from isolate $isolateName', null);
         });
@@ -109,7 +109,7 @@ main() {
   ports['B'] = createIsolate('B');
 
   for (var element in queryAll('.sendButton')) {
-    element.on.click.add((Event e) {
+    element.onClick.listen((Event e) {
       replyElement.text = 'waiting for reply...';
 
       var isolateName =

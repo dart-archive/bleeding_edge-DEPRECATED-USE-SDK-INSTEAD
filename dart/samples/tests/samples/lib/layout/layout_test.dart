@@ -172,7 +172,7 @@ verifyGrid(String example, [Map expected = null]) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);
-    window.requestLayoutFrame(expectAsync0(() {
+    window.setImmediate(expectAsync0(() {
       Expect.equals(values[0], node.offsetLeft);
       Expect.equals(values[1], node.offsetTop);
       Expect.equals(values[2], node.offsetWidth);

@@ -79,15 +79,15 @@ class PlaceBoatView extends View {
   Element _possibleBoat;
 
   /** Mouse move-listener to be detached when the boat is placed. */
-  Function _moveListener;
+  Subscription _moveSubscription;
 
   PlaceBoatView(
       PlayerState this.state, Element rootNode)
       : super(rootNode.document), _rootNode = rootNode {}
 
   void attach() {
-    _rootNode.on.mouseDown.add(handleMouseDown);
-    _rootNode.on.mouseUp.add(handleMouseUp);
+    _rootNode.onMouseDown.listen(handleMouseDown);
+    _rootNode.onMouseUp.listen(handleMouseUp);
   }
 
   void handleMouseDown(e) {
@@ -96,16 +96,15 @@ class PlaceBoatView extends View {
       _boatStartX = pos[0];
       _boatStartY = pos[1];
       // error case when the mouse was released out of the boat-placing area
-      if (_moveListener != null) {
-        _rootNode.on.mouseMove.remove(_moveListener, false);
+      if (_moveSubscription != null) {
+        _moveSubscription.cancel();
         _possibleBoat.remove();
-        _moveListener = null;
+        _moveSubscription = null;
       }
       _possibleBoat = ViewUtil.createDiv("icons boat2");
       ViewUtil.placeNodeAt(_possibleBoat, _boatStartX, _boatStartY);
       _rootNode.nodes.add(_possibleBoat);
-      _moveListener = handleMouseMove;
-      _rootNode.on.mouseMove.add(_moveListener);
+      _moveSubscription = _rootNode.onMouseMove.listen(handleMouseMove);
     });
   }
 
@@ -137,8 +136,8 @@ class PlaceBoatView extends View {
 
   /** Handle end of positioning of a boat. */
   void handleMouseUp(e) {
-    _rootNode.on.mouseMove.remove(_moveListener, false);
-    _moveListener = null;
+    _moveSubscription.cancel();
+    _moveSubscription = null;
     ViewUtil.positionFromEvent(_rootNode, e).then((List<int> pos) {
       int _boatEndX = pos[0];
       int _boatEndY = pos[1];
@@ -193,8 +192,7 @@ class EnemyGridView extends View {
         "${table}<div class='notready'>ENEMY IS NOT READY</div>";
     statusBar = new ShootingStatusView(state, doc);
     _rootNode.nodes.add(statusBar._rootNode);
-    _rootNode.on.click.add((Event e) {
-          MouseEvent mouseEvent = e;
+    _rootNode.onClick.listen((MouseEvent e) {
           handleClick(mouseEvent);
         }, false);
   }
@@ -281,7 +279,7 @@ class ViewUtil {
   /** Extract the position of a mouse event in a containing 500x500 grid. */
   static Future<List<int>> positionFromEvent(Element gridNode, MouseEvent e) {
     final completer = new Completer<List<int>>();
-    window.requestLayoutFrame(() {
+    window.setImmediate(() {
       int x = (e.pageX - gridNode.offsetLeft) ~/ 50;
       int y = (e.pageY - gridNode.offsetTop) ~/ 50;
       completer.complete([x, y]);

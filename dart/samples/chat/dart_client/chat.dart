@@ -22,11 +22,11 @@ class Chat {
     _messageInput = doc.query("#messageInput");
     _messages = doc.query("#messages");
     _statusText = doc.query("#statusText");
-    _joinButton.on.click.add(handleJoin);
-    _leaveButton.on.click.add(handleLeave);
-    _postButton.on.click.add(handlePostMessage);
-    _handleInput.on.keyDown.add(handleInputKeyDown);
-    _messageInput.on.keyDown.add(messageInputKeyDown);
+    _joinButton.onClick.listen(handleJoin);
+    _leaveButton.onClick.listen(handleLeave);
+    _postButton.onClick.listen(handlePostMessage);
+    _handleInput.onKeyDown.listen(handleInputKeyDown);
+    _messageInput.onKeyDown.listen(messageInputKeyDown);
     uiJoin();
   }
 
@@ -160,7 +160,7 @@ class Chat {
 
   HttpRequest sendRequest(String url, Map json, var onSuccess, var onError) {
     HttpRequest request = new HttpRequest();
-    request.on.readyStateChange.add((Event event) {
+    request.onReadyStateChange.listen((Event event) {
       if (request.readyState != 4) return;
       if (request.status == 200) {
         onSuccess(jsonlib.parse(request.responseText));

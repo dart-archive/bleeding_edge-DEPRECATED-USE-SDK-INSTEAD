@@ -100,7 +100,7 @@ class Color {
 
   String _hexPair(double color) {
     assert(color >= 0 && color <= 1);
-    final str = (color * 0xff).round().toRadixString(16);
+    final str = (color * 0xff).round().toInt().toRadixString(16);
     return str.length == 1 ? '0$str' : str;
   }
 }
@@ -182,13 +182,13 @@ void main() {
   });
 
   hue = document.query("input[name=hue]");
-  hue.on.change.add(onSliderChange);
+  hue.onChange.listen(onSliderChange);
   saturation = document.query("input[name=saturation]");
-  saturation.on.change.add(onSliderChange);
+  saturation.onChange.listen(onSliderChange);
   lightness = document.query("input[name=lightness]");
-  lightness.on.change.add(onSliderChange);
+  lightness.onChange.listen(onSliderChange);
 
-  document.query("input[name=invert]").on.change.add((Event e) {
+  document.query("input[name=invert]").onChange.listen((Event e) {
     InputElement invert = e.target;
     if (invert.checked) {
       logo.classes = ['inverse'];
