@@ -16,6 +16,7 @@ Export-Package: com.google.dart.tools.debug.core,
  com.google.dart.tools.debug.core.breakpoints,
  com.google.dart.tools.debug.core.dartium;x-friends:="com.google.dart.tools.debug.ui",
  com.google.dart.tools.debug.core.server,
+ com.google.dart.tools.debug.core.sourcemaps,
  com.google.dart.tools.debug.core.util
 Bundle-ClassPath: .,
  lib/weberknecht-0.1.2.jar
