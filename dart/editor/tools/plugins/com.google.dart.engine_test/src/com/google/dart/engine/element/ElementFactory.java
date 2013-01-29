@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
@@ -31,6 +32,8 @@ import com.google.dart.engine.type.Type;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
+import java.util.LinkedHashMap;
 
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
@@ -73,6 +76,91 @@ public final class ElementFactory {
 
   public static ConstructorElement constructorElement(String name) {
     return new ConstructorElementImpl(name == null ? null : identifier(name));
+  }
+
+  public static FunctionElement functionElement(String functionName) {
+    return functionElement(functionName, null, null, null, null);
+  }
+
+  public static FunctionElement functionElement(String functionName, ClassElement returnElement) {
+    return functionElement(functionName, returnElement, null, null);
+  }
+
+  public static FunctionElement functionElement(String functionName, ClassElement returnElement,
+      ClassElement[] normalParameters, ClassElement[] optionalParameters) {
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    // return type
+    if (returnElement != null) {
+      functionType.setReturnType(returnElement.getType());
+    }
+    // normal parameters
+    int count = normalParameters == null ? 0 : normalParameters.length;
+    if (count > 0) {
+      InterfaceType[] normalParameterTypes = new InterfaceType[count];
+      for (int i = 0; i < count; i++) {
+        normalParameterTypes[i] = normalParameters[i].getType();
+      }
+      functionType.setNormalParameterTypes(normalParameterTypes);
+    }
+    // optional parameters
+    count = optionalParameters == null ? 0 : optionalParameters.length;
+    if (count > 0) {
+      InterfaceType[] optionalParameterTypes = new InterfaceType[count];
+      for (int i = 0; i < count; i++) {
+        optionalParameterTypes[i] = optionalParameters[i].getType();
+      }
+      functionType.setNormalParameterTypes(optionalParameterTypes);
+    }
+    return functionElement;
+  }
+
+  public static FunctionElement functionElement(String functionName, ClassElement returnElement,
+      ClassElement[] normalParameters, String[] names, Type[] parameterTypes) {
+    FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
+    FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    // return type
+    if (returnElement != null) {
+      functionType.setReturnType(returnElement.getType());
+    }
+    // normal parameters
+    int count = normalParameters == null ? 0 : normalParameters.length;
+    if (count > 0) {
+      InterfaceType[] normalParameterTypes = new InterfaceType[count];
+      for (int i = 0; i < count; i++) {
+        normalParameterTypes[i] = normalParameters[i].getType();
+      }
+      functionType.setNormalParameterTypes(normalParameterTypes);
+    }
+    // named parameters
+    if (names == null) {
+      names = new String[] {};
+    }
+    if (parameterTypes == null) {
+      parameterTypes = new Type[] {};
+    }
+    if (names.length > 0 && names.length == parameterTypes.length) {
+      LinkedHashMap<String, Type> map = new LinkedHashMap<String, Type>();
+      for (int i = 0; i < names.length; i++) {
+        map.put(names[i], parameterTypes[i]);
+      }
+      functionType.setNamedParameterTypes(map);
+    }
+    return functionElement;
+  }
+
+  public static FunctionElement functionElement(String functionName, ClassElement[] normalParameters) {
+    return functionElement(functionName, null, normalParameters, null);
+  }
+
+  public static FunctionElement functionElement(String functionName,
+      ClassElement[] normalParameters, ClassElement[] optionalParameters) {
+    return functionElement(functionName, null, normalParameters, optionalParameters);
+  }
+
+  public static FunctionElement functionElement(String functionName,
+      ClassElement[] normalParameters, String[] names, Type[] parameterTypes) {
+    return functionElement(functionName, null, normalParameters, names, parameterTypes);
   }
 
   public static ClassElement getObject() {
