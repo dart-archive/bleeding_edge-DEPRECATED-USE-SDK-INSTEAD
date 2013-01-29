@@ -12,6 +12,7 @@ Set equalKeyPresses;
 Set clearKeyPresses;
 Set dotKeyPresses;
 Set backspacePresses;
+List eventSubscriptions = [];
 
 void setupEvents() {
   numberKeyPresses = new Set.from([48 /* 0 */,
@@ -56,11 +57,11 @@ void setupEvents() {
   addPadEvents();
 
   // Catch user keypresses, decide whether to use them or pass to the browser.
-  document.on.keyUp.add((e) {
+  document.onKeyUp.listen((e) {
     processKeyEvent(e);
   });
 
-  document.on.click.add((MouseEvent e) {
+  document.onClick.listen((MouseEvent e) {
     bool wasOpened = mySettings.isOpen;
 
     // If settings dialog is open close it.
@@ -75,47 +76,36 @@ void setupEvents() {
 }
 
 void addPadEvents() {
+  void listen(key, method) {
+    eventSubscriptions.add(key.onClick.listen(method));
+  }
+  listen(padUI.keyZero, (e) { doCalc(48); });
   // Hook-up number key events:
-  padUI.keyZero.on.click.add((MouseEvent e) { doCalc(48); });
-  padUI.keyOne.on.click.add((MouseEvent e) { doCalc(49); });
-  padUI.keyTwo.on.click.add((MouseEvent e) { doCalc(50); });
-  padUI.keyThree.on.click.add((MouseEvent e) { doCalc(51); });
-  padUI.keyFour.on.click.add((MouseEvent e) { doCalc(52); });
-  padUI.keyFive.on.click.add((MouseEvent e) { doCalc(53); });
-  padUI.keySix.on.click.add((MouseEvent e) { doCalc(54); });
-  padUI.keySeven.on.click.add((MouseEvent e) { doCalc(55); });
-  padUI.keyEight.on.click.add((MouseEvent e) { doCalc(56); });
-  padUI.keyNine.on.click.add((MouseEvent e) { doCalc(57); });
-  padUI.keyDot.on.click.add((MouseEvent e) { doCalc(110); });
+  listen(padUI.keyZero, (e) { doCalc(48); });
+  listen(padUI.keyOne, (e) { doCalc(49); });
+  listen(padUI.keyTwo, (e) { doCalc(50); });
+  listen(padUI.keyThree, (e) { doCalc(51); });
+  listen(padUI.keyFour, (e) { doCalc(52); });
+  listen(padUI.keyFive, (e) { doCalc(53); });
+  listen(padUI.keySix, (e) { doCalc(54); });
+  listen(padUI.keySeven, (e) { doCalc(55); });
+  listen(padUI.keyEight, (e) { doCalc(56); });
+  listen(padUI.keyNine, (e) { doCalc(57); });
+  listen(padUI.keyDot, (e) { doCalc(110); });
   // Hook-up operator events:
-  padUI.keyPlus.on.click.add((MouseEvent e) { doCalc(107); });
-  padUI.keyMinus.on.click.add((MouseEvent e) { doCalc(109); });
-  padUI.keyStar.on.click.add((MouseEvent e) { doCalc(106); });
-  padUI.keySlash.on.click.add((MouseEvent e) { doCalc(111); });
-  padUI.keyEqual.on.click.add((MouseEvent e) { doCalc(187); });
-  padUI.keyClear.on.click.add((MouseEvent e) { doCalc(27); });
+  listen(padUI.keyPlus, (e) { doCalc(107); });
+  listen(padUI.keyMinus, (e) { doCalc(109); });
+  listen(padUI.keyStar, (e) { doCalc(106); });
+  listen(padUI.keySlash, (e) { doCalc(111); });
+  listen(padUI.keyEqual, (e) { doCalc(187); });
+  listen(padUI.keyClear, (e) { doCalc(27); });
 }
 
 void removePadEvents() {
-  // Hook-up number key events:
-  padUI.keyZero.on.click.remove((MouseEvent e) { doCalc(48); });
-  padUI.keyOne.on.click.remove((MouseEvent e) { doCalc(49); });
-  padUI.keyTwo.on.click.remove((MouseEvent e) { doCalc(50); });
-  padUI.keyThree.on.click.remove((MouseEvent e) { doCalc(51); });
-  padUI.keyFour.on.click.remove((MouseEvent e) { doCalc(52); });
-  padUI.keyFive.on.click.remove((MouseEvent e) { doCalc(53); });
-  padUI.keySix.on.click.remove((MouseEvent e) { doCalc(54); });
-  padUI.keySeven.on.click.remove((MouseEvent e) { doCalc(55); });
-  padUI.keyEight.on.click.remove((MouseEvent e) { doCalc(56); });
-  padUI.keyNine.on.click.remove((MouseEvent e) { doCalc(57); });
-  padUI.keyDot.on.click.remove((MouseEvent e) { doCalc(110); });
-  // Hook-up operator events:
-  padUI.keyPlus.on.click.remove((MouseEvent e) { doCalc(107); });
-  padUI.keyMinus.on.click.remove((MouseEvent e) { doCalc(109); });
-  padUI.keyStar.on.click.remove((MouseEvent e) { doCalc(106); });
-  padUI.keySlash.on.click.remove((MouseEvent e) { doCalc(111); });
-  padUI.keyEqual.on.click.remove((MouseEvent e) { doCalc(187); });
-  padUI.keyClear.on.click.remove((MouseEvent e) { doCalc(27); });
+  for (var subscription in eventSubscriptions) {
+    subscription.cancel();
+  }
+  eventSubscriptions.clear();
 }
 
 void renderPad(Element parentElement) {

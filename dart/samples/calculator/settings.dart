@@ -15,14 +15,14 @@ class Settings {
   bool _dialogOpened;
 
   Settings(this.ui, this.theme) : _dialogOpened = false {
-    ui.settings.on.click.add((MouseEvent e) {
+    ui.settings.onClick.listen((MouseEvent e) {
       mySettings.dialog();
       e.cancelBubble = true;
     });
-    ui.simpleTitle.on.click.add((MouseEvent e) {
+    ui.simpleTitle.onClick.listen((MouseEvent e) {
       ui.simple.checked = true;
     });
-    ui.buttonTitle.on.click.add((MouseEvent e) {
+    ui.buttonTitle.onClick.listen((MouseEvent e) {
       ui.buttons.checked = true;
     });
 
