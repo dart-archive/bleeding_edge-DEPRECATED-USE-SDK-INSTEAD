@@ -411,7 +411,8 @@ public class CompletionEngineTest extends TestCase {
         "    x!1",
         "  }",
         "}");
-    test(source, "1+x", "1+x[]");
+//    test(source, "1+x", "1+x[]");
+    test(source, "1+x", "1-x[]");
   }
 
   public void testCommentSnippets061() throws Exception {
