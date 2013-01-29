@@ -2077,6 +2077,7 @@ public class CompletionEngine {
 
   }
 
+  @SuppressWarnings("unused")
   private void createCompletionForIndexer(FieldElement field, boolean includeDeclaration,
       DartIdentifier node, String prefix) {
     if (!isIndexableType(field.getType())) {
@@ -2484,6 +2485,7 @@ public class CompletionEngine {
         }
       }
     }
+    members = filterNames(members);
     Set<String> previousNames = new HashSet<String>(members.size());
     previousNames.add(NO_SUCH_METHOD);
     for (Element elem : members) {
@@ -3000,6 +3002,9 @@ public class CompletionEngine {
     List<Element> filtered = new ArrayList<Element>(elements.size());
     Map<String, List<Element>> nameMap = new HashMap<String, List<Element>>(elements.size());
     for (Element element : elements) {
+      if (element.getMetadata().isDeprecated()) {
+        continue;
+      }
       String name = element.getName();
       List<Element> namedElements = nameMap.get(name);
       if (namedElements == null) {
@@ -3080,6 +3085,29 @@ public class CompletionEngine {
   }
 
   private Element findMostGeneral(List<Element> elements) {
+    Types types = Types.getInstance(null);
+    Type mostGeneral = null;
+    for (Element element : elements) {
+      String name = element.getName();
+      if (name.equals("Object") || name.equals("dynamic")) {
+        return element;
+      }
+      if (mostGeneral == null) {
+        mostGeneral = element.getType();
+      } else {
+        try {
+          mostGeneral = types.leastUpperBound(mostGeneral, element.getType());
+        } catch (NullPointerException ex) {
+          mostGeneral = null;
+        }
+      }
+    }
+    for (Element element : elements) {
+      if (element.getType() == mostGeneral) {
+        return element;
+      }
+    }
+    // Just pick one; it won't be the most general type but fixing that is too much work for this version.
     return elements.get(0);
   }
 

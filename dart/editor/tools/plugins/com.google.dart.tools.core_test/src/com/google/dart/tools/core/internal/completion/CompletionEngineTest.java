@@ -748,6 +748,23 @@ public class CompletionEngineTest extends TestCase {
     test("class Q extends Object with !1Map {}", "1+Map", "1-HashMap");
   }
 
+  public void testCommentSnippets088() throws Exception {
+    String source = Joiner.on("\n").join(
+        "class A {",
+        "  int f;",
+        "  B m(){}",
+        "}",
+        "class B extends A {",
+        "  num f;",
+        "  A m(){}",
+        "}",
+        "class Z {",
+        "  B q;",
+        "  f() {q.!1}",
+        "}");
+    test(source, "1+f", "1+m"); // f->num, m()->A
+  }
+
   public void testCompletion_alias_field() throws Exception {
     // fails because test framework does not set compilation unit
     // tests cannot check completion of any type defined in the test
