@@ -18,8 +18,8 @@ main() {
     viewModel.showDone = window.location.hash != '#/active';
     dispatch();
   }
-  window.on.hashChange.add(updateFilters);
-  window.on.popState.add(updateFilters);
+  window.onHashChange.listen(updateFilters);
+  window.onPopState.listen(updateFilters);
 }
 
 void addTodo(Event e) {
