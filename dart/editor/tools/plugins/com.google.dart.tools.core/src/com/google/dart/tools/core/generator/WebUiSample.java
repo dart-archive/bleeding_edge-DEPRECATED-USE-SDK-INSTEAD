@@ -23,7 +23,9 @@ import java.util.List;
 public class WebUiSample extends AbstractSample {
 
   public WebUiSample() {
-    super("Web UI application", "Create a sample web application using the Web UI (web_ui) package");
+    super(
+        "Web application (using the web_ui library)",
+        "Create a sample web application using the Web UI (web_ui) library");
 
     List<String[]> templates = new ArrayList<String[]>();
 
