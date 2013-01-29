@@ -163,7 +163,7 @@ class ObservableList<T>
     recordGlobalChange();
   }
 
-  List<T> get reversed => new ReversedListView<T>(this, 0, null);
+  List<T> get reversed => _internal.reversed;
 
   void sort([int compare(var a, var b)]) {
     if (compare == null) compare = Comparable.compare;
@@ -285,6 +285,8 @@ class ObservableList<T>
   // Collection<T>:
   Iterable<T> where(bool f(T element)) => _internal.where(f);
   Iterable mappedBy(f(T element)) => _internal.mappedBy(f);
+  List<T> skip(int count) => _internal.skip(count);
+  List<T> take(int count) => _internal.take(count);
   bool every(bool f(T element)) => _internal.every(f);
   bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
