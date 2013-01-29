@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.analysis.index;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.SavedContext;
@@ -34,7 +33,6 @@ public class AnalysisIndexManager {
 
   private static AnalysisServer server;
   private static AnalysisMarkerManager markerManager;
-  private static AnalysisDebug analysisDebugSaved;
 
   private static boolean indexing = false;
 
@@ -46,7 +44,7 @@ public class AnalysisIndexManager {
       if (server == null) {
         server = new AnalysisServer(PackageLibraryManagerProvider.getAnyLibraryManager());
         initServerListeners();
-        initServerDebug();
+        AnalysisDebug.initServerDebug(server);
         initServerContent();
 
         if (DartSdkManager.getManager().hasSdk()) {
@@ -101,7 +99,7 @@ public class AnalysisIndexManager {
           for (File file : libraryFiles) {
             context.resolve(file, null);
           }
-          stopServerDebug();
+          AnalysisDebug.stopServerDebug();
           stopServerListener();
           server.writeCache();
           server = null;
@@ -120,27 +118,12 @@ public class AnalysisIndexManager {
     }
   }
 
-  private static void initServerDebug() {
-    if (DartCoreDebug.DEBUG_ANALYSIS) {
-      analysisDebugSaved = new AnalysisDebug("Saved");
-      server.addIdleListener(analysisDebugSaved);
-      server.getSavedContext().addAnalysisListener(analysisDebugSaved);
-    }
-  }
-
   private static void initServerListeners() {
     AnalysisIndexListener listener = new AnalysisIndexListener();
     server.getSavedContext().addAnalysisListener(listener);
     server.addIdleListener(listener);
     markerManager = new AnalysisMarkerManager();
     server.getSavedContext().addAnalysisListener(markerManager);
-  }
-
-  private static void stopServerDebug() {
-    if (analysisDebugSaved != null) {
-      analysisDebugSaved.stop();
-      analysisDebugSaved = null;
-    }
   }
 
   private static void stopServerListener() {

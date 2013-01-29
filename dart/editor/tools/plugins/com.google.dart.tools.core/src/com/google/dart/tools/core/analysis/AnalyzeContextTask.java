@@ -59,4 +59,9 @@ class AnalyzeContextTask extends Task {
       server.queueSubTask(new AnalyzeLibraryTask(server, libFile, null));
     }
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName();
+  }
 }

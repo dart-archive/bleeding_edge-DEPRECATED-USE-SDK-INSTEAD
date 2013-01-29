@@ -347,6 +347,11 @@ public class ScanTask extends Task implements TaskListener {
     }
   }
 
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + rootFile;
+  }
+
   void addFilesToScan(Collection<File> files) {
     filesToScan.addAll(files);
   }

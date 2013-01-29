@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.DartCoreDebug;
 
 import java.io.File;
 
@@ -22,9 +23,32 @@ import java.io.File;
  */
 public class AnalysisDebug implements AnalysisListener, TaskListener {
 
+  private static AnalysisDebug INSTANCE;
+
+  public static AnalysisDebug getInstance() {
+    return INSTANCE;
+  }
+
+  public static void initServerDebug(AnalysisServer server) {
+    if (DartCoreDebug.DEBUG_ANALYSIS) {
+      INSTANCE = new AnalysisDebug("Saved");
+      server.addIdleListener(INSTANCE);
+      server.getSavedContext().addAnalysisListener(INSTANCE);
+    }
+  }
+
+  public static void stopServerDebug() {
+    if (INSTANCE != null) {
+      INSTANCE.stop();
+      INSTANCE = null;
+    }
+  }
+
   private final PrintStringWriter message = new PrintStringWriter();
+
   private final String prefix;
   private boolean debug;
+
   private long lastIdleTime;
 
   public AnalysisDebug(String contextName) {
@@ -62,6 +86,13 @@ public class AnalysisDebug implements AnalysisListener, TaskListener {
       message.print(prefix);
       message.print("idle ");
       message.println(msg);
+      message.notifyAll();
+    }
+  }
+
+  public void message(String text) {
+    synchronized (message) {
+      message.println(text);
       message.notifyAll();
     }
   }

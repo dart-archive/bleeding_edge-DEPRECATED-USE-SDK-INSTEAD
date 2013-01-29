@@ -98,4 +98,9 @@ class FileChangedTask extends Task {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + rootFile;
+  }
 }

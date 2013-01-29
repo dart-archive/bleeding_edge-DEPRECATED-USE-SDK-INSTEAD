@@ -131,6 +131,11 @@ public class AnalyzeLibraryTask extends Task {
     }
   }
 
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + rootLibraryFile + ", callback=" + (callback != null);
+  }
+
   /**
    * Recursively parse the library and its imports, building the list of libraries to be analyzed
    * 

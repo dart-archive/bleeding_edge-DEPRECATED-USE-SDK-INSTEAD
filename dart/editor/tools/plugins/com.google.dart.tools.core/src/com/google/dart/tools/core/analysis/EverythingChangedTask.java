@@ -38,4 +38,9 @@ class EverythingChangedTask extends Task {
     server.getSavedContext().discardAllLibraries();
     server.queueAnalyzeContext();
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName();
+  }
 }

@@ -85,6 +85,12 @@ public class ParseRequestTask extends Task {
     queueParseTask(context);
   }
 
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + libraryFile + ", " + dartFile + ", callback="
+        + (callback != null);
+  }
+
   private void notifyCaller(Library library, DartUnit dartUnit) {
     if (callback != null) {
       try {

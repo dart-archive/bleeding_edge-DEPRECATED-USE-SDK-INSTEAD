@@ -180,4 +180,9 @@ class ResolveTask extends Task {
       rootLibrary.cacheLibraryUnit(server, libUnit);
     }
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + rootLibrary;
+  }
 }

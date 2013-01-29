@@ -110,4 +110,9 @@ public class ParseTask extends Task {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + libraryFile + ", " + dartFile;
+  }
 }

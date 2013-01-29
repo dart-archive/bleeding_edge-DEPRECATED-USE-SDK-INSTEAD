@@ -61,4 +61,9 @@ class DiscardTask extends Task {
     // Reanalyze any libraries not already cached
     server.queueAnalyzeContext();
   }
+
+  @Override
+  public String toString() {
+    return getClass().getName() + ": " + rootFile;
+  }
 }
