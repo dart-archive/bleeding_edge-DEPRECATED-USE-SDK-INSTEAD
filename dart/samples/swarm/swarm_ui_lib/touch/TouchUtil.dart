@@ -52,18 +52,27 @@ void _addEventListeners(Element node,
   }
 
   if (Device.supportsTouch) {
+    var touchMoveSub;
+    var touchEndSub;
+    var touchLeaveSub;
+    var touchCancelSub;
+
     removeListeners = () {
-      document.on.touchMove.remove(onMove, capture);
-      document.on.touchEnd.remove(onEndWrapper, capture);
-      document.on.touchLeave.remove(onLeaveWrapper, capture);
-      document.on.touchCancel.remove(onCancelWrapper, capture);
+      touchMoveSub.cancel();
+      touchEndSub.cancel();
+      touchLeaveSub.cancel();
+      touchCancelSub.cancel();
     };
 
-    node.on.touchStart.add((e) {
-      document.on.touchMove.add(onMove, capture);
-      document.on.touchEnd.add(onEndWrapper, capture);
-      document.on.touchLeave.add(onLeaveWrapper, capture);
-      document.on.touchCancel.add(onCancelWrapper, capture);
+    node.onTouchStart.listen((e) {
+      touchMoveSub = Element.touchMoveEvent.forTarget(
+          document, useCapture: capture).listen(onMove);
+      touchEndSub = Element.touchEndEvent.forTarget(
+          document, useCapture: capture).listen(onEndWrapper);
+      touchLeaveSub = Element.touchLeaveEvent.forTarget(
+          document, useCapture: capture).listen(onLeaveWrapper);
+      touchCancelSub = Element.touchCancelEvent.forTarget(
+          document, useCapture: capture).listen(onCancelWrapper);
       return onStart(e);
     }, capture);
   } else {
@@ -72,16 +81,23 @@ void _addEventListeners(Element node,
     onEnd = mouseToTouchCallback(onEnd);
     // onLeave will never be called if the device does not support touches.
 
+    var mouseMoveSub;
+    var mouseUpSub;
+    var touchCancelSub;
+
     removeListeners = () {
-      document.on.mouseMove.remove(onMove, capture);
-      document.on.mouseUp.remove(onEndWrapper, capture);
-      document.on.touchCancel.remove(onCancelWrapper, capture);
+      mouseMoveSub.cancel();
+      mouseUpSub.cancel();
+      touchCancelSub.cancel();
     };
 
-    node.on.mouseDown.add((e) {
-      document.on.mouseMove.add(onMove, capture);
-      document.on.mouseUp.add(onEndWrapper, capture);
-      document.on.touchCancel.add(onCancelWrapper, capture);
+    node.onMouseDown.listen((e) {
+      mouseMoveSub = Element.mouseMoveEvent.forTarget(
+          document, useCapture: capture).listen(onMove);
+      mouseUpSub = Element.mouseUpEvent.forTarget(
+          document, useCapture: capture).listen(onEndWrapper);
+      touchCancelSub = Element.touchCancelEvent.forTarget(
+          document, useCapture: capture).listen(onCancelWrapper);
       return onStart(e);
     }, capture);
   }

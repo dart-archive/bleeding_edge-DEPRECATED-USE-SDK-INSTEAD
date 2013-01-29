@@ -31,7 +31,7 @@ class App {
       // manner even if the document is already loaded.
       window.setTimeout(() => onLoad(), 0);
     } else {
-      window.on.contentLoaded.add(
+      window.onContentLoaded.listen(
         // TODO(sigmund):  Consider eliminating the call to "wrap", for
         // instance, modify event listeners to always wrap, or extend DOM code
         // to intercept the beginning & end of each event loop
@@ -47,12 +47,12 @@ class App {
    */
   void onLoad() {
     // Prevent the default browser behavior of scrolling the window.
-    document.on.touchMove.add((Event event) => event.preventDefault());
+    document.onTouchMove.listen((Event event) => event.preventDefault());
 
     // Swap and reload the cache if ready
     if (!swapAndReloadCache()) {
       // Otherwise wait until an update to the cache is ready
-      window.applicationCache.on.updateReady.add(
+      window.applicationCache.onUpdateReady.listen(
           (e) => swapAndReloadCache());
     }
   }

@@ -154,7 +154,7 @@ class GenericListView<D> extends View {
     // TODO(rnystrom): Move this into enterDocument once we have an exitDocument
     // that we can use to unregister it.
     if (_scrollable) {
-      window.on.resize.add((Event event) {
+      window.onResize.listen((Event event) {
         if (isInDocument) {
           onResize();
         }

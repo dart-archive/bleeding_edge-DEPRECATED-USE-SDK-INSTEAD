@@ -162,7 +162,7 @@ class Scroller implements Draggable, MomentumDelegate {
     _touchHandler.setDraggable(this);
     _touchHandler.enable(capture);
 
-    _frame.on.mouseWheel.add((e) {
+    _frame.onMouseWheel.listen((e) {
       if (e.deltaY != 0 && verticalEnabled ||
           e.deltaX != 0 && horizontalEnabled) {
         num x = horizontalEnabled ? e.deltaX : 0;
@@ -172,7 +172,7 @@ class Scroller implements Draggable, MomentumDelegate {
       }
     });
 
-    _frame.on.keyDown.add((KeyboardEvent e) {
+    _frame.onKeyDown.listen((KeyboardEvent e) {
         bool handled = false;
         // We ignore key events where further scrolling in that direction
         // would have no impact which matches default browser behavior with

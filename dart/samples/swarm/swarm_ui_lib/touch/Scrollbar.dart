@@ -120,13 +120,13 @@ class Scrollbar implements ScrollListener {
       // TODO(jacobr): rather than adding all these event listeners we could
       // instead attach a single global event listener and let data in the
       // DOM drive.
-      _frame.on.click.add((Event e) {
+      _frame.onClick.listen((Event e) {
           // Always focus on click as one of our children isn't all focused.
           if (!_frame.contains(document.activeElement)) {
             scrollerEl.focus();
           }
-        }, false);
-      _frame.on.mouseOver.add((Event e) {
+        });
+      _frame.onMouseOver.listen((Event e) {
           final activeElement = document.activeElement;
           // TODO(jacobr): don't steal focus from a child element or a truly
           // focusable element. Only support stealing focus ffrom another
@@ -142,8 +142,8 @@ class Scrollbar implements ScrollListener {
             _showScrollbars(true);
             refresh();
           }
-        }, false);
-      _frame.on.mouseOut.add((e) {
+        });
+      _frame.onMouseOut.listen((e) {
           _hovering = false;
           // Start hiding immediately if we aren't
           // scrolling or already in the process of
@@ -151,7 +151,7 @@ class Scrollbar implements ScrollListener {
           if (!_scrollInProgress && _timerId == null) {
             _boundHideFn();
           }
-        }, false);
+        });
     }
   }
 

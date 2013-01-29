@@ -17,13 +17,13 @@ class EventUtil {
    * focus event, and added back on blur events.
    */
   static void observe(Element element,
-                      EventListenerList listenerList, Function handler,
-                      [bool capture = false, bool removeHandlerOnFocus = false]) {
-    listenerList.add(handler, capture);
+                      Stream stream, Function handler,
+                      [bool removeHandlerOnFocus = false]) {
+    var subscription = stream.listen(handler);
     // TODO(jacobr): this remove on focus behavior seems really ugly.
     if (removeHandlerOnFocus) {
-      element.on.focus.add((e) { listenerList.remove(handler, capture); });
-      element.on.blur.add((e) { listenerList.add(handler, capture); });
+      element.onFocus.listen((e) { subscription.cancel(); });
+      element.onBlur.listen((e) { subscription.cancel(); });
     }
   }
 

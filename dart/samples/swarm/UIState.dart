@@ -12,7 +12,7 @@ abstract class UIState {
    * The event listener we hook to the window's "popstate" event.
    * This event is triggered by the back button or by the first page load.
    */
-  EventListener _historyTracking;
+  StreamSubscription _historyTracking;
 
   UIState();
 
@@ -20,7 +20,7 @@ abstract class UIState {
     stopHistoryTracking();
 
     bool firstEvent = true;
-    _historyTracking = EventBatch.wrap((event) {
+    var handler = EventBatch.wrap((event) {
       String state = window.location.hash;
       if (state.startsWith('#')) {
         // TODO(jimhug): Support default argument on substring.
@@ -40,12 +40,12 @@ abstract class UIState {
       firstEvent = false;
     });
 
-    window.on.popState.add(_historyTracking);
+    _historyTracking = window.onPopState.listen(handler);
   }
 
   void stopHistoryTracking() {
     if (_historyTracking != null) {
-      window.on.popState.add(_historyTracking); // remove?
+      _historyTracking.cancel();
     }
   }
 

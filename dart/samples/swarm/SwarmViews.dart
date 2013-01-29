@@ -123,12 +123,8 @@ class FrontView extends CompositeView {
 
     currentSection.dataSourceView.reattachSubview(
         detachedView.source, detachedView, true);
-    handler(e) {
-      // Only listen once.
-      // TODO(rnystrom): Look into adding .once() to EventListenerList to allow
-      // this for any event.
-      storyView.node.on.transitionEnd.remove(handler, false);
 
+    storyView.node.onTransitionEnd.first.then((e) {
       currentSection.hidden = false;
       // TODO(rnystrom): Should move this "mode" into SwarmState and have
       // header view respond to change events itself.
@@ -136,8 +132,7 @@ class FrontView extends CompositeView {
       storyView = null;
       detachedView.removeClass('sel');
       detachedView = null;
-    }
-    storyView.node.on.transitionEnd.add(handler);
+    });
   }
 
   void _animateToStory(Article item) {
@@ -555,9 +550,9 @@ class DataSourceView extends CompositeView  {
 
     // Clicking the view (i.e. its title area) unmaximizes to show the entire
     // view.
-    node.on.mouseDown.add((e) {
+    node.onMouseDown.listen((e) {
       swarm.state.storyMaximized.value = false;
-    }, false);
+    });
   }
 }
 
@@ -574,7 +569,7 @@ class ToggleButton extends View {
 
   void afterRender(Element node) {
     state = states[0];
-    node.on.click.add((event) { toggle(); }, false);
+    node.onClick.listen((event) { toggle(); });
   }
 
   String get state {

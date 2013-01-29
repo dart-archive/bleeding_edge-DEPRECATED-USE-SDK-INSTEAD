@@ -64,14 +64,14 @@ class SliderMenu extends View {
 
     // TODO(mattsh), abstract this somehow into a touch click mixin
     if (Device.supportsTouch) {
-      node.on.touchStart.add((event) {
+      node.onTouchStart.listen((event) {
         touchItem = itemOfTouchEvent(event);
         if (touchItem != null) {
           selectItemText(touchItem);
         }
         event.preventDefault();
       });
-      node.on.touchEnd.add((event) {
+      node.onTouchEnd.listen((event) {
         if (touchItem != null) {
           if (itemOfTouchEvent(event) == touchItem) {
             selectItem(touchItem, true);
@@ -87,10 +87,10 @@ class SliderMenu extends View {
         event.preventDefault();
       });
     } else {
-      node.on.click.add((event) => selectItem(event.target, true));
+      node.onClick.listen((event) => selectItem(event.target, true));
     }
 
-    window.on.resize.add((Event event) => updateIndicator(false));
+    window.onResize.listen((Event event) => updateIndicator(false));
   }
 
   /**

@@ -4,6 +4,7 @@
 
 library swarmlib;
 
+import 'dart:async';
 import 'dart:json' as json;
 import 'dart:html';
 import 'dart:math' as Math;

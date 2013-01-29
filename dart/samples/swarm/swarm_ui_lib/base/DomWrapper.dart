@@ -14,7 +14,7 @@ class Dom {
       window.setTimeout(f, 0);
     } else {
       // TODO(jacobr): give this event a named property.
-      window.on.contentLoaded.add((Event e) { f(); });
+      window.onContentLoaded.listen((Event e) { f(); });
     }
   }
 

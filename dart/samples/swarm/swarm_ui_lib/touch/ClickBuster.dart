@@ -180,8 +180,10 @@ class ClickBuster {
     if (_coordinates == null) {
       // Listen to clicks on capture phase so they can be busted before anything
       // else gets a chance to handle them.
-      document.on.click.add((e) { _onClick(e); }, true);
-      document.on.focus.add((e) { _lastPreventedTime = 0; }, true);
+      Element.clickEvent.forTarget(document, useCapture: true).listen(
+          (e) { _onClick(e); });
+      Element.focusEvent.forTarget(document, useCapture: true).listen(
+          (e) { _lastPreventedTime = 0; });
 
       // Listen to touchstart on capture phase since it must be called prior to
       // every click or else we will accidentally prevent the click even if we
@@ -190,9 +192,15 @@ class ClickBuster {
       if (!Device.supportsTouch) {
         startFn = mouseToTouchCallback(startFn);
       }
+      var stream;
+      if (Device.supportsTouch) {
+        stream = Element.touchStartEvent.forTarget(document, useCapture:true);
+      } else {
+        stream = Element.mouseDownEvent.forTarget(document, useCapture:true);
+      }
       EventUtil.observe(document,
-          Device.supportsTouch ? document.on.touchStart : document.on.mouseDown,
-          startFn, true, true);
+          stream,
+          startFn, true);
       _coordinates = new DoubleLinkedQueue<num>();
     }
 

@@ -56,13 +56,13 @@ class PageNumberView extends View {
     watch(pages.current, (s) => _update());
     watch(pages.length, (s) => _update());
 
-    _left.on.click.add((e) {
+    _left.onClick.listen((e) {
       if (pages.current.value > 0) {
         pages.target.value = pages.current.value - 1;
       }
     });
 
-    _right.on.click.add((e) {
+    _right.onClick.listen((e) {
       if (pages.current.value + 1 < pages.length.value) {
         pages.target.value = pages.current.value + 1;
       }
@@ -145,7 +145,7 @@ class PagedColumnView extends View {
       // Hook img onload events, so we find out about changes in content size
       for (ImageElement img in contentView.node.queryAll("img")) {
         if (!img.complete) {
-          img.on.load.add((e) {
+          img.onLoad.listen((e) {
             _updatePageCount(null);
           });
         }

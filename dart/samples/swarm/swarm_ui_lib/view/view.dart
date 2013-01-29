@@ -32,7 +32,7 @@ class View implements Positionable {
 
   // TODO(jmesserly): instead of tracking this on every View, we could have the
   // App track the views that want to be notified of resize()
-  EventListener _resizeHandler;
+  StreamSubscription _resizeSubscription;
 
   /**
    * Style properties configured for this view.
@@ -201,7 +201,7 @@ class View implements Positionable {
   }
 
   void addOnClick(EventListener handler) {
-    _node.on.click.add(handler);
+    _node.onClick.listen(handler);
   }
 
   /**
@@ -303,19 +303,20 @@ class View implements Positionable {
    * demand.
    */
   void _hookGlobalLayoutEvents() {
-    if (_resizeHandler == null) {
-      _resizeHandler = EventBatch.wrap((e) => doLayout());
+    if (_resizeSubscription == null) {
+      var handler = EventBatch.wrap((e) => doLayout());
+      _resizeSubscription = window.onResize.listen(handler);
     }
-    window.on.resize.add(_resizeHandler);
+
 
     // Trigger the initial layout.
     doLayout();
   }
 
   void _unhookGlobalLayoutEvents() {
-    if (_resizeHandler != null) {
-      window.on.resize.remove(_resizeHandler);
-      _resizeHandler = null;
+    if (_resizeSubscription != null) {
+      _resizeSubscription.cancel();
+      _resizeSubscription = null;
     }
   }
 

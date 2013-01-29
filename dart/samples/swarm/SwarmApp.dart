@@ -31,7 +31,7 @@ class Swarm extends App {
     });
     // Catch user keypresses and decide whether to use them for the
     // Streams app or pass them on to the browser.
-    document.on.keyUp.add((e) {
+    document.onKeyUp.listen((e) {
       if (frontView != null) {
         frontView.processKeyEvent(e);
       }
