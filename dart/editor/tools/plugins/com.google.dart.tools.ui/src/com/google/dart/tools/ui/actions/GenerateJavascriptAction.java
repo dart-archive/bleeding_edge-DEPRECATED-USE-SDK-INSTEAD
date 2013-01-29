@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
@@ -65,29 +66,76 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
 
     @Override
     protected IStatus run(IProgressMonitor monitor) {
+      long start = System.currentTimeMillis();
+      long compilerStart = 0; //This is going to get rewritten
+
       if (DartCore.getPlugin().getCompileWithDart2JS()) {
         try {
           monitor.beginTask(
               ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
 
+          compilerStart = System.currentTimeMillis();
+
           Dart2JSCompiler.compileLibrary(library, monitor, DartCore.getConsole());
+
+          long compilerElapsed = System.currentTimeMillis() - compilerStart;
+          long elapsed = System.currentTimeMillis() - start;
+
+          Instrumentation.metric("GenerateJavaScript-CompilerOnly", compilerElapsed).with(
+              "Success",
+              "true").log();
+
+          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "true").log();
+
+          Instrumentation.operation("GenerateJavaScript", elapsed).with(
+              "library",
+              library.getElementName()).log();
 
           return Status.OK_STATUS;
         } catch (OperationCanceledException exception) {
           // The user cancelled.
           DartCore.getConsole().println("Generation cancelled.");
 
+          long compilerElapsed = System.currentTimeMillis() - compilerStart;
+          long elapsed = System.currentTimeMillis() - start;
+          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
+              "Failure-Reason",
+              "User cancel").with("CompilerElapsed", compilerElapsed).log();
+
+          Instrumentation.operation("GenerateJavaScript", elapsed).with(
+              "library",
+              library.getElementName()).log();
+
           return Status.CANCEL_STATUS;
         } catch (Exception exception) {
           DartCore.getConsole().println(
               NLS.bind(ActionMessages.GenerateJavascriptAction_FailException, exception.toString()));
+
+          long compilerElapsed = System.currentTimeMillis() - compilerStart;
+          long elapsed = System.currentTimeMillis() - start;
+          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
+              "Failure-Reason-Type",
+              exception.getClass().getName()).with("CompilerElapsed", compilerElapsed).log();
+
+          Instrumentation.operation("GenerateJavaScript", elapsed).with(
+              "library",
+              library.getElementName()).with("Failure-Reason", exception.toString()).log();
 
           return Status.CANCEL_STATUS;
         } finally {
           monitor.done();
         }
       }
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
+          "Failure-Reason",
+          "DartSDK not installed").log();
+
+      Instrumentation.operation("GenerateJavaScript", elapsed).with(
+          "library",
+          library.getElementName()).log();
 
       return new Status(Status.WARNING, "Deploy optimized", "Dart SDK not installed");
     }
