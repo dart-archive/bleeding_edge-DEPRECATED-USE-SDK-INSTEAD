@@ -16,6 +16,7 @@ package com.google.dart.tools.core;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.OperationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -103,6 +104,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * and information or <code>null</code> to use the default system log.
    */
   private static ILog PLUGIN_LOG;
+
+  /**
+   * Flag indicating whether instrumentation logging of errors is enabled
+   */
+  private static boolean instrumentationLogErrorEnabled = true;
 
   /**
    * The id of the plug-in that defines the Dart model.
@@ -951,9 +957,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param message an explanation of why the error occurred or what it means
    */
   public static void logError(String message) {
-
-    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, null));
-    Instrumentation.operation("DartCore.logError").with("Message", message).log();
+    logErrorImpl(message, null);
+    instrumentationLogErrorImpl(message, null);
   }
 
   /**
@@ -963,10 +968,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param exception the exception being logged
    */
   public static void logError(String message, Throwable exception) {
-    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
-    Instrumentation.operation("DartCore.logError").with("Message", message).with(
-        "Exception",
-        exception != null ? exception.toString() : "null").log();
+    logErrorImpl(message, exception);
+    instrumentationLogErrorImpl(message, exception);
   }
 
   /**
@@ -975,10 +978,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param exception the exception being logged
    */
   public static void logError(Throwable exception) {
-    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, exception.getMessage(), exception));
-    Instrumentation.operation("DartCore.logError").with(
-        "Exception",
-        exception != null ? exception.toString() : "null").log();
+    logErrorImpl(exception.getMessage(), exception);
+    instrumentationLogErrorImpl(null, exception);
   }
 
   /**
@@ -1179,6 +1180,24 @@ public class DartCore extends Plugin implements DartSdkListener {
     return new File(Platform.getInstallLocation().getURL().getFile());
   }
 
+  private static void instrumentationLogErrorImpl(String message, Throwable exception) {
+    if (instrumentationLogErrorEnabled) {
+      try {
+        OperationBuilder operation = Instrumentation.operation("DartCore.logError");
+        if (message != null) {
+          operation = operation.with("Message", message);
+        }
+        if (exception != null) {
+          operation = operation.with("Exception", exception.toString());
+        }
+        operation.log();
+      } catch (Exception e) {
+        instrumentationLogErrorEnabled = false;
+        logErrorImpl("Instrumentation failed to log error", exception);
+      }
+    }
+  }
+
   /**
    * Return <code>true</code> if the given file name's extension matches one of the passed
    * extensions.
@@ -1198,6 +1217,10 @@ public class DartCore extends Plugin implements DartSdkListener {
       }
     }
     return false;
+  }
+
+  private static void logErrorImpl(String message, Throwable exception) {
+    getPluginLog().log(new Status(Status.ERROR, PLUGIN_ID, message, exception));
   }
 
   private IEclipsePreferences prefs;
