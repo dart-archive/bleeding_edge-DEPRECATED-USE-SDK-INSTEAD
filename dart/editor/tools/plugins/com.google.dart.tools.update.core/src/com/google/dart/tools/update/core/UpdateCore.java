@@ -206,8 +206,7 @@ public class UpdateCore extends Plugin {
    * @return <code>true</code> if enabled, <code>false</code> otherwise
    */
   public static boolean isAutoDownloadEnabled() {
-    return DartCoreDebug.ENABLE_UPDATE
-        && PLUGIN.getPreferences().getBoolean(PREFS_AUTO_DOWNLOAD, AUTO_DOWNLOAD_DEFAULT);
+    return PLUGIN.getPreferences().getBoolean(PREFS_AUTO_DOWNLOAD, AUTO_DOWNLOAD_DEFAULT);
   }
 
   /**
@@ -216,8 +215,7 @@ public class UpdateCore extends Plugin {
    * @return <code>true</code> if enabled, <code>false</code> otherwise
    */
   public static boolean isAutoUpdateCheckingEnabled() {
-    return DartCoreDebug.ENABLE_UPDATE
-        && PLUGIN.getPreferences().getBoolean(PREFS_AUTO_UPDATE_CHECK, AUTO_UPDATE_CHECK_DEFAULT);
+    return PLUGIN.getPreferences().getBoolean(PREFS_AUTO_UPDATE_CHECK, AUTO_UPDATE_CHECK_DEFAULT);
   }
 
   /**

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.dialogs;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -112,9 +111,7 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
    */
   protected void createContents() {
 
-    Point size = DartCoreDebug.ENABLE_UPDATE ? new Point(394, 420) : new Point(394, 364);
-
-    setSize(size);
+    setSize(new Point(394, 420));
 
     addCopyDetailsPopup(this);
 
@@ -178,19 +175,15 @@ public class AboutDartDialog extends Shell implements DetailsProvider {
     spacer.setFocus();
     spacer.getCaret().setSize(0, 0); //nuke the caret
 
-    if (DartCoreDebug.ENABLE_UPDATE) {
+    Label separator = new Label(this, SWT.SEPARATOR | SWT.SHADOW_OUT | SWT.HORIZONTAL);
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(separator);
 
-      Label separator = new Label(this, SWT.SEPARATOR | SWT.SHADOW_OUT | SWT.HORIZONTAL);
-      GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.FILL).applyTo(separator);
-
-      @SuppressWarnings("unused")
-      UpdateStatusControl updateStatus = new UpdateStatusControl(
-          this,
-          Display.getDefault().getSystemColor(SWT.COLOR_WHITE),
-          new Point(24, 4),
-          false);
-
-    }
+    @SuppressWarnings("unused")
+    UpdateStatusControl updateStatus = new UpdateStatusControl(
+        this,
+        Display.getDefault().getSystemColor(SWT.COLOR_WHITE),
+        new Point(24, 4),
+        false);
 
     setLocation(getInitialLocation(getSize()));
 

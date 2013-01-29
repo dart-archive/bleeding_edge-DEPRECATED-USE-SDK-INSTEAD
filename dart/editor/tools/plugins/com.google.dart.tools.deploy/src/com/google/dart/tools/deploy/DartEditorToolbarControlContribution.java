@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.deploy;
 
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.feedback.FeedbackControlContribution;
 import com.google.dart.tools.ui.omni.OmniBoxControlContribution;
 import com.google.dart.tools.ui.update.SettingsControlContribution;
@@ -56,10 +55,8 @@ public class DartEditorToolbarControlContribution extends WorkbenchWindowControl
     feedbackButton = new FeedbackControlContribution(this);
     feedbackButton.createControl(composite);
 
-    if (DartCoreDebug.ENABLE_UPDATE) {
-      settingsButton = new SettingsControlContribution(this);
-      settingsButton.createControl(composite);
-    }
+    settingsButton = new SettingsControlContribution(this);
+    settingsButton.createControl(composite);
 
     return composite;
   }
