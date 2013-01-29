@@ -69,28 +69,6 @@
          <configurationType
                id="com.google.dart.tools.debug.core.dartiumLaunchConfig">
          </configurationType>
-         <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <count value="1">
-                  </count>
-                  <iterate>
-                     <adapt type="org.eclipse.core.resources.IResource">
-                        <or>
-                           <and>
-                              <test property="com.google.dart.tools.debug.isInDartProject"/>
-                              <or>
-                                 <test property="org.eclipse.core.resources.extension" value="html"/>
-                                 <test property="org.eclipse.core.resources.extension" value="dart"/>
-                              </or>
-                           </and>
-                           <test property="com.google.dart.tools.debug.isDartProject"/>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
       </shortcut>
    </extension>
    
@@ -126,25 +104,6 @@
          <configurationType
                id="com.google.dart.tools.debug.core.chromeAppLaunchConfig">
          </configurationType>
-         <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <count value="1">
-                  </count>
-                  <iterate>
-                     <adapt type="org.eclipse.core.resources.IResource">
-                        <or>
-                           <and>
-                              <test property="com.google.dart.tools.debug.isInDartProject"/>
-                              <test property="org.eclipse.core.resources.name" value="manifest.json"/>
-                           </and>
-                           <test property="com.google.dart.tools.debug.isDartProject"/>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
       </shortcut>
    </extension>
    
@@ -189,28 +148,6 @@
          <configurationType
                id="com.google.dart.tools.debug.core.browserLaunchConfig">
          </configurationType>
-          <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <count value="1">
-                  </count>
-                  <iterate>
-                     <adapt type="org.eclipse.core.resources.IResource">
-                        <or>
-                           <and>
-                              <test property="com.google.dart.tools.debug.isInDartProject"/>
-                              <or>
-                                 <test property="org.eclipse.core.resources.extension" value="html"/>
-                                 <test property="org.eclipse.core.resources.extension" value="dart"/>
-                              </or>
-                           </and>
-                           <test property="com.google.dart.tools.debug.isDartProject"/>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
       </shortcut>
    </extension>
        
@@ -245,25 +182,6 @@
          <configurationType
                id="com.google.dart.tools.debug.core.serverLaunchConfig">
          </configurationType>
-         <contextualLaunch>
-            <enablement>
-               <with variable="selection">
-                  <count value="1">
-                  </count>
-                  <iterate>
-                     <adapt type="org.eclipse.core.resources.IResource">
-                        <or>
-                           <and>
-                              <test property="com.google.dart.tools.debug.isInDartProject"/>
-                              <test property="org.eclipse.core.resources.extension" value="dart"/>
-                           </and>
-                           <test property="com.google.dart.tools.debug.isDartProject"/>
-                        </or>
-                     </adapt>
-                  </iterate>
-               </with>
-            </enablement>
-         </contextualLaunch>
       </shortcut>
    </extension>
    

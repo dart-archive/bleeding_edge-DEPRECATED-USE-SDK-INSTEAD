@@ -169,6 +169,14 @@
       </activity>
       <activityPatternBinding
             activityId="com.google.dart.development"
+            pattern=".*org\.eclipse\.debug\.ui\.contextualLaunch\.run\.submenu.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
+            pattern=".*org\.eclipse\.debug\.ui\.contextualLaunch\.debug\.submenu.*">
+      </activityPatternBinding>
+      <activityPatternBinding
+            activityId="com.google.dart.development"
             pattern="org\.eclipse\..*convertLineDelimiters">
       </activityPatternBinding>
       <activityPatternBinding
