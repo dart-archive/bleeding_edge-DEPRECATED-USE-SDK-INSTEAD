@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.dialogs.ScanProgressUI;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry;
@@ -321,10 +322,16 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   public static void log(IStatus status) {
+    Instrumentation.operation("DartToolsPlugin-log").with("message", status.getMessage()).with(
+        "plugin",
+        status.getPlugin()).with("severity", status.getSeverity()).log();
+
     getDefault().getLog().log(status);
   }
 
   public static void log(String message) {
+
+    Instrumentation.operation("DartToolsPlugin-log").with("message", message).log();
     getDefault().getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
   }
 
