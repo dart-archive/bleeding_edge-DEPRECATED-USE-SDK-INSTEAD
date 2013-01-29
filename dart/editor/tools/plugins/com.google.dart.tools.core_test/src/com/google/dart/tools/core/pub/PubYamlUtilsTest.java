@@ -148,14 +148,16 @@ public class PubYamlUtilsTest extends AbstractDartCoreTest {
   }
 
   public void test_patternForVersionContraints() {
-    assertTrue(PubYamlUtils.isValidVersionConstraint(">=1.2.3"));
-    assertTrue(PubYamlUtils.isValidVersionConstraint("=>1.2.3"));
-    assertTrue(PubYamlUtils.isValidVersionConstraint("<=1.2.3"));
-    assertTrue(PubYamlUtils.isValidVersionConstraint("=<1.2.3"));
-    assertTrue(PubYamlUtils.isValidVersionConstraint(">1.2.3"));
-    assertTrue(PubYamlUtils.isValidVersionConstraint("<1.2.3"));
-    assertFalse(PubYamlUtils.isValidVersionConstraint("=1.2.3"));
-    assertFalse(PubYamlUtils.isValidVersionConstraint("an"));
+    assertTrue(PubYamlUtils.isValidVersionConstraintString(">=1.2.3 <=2.0.0"));
+    assertTrue(PubYamlUtils.isValidVersionConstraintString("=>1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraintString("=<1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraintString(">1.2.3"));
+    assertTrue(PubYamlUtils.isValidVersionConstraintString("<1.2.3"));
+    assertFalse(PubYamlUtils.isValidVersionConstraintString("=1.2.3"));
+    assertFalse(PubYamlUtils.isValidVersionConstraintString("an"));
+    assertFalse(PubYamlUtils.isValidVersionConstraintString(">1.0.0  <2.0.0")); // multiple space not allowed
+    assertFalse(PubYamlUtils.isValidVersionConstraintString(" >1.0.0 ")); // no leading/trailing space
+    assertTrue(PubYamlUtils.isValidVersionConstraintString("any"));
   }
 
   private void checkPubSpecsEqual(PubYamlObject object1, PubYamlObject object2) {

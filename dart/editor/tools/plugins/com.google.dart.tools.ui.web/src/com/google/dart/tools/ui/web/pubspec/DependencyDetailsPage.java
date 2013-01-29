@@ -106,8 +106,8 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       @Override
       public void modifyText(ModifyEvent e) {
         if (input != null) {
-          if (validateVersionConstriants(versionText.getText())) {
-            input.setVersion(versionText.getText());
+          if (validateVersionConstriants(versionText.getText().trim())) {
+            input.setVersion(versionText.getText().trim());
           }
           setTextDirty();
         }
@@ -245,20 +245,8 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
   }
 
   private boolean validateVersionConstriants(String version) {
-    boolean isValid = true;
+    boolean isValid = PubYamlUtils.isValidVersionConstraintString(version);
 
-    if (!version.equals("any") && !version.isEmpty()) {
-      String[] versions = version.split(" ");
-      if (versions.length > 2) {
-        isValid = false;
-      } else {
-        for (String ver : versions) {
-          if (!PubYamlUtils.isValidVersionConstraint(ver)) {
-            isValid = false;
-          }
-        }
-      }
-    }
     if (isValid) {
       getManagedForm().getMessageManager().removeMessage(VERSION_CONTSTRAINTS_KEY, versionText);
     } else {

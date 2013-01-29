@@ -60,6 +60,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
   private static String NAME_MESSAGE_KEY = "nameMessage";
   private static String VERSION_MESSAGE_KEY = "versionMessage";
+  private static String SDK_VERSION_MESSAGE_KEY = "sdkVersionMessage";
 
   private Control lastFocusControl;
 
@@ -76,6 +77,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   private PubspecModel model;
 
   private boolean ignoreModify = false;
+  private Text sdkVersionText;
 
   public OverviewFormPage(FormEditor editor) {
     super(editor, "overview", "Overview");
@@ -313,6 +315,20 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       }
     });
 
+    Label sdkVersionLabel = toolkit.createLabel(client, "SDK version:");
+    sdkVersionLabel.setToolTipText("Set SDK version contraints for this package");
+    sdkVersionText = toolkit.createText(client, "", SWT.SINGLE);
+    sdkVersionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    sdkVersionText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        if (validateVersionConstriants(sdkVersionText.getText().trim())) {
+          model.setSdkVersion(sdkVersionText.getText().trim());
+        }
+        setTextDirty();
+      }
+    });
+
     Label descriptionLabel = toolkit.createLabel(client, "Description:");
     descriptionLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
     descriptionLabel.setToolTipText("A description about this package");
@@ -347,6 +363,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       description.setText(model.getDescription());
       homepageText.setText(model.getHomepage());
       authorText.setText(model.getAuthor());
+      sdkVersionText.setText(model.getSdkVersion());
     }
   }
 
@@ -381,4 +398,21 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         versionText);
     return false;
   }
+
+  private boolean validateVersionConstriants(String version) {
+    boolean isValid = PubYamlUtils.isValidVersionConstraintString(version);
+
+    if (isValid) {
+      getManagedForm().getMessageManager().removeMessage(SDK_VERSION_MESSAGE_KEY, sdkVersionText);
+    } else {
+      getManagedForm().getMessageManager().addMessage(
+          SDK_VERSION_MESSAGE_KEY,
+          "The SDK version constriant does not have the correct format as in '1.0.0', '<1.5.0', \n'>=2.0.0 <3.0.0', or it contains invalid characters",
+          null,
+          IMessageProvider.ERROR,
+          sdkVersionText);
+    }
+    return isValid;
+  }
+
 }

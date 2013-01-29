@@ -196,35 +196,23 @@ public class PubYamlUtils {
     return null;
   }
 
-  public static boolean isValidVersionConstraint(String string) {
-
-    int index = 0;
-    while (index + 1 <= string.length() && !string.substring(index, index + 1).matches("[0-9]")) {
-      index++;
-    }
-    if (index == string.length()) {
-      return false;
-    }
-    if (index > 2) { // can be single [<>] or two char length [=][<>] 
-      return false;
-    }
-    if (index == 1) {
-      String substring = string.substring(0, 1);
-      if (!substring.equals("<") && !substring.equals(">")) {
+  /**
+   * Checks if the string has a valid version constraint format ">=1.2.3 <2.0.0", "1.0.0", "<1.5.0"
+   */
+  public static boolean isValidVersionConstraintString(String version) {
+    if (!version.equals("any") && !version.isEmpty()) {
+      String[] versions = version.split(" ");
+      if (versions.length > 2) {
         return false;
+      } else {
+        for (String ver : versions) {
+          if (!isValidVersionConstraint(ver)) {
+            return false;
+          }
+        }
       }
     }
-    if (index == 2) {
-      String substring = string.substring(0, 2);
-      if (!substring.equals(">=") && !substring.equals("<=") && !substring.equals("=>")
-          && !substring.equals("=<")) {
-        return false;
-      }
-    }
-    if (string.substring(index).matches(PACKAGE_VERSION_EXPRESSION)) {
-      return true;
-    }
-    return false;
+    return true;
   }
 
   /**
@@ -257,6 +245,37 @@ public class PubYamlUtils {
       DartCore.logError(e);
       return null;
     }
+  }
+
+  private static boolean isValidVersionConstraint(String string) {
+
+    int index = 0;
+    while (index + 1 <= string.length() && !string.substring(index, index + 1).matches("[0-9]")) {
+      index++;
+    }
+    if (index == string.length()) {
+      return false;
+    }
+    if (index > 2) { // can be single [<>] or two char length [=][<>] 
+      return false;
+    }
+    if (index == 1) {
+      String substring = string.substring(0, 1);
+      if (!substring.equals("<") && !substring.equals(">")) {
+        return false;
+      }
+    }
+    if (index == 2) {
+      String substring = string.substring(0, 2);
+      if (!substring.equals(">=") && !substring.equals("<=") && !substring.equals("=>")
+          && !substring.equals("=<")) {
+        return false;
+      }
+    }
+    if (string.substring(index).matches(PACKAGE_VERSION_EXPRESSION)) {
+      return true;
+    }
+    return false;
   }
 
 }
