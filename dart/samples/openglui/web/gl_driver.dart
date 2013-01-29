@@ -29,7 +29,7 @@ void glMain(setup, resize, draw) {
   };
   render(0);
 
-  window.on.resize.add((e) {
+  window.onResize.listen((e) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     resize(canvas.width, canvas.height);

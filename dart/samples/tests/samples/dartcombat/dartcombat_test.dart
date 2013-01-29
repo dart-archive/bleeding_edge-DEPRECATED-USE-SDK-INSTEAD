@@ -114,7 +114,7 @@ main() {
           Constants.HIT,  8, 6,  // down
           Constants.SUNK, 8, 7]; // down  (sunk - done)
         _expectShotSequence(expectedShots, p2OwnBoard, 2, callback);
-  
+
         // hit the boat from the enemy side.
         var p1EnemyBoard = document.query("#p1enemy");
         var hitCell = p1EnemyBoard.nodes[0].nodes[4].nodes[8];
@@ -158,9 +158,9 @@ doMouseEvent(String type, var targetCell) {
   final point = window.webkitConvertPointFromNodeToPage(targetCell,
       new Point(5, 5));
 
-  MouseEvent e = new MouseEvent(type, window, 0, 0, 0, point.x, point.y, 0,
-      true, true, false, false, false, false, targetCell);
-  targetCell.on[type].dispatch(e);
+  MouseEvent e = new MouseEvent(type, clientX:point.x, clientY:point.y,
+      relatedTarget:targetCell);
+  targetCell.dispatchEvent(e);
 }
 
 void _serialInvokeAsync(List closures) {

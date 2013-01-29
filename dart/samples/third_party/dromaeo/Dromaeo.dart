@@ -92,7 +92,7 @@ class Dromaeo {
       : _suiteControllers = new List<SuiteController>()
   {
     _handler = _createHandler();
-    window.on.message.add(
+    window.onMessage.listen(
         (MessageEvent event) {
           try {
             final response = json.parse(event.data);
@@ -100,9 +100,7 @@ class Dromaeo {
           } catch (e, stacktrace) {
             window.alert('Exception: ${e}: ${stacktrace}');
           }
-        },
-        false
-    );
+        });
   }
 
   run() {

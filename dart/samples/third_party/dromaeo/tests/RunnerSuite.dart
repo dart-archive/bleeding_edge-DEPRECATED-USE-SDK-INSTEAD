@@ -23,7 +23,7 @@ class Suite {
           _window.alert('[${_name}]: unknown command ${command}');
       }
     };
-    _window.on.message.add(starter);
+    _window.onMessage.listen(starter);
   }
 
   /**
