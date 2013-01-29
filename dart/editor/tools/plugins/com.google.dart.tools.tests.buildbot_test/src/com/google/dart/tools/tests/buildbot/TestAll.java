@@ -35,6 +35,9 @@ public class TestAll {
     // Core
     suite.addTest(com.google.dart.tools.core.TestAll.suite());
 
+    // Debug
+    suite.addTest(com.google.dart.tools.debug.core.TestAll.suite());
+
     // UI
     //suite.addTest(com.google.dart.tools.ui.TestAll.suite());
 
