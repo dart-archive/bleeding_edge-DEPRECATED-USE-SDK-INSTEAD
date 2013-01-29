@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
@@ -60,6 +61,8 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+    long start = System.currentTimeMillis();
+
     try {
       Object element = selection.getFirstElement();
       if (element instanceof DartFunction) {
@@ -69,6 +72,13 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
               function,
               getShell());
           if (success) {
+
+            long elapsed = System.currentTimeMillis() - start;
+            Instrumentation.metric("ConvertMethodToGetter", elapsed).with("Success", "true").log();
+            Instrumentation.operation("ConvertMethodToGetter", elapsed).with(
+                "function",
+                function.getSource()).log();
+
             return;
           }
         }
@@ -80,10 +90,17 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
           RefactoringMessages.ConvertMethodToGetterAction_dialog_title,
           RefactoringMessages.InlineMethodAction_unexpected_exception);
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "false").log();
+
   }
 
   @Override
   public void run(ITextSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     if (!ActionUtil.isEditable(fEditor)) {
       return;
     }
@@ -95,10 +112,20 @@ public class ConvertMethodToGetterAction extends SelectionDispatchAction {
           function,
           getShell());
       if (success) {
+
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("ConvertMethodToGetter", elapsed).with("Success", "true").log();
+        Instrumentation.operation("ConvertMethodToGetter", elapsed).with(
+            "function",
+            function.getSource()).log();
+
         return;
       }
     } catch (Throwable e) {
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ConvertMethodToGetter", elapsed).with("Success", "false").log();
 
     MessageDialog.openInformation(
         getShell(),

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
@@ -60,6 +61,9 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     try {
       Object element = selection.getFirstElement();
       if (element instanceof DartFunction) {
@@ -69,6 +73,11 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
               function,
               getShell());
           if (success) {
+            long elapsed = System.currentTimeMillis() - start;
+            Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "true").log();
+            Instrumentation.operation("ConvertGetterToMethod", elapsed).with(
+                "function",
+                function.getSource()).log();
             return;
           }
         }
@@ -80,10 +89,17 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
           RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
           RefactoringMessages.InlineMethodAction_unexpected_exception);
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "false").log();
+
   }
 
   @Override
   public void run(ITextSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     if (!ActionUtil.isEditable(fEditor)) {
       return;
     }
@@ -95,8 +111,19 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
           function,
           getShell());
       if (success) {
+
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "true").log();
+        Instrumentation.operation("ConvertGetterToMethod", elapsed).with(
+            "function",
+            function.getSource()).log();
+
         return;
       }
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "false").log();
+
     } catch (Throwable e) {
     }
 
