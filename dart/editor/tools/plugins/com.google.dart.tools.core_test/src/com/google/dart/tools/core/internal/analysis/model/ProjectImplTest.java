@@ -27,6 +27,7 @@ import com.google.dart.tools.core.mock.MockProject;
 
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
@@ -121,6 +122,8 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertNotNull(project.getDefaultContext());
     assertNotSame(project.getDefaultContext(), pubFolder.getContext());
+    // TODO(keertip): add contents to pubspec file to avoid io exception
+    LOG.assertEntries(IStatus.ERROR);
   }
 
   public void test_pubFolder_project() {
@@ -129,6 +132,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
+
     assertSame(pubFolder, project.getPubFolder(webContainer));
     assertSame(pubFolder, project.getPubFolder(subContainer));
     assertSame(pubFolder, project.getPubFolder(appContainer));
@@ -138,6 +142,8 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertNotNull(project.getDefaultContext());
     assertSame(project.getDefaultContext(), pubFolder.getContext());
+    // TODO(keertip): add contents to pubspec file to avoid io exception
+    LOG.assertEntries(IStatus.ERROR, IStatus.ERROR);
   }
 
   public void test_pubspecAdded() {

@@ -376,6 +376,7 @@ public class ProjectImpl implements Project {
         if (!doesParentPubFolderExist(path)) {
           PubFolder pubFolder = new PubFolderImpl( //
               parent,
+              event.getResource(),
               path.segmentCount() == 1 ? defaultContext : factory.createContext());
           pubFolders.put(path, pubFolder);
         }

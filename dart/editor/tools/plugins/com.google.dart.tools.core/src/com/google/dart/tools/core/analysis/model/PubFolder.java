@@ -14,6 +14,9 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.tools.core.pub.PubspecModel;
+
+import java.io.IOException;
 
 /**
  * Represents a project or folder within a project containing a pubspec file
@@ -26,4 +29,12 @@ public interface PubFolder {
    * @return the analysis context (not {@code null})
    */
   AnalysisContext getContext();
+
+  /**
+   * The pubspec model representing the pubspec.yaml file
+   * 
+   * @return the pubspec model (not {@code null}
+   * @throws IOException
+   */
+  PubspecModel getPubspec() throws IOException;
 }

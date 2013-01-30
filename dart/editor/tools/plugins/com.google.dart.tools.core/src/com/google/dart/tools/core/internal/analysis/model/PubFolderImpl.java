@@ -14,9 +14,14 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.pub.PubspecModel;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IResource;
+
+import java.io.IOException;
 
 /**
  * Represents a project or folder within a project containing a pubspec file
@@ -25,12 +30,24 @@ public class PubFolderImpl implements PubFolder {
 
   private final AnalysisContext context;
 
-  public PubFolderImpl(IContainer container, AnalysisContext context) {
+  private final IResource pubspecFile;
+  private PubspecModel pubspec = new PubspecModel(null);
+
+  public PubFolderImpl(IContainer container, IResource pubspecResource, AnalysisContext context) {
     this.context = context;
+    pubspecFile = pubspecResource;
   }
 
   @Override
   public AnalysisContext getContext() {
     return context;
+  }
+
+  @Override
+  public PubspecModel getPubspec() throws IOException {
+    if (pubspec == null) {
+      pubspec = new PubspecModel(FileUtilities.getContents(pubspecFile.getLocation().toFile()));
+    }
+    return pubspec;
   }
 }
