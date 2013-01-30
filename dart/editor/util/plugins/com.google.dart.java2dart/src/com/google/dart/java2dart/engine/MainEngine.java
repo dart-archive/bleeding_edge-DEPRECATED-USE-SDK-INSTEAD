@@ -26,9 +26,12 @@ import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
+import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.importDirective;
+import static com.google.dart.java2dart.util.ASTFactory.importHideCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
 
 import java.io.File;
@@ -76,6 +79,10 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/element"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/type"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/type"));
     context.addSourceFile(new File(
         engineFolder2,
         "com/google/dart/java2dart/util/ToFormattedSourceVisitor.java"));
@@ -86,6 +93,7 @@ public class MainEngine {
       processor.process(context, dartUnit);
     }
     // run this again, because we may introduce conflicts when convert methods to getters/setters
+    context.ensureUniqueClassMemberNames(dartUnit);
     context.ensureNoVariableNameReferenceFromInitializer(dartUnit);
     // dump as several libraries
     Files.copy(new File("resources/javalib.dart"), new File(targetFolder + "/javalib.dart"));
@@ -134,6 +142,13 @@ public class MainEngine {
           new File(targetFolder + "/parser.dart"),
           Charsets.UTF_8);
     }
+    {
+      CompilationUnit library = buildElementLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/element.dart"),
+          Charsets.UTF_8);
+    }
     System.out.println("Translation complete");
   }
 
@@ -145,9 +160,33 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("enginelib.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
+    unit.getDirectives().add(
+        importDirective("element.dart", null, importHideCombinator(identifier("Annotation"))));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
-      if (isEnginePath(file, "ast/") || isEnginePath(file, "utilities/dart/ParameterKind")) {
+      if (isEnginePath(file, "ast/")) {
+        unit.getDeclarations().add(member);
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildElementLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "element"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("javalib.dart", null));
+    unit.getDirectives().add(importDirective("enginelib.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+      File file = context.getMemberToFile().get(member);
+      if (isEnginePath(file, "internal/element/handle/")) {
+        continue;
+      }
+      if (isEnginePath(file, "element/") || isEnginePath(file, "type/")
+          || isEnginePath(file, "utilities/dart/ParameterKind")
+          || isEnginePath(file, "internal/element/") || isEnginePath(file, "internal/type/")) {
         unit.getDeclarations().add(member);
       }
     }
@@ -191,6 +230,11 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "element.dart",
+            null,
+            ASTFactory.importShowCombinator(identifier("ParameterKind"))));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")

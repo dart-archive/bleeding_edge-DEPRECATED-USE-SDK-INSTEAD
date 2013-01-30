@@ -37,6 +37,30 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Class() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public <T> T getAncestor(Class<T> t) {",
+        "    if (t.isInstance(this)) {",
+        "      return (T) this;",
+        "    }",
+        "    return null;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  Object getAncestor(Type t) {",
+        "    if (isInstanceOf(this, t)) {", // from javalib
+        "      return this as Object;",
+        "    }",
+        "    return null;",
+        "  }",
+        "}");
+  }
+
   public void test_Double_parseDouble() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -174,6 +198,68 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    int.parse(p);",
         "    int.parse(p, radix: 16);",
         "  }",
+        "}");
+  }
+
+  public void test_Object_equals() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  Object o;",
+        "  public boolean equals(Object o) {",
+        "    return this.equals(o);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Object o;",
+        "  bool operator ==(Object o) => this == o;",
+        "}");
+  }
+
+  public void test_Object_equals2() throws Exception {
+    setFileLines(
+        "test/MyInterface.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public interface MyInterface {",
+            "  boolean equals(Object o);",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  MyInterface o;",
+        "  boolean main(Object p) {",
+        "    return 1 == 2 && o.equals(p);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  MyInterface o;",
+        "  bool main(Object p) => 1 == 2 && o == p;",
+        "}");
+  }
+
+  public void test_Object_getClass() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  Object o;",
+        "  public Class<?> main() {",
+        "    return o.getClass();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Object o;",
+        "  Type main() => o.runtimeType;",
         "}");
   }
 
@@ -390,6 +476,8 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    StringBuilder sb = new StringBuilder();",
         "    sb.append(\"abc\");",
         "    sb.append(42);",
+        "    sb.length();",
+        "    sb.setLength(0);",
         "    return sb.toString();",
         "  }",
         "}");
@@ -400,6 +488,8 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    StringBuffer sb = new StringBuffer();",
         "    sb.add(\"abc\");",
         "    sb.add(42);",
+        "    sb.length;",
+        "    sb.clear();",
         "    return sb.toString();",
         "  }",
         "}");

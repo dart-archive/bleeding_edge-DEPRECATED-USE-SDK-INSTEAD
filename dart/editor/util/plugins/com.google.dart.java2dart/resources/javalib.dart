@@ -6,6 +6,49 @@ class System {
   }
 }
 
+/**
+ * Limited implementation of "o is instanceOfType", see
+ * http://code.google.com/p/dart/issues/detail?id=8184
+ */
+bool isInstanceOf(o, Type t) {
+  if (o == null) {
+    return false;
+  }
+  if (o.runtimeType == t) {
+    return true;
+  }
+  String oTypeName = o.runtimeType.toString();
+  if (oTypeName == "${t.toString()}Impl") {
+    return true;
+  }
+  return false;
+}
+
+class JavaArrays {
+  static bool equals(List a, List b) {
+    if (a.length != b.length) {
+      return false;
+    }
+    var len = a.length;
+    for (int i = 0; i < len; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+  static int makeHashCode(List a) {
+    if (a == null) {
+      return 0;
+    }
+    int result = 1;
+    for (var element in a) {
+      result = 31 * result + (element == null ? 0 : element.hashCode());
+    }
+    return result;
+  }
+}
+
 class Character {
   static const int MAX_VALUE = 0xffff;
   static const int MAX_CODE_POINT = 0x10ffff;
@@ -73,6 +116,12 @@ class StringUtils {
     }
     return sb.toString();
   }
+}
+
+class IllegalArgumentException implements Exception {
+  final String message;
+  const IllegalArgumentException([this.message = ""]);
+  String toString() => "IllegalStateException: $message";
 }
 
 class IllegalStateException implements Exception {
@@ -165,4 +214,20 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   void insertRange(int start, int length, [E fill]) {
     elements.insertRange(start, length, fill);
   }
+}
+
+class MapEntry<K, V> {
+  K _key;
+  V _value;
+  MapEntry(this._key, this._value);
+  K getKey() => _key;
+  V getValue() => _value;
+}
+
+Set<MapEntry> getMapEntrySet(Map m) {
+  Set<MapEntry> result = new Set();
+  m.forEach((k, v) {
+    result.add(new MapEntry(k, v));
+  });
+  return result;
 }

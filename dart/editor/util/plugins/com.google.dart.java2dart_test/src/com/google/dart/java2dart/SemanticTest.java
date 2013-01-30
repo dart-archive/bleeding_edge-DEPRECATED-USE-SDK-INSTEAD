@@ -655,6 +655,37 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  /**
+   * We should not rename "equals" which comes from Object.
+   */
+  public void test_giveUniqueName_methods_fromObject() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static boolean equals(int a, int b) {",
+            "    return a == b;",
+            "  }",
+            "  public boolean equals(Object o) {",
+            "    return false;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static bool equals2(int a, int b) => a == b;",
+            "  bool equals(Object o) => false;",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_giveUniqueName_methods_hierarchy() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -786,6 +817,48 @@ public class SemanticTest extends AbstractSemanticTest {
             "    baz(foo2);",
             "  }",
             "  static void baz(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_giveUniqueName_withStatic() throws Exception {
+    setFileLines(
+        "test/Super.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Super {",
+            "  static int add(int a, int b) {return a + b;}",
+            "}",
+            ""));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Sub extends Super {",
+            "  int add(int a) {return add(a, 2);}",
+            "  void main() {",
+            "    add(1, 2);",
+            "    add(3);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Super {",
+            "  static int add(int a, int b) => a + b;",
+            "}",
+            "class Sub extends Super {",
+            "  int add2(int a) => add(a, 2);",
+            "  void main() {",
+            "    add(1, 2);",
+            "    add2(3);",
             "  }",
             "}"),
         getFormattedSource(unit));

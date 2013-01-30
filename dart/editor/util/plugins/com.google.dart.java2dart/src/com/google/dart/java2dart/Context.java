@@ -42,9 +42,8 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringToken;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.block;
@@ -109,7 +108,7 @@ public class Context {
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
   private final Map<CompilationUnitMember, File> memberToFile = Maps.newHashMap();
   // information about names
-  private static final Set<String> forbiddenNames = ImmutableSet.of("with");
+  private static final Set<String> forbiddenNames = ImmutableSet.of("const", "final", "with");
   private final Set<String> usedNames = Sets.newHashSet();
   private final Set<ClassMember> privateClassMembers = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToName = Maps.newHashMap();
@@ -193,6 +192,82 @@ public class Context {
           currentVariableName = oldVariableName;
         }
         return null;
+      }
+    });
+  }
+
+  public void ensureUniqueClassMemberNames(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      private final Set<ClassMember> untouchableMethods = Sets.newHashSet();
+      private final Set<String> usedClassMemberNames = Sets.newHashSet();
+
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        usedClassMemberNames.clear();
+        // fill "static" methods from super classes
+        {
+          org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(node);
+          if (binding != null) {
+            binding = binding.getSuperclass();
+            while (binding != null) {
+              for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
+                if (org.eclipse.jdt.core.dom.Modifier.isStatic(method.getModifiers())) {
+                  usedClassMemberNames.add(method.getName());
+                }
+              }
+              binding = binding.getSuperclass();
+            }
+          }
+        }
+        // fill "untouchable" methods
+        for (ClassMember member : node.getMembers()) {
+          if (member instanceof MethodDeclaration) {
+            MethodDeclaration methodDeclaration = (MethodDeclaration) member;
+            Object binding = nodeToBinding.get(member);
+            if (JavaUtils.isMethodDeclaredInClass(binding, "java.lang.Object")) {
+              untouchableMethods.add(member);
+              usedClassMemberNames.add(methodDeclaration.getName().getName());
+            }
+          }
+        }
+        // ensure unique method names (and prefer to keep method name over field name)
+        for (ClassMember member : node.getMembers()) {
+          if (member instanceof MethodDeclaration) {
+            MethodDeclaration methodDeclaration = (MethodDeclaration) member;
+            if (untouchableMethods.contains(methodDeclaration)) {
+              continue;
+            }
+            ensureUniqueName(methodDeclaration.getName());
+          }
+        }
+        // ensure unique field names (if name is already used be method)
+        for (ClassMember member : node.getMembers()) {
+          if (member instanceof FieldDeclaration) {
+            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
+            for (VariableDeclaration field : fieldDeclaration.getFields().getVariables()) {
+              ensureUniqueName(field.getName());
+            }
+          }
+        }
+        // no recursion
+        return null;
+      }
+
+      private void ensureUniqueName(Identifier declarationName) {
+        if (declarationName instanceof SimpleIdentifier) {
+          SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
+          String name = declarationIdentifier.getName();
+          if (forbiddenNames.contains(name) || usedClassMemberNames.contains(name)) {
+            String newName = generateUniqueName(name);
+            // rename binding
+            if (!newName.equals(name)) {
+              renameIdentifier(declarationIdentifier, newName);
+              name = newName;
+            }
+          }
+          // remember that name is used
+          usedClassMemberNames.add(name);
+        }
       }
     });
   }
@@ -513,61 +588,15 @@ public class Context {
     });
   }
 
-  private void ensureUniqueClassMemberNames(CompilationUnit unit) {
-    unit.accept(new RecursiveASTVisitor<Void>() {
-      private final Set<String> usedClassMemberNames = Sets.newHashSet();
-
-      @Override
-      public Void visitClassDeclaration(ClassDeclaration node) {
-        usedClassMemberNames.clear();
-        // ensure unique method names (and prefer to keep method name over field name)
-        for (ClassMember member : node.getMembers()) {
-          if (member instanceof MethodDeclaration) {
-            MethodDeclaration methodDeclaration = (MethodDeclaration) member;
-            ensureUniqueName(methodDeclaration.getName());
-          }
-        }
-        // ensure unique field names (if name is already used be method)
-        for (ClassMember member : node.getMembers()) {
-          if (member instanceof FieldDeclaration) {
-            FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
-            for (VariableDeclaration field : fieldDeclaration.getFields().getVariables()) {
-              ensureUniqueName(field.getName());
-            }
-          }
-        }
-        // no recursion
-        return null;
-      }
-
-      private void ensureUniqueName(Identifier declarationName) {
-        if (declarationName instanceof SimpleIdentifier) {
-          SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
-          String name = declarationIdentifier.getName();
-          if (forbiddenNames.contains(name) || usedClassMemberNames.contains(name)) {
-            String newName = generateUniqueName(name);
-            // rename binding
-            if (!newName.equals(name)) {
-              renameIdentifier(declarationIdentifier, newName);
-              name = newName;
-            }
-          }
-          // remember that name is used
-          usedClassMemberNames.add(name);
-        }
-      }
-    });
-  }
-
   /**
    * @return the globally unique name, based on the given one.
    */
   private String generateUniqueName(String name) {
-    if (usedNames.contains(name)) {
+    if (usedNames.contains(name) || forbiddenNames.contains(name)) {
       int index = 2;
       while (true) {
         String newName = name + index;
-        if (!usedNames.contains(newName)) {
+        if (!usedNames.contains(newName) && !forbiddenNames.contains(newName)) {
           usedNames.add(newName);
           return newName;
         }

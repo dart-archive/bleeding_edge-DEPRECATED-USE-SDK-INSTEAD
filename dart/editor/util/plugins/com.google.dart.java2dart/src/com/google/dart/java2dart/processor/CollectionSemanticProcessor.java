@@ -44,6 +44,7 @@ import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
@@ -77,10 +78,15 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
         Object binding = context.getNodeBinding(node);
-        // translate java.util.Comparator to function expression
         if (binding instanceof IMethodBinding) {
           IMethodBinding methodBinding = (IMethodBinding) binding;
           ITypeBinding declaringClass = methodBinding.getDeclaringClass();
+          // new HashSet(5) -> new HashSet()
+          if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashSet")) {
+            node.getArgumentList().getArguments().clear();
+            return null;
+          }
+          // translate java.util.Comparator to function expression
           if (methodBinding.isConstructor() && declaringClass.isAnonymous()) {
             ITypeBinding[] intfs = declaringClass.getInterfaces();
             if (intfs.length == 1
@@ -118,9 +124,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
         super.visitMethodInvocation(node);
-        List<Expression> arguments = node.getArgumentList().getArguments();
+        List<Expression> args = node.getArgumentList().getArguments();
         SimpleIdentifier nameNode = node.getMethodName();
-        if (isMethodInClass(node, "size", "java.util.Collection")) {
+        if (isMethodInClass(node, "size", "java.util.Collection")
+            || isMethodInClass(node, "size", "java.util.Map")) {
           replaceNode(node, propertyAccess(node.getTarget(), nameNode));
           nameNode.setToken(token("length"));
           return null;
@@ -131,47 +138,101 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "get", "java.util.List")
             || isMethodInClass(node, "get", "java.util.Map")) {
-          replaceNode(node, indexExpression(node.getTarget(), arguments.get(0)));
+          replaceNode(node, indexExpression(node.getTarget(), args.get(0)));
           return null;
         }
-        if (isMethodInClass(node, "toArray", "java.util.List")) {
+        if (isMethodInClass(node, "toArray", "java.util.Collection")) {
           replaceNode(
               node,
               instanceCreationExpression(Keyword.NEW, typeName("List"), "from", node.getTarget()));
           return null;
         }
+        if (isMethodInClass(node, "iterator", "java.util.Collection")) {
+          replaceNode(
+              node,
+              instanceCreationExpression(
+                  Keyword.NEW,
+                  typeName("HasNextIterator"),
+                  propertyAccess(node.getTarget(), node.getMethodName())));
+          return null;
+        }
+        if (isMethodInClass(node, "hasNext", "java.util.Iterator")) {
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          return null;
+        }
         if (isMethodInClass(node, "put", "java.util.Map")) {
           Assert.isTrue(node.getParent() instanceof ExpressionStatement);
-          IndexExpression indexExpression = indexExpression(node.getTarget(), arguments.get(0));
+          IndexExpression indexExpression = indexExpression(node.getTarget(), args.get(0));
           AssignmentExpression assignment = assignmentExpression(
               indexExpression,
               TokenType.EQ,
-              arguments.get(1));
+              args.get(1));
           replaceNode(node, assignment);
+          return null;
+        }
+        if (isMethodInClass(node, "entrySet", "java.util.Map")) {
+          replaceNode(node, methodInvocation("getMapEntrySet", node.getTarget()));
           return null;
         }
         if (isMethodInClass(node, "remove", "java.util.List")) {
           nameNode.setToken(TokenFactory.token("removeAt"));
           return null;
         }
+        if (isMethodInClass(node, "add", "java.util.List") && args.size() == 2) {
+          nameNode.setToken(TokenFactory.token("insertRange"));
+          args.add(1, integer(1));
+          return null;
+        }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
-          replaceNode(node, methodInvocation(arguments.get(0), "sort"));
+          replaceNode(node, methodInvocation(args.get(0), "sort"));
+          return null;
+        }
+        if (isMethodInClass(node, "hashCode", "java.util.Arrays")) {
+          nameNode.setToken(token("makeHashCode"));
+          return null;
+        }
+        if (isMethodInClass(node, "noneOf", "java.util.EnumSet")) {
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Set")));
           return null;
         }
         return null;
       }
 
       @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        Object binding = context.getNodeBinding(node);
+        if (JavaUtils.isTypeNamed(binding, "java.util.Arrays")) {
+          replaceNode(node, simpleIdentifier("JavaArrays"));
+          return null;
+        }
+        return super.visitSimpleIdentifier(node);
+      }
+
+      @Override
       public Void visitTypeName(TypeName node) {
+        super.visitTypeName(node);
+        Object binding = context.getNodeTypeBinding(node);
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
           if ("ArrayList".equals(name)) {
-            replaceNode(nameNode, simpleIdentifier("List"));
+            nameNode.setToken(token("List"));
+            return null;
+          }
+          if ("EnumSet".equals(name)) {
+            nameNode.setToken(token("Set"));
+            return null;
+          }
+          if (JavaUtils.isTypeNamed(binding, "java.util.Map.Entry")) {
+            nameNode.setToken(token("MapEntry"));
+            return null;
+          }
+          if (JavaUtils.isTypeNamed(binding, "java.util.Iterator")) {
+            nameNode.setToken(token("HasNextIterator"));
             return null;
           }
         }
-        return super.visitTypeName(node);
+        return null;
       }
 
       private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {

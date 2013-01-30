@@ -144,6 +144,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             node.setOperatorKeyword(token(Keyword.GET));
             node.setParameters(null);
           }
+          if (name.equals("equals") && node.getParameters().getParameters().size() == 1) {
+            node.setOperatorKeyword(token(Keyword.OPERATOR));
+            node.setName(identifier("=="));
+          }
         }
         return super.visitMethodDeclaration(node);
       }
@@ -154,9 +158,29 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         SimpleIdentifier nameNode = node.getMethodName();
         String name = nameNode.getName();
         NodeList<Expression> args = node.getArgumentList().getArguments();
-        if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
-            || isMethodInClass(node, "values", "java.lang.Enum")) {
-          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+        if (args.isEmpty()) {
+          if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
+              || isMethodInClass(node, "values", "java.lang.Enum")) {
+            replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+            return null;
+          }
+          if ("getClass".equals(name)) {
+            replaceNode(node, propertyAccess(node.getTarget(), "runtimeType"));
+            return null;
+          }
+        }
+        if (name.equals("equals") && args.size() == 1) {
+          ASTNode parent = node.getParent();
+          if (parent instanceof PrefixExpression
+              && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
+            replaceNode(parent, binaryExpression(node.getTarget(), TokenType.BANG_EQ, args.get(0)));
+          } else {
+            replaceNode(node, binaryExpression(node.getTarget(), TokenType.EQ_EQ, args.get(0)));
+          }
+          return null;
+        }
+        if (isMethodInClass(node, "isInstance", "java.lang.Class")) {
+          replaceNode(node, methodInvocation("isInstanceOf", args.get(0), node.getTarget()));
           return null;
         }
         if (isMethodInClass(node, "charAt", "java.lang.String")) {
@@ -223,18 +247,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           replaceNode(node, node.getTarget());
           return null;
         }
-        if (isMethodInClass(node, "equals", "java.lang.Double")
-            || isMethodInClass(node, "equals", "java.math.BigInteger")
-            || isMethodInClass(node, "equals", "java.lang.String")) {
-          ASTNode parent = node.getParent();
-          if (parent instanceof PrefixExpression
-              && ((PrefixExpression) parent).getOperator().getType() == TokenType.BANG) {
-            replaceNode(parent, binaryExpression(node.getTarget(), TokenType.BANG_EQ, args.get(0)));
-          } else {
-            replaceNode(node, binaryExpression(node.getTarget(), TokenType.EQ_EQ, args.get(0)));
-          }
-          return null;
-        }
         {
           TokenType tokenType = null;
           if (isMethodInClass(node, "and", "java.math.BigInteger")) {
@@ -277,6 +289,15 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           replaceNode(nameNode, simpleIdentifier("add"));
           return null;
         }
+        if (isMethodInClass(node, "length", "java.lang.AbstractStringBuilder")) {
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          return null;
+        }
+        if (isMethodInClass(node, "setLength", "java.lang.AbstractStringBuilder")
+            && args.size() == 1 && args.get(0).toSource().equals("0")) {
+          replaceNode(node, methodInvocation(node.getTarget(), "clear"));
+          return null;
+        }
         return null;
       }
 
@@ -316,12 +337,17 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             }
           }
         }
-        // StringBuilder -> StringBuffer
+        // replace by name
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
+          // StringBuilder -> StringBuffer
           if (name.equals("StringBuilder")) {
             replaceNode(nameNode, simpleIdentifier("StringBuffer"));
+          }
+          // Class<T> -> Type
+          if (name.equals("Class")) {
+            replaceNode(node, typeName("Type"));
           }
         }
         // done

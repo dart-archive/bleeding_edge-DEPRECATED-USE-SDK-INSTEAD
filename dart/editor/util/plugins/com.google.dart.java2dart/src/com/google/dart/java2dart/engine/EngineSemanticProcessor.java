@@ -18,6 +18,7 @@ import com.google.common.base.Objects;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -25,10 +26,12 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.JavaUtils;
 
+import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import java.util.Iterator;
@@ -58,6 +61,15 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     // process nodes
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        SimpleIdentifier nameNode = node.getName();
+        if (nameNode.getName().equals("Type")) {
+          context.renameIdentifier(nameNode, "Type2");
+        }
+        return super.visitClassDeclaration(node);
+      }
+
+      @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         String name = node.getName().getName();
         if ("accept".equals(name) && node.getParameters().getParameters().size() == 1) {
@@ -70,8 +82,16 @@ public class EngineSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitMethodInvocation(MethodInvocation node) {
+        List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(node, "toArray", "com.google.dart.engine.utilities.collection.IntList")) {
           replaceNode(node, node.getTarget());
+          return null;
+        }
+        if (isMethodInClass(
+            node,
+            "equals",
+            "com.google.dart.engine.utilities.general.ObjectUtilities")) {
+          replaceNode(node, binaryExpression(args.get(0), TokenType.EQ_EQ, args.get(1)));
           return null;
         }
         return super.visitMethodInvocation(node);

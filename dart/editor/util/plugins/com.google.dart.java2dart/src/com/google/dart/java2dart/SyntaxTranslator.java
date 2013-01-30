@@ -705,7 +705,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     Expression condition = translateExpression(node.getExpression());
     List<Expression> updaters = translateExpressionList(node.updaters());
     Statement body = (Statement) translate(node.getBody());
-    Object javaInitializer = node.initializers().get(0);
+    Object javaInitializer = !node.initializers().isEmpty() ? node.initializers().get(0) : null;
     if (javaInitializer instanceof org.eclipse.jdt.core.dom.VariableDeclarationExpression) {
       org.eclipse.jdt.core.dom.VariableDeclarationExpression javaVDE = (org.eclipse.jdt.core.dom.VariableDeclarationExpression) javaInitializer;
       List<VariableDeclaration> variables = Lists.newArrayList();
@@ -946,6 +946,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           dartMethodName,
           parameterList,
           body);
+      context.putNodeBinding(methodDeclaration, binding);
       if (isNotPublic) {
         context.putPrivateClassMember(methodDeclaration);
       }
@@ -989,9 +990,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ParameterizedType node) {
-    return done(typeName(
+    ITypeBinding binding = node.resolveBinding();
+    TypeName typeName = typeName(
         ((TypeName) translate(node.getType())).getName(),
-        translateTypeNames(node.typeArguments())));
+        translateTypeNames(node.typeArguments()));
+    context.putNodeBinding(typeName, binding);
+    context.putNodeTypeBinding(typeName, binding);
+    return done(typeName);
   }
 
   @Override
@@ -1108,24 +1113,29 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.SimpleType node) {
     ITypeBinding binding = node.resolveBinding();
     String name = node.getName().toString();
-    if ("Void".equals(name)) {
-      name = "Object";
-    }
-    if ("Boolean".equals(name)) {
-      name = "bool";
-    }
-    if ("Short".equals(name) || "Integer".equals(name) || "Long".equals(name)) {
-      name = "int";
-    }
-    if ("Float".equals(name) || "Double".equals(name)) {
-      name = "double";
-    }
-    if ("BigInteger".equals(name)) {
-      name = "int";
+    SimpleIdentifier nameNode = identifier(name);
+    putReference(binding, nameNode);
+    {
+      if ("Void".equals(name)) {
+        nameNode = identifier("Object");
+      }
+      if ("Boolean".equals(name)) {
+        nameNode = identifier("bool");
+      }
+      if ("Short".equals(name) || "Integer".equals(name) || "Long".equals(name)) {
+        nameNode = identifier("int");
+      }
+      if ("Float".equals(name) || "Double".equals(name)) {
+        nameNode = identifier("double");
+      }
+      if ("BigInteger".equals(name)) {
+        nameNode = identifier("int");
+      }
     }
     // done
-    TypeName typeName = typeName(name);
+    TypeName typeName = typeName(nameNode);
     context.putNodeBinding(typeName, binding);
+    context.putNodeTypeBinding(typeName, binding);
     return done(typeName);
   }
 
@@ -1244,6 +1254,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
+    ITypeBinding binding = node.resolveBinding();
     SimpleIdentifier name = translateSimpleName(node.getName());
     // interface
     Token abstractToken = null;
@@ -1281,7 +1292,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     // members
     List<ClassMember> members = translateBodyDeclarations(node.bodyDeclarations());
-    return done(new ClassDeclaration(
+    ClassDeclaration classDeclaration = new ClassDeclaration(
         translateJavadoc(node),
         null,
         abstractToken,
@@ -1293,7 +1304,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         implementsClause,
         null,
         members,
-        null));
+        null);
+    context.putNodeBinding(classDeclaration, binding);
+    context.putNodeTypeBinding(classDeclaration, binding);
+    return done(classDeclaration);
   }
 
   @Override

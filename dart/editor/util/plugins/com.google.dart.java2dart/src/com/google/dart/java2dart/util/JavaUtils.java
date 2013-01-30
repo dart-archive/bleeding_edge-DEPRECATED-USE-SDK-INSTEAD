@@ -130,6 +130,21 @@ public class JavaUtils {
     return signature.substring(0, dotIndex + 1) + newName;
   }
 
+  public static boolean isMethodDeclaredInClass(Object bindingObject, String reqClassName) {
+    if (bindingObject instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) bindingObject;
+      while (true) {
+        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(binding, true);
+        if (overriddenMethod == null) {
+          break;
+        }
+        binding = overriddenMethod;
+      }
+      return getQualifiedName(binding.getDeclaringClass()).equals(reqClassName);
+    }
+    return false;
+  }
+
   /**
    * @return <code>true</code> if given {@link IMethodBinding} is method defined in the class with
    *         required name.
@@ -155,6 +170,14 @@ public class JavaUtils {
       if (isSubtype(binding.getSuperclass(), reqClassName)) {
         return true;
       }
+    }
+    return false;
+  }
+
+  public static boolean isTypeNamed(Object binding, String reqName) {
+    if (binding instanceof ITypeBinding) {
+      ITypeBinding typeBinding = (ITypeBinding) binding;
+      return reqName.equals(getQualifiedName(typeBinding));
     }
     return false;
   }

@@ -1163,6 +1163,28 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_statementFor_noInitializer() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void test() {",
+        "    int i = 0;",
+        "    for (; i < 10; i++) {",
+        "      print(i);",
+        "    }",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "  void test() {",
+        "    int i = 0;",
+        "    for (; i < 10; i++) {",
+        "      print(i);",
+        "    }",
+        "  }",
+        "}");
+  }
+
   public void test_statementFor2() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
