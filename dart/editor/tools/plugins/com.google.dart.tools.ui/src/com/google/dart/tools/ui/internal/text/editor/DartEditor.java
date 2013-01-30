@@ -54,6 +54,7 @@ import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
@@ -127,6 +128,7 @@ import org.eclipse.jface.text.ITextViewerExtension2;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedPosition;
@@ -1969,8 +1971,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     // Quick Outline
     {
-      IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
-      menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+      ISelection selection = context.getSelection();
+      if ((selection instanceof TextSelection) && ((TextSelection) selection).getLength() == 0) {
+        IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
+        menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, action);
+
+        // Revert action
+        addAction(
+            menu,
+            ITextEditorActionConstants.GROUP_RESTORE,
+            ITextEditorActionConstants.REVERT_TO_SAVED);
+      }
     }
 
     // Cut/Copy/Paste actions
@@ -1979,20 +1990,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.COPY);
     addAction(menu, ITextEditorActionConstants.GROUP_EDIT, ITextEditorActionConstants.PASTE);
 
-    // Revert action
-    addAction(
-        menu,
-        ITextEditorActionConstants.GROUP_RESTORE,
-        ITextEditorActionConstants.REVERT_TO_SAVED);
-
     // Quick Assist
     {
       IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
       if (action != null && action.isEnabled()) {
-        addAction(
-            menu,
-            ITextEditorActionConstants.GROUP_EDIT,
-            ITextEditorActionConstants.QUICK_ASSIST);
+        addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
   }

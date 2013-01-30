@@ -1218,7 +1218,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     super.editorContextMenuAboutToShow(menu);
-    addAction(menu, "ToggleComment");
+//    addAction(menu, "ToggleComment");
     // add Organize Imports action to menu
 //    menu.add(new Separator());
 //    addAction(menu, "OrganizeImports");
