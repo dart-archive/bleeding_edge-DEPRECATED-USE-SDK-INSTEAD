@@ -18,7 +18,6 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.search.SearchScope;
 import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -64,11 +63,11 @@ public class FindReferencesAction extends FindAction {
   @Override
   public void selectionChanged(DartTextSelection selection) {
     // Update text of menu item to include name of element.
-    String text = ActionUtil.constructMenuText(
-        SearchMessages.Search_FindReferencesAction_label,
-        true,
-        selection);
-    setText(text.toString());
+//    String text = ActionUtil.constructMenuText(
+//        SearchMessages.Search_FindReferencesAction_label,
+//        true,
+//        selection);
+//    setText(text.toString());
   }
 
   @Override

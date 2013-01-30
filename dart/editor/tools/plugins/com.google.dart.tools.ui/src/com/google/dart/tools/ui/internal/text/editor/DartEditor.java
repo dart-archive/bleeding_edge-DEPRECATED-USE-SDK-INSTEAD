@@ -55,6 +55,7 @@ import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
@@ -1829,6 +1830,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private boolean isEditable;
   private OpenCallHierarchyAction openCallHierarchy;
+  private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
 
   /**
    * Default constructor.
@@ -1955,15 +1957,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     menu.add(new Separator(ITextEditorActionConstants.GROUP_RESTORE));
     menu.add(new Separator(IWorkbenchActionConstants.MB_ADDITIONS));
 
+    ISelection selection = createElementSelection();
+    DartElementSelection elementSelection = null;
+    if (selection instanceof DartElementSelection) {
+      elementSelection = (DartElementSelection) selection;
+    }
+
     // Open Declaration action
-    ActionContext context = new ActionContext(createElementSelection());
+    ActionContext context = new ActionContext(selection);
     setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
     // Quick Type Hierarchy
     {
-      ISelection selection = context.getSelection();
-      if (selection instanceof DartElementSelection
-          && ActionUtil.isOpenHierarchyAvailable((DartElementSelection) selection)) {
+      if (elementSelection != null && ActionUtil.isOpenHierarchyAvailable(elementSelection)) {
         IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
         menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
       }
@@ -1971,7 +1977,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     // Quick Outline
     {
-      ISelection selection = context.getSelection();
       if ((selection instanceof TextSelection) && ((TextSelection) selection).getLength() == 0) {
         IAction action = getAction(DartEditorActionDefinitionIds.SHOW_OUTLINE);
         menu.appendToGroup(ITextEditorActionConstants.GROUP_RESTORE, action);
@@ -1996,6 +2001,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (action != null && action.isEnabled()) {
         addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
+    }
+    if (elementSelection != null && ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
+      showSelectionLabel.update(elementSelection);
+      showSelectionLabel.setEnabled(false);
+      menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
     }
   }
 

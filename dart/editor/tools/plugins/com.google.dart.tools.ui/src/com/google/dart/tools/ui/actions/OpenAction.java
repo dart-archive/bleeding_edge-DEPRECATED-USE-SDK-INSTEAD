@@ -294,9 +294,9 @@ public class OpenAction extends SelectionDispatchAction {
     if (selection instanceof DartElementSelection) {
       DartElementSelection sel = (DartElementSelection) selection;
       setEnabled(checkEnabled(sel));
-      if (isEnabled()) {
-        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
-      }
+//      if (isEnabled()) {
+//        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
+//      }
     } else {
       selectionChanged((ITextSelection) selection);
     }

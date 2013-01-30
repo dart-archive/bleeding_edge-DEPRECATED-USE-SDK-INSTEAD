@@ -65,6 +65,8 @@ public class ActionUtil {
   private static final String STRING_SPACE = " ";
   private static final String STRING_TYPE = "type";
   private static final String STRING_VARIABLE = "variable";
+  private static final String STRING_FOR = "For";
+  private static final String STRING_DO = "do:";
   private static final int MAX_NAME_LENGTH = 30; // prevent menus from filling the screen
 
   public static boolean areProcessable(Shell shell, DartElement[] elements) {
@@ -82,6 +84,7 @@ public class ActionUtil {
     return true;
   }
 
+  // Unused; was needed to put selection in menu item titles.
   public static String constructMenuText(String template, boolean isAdjectivePhrase,
       DartTextSelection selection) {
     StringBuffer text = new StringBuffer(template);
@@ -120,6 +123,47 @@ public class ActionUtil {
       text.append(sep);
       text.append(STRING_SELECTION);
     }
+    return text.toString();
+  }
+
+  public static String constructSelectionLabel(DartElementSelection selection) {
+    StringBuffer text = new StringBuffer(STRING_FOR);
+    String sep = STRING_SPACE;
+    try {
+      DartElement[] elements = selection.resolveElementAtOffset();
+      if (elements.length == 1) {
+        String name = elements[0].getElementName();
+        text.append(sep);
+        if (name == null) {
+          text.append(STRING_SELECTION);
+        } else if (name.length() > MAX_NAME_LENGTH) {
+          text.append(findGenericName(elements[0]));
+        } else {
+          text.append('\"');
+          text.append(name);
+          text.append('\"');
+        }
+      } else {
+        DartNode node = getResolvedNodeFromSelection(selection);
+        String src;
+        if ((node instanceof com.google.dart.compiler.ast.DartIdentifier)
+            && ((src = node.toSource()) != null)) {
+          text.append(sep);
+          text.append('\"');
+          text.append(src);
+          text.append('\"');
+        } else {
+          text.append(sep);
+          text.append(STRING_SELECTION);
+        }
+      }
+    } catch (DartModelException ex) {
+      // should not happen
+      text.append(sep);
+      text.append(STRING_SELECTION);
+    }
+    text.append(STRING_SPACE);
+    text.append(STRING_DO);
     return text.toString();
   }
 
@@ -366,6 +410,11 @@ public class ActionUtil {
         ActionMessages.ActionUtil_notOnBuildPath_title,
         ActionMessages.ActionUtil_notOnBuildPath_message);
     return false;
+  }
+
+  public static boolean isSelectionShowing(DartElementSelection selection) {
+    return isOpenDeclarationAvailable(selection) || isOpenHierarchyAvailable(selection)
+        || isFindDeclarationsAvailable(selection) || isFindUsesAvailable(selection);
   }
 
   public static boolean mustDisableDartModelAction(Shell shell, Object element) {
