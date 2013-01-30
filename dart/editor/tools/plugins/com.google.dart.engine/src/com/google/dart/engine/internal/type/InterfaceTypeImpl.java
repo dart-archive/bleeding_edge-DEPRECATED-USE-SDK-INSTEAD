@@ -298,6 +298,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
 
   @Override
   public boolean isMoreSpecificThan(Type type) {
+    //
+    // S is dynamic.
+    // Dynamic test is done here since it is not an instanceof InterfaceType.
     if (type == DynamicTypeImpl.getInstance()) {
       return true;
     } else if (!(type instanceof InterfaceType)) {
@@ -318,12 +321,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // T is bottom.
     //
     // This case is handled by the class BottomTypeImpl.
-    //
-    // S is dynamic.
-    //
-    if (s == DynamicTypeImpl.getInstance()) {
-      return true;
-    }
+
     //
     // Direct supertype: S is a direct supertype of T.
     //
