@@ -13,12 +13,16 @@
  */
 package com.google.dart.tools.core.analysis.timing;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
@@ -33,6 +37,7 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -50,10 +55,17 @@ public class ScanTimings extends TestCase {
    * Simplified analysis context for performing {@link AnalysisEngineParticipant} timings
    */
   private final class MockContextForScan extends MockContext {
+    final CompilationUnit compilationUnit = new CompilationUnit(null, null, null, null, null);
+
     @Override
     public AnalysisContext extractAnalysisContext(SourceContainer container) {
       contextCount++;
       return new MockContextForScan();
+    }
+
+    @Override
+    public CompilationUnit parse(Source source) throws AnalysisException {
+      return compilationUnit;
     }
   }
 
@@ -171,15 +183,21 @@ public class ScanTimings extends TestCase {
     System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms");
   }
 
-  private void runScanWithParticipant(IProject project) throws CoreException {
+  private void runScanWithParticipant(final IProject project) throws CoreException {
     fileCount = 0;
     dartCount = 0;
     contextCount = 0;
-    long start = System.currentTimeMillis();
-    scanWithParticipant(project);
-    long delta = System.currentTimeMillis() - start;
-    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta + " ms in "
-        + contextCount + " contexts");
+    final long[] delta = new long[1];
+    ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+      @Override
+      public void run(IProgressMonitor monitor) throws CoreException {
+        long start = System.currentTimeMillis();
+        scanWithParticipant(project);
+        delta[0] = System.currentTimeMillis() - start;
+      }
+    }, null);
+    System.out.println("IRes: " + fileCount + " (" + dartCount + ") files in " + delta[0]
+        + " ms in " + contextCount + " contexts");
   }
 
   private void scanFiles(File dir) {
@@ -243,9 +261,9 @@ public class ScanTimings extends TestCase {
     });
   }
 
-  private void scanWithParticipant(IProject project) throws CoreException {
+  private void scanWithParticipant(final IProject project) throws CoreException {
     IProgressMonitor monitor = new NullProgressMonitor();
-    AnalysisEngineParticipant participant = new AnalysisEngineParticipant(true) {
+    final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(true) {
       private ProjectImpl project;
 
       @Override
@@ -267,13 +285,13 @@ public class ScanTimings extends TestCase {
 
       @Override
       protected Project createProject(IProject resource) {
-        project = new ProjectImpl(resource) {
+        project = new ProjectImpl(resource, new AnalysisContextFactory() {
           @Override
-          protected AnalysisContext createDefaultContext() {
+          public AnalysisContext createContext() {
             contextCount++;
             return new MockContextForScan();
           }
-        };
+        });
         return project;
       }
     };

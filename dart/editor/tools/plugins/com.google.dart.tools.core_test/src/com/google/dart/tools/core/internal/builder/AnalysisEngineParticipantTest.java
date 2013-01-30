@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.mock.MockDelta;
 import com.google.dart.tools.core.mock.MockProject;
@@ -87,6 +88,21 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     @Override
     public AnalysisContext getContext(IContainer container) {
       throw new RuntimeException("Unexpected call");
+    }
+
+    @Override
+    public AnalysisContext getDefaultContext() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PubFolder getPubFolder(IContainer container) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PubFolder[] getPubFolders() {
+      throw new UnsupportedOperationException();
     }
 
     @Override

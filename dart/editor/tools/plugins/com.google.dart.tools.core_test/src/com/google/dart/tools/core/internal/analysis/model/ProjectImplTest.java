@@ -17,7 +17,8 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.AbstractDartCoreTest;
-import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
+import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockContainer;
@@ -26,28 +27,11 @@ import com.google.dart.tools.core.mock.MockProject;
 
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 
 public class ProjectImplTest extends AbstractDartCoreTest {
-
-  /**
-   * Specialized {@link ProjectImpl} that returns a mock context for recording what analysis is
-   * requested rather than a context that would actually analyze the source.
-   */
-  private final class Target extends ProjectImpl {
-
-    Target(IProject resource) {
-      super(resource);
-    }
-
-    @Override
-    protected AnalysisContext createDefaultContext() {
-      return new MockContext();
-    }
-  }
 
   private MockProject projectContainer;
   private MockFolder webContainer;
@@ -55,7 +39,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private MockFolder appContainer;
   private MockFolder appLibContainer;
   private MockFolder subAppContainer;
-  private Target project;
+  private ProjectImpl project;
 
   public void test_container1Deleted() {
     MockContext context1 = (MockContext) project.getContext(subContainer);
@@ -120,6 +104,40 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
   public void test_getResource() {
     assertSame(projectContainer, project.getResource());
+  }
+
+  public void test_pubFolder_folder() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertNull(project.getPubFolder(projectContainer));
+    assertNull(project.getPubFolder(webContainer));
+    assertNull(project.getPubFolder(subContainer));
+
+    PubFolder pubFolder = project.getPubFolder(appContainer);
+    assertNotNull(pubFolder);
+
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(pubFolder, project.getPubFolders()[0]);
+
+    assertNotNull(project.getDefaultContext());
+    assertNotSame(project.getDefaultContext(), pubFolder.getContext());
+  }
+
+  public void test_pubFolder_project() {
+    // Simulate traversal in which the top level pubspec is visited last
+    projectContainer.add(projectContainer.remove(PUBSPEC_FILE_NAME));
+
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+    assertSame(pubFolder, project.getPubFolder(webContainer));
+    assertSame(pubFolder, project.getPubFolder(subContainer));
+    assertSame(pubFolder, project.getPubFolder(appContainer));
+
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(pubFolder, project.getPubFolders()[0]);
+
+    assertNotNull(project.getDefaultContext());
+    assertSame(project.getDefaultContext(), pubFolder.getContext());
   }
 
   public void test_pubspecAdded() {
@@ -188,7 +206,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     appLibContainer = appContainer.getMockFolder("lib");
     subAppContainer = appContainer.getMockFolder("subApp");
 
-    project = new Target(projectContainer);
+    project = new ProjectImpl(projectContainer, new AnalysisContextFactory() {
+      @Override
+      public AnalysisContext createContext() {
+        return new MockContext();
+      }
+    });
   }
 
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {

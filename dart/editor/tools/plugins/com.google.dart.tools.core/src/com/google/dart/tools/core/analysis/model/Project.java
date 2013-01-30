@@ -29,6 +29,30 @@ public interface Project {
   AnalysisContext getContext(IContainer container);
 
   /**
+   * Answer the default analysis context. If the receiver contains a {@link PubFolder} which
+   * contains all of the resources contained in the receiver, then the analysis context for that
+   * {@link PubFolder} will be the same the receiver's default analysis context.
+   * 
+   * @return the analysis context (not {@code null})
+   */
+  AnalysisContext getDefaultContext();
+
+  /**
+   * Answer the {@link PubFolder} containing the specified resource.
+   * 
+   * @param container the container (not {@code null}) in this project
+   * @return the pub folder or {@code null} if no pub folder contains this resource
+   */
+  PubFolder getPubFolder(IContainer container);
+
+  /**
+   * Answer the {@link PubFolder}s contained in the receiver.
+   * 
+   * @return an array of zero or more folders (not {@code null}, contains no {@code null}s)
+   */
+  PubFolder[] getPubFolders();
+
+  /**
    * Answer the Eclipse project associated with this Dart project
    * 
    * @return the Eclipse project (not {@code null})

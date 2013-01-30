@@ -51,7 +51,12 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     private final ArrayList<IContainer> pubspecsRemoved = new ArrayList<IContainer>();
 
     MockProjectImpl(IProject resource) {
-      super(resource);
+      super(resource, new AnalysisContextFactory() {
+        @Override
+        public AnalysisContext createContext() {
+          return new MockContext();
+        }
+      });
     }
 
     @Override
@@ -67,11 +72,6 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     @Override
     public void pubspecRemoved(IContainer container) {
       pubspecsRemoved.add(container);
-    }
-
-    @Override
-    protected AnalysisContext createDefaultContext() {
-      return new MockContext();
     }
 
     void assertContainerDeleted(IContainer... expected) {

@@ -10,6 +10,10 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.builder.AbstractDeltaListener;
+import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
@@ -18,9 +22,11 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,10 +37,21 @@ import java.util.Map.Entry;
  */
 public class ProjectImpl implements Project {
 
+  public static class AnalysisContextFactory {
+    public AnalysisContext createContext() {
+      return AnalysisEngine.getInstance().createAnalysisContext();
+    }
+  }
+
   /**
    * The Eclipse project associated with this Dart project (not {@code null})
    */
   private final IProject resource;
+
+  /**
+   * The factory used to create new {@link AnalysisContext} (not {@code null})
+   */
+  private final AnalysisContextFactory factory;
 
   /**
    * A mapping of container to context used to analyze Dart source in that container. The content of
@@ -44,6 +61,13 @@ public class ProjectImpl implements Project {
    * appear multiple times in the map.
    */
   private final HashMap<IContainer, AnalysisContext> contexts = new HashMap<IContainer, AnalysisContext>();
+
+  /**
+   * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder}.
+   */
+  private HashMap<IPath, PubFolder> pubFolders;
+
+  private final AnalysisContext defaultContext;
 
   /**
    * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
@@ -78,10 +102,21 @@ public class ProjectImpl implements Project {
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    */
   public ProjectImpl(IProject resource) {
-    if (resource == null) {
+    this(resource, new AnalysisContextFactory());
+  }
+
+  /**
+   * Construct a new instance representing a Dart project
+   * 
+   * @param resource the Eclipse project associated with this Dart project (not {@code null})
+   */
+  public ProjectImpl(IProject resource, AnalysisContextFactory factory) {
+    if (resource == null | factory == null) {
       throw new IllegalArgumentException();
     }
     this.resource = resource;
+    this.factory = factory;
+    this.defaultContext = factory.createContext();
   }
 
   @Override
@@ -131,7 +166,7 @@ public class ProjectImpl implements Project {
 
     // Create a context for analyzing sources in the project
     if (container.equals(resource)) {
-      context = createDefaultContext();
+      context = factory.createContext();
     } else {
       AnalysisContext parentContext = getContext(container.getParent());
       if (parentContext == null) {
@@ -157,6 +192,11 @@ public class ProjectImpl implements Project {
     return context;
   }
 
+  @Override
+  public AnalysisContext getDefaultContext() {
+    return defaultContext;
+  }
+
   /**
    * Answer the cached context for the specified container, but do not create a context or retrieve
    * the parent context if a context is not already associated with this container. This differs
@@ -168,6 +208,19 @@ public class ProjectImpl implements Project {
    */
   public AnalysisContext getExistingContext(IContainer container) {
     return contexts.get(container);
+  }
+
+  @Override
+  public PubFolder getPubFolder(IContainer container) {
+    initPubFolders();
+    return getPubFolder(container.getFullPath());
+  }
+
+  @Override
+  public PubFolder[] getPubFolders() {
+    initPubFolders();
+    Collection<PubFolder> allFolders = pubFolders.values();
+    return allFolders.toArray(new PubFolder[allFolders.size()]);
   }
 
   @Override
@@ -244,13 +297,13 @@ public class ProjectImpl implements Project {
   }
 
   /**
-   * Create a new default context for this project. This method is overridden during testing to
-   * create a mock context rather than a context that would actually perform analysis.
+   * Determine if a {@link PubFolder} is defined for an ancestor
    * 
-   * @return the context (not {@code null})
+   * @param path the resource's full path
+   * @return {@code true} if a pub folder is defined
    */
-  protected AnalysisContext createDefaultContext() {
-    return AnalysisEngine.getInstance().createAnalysisContext();
+  private boolean doesParentPubFolderExist(IPath path) {
+    return path.segmentCount() > 1 && getPubFolder(path.removeLastSegments(1)) != null;
   }
 
   /**
@@ -263,6 +316,26 @@ public class ProjectImpl implements Project {
     IPath dirPath = container.getFullPath();
     IPath filePath = resource.getFullPath();
     return dirPath.equals(filePath) || dirPath.isPrefixOf(filePath);
+  }
+
+  /**
+   * Answer the {@link PubFolder} for the specified resource path. This method assumes that
+   * {@link #initPubFolders()} has already been called.
+   * 
+   * @param path the resource full path (not {@code null})
+   * @return the folder or {@code null} if none is found
+   */
+  private PubFolder getPubFolder(IPath path) {
+    if (pubFolders.size() == 0) {
+      return null;
+    }
+    for (int count = path.segmentCount() - 1; count >= 0; count--) {
+      PubFolder pubFolder = pubFolders.get(path.removeLastSegments(count));
+      if (pubFolder != null) {
+        return pubFolder;
+      }
+    }
+    return null;
   }
 
   /**
@@ -283,6 +356,44 @@ public class ProjectImpl implements Project {
 
     // Create and cache the context
     context.setSourceFactory(factory);
+  }
+
+  /**
+   * Initialize the {@link #pubFolders} map if it has not already been initialized.
+   */
+  private void initPubFolders() {
+    if (pubFolders != null) {
+      return;
+    }
+    pubFolders = new HashMap<IPath, PubFolder>();
+    DeltaProcessor processor = new DeltaProcessor(this);
+    processor.addDeltaListener(new AbstractDeltaListener() {
+      @Override
+      public void pubspecAdded(ResourceDeltaEvent event) {
+        IContainer parent = event.getResource().getParent();
+        IPath path = parent.getFullPath();
+        // Pub folders do not nest, so don't create a folder if a parent folder already exists
+        if (!doesParentPubFolderExist(path)) {
+          PubFolder pubFolder = new PubFolderImpl( //
+              parent,
+              path.segmentCount() == 1 ? defaultContext : factory.createContext());
+          pubFolders.put(path, pubFolder);
+        }
+      }
+    });
+    try {
+      processor.traverse(resource);
+    } catch (CoreException e) {
+      DartCore.logError("Failed to build pub folder mapping", e);
+    }
+    // Remove nested pub folders
+    Iterator<IPath> iter = pubFolders.keySet().iterator();
+    while (iter.hasNext()) {
+      IPath path = iter.next();
+      if (doesParentPubFolderExist(path)) {
+        iter.remove();
+      }
+    }
   }
 
   private void logNoLocation(IContainer container) {
