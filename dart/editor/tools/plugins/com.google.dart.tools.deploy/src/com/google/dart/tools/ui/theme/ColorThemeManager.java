@@ -143,7 +143,7 @@ public class ColorThemeManager {
 
   private static void applyDefault(Map<String, ColorThemeSetting> theme, ColorThemeKeys key,
       ColorThemeKeys defaultKey) {
-    if (!theme.containsKey(key)) {
+    if (!theme.containsKey(key.name)) {
       theme.put(key.name, theme.get(defaultKey.name));
     }
   }

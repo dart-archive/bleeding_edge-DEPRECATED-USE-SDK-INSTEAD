@@ -7,8 +7,8 @@
     <getter color="#0200C0" />
     <setter color="#00002C0" />
     <field color="#0000C0" />
-    <localVariable color="#F000F0" />
-    <localVariableDeclaration color="#802C45" />
+    <localVariable color="#FF00FF" />
+    <localVariableDeclaration color="#008080" />
     <methodDeclaration color="#8000FF" />
     <method color="#2BA6E8" />
     <number color="#008000" />
@@ -26,8 +26,8 @@
     <javadocLink color="#4162bc" />
     <javadocTag color="#4162bc" />
     <javadocKeyword color="#CC9393" />
-    <string color="#585545" />
-    <multiLineString color="#585545" />
+    <string color="#2000FF" />
+    <multiLineString color="#2000FF" />
     <annotation color="#808080" />
     <staticFinalField color="#464646" />
     <operator color="#5f97a9" />
