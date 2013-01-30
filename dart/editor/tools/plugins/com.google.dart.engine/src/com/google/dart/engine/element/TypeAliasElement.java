@@ -33,7 +33,7 @@ public interface TypeAliasElement extends Element {
    * 
    * @return the parameters defined by this type alias
    */
-  public VariableElement[] getParameters();
+  public ParameterElement[] getParameters();
 
   /**
    * Return the type of function defined by this type alias.

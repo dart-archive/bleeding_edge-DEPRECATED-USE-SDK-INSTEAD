@@ -15,9 +15,9 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
 
 /**
@@ -45,7 +45,7 @@ public class TypeAliasElementHandle extends ElementHandle implements TypeAliasEl
   }
 
   @Override
-  public VariableElement[] getParameters() {
+  public ParameterElement[] getParameters() {
     return getActualElement().getParameters();
   }
 

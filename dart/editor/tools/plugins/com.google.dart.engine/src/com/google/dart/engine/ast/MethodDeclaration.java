@@ -13,7 +13,9 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -124,13 +126,15 @@ public class MethodDeclaration extends ClassMember {
   }
 
   /**
-   * Return the {@link MethodElement} associated with this method, or {@code null} if the AST
-   * structure has not been resolved.
+   * Return the element associated with this method, or {@code null} if the AST structure has not
+   * been resolved. The element can either be a {@link MethodElement}, if this represents the
+   * declaration of a normal method, or a {@link PropertyAccessorElement} if this represents the
+   * declaration of either a getter or a setter.
    * 
-   * @return the {@link MethodElement} associated with this method
+   * @return the element associated with this method
    */
-  public MethodElement getElement() {
-    return name != null ? (MethodElement) name.getElement() : null;
+  public ExecutableElement getElement() {
+    return name != null ? (ExecutableElement) name.getElement() : null;
   }
 
   @Override

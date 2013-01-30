@@ -47,6 +47,7 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -327,7 +328,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    MethodElement element = node.getElement();
+    ExecutableElement element = node.getElement();
     enterScope(element);
     try {
       return super.visitMethodDeclaration(node);
