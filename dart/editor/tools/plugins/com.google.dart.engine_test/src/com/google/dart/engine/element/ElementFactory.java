@@ -90,6 +90,7 @@ public final class ElementFactory {
       ClassElement[] normalParameters, ClassElement[] optionalParameters) {
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    functionElement.setType(functionType);
     // return type
     if (returnElement != null) {
       functionType.setReturnType(returnElement.getType());
@@ -110,15 +111,16 @@ public final class ElementFactory {
       for (int i = 0; i < count; i++) {
         optionalParameterTypes[i] = optionalParameters[i].getType();
       }
-      functionType.setNormalParameterTypes(optionalParameterTypes);
+      functionType.setOptionalParameterTypes(optionalParameterTypes);
     }
     return functionElement;
   }
 
   public static FunctionElement functionElement(String functionName, ClassElement returnElement,
-      ClassElement[] normalParameters, String[] names, Type[] parameterTypes) {
+      ClassElement[] normalParameters, String[] names, ClassElement[] namedParameters) {
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
+    functionElement.setType(functionType);
     // return type
     if (returnElement != null) {
       functionType.setReturnType(returnElement.getType());
@@ -133,18 +135,15 @@ public final class ElementFactory {
       functionType.setNormalParameterTypes(normalParameterTypes);
     }
     // named parameters
-    if (names == null) {
-      names = new String[] {};
-    }
-    if (parameterTypes == null) {
-      parameterTypes = new Type[] {};
-    }
-    if (names.length > 0 && names.length == parameterTypes.length) {
+    if (names != null && names.length > 0 && names.length == namedParameters.length) {
       LinkedHashMap<String, Type> map = new LinkedHashMap<String, Type>();
       for (int i = 0; i < names.length; i++) {
-        map.put(names[i], parameterTypes[i]);
+        map.put(names[i], namedParameters[i].getType());
       }
       functionType.setNamedParameterTypes(map);
+    } else if (names != null) {
+      throw new IllegalStateException(
+          "The passed String[] and ClassElement[] arrays had different lengths.");
     }
     return functionElement;
   }
@@ -159,8 +158,8 @@ public final class ElementFactory {
   }
 
   public static FunctionElement functionElement(String functionName,
-      ClassElement[] normalParameters, String[] names, Type[] parameterTypes) {
-    return functionElement(functionName, null, normalParameters, names, parameterTypes);
+      ClassElement[] normalParameters, String[] names, ClassElement[] namedParameters) {
+    return functionElement(functionName, null, normalParameters, names, namedParameters);
   }
 
   public static ClassElement getObject() {

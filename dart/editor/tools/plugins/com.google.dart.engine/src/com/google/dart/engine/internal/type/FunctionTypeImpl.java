@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Instances of the class {@code FunctionTypeImpl} defines the behavior common to objects
@@ -170,8 +171,73 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public boolean isSubtypeOf(Type type) {
-    // TODO(brianwilkerson) Implement this
-    return false;
+    // trivial base cases
+    if (type == null || !(type instanceof FunctionType)) {
+      return false;
+    } else if (this == type || this.equals(type)) {
+      return true;
+    }
+    FunctionType t = this;
+    FunctionType s = (FunctionType) type;
+    // normal parameter types
+    if (t.getNormalParameterTypes().length != s.getNormalParameterTypes().length) {
+      return false;
+    } else if (t.getNormalParameterTypes().length > 0) {
+      Type[] tTypes = t.getNormalParameterTypes();
+      Type[] sTypes = s.getNormalParameterTypes();
+      for (int i = 0; i < tTypes.length; i++) {
+        if (!tTypes[i].isAssignableTo(sTypes[i])) {
+          return false;
+        }
+      }
+    }
+
+    // optional parameter types
+    if (t.getOptionalParameterTypes().length > 0) {
+      Type[] tOpTypes = t.getOptionalParameterTypes();
+      Type[] sOpTypes = s.getOptionalParameterTypes();
+      // if k >= m is false, return false: the passed function type has more optional parameter types than this
+      if (tOpTypes.length < sOpTypes.length) {
+        return false;
+      }
+      for (int i = 0; i < sOpTypes.length; i++) {
+        if (!tOpTypes[i].isAssignableTo(sOpTypes[i])) {
+          return false;
+        }
+      }
+      if (t.getNamedParameterTypes().size() > 0 || s.getNamedParameterTypes().size() > 0) {
+        return false;
+      }
+    } else if (s.getOptionalParameterTypes().length > 0) {
+      return false;
+    }
+
+    // named parameter types
+    if (t.getNamedParameterTypes().size() > 0) {
+      Map<String, Type> namedTypesT = t.getNamedParameterTypes();
+      Map<String, Type> namedTypesS = s.getNamedParameterTypes();
+      // if k >= m is false, return false: the passed function type has more named parameter types than this
+      if (namedTypesT.size() < namedTypesS.size()) {
+        return false;
+      }
+      // Loop through each element in S verifying that T has a matching parameter name and that the
+      // corresponding type is assignable to the type in S.
+      Iterator<Entry<String, Type>> iteratorS = namedTypesS.entrySet().iterator();
+      while (iteratorS.hasNext()) {
+        Entry<String, Type> entryS = iteratorS.next();
+        Type typeT = namedTypesT.get(entryS.getKey());
+        if (typeT == null) {
+          return false;
+        }
+        if (!entryS.getValue().isAssignableTo(typeT)) {
+          return false;
+        }
+      }
+    } else if (s.getNamedParameterTypes().size() > 0) {
+      return false;
+    }
+    return s.getReturnType().equals(VoidTypeImpl.getInstance())
+        || t.getReturnType().isAssignableTo(s.getReturnType());
   }
 
   /**

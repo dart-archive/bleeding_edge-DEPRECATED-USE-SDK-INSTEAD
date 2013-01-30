@@ -14,13 +14,17 @@
 package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.type.FunctionType;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.functionElement;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -58,6 +62,237 @@ public class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Type[] types = type.getTypeArguments();
     assertLength(0, types);
+  }
+
+  public void test_isSubtypeOf_baseCase_notFunctionType() {
+    FunctionType f = functionElement("f").getType();
+    InterfaceType t = classElement("C").getType();
+    assertFalse(f.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_baseCase_null() {
+    FunctionType f = functionElement("f").getType();
+    assertFalse(f.isSubtypeOf(null));
+  }
+
+  public void test_isSubtypeOf_baseCase_self() {
+    FunctionType f = functionElement("f").getType();
+    assertTrue(f.isSubtypeOf(f));
+  }
+
+  public void test_isSubtypeOf_namedParameters_isAssignable() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, null, new String[] {"name"}, new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertTrue(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_namedParameters_isNotAssignable() {
+    FunctionType t = functionElement(
+        "t",
+        null,
+        null,
+        new String[] {"name"},
+        new ClassElement[] {classElement("A")}).getType();
+    FunctionType s = functionElement(
+        "s",
+        null,
+        null,
+        new String[] {"name"},
+        new ClassElement[] {classElement("B")}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_namedParameters_namesDifferent() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, null, new String[] {"diff"}, new ClassElement[] {b}).getType();
+    assertFalse(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_namedParameters_orderOfParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement(
+        "t",
+        null,
+        null,
+        new String[] {"A", "B"},
+        new ClassElement[] {a, b}).getType();
+    FunctionType s = functionElement(
+        "s",
+        null,
+        null,
+        new String[] {"B", "A"},
+        new ClassElement[] {b, a}).getType();
+    assertTrue(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_namedParameters_orderOfParams2() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, null, new String[] {"B"}, new ClassElement[] {b}).getType();
+    FunctionType s = functionElement(
+        "s",
+        null,
+        null,
+        new String[] {"B", "A"},
+        new ClassElement[] {b, a}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_namedParameters_orderOfParams3() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement(
+        "t",
+        null,
+        null,
+        new String[] {"A", "B"},
+        new ClassElement[] {a, b}).getType();
+    FunctionType s = functionElement("s", null, null, new String[] {"B"}, new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_namedParameters_sHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, null, new String[] {"name"}, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement(
+        "s",
+        null,
+        null,
+        new String[] {"name", "name2"},
+        new ClassElement[] {b, b}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_namedParameters_tHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement(
+        "t",
+        null,
+        null,
+        new String[] {"name", "name2"},
+        new ClassElement[] {a, a}).getType();
+    FunctionType s = functionElement("s", null, null, new String[] {"name"}, new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_normalParameters_isAssignable() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertTrue(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_normalParameters_isNotAssignable() {
+    FunctionType t = functionElement("t", new ClassElement[] {classElement("A")}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {classElement("B")}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_normalParameters_sHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {b, b}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_normalParameters_tHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", new ClassElement[] {a, a}).getType();
+    FunctionType s = functionElement("s", new ClassElement[] {b}).getType();
+    // note, this is a different assertion from the other "tHasMoreParams" tests, this is
+    // intentional as it is a difference of the "normal parameters"
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_optionalParameters_isAssignable() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertTrue(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_optionalParameters_isNotAssignable() {
+    FunctionType t = functionElement("t", null, new ClassElement[] {classElement("A")}).getType();
+    FunctionType s = functionElement("s", null, new ClassElement[] {classElement("B")}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_optionalParameters_sHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, new ClassElement[] {b, b}).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_optionalParameters_tHasMoreParams() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", null, new ClassElement[] {a, a}).getType();
+    FunctionType s = functionElement("s", null, new ClassElement[] {b}).getType();
+    assertTrue(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_returnType_sIsVoid() {
+    FunctionType t = functionElement("t", classElement("A")).getType();
+    FunctionType s = functionElement("s").getType();
+    // function s has the implicit return type of void, we assert it here
+    assertTrue(VoidTypeImpl.getInstance().equals(s.getReturnType()));
+    assertTrue(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_returnType_tAssignableToS() {
+    ClassElement a = classElement("A");
+    ClassElement b = classElement("B", a.getType());
+    FunctionType t = functionElement("t", a).getType();
+    FunctionType s = functionElement("s", b).getType();
+    assertTrue(t.isSubtypeOf(s));
+    assertTrue(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_returnType_tNotAssignableToS() {
+    FunctionType t = functionElement("t", classElement("A")).getType();
+    FunctionType s = functionElement("s", classElement("B")).getType();
+    assertFalse(t.isSubtypeOf(s));
+  }
+
+  public void test_isSubtypeOf_wrongFunctionType_normal_named() {
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, new String[] {"name"}, new ClassElement[] {a}).getType();
+    assertFalse(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_wrongFunctionType_normal_optional() {
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, new ClassElement[] {a}).getType();
+    assertFalse(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
+  }
+
+  public void test_isSubtypeOf_wrongFunctionType_optional_named() {
+    ClassElement a = classElement("A");
+    FunctionType t = functionElement("t", null, new ClassElement[] {a}).getType();
+    FunctionType s = functionElement("s", null, new String[] {"name"}, new ClassElement[] {a}).getType();
+    assertFalse(t.isSubtypeOf(s));
+    assertFalse(s.isSubtypeOf(t));
   }
 
   public void test_setNamedParameterTypes() {
