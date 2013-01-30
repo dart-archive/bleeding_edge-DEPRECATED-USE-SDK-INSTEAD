@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
+import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
@@ -51,6 +52,7 @@ public class MainEngine {
       ObjectSemanticProcessor.INSTANCE,
       CollectionSemanticProcessor.INSTANCE,
       PropertySemanticProcessor.INSTANCE,
+      BeautifySemanticProcessor.INSTANCE,
       EngineSemanticProcessor.INSTANCE);
 
   public static void main(String[] args) throws Exception {

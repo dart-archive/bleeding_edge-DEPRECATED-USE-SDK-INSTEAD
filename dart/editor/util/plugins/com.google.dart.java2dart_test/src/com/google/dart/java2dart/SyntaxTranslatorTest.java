@@ -247,6 +247,24 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_expression_instanceOf() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void test(Object p) {",
+        "    boolean b1 = p instanceof String;",
+        "    boolean b2 = !(p instanceof String);",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "  void test(Object p) {",
+        "    bool b1 = p is String;",
+        "    bool b2 = !(p is String);",
+        "  }",
+        "}");
+  }
+
   public void test_expressionArrayAccess() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -520,22 +538,6 @@ public class SyntaxTranslatorTest extends TestCase {
         "class A {",
         "  void test() {",
         "    int v = 0 + 1 + 2 + 3 + 4;",
-        "  }",
-        "}");
-  }
-
-  public void test_expressionInstanceOf() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  void test() {",
-        "    boolean b = \"\" instanceof String;",
-        "  }",
-        "}");
-    assertDartSource(//
-        "class A {",
-        "  void test() {",
-        "    bool b = \"\" is String;",
         "  }",
         "}");
   }
