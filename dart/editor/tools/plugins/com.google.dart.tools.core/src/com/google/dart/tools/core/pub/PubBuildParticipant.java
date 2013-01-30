@@ -14,7 +14,6 @@
 package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
@@ -43,9 +42,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
 
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
-    if (DartCoreDebug.ENABLE_PUB && DartCore.getPlugin().isAutoRunPubEnabled()) {
-      event.traverse(this, false);
-    }
+    event.traverse(this, false);
   }
 
   @Override

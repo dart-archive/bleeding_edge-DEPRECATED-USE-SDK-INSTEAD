@@ -65,8 +65,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Text auxDirText;
   private Button enableFolding;
 
-  private Button runPubAutoCheck;
-
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
 
@@ -123,7 +121,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     }
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
-      prefs.putBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, runPubAutoCheck.getSelection());
 
       String root = prefs.get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, ""); //$NON-NLS-1$
       if (!root.equals(newRoot)) {
@@ -209,18 +206,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     GridDataFactory.fillDefaults().applyTo(removeTrailingWhitespaceCheck);
 
     createDirectorySettings(composite);
-
-    Group pubGroup = new Group(composite, SWT.NONE);
-    pubGroup.setText(PreferencesMessages.DartBasePreferencePage_pub);
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-        pubGroup);
-    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(pubGroup);
-
-    runPubAutoCheck = createCheckBox(
-        pubGroup,
-        PreferencesMessages.DartBasePreferencePage_pub_auto_label,
-        PreferencesMessages.DartBasePreferencePage_pub_auto_details);
-    GridDataFactory.fillDefaults().applyTo(runPubAutoCheck);
 
     initFromPrefs();
 
@@ -330,7 +315,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       root = prefs.get(DartCore.AUXILIARY_DIR_PREFERENCE, ""); //$NON-NLS-1$
       auxDirText.setText(root);
 
-      runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 
   }
