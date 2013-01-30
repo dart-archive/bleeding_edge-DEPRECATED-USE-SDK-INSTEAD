@@ -34,7 +34,6 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchStatement;
-import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -53,7 +52,6 @@ import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
-import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
@@ -61,9 +59,6 @@ import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.Type;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 
 /**
  * Instances of the class {@code ElementBuilder} traverse an AST structure and build the element
@@ -287,32 +282,6 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(parameters);
     element.setTypeVariables(holder.getTypeVariables());
 
-    ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
-    ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
-    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
-    for (ParameterElement parameter : parameters) {
-      switch (parameter.getParameterKind()) {
-        case REQUIRED:
-          normalParameterTypes.add(parameter.getType());
-          break;
-        case POSITIONAL:
-          optionalParameterTypes.add(parameter.getType());
-          break;
-        case NAMED:
-          namedParameterTypes.put(parameter.getName(), parameter.getType());
-          break;
-      }
-    }
-    TypeName returnType = node.getReturnType();
-    FunctionTypeImpl functionType = new FunctionTypeImpl(element);
-    functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
-    functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
-    functionType.setNamedParameterTypes(namedParameterTypes);
-    if (returnType != null) {
-      functionType.setReturnType(returnType.getType());
-    }
-    element.setType(functionType);
-
     currentHolder.addTypeAlias(element);
     aliasName.setElement(element);
     return null;
@@ -435,6 +404,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.getName();
     TypeVariableElementImpl element = new TypeVariableElementImpl(parameterName);
+
+    TypeVariableTypeImpl type = new TypeVariableTypeImpl(element);
+    element.setType(type);
 
     currentHolder.addTypeVariable(element);
     parameterName.setElement(element);

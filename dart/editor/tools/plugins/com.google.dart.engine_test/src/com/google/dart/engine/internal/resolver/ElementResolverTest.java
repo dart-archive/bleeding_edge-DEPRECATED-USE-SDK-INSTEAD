@@ -298,7 +298,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private void resolveNode(ASTNode node, Element... definedElements) {
     try {
-      Field scopeField = visitor.getClass().getDeclaredField("nameScope");
+      Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
       scopeField.setAccessible(true);
       Scope outerScope = (Scope) scopeField.get(visitor);
       try {
@@ -326,7 +326,7 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private void resolveStatement(Statement statement, LabelElementImpl labelElement) {
     try {
-      Field scopeField = visitor.getClass().getDeclaredField("labelScope");
+      Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("labelScope");
       scopeField.setAccessible(true);
       LabelScope outerScope = (LabelScope) scopeField.get(visitor);
       try {

@@ -15,28 +15,43 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 
+import static com.google.dart.engine.ast.ASTFactory.catchClause;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.extendsClause;
+import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.implementsClause;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
+import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclarationList;
 import static com.google.dart.engine.ast.ASTFactory.withClause;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
@@ -47,12 +62,75 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    */
   private GatheringErrorListener listener;
 
+  /**
+   * The object representing the information about the library in which the types are being
+   * resolved.
+   */
   private Library library;
+
+  /**
+   * The type provider used to access the types.
+   */
+  private TestTypeProvider typeProvider;
 
   /**
    * The visitor used to resolve types needed to form the type hierarchy.
    */
   private TypeResolverVisitor visitor;
+
+  public void fail_visitConstructorDeclaration() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFieldFormalParameter_noType() throws Exception {
+    // This fails because this visit method is not yet implemented.
+    FormalParameter node = fieldFormalParameter(Keyword.VAR, null, "p");
+    assertSame(typeProvider.getDynamicType(), resolve(node));
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFieldFormalParameter_type() throws Exception {
+    // This fails because this visit method is not yet implemented.
+    FormalParameter node = fieldFormalParameter(null, typeName("int"), "p");
+    assertSame(typeProvider.getIntType(), resolve(node));
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFunctionDeclaration() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFunctionTypeAlias() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitFunctionTypedFormalParameter() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitMethodDeclaration() throws Exception {
+    fail("Not yet tested");
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitTypeName() throws Exception {
+    fail("Not yet tested"); // with and without type arguments
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitVariableDeclaration() throws Exception {
+    fail("Not yet tested");
+    ClassElement type = classElement("A");
+    VariableDeclaration node = variableDeclaration("a");
+    variableDeclarationList(null, typeName(type), node);
+    //resolve(node);
+    assertSame(type.getType(), node.getName().getStaticType());
+    listener.assertNoErrors();
+  }
 
   @Override
   public void setUp() {
@@ -65,7 +143,41 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     LibraryElementImpl element = new LibraryElementImpl(context, libraryIdentifier("lib"));
     element.setDefiningCompilationUnit(new CompilationUnitElementImpl("lib.dart"));
     library.setLibraryElement(element);
-    visitor = new TypeResolverVisitor(library, librarySource, new TestTypeProvider());
+    typeProvider = new TestTypeProvider();
+    visitor = new TypeResolverVisitor(library, librarySource, typeProvider);
+  }
+
+  public void test_visitCatchClause_exception() throws Exception {
+    // catch (e)
+    CatchClause clause = catchClause("e");
+    resolve(clause, typeProvider.getObjectType(), null);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitCatchClause_exception_stackTrace() throws Exception {
+    // catch (e, s)
+    CatchClause clause = catchClause("e", "s");
+    resolve(clause, typeProvider.getObjectType(), typeProvider.getStackTraceType());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitCatchClause_on_exception() throws Exception {
+    // on E catch (e)
+    ClassElement exceptionElement = classElement("E");
+    TypeName exceptionType = typeName(exceptionElement);
+    CatchClause clause = catchClause(exceptionType, "e");
+    resolve(clause, exceptionElement.getType(), null);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitCatchClause_on_exception_stackTrace() throws Exception {
+    // on E catch (e, s)
+    ClassElement exceptionElement = classElement("E");
+    TypeName exceptionType = typeName(exceptionElement);
+    exceptionType.getName().setElement(exceptionElement);
+    CatchClause clause = catchClause(exceptionType, "e", "s");
+    resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType());
+    listener.assertNoErrors();
   }
 
   public void test_visitClassDeclaration() {
@@ -94,6 +206,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType[] interfaces = elementA.getInterfaces();
     assertLength(1, interfaces);
     assertSame(elementD.getType(), interfaces[0]);
+    listener.assertNoErrors();
   }
 
   public void test_visitClassTypeAlias() {
@@ -121,6 +234,59 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     InterfaceType[] interfaces = elementA.getInterfaces();
     assertLength(1, interfaces);
     assertSame(elementD.getType(), interfaces[0]);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSimpleFormalParameter_noType() throws Exception {
+    // p
+    FormalParameter node = simpleFormalParameter("p");
+    node.getIdentifier().setElement(new ParameterElementImpl(identifier("p")));
+    assertSame(typeProvider.getDynamicType(), resolve(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSimpleFormalParameter_type() throws Exception {
+    // int p
+    InterfaceType intType = typeProvider.getIntType();
+    FormalParameter node = simpleFormalParameter(typeName(intType.getElement()), "p");
+    SimpleIdentifier identifier = node.getIdentifier();
+    ParameterElementImpl element = new ParameterElementImpl(identifier);
+    identifier.setElement(element);
+    assertSame(intType, resolve(node));
+    listener.assertNoErrors();
+  }
+
+  /**
+   * Analyze the given catch clause and assert that the types of the parameters have been set to the
+   * given types. The types can be null if the catch clause does not have the corresponding
+   * parameter.
+   * 
+   * @param node the catch clause to be analyzed
+   * @param exceptionType the expected type of the exception parameter
+   * @param stackTraceType the expected type of the stack trace parameter
+   */
+  private void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType) {
+    node.accept(visitor);
+    SimpleIdentifier exceptionParameter = node.getExceptionParameter();
+    if (exceptionParameter != null) {
+      assertSame(exceptionType, exceptionParameter.getStaticType());
+    }
+    SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
+    if (stackTraceParameter != null) {
+      assertSame(stackTraceType, stackTraceParameter.getStaticType());
+    }
+  }
+
+  /**
+   * Return the type associated with the given parameter after the static type analyzer has computed
+   * a type for it.
+   * 
+   * @param node the parameter with which the type is associated
+   * @return the type associated with the parameter
+   */
+  private Type resolve(FormalParameter node) {
+    node.accept(visitor);
+    return ((ParameterElement) node.getIdentifier().getElement()).getType();
   }
 
   /**

@@ -21,19 +21,15 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CascadeExpression;
-import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ConditionalExpression;
-import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
-import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
-import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -49,7 +45,6 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
@@ -58,8 +53,6 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -70,10 +63,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.internal.element.ParameterElementImpl;
-import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
-import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.TokenType;
@@ -284,34 +274,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return recordType(node, getType(node.getTarget()));
   }
 
-  @Override
-  public Void visitCatchClause(CatchClause node) {
-    SimpleIdentifier exception = node.getExceptionParameter();
-    if (exception != null) {
-      // If an 'on' clause is provided the type of the exception parameter is the type in the 'on'
-      // clause. Otherwise, the type of the exception parameter is 'Object'.
-      TypeName exceptionTypeName = node.getExceptionType();
-      Type exceptionType;
-      if (exceptionTypeName == null) {
-        exceptionType = typeProvider.getObjectType();
-      } else {
-        exceptionType = getType(exceptionTypeName);
-      }
-      recordType(exception, exceptionType);
-      Element element = exception.getElement();
-      if (element instanceof VariableElementImpl) {
-        ((VariableElementImpl) element).setType(exceptionType);
-      } else {
-        // TODO(brianwilkerson) Report the internal error
-      }
-    }
-    SimpleIdentifier stackTrace = node.getStackTraceParameter();
-    if (stackTrace != null) {
-      recordType(stackTrace, typeProvider.getStackTraceType());
-    }
-    return null;
-  }
-
   /**
    * The Dart Language Specification, 12.19: <blockquote> ... a conditional expression <i>c</i> of
    * the form <i>e<sub>1</sub> ? e<sub>2</sub> : e<sub>3</sub></i> ...
@@ -337,22 +299,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return recordType(node, resultType);
   }
 
-  @Override
-  public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
-//    Expression defaultValue = node.getDefaultValue();
-//    if (defaultValue != null) {
-//      Type valueType = getType(defaultValue);
-//      Type parameterType = getType(node.getParameter());
-//      if (!valueType.isAssignableTo(parameterType)) {
-    // TODO(brianwilkerson) Determine whether this is really an error. I can't find in the spec
-    // anything that says it is, but a side comment from Gilad states that it should be a static
-    // warning.
-//        resolver.reportError(ResolverErrorCode.?, defaultValue);
-//      }
-//    }
-    return null;
-  }
-
   /**
    * The Dart Language Specification, 12.3: <blockquote>The static type of a literal double is
    * {@code double}.</blockquote>
@@ -360,24 +306,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitDoubleLiteral(DoubleLiteral node) {
     return recordType(node, typeProvider.getDoubleType());
-  }
-
-  @Override
-  public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    Type declaredType;
-    TypeName typeName = node.getType();
-    if (typeName == null) {
-      declaredType = typeProvider.getDynamicType();
-    } else {
-      declaredType = getType(typeName);
-    }
-    Element element = node.getIdentifier().getElement();
-    if (element instanceof ParameterElement) {
-      ((ParameterElementImpl) element).setType(declaredType);
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
-    }
-    return null;
   }
 
   /**
@@ -412,6 +340,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
+//    return recordType(node, node.getElement().getType());
     return recordType(node, createFunctionType(computeReturnType(node), node.getParameters()));
   }
 
@@ -430,25 +359,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     return recordReturnType(node, node.getElement());
-  }
-
-  @Override
-  public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    Element element = node.getIdentifier().getElement();
-    if (!(element instanceof ParameterElementImpl)) {
-      // TODO(brianwilkerson) Report the internal error
-      return null;
-    }
-    Type returnType;
-    TypeName returnTypeNode = node.getReturnType();
-    if (returnTypeNode == null) {
-      returnType = typeProvider.getDynamicType();
-    } else {
-      returnType = getType(returnTypeNode);
-    }
-    ParameterElementImpl parameter = (ParameterElementImpl) element;
-    parameter.setType(createFunctionType(returnType, node.getParameters()));
-    return null;
   }
 
   /**
@@ -743,24 +653,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return recordType(node, typeProvider.getDynamicType());
   }
 
-  @Override
-  public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    Type declaredType;
-    TypeName typeName = node.getType();
-    if (typeName == null) {
-      declaredType = typeProvider.getDynamicType();
-    } else {
-      declaredType = getType(typeName);
-    }
-    Element element = node.getIdentifier().getElement();
-    if (element instanceof ParameterElement) {
-      ((ParameterElementImpl) element).setType(declaredType);
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
-    }
-    return null;
-  }
-
   /**
    * The Dart Language Specification, 12.30: <blockquote>Evaluation of an identifier expression
    * <i>e</i> of the form <i>id</i> proceeds as follows:
@@ -872,75 +764,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitThrowExpression(ThrowExpression node) {
     return recordType(node, typeProvider.getBottomType());
-  }
-
-  @Override
-  public Void visitTypeName(TypeName node) {
-    Type type = getType(node.getName());
-    if (type == null) {
-      return null;
-    }
-    TypeArgumentList argumentList = node.getTypeArguments();
-    if (argumentList != null) {
-      NodeList<TypeName> arguments = argumentList.getArguments();
-      int argumentCount = arguments.size();
-      int parameterCount = (type instanceof InterfaceType)
-          ? ((InterfaceType) type).getTypeArguments().length
-          : ((FunctionType) type).getTypeArguments().length;
-      if (argumentCount != parameterCount) {
-        // TODO(brianwilkerson) Report this error.
-//      resolver.reportError(ResolverErrorCode.?, keyType);
-      }
-      ArrayList<Type> typeArguments = new ArrayList<Type>(argumentCount);
-      for (int i = 0; i < argumentCount; i++) {
-        Type argumentType = getType(arguments.get(i));
-        if (argumentType != null) {
-          typeArguments.add(argumentType);
-        }
-      }
-      if (type instanceof InterfaceTypeImpl) {
-        InterfaceTypeImpl interfaceType = (InterfaceTypeImpl) type;
-        argumentCount = typeArguments.size(); // Recomputed in case any argument type was null
-        if (interfaceType.getTypeArguments().length == argumentCount) {
-          type = interfaceType.substitute(typeArguments.toArray(new Type[argumentCount]));
-        } else {
-          // TODO(brianwilkerson) Report this error (unless it already was).
-//        resolver.reportError(ResolverErrorCode.?, keyType);
-        }
-      } else if (type instanceof FunctionTypeImpl) {
-        FunctionTypeImpl functionType = (FunctionTypeImpl) type;
-        argumentCount = typeArguments.size(); // Recomputed in case any argument type was null
-        if (functionType.getTypeArguments().length == argumentCount) {
-          type = functionType.substitute(typeArguments.toArray(new Type[argumentCount]));
-        } else {
-          // TODO(brianwilkerson) Report this error (unless it already was).
-//          resolver.reportError(ResolverErrorCode.?, keyType);
-        }
-      } else {
-        // TODO(brianwilkerson) Report this error.
-//      resolver.reportError(ResolverErrorCode.?, keyType);
-      }
-    }
-    node.setType(type);
-    return null;
-  }
-
-  @Override
-  public Void visitVariableDeclaration(VariableDeclaration node) {
-    Type declaredType;
-    TypeName typeName = ((VariableDeclarationList) node.getParent()).getType();
-    if (typeName == null) {
-      declaredType = typeProvider.getDynamicType();
-    } else {
-      declaredType = getType(typeName);
-    }
-    Element element = node.getName().getElement();
-    if (element instanceof ParameterElement) {
-      ((ParameterElementImpl) element).setType(declaredType);
-    } else {
-      // TODO(brianwilkerson) Report the internal error.
-    }
-    return null;
   }
 
   /**

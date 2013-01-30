@@ -154,7 +154,8 @@ public class LibraryResolver {
     //    elements built for the referenced libraries, but because of the possibility of circular
     //    references needs to happen after all of the library elements have been created.
     // 3. Build the rest of the type model by connecting superclasses, mixins, and interfaces. This
-    //    step only depends on the first step and could be done in parallel with the second step.
+    //    requires that we be able to compute the names visible in the libraries being resolved,
+    //    which in turn requires that we have resolved the import directives.
     //
     buildElementModels();
     buildDirectiveModels();
