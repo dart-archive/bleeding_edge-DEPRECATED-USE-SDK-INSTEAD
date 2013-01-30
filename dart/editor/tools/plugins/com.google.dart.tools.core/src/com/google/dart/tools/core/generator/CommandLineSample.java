@@ -28,10 +28,14 @@ public class CommandLineSample extends AbstractSample {
     List<String[]> templates = new ArrayList<String[]>();
 
     templates.add(new String[] {
-        "{name.lower}.dart", "void main() {\n  print(\"Hello, World!\");\n}\n"});
+        "pubspec.yaml",
+        "name: {name}\ndescription: A sample command-line application\n#dependencies:\n#  unittest: any\n"});
+
+    templates.add(new String[] {
+        "bin/{name.lower}.dart", "void main() {\n  print(\"Hello, World!\");\n}\n"});
 
     setTemplates(templates);
-    setMainFile("{name.lower}.dart");
+    setMainFile("bin/{name.lower}.dart");
   }
 
 }
