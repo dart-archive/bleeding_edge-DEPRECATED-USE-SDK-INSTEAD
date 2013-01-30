@@ -1992,14 +1992,16 @@ public class CompletionEngine {
   }
 
   private boolean checkPrefixIsDartSdkLibrary(String prefix) {
-    if (PackageLibraryManager.DART_SCHEME_SPEC.startsWith(prefix)) {
+    String[] prefixStrings = prefix.split(":");
+    if (PackageLibraryManager.DART_SCHEME_SPEC.startsWith(prefixStrings[0])) {
       return true;
     }
     return false;
   }
 
   private boolean checkPrefixIsPackageLibrary(String prefix) {
-    if (PackageLibraryManager.PACKAGE_SCHEME_SPEC.startsWith(prefix)) {
+    String[] prefixStrings = prefix.split(":");
+    if (PackageLibraryManager.PACKAGE_SCHEME_SPEC.startsWith(prefixStrings[0])) {
       return true;
     }
     return false;
@@ -2034,8 +2036,7 @@ public class CompletionEngine {
     proposal.setReplaceRange(actualCompletionPosition, actualCompletionPosition + prefix.length());
     proposal.setRelevance(relevance);
     setSourceLoc(proposal, null, null);
-    if (!prefix.isEmpty() && !prefix.equals(PackageLibraryManager.PACKAGE_SCHEME_SPEC)
-        && !prefix.equals(PackageLibraryManager.DART_SCHEME_SPEC)) {
+    if (!prefix.isEmpty()) {
       int sourceLoc = node.getLibraryUri().getSourceInfo().getOffset();
       proposal.setReplaceRange(sourceLoc + 1 - offset, prefix.length() + sourceLoc + 1 - offset);
       proposal.setTokenRange(sourceLoc + 1 - offset, prefix.length() + sourceLoc + 1 - offset);
@@ -2117,7 +2118,7 @@ public class CompletionEngine {
       return;
     }
     try {
-      if ((prefix.isEmpty() || !prefix.equals(PackageLibraryManager.PACKAGE_SCHEME_SPEC))
+      if ((prefix.isEmpty())
           && (DartCore.getApplicationDirectory(currentCompilationUnit.getUnderlyingResource().getLocation().toFile()) != null)) {
         createCompletionForImportLibraryName(
             node,
@@ -2144,7 +2145,10 @@ public class CompletionEngine {
           String name = libraryUriString.substring(index);
           for (String dependency : packageDeps) {
             if (name.startsWith(dependency)) {
-              libraryNames.add(name);
+              String lname = PackageLibraryManager.PACKAGE_SCHEME_SPEC + name;
+              if (lname.startsWith(prefix)) {
+                libraryNames.add(lname);
+              }
               break;
             }
           }
@@ -2165,7 +2169,8 @@ public class CompletionEngine {
             if (parent.getName().equals(LIB_DIRECTORY_NAME)) {
               String libraryUriString = library.getUri().toString();
               int index = libraryUriString.indexOf(LIB_PATH) + LIB_PATH.length();
-              String importName = name + FORWARD_SLASH + libraryUriString.substring(index);
+              String importName = PackageLibraryManager.PACKAGE_SCHEME_SPEC + name + FORWARD_SLASH
+                  + libraryUriString.substring(index);
               createCompletionForImportLibraryName(node, prefix, importName, 2);
               libraryNames.remove(importName);
             }
@@ -2186,14 +2191,17 @@ public class CompletionEngine {
     if (!prefix.isEmpty() && !checkPrefixIsDartSdkLibrary(prefix)) {
       return;
     }
-    if (prefix.isEmpty() || !prefix.equals(PackageLibraryManager.DART_SCHEME_SPEC)) {
+    if (prefix.isEmpty()) {
       createCompletionForImportLibraryName(node, prefix, PackageLibraryManager.DART_SCHEME_SPEC, 3);
       return;
     }
 
     Collection<SystemLibrary> systemLibraries = PackageLibraryManagerProvider.getAnyLibraryManager().getSystemLibraries();
     for (SystemLibrary library : systemLibraries) {
-      createCompletionForImportLibraryName(node, prefix, library.getShortName(), 1);
+      String name = PackageLibraryManager.DART_SCHEME_SPEC + library.getShortName();
+      if (name.startsWith(prefix)) {
+        createCompletionForImportLibraryName(node, prefix, name, 1);
+      }
     }
   }
 
