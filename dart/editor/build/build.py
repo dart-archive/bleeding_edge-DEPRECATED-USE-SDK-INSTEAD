@@ -659,40 +659,37 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
         else:
           dartium_zip = ziputils.ZipUtil(tmp_zip_file, buildos)
 
-        add_path = None
-  
+        dart_zip_path = join(buildout, rcpZipFile)
+        dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
+
         if 'lin' in buildos:
           paths = glob.glob(join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
-          # remove extra files
-          #FileDelete(join(add_path, 'DumpRenderTree'))
-          #FileDelete(join(add_path, 'DumpRenderTree.pak'))
+          # add to the rcp zip
+          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         if 'win' in buildos:
           paths = glob.glob(join(unzip_dir, 'dartium-*'))
           add_path = paths[0]
           zip_rel_path = 'dart/chromium'
-          # remove extra files
-          #FileDelete(join(add_path, 'DumpRenderTree.exe'))
           FileDelete(join(add_path, 'mini_installer.exe'))
           FileDelete(join(add_path, 'sync_unit_tests.exe'))
           FileDelete(join(add_path, 'chrome.packed.7z'))
+          # add to the rcp zip
+          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         if 'mac' in buildos:
           paths = glob.glob(join(unzip_dir, 'dartium-*'))
-          #TODO(devoncarew): add DumpRenderTree.app as well?
-          #add_path = paths[0]
-          #zip_rel_path = 'dart'
-          #FileDelete(join(add_path, 'ffmpegsumo.so'))
-          #FileDelete(join(add_path, 'osmesa.so'))
-          #FileDelete(join(add_path, 'snapshot-size.txt'))          
+          # For mac we explicitly add both chromium and drt since
+          # they are not located in the same output directory.
           add_path = join(paths[0], 'Chromium.app')
           zip_rel_path = 'dart/Chromium.app'
-        
-        #add to the rcp zip
-        dart_zip_path = join(buildout, rcpZipFile)
-        dart_zip = ziputils.ZipUtil(dart_zip_path, buildos)
-        dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-        
+          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
+
+          add_path = join(paths[0], 'DumpRenderTree.app')
+          zip_rel_path = 'dart/DumpRenderTree.app'
+          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
+
+ 
   shutil.rmtree(tmp_dir, True)
   
 
