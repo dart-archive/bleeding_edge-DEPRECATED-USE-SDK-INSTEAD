@@ -60,6 +60,9 @@ public class MainEngine {
       BeautifySemanticProcessor.INSTANCE,
       EngineSemanticProcessor.INSTANCE);
 
+  private static final String HEADER = "// This code was auto-generated, is not intended to be edited, and is subject to\n"
+      + "// significant change. Please see the README file for more information.\n\n";
+
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
       System.out.println("Usage: java2dart <target-src-folder> <target-test-folder>");
@@ -367,6 +370,7 @@ public class MainEngine {
    */
   private static String getFormattedSource(ASTNode node) {
     PrintStringWriter writer = new PrintStringWriter();
+    writer.append(HEADER);
     node.accept(new ToFormattedSourceVisitor(writer));
     return writer.toString();
   }
