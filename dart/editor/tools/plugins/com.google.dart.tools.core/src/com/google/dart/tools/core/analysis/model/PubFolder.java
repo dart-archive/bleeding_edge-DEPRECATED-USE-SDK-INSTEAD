@@ -16,6 +16,9 @@ package com.google.dart.tools.core.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.tools.core.pub.PubspecModel;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.runtime.CoreException;
+
 import java.io.IOException;
 
 /**
@@ -34,7 +37,13 @@ public interface PubFolder {
    * The pubspec model representing the pubspec.yaml file
    * 
    * @return the pubspec model (not {@code null}
-   * @throws IOException
    */
-  PubspecModel getPubspec() throws IOException;
+  PubspecModel getPubspec() throws CoreException, IOException;
+
+  /**
+   * Answer the container associated with the receiver and containing the pubspec file
+   * 
+   * @return the container (not {@code null})
+   */
+  IContainer getResource();
 }

@@ -63,11 +63,16 @@ public class ProjectImpl implements Project {
   private final HashMap<IContainer, AnalysisContext> contexts = new HashMap<IContainer, AnalysisContext>();
 
   /**
-   * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder}.
+   * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder} or {@code null} if not
+   * yet initialized. Call {@link #initialize()} before accessing this field.
    */
   private HashMap<IPath, PubFolder> pubFolders;
 
-  private final AnalysisContext defaultContext;
+  /**
+   * The default analysis context for this project or {@code null} if not yet initialized. Call
+   * {@link #initialize()} before accessing this field.
+   */
+  private AnalysisContext defaultContext;
 
   /**
    * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
@@ -116,7 +121,6 @@ public class ProjectImpl implements Project {
     }
     this.resource = resource;
     this.factory = factory;
-    this.defaultContext = factory.createContext();
   }
 
   @Override
@@ -194,6 +198,7 @@ public class ProjectImpl implements Project {
 
   @Override
   public AnalysisContext getDefaultContext() {
+    initialize();
     return defaultContext;
   }
 
@@ -212,13 +217,13 @@ public class ProjectImpl implements Project {
 
   @Override
   public PubFolder getPubFolder(IContainer container) {
-    initPubFolders();
+    initialize();
     return getPubFolder(container.getFullPath());
   }
 
   @Override
   public PubFolder[] getPubFolders() {
-    initPubFolders();
+    initialize();
     Collection<PubFolder> allFolders = pubFolders.values();
     return allFolders.toArray(new PubFolder[allFolders.size()]);
   }
@@ -297,16 +302,6 @@ public class ProjectImpl implements Project {
   }
 
   /**
-   * Determine if a {@link PubFolder} is defined for an ancestor
-   * 
-   * @param path the resource's full path
-   * @return {@code true} if a pub folder is defined
-   */
-  private boolean doesParentPubFolderExist(IPath path) {
-    return path.segmentCount() > 1 && getPubFolder(path.removeLastSegments(1)) != null;
-  }
-
-  /**
    * Answer {@code true} if the container equals or contains the specified resource.
    * 
    * @param directory the directory (not {@code null}, absolute file)
@@ -319,8 +314,19 @@ public class ProjectImpl implements Project {
   }
 
   /**
+   * Find the {@link PubFolder} defined for an ancestor. This method assumes that
+   * {@link #initialize()} has already been called.
+   * 
+   * @param path the resource's full path
+   * @return the containing pub folder or {@code null} if none
+   */
+  private PubFolder getParentPubFolder(IPath path) {
+    return path.segmentCount() > 1 ? getPubFolder(path.removeLastSegments(1)) : null;
+  }
+
+  /**
    * Answer the {@link PubFolder} for the specified resource path. This method assumes that
-   * {@link #initPubFolders()} has already been called.
+   * {@link #initialize()} has already been called.
    * 
    * @param path the resource full path (not {@code null})
    * @return the folder or {@code null} if none is found
@@ -361,10 +367,11 @@ public class ProjectImpl implements Project {
   /**
    * Initialize the {@link #pubFolders} map if it has not already been initialized.
    */
-  private void initPubFolders() {
+  private void initialize() {
     if (pubFolders != null) {
       return;
     }
+    defaultContext = factory.createContext();
     pubFolders = new HashMap<IPath, PubFolder>();
     DeltaProcessor processor = new DeltaProcessor(this);
     processor.addDeltaListener(new AbstractDeltaListener() {
@@ -373,13 +380,18 @@ public class ProjectImpl implements Project {
         IContainer parent = event.getResource().getParent();
         IPath path = parent.getFullPath();
         // Pub folders do not nest, so don't create a folder if a parent folder already exists
-        if (!doesParentPubFolderExist(path)) {
-          PubFolder pubFolder = new PubFolderImpl( //
-              parent,
-              event.getResource(),
-              path.segmentCount() == 1 ? defaultContext : factory.createContext());
+        if (getParentPubFolder(path) == null) {
+          PubFolder pubFolder = new PubFolderImpl(parent, createContext(path));
           pubFolders.put(path, pubFolder);
         }
+      }
+
+      private AnalysisContext createContext(IPath path) {
+        if (path.segmentCount() == 1) {
+          return defaultContext;
+        }
+        // TODO (danrubel): Use defaultContext.extractContext
+        return factory.createContext();
       }
     });
     try {
@@ -388,10 +400,12 @@ public class ProjectImpl implements Project {
       DartCore.logError("Failed to build pub folder mapping", e);
     }
     // Remove nested pub folders
-    Iterator<IPath> iter = pubFolders.keySet().iterator();
+    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
     while (iter.hasNext()) {
-      IPath path = iter.next();
-      if (doesParentPubFolderExist(path)) {
+      Entry<IPath, PubFolder> entry = iter.next();
+      PubFolder parent = getParentPubFolder(entry.getKey());
+      if (parent != null) {
+        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
         iter.remove();
       }
     }

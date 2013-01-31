@@ -14,28 +14,44 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.PubspecModel;
 
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
+import static com.google.dart.tools.core.utilities.io.FileUtilities.getContents;
+
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 
 /**
  * Represents a project or folder within a project containing a pubspec file
  */
 public class PubFolderImpl implements PubFolder {
 
+  /**
+   * The container of the pubspec file (not {@code null})
+   */
+  private final IContainer container;
+
+  /**
+   * The analysis context used when analyzing sources contained in the receiver
+   */
   private final AnalysisContext context;
 
-  private final IResource pubspecFile;
-  private PubspecModel pubspec = new PubspecModel(null);
+  /**
+   * The pubspec model or {@code null} if it is not yet cached.
+   */
+  private PubspecModel pubspec;
 
-  public PubFolderImpl(IContainer container, IResource pubspecResource, AnalysisContext context) {
+  public PubFolderImpl(IContainer container, AnalysisContext context) {
+    this.container = container;
     this.context = context;
-    pubspecFile = pubspecResource;
   }
 
   @Override
@@ -44,10 +60,17 @@ public class PubFolderImpl implements PubFolder {
   }
 
   @Override
-  public PubspecModel getPubspec() throws IOException {
+  public PubspecModel getPubspec() throws CoreException, IOException {
     if (pubspec == null) {
-      pubspec = new PubspecModel(FileUtilities.getContents(pubspecFile.getLocation().toFile()));
+      IFile file = container.getFile(new Path(PUBSPEC_FILE_NAME));
+      Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
+      pubspec = new PubspecModel(getContents(reader));
     }
     return pubspec;
+  }
+
+  @Override
+  public IContainer getResource() {
+    return container;
   }
 }
