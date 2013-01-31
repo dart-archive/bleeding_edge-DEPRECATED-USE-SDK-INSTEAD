@@ -19,20 +19,32 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
+import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
+import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
+import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
+import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
+
+import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.util.Iterator;
 import java.util.List;
@@ -42,6 +54,43 @@ import java.util.List;
  */
 public class EngineSemanticProcessor extends SemanticProcessor {
   public static final SemanticProcessor INSTANCE = new EngineSemanticProcessor();
+
+  /**
+   * Adds "main" function with given {@link Statement}s.
+   */
+  public static void addMain(CompilationUnit unit, List<Statement> statements) {
+    unit.getDeclarations().add(
+        functionDeclaration(
+            null,
+            null,
+            "main",
+            functionExpression(formalParameterList(), blockFunctionBody(statements))));
+  }
+
+  /**
+   * Gather all <code>TestSuite.addTestSuite</code> into "main" function.
+   */
+  public static boolean gatherTestSuites(final List<Statement> mainStatements,
+      CompilationUnitMember node) {
+    if (node instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) node;
+      if (classDeclaration.getName().getName().equals("TestAll")) {
+        node.accept(new RecursiveASTVisitor<Void>() {
+          @Override
+          public Void visitMethodInvocation(MethodInvocation node) {
+            if (node.getMethodName().getName().equals("addTestSuite")) {
+              mainStatements.add(expressionStatement(methodInvocation(
+                  node.getArgumentList().getArguments().get(0),
+                  "dartSuite")));
+            }
+            return super.visitMethodInvocation(node);
+          }
+        });
+        return true;
+      }
+    }
+    return false;
+  }
 
   @Override
   public void process(final Context context, final CompilationUnit unit) {
@@ -62,8 +111,21 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
-        SimpleIdentifier nameNode = node.getName();
-        if (nameNode.getName().equals("Type")) {
+        ITypeBinding typeBinding = context.getNodeTypeBinding(node);
+        // replace extends clause
+        ExtendsClause extendsClause = node.getExtendsClause();
+        if (extendsClause != null) {
+          TypeName superNode = extendsClause.getSuperclass();
+          if (superNode != null) {
+            ITypeBinding superTypeBinding = context.getNodeTypeBinding(superNode);
+            if (JavaUtils.isTypeNamed(superTypeBinding, "com.google.dart.engine.EngineTestCase")) {
+              superNode.setName(identifier("JUnitTestCase"));
+            }
+          }
+        }
+        // "Type" is declared in dart:core, so replace it
+        if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.type.Type")) {
+          SimpleIdentifier nameNode = node.getName();
           context.renameIdentifier(nameNode, "Type2");
         }
         return super.visitClassDeclaration(node);

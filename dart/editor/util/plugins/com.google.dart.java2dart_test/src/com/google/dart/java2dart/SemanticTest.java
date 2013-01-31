@@ -184,6 +184,72 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_classInner() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public static class B {",
+            "    B() {}",
+            "  }",
+            "  void test1(B p) {}",
+            "  void test2(A.B p) {}",
+            "  void test3() {",
+            "    new B();",
+            "    new A.B();",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test1(A_B p) {",
+            "  }",
+            "  void test2(A_B p) {",
+            "  }",
+            "  void test3() {",
+            "    new A_B();",
+            "    new A_B();",
+            "  }",
+            "}",
+            "class A_B {",
+            "  A_B() {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_classInner2() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public interface A {",
+            "  public interface B {",
+            "  }",
+            "  void test(B p) {}",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "abstract class A {",
+            "  void test(A_B p) {",
+            "  }",
+            "}",
+            "abstract class A_B {",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_configureRenameField() throws Exception {
     setFileLines(
         "test/A.java",
@@ -1244,6 +1310,37 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void main() {",
             "    test(-1, []);",
             "    test(-1, [2, 3.0]);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_varArgs_alreadyArray() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  String[] EMPTY = {};",
+            "  void test(String ...args) {",
+            "  }",
+            "  void main() {",
+            "    test(EMPTY);",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  List<String> EMPTY = [];",
+            "  void test(List<String> args) {",
+            "  }",
+            "  void main() {",
+            "    test(EMPTY);",
             "  }",
             "}"),
         getFormattedSource(unit));

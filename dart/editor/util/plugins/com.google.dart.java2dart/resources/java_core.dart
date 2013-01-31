@@ -1,4 +1,4 @@
-library engine.java;
+library java.core;
 
 class System {
   static int currentTimeMillis() {
@@ -77,6 +77,7 @@ class Character {
 class CharBuffer {
   final String _content;
   CharBuffer(this._content);
+  static CharBuffer wrap(String content) => new CharBuffer(content);
   int charAt(int index) => _content.charCodeAt(index);
   int length() => _content.length;
   String subSequence(int start, int end) => _content.substring(start, end);
@@ -86,6 +87,45 @@ class JavaString {
   static String format(String fmt, List args) {
     return fmt;
   }
+}
+
+/**
+ * Very limited printf implementation, supports only %s and %d.
+ */
+String _printf(String fmt, List args) {
+  StringBuffer sb = new StringBuffer();
+  bool markFound = false;
+  int argIndex = 0;
+  for (int i = 0; i < fmt.length; i++) {
+    int c = fmt.charCodeAt(i);
+    if (c == 0x25) {
+      if (markFound) {
+        sb.addCharCode(c);
+        markFound = false;
+      } else {
+        markFound = true;
+      }
+      continue;
+    }
+    if (markFound) {
+      markFound = false;
+      // %d
+      if (c == 0x64) {
+        sb.add(args[argIndex++]);
+        continue;
+      }
+      // %s
+      if (c == 0x73) {
+        sb.add(args[argIndex++]);
+        continue;
+      }
+      // unknown
+      throw new IllegalArgumentException('[$fmt][$i] = 0x${c.toRadixString(16)}');
+    } else {
+      sb.addCharCode(c);
+    }
+  }
+  return sb.toString();
 }
 
 abstract class PrintWriter {
@@ -102,6 +142,10 @@ class PrintStringWriter extends PrintWriter {
   void println() {
     print('\n');
   }
+
+  void printf(String fmt, List args) {
+    print(_printf(fmt, args));
+  }
   
   String toString() => _sb.toString(); 
 }
@@ -116,6 +160,10 @@ class StringUtils {
     }
     return sb.toString();
   }
+}
+
+class RuntimeException implements Exception {
+  String toString() => "RuntimeException";
 }
 
 class IllegalArgumentException implements Exception {

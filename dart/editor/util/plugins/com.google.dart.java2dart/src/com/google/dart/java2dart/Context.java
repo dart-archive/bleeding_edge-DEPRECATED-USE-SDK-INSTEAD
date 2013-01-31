@@ -31,7 +31,9 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
@@ -67,6 +69,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.FileASTRequestor;
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.File;
@@ -99,6 +102,7 @@ public class Context {
   }
 
   private static final String[] JAVA_EXTENSION = {"java"};
+  private final List<File> classpathFiles = Lists.newArrayList();
   private final List<File> sourceFolders = Lists.newArrayList();
   private final List<File> sourceFiles = Lists.newArrayList();
 
@@ -117,6 +121,7 @@ public class Context {
   private final Map<ASTNode, Object> nodeToBinding = Maps.newHashMap();
   private final Map<ASTNode, ITypeBinding> nodeToTypeBinding = Maps.newHashMap();
   private final Map<InstanceCreationExpression, ClassDeclaration> anonymousDeclarations = Maps.newHashMap();
+  private final Set<SimpleIdentifier> innerClassNames = Sets.newHashSet();
   // information about constructors
   private int technicalConstructorIndex;
   private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
@@ -124,6 +129,16 @@ public class Context {
   // information about inner classes
   private int technicalInnerClassIndex;
   private int technicalAnonymousClassIndex;
+
+  /**
+   * Specifies that given {@link File} should be added to Java classpath.
+   */
+  public void addClasspathFile(File file) {
+    Assert.isLegal(file.exists(), "File '" + file + "' does not exist.");
+    Assert.isLegal(file.isFile(), "File '" + file + "' is not a regular file.");
+    file = file.getAbsoluteFile();
+    classpathFiles.add(file);
+  }
 
   /**
    * Specifies that field with given signature should be renamed before normalizing member names.
@@ -361,6 +376,8 @@ public class Context {
     }
     // run processors
     {
+      replaceInnerClassReferences(dartUniverse);
+      unwrapVarArgIfAlreadyArray(dartUniverse);
       ensureFieldInitializers(dartUniverse);
       dontUseThisInFieldInitializers(dartUniverse);
       ensureUniqueClassMemberNames(dartUniverse);
@@ -420,6 +437,14 @@ public class Context {
    */
   void putConstructorNameSignature(SimpleIdentifier name, String signature) {
     constructorNameToBinding.put(name, signature);
+  }
+
+  /**
+   * Remembers that given {@link SimpleIdentifier} is the name of inner class and all references to
+   * it should be renamed.
+   */
+  void putInnerClassName(SimpleIdentifier identifier) {
+    innerClassNames.add(identifier);
   }
 
   /**
@@ -621,11 +646,15 @@ public class Context {
     // prepare Java parser
     ASTParser parser = ASTParser.newParser(AST.JLS4);
     {
+      String[] classpathEntries = new String[classpathFiles.size()];
+      for (int i = 0; i < classpathFiles.size(); i++) {
+        classpathEntries[i] = classpathFiles.get(i).getAbsolutePath();
+      }
       String[] sourceEntries = new String[sourceFolders.size()];
       for (int i = 0; i < sourceFolders.size(); i++) {
         sourceEntries[i] = sourceFolders.get(i).getAbsolutePath();
       }
-      parser.setEnvironment(null, sourceEntries, null, true);
+      parser.setEnvironment(classpathEntries, sourceEntries, null, true);
     }
     parser.setResolveBindings(true);
     parser.setCompilerOptions(ImmutableMap.of(
@@ -733,6 +762,12 @@ public class Context {
     });
   }
 
+  private void replaceInnerClassReferences(CompilationUnit unit) {
+    for (SimpleIdentifier identifier : innerClassNames) {
+      renameIdentifier(identifier, identifier.getName());
+    }
+  }
+
   /**
    * Translate {@link #sourceFiles} into Dart AST in {@link #dartUnits}.
    */
@@ -758,5 +793,34 @@ public class Context {
         fileMembers.addAll(dartDeclarations);
       }
     }
+  }
+
+  private void unwrapVarArgIfAlreadyArray(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        Object binding = nodeToBinding.get(node);
+        if (binding instanceof IMethodBinding) {
+          IMethodBinding methodBinding = (IMethodBinding) binding;
+          if (methodBinding.isVarargs()) {
+            List<Expression> args = node.getArgumentList().getArguments();
+            if (!args.isEmpty() && args.get(args.size() - 1) instanceof ListLiteral) {
+              ListLiteral listLiteral = (ListLiteral) args.get(args.size() - 1);
+              List<Expression> elements = listLiteral.getElements();
+              if (elements.size() == 1) {
+                Expression element = elements.get(0);
+                if (nodeToTypeBinding.get(element) instanceof ITypeBinding) {
+                  ITypeBinding elementTypeBinding = nodeToTypeBinding.get(element);
+                  if (elementTypeBinding.isArray()) {
+                    args.set(args.size() - 1, element);
+                  }
+                }
+              }
+            }
+          }
+        }
+        return super.visitMethodInvocation(node);
+      }
+    });
   }
 }

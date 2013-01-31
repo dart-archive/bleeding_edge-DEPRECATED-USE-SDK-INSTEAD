@@ -103,20 +103,6 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
-  public void test_classInner() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  public static class B {",
-        "  }",
-        "}");
-    assertDartSource(//
-        "class A {",
-        "}",
-        "class B {",
-        "}");
-  }
-
   public void test_classTypeArguments_Void() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",

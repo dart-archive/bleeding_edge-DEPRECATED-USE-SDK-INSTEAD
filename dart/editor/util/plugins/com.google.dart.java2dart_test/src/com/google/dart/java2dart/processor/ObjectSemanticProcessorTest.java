@@ -61,6 +61,26 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Class_getName() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public <T> T getAncestor(Class<T> t) {",
+        "    t.getName();",
+        "    t.getSimpleName();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  Object getAncestor(Type t) {",
+        "    t.toString();",
+        "    t.toString();",
+        "  }",
+        "}");
+  }
+
   public void test_Double_parseDouble() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -98,6 +118,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  List<MyEnum> foo() => MyEnum.values;",
+        "}");
+  }
+
+  public void test_Integer_intValue() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int main(Integer p) {",
+        "    return p.intValue();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  int main(int p) => p;",
         "}");
   }
 

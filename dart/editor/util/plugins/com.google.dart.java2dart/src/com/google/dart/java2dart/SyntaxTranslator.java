@@ -1255,7 +1255,18 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
     ITypeBinding binding = node.resolveBinding();
-    SimpleIdentifier name = translateSimpleName(node.getName());
+    // prepare name
+    SimpleIdentifier name;
+    {
+      name = translateSimpleName(node.getName());
+      if (binding != null) {
+        ITypeBinding declaringClass = binding.getDeclaringClass();
+        if (declaringClass != null) {
+          context.putInnerClassName(name);
+          name.setToken(token(TokenType.IDENTIFIER, declaringClass.getName() + "_" + name.getName()));
+        }
+      }
+    }
     // interface
     Token abstractToken = null;
     if (node.isInterface() || org.eclipse.jdt.core.dom.Modifier.isAbstract(node.getModifiers())) {
@@ -1292,6 +1303,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     // members
     List<ClassMember> members = translateBodyDeclarations(node.bodyDeclarations());
+    for (ClassMember member : members) {
+      if (member instanceof ConstructorDeclaration) {
+        ConstructorDeclaration constructor = (ConstructorDeclaration) member;
+        constructor.setReturnType(name);
+      }
+    }
+    //
     ClassDeclaration classDeclaration = new ClassDeclaration(
         translateJavadoc(node),
         null,
@@ -1307,6 +1325,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         null);
     context.putNodeBinding(classDeclaration, binding);
     context.putNodeTypeBinding(classDeclaration, binding);
+    context.putNodeTypeBinding(name, binding);
     return done(classDeclaration);
   }
 
@@ -1488,6 +1507,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     });
     Assert.isNotNull(result, "No result for: " + node.getClass().getCanonicalName());
     T castedResult = (T) result;
+    if (node instanceof org.eclipse.jdt.core.dom.Expression) {
+      context.putNodeTypeBinding(
+          result,
+          ((org.eclipse.jdt.core.dom.Expression) node).resolveTypeBinding());
+    }
     result = null;
     return castedResult;
   }

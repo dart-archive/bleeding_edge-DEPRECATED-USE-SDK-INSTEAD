@@ -105,6 +105,10 @@ public final class ASTFactory {
     return new BlockFunctionBody(block);
   }
 
+  public static BlockFunctionBody blockFunctionBody(List<Statement> statements) {
+    return new BlockFunctionBody(block(statements));
+  }
+
   public static BlockFunctionBody blockFunctionBody(Statement... statements) {
     return new BlockFunctionBody(block(statements));
   }

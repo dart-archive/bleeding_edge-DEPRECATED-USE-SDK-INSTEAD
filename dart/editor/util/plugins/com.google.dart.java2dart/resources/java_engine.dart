@@ -1,6 +1,7 @@
-library engine.lib;
+library java.engine;
 
-import "javalib.dart";
+import "java_core.dart";
+import "source.dart";
 import "element.dart";
 
 class AnalysisContext {

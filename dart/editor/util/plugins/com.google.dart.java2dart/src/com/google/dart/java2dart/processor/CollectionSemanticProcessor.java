@@ -174,11 +174,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, methodInvocation("getMapEntrySet", node.getTarget()));
           return null;
         }
-        if (isMethodInClass(node, "remove", "java.util.List")) {
+        if (isMethodInClass2(node, "remove(int)", "java.util.List")) {
           nameNode.setToken(TokenFactory.token("removeAt"));
           return null;
         }
-        if (isMethodInClass(node, "add", "java.util.List") && args.size() == 2) {
+        if (isMethodInClass2(node, "add(int,java.lang.Object)", "java.util.List")) {
           nameNode.setToken(TokenFactory.token("insertRange"));
           args.add(1, integer(1));
           return null;
@@ -239,6 +239,13 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         String name = node.getMethodName().getName();
         return Objects.equal(name, reqName)
             && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
+      }
+
+      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
+          String reqClassName) {
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }

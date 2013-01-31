@@ -168,6 +168,11 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             replaceNode(node, propertyAccess(node.getTarget(), "runtimeType"));
             return null;
           }
+          if (isMethodInClass(node, "getName", "java.lang.Class")
+              || isMethodInClass(node, "getSimpleName", "java.lang.Class")) {
+            nameNode.setToken(token("toString"));
+            return null;
+          }
         }
         if (name.equals("equals") && args.size() == 1) {
           ASTNode parent = node.getParent();
@@ -243,6 +248,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "booleanValue", "java.lang.Boolean")
             || isMethodInClass(node, "doubleValue", "java.lang.Double")
+            || isMethodInClass(node, "intValue", "java.lang.Integer")
             || isMethodInClass(node, "intValue", "java.math.BigInteger")) {
           replaceNode(node, node.getTarget());
           return null;

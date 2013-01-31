@@ -271,7 +271,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_List_remove() throws Exception {
+  public void test_List_remove_byIndex() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
@@ -286,6 +286,26 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  void foo(List<String> items) {",
         "    items.removeAt(2);",
+        "  }",
+        "}");
+  }
+
+  // XXX
+  public void test_List_remove_byValue() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.List;",
+        "public class Test {",
+        "  public void foo(List<String> items) {",
+        "    items.remove(this);",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void foo(List<String> items) {",
+        "    items.remove(this);",
         "  }",
         "}");
   }
