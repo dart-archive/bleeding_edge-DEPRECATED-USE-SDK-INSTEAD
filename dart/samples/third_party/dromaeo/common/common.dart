@@ -4,6 +4,7 @@
 
 library common;
 import 'dart:math' as Math;
+import 'dart:json' as json;
 part 'BenchUtil.dart';
 part 'Interval.dart';
 part 'Math2.dart';

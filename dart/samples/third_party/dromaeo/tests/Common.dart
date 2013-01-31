@@ -39,7 +39,7 @@ class Result {
   }
 
   factory Result(List<double> runsPerSecond) {
-    runsPerSecond.sort();
+    runsPerSecond.sort((a, b) => a.compareTo(b));
     return new Result._internal(runsPerSecond);
   }
 

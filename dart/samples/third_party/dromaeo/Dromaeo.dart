@@ -1,3 +1,5 @@
+library dromaeo_test;
+
 import 'dart:html';
 import 'dart:json' as json;
 import 'dart:math' as Math;
@@ -98,7 +100,15 @@ class Dromaeo {
             final response = json.parse(event.data);
             _handler = _handler(response['command'], response['data']);
           } catch (e, stacktrace) {
-            window.alert('Exception: ${e}: ${stacktrace}');
+            if (!(e is FormatException &&
+                (event.data.toString().startsWith('unittest') ||
+                event.data.toString().startsWith('dart')))) {
+              // Hack because unittest also uses post messages to communicate.
+              // So the fact that the event.data is not proper json is not
+              // always an error.
+              print('Exception: ${e}: ${stacktrace}');
+              print(event.data);
+            }
           }
         });
   }
@@ -106,10 +116,9 @@ class Dromaeo {
   run() {
     // TODO(vsm): Initial page should not run.  For now, run all
     // tests by default.
-    final splitUrl = window.location.href.split('?');
-    var tags;
-    if (splitUrl.length > 1) {
-      tags = splitUrl[1];
+    var tags = window.location.search;
+    if (tags.length > 1) {
+      tags = tags.substring(1);
     } else if (window.navigator.userAgent.contains('(Dart)')) {
       // TODO(vsm): Update when we change Dart VM detection.
       tags = 'js|dart&html';

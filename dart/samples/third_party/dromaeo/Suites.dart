@@ -31,16 +31,15 @@ class Suites {
 
     // Library tags
     'html': 'DOM Core Tests (dart:html)',
-    'htmlidiomatic': 'DOM Core Tests (dart:html) Idiomatic',
   };
 
   static const _CORE_TEST_OPTIONS = const [
       // A list of valid combinations for core Dromaeo DOM tests.
       // Each item in the list is a pair of (platform x [variants]).
       const ['js', const ['']],
-      const ['dart', const ['html', 'htmlidiomatic']],
-      const ['frog', const ['html', 'htmlidiomatic']],
-      const ['dart2js', const ['html', 'htmlidiomatic']],
+      const ['dart', const ['html']],
+      const ['frog', const ['html']],
+      const ['dart2js', const ['html']],
     ];
 
   static const _CORE_SUITE_DESCRIPTIONS = const [
@@ -71,6 +70,13 @@ class Suites {
           JOHN_RESIG,
           'Traversing a DOM structure',
           const ['traverse'],
+          _CORE_TEST_OPTIONS),
+      const SuiteDescription(
+          '../../../../../tests/html/dromaeo_smoke.html',
+          'Smoke test',
+          const Origin('', ''),
+          'Dromaeo no-op smoke test',
+          const ['nothing'],
           _CORE_TEST_OPTIONS),
   ];
 
