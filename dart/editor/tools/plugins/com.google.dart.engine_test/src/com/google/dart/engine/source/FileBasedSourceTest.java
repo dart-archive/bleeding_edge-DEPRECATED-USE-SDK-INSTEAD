@@ -20,13 +20,20 @@ import junit.framework.TestCase;
 import java.io.File;
 
 public class FileBasedSourceTest extends TestCase {
-  public void test_equals_false() {
+  public void test_equals_false_differentFiles() {
     SourceFactory factory = new SourceFactory();
     File file1 = createFile("/does/not/exist1.dart");
     File file2 = createFile("/does/not/exist2.dart");
     FileBasedSource source1 = new FileBasedSource(factory, file1);
     FileBasedSource source2 = new FileBasedSource(factory, file2);
     assertFalse(source1.equals(source2));
+  }
+
+  public void test_equals_false_null() {
+    SourceFactory factory = new SourceFactory();
+    File file1 = createFile("/does/not/exist1.dart");
+    FileBasedSource source1 = new FileBasedSource(factory, file1);
+    assertFalse(source1.equals(null));
   }
 
   public void test_equals_true() {

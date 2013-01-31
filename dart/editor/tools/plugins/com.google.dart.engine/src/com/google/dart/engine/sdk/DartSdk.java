@@ -301,6 +301,15 @@ public class DartSdk {
   }
 
   /**
+   * Return an array containing the library URI's for the libraries defined in this SDK.
+   * 
+   * @return the library URI's for the libraries defined in this SDK
+   */
+  public String[] getUris() {
+    return libraryMap.getUris();
+  }
+
+  /**
    * Return the file containing the VM executable, or {@code null} if it does not exist.
    * 
    * @return the file containing the VM executable
@@ -399,7 +408,7 @@ public class DartSdk {
     try {
       File librariesFile = new File(new File(getLibraryDirectory(), INTERNAL_DIR), LIBRARIES_FILE);
       String contents = FileUtilities.getContents(librariesFile);
-      libraryMap = new SdkLibrariesReader().readFrom(contents);
+      libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
     } catch (Exception exception) {
       // TODO Auto-generated catch block
       exception.printStackTrace();

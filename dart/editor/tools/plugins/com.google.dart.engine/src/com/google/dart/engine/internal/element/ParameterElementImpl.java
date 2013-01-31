@@ -59,4 +59,9 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   public void setParameterKind(ParameterKind parameterKind) {
     this.parameterKind = parameterKind;
   }
+
+  @Override
+  public String toString() {
+    return "parameter " + getType() + " " + getName() + " (" + getKind() + ")";
+  }
 }

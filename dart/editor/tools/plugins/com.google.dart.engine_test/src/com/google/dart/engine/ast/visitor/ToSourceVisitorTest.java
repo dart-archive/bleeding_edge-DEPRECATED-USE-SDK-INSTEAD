@@ -555,6 +555,22 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("continue;", continueStatement());
   }
 
+  public void test_visitDefaultFormalParameter_named_noValue() {
+    assertSource("p", namedFormalParameter(simpleFormalParameter("p"), null));
+  }
+
+  public void test_visitDefaultFormalParameter_named_value() {
+    assertSource("p : 0", namedFormalParameter(simpleFormalParameter("p"), integer(0)));
+  }
+
+  public void test_visitDefaultFormalParameter_positional_noValue() {
+    assertSource("p", positionalFormalParameter(simpleFormalParameter("p"), null));
+  }
+
+  public void test_visitDefaultFormalParameter_positional_value() {
+    assertSource("p = 0", positionalFormalParameter(simpleFormalParameter("p"), integer(0)));
+  }
+
   public void test_visitDoStatement() {
     assertSource("do {} while (c);", doStatement(block(), identifier("c")));
   }

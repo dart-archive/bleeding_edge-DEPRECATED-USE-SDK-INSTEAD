@@ -15,29 +15,33 @@ package com.google.dart.engine.internal.sdk;
 
 import com.google.dart.engine.EngineTestCase;
 
+import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
 public class SDKLibrariesReaderTest extends EngineTestCase {
   public void test_readFrom_empty() {
-    LibraryMap libraryMap = new SdkLibrariesReader().readFrom("");
+    LibraryMap libraryMap = new SdkLibrariesReader().readFrom(createFile("/libs.dart"), "");
     assertNotNull(libraryMap);
     assertEquals(0, libraryMap.size());
   }
 
   public void test_readFrom_nonEmpty() {
-    LibraryMap libraryMap = new SdkLibrariesReader().readFrom(createSource(//
-        "final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {",
-        "  'first' : const LibraryInfo(",
-        "    'first/first.dart',",
-        "    category: 'First',",
-        "    documented: true,",
-        "    platforms: VM_PLATFORM),",
-        "",
-        "  'second' : const LibraryInfo(",
-        "    'second/second.dart',",
-        "    category: 'Second',",
-        "    documented: false,",
-        "    implementation: true,",
-        "    platforms: 0),",
-        "};"));
+    LibraryMap libraryMap = new SdkLibrariesReader().readFrom(
+        createFile("/libs.dart"),
+        createSource(//
+            "final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {",
+            "  'first' : const LibraryInfo(",
+            "    'first/first.dart',",
+            "    category: 'First',",
+            "    documented: true,",
+            "    platforms: VM_PLATFORM),",
+            "",
+            "  'second' : const LibraryInfo(",
+            "    'second/second.dart',",
+            "    category: 'Second',",
+            "    documented: false,",
+            "    implementation: true,",
+            "    platforms: 0),",
+            "};"));
     assertNotNull(libraryMap);
     assertEquals(2, libraryMap.size());
 

@@ -73,4 +73,15 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   public void setStatic(boolean isStatic) {
     setModifier(Modifier.STATIC, isStatic);
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("method ");
+    builder.append(getEnclosingElement().getName());
+    builder.append(".");
+    builder.append(getName());
+    builder.append(getType());
+    return builder.toString();
+  }
 }

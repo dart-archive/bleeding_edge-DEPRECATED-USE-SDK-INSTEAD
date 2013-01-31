@@ -166,7 +166,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @Override
   public int hashCode() {
-    return getElement().hashCode();
+    Element element = getElement();
+    if (element == null) {
+      return 0;
+    }
+    return element.hashCode();
   }
 
   @Override
@@ -314,5 +318,61 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         parameterTypes));
     newType.setNamedParameterTypes(substitute(namedParameterTypes, argumentTypes, parameterTypes));
     return newType;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("(");
+    boolean needsComma = false;
+    if (normalParameterTypes.length > 0) {
+      for (Type type : normalParameterTypes) {
+        if (needsComma) {
+          builder.append(", ");
+        } else {
+          needsComma = true;
+        }
+        builder.append(type);
+      }
+    }
+    if (optionalParameterTypes.length > 0) {
+      if (needsComma) {
+        builder.append(", ");
+        needsComma = false;
+      }
+      builder.append("[");
+      for (Type type : optionalParameterTypes) {
+        if (needsComma) {
+          builder.append(", ");
+        } else {
+          needsComma = true;
+        }
+        builder.append(type);
+      }
+      builder.append("]");
+      needsComma = true;
+    }
+    if (namedParameterTypes.size() > 0) {
+      if (needsComma) {
+        builder.append(", ");
+        needsComma = false;
+      }
+      builder.append("{");
+      for (Map.Entry<String, Type> entry : namedParameterTypes.entrySet()) {
+        if (needsComma) {
+          builder.append(", ");
+        } else {
+          needsComma = true;
+        }
+        builder.append(entry.getKey());
+        builder.append(": ");
+        builder.append(entry.getValue());
+      }
+      builder.append("}");
+      needsComma = true;
+    }
+    builder.append(") -> ");
+    builder.append(returnType);
+    return builder.toString();
   }
 }

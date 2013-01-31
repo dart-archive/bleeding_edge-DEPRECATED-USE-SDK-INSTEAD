@@ -264,9 +264,11 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.getParameter());
-    writer.print(" ");
-    writer.print(node.getSeparator().getLexeme());
-    visit(" ", node.getDefaultValue());
+    if (node.getSeparator() != null) {
+      writer.print(" ");
+      writer.print(node.getSeparator().getLexeme());
+      visit(" ", node.getDefaultValue());
+    }
     return null;
   }
 

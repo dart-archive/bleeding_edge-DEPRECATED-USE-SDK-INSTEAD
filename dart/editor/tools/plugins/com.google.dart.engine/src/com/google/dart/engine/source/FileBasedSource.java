@@ -71,7 +71,8 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean equals(Object object) {
-    return this.getClass() == object.getClass() && file.equals(((FileBasedSource) object).file);
+    return object != null && this.getClass() == object.getClass()
+        && file.equals(((FileBasedSource) object).file);
   }
 
   @Override
@@ -138,6 +139,14 @@ public class FileBasedSource implements Source {
   @Override
   public Source resolve(String uri) {
     return factory.resolveUri(this, uri);
+  }
+
+  @Override
+  public String toString() {
+    if (file == null) {
+      return "<unknown source>";
+    }
+    return file.getAbsolutePath();
   }
 
   /**

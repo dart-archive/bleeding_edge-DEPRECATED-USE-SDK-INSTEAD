@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.type;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
@@ -62,6 +63,16 @@ public class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
     Type[] types = type.getTypeArguments();
     assertLength(0, types);
+  }
+
+  public void test_hashCode_element() {
+    FunctionTypeImpl type = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
+    type.hashCode();
+  }
+
+  public void test_hashCode_noElement() {
+    FunctionTypeImpl type = new FunctionTypeImpl((ExecutableElement) null);
+    type.hashCode();
   }
 
   public void test_isSubtypeOf_baseCase_notFunctionType() {

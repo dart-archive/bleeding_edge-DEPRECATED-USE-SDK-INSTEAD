@@ -26,9 +26,10 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -152,7 +153,7 @@ public class SdkLibrariesReader {
    * 
    * @return the library map read from the given source
    */
-  public LibraryMap readFrom(String libraryFileContents) {
+  public LibraryMap readFrom(File librariesFile, String libraryFileContents) {
     final boolean[] foundError = {false};
     AnalysisErrorListener errorListener = new AnalysisErrorListener() {
       @Override
@@ -160,7 +161,7 @@ public class SdkLibrariesReader {
         foundError[0] = true;
       }
     };
-    Source source = new FileBasedSource(null, null, false);
+    Source source = new FileBasedSource(null, librariesFile, false);
     StringScanner scanner = new StringScanner(source, libraryFileContents, errorListener);
     Parser parser = new Parser(source, errorListener);
     CompilationUnit unit = parser.parseCompilationUnit(scanner.tokenize());
