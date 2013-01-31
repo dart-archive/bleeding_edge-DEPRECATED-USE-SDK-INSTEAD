@@ -1040,6 +1040,7 @@ public class Parser {
           period = null;
           functionName = null;
         } else if (expression == null) {
+          // It should not be possible to get here.
           return null;
         } else {
           expression = new FunctionExpressionInvocation(expression, parseArgumentList());
@@ -2630,6 +2631,11 @@ public class Parser {
         return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         return new BlockFunctionBody(parseBlock());
+      } else if (matches("native")) {
+        // TODO(brianwilkerson) Decide whether we want to model native methods.
+        advance();
+        parseStringLiteral();
+        return new EmptyFunctionBody(getAndAdvance());
       } else {
         // Invalid function body
         reportError(ParserErrorCode.MISSING_FUNCTION_BODY);
@@ -4104,6 +4110,30 @@ public class Parser {
     reportError(ParserErrorCode.MISSING_IDENTIFIER);
     return createSyntheticIdentifier();
   }
+
+//  /**
+//   * Parse a simple identifier.
+//   * 
+//   * <pre>
+//   * identifier ::=
+//   *     IDENTIFIER
+//   * </pre>
+//   * 
+//   * @param consumeToken a predicate that returns {@code true} if the current token is not a simple
+//   *          identifier but is a keyword that should be consumed as if it were an identifier
+//   * @return the simple identifier that was parsed
+//   */
+//  import com.google.common.base.Predicate;
+//  private SimpleIdentifier parseSimpleIdentifier(Predicate<Token> consumeToken) {
+//    if (matchesIdentifier()) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+//    if (matches(TokenType.KEYWORD) && consumeToken.apply(currentToken)) {
+//      return new SimpleIdentifier(getAndAdvance());
+//    }
+//    return createSyntheticIdentifier();
+//  }
 
   /**
    * Parse a statement.
