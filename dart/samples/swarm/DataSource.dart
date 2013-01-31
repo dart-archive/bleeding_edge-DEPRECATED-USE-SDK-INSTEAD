@@ -16,7 +16,7 @@ class Sections extends Collection<Section> {
   int get length => _sections.length;
 
   List<String> get sectionTitles =>
-    _sections.mappedBy((s) => s.title).toList();
+    _sections.map((s) => s.title).toList();
 
   void refresh() {
     // TODO(jimhug): http://b/issue?id=5351067
