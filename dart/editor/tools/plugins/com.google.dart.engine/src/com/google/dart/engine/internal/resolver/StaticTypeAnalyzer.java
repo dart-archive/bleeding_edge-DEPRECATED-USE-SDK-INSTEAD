@@ -793,18 +793,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
     ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
     LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
-    for (FormalParameter parameter : parameterList.getParameters()) {
-      Type parameterType = getType(parameter);
-      switch (parameter.getKind()) {
-        case REQUIRED:
-          normalParameterTypes.add(parameterType);
-          break;
-        case POSITIONAL:
-          optionalParameterTypes.add(parameterType);
-          break;
-        case NAMED:
-          namedParameterTypes.put(parameter.getIdentifier().getName(), parameterType);
-          break;
+    if (parameterList != null) {
+      //
+      // The parameter list can validly be null only for getters.
+      //
+      for (FormalParameter parameter : parameterList.getParameters()) {
+        Type parameterType = getType(parameter);
+        switch (parameter.getKind()) {
+          case REQUIRED:
+            normalParameterTypes.add(parameterType);
+            break;
+          case POSITIONAL:
+            optionalParameterTypes.add(parameterType);
+            break;
+          case NAMED:
+            namedParameterTypes.put(parameter.getIdentifier().getName(), parameterType);
+            break;
+        }
       }
     }
 
@@ -823,7 +828,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return the type of the given expression
    */
   private Type getType(Expression expression) {
-    return expression.getStaticType();
+    Type type = expression.getStaticType();
+    if (type == null) {
+      //TODO(brianwilkerson) Determine the conditions for which the type is null.
+      return typeProvider.getDynamicType();
+    }
+    return type;
   }
 
   /**
@@ -835,7 +845,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Type getType(FormalParameter parameter) {
     Element element = parameter.getIdentifier().getElement();
     if (element instanceof ParameterElement) {
-      return ((ParameterElement) element).getType();
+      Type type = ((ParameterElement) element).getType();
+      if (type == null) {
+        //TODO(brianwilkerson) Determine the conditions for which the type is null.
+        return typeProvider.getDynamicType();
+      }
+      return type;
     }
     // TODO(brianwilkerson) Report this internal error
     return typeProvider.getDynamicType();
@@ -848,7 +863,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return the type represented by the type name
    */
   private Type getType(TypeName typeName) {
-    return typeName.getType();
+    Type type = typeName.getType();
+    if (type == null) {
+      //TODO(brianwilkerson) Determine the conditions for which the type is null.
+      return typeProvider.getDynamicType();
+    }
+    return type;
   }
 
   /**

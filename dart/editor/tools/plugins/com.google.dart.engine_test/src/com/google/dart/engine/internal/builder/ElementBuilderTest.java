@@ -736,6 +736,7 @@ public class ElementBuilderTest extends EngineTestCase {
     TypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
+    assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
   }
 
@@ -759,6 +760,7 @@ public class ElementBuilderTest extends EngineTestCase {
     TypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
+    assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
     VariableElement[] parameters = alias.getParameters();
     assertLength(2, parameters);
@@ -787,6 +789,7 @@ public class ElementBuilderTest extends EngineTestCase {
     TypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
+    assertNotNull(alias.getType());
     assertFalse(alias.isSynthetic());
     VariableElement[] parameters = alias.getParameters();
     assertNotNull(parameters);

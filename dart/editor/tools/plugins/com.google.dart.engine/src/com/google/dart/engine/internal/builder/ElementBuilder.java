@@ -52,6 +52,7 @@ import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
@@ -234,6 +235,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
+    node.visitChildren(this);
     return null;
   }
 
@@ -282,6 +284,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setParameters(parameters);
     element.setTypeVariables(holder.getTypeVariables());
 
+    FunctionTypeImpl type = new FunctionTypeImpl(element);
+    element.setType(type);
+
     currentHolder.addTypeAlias(element);
     aliasName.setElement(element);
     return null;
@@ -295,6 +300,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
+    //
+    // The children of this parameter include any parameters defined on the type of this parameter.
+    // We create a new holder to prevent the child parameters from being added as parameters of the
+    // enclosing function.
+    //
+    visitChildren(new ElementHolder(), node);
     return null;
   }
 
@@ -308,6 +319,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
+    node.visitChildren(this);
     return null;
   }
 
@@ -373,6 +385,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
+    node.visitChildren(this);
     return null;
   }
 
@@ -385,6 +398,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
+    node.visitChildren(this);
     return null;
   }
 
@@ -397,6 +411,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
+    node.visitChildren(this);
     return null;
   }
 
@@ -410,6 +425,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addTypeVariable(element);
     parameterName.setElement(element);
+    node.visitChildren(this);
     return null;
   }
 
@@ -418,10 +434,11 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     VariableElementImpl element;
     if (inFieldContext) {
       SimpleIdentifier fieldName = node.getName();
-      element = new FieldElementImpl(fieldName);
+      FieldElementImpl field = new FieldElementImpl(fieldName);
+      element = field;
 
-      currentHolder.addField((FieldElementImpl) element);
-      fieldName.setElement(element);
+      currentHolder.addField(field);
+      fieldName.setElement(field);
     } else {
       SimpleIdentifier variableName = node.getName();
       element = new VariableElementImpl(variableName);
@@ -466,6 +483,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
           ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
           Keyword.STATIC));
     }
+    node.visitChildren(this);
     return null;
   }
 

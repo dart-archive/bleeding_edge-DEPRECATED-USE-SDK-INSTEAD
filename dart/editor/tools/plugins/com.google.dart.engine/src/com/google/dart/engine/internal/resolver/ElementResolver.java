@@ -342,7 +342,22 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    // TODO(brianwilkerson) Implement this.
+    Type targetType = getType(node.getRealTarget());
+    if (!(targetType instanceof InterfaceType)) {
+      // TODO(brianwilkerson) Report this error
+      return null;
+    }
+    SimpleIdentifier identifier = node.getPropertyName();
+    Element memberElement = lookupInHierarchy(
+        ((InterfaceType) targetType).getElement(),
+        identifier.getName());
+    if (memberElement == null) {
+      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
+//    } else if (!element.isStatic()) {
+//      reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
+    } else {
+      recordResolution(identifier, memberElement);
+    }
     return null;
   }
 

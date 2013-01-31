@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -29,12 +30,16 @@ import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.scope.FunctionTypeScope;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.resolver.scope.ClassScope;
 import com.google.dart.engine.resolver.scope.EnclosedScope;
@@ -188,6 +193,18 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    Scope outerScope = nameScope;
+    try {
+      nameScope = new FunctionTypeScope(nameScope, node.getElement());
+      super.visitFunctionTypeAlias(node);
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @Override
   public Void visitLabeledStatement(LabeledStatement node) {
     LabelScope outerScope = addScopesFor(node.getLabels());
     try {
@@ -255,6 +272,18 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     } finally {
       labelScope = outerScope;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitVariableDeclaration(VariableDeclaration node) {
+    if (!(node.getParent().getParent() instanceof TopLevelVariableDeclaration)) {
+      VariableElement element = node.getElement();
+      if (element != null) {
+        nameScope.define(element);
+      }
+    }
+    super.visitVariableDeclaration(node);
     return null;
   }
 

@@ -13,10 +13,12 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
@@ -42,14 +44,19 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
@@ -218,9 +225,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     super.visitFunctionTypeAlias(node);
     TypeAliasElementImpl element = (TypeAliasElementImpl) node.getElement();
-    FunctionTypeImpl type = new FunctionTypeImpl(element);
+    FunctionTypeImpl type = (FunctionTypeImpl) element.getType();
     setTypeInformation(type, node.getReturnType(), element.getParameters());
-    element.setType(type);
     return null;
   }
 
@@ -268,8 +274,40 @@ public class TypeResolverVisitor extends ScopedVisitor {
     super.visitTypeName(node);
     Identifier typeName = node.getName();
     Element element = getNameScope().lookup(typeName, getDefiningLibrary());
-    Type type;
+    Type type = null;
     if (element == null) {
+      DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
+      VoidTypeImpl voidType = VoidTypeImpl.getInstance();
+      if (typeName.getName().equals(dynamicType.getName())) {
+        type = dynamicType;
+      } else if (typeName.getName().equals(voidType.getName())) {
+        type = voidType;
+      } else {
+        ASTNode parent = node.getParent();
+        if (typeName instanceof PrefixedIdentifier && parent instanceof ConstructorName) {
+          ConstructorName name = (ConstructorName) parent;
+          if (name.getName() == null) {
+            SimpleIdentifier prefix = ((PrefixedIdentifier) typeName).getPrefix();
+            element = getNameScope().lookup(prefix, getDefiningLibrary());
+            if (element instanceof PrefixElement) {
+              // TODO(brianwilkerson) Report this error.
+//            resolver.reportError(ResolverErrorCode.UNDECLARED, ((PrefixedIdentifier) typeName).getIdentifier());
+              return null;
+            } else if (element != null) {
+              //
+              // Rewrite the constructor name. The parser, when it sees a constructor named "a.b",
+              // cannot tell whether "a" is a prefix and "b" is a class name, or whether "a" is a
+              // class name and "b" is a constructor name. It arbitrarily chooses the former, but
+              // in this case was wrong.
+              //
+              name.setName(((PrefixedIdentifier) typeName).getIdentifier());
+              node.setName(prefix);
+            }
+          }
+        }
+      }
+    }
+    if (element == null && type == null) {
       // TODO(brianwilkerson) Report this error
       return null;
     } else if (element instanceof ClassElement) {
@@ -278,11 +316,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else if (element instanceof TypeAliasElement) {
       setElement(typeName, element);
       type = ((TypeAliasElement) element).getType();
-    } else {
+    } else if (element instanceof TypeVariableElement) {
+      setElement(typeName, element);
+      type = ((TypeVariableElement) element).getType();
+    } else if (type == null) {
       // TODO(brianwilkerson) Report this error
       return null;
     }
     if (type == null) {
+      // TODO(brianwilkerson) Determine the circumstances under which this happens.
       return null;
     }
     TypeArgumentList argumentList = node.getTypeArguments();
@@ -341,8 +383,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
       declaredType = getType(typeName);
     }
     Element element = node.getName().getElement();
-    if (element instanceof ParameterElement) {
-      ((ParameterElementImpl) element).setType(declaredType);
+    if (element instanceof VariableElement) {
+      ((VariableElementImpl) element).setType(declaredType);
     } else {
       // TODO(brianwilkerson) Report the internal error.
     }
@@ -544,10 +586,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
     functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
     functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
     functionType.setNamedParameterTypes(namedParameterTypes);
-    if (returnType != null) {
-      functionType.setReturnType(returnType.getType());
-    } else {
+    if (returnType == null) {
       functionType.setReturnType(getTypeProvider().getDynamicType());
+    } else {
+      functionType.setReturnType(returnType.getType());
     }
   }
 }
