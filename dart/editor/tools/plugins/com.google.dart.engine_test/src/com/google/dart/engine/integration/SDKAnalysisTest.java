@@ -13,150 +13,52 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.parser.ASTValidator;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.CharBufferScanner;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenStreamValidator;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.general.MemoryUtilities;
+import com.google.dart.engine.utilities.general.MemoryUtilities.MemoryUsage;
 
-import junit.framework.Assert;
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
-import java.io.File;
-import java.nio.CharBuffer;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 
-public class SDKAnalysisTest extends DirectoryBasedSuiteBuilder {
-  public class ReportingTest extends TestCase {
-    public ReportingTest(String methodName) {
-      super(methodName);
+public class SDKAnalysisTest extends TestCase {
+  public void test_sdkAnalysis() throws AnalysisException {
+    DartSdk sdk = DartSdk.getDefaultSdk();
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
+    context.setSourceFactory(sourceFactory);
+    long totalTime = 0L;
+    ArrayList<LibraryElement> libraries = new ArrayList<LibraryElement>();
+    for (String dartUri : sdk.getUris()) {
+      long startTime = System.currentTimeMillis();
+      libraries.add(context.getLibraryElement(sourceFactory.forFile(sdk.mapDartUri(dartUri))));
+      long endTime = System.currentTimeMillis();
+      totalTime += endTime - startTime;
     }
-
-    public void reportResults() throws Exception {
-      System.out.println("Analyzed " + charCount + " characters in " + fileCount + " files");
-      printTime("  scanning: ", scannerTime);
-      printTime("  parsing:  ", parserTime);
-      printTime("  lexical:  ", scannerTime + parserTime);
-      printTime("  building: ", builderTime);
-      printTime("  total:    ", scannerTime + parserTime + builderTime);
-    }
-
-    private void printTime(String label, long time) {
-      if (time == 0) {
-        System.out.println(label + "0 ms ");
-      } else {
-        long charsPerMs = charCount / time;
-        System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
-      }
-    }
-  }
-
-  /**
-   * Build a JUnit test suite that will analyze all of the files in the SDK.
-   * 
-   * @return the test suite that was built
-   */
-  public static Test suite() {
-    File directory = DartSdk.getDefaultSdkDirectory();
-    SDKAnalysisTest tester = new SDKAnalysisTest();
-    TestSuite suite = tester.buildSuite(directory, "Analyze SDK files");
-    suite.addTest(tester.new ReportingTest("reportResults"));
-    return suite;
-  }
-
-  private long fileCount = 0L;
-
-  private long charCount = 0L;
-
-  private long scannerTime = 0L;
-
-  private long parserTime = 0L;
-
-  private long builderTime = 0L;
-
-  @Override
-  protected void testSingleFile(File sourceFile) throws Exception {
-    SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
-    AnalysisContextImpl analysisContext = new AnalysisContextImpl();
-    analysisContext.setSourceFactory(sourceFactory);
     //
-    // Scan the file.
+    // Print out timing information.
     //
-    final CharBuffer[] buffer = new CharBuffer[1];
-    Source source = sourceFactory.forFile(sourceFile);
-    source.getContents(new Source.ContentReceiver() {
-      @Override
-      public void accept(CharBuffer contents) {
-        buffer[0] = contents;
-      }
-
-      @Override
-      public void accept(String contents) {
-      }
-    });
-    Assert.assertNotNull("Could not read file", buffer[0]);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    CharBufferScanner scanner = new CharBufferScanner(source, buffer[0], listener);
-    long scannerStartTime = System.currentTimeMillis();
-    Token token = scanner.tokenize();
-    long scannerEndTime = System.currentTimeMillis();
+    System.out.print("Resolved Dart SDK in ");
+    System.out.print(totalTime);
+    System.out.println(" ms");
+    System.out.println();
     //
-    // Parse the file.
+    // Print out memory usage information.
     //
-    Parser parser = new Parser(source, listener);
-    long parserStartTime = System.currentTimeMillis();
-    final CompilationUnit unit = parser.parseCompilationUnit(token);
-    long parserEndTime = System.currentTimeMillis();
-    //
-    // Build the element model for the compilation unit.
-    //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, listener);
-    long builderStartTime = System.currentTimeMillis();
-    CompilationUnitElement element = builder.buildCompilationUnit(source, unit);
-    long builderEndTime = System.currentTimeMillis();
-    //
-    // Record the timing information.
-    //
-    fileCount++;
-    charCount += buffer[0].length();
-    scannerTime += (scannerEndTime - scannerStartTime);
-    parserTime += (parserEndTime - parserStartTime);
-    builderTime += (builderEndTime - builderStartTime);
-    //
-    // Validate that the token stream was built correctly.
-    //
-    new TokenStreamValidator().validate(token);
-    //
-    // Uncomment the lines below to stop reporting failures for files containing directives and for
-    // files containing an interface.
-    //
-//    String contents = buffer.toString();
-//    if (contents.indexOf("#") >= 0 || contents.indexOf("interface") >= 0) {
-//      return;
-//    }
+    MemoryUsage usage = MemoryUtilities.measureMemoryUsage(libraries.toArray(new LibraryElement[libraries.size()]));
+    PrintWriter writer = new PrintWriter(System.out);
+    usage.writeSummary(writer);
+    writer.flush();
     //
     // Validate the results.
     //
-    listener.assertNoErrors();
-    //
-    // Validate that the AST structure was built correctly.
-    //
-    ASTValidator validator = new ASTValidator();
-    unit.accept(validator);
-    validator.assertValid();
-    //
-    // Validate that the element model was built.
-    //
-    Assert.assertNotNull(element);
   }
 }
