@@ -1,4 +1,6 @@
 /*
+ * Copyright (C) 2006 Samuel Weinig <sam.weinig@gmail.com>
+ * Copyright (C) 2007 Rob Buis <rwlbuis@gmail.com>
  * Copyright (C) 2006 Apple Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -24,20 +26,11 @@
  */
 
 [
-    Conditional=SVG,
-    DoNotCheckConstants
-] interface SVGGradientElement : SVGStyledElement,
-                       SVGURIReference,
-                       SVGExternalResourcesRequired
-                       /* SVGUnitTypes */ {
-    // Spread Method Types
-    const unsigned short SVG_SPREADMETHOD_UNKNOWN = 0;
-    const unsigned short SVG_SPREADMETHOD_PAD     = 1;
-    const unsigned short SVG_SPREADMETHOD_REFLECT = 2;
-    const unsigned short SVG_SPREADMETHOD_REPEAT  = 3;
+    Conditional=SVG
+] interface SVGStyledElement : SVGElement {
+    readonly attribute SVGAnimatedString className;
+    readonly attribute CSSStyleDeclaration style;
 
-    readonly attribute SVGAnimatedEnumeration   gradientUnits;
-    readonly attribute SVGAnimatedTransformList gradientTransform;
-    readonly attribute SVGAnimatedEnumeration   spreadMethod;
+    CSSValue getPresentationAttribute(in [Optional=DefaultIsUndefined] DOMString name);
 };
 
