@@ -155,7 +155,7 @@ class GridLayout extends ViewLayout {
 
     // TODO(jmesserly): as a performance optimization we could cache this
     final items = view.childViews
-        .map((view_) => view_.layout)
+        .mappedBy((view_) => view_.layout)
         .toList();
     CollectionUtils.sortBy(items, (item) => _getSpanCount(item));
 
@@ -422,7 +422,7 @@ class GridLayout extends ViewLayout {
    * run before the track sizing algorithm.
    */
   void _ensureAllTracks() {
-    final items = view.childViews.map((view_) => view_.layout);
+    final items = view.childViews.mappedBy((view_) => view_.layout);
 
     for (final child in items) {
       if (child.layoutParams == null) {
@@ -439,7 +439,7 @@ class GridLayout extends ViewLayout {
    * Given the track sizes that were computed, position children in the grid.
    */
   void _setBoundsOfChildren() {
-    final items = view.childViews.map((view_) => view_.layout);
+    final items = view.childViews.mappedBy((view_) => view_.layout);
 
     for (final item in items) {
       GridLayoutParams childLayout = item.layoutParams;
