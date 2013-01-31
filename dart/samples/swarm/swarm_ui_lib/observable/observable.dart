@@ -283,7 +283,8 @@ class ObservableList<T>
 
   // Collection<T>:
   Iterable<T> where(bool f(T element)) => _internal.where(f);
-  Iterable mappedBy(f(T element)) => _internal.mappedBy(f);
+  Iterable map(f(T element)) => _internal.map(f);
+  List mappedBy(f(T element)) => _internal.mappedBy(f);
   List<T> skip(int count) => _internal.skip(count);
   List<T> take(int count) => _internal.take(count);
   bool every(bool f(T element)) => _internal.every(f);

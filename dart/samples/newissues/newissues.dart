@@ -21,7 +21,7 @@ class Issue {
 List<Issue> getIssues(json) {
   var issues = json["feed"]["entry"];
   if (issues == null) return null;
-  return issues.mappedBy((data) => new Issue(data)).toList();
+  return issues.map((data) => new Issue(data)).toList();
 }
 
 /// Iterates over the recieved issues and construct HTML for them.
