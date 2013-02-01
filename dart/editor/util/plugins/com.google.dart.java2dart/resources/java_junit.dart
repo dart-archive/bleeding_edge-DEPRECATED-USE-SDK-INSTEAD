@@ -13,8 +13,14 @@ class JUnitTestCase {
   static void assertTrue(bool x) {
     expect(x, isTrue);
   }
+  static void assertTrueMsg(String msg, bool x) {
+    expect(x, isTrueMsg(msg));
+  }
   static void assertFalse(bool x) {
     expect(x, isFalse);
+  }
+  static void assertFalseMsg(String msg, bool x) {
+    expect(x, isFalseMsg(msg));
   }
   static void assertNull(x) {
     expect(x, isNull);
@@ -54,7 +60,6 @@ class _IsNotSameAs extends BaseMatcher {
 }
 
 Matcher equalsMsg(String msg, expected) => new _EqualsWithMessage(msg, expected);
-
 class _EqualsWithMessage extends BaseMatcher {
   final String msg;
   final expectedValue;
@@ -68,5 +73,37 @@ class _EqualsWithMessage extends BaseMatcher {
   Description describeMismatch(item, Description mismatchDescription,
                                MatchState matchState, bool verbose) {
     return mismatchDescription.replace(msg).add(" $item != $expectedValue");
+  }
+}
+
+Matcher isTrueMsg(String msg) => new _IsTrueWithMessage(msg);
+class _IsTrueWithMessage extends BaseMatcher {
+  final String msg;
+  const _IsTrueWithMessage(this.msg);
+  bool matches(item, MatchState matchState) {
+    return item == true;
+  }
+  Description describe(Description mismatchDescription) {
+    return mismatchDescription.replace(msg);
+  }
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    return mismatchDescription.replace(msg).add(" $item is not true");
+  }
+}
+
+Matcher isFalseMsg(String msg) => new _IsFalseWithMessage(msg);
+class _IsFalseWithMessage extends BaseMatcher {
+  final String msg;
+  const _IsFalseWithMessage(this.msg);
+  bool matches(item, MatchState matchState) {
+    return item == false;
+  }
+  Description describe(Description mismatchDescription) {
+    return mismatchDescription.replace(msg);
+  }
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    return mismatchDescription.replace(msg).add(" $item is not false");
   }
 }

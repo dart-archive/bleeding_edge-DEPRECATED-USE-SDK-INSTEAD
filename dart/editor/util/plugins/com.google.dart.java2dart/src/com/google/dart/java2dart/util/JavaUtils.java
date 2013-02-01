@@ -281,6 +281,23 @@ public class JavaUtils {
     return false;
   }
 
+  public static boolean isSubtype(ITypeBinding binding, ITypeBinding superBinding) {
+    if (binding != null) {
+      if (binding == superBinding) {
+        return true;
+      }
+      for (ITypeBinding intf : binding.getInterfaces()) {
+        if (isSubtype(intf, superBinding)) {
+          return true;
+        }
+      }
+      if (isSubtype(binding.getSuperclass(), superBinding)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public static boolean isSubtype(ITypeBinding binding, String reqClassName) {
     if (binding != null) {
       if (getQualifiedName(binding).equals(reqClassName)) {

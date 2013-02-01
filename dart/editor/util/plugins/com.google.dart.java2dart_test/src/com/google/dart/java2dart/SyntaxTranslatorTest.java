@@ -875,6 +875,22 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_literalString_newLine() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void test() {",
+        "    print(\"A\\nB\");",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "  void test() {",
+        "    print(\"A\\nB\");",
+        "  }",
+        "}");
+  }
+
   public void test_methodEmpty() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",

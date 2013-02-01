@@ -14,12 +14,16 @@
 
 package com.google.dart.java2dart.engine;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -40,14 +44,16 @@ import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
 import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
-import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
+import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
+import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * {@link SemanticProcessor} for Engine.
@@ -92,6 +98,111 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     return false;
   }
 
+  /**
+   * Generates "invokeParserMethodImpl" and supporting Dart code.
+   */
+  public static void replaceReflectionMethods(final Context context, final PrintWriter pw,
+      ASTNode node) {
+    node.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        List<ClassMember> members = Lists.newArrayList(node.getMembers());
+        // visit s usually
+        for (ClassMember classMember : members) {
+          classMember.accept(this);
+        }
+        // use Parser, fill method lookup table
+        if (node.getName().getName().equals("Parser")) {
+          Set<String> usedMethodSignatures = Sets.newHashSet();
+          pw.println();
+          pw.print("Map<String, MethodTrampoline> _methodTable_Parser = <String, MethodTrampoline> {");
+          for (ClassMember classMember : members) {
+            Object binding = context.getNodeBinding(classMember);
+            if (classMember instanceof MethodDeclaration && binding instanceof IMethodBinding) {
+              MethodDeclaration method = (MethodDeclaration) classMember;
+              IMethodBinding methodBinding = (IMethodBinding) binding;
+              if (method.getPropertyKeyword() == null) {
+                int parameterCount = methodBinding.getParameterTypes().length;
+                String methodSignature = methodBinding.getName() + "_" + parameterCount;
+                // don't add method more than once and hope that it is never called
+                if (usedMethodSignatures.contains(methodSignature)) {
+                  continue;
+                } else {
+                  usedMethodSignatures.add(methodSignature);
+                }
+                // generate map entry to method
+                pw.println();
+                pw.print("  '");
+                pw.print(methodSignature);
+                pw.print("': ");
+                pw.print("new MethodTrampoline(");
+                pw.print(parameterCount);
+                pw.print(", (Parser target");
+                for (int i = 0; i < parameterCount; i++) {
+                  pw.print(", arg");
+                  pw.print(i);
+                }
+                pw.print(") => target.");
+                pw.print(method.getName().getName());
+                pw.print("(");
+                for (int i = 0; i < parameterCount; i++) {
+                  if (i != 0) {
+                    pw.print(", ");
+                  }
+                  pw.print("arg");
+                  pw.print(i);
+                }
+                pw.print(")),");
+              }
+            }
+          }
+          pw.println("};");
+          pw.println();
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        String name = node.getName().getName();
+        if (name.equals("findParserMethod")) {
+          removeMethod(node);
+        }
+        if (name.equals("invokeParserMethodImpl")) {
+          removeMethod(node);
+          String source = toSource(
+              "Object invokeParserMethodImpl(Parser parser, String methodName, List<Object> objects, Token tokenStream) {",
+              "  parser.currentToken = tokenStream;",
+              "  MethodTrampoline method = _methodTable_Parser['${methodName}_${objects.length}'];",
+              "  return method.invoke(parser, objects);",
+              "}");
+          pw.print("\n");
+          pw.print(source);
+          pw.print("\n");
+        }
+        return super.visitMethodDeclaration(node);
+      }
+
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        String name = node.getMethodName().getName();
+        if (name.equals("invokeParserMethodImpl")) {
+          node.setTarget(null);
+          return null;
+        }
+        return super.visitMethodInvocation(node);
+      }
+
+      private void removeMethod(MethodDeclaration node) {
+        ((ClassDeclaration) node.getParent()).getMembers().remove(node);
+      }
+    });
+  }
+
+  private static String toSource(String... lines) {
+    return Joiner.on("\n").join(lines);
+  }
+
   @Override
   public void process(final Context context, final CompilationUnit unit) {
     List<CompilationUnitMember> declarations = unit.getDeclarations();
@@ -112,17 +223,6 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         ITypeBinding typeBinding = context.getNodeTypeBinding(node);
-        // replace extends clause
-        ExtendsClause extendsClause = node.getExtendsClause();
-        if (extendsClause != null) {
-          TypeName superNode = extendsClause.getSuperclass();
-          if (superNode != null) {
-            ITypeBinding superTypeBinding = context.getNodeTypeBinding(superNode);
-            if (JavaUtils.isTypeNamed(superTypeBinding, "com.google.dart.engine.EngineTestCase")) {
-              superNode.setName(identifier("JUnitTestCase"));
-            }
-          }
-        }
         // "Type" is declared in dart:core, so replace it
         if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.type.Type")) {
           SimpleIdentifier nameNode = node.getName();

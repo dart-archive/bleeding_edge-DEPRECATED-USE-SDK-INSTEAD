@@ -53,6 +53,7 @@ import static com.google.dart.java2dart.util.ASTFactory.string;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
@@ -81,9 +82,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
     return expressions;
   }
 
-  private static boolean hasStringLiteral(List<Expression> expressions) {
+  private static boolean hasStringObjects(Context context, List<Expression> expressions) {
     for (Expression expression : expressions) {
-      if (expression instanceof SimpleStringLiteral) {
+      ITypeBinding binding = context.getNodeTypeBinding(expression);
+      if (JavaUtils.isTypeNamed(binding, "java.lang.String")) {
         return true;
       }
     }
@@ -97,12 +99,24 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       public Void visitBinaryExpression(BinaryExpression node) {
         if (node.getOperator().getType() == TokenType.PLUS) {
           List<Expression> expressions = gatherBinaryExpressions(node);
-          if (hasStringLiteral(expressions)) {
+          if (hasStringObjects(context, expressions)) {
+            // try to rewrite each expression
+            for (Expression expression : expressions) {
+              expression.accept(this);
+            }
+            expressions = gatherBinaryExpressions(node);
+            // compose interpolation using expressions
             List<InterpolationElement> elements = Lists.newArrayList();
             elements.add(interpolationString("\"", ""));
             for (Expression expression : expressions) {
               if (expression instanceof SimpleStringLiteral) {
-                String value = ((SimpleStringLiteral) expression).getValue();
+                SimpleStringLiteral literal = (SimpleStringLiteral) expression;
+                String value = literal.getValue();
+                String lexeme = StringUtils.strip(literal.getLiteral().getLexeme(), "\"");
+                elements.add(interpolationString(lexeme, value));
+              } else if (expression instanceof IntegerLiteral
+                  && JavaUtils.isTypeNamed(context.getNodeTypeBinding(expression), "char")) {
+                String value = "" + (char) ((IntegerLiteral) expression).getValue().intValue();
                 elements.add(interpolationString(value, value));
               } else {
                 elements.add(interpolationExpression(expression));
@@ -119,8 +133,15 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        super.visitInstanceCreationExpression(node);
+        ITypeBinding typeBinding = context.getNodeTypeBinding(node);
         List<Expression> args = node.getArgumentList().getArguments();
-        if (node.getConstructorName().getType().getName().getName().equals("int")) {
+        String typeSimpleName = node.getConstructorName().getType().getName().getName();
+        if (JavaUtils.isTypeNamed(typeBinding, "java.lang.StringBuilder")) {
+          args.clear();
+          return null;
+        }
+        if (typeSimpleName.equals("int")) {
           if (args.size() == 1) {
             replaceNode(node, methodInvocation(identifier("int"), "parse", args.get(0)));
           } else {
@@ -133,7 +154,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
                     namedExpression("radix", args.get(1))));
           }
         }
-        return super.visitInstanceCreationExpression(node);
+        return null;
       }
 
       @Override
@@ -210,6 +231,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
           return null;
         }
+        if (isMethodInClass2(node, "println(java.lang.String)", "java.io.PrintWriter")) {
+          nameNode.setToken(token("printlnObject"));
+          return null;
+        }
         if (isMethodInClass(node, "format", "java.lang.String")) {
           replaceNode(node.getTarget(), simpleIdentifier("JavaString"));
           return null;
@@ -238,8 +263,17 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           replaceNode(node, args.get(0));
           return null;
         }
+        if (isMethodInClass(node, "parseInt", "java.lang.Integer")) {
+          node.setTarget(identifier("int"));
+          nameNode.setToken(token("parse"));
+          if (args.size() == 2) {
+            args.set(1, namedExpression("radix", args.get(1)));
+          }
+          return null;
+        }
         if (isMethodInClass(node, "parseDouble", "java.lang.Double")) {
-          replaceNode(node, methodInvocation(identifier("double"), "parse", args.get(0)));
+          node.setTarget(identifier("double"));
+          nameNode.setToken(token("parse"));
           return null;
         }
         if (isMethodInClass(node, "toString", "java.lang.Integer")) {
@@ -291,7 +325,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             return null;
           }
         }
-        if (isMethodInClass(node, "append", "java.lang.StringBuilder")) {
+        if (isMethodInClass2(node, "append(char)", "java.lang.StringBuilder")) {
+          replaceNode(nameNode, simpleIdentifier("addCharCode"));
+          return null;
+        } else if (isMethodInClass(node, "append", "java.lang.StringBuilder")) {
           replaceNode(nameNode, simpleIdentifier("add"));
           return null;
         }
@@ -364,6 +401,13 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         String name = node.getMethodName().getName();
         return Objects.equal(name, reqName)
             && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
+      }
+
+      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
+          String reqClassName) {
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }

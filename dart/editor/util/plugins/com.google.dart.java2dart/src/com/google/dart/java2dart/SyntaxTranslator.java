@@ -40,6 +40,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -49,6 +50,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
@@ -178,6 +180,20 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     while (node != null) {
       if (node instanceof org.eclipse.jdt.core.dom.MethodDeclaration) {
         return (org.eclipse.jdt.core.dom.MethodDeclaration) node;
+      }
+      node = node.getParent();
+    }
+    return null;
+  }
+
+  private static org.eclipse.jdt.core.dom.ITypeBinding getEnclosingTypeBinding(
+      org.eclipse.jdt.core.dom.ASTNode node) {
+    while (node != null) {
+      if (node instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
+        return ((org.eclipse.jdt.core.dom.TypeDeclaration) node).resolveBinding();
+      }
+      if (node instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
+        return ((org.eclipse.jdt.core.dom.EnumDeclaration) node).resolveBinding();
       }
       node = node.getParent();
     }
@@ -959,8 +975,17 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     IMethodBinding binding = node.resolveMethodBinding();
     Expression target = translateExpression(node.getExpression());
     List<Expression> arguments = translateArguments(binding, node.arguments());
-    SimpleIdentifier name = translateSimpleName(node.getName());
-    MethodInvocation invocation = methodInvocation(target, name, arguments);
+    // prepare invocation
+    Identifier name = translate(node.getName());
+    MethodInvocation invocation;
+    if (name instanceof SimpleIdentifier) {
+      invocation = methodInvocation(target, (SimpleIdentifier) name, arguments);
+    } else {
+      PrefixedIdentifier prefixedName = (PrefixedIdentifier) name;
+      target = prefixedName.getPrefix();
+      invocation = methodInvocation(target, prefixedName.getIdentifier(), arguments);
+    }
+    // done
     context.putNodeBinding(invocation, binding);
     return done(invocation);
   }
@@ -1101,6 +1126,23 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           if (variableBinding.getDeclaringClass() != null
               && org.eclipse.jdt.core.dom.Modifier.isStatic(variableBinding.getModifiers())) {
             return done(identifier(variableBinding.getDeclaringClass().getName(), result));
+          }
+        }
+      }
+    }
+    // may be statically imported method, generate PrefixedIdentifier
+    {
+      org.eclipse.jdt.core.dom.StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
+      if (binding instanceof IMethodBinding) {
+        IMethodBinding methodBinding = (IMethodBinding) binding;
+        if (locationInParent == org.eclipse.jdt.core.dom.MethodInvocation.NAME_PROPERTY
+            && ((org.eclipse.jdt.core.dom.MethodInvocation) node.getParent()).getExpression() == null) {
+          ITypeBinding declaringBinding = methodBinding.getDeclaringClass();
+          ITypeBinding enclosingBinding = getEnclosingTypeBinding(node);
+          if (declaringBinding != null
+              && org.eclipse.jdt.core.dom.Modifier.isStatic(methodBinding.getModifiers())
+              && enclosingBinding != declaringBinding) {
+            return done(identifier(declaringBinding.getName(), result));
           }
         }
       }

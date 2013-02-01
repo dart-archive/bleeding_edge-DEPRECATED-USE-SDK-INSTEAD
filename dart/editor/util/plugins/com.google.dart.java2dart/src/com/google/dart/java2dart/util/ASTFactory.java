@@ -610,6 +610,14 @@ public final class ASTFactory {
         identifier(identifier));
   }
 
+  public static List<SimpleIdentifier> identifiers(String... names) {
+    ArrayList<SimpleIdentifier> identifiers = new ArrayList<SimpleIdentifier>();
+    for (String component : names) {
+      identifiers.add(identifier(component));
+    }
+    return identifiers;
+  }
+
   public static IfStatement ifStatement(Expression condition, Statement thenStatement) {
     return ifStatement(condition, thenStatement, null);
   }
@@ -658,6 +666,10 @@ public final class ASTFactory {
 
   public static ShowCombinator importShowCombinator(SimpleIdentifier... identifiers) {
     return new ShowCombinator(token("show"), list(identifiers));
+  }
+
+  public static ShowCombinator importShowCombinator(String... identifiers) {
+    return new ShowCombinator(token("show"), identifiers(identifiers));
   }
 
   public static IndexExpression indexExpression(Expression array, Expression index) {

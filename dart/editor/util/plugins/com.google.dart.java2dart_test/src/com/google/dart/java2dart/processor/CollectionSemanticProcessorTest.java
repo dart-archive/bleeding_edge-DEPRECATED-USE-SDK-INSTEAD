@@ -290,7 +290,6 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  // XXX
   public void test_List_remove_byValue() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

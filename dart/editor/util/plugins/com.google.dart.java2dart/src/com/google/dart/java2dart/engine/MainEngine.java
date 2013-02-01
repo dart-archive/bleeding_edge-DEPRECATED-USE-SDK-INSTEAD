@@ -26,19 +26,22 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
 import com.google.dart.java2dart.processor.CollectionSemanticProcessor;
+import com.google.dart.java2dart.processor.GuavaSemanticProcessor;
 import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
-import com.google.dart.java2dart.util.ASTFactory;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.importDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importHideCombinator;
+import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -46,7 +49,6 @@ import java.util.Map.Entry;
  * Translates some parts of "com.google.dart.engine" project.
  */
 public class MainEngine {
-
   /**
    * Default package src location (can be overridden)
    */
@@ -62,6 +64,7 @@ public class MainEngine {
       ObjectSemanticProcessor.INSTANCE,
       CollectionSemanticProcessor.INSTANCE,
       PropertySemanticProcessor.INSTANCE,
+      GuavaSemanticProcessor.INSTANCE,
       JUnitSemanticProcessor.INSTANCE,
       BeautifySemanticProcessor.INSTANCE,
       EngineSemanticProcessor.INSTANCE);
@@ -88,6 +91,7 @@ public class MainEngine {
     engineFolder2 = new File("src");
     engineFolder = engineFolder.getCanonicalFile();
     // configure Context
+    context.addClasspathFile(new File("../../../../third_party/guava/r13/guava-13.0.1.jar"));
     context.addClasspathFile(new File("../../../../third_party/junit/v4_8_2/junit.jar"));
     context.addSourceFolder(engineFolder);
     context.addSourceFiles(new File(
@@ -117,6 +121,7 @@ public class MainEngine {
         engineTestFolder,
         "com/google/dart/engine/error/GatheringErrorListener.java"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/scanner"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/parser"));
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors
@@ -160,6 +165,11 @@ public class MainEngine {
           Charsets.UTF_8);
     }
     {
+      CompilationUnit library = buildUtilitiesDartLibrary();
+      File astFile = new File(targetFolder + "/utilities_dart.dart");
+      Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
+    }
+    {
       CompilationUnit library = buildAstLibrary();
       File astFile = new File(targetFolder + "/ast.dart");
       Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
@@ -198,6 +208,19 @@ public class MainEngine {
           new File(targetTestFolder + "/scanner_test.dart"),
           Charsets.UTF_8);
     }
+    {
+      CompilationUnit library = buildParserTestLibrary();
+      // replace reflection methods
+      StringWriter methodWriter = new StringWriter();
+      EngineSemanticProcessor.replaceReflectionMethods(
+          context,
+          new PrintWriter(methodWriter),
+          dartUnit);
+      // write to file
+      File libraryFile = new File(targetTestFolder + "/parser_test.dart");
+      Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
+      Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
+    }
     System.out.println("Translation complete");
   }
 
@@ -209,6 +232,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("error.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(
         importDirective("element.dart", null, importHideCombinator(identifier("Annotation"))));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
@@ -228,13 +252,13 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "internal/element/handle/")) {
         continue;
       }
       if (isEnginePath(file, "element/") || isEnginePath(file, "type/")
-          || isEnginePath(file, "utilities/dart/ParameterKind")
           || isEnginePath(file, "internal/element/") || isEnginePath(file, "internal/type/")) {
         unit.getDeclarations().add(member);
       }
@@ -279,11 +303,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
-    unit.getDirectives().add(
-        importDirective(
-            "element.dart",
-            null,
-            ASTFactory.importShowCombinator(identifier("ParameterKind"))));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")
@@ -291,6 +311,40 @@ public class MainEngine {
         unit.getDeclarations().add(member);
       }
     }
+    return unit;
+  }
+
+  private static CompilationUnit buildParserTestLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "parser_test"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "parser.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
+    unit.getDirectives().add(importDirective("test_support.dart", null));
+    unit.getDirectives().add(
+        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "parser/")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
+      }
+    }
+    EngineSemanticProcessor.addMain(unit, mainStatements);
     return unit;
   }
 
@@ -353,25 +407,37 @@ public class MainEngine {
     return unit;
   }
 
-  // XXX
   private static CompilationUnit buildTestSupportLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(libraryDirective("engine", "scanner_test"));
+    unit.getDirectives().add(libraryDirective("engine", "test_support"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
     unit.getDirectives().add(importDirective(src_package + "source.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (isEngineTestPath(file, "error/")) {
+      if (isEngineTestPath(file, "error/") || isEngineTestPath(file, "EngineTestCase.java")) {
         unit.getDeclarations().addAll(entry.getValue());
       }
     }
     EngineSemanticProcessor.addMain(unit, mainStatements);
+    return unit;
+  }
+
+  private static CompilationUnit buildUtilitiesDartLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "utilities", "dart"));
+    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+      File file = context.getMemberToFile().get(member);
+      if (isEnginePath(file, "utilities/dart/ParameterKind")) {
+        unit.getDeclarations().add(member);
+      }
+    }
     return unit;
   }
 

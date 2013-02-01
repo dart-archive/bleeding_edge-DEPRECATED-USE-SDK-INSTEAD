@@ -921,16 +921,16 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static int add(int a, int b) => a + b;",
             "}",
             "class Sub extends Super {",
-            "  int add2(int a) => add(a, 2);",
+            "  int add2(int a) => Super.add(a, 2);",
             "  void main() {",
-            "    add(1, 2);",
+            "    Super.add(1, 2);",
             "    add2(3);",
             "  }",
             "}"),
         getFormattedSource(unit));
   }
 
-  public void test_importStatic() throws Exception {
+  public void test_importStatic_field() throws Exception {
     setFileLines(
         "test/A.java",
         toString(
@@ -984,6 +984,51 @@ public class SemanticTest extends AbstractSemanticTest {
             "    myInstanceField = 2 + A.ZERO;",
             "    myInstanceField = 1 + 2 + 3 + A.ZERO;",
             "    myStaticField = 3;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_importStatic_method() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  public static int zero() {return 0;}",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "import static test.A.zero;",
+            "public class B {",
+            "  public static int one() {return 1;}",
+            "  void main() {",
+            "    print(A.zero());",
+            "    print(zero());",
+            "    print(one());",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  static int zero() => 0;",
+            "}",
+            "class B {",
+            "  static int one() => 1;",
+            "  void main() {",
+            "    print(A.zero());",
+            "    print(A.zero());",
+            "    print(one());",
             "  }",
             "}"),
         getFormattedSource(unit));

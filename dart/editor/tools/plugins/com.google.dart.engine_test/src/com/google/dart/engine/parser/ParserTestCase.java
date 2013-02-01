@@ -246,11 +246,7 @@ public class ParserTestCase extends EngineTestCase {
     // Parse the source.
     //
     Parser parser = new Parser(null, listener);
-    Field currentTokenField = Parser.class.getDeclaredField("currentToken");
-    currentTokenField.setAccessible(true);
-    currentTokenField.set(parser, tokenStream);
-    Method parseMethod = findParserMethod(methodName, objects.length);
-    Object result = parseMethod.invoke(parser, objects);
+    Object result = invokeParserMethodImpl(parser, methodName, objects, tokenStream);
     //
     // Partially test the results.
     //
@@ -275,6 +271,19 @@ public class ParserTestCase extends EngineTestCase {
   protected static <E> E invokeParserMethod(String methodName, String source,
       GatheringErrorListener listener) throws Exception {
     return invokeParserMethod(methodName, EMPTY_ARGUMENTS, source, listener);
+  }
+
+  /**
+   * Invokes {@link Parser} method with given name and valid number of parameters for given
+   * arguments.
+   */
+  protected static Object invokeParserMethodImpl(Parser parser, String methodName,
+      Object[] objects, Token tokenStream) throws Exception {
+    Field currentTokenField = Parser.class.getDeclaredField("currentToken");
+    currentTokenField.setAccessible(true);
+    currentTokenField.set(parser, tokenStream);
+    Method parseMethod = findParserMethod(methodName, objects.length);
+    return parseMethod.invoke(parser, objects);
   }
 
   /**

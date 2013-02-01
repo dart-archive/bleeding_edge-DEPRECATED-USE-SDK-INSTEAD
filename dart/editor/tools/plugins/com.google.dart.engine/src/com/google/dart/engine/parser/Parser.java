@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.parser;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.ast.*;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -125,6 +126,11 @@ public class Parser {
   public List<Statement> parseStatements(Token token) {
     currentToken = token;
     return parseStatements();
+  }
+
+  @VisibleForTesting
+  void setCurrentToken(Token currentToken) {
+    this.currentToken = currentToken;
   }
 
   /**
@@ -5221,7 +5227,7 @@ public class Parser {
     return token;
   }
 
-  /**
+/**
    * Parse a list of type parameters, starting at the given token, without actually creating a type
    * parameter list or changing the current token. Return the token following the type parameter
    * list that was parsed, or {@code null} if the given token is not the first token in a valid type

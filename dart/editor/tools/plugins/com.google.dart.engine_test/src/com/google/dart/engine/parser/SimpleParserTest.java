@@ -32,7 +32,6 @@ import static com.google.dart.engine.scanner.TokenFactory.token;
 
 import junit.framework.AssertionFailedError;
 
-import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -4274,9 +4273,11 @@ public class SimpleParserTest extends ParserTestCase {
       }
     };
     Parser parser = new Parser(null, listener);
-    Method method = Parser.class.getDeclaredMethod("computeStringValue", String.class);
-    method.setAccessible(true);
-    return (String) method.invoke(parser, lexeme);
+    return (String) invokeParserMethodImpl(
+        parser,
+        "computeStringValue",
+        new Object[] {lexeme},
+        null);
   }
 
   /**
@@ -4337,11 +4338,11 @@ public class SimpleParserTest extends ParserTestCase {
     // Parse the source.
     //
     Parser parser = new Parser(null, listener);
-    Method method = Parser.class.getDeclaredMethod(
+    return (Boolean) invokeParserMethodImpl(
+        parser,
         "isFunctionExpression",
-        new Class[] {Token.class});
-    method.setAccessible(true);
-    return (Boolean) method.invoke(parser, new Object[] {tokenStream});
+        new Object[] {tokenStream},
+        tokenStream);
   }
 
   /**
@@ -4391,8 +4392,10 @@ public class SimpleParserTest extends ParserTestCase {
     // Parse the source.
     //
     Parser parser = new Parser(null, listener);
-    Method skipMethod = Parser.class.getDeclaredMethod(methodName, new Class[] {Token.class});
-    skipMethod.setAccessible(true);
-    return (Token) skipMethod.invoke(parser, new Object[] {tokenStream});
+    return (Token) invokeParserMethodImpl(
+        parser,
+        methodName,
+        new Object[] {tokenStream},
+        tokenStream);
   }
 }

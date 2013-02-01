@@ -1,5 +1,7 @@
 library java.core;
 
+import "dart:math" as math;
+
 class System {
   static int currentTimeMillis() {
     return (new Date.now()).millisecondsSinceEpoch;
@@ -54,10 +56,10 @@ class Character {
   static const int MAX_CODE_POINT = 0x10ffff;
   static bool isLetter(int c) {
     return c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
-  } 
+  }
   static bool isLetterOrDigit(int c) {
     return isLetter(c) || c >= 0x30 && c <= 0x39;
-  } 
+  }
   static int digit(int codePoint, int radix) {
     if (radix != 16) {
       throw new ArgumentError("only radix == 16 is supported");
@@ -130,24 +132,29 @@ String _printf(String fmt, List args) {
 
 abstract class PrintWriter {
   void print(x);
+
+  void println() {
+    this.print('\n');
+  }
+
+  void printlnObject(String s) {
+    this.print(s);
+    this.println();
+  }
+
+  void printf(String fmt, List args) {
+    this.print(_printf(fmt, args));
+  }
 }
 
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = new StringBuffer();
-  
+
   void print(x) {
     _sb.add(x);
   }
-  
-  void println() {
-    print('\n');
-  }
 
-  void printf(String fmt, List args) {
-    print(_printf(fmt, args));
-  }
-  
-  String toString() => _sb.toString(); 
+  String toString() => _sb.toString();
 }
 
 class StringUtils {
@@ -160,6 +167,11 @@ class StringUtils {
     }
     return sb.toString();
   }
+}
+
+class Math {
+  static num max(num a, num b) => math.max(a, b);
+  static num min(num a, num b) => math.min(a, b);
 }
 
 class RuntimeException implements Exception {
@@ -188,11 +200,11 @@ class NumberFormatException implements Exception {
 
 class ListWrapper<E> extends Collection<E> implements List<E> {
   List<E> elements = new List<E>();
-  
+
   Iterator<E> get iterator {
     return elements.iterator;
   }
-  
+
   E operator [](int index) {
     return elements[index];
   }

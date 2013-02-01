@@ -157,6 +157,26 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Integer_parseInt() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int test(String p) {",
+        "    return Integer.parseInt(p);",
+        "  }",
+        "  public int testX(String p) {",
+        "    return Integer.parseInt(p, 16);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  int test(String p) => int.parse(p);",
+        "  int testX(String p) => int.parse(p, radix: 16);",
+        "}");
+  }
+
   public void test_Integer_toString() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -415,6 +435,25 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_PrintWriter_printlnString() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.io.PrintWriter;",
+        "public class Test {",
+        "  public void main(PrintWriter p) {",
+        "    p.println(\"msg\");",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(PrintWriter p) {",
+        "    p.printlnObject(\"msg\");",
+        "  }",
+        "}");
+  }
+
   public void test_String_charAt() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -431,13 +470,13 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
-  public void test_String_concat() throws Exception {
+  public void test_String_concat_literals() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
         "  public String testA(String name, int position) {",
-        "    return \"Node \" + name + \" at \" + position;",
+        "    return \"Node \" + name + \" \\n at \" + position;",
         "  }",
         "  public String testB(String firstName, String lastName) {",
         "    return firstName + \".\" + lastName;",
@@ -446,8 +485,40 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  String testA(String name, int position) => \"Node ${name} at ${position}\";",
+        "  String testA(String name, int position) => \"Node ${name} \\n at ${position}\";",
         "  String testB(String firstName, String lastName) => \"${firstName}.${lastName}\";",
+        "}");
+  }
+
+  public void test_String_concat_rewriteParts() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String test(String name, Class<?> type) {",
+        "    return name + \" of \" + type.getName();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  String test(String name, Type type) => \"${name} of ${type.toString()}\";",
+        "}");
+  }
+
+  public void test_String_concat_stringObjects() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String test(String firstName, String lastName) {",
+        "    return firstName + '.' + lastName;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  String test(String firstName, String lastName) => \"${firstName}.${lastName}\";",
         "}");
   }
 
@@ -509,9 +580,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "package test;",
         "public class Test {",
         "  public String main() {",
-        "    StringBuilder sb = new StringBuilder();",
+        "    StringBuilder sb = new StringBuilder(24);",
         "    sb.append(\"abc\");",
         "    sb.append(42);",
+        "    sb.append('0');",
         "    sb.length();",
         "    sb.setLength(0);",
         "    return sb.toString();",
@@ -524,6 +596,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    StringBuffer sb = new StringBuffer();",
         "    sb.add(\"abc\");",
         "    sb.add(42);",
+        "    sb.addCharCode(0x30);",
         "    sb.length;",
         "    sb.clear();",
         "    return sb.toString();",

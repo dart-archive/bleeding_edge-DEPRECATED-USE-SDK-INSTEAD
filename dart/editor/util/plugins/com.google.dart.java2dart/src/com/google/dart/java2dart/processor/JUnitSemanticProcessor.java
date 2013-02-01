@@ -105,6 +105,18 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
           if (JavaUtils.isTypeNamed(binding.getDeclaringClass(), "junit.framework.Assert")) {
             node.setTarget(identifier("JUnitTestCase"));
           }
+          if (isMethodInClass2(
+              node,
+              "assertTrue(java.lang.String,boolean)",
+              "junit.framework.Assert")) {
+            node.setMethodName(identifier("assertTrueMsg"));
+          }
+          if (isMethodInClass2(
+              node,
+              "assertFalse(java.lang.String,boolean)",
+              "junit.framework.Assert")) {
+            node.setMethodName(identifier("assertFalseMsg"));
+          }
           if (name.equals("assertEquals")) {
             if (args.size() == 3) {
               node.setMethodName(identifier("assertEqualsMsg"));
@@ -160,6 +172,13 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
 
       private boolean isJUnitAssertMethod(MethodInvocation node) {
         return JavaUtils.isMethodInClass(context.getNodeBinding(node), "junit.framework.Assert");
+      }
+
+      private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
+          String reqClassName) {
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }
