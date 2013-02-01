@@ -73,8 +73,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
         IProject resource = (IProject) delta.getResource();
 
-        // Do not mark any resources changed when initializing
-        init(resource, false);
+        if (project == null) {
+          project = createProject(resource);
+        }
 
         if (monitor.isCanceled()) {
           return false;
@@ -82,8 +83,12 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
         // Update the project
         DeltaProcessor processor = createProcessor(project);
-        processor.addDeltaListener(new ProjectUpdater(true));
+        processor.addDeltaListener(new ProjectUpdater());
         processor.traverse(delta);
+
+        if (monitor.isCanceled()) {
+          return false;
+        }
 
         // Parse changed files
         ProjectAnalyzer analyzer = new ProjectAnalyzer();
@@ -98,25 +103,27 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       @Override
       public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
         IProject resource = (IProject) proxy.requestResource();
-        boolean traverse = project != null;
 
-        // Always mark all resources changed when initializing
-        init(resource, true);
+        if (project == null) {
+          project = createProject(resource);
+        }
 
         if (monitor.isCanceled()) {
           return false;
         }
 
-        // Only update the project if not already traversed during initialization
-        if (traverse) {
-          DeltaProcessor processor = createProcessor(project);
-          processor.addDeltaListener(new ProjectUpdater(true));
-          processor.traverse(resource);
+        // Update the project
+        DeltaProcessor processor = createProcessor(project);
+        processor.addDeltaListener(new ProjectUpdater());
+        processor.traverse(resource);
+
+        if (monitor.isCanceled()) {
+          return false;
         }
 
         // Parse changed files
         ProjectAnalyzer analyzer = new ProjectAnalyzer();
-        DeltaProcessor processor = createProcessor(project);
+        processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(resource);
         analyzer.updateMarkers();
@@ -171,23 +178,5 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    */
   protected Project createProject(IProject resource) {
     return new ProjectImpl(resource);
-  }
-
-  /**
-   * Create a project and processor if one does not already exist then traverse the project to build
-   * the collection of available sources
-   * 
-   * @param resource the project resource (not {@code null})
-   * @param notifyChanged {@code true} if the context(s) should be notified via
-   *          {@link AnalysisContext#sourceChanged(Source)} that every source in the project has
-   *          been modified and thus should be analyzed.
-   */
-  private void init(IProject resource, boolean notifyChanged) throws CoreException {
-    if (project == null) {
-      project = createProject(resource);
-      DeltaProcessor processor = createProcessor(project);
-      processor.addDeltaListener(new ProjectUpdater(notifyChanged));
-      processor.traverse(resource);
-    }
   }
 }

@@ -26,18 +26,6 @@ import org.eclipse.core.resources.IContainer;
  */
 public class ProjectUpdater implements DeltaListener {
 
-  private boolean notifyChanged;
-
-  /**
-   * Construct a new instance for updating the specified project
-   * 
-   * @param notifyChanged {@code true} if the context(s) being updated should be modified of changed
-   *          sources via {@link AnalysisContext#sourceChanged(Source)}, or {@code false} if not.
-   */
-  public ProjectUpdater(boolean notifyChanged) {
-    this.notifyChanged = notifyChanged;
-  }
-
   @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
     packageSourceChanged(event);
@@ -45,11 +33,9 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
-    if (notifyChanged) {
-      Source source = event.getSource();
-      if (source != null) {
-        event.getContext().sourceChanged(source);
-      }
+    Source source = event.getSource();
+    if (source != null) {
+      event.getContext().sourceChanged(source);
     }
   }
 
@@ -91,11 +77,9 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
-    if (notifyChanged) {
-      Source source = event.getSource();
-      if (source != null) {
-        event.getContext().sourceChanged(source);
-      }
+    Source source = event.getSource();
+    if (source != null) {
+      event.getContext().sourceChanged(source);
     }
   }
 

@@ -156,7 +156,6 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   public void test_build_delta() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(delta);
     participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
