@@ -17,6 +17,9 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.FormalParameterList;
+import com.google.dart.engine.ast.FunctionBody;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -27,9 +30,11 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
@@ -329,7 +334,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = namedFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(formalParameterList(p1, p2), blockFunctionBody());
+    FunctionExpression node = resolvedFunctionExpression(
+        formalParameterList(p1, p2),
+        blockFunctionBody());
     analyze(p1);
     analyze(p2);
     Type resultType = analyze(node);
@@ -345,7 +352,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type dynamicType = typeProvider.getDynamicType();
     FormalParameter p = namedFormalParameter(simpleFormalParameter("p"), resolvedInteger(0));
     setType(p, dynamicType);
-    Expression node = functionExpression(
+    FunctionExpression node = resolvedFunctionExpression(
         formalParameterList(p),
         expressionFunctionBody(resolvedInteger(0)));
     analyze(p);
@@ -363,7 +370,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = simpleFormalParameter("p2");
     setType(p2, dynamicType);
-    Expression node = functionExpression(formalParameterList(p1, p2), blockFunctionBody());
+    FunctionExpression node = resolvedFunctionExpression(
+        formalParameterList(p1, p2),
+        blockFunctionBody());
     analyze(p1);
     analyze(p2);
     Type resultType = analyze(node);
@@ -376,7 +385,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type dynamicType = typeProvider.getDynamicType();
     FormalParameter p = simpleFormalParameter("p");
     setType(p, dynamicType);
-    Expression node = functionExpression(
+    FunctionExpression node = resolvedFunctionExpression(
         formalParameterList(p),
         expressionFunctionBody(resolvedInteger(0)));
     analyze(p);
@@ -392,7 +401,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = namedFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(formalParameterList(p1, p2), blockFunctionBody());
+    FunctionExpression node = resolvedFunctionExpression(
+        formalParameterList(p1, p2),
+        blockFunctionBody());
     analyze(p2);
     Type resultType = analyze(node);
     Map<String, Type> expectedNamedTypes = new HashMap<String, Type>();
@@ -408,7 +419,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = namedFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(
+    FunctionExpression node = resolvedFunctionExpression(
         formalParameterList(p1, p2),
         expressionFunctionBody(resolvedInteger(0)));
     analyze(p2);
@@ -431,7 +442,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = positionalFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(formalParameterList(p1, p2), blockFunctionBody());
+    FunctionExpression node = resolvedFunctionExpression(
+        formalParameterList(p1, p2),
+        blockFunctionBody());
     analyze(p1);
     analyze(p2);
     Type resultType = analyze(node);
@@ -451,7 +464,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = positionalFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(
+    FunctionExpression node = resolvedFunctionExpression(
         formalParameterList(p1, p2),
         expressionFunctionBody(resolvedInteger(0)));
     analyze(p1);
@@ -473,7 +486,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     setType(p1, dynamicType);
     FormalParameter p2 = positionalFormalParameter(simpleFormalParameter("p2"), resolvedInteger(0));
     setType(p2, dynamicType);
-    Expression node = functionExpression(formalParameterList(p1, p2), blockFunctionBody());
+    FunctionExpression node = resolvedFunctionExpression(
+        formalParameterList(p1, p2),
+        blockFunctionBody());
     analyze(p1);
     analyze(p2);
     Type resultType = analyze(node);
@@ -486,7 +501,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Type dynamicType = typeProvider.getDynamicType();
     FormalParameter p = positionalFormalParameter(simpleFormalParameter("p"), resolvedInteger(0));
     setType(p, dynamicType);
-    Expression node = functionExpression(
+    FunctionExpression node = resolvedFunctionExpression(
         formalParameterList(p),
         expressionFunctionBody(resolvedInteger(0)));
     analyze(p);
@@ -831,6 +846,31 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     DoubleLiteral literal = doubleLiteral(value);
     literal.setStaticType(typeProvider.getDoubleType());
     return literal;
+  }
+
+  /**
+   * Create a function expression that has an element associated with it, where the element has an
+   * incomplete type associated with it (just like the one
+   * {@link ElementBuilder#visitFunctionExpression(FunctionExpression)} would have built if we had
+   * run it).
+   * 
+   * @param parameters the parameters to the function
+   * @param body the body of the function
+   * @return a resolved function expression
+   */
+  private FunctionExpression resolvedFunctionExpression(FormalParameterList parameters,
+      FunctionBody body) {
+    for (FormalParameter parameter : parameters.getParameters()) {
+      ParameterElementImpl element = new ParameterElementImpl(parameter.getIdentifier());
+      element.setParameterKind(parameter.getKind());
+      element.setType(typeProvider.getDynamicType());
+      parameter.getIdentifier().setElement(element);
+    }
+    FunctionExpression node = functionExpression(parameters, body);
+    FunctionElementImpl element = new FunctionElementImpl(null);
+    element.setType(new FunctionTypeImpl(element));
+    node.setElement(element);
+    return node;
   }
 
   /**

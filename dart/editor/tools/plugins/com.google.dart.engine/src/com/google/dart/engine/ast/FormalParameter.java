@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
 /**
@@ -27,6 +28,20 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
  * </pre>
  */
 public abstract class FormalParameter extends ASTNode {
+  /**
+   * Return the element representing this parameter, or {@code null} if this parameter has not been
+   * resolved.
+   * 
+   * @return the element representing this parameter
+   */
+  public ParameterElement getElement() {
+    SimpleIdentifier identifier = getIdentifier();
+    if (identifier == null) {
+      return null;
+    }
+    return (ParameterElement) identifier.getElement();
+  }
+
   /**
    * Return the name of the parameter being declared.
    * 

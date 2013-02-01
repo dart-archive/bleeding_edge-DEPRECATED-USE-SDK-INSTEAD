@@ -210,6 +210,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
+    node.getParameter().accept(this);
     return null;
   }
 
@@ -227,14 +228,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
-    SimpleIdentifier parameterName = node.getIdentifier();
-    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
-    parameter.setConst(node.isConst());
-    parameter.setFinal(node.isFinal());
-    parameter.setParameterKind(node.getKind());
+    if (!(node.getParent() instanceof DefaultFormalParameter)) {
+      SimpleIdentifier parameterName = node.getIdentifier();
+      ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+      parameter.setConst(node.isConst());
+      parameter.setFinal(node.isFinal());
+      parameter.setParameterKind(node.getKind());
 
-    currentHolder.addParameter(parameter);
-    parameterName.setElement(parameter);
+      currentHolder.addParameter(parameter);
+      parameterName.setElement(parameter);
+    }
     node.visitChildren(this);
     return null;
   }
@@ -268,6 +271,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setLocalVariables(holder.getVariables());
     element.setParameters(holder.getParameters());
 
+    FunctionTypeImpl type = new FunctionTypeImpl(element);
+    element.setType(type);
+
     currentHolder.addFunction(element);
     node.setElement(element);
     return null;
@@ -294,12 +300,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    SimpleIdentifier parameterName = node.getIdentifier();
-    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
-    parameter.setParameterKind(node.getKind());
+    if (!(node.getParent() instanceof DefaultFormalParameter)) {
+      SimpleIdentifier parameterName = node.getIdentifier();
+      ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+      parameter.setParameterKind(node.getKind());
 
-    currentHolder.addParameter(parameter);
-    parameterName.setElement(parameter);
+      currentHolder.addParameter(parameter);
+      parameterName.setElement(parameter);
+    }
     //
     // The children of this parameter include any parameters defined on the type of this parameter.
     // We create a new holder to prevent the child parameters from being added as parameters of the
@@ -377,14 +385,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    SimpleIdentifier parameterName = node.getIdentifier();
-    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
-    parameter.setConst(node.isConst());
-    parameter.setFinal(node.isFinal());
-    parameter.setParameterKind(node.getKind());
+    if (!(node.getParent() instanceof DefaultFormalParameter)) {
+      SimpleIdentifier parameterName = node.getIdentifier();
+      ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+      parameter.setConst(node.isConst());
+      parameter.setFinal(node.isFinal());
+      parameter.setParameterKind(node.getKind());
 
-    currentHolder.addParameter(parameter);
-    parameterName.setElement(parameter);
+      currentHolder.addParameter(parameter);
+      parameterName.setElement(parameter);
+    }
     node.visitChildren(this);
     return null;
   }

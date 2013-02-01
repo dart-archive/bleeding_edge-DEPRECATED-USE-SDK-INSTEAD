@@ -25,7 +25,6 @@ import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
-import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionExpression;
@@ -67,7 +66,6 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -147,7 +145,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitAsExpression(AsExpression node) {
-    // TODO(brianwilkerson) Decide how to represent an undefined type
     return recordType(node, getType(node.getType()));
   }
 
@@ -200,7 +197,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Type rightType = getType(node.getRightHandSide());
     if (!rightType.isAssignableTo(leftType)) {
 //      // TODO(brianwilkerson) Report this error
-//      resolver.reportError(ResolverErrorCode.?, node.getRightHandSide());
+//      resolver.reportError(StaticTypeWarningCode.INVALID_ASSIGNMENT, node.getRightHandSide(), leftType.toString(), rightType.toString());
     }
     return recordType(node, rightType);
   }
@@ -293,6 +290,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Type thenType = getType(node.getThenExpression());
     Type elseType = getType(node.getElseExpression());
     if (thenType == null) {
+      // TODO(brianwilkerson) Determine whether this can still happen.
       return recordType(node, typeProvider.getDynamicType());
     }
     Type resultType = thenType.getLeastUpperBound(elseType);
@@ -340,8 +338,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-//    return recordType(node, node.getElement().getType());
-    return recordType(node, createFunctionType(computeReturnType(node), node.getParameters()));
+    FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
+    setTypeInformation(functionType, computeReturnType(node), node.getParameters());
+    return recordType(node, functionType);
   }
 
   /**
@@ -783,45 +782,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Create a function type representing a function with the given return type and parameters.
-   * 
-   * @param returnType the return type of the function for which a type is being created
-   * @param parameterList the parameter list for the function for which a type is being created
-   * @return a function type representing a function with the given return type and parameters
-   */
-  private FunctionType createFunctionType(Type returnType, FormalParameterList parameterList) {
-    ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
-    ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
-    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
-    if (parameterList != null) {
-      //
-      // The parameter list can validly be null only for getters.
-      //
-      for (FormalParameter parameter : parameterList.getParameters()) {
-        Type parameterType = getType(parameter);
-        switch (parameter.getKind()) {
-          case REQUIRED:
-            normalParameterTypes.add(parameterType);
-            break;
-          case POSITIONAL:
-            optionalParameterTypes.add(parameterType);
-            break;
-          case NAMED:
-            namedParameterTypes.put(parameter.getIdentifier().getName(), parameterType);
-            break;
-        }
-      }
-    }
-
-    FunctionTypeImpl functionType = new FunctionTypeImpl((ExecutableElement) null);
-    functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
-    functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
-    functionType.setNamedParameterTypes(namedParameterTypes);
-    functionType.setReturnType(returnType);
-    return functionType;
-  }
-
-  /**
    * Return the type of the given expression that is to be used for type analysis.
    * 
    * @param expression the expression whose type is to be returned
@@ -834,26 +794,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return typeProvider.getDynamicType();
     }
     return type;
-  }
-
-  /**
-   * Return the type of the given parameter that is to be used for type analysis.
-   * 
-   * @param parameter the parameter whose type is to be returned
-   * @return the type of the given parameter
-   */
-  private Type getType(FormalParameter parameter) {
-    Element element = parameter.getIdentifier().getElement();
-    if (element instanceof ParameterElement) {
-      Type type = ((ParameterElement) element).getType();
-      if (type == null) {
-        //TODO(brianwilkerson) Determine the conditions for which the type is null.
-        return typeProvider.getDynamicType();
-      }
-      return type;
-    }
-    // TODO(brianwilkerson) Report this internal error
-    return typeProvider.getDynamicType();
   }
 
   /**
@@ -910,5 +850,39 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       expression.setStaticType(type);
     }
     return null;
+  }
+
+  /**
+   * Set the return type and parameter type information for the given function type based on the
+   * given return type and parameter elements.
+   * 
+   * @param functionType the function type to be filled in
+   * @param returnType the return type of the function, or {@code null} if no type was declared
+   * @param parameters the elements representing the parameters to the function
+   */
+  private void setTypeInformation(FunctionTypeImpl functionType, Type returnType,
+      FormalParameterList parameterList) {
+    ArrayList<Type> normalParameterTypes = new ArrayList<Type>();
+    ArrayList<Type> optionalParameterTypes = new ArrayList<Type>();
+    LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+    if (parameterList != null) {
+      for (ParameterElement parameter : parameterList.getElements()) {
+        switch (parameter.getParameterKind()) {
+          case REQUIRED:
+            normalParameterTypes.add(parameter.getType());
+            break;
+          case POSITIONAL:
+            optionalParameterTypes.add(parameter.getType());
+            break;
+          case NAMED:
+            namedParameterTypes.put(parameter.getName(), parameter.getType());
+            break;
+        }
+      }
+    }
+    functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
+    functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
+    functionType.setNamedParameterTypes(namedParameterTypes);
+    functionType.setReturnType(returnType);
   }
 }

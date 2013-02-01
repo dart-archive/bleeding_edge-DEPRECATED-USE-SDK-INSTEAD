@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -98,6 +99,21 @@ public class FormalParameterList extends ASTNode {
   @Override
   public Token getBeginToken() {
     return leftParenthesis;
+  }
+
+  /**
+   * Return an array containing the elements representing the parameters in this list. The array
+   * will contain {@code null}s if the parameters in this list have not been resolved.
+   * 
+   * @return the elements representing the parameters in this list
+   */
+  public ParameterElement[] getElements() {
+    int count = parameters.size();
+    ParameterElement[] types = new ParameterElement[count];
+    for (int i = 0; i < count; i++) {
+      types[i] = parameters.get(i).getElement();
+    }
+    return types;
   }
 
   @Override

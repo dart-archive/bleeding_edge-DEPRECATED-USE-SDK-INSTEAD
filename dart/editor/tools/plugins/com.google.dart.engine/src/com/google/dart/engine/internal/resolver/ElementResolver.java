@@ -376,6 +376,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     //
+    // We also ignore identifiers that have already been resolved.
+    //
+    if (node.getElement() != null) {
+      return null;
+    }
+    //
     // If it's not one of those special cases, then the node should be resolved.
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());

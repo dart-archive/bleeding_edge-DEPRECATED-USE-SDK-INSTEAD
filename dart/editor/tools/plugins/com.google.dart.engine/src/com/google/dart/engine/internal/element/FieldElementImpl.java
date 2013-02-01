@@ -103,4 +103,9 @@ public class FieldElementImpl extends VariableElementImpl implements FieldElemen
   public void setStatic(boolean isStatic) {
     setModifier(Modifier.STATIC, isStatic);
   }
+
+  @Override
+  public String toString() {
+    return "field " + getType() + " " + getName();
+  }
 }

@@ -122,4 +122,9 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
   public void setType(Type type) {
     this.type = type;
   }
+
+  @Override
+  public String toString() {
+    return "variable " + getType() + " " + getName();
+  }
 }
