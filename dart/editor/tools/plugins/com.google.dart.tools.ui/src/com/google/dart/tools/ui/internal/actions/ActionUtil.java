@@ -298,6 +298,36 @@ public class ActionUtil {
     return false;
   }
 
+  public static boolean isFindOverridesAvailable(DartElementSelection selection) {
+    try {
+      DartNode node = null;
+      DartNode[] nodes = selection.resolveSelectedNodes();
+      if (nodes != null && nodes.length > 0) {
+        node = nodes[0];
+        if (node != null && node.getElement() != null) {
+          if (node.getParent() != null) {
+            DartNode parent = node.getParent();
+            if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
+              return parent.getParent() instanceof com.google.dart.compiler.ast.DartClass;
+            }
+          }
+        }
+      }
+      if (node == null) {
+        node = selection.resolveCoveringNode();
+        if (node instanceof com.google.dart.compiler.ast.DartFunction) {
+          DartNode parent = node.getParent();
+          if (parent instanceof com.google.dart.compiler.ast.DartMethodDefinition) {
+            return parent.getParent() instanceof com.google.dart.compiler.ast.DartClass;
+          }
+        }
+      }
+    } catch (UnsupportedOperationException ex) {
+      // ignore it
+    }
+    return false;
+  }
+
   public static boolean isFindUsesAvailable(DartElementSelection selection) {
     DartNode node = getResolvedNodeFromSelection(selection);
     if (node != null) {

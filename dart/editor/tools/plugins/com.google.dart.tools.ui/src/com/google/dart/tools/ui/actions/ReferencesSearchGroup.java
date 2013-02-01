@@ -45,6 +45,7 @@ public class ReferencesSearchGroup extends ActionGroup {
 
   private FindReferencesAction findReferencesAction;
   private FindDeclarationsAction findDeclarationsAction;
+  private FindAction findOverridesAction;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -63,6 +64,10 @@ public class ReferencesSearchGroup extends ActionGroup {
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     editor.setAction("SearchDeclarationsInWorkspace", findDeclarationsAction); //$NON-NLS-1$
+    findOverridesAction = new FindOverridesAction(editor);
+    findOverridesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY);
+    findOverridesAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY);
+    editor.setAction("SearchDeclarationsInHierarchy", findOverridesAction); //$NON-NLS-1$
   }
 
   /**
@@ -127,6 +132,10 @@ public class ReferencesSearchGroup extends ActionGroup {
     ISelection sel = getContext().getSelection();
     if (sel instanceof DartElementSelection) {
       DartElementSelection selection = (DartElementSelection) sel;
+      if (ActionUtil.isFindOverridesAvailable(selection)) {
+        findOverridesAction.update(selection);
+        appendToGroup(mm, findOverridesAction);
+      }
       if (ActionUtil.isFindDeclarationsAvailable(selection)) {
         findDeclarationsAction.update(selection);
         appendToGroup(mm, findDeclarationsAction);

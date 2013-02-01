@@ -33,6 +33,7 @@ public abstract class QuerySpecification {
 
   public static final int LIMIT_REFERENCES = 1;
   public static final int LIMIT_DECLARATIONS = 2;
+  public static final int LIMIT_OVERRIDES = 4;
 
   private final SearchScope scope;
   private final int limitTo;
@@ -84,6 +85,10 @@ public abstract class QuerySpecification {
 
   public boolean isDeclarationsSearch() {
     return (getLimitTo() & LIMIT_DECLARATIONS) == LIMIT_DECLARATIONS;
+  }
+
+  public boolean isOverridesSearch() {
+    return (getLimitTo() & LIMIT_OVERRIDES) == LIMIT_OVERRIDES;
   }
 
   public boolean isReferencesSearch() {

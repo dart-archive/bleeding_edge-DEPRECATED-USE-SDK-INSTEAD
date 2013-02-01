@@ -43,6 +43,8 @@ public final class SearchMessages extends NLS {
   public static String Search_FindDeclarationsAction_tooltip;
   public static String Search_FindReferencesAction_label;
   public static String Search_FindReferencesAction_tooltip;
+  public static String Search_FindOverridesAction_label;
+  public static String Search_FindOverridesAction_tooltip;
 
   public static String DartElementAction_typeSelectionDialog_title;
   public static String DartElementAction_typeSelectionDialog_message;
