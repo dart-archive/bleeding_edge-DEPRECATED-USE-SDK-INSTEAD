@@ -68,9 +68,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
     sourceFactory.setContents(source, "library lib;");
     CompilationUnit compilationUnit = context.resolve(source, null);
     assertNotNull(compilationUnit);
-//    assertLength(0, compilationUnit.getSyntacticErrors());
-//    assertLength(0, compilationUnit.getSemanticErrors());
-//    assertLength(0, compilationUnit.getErrors());
+    assertLength(0, compilationUnit.getSyntacticErrors());
+    assertLength(0, compilationUnit.getSemanticErrors());
+    assertLength(0, compilationUnit.getErrors());
   }
 
   public void test_creation() {
