@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.dart.engine.internal.element.DynamicElementImpl;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -37,7 +39,8 @@ public class DynamicTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   private DynamicTypeImpl() {
-    super(null, "dynamic");
+    super(new DynamicElementImpl(), Keyword.DYNAMIC.getSyntax());
+    ((DynamicElementImpl) getElement()).setType(this);
   }
 
   @Override

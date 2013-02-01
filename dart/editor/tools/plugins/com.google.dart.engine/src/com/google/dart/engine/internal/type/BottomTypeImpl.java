@@ -37,12 +37,12 @@ public class BottomTypeImpl extends TypeImpl {
    * Prevent the creation of instances of this class.
    */
   private BottomTypeImpl() {
-    super(null, "bottom");
+    super(null, "<bottom>"); //$NON-NLS-1$
   }
 
   @Override
   public boolean equals(Object object) {
-    return object instanceof BottomTypeImpl;
+    return object == this;
   }
 
   @Override

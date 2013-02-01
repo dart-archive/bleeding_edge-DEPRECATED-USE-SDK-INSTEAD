@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.VoidType;
 
@@ -38,12 +39,12 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
    * Prevent the creation of instances of this class.
    */
   private VoidTypeImpl() {
-    super(null, "void"); //$NON-NLS-1$
+    super(null, Keyword.VOID.getSyntax());
   }
 
   @Override
   public boolean equals(Object object) {
-    return object instanceof VoidTypeImpl;
+    return object == this;
   }
 
   @Override
@@ -52,7 +53,7 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
     // void <: dynamic (as dynamic is a supertype of all types)
-    return this.equals(type) || type == DynamicTypeImpl.getInstance();
+    return type == this || type == DynamicTypeImpl.getInstance();
   }
 
   @Override

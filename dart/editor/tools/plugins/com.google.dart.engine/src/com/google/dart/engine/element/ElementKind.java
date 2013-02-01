@@ -20,6 +20,7 @@ public enum ElementKind {
   CLASS,
   COMPILATION_UNIT,
   CONSTRUCTOR,
+  DYNAMIC,
   ERROR,
   EXPORT,
   FIELD,
