@@ -17,10 +17,10 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
-import com.google.dart.engine.resolver.scope.Namespace;
-import com.google.dart.engine.resolver.scope.NamespaceBuilder;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 

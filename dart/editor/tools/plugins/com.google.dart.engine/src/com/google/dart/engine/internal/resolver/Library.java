@@ -24,8 +24,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.resolver.ResolverErrorCode;
-import com.google.dart.engine.resolver.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
 
 import java.util.HashMap;

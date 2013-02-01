@@ -15,8 +15,6 @@ package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.resolver.scope.EnclosedScope;
-import com.google.dart.engine.resolver.scope.Scope;
 
 /**
  * Instances of the class {@code FunctionTypeScope} implement the scope defined by a function type

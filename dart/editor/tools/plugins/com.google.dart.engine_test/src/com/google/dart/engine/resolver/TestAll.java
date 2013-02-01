@@ -21,7 +21,6 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.engine.resolver.scope.TestAll.suite());
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
     return suite;
