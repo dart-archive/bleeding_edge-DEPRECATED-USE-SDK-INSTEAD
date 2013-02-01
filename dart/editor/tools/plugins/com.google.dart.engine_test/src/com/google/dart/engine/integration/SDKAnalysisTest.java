@@ -14,12 +14,15 @@
 package com.google.dart.engine.integration;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.general.MemoryUtilities;
 import com.google.dart.engine.utilities.general.MemoryUtilities.MemoryUsage;
@@ -53,12 +56,20 @@ public class SDKAnalysisTest extends TestCase {
     //
     // Print out memory usage information.
     //
-    MemoryUsage usage = MemoryUtilities.measureMemoryUsage(libraries.toArray(new LibraryElement[libraries.size()]));
+    LibraryElement[] libraryEltArray = libraries.toArray(new LibraryElement[libraries.size()]);
+    MemoryUsage usage = MemoryUtilities.measureMemoryUsage(libraryEltArray);
     PrintWriter writer = new PrintWriter(System.out);
     usage.writeSummary(writer);
     writer.flush();
     //
     // Validate the results.
     //
+    StaticTypeVerifier staticTypeVerifier = new StaticTypeVerifier();
+    for (String dartUri : sdk.getUris()) {
+      Source source = sourceFactory.forFile(sdk.mapDartUri(dartUri));
+      CompilationUnit compilationUnit = context.resolve(source, null);
+      compilationUnit.accept(staticTypeVerifier);
+    }
+    staticTypeVerifier.assertResolved();
   }
 }

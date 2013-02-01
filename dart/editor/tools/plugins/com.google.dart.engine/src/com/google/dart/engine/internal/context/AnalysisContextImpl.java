@@ -318,7 +318,10 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
-    throw new UnsupportedOperationException();
+    // TODO (jwren/brianwilkerson/danrubel) not implemented correctly, this method works only if
+    // the queried source has been previously resolved and happens to be in the parseCache. This was
+    // included for testing purposes.
+    return parse(source);
   }
 
   @Override
