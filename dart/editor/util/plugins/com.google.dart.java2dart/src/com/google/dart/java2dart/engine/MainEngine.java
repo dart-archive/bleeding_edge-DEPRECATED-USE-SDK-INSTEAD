@@ -46,6 +46,12 @@ import java.util.Map.Entry;
  * Translates some parts of "com.google.dart.engine" project.
  */
 public class MainEngine {
+
+  /**
+   * Default package src location (can be overridden)
+   */
+  private static String src_package = "package:analysis_engine/src/";
+
   private static final Context context = new Context();
   private static File engineFolder;
   private static File engineTestFolder;
@@ -64,12 +70,16 @@ public class MainEngine {
       + "// significant change. Please see the README file for more information.\n\n";
 
   public static void main(String[] args) throws Exception {
-    if (args.length != 2) {
-      System.out.println("Usage: java2dart <target-src-folder> <target-test-folder>");
+    if (args.length != 2 && args.length != 3) {
+      System.out.println("Usage: java2dart <target-src-folder> <target-test-folder> [src-package]");
       System.exit(0);
     }
     String targetFolder = args[0];
     String targetTestFolder = args[1];
+    if (args.length == 3) {
+      System.out.println("Overrriding default src package to: " + src_package);
+      src_package = args[2];
+    }
     System.out.println("Generating files into " + targetFolder);
     new File(targetFolder).mkdirs();
     //
@@ -305,12 +315,12 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "scanner_test"));
     unit.getDirectives().add(importDirective("dart:collection", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_core.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_engine.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_junit.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/source.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/error.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/scanner.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     List<Statement> mainStatements = Lists.newArrayList();
@@ -348,11 +358,11 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "scanner_test"));
     unit.getDirectives().add(importDirective("dart:collection", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_core.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_engine.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/java_junit.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/source.dart", null));
-    unit.getDirectives().add(importDirective("package:analysis_engine/src/error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
