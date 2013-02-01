@@ -114,11 +114,7 @@ public class EditorUtility {
               IFile file = ((FileEditorInput) input).getFile();
 
               if (!file.exists()) {
-
-                IEditorPart editor = ref.getEditor(false);
-                if (editor == null) {
-                  activePage.closeEditors(new IEditorReference[] {ref}, false);
-                }
+                activePage.closeEditors(new IEditorReference[] {ref}, false);
               }
 
             }
