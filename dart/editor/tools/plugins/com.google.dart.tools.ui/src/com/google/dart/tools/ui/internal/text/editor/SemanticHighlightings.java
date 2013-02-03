@@ -243,18 +243,20 @@ public class SemanticHighlightings {
     private List<SourceRange> addStartPosition(List<SourceRange> positions, SemanticToken token,
         String str) {
       DartNode node = token.getNode();
-      int index = token.getSource().indexOf(str);
-      if (index == 0) {
-        int start = node.getSourceInfo().getOffset() + index;
-        int length = str.length();
-        positions = addPosition(positions, start, length);
+      String source = token.getSource();
+      if (source != null) {
+        int index = source.indexOf(str);
+        if (index == 0) {
+          int start = node.getSourceInfo().getOffset() + index;
+          int length = str.length();
+          positions = addPosition(positions, start, length);
+        }
       }
       return positions;
     }
   }
 
   private static class ClassHighlighting extends DefaultSemanticHighlighting {
-
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
@@ -266,11 +268,7 @@ public class SemanticHighlightings {
         }
       }
       // highlight type name in declaration and use
-      if (node.getParent() instanceof DartClass) {
-        DartClass parentClass = (DartClass) node.getParent();
-        return parentClass.getName() == node;
-      }
-      if (node.getParent() instanceof DartTypeNode) {
+      if (ElementKind.of(node.getElement()) == ElementKind.CLASS) {
         return true;
       }
       // no
@@ -292,11 +290,11 @@ public class SemanticHighlightings {
       return true;
     }
   }
+
   /**
    * Abstract {@link SemanticHighlighting} with empty methods by default.
    */
   private static abstract class DefaultSemanticHighlighting extends SemanticHighlighting {
-
     @Override
     public RGB getDefaultDefaultTextColor() {
       return new RGB(0, 0, 0);
@@ -911,6 +909,33 @@ public class SemanticHighlightings {
     }
   }
 
+  private static class TypeVariableHighlighting extends DefaultSemanticHighlighting {
+    @Override
+    public boolean consumesIdentifier(SemanticToken token) {
+      DartIdentifier node = token.getNodeIdentifier();
+      if (ElementKind.of(node.getElement()) == ElementKind.TYPE_VARIABLE) {
+        return true;
+      }
+      // no
+      return false;
+    }
+
+    @Override
+    public String getDisplayName() {
+      return DartEditorMessages.SemanticHighlighting_typeVariable;
+    }
+
+    @Override
+    public String getPreferenceKey() {
+      return TYPE_VARIABLE;
+    }
+
+    @Override
+    public boolean isEnabledByDefault() {
+      return true;
+    }
+  }
+
   private static final RGB KEY_WORD_COLOR = PreferenceConverter.getColor(
       DartToolsPlugin.getDefault().getPreferenceStore(),
       IDartColorConstants.JAVA_KEYWORD);
@@ -1217,10 +1242,11 @@ public class SemanticHighlightings {
           new DeprecatedElementHighlighting(), new GetterDeclarationHighlighting(),
           new SetterDeclarationHighlighting(), new StaticFieldHighlighting(),
           new FieldHighlighting(), new DynamicTypeHighlighting(), new ClassHighlighting(),
-          new NumberHighlighting(), new LocalVariableDeclarationHighlighting(),
-          new LocalVariableHighlighting(), new ParameterHighlighting(),
-          new StaticMethodDeclarationHighlighting(), new StaticMethodHighlighting(),
-          new MethodDeclarationHighlighting(), new MethodHighlighting()};
+          new TypeVariableHighlighting(), new NumberHighlighting(),
+          new LocalVariableDeclarationHighlighting(), new LocalVariableHighlighting(),
+          new ParameterHighlighting(), new StaticMethodDeclarationHighlighting(),
+          new StaticMethodHighlighting(), new MethodDeclarationHighlighting(),
+          new MethodHighlighting()};
     }
     return SEMANTIC_HIGHTLIGHTINGS;
   }

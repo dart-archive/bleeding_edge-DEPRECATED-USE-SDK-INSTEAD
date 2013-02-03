@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <colorTheme id="-2" name="Hot Pink" modified="2012-11-28 11:02" author="KS">
-    <class color="#000030" />
+    <class color="#008000" bold="true"/>
     <deprecatedMember color="#000000" />
     <directive color="#FF4040" />
     <dynamicType color="#FF4040" />
@@ -45,7 +45,7 @@
     <bracket color="#000f6a" />
     <inheritedMethod color="#2c577c" />
     <typeArgument color="#d07fcd" />
-    <typeParameter color="#d07fcd" />
+    <typeParameter color="#D00000" bold="true"/>
     <constant color="#ae25ab" />
     <currentLine color="#fff7cd" />
     <lineNumber color="#999999" />

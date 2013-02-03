@@ -325,14 +325,18 @@ public class SemanticHighlightingTest extends AbstractDartTest {
   public void test_class() throws Exception {
     preparePositions(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
+        "class A {",
+        "  static const ZERO = 0;",
+        "}",
         "main() {",
         "  A a = new A ();",
+        "  print(A .ZERO);",
         "}",
         "");
-    assertHasWordPosition(SemanticHighlightings.CLASS, "A {}");
+    assertHasWordPosition(SemanticHighlightings.CLASS, "A {");
     assertHasWordPosition(SemanticHighlightings.CLASS, "A a =");
     assertHasWordPosition(SemanticHighlightings.CLASS, "A ();");
+    assertHasWordPosition(SemanticHighlightings.CLASS, "A .ZERO");
   }
 
   public void test_deprecated() throws Exception {
@@ -635,6 +639,20 @@ public class SemanticHighlightingTest extends AbstractDartTest {
     assertHasWordPosition(SemanticHighlightings.STATIC_METHOD, "m ();");
     // reference
     assertHasWordPosition(SemanticHighlightings.STATIC_METHOD, "m );");
+  }
+
+  public void test_typeVariable() throws Exception {
+    preparePositions(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyClass<T > {",
+        "  T value;",
+        "  T foo(T t) => null;",
+        "}",
+        "");
+    assertHasWordPosition(SemanticHighlightings.TYPE_VARIABLE, "T > {");
+    assertHasWordPosition(SemanticHighlightings.TYPE_VARIABLE, "T value");
+    assertHasWordPosition(SemanticHighlightings.TYPE_VARIABLE, "T foo");
+    assertHasWordPosition(SemanticHighlightings.TYPE_VARIABLE, "T t)");
   }
 
   /**
