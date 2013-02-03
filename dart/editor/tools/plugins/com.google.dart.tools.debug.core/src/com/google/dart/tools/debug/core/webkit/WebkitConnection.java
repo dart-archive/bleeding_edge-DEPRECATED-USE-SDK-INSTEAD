@@ -274,6 +274,10 @@ public class WebkitConnection {
 
   protected void sendRequest(JSONObject request, Callback callback) throws IOException,
       JSONException {
+    if (!isConnected()) {
+      throw new IOException("connection terminated");
+    }
+
     int id = 0;
 
     try {
