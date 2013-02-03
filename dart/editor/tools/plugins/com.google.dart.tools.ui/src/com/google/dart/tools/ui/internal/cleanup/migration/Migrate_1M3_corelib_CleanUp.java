@@ -215,6 +215,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       @Override
       public Void visitMethodInvocation(DartMethodInvocation node) {
         DartIdentifier nameNode = node.getFunctionName();
+        List<DartExpression> args = node.getArguments();
         // Iterator  --->  HasNextIterator
         replaceIteratorType(node, nameNode);
         // filter -> where
@@ -234,6 +235,18 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
                 addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toSet()");
               }
             }
+          }
+        }
+        // Strings.join(strings, separator)  --->  strings.join(separator)
+        if (node.getTarget() instanceof DartIdentifier
+            && ((DartIdentifier) node.getTarget()).getName().equals("Strings")) {
+          if (Elements.isIdentifierName(nameNode, "join")) {
+            addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "");
+            addReplaceEdit(SourceRangeFactory.forEndStart(args.get(0), args.get(1)), ".join(");
+          }
+          if (Elements.isIdentifierName(nameNode, "concatAll")) {
+            addReplaceEdit(SourceRangeFactory.forStartStart(node, args.get(0)), "");
+            addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ".join(");
           }
         }
         return super.visitMethodInvocation(node);

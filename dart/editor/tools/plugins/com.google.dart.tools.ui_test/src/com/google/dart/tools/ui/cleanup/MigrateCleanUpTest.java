@@ -1131,6 +1131,26 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  // XXX
+  public void test_1M3_corelib_Strings_join() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Strings.join(['a', 'b', 'c'], ' ');",
+        "  Strings.concatAll(['a', 'b', 'c']);",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  ['a', 'b', 'c'].join(' ');",
+        "  ['a', 'b', 'c'].join();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M3_corelib_Uri_parse() throws Exception {
     ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
     String initial = makeSource(
