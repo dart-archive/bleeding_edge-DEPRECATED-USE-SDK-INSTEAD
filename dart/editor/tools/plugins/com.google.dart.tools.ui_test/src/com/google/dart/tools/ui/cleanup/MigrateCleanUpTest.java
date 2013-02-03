@@ -923,7 +923,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "abstract class A<E> implements List<E> {",
         "  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);",
-        "  List mappedBy(f(E element)) => new MappedList<E, dynamic>(this, f);",
+        "  Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
@@ -942,7 +942,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "abstract class A<E> implements Set<E> {",
         "  Iterable<E> where(bool f(E element)) => new WhereIterable<E>(this, f);",
-        "  Iterable mappedBy(f(E element)) => new MappedIterable<E, dynamic>(this, f);",
+        "  Iterable map(f(E element)) => new MappedIterable<E, dynamic>(this, f);",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
@@ -1121,11 +1121,11 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  var src = new List();",
-        "  var v1 = src.mappedBy((e) => true).toList();",
+        "  var v1 = src.map((e) => true).toList();",
         "  print(v1[0]);",
-        "  List v2 = src.mappedBy((e) => true).toList();",
-        "  for (var v3 in src.mappedBy((e) => true)) {}",
-        "  src.mappedBy((e) => true).forEach((e) {print(e);});",
+        "  List v2 = src.map((e) => true).toList();",
+        "  for (var v3 in src.map((e) => true)) {}",
+        "  src.map((e) => true).forEach((e) {print(e);});",
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
