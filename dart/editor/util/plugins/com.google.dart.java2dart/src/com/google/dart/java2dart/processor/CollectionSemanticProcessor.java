@@ -77,12 +77,19 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+        super.visitInstanceCreationExpression(node);
         Object binding = context.getNodeBinding(node);
         if (binding instanceof IMethodBinding) {
           IMethodBinding methodBinding = (IMethodBinding) binding;
           ITypeBinding declaringClass = methodBinding.getDeclaringClass();
           // new HashSet(5) -> new HashSet()
           if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashSet")) {
+            node.getArgumentList().getArguments().clear();
+            return null;
+          }
+          // new HashMap(5) -> new HashMap()
+          if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashMap")) {
+            ((SimpleIdentifier) node.getConstructorName().getType().getName()).setToken(token("Map"));
             node.getArgumentList().getArguments().clear();
             return null;
           }
@@ -118,7 +125,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           }
         }
         // done
-        return super.visitInstanceCreationExpression(node);
+        return null;
       }
 
       @Override
@@ -174,6 +181,15 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, methodInvocation("getMapEntrySet", node.getTarget()));
           return null;
         }
+        if (isMethodInClass(node, "values", "java.util.Map")) {
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          return null;
+        }
+        if (isMethodInClass(node, "keySet", "java.util.Map")) {
+          nameNode.setToken(token("keys"));
+          replaceNode(node, methodInvocation(propertyAccess(node.getTarget(), nameNode), "toSet"));
+          return null;
+        }
         if (isMethodInClass2(node, "remove(int)", "java.util.List")) {
           nameNode.setToken(TokenFactory.token("removeAt"));
           return null;
@@ -181,6 +197,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         if (isMethodInClass2(node, "add(int,java.lang.Object)", "java.util.List")) {
           nameNode.setToken(TokenFactory.token("insertRange"));
           args.add(1, integer(1));
+          return null;
+        }
+        if (isMethodInClass(node, "add", "java.util.Set")) {
+          replaceNode(node, methodInvocation("javaSetAdd", node.getTarget(), args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
@@ -221,6 +241,14 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           }
           if ("EnumSet".equals(name)) {
             nameNode.setToken(token("Set"));
+            return null;
+          }
+          if ("HashSet".equals(name)) {
+            nameNode.setToken(token("Set"));
+            return null;
+          }
+          if ("HashMap".equals(name)) {
+            nameNode.setToken(token("Map"));
             return null;
           }
           if (JavaUtils.isTypeNamed(binding, "java.util.Map.Entry")) {

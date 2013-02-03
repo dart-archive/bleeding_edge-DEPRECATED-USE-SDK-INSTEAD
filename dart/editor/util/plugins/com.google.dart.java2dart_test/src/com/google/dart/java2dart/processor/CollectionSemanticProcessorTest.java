@@ -174,6 +174,25 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_HashMap() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.HashMap;",
+        "public class Test {",
+        "  void main() {",
+        "    HashMap<String, Integer> map = new HashMap<String, Integer>(5);",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void main() {",
+        "    Map<String, int> map = new Map<String, int>();",
+        "  }",
+        "}");
+  }
+
   public void test_HashSet_constructorSizeArgument() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -188,7 +207,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  void main() {",
-        "    HashSet<String> result = new HashSet<String>();",
+        "    Set<String> result = new Set<String>();",
         "  }",
         "}");
   }
@@ -206,7 +225,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(//
         "class Test {",
-        "  List<String> main(HashSet<String> items) => new List.from(items);",
+        "  List<String> main(Set<String> items) => new List.from(items);",
         "}");
   }
 
@@ -397,6 +416,46 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  int main(Map<String, String> items) => items.length;",
+        "}");
+  }
+
+  public void test_Map_values_keySet() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Map;",
+        "public class Test {",
+        "  void main(Map<String, Integer> items) {",
+        "    items.values();",
+        "    items.keySet();",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void main(Map<String, int> items) {",
+        "    items.values;",
+        "    items.keys.toSet();",
+        "  }",
+        "}");
+  }
+
+  public void test_Set_add() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Set;",
+        "public class Test {",
+        "  public void foo(Set<Integer> items) {",
+        "    items.add(42);",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  void foo(Set<int> items) {",
+        "    javaSetAdd(items, 42);",
+        "  }",
         "}");
   }
 }

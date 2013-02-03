@@ -48,7 +48,7 @@ public abstract class SemanticProcessor {
   /**
    * Replaces "node" with "replacement" in parent of "node".
    */
-  protected static void replaceNode(ASTNode node, ASTNode replacement) {
+  public static void replaceNode(ASTNode node, ASTNode replacement) {
     ASTNode parent = node.getParent();
     Class<? extends ASTNode> parentClass = parent.getClass();
     // try get/set methods

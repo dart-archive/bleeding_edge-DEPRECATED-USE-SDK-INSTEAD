@@ -775,6 +775,17 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void foo(double p) {}",
             "}",
             ""));
+    setFileLines(
+        "test/Test3.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test3 extends Test2 {",
+            "  void foo() {}",
+            "  void foo(int p) {}",
+            "  void foo(double p) {}",
+            "}",
+            ""));
     Context context = new Context();
     context.addSourceFolder(tmpFolder);
     context.addSourceFiles(tmpFolder);
@@ -790,6 +801,14 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             "class Test2 extends Test {",
+            "  void foo() {",
+            "  }",
+            "  void foo2(int p) {",
+            "  }",
+            "  void foo3(double p) {",
+            "  }",
+            "}",
+            "class Test3 extends Test2 {",
             "  void foo() {",
             "  }",
             "  void foo2(int p) {",

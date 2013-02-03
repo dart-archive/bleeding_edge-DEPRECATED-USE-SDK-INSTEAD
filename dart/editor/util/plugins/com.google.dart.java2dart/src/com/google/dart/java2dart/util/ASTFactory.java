@@ -484,7 +484,7 @@ public final class ASTFactory {
   }
 
   public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
-      String identifier) {
+      SimpleIdentifier identifier) {
     return new FieldFormalParameter(
         null,
         null,
@@ -492,7 +492,12 @@ public final class ASTFactory {
         type,
         token(Keyword.THIS),
         token(TokenType.PERIOD),
-        identifier(identifier));
+        identifier);
+  }
+
+  public static FieldFormalParameter fieldFormalParameter(Keyword keyword, TypeName type,
+      String identifier) {
+    return fieldFormalParameter(keyword, type, identifier(identifier));
   }
 
   public static ForEachStatement forEachStatement(SimpleFormalParameter loopParameter,
@@ -662,6 +667,10 @@ public final class ASTFactory {
 
   public static HideCombinator importHideCombinator(SimpleIdentifier... identifiers) {
     return new HideCombinator(token("hide"), list(identifiers));
+  }
+
+  public static HideCombinator importHideCombinator(String... identifiers) {
+    return new HideCombinator(token("hide"), identifiers(identifiers));
   }
 
   public static ShowCombinator importShowCombinator(SimpleIdentifier... identifiers) {
@@ -1233,6 +1242,10 @@ public final class ASTFactory {
       typeParameters.add(typeParameter(typeName));
     }
     return typeParameterList(typeParameters);
+  }
+
+  public static VariableDeclaration variableDeclaration(SimpleIdentifier name) {
+    return variableDeclaration(name, null);
   }
 
   public static VariableDeclaration variableDeclaration(SimpleIdentifier name,

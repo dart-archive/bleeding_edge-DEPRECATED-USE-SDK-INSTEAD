@@ -223,6 +223,22 @@ public class JavaUtils {
     return getMethodSignature(methodBinding.getMethodDeclaration(), false);
   }
 
+  public static IBinding getOriginalBinding(IBinding binding) {
+    if (binding instanceof IMethodBinding) {
+      IMethodBinding methodBinding = (IMethodBinding) binding;
+      methodBinding = methodBinding.getMethodDeclaration();
+      while (true) {
+        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(methodBinding, true);
+        if (overriddenMethod == null) {
+          break;
+        }
+        methodBinding = overriddenMethod;
+      }
+      return methodBinding;
+    }
+    return binding;
+  }
+
   public static String getQualifiedName(ITypeBinding binding) {
     String name = binding.getQualifiedName();
     if (name.contains("<")) {
@@ -257,13 +273,7 @@ public class JavaUtils {
   public static boolean isMethodDeclaredInClass(Object bindingObject, String reqClassName) {
     if (bindingObject instanceof IMethodBinding) {
       IMethodBinding binding = (IMethodBinding) bindingObject;
-      while (true) {
-        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(binding, true);
-        if (overriddenMethod == null) {
-          break;
-        }
-        binding = overriddenMethod;
-      }
+      binding = (IMethodBinding) getOriginalBinding(binding);
       return getQualifiedName(binding.getDeclaringClass()).equals(reqClassName);
     }
     return false;

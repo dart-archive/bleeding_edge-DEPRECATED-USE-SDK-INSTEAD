@@ -291,3 +291,11 @@ Set<MapEntry> getMapEntrySet(Map m) {
   });
   return result;
 }
+
+bool javaSetAdd(Set s, o) {
+  if (!s.contains(o)) {
+    s.add(o);
+    return true;
+  }
+  return false;
+}

@@ -21,7 +21,10 @@ import com.google.common.io.Files;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.BeautifySemanticProcessor;
@@ -31,6 +34,7 @@ import com.google.dart.java2dart.processor.JUnitSemanticProcessor;
 import com.google.dart.java2dart.processor.ObjectSemanticProcessor;
 import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 import com.google.dart.java2dart.processor.SemanticProcessor;
+import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
 
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
@@ -38,6 +42,9 @@ import static com.google.dart.java2dart.util.ASTFactory.importDirective;
 import static com.google.dart.java2dart.util.ASTFactory.importHideCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.importShowCombinator;
 import static com.google.dart.java2dart.util.ASTFactory.libraryDirective;
+import static com.google.dart.java2dart.util.TokenFactory.token;
+
+import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -113,9 +120,14 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/type"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/type"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/builder"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/resolver"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/scope"));
     context.addSourceFile(new File(
         engineFolder2,
         "com/google/dart/java2dart/util/ToFormattedSourceVisitor.java"));
+    // Tests
     context.addSourceFile(new File(engineTestFolder, "com/google/dart/engine/EngineTestCase.java"));
     context.addSourceFile(new File(
         engineTestFolder,
@@ -193,6 +205,14 @@ public class MainEngine {
           Charsets.UTF_8);
     }
     {
+      CompilationUnit library = buildResolverLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/resolver.dart"),
+          Charsets.UTF_8);
+    }
+    // Tests
+    {
       CompilationUnit library = buildTestSupportLibrary();
       File testSupportFile = new File(targetTestFolder + "/test_support.dart");
       Files.write(getFormattedSource(library), testSupportFile, Charsets.UTF_8);
@@ -251,6 +271,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_core.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
     unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
@@ -265,6 +286,22 @@ public class MainEngine {
     }
     return unit;
   }
+
+  // TODO(scheglov) complete
+//  private static CompilationUnit buildEngineLibrary() throws Exception {
+//    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+//    unit.getDirectives().add(libraryDirective("engine"));
+//    unit.getDirectives().add(importDirective("source.dart", null));
+//    unit.getDirectives().add(importDirective("ast.dart", null));
+//    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+//      File file = context.getMemberToFile().get(member);
+//      if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "context/")
+//          || isEnginePath(file, "internal/context/")) {
+//        unit.getDeclarations().add(member);
+//      }
+//    }
+//    return unit;
+//  }
 
   private static CompilationUnit buildErrorLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
@@ -345,6 +382,55 @@ public class MainEngine {
       }
     }
     EngineSemanticProcessor.addMain(unit, mainStatements);
+    return unit;
+  }
+
+  // XXX
+  private static CompilationUnit buildResolverLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "resolver"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "scanner.dart",
+            null,
+            importShowCombinator("Keyword", "TokenType", "Token", "KeywordToken", "StringToken")));
+    unit.getDirectives().add(importDirective("utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(
+        importDirective(
+            "element.dart",
+            null,
+            importHideCombinator("HideCombinator", "ShowCombinator")));
+    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+      File file = context.getMemberToFile().get(member);
+      if (isEnginePath(file, "resolver/") || isEnginePath(file, "internal/resolver/")
+          || isEnginePath(file, "internal/builder/") || isEnginePath(file, "internal/scope/")) {
+        unit.getDeclarations().add(member);
+      }
+    }
+    // there is conflict between Hide/ShowCombinator classes in AST and Element, so tweak them
+    unit.getDirectives().add(
+        importDirective(
+            "element.dart",
+            "__imp_combi",
+            importShowCombinator("HideCombinator", "ShowCombinator")));
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitTypeName(TypeName node) {
+        ITypeBinding binding = context.getNodeTypeBinding(node);
+        if (JavaUtils.isTypeNamed(binding, "com.google.dart.engine.element.HideCombinator")
+            || JavaUtils.isTypeNamed(binding, "com.google.dart.engine.element.ShowCombinator")) {
+          ((SimpleIdentifier) node.getName()).setToken(token("__imp_combi." + binding.getName()));
+        }
+        return super.visitTypeName(node);
+      }
+    });
+    // done
     return unit;
   }
 

@@ -69,7 +69,6 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.java2dart.util.Bindings;
 import com.google.dart.java2dart.util.ExecutionUtils;
 import com.google.dart.java2dart.util.JavaUtils;
 import com.google.dart.java2dart.util.RunnableEx;
@@ -463,11 +462,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
                   && variableBinding.getDeclaringMethod() != enclosingMethod.resolveBinding()) {
                 TypeName parameterTypeName = translateTypeName(variableBinding.getType());
                 String parameterName = variableBinding.getName();
+                SimpleIdentifier parameterNameNode = identifier(parameterName);
                 innerClass.getMembers().add(
                     index++,
-                    fieldDeclaration(parameterTypeName, variableDeclaration(parameterName)));
-                constructorParameters.add(fieldFormalParameter(null, null, parameterName));
-                arguments.add(identifier(parameterName));
+                    fieldDeclaration(parameterTypeName, variableDeclaration(parameterNameNode)));
+                constructorParameters.add(fieldFormalParameter(null, null, parameterNameNode));
+                arguments.add(parameterNameNode);
+                context.putReference(parameterNameNode, variableBinding, null);
               }
             }
             super.endVisit(node);
@@ -1512,14 +1513,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   private void putReference(org.eclipse.jdt.core.dom.IBinding binding, SimpleIdentifier identifier) {
     if (binding != null) {
-      if (binding instanceof IMethodBinding) {
-        IMethodBinding methodBinding = (IMethodBinding) binding;
-        binding = methodBinding = methodBinding.getMethodDeclaration();
-        IMethodBinding overriddenMethod = Bindings.findOverriddenMethod(methodBinding, true);
-        if (overriddenMethod != null) {
-          binding = overriddenMethod;
-        }
-      }
+      binding = JavaUtils.getOriginalBinding(binding);
       context.putReference(identifier, binding, JavaUtils.getJdtSignature(binding));
     }
   }
@@ -1635,6 +1629,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if ("boolean".equals(name)) {
         return typeName("bool");
       }
+      TypeName result = typeName(name);
+      context.putNodeTypeBinding(result, binding);
+      context.putNodeTypeBinding(result.getName(), binding);
+      return result;
     }
     throw new IllegalArgumentException("" + binding);
   }
