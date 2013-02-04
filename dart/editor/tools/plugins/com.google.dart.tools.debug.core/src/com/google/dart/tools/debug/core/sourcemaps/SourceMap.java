@@ -54,12 +54,15 @@ public class SourceMap {
 
   public static SourceMap createFrom(IFile file) throws IOException, CoreException {
     Reader reader = new InputStreamReader(file.getContents(), file.getCharset());
-    String contents = CharStreams.toString(reader);
 
     try {
+      String contents = CharStreams.toString(reader);
+
       return createFrom(file.getParent().getFullPath(), contents);
     } catch (JSONException e) {
       throw new IOException(e);
+    } finally {
+      reader.close();
     }
   }
 
