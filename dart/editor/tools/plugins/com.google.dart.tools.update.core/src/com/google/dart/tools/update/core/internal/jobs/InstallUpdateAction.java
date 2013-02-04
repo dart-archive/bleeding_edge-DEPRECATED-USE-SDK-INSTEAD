@@ -14,6 +14,7 @@
 package com.google.dart.tools.update.core.internal.jobs;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.update.core.Revision;
@@ -65,6 +66,8 @@ public class InstallUpdateAction extends Action {
     }
 
   }
+
+  private static final String INSTALL_SCRIPT = "install.py";
 
   private static final String PROP_EXIT_CODE = "eclipse.exitcode"; //$NON-NLS-1$
   private static final String PROP_EXIT_DATA = "eclipse.exitdata"; //$NON-NLS-1$  
@@ -226,9 +229,15 @@ public class InstallUpdateAction extends Action {
 
   private boolean doApplyUpdate(IProgressMonitor monitor) throws IOException {
 
+    File installTarget = UpdateUtils.getUpdateInstallDir();
+    //TODO (pquitslund): only necessary for testing
+    if (!installTarget.exists()) {
+      installTarget.mkdir();
+    }
+    File installScript = new File(installTarget, INSTALL_SCRIPT);
     File tmpDir = UpdateUtils.getUpdateTempDir();
 
-    SubMonitor mon = SubMonitor.convert(monitor, null, 100);
+    SubMonitor mon = SubMonitor.convert(monitor, null, installScript.exists() ? 120 : 100);
 
     cleanupTempDir(tmpDir, mon.newChild(3));
 
@@ -260,12 +269,6 @@ public class InstallUpdateAction extends Action {
         tmpDir,
         UpdateJobMessages.InstallUpdateAction_extract_task,
         mon.newChild(20));
-
-    File installTarget = UpdateUtils.getUpdateInstallDir();
-    //TODO (pquitslund): only necessary for testing
-    if (!installTarget.exists()) {
-      installTarget.mkdir();
-    }
 
     monitor.setTaskName(UpdateJobMessages.InstallUpdateAction_preparing_task);
     File sdkDir = new File(installTarget, "dart-sdk"); //$NON-NLS-1$
@@ -300,6 +303,12 @@ public class InstallUpdateAction extends Action {
     //ensure executables (such as the analyzer, pub and VM) have the exec bit set 
     UpdateUtils.ensureExecutable(new File(sdkDir, "bin").listFiles()); //$NON-NLS-1$
     UpdateUtils.ensureExecutable(DartSdkManager.getManager().getSdk().getDartiumExecutable());
+
+    //run install.py if present
+    if (installScript.exists()) {
+      monitor.setTaskName("Running " + installScript.getName() + " script");
+      runInstallScript(installScript, mon.newChild(20));
+    }
 
     return true;
   }
@@ -356,6 +365,31 @@ public class InstallUpdateAction extends Action {
     System.setProperty(PROP_EXIT_DATA, commandLine);
 
     PlatformUI.getWorkbench().restart();
+  }
+
+  private void runInstallScript(File installScript, SubMonitor mon) {
+
+    mon.beginTask("Running " + installScript.getName(), IProgressMonitor.UNKNOWN);
+
+    ProcessBuilder builder = new ProcessBuilder("python", installScript.getName());
+    builder.directory(installScript.getParentFile());
+    builder.redirectErrorStream(true);
+
+    ProcessRunner runner = new ProcessRunner(builder);
+    int result;
+    try {
+      result = runner.runSync(mon);
+    } catch (IOException e) {
+      DartCore.logError(
+          installScript.getName() + " IOException" + System.getProperty("file.separator")
+              + runner.getStdOut(),
+          e);
+      return;
+    }
+    if (result != 0) {
+      DartCore.logError(installScript.getName() + " terminated abnormally: " + result
+          + System.getProperty("file.separator") + runner.getStdOut());
+    }
   }
 
   private void terminate(ILaunch launch) {
