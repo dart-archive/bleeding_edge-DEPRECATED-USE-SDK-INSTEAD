@@ -34,6 +34,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -66,9 +67,12 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.part.ViewPart;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -394,11 +398,16 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
     if (editor != null) {
 
       IEditorInput input = editor.getEditorInput();
-      if (input instanceof IFileEditorInput) {
-        IFile file = ((IFileEditorInput) input).getFile();
+      if (input instanceof IFileEditorInput || input instanceof FileStoreEditorInput) {
         try {
-
-          String contents = IFileUtilities.getContents(file);
+          String contents = "";
+          if (input instanceof IFileEditorInput) {
+            IFile file = ((IFileEditorInput) input).getFile();
+            contents = IFileUtilities.getContents(file);
+          } else {
+            URI uri = ((FileStoreEditorInput) input).getURI();
+            contents = FileUtilities.getDartContents(new File(uri));
+          }
 
           errors.clear();
 
