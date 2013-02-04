@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
@@ -65,19 +66,17 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
       int unresolvedExpressionCount = unresolvedExpressions.size();
       int unresolvedTypeCount = unresolvedTypes.size();
       PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Failed to associate types with ");
-      writer.print(unresolvedExpressions.size());
-      writer.print(" nodes, left unresolved ");
+      writer.print("Failed to associate types with nodes: ");
       writer.print(unresolvedExpressionCount);
       writer.print("/");
       writer.print(resolvedExpressionCount + unresolvedExpressionCount);
-      writer.print(" expressions and ");
+      writer.print(" Expressions and ");
       writer.print(unresolvedTypeCount);
       writer.print("/");
       writer.print(resolvedTypeCount + unresolvedTypeCount);
-      writer.println(" types.");
+      writer.println(" TypeNames.");
       if (unresolvedTypeCount > 0) {
-        writer.println("Types:");
+        writer.println("TypeNames:");
         for (TypeName identifier : unresolvedTypes) {
           writer.print("  ");
           writer.print(identifier.toString());
@@ -112,6 +111,12 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
     } else {
       resolvedExpressionCount++;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitLibraryIdentifier(LibraryIdentifier node) {
+    // Do nothing, LibraryIdentifiers and children don't have an associated static type.
     return null;
   }
 
