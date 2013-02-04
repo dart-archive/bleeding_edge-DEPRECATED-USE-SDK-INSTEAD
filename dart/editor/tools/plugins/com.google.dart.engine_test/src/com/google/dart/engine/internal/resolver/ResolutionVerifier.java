@@ -11,10 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.resolver;
+package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
@@ -116,7 +117,11 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   public Void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
     checkResolved(node, node.getElement());
-    return checkResolved(node.getPrefix(), node.getPrefix().getElement());
+    SimpleIdentifier prefix = node.getPrefix();
+    if (prefix == null) {
+      return null;
+    }
+    return checkResolved(prefix, prefix.getElement());
   }
 
   @Override
@@ -168,6 +173,10 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
 
   private Void checkResolved(ASTNode node, Element element) {
     if (node != null && element == null) {
+      if (node.getParent() instanceof CommentReference) {
+        // TODO(brianwilkerson) Remove this when comments are being resolved.
+        return null;
+      }
       if (knownExceptions == null || !knownExceptions.contains(node)) {
         unresolvedNodes.add(node);
       }

@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
+import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
