@@ -128,9 +128,9 @@
            sequence="M1+M2+T"
            contextId="com.google.dart.tools.ui.dartEditorScope"
            commandId="com.google.dart.eclipse.openType"
-           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-                
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>             
    </extension>
+   
    <extension
          point="org.eclipse.ui.perspectives">
       <perspective
@@ -439,15 +439,6 @@
    </extension>
 
    <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="com.google.dart.tools.ui.DartPerspective">
-         <actionSet
-               id="com.google.dart.eclipse.perspectiveActions">
-         </actionSet>
-      </perspectiveExtension>
-   </extension>
-   <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
             id="com.google.dart.eclipse.perspectiveActions"
@@ -461,6 +452,7 @@
                style="push">
          </action>
       </actionSet>
+      
       <actionSet
             id="com.google.dart.eclipse.feedbackActions"
             label="Feedback"
@@ -476,6 +468,5 @@
          </action>
       </actionSet>
    </extension>
-
 
 </plugin>

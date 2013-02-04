@@ -467,13 +467,6 @@
       </menuContribution>
    </extension>
    
-   <extension point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension targetID="com.google.dart.tools.ui.DartPerspective">
-         <actionSet id="org.eclipse.debug.ui.debugActionSet"/>
-         <actionSet id="com.google.dart.tools.debug.ui.breakpointActionSet"/>
-      </perspectiveExtension>
-   </extension>
-   
    <extension point="org.eclipse.ui.actionSets">
       <actionSet
             label="%BreakpointActionSet.label"

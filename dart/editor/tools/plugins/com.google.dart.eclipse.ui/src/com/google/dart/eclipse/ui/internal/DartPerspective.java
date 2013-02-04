@@ -75,6 +75,7 @@ public class DartPerspective implements IPerspectiveFactory {
 
     layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
     layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
+    layout.addActionSet("com.google.dart.eclipse.perspectiveActions");
 
     layout.addShowViewShortcut(NewSearchUI.SEARCH_VIEW_ID);
     layout.addShowViewShortcut(IConsoleConstants.ID_CONSOLE_VIEW);
@@ -88,6 +89,9 @@ public class DartPerspective implements IPerspectiveFactory {
     layout.addNewWizardShortcut(WIZARD_NEW_PROJECT);
     layout.addNewWizardShortcut(WIZARD_NEW_FOLDER);
     layout.addNewWizardShortcut(WIZARD_NEW_FILE);
+
+    // 'Window' > 'Open Perspective' contributions
+    layout.addPerspectiveShortcut(IDebugUIConstants.ID_DEBUG_PERSPECTIVE);
   }
 
 }
