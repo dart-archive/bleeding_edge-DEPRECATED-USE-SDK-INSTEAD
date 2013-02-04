@@ -412,18 +412,18 @@ build system.  The PDE build system has to run under Eclipse.
                 <include name="json/**" />
             </fileset>
         </copy>
-    </target>
 
-    <!-- dart.engine.services dependencies -->
-    <property name="dart.engine.services.dir" 
-              location="${build.dir}/plugins/com.google.dart.engine.services" />
-    <mkdir dir="${dart.engine.services.dir}/third_party" />
-    <copy todir="${dart.engine.services.dir}/third_party">
-        <fileset dir="${third_party.dir}">
-            <include name="commons-lang/**" />
-            <include name="guava/**" />
-        </fileset>
-    </copy>
+        <!-- dart.engine.services dependencies -->
+        <property name="dart.engine.services.dir" 
+                  location="${build.dir}/plugins/com.google.dart.engine.services" />
+        <mkdir dir="${dart.engine.services.dir}/third_party" />
+        <copy todir="${dart.engine.services.dir}/third_party">
+            <fileset dir="${build.source.root}/third_party">
+                <include name="commons-lang/**" />
+                <include name="guava/**" />
+            </fileset>
+        </copy>
+    </target>
 
     <!-- - - - - - - - - - - - - - - - - - 
           target: doBuild_rcp              
