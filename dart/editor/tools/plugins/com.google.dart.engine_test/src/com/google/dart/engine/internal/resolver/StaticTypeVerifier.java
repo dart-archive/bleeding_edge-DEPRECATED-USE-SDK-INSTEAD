@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
@@ -37,8 +39,14 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
    */
   private ArrayList<TypeName> unresolvedTypes = new ArrayList<TypeName>();
 
+  /**
+   * Counter for the number of Expression nodes visited that are resolved.
+   */
   int resolvedExpressionCount = 0;
 
+  /**
+   * Counter for the number of TypeName nodes visited that are resolved.
+   */
   int resolvedTypeCount = 0;
 
   /**
@@ -74,6 +82,8 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
           writer.print("  ");
           writer.print(identifier.toString());
           writer.print(" (");
+          writer.print(getFileName(identifier));
+          writer.print(" : ");
           writer.print(identifier.getOffset());
           writer.println(")");
         }
@@ -84,6 +94,8 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
           writer.print("  ");
           writer.print(identifier.toString());
           writer.print(" (");
+          writer.print(getFileName(identifier));
+          writer.print(" : ");
           writer.print(identifier.getOffset());
           writer.println(")");
         }
@@ -112,5 +124,24 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
       resolvedTypeCount++;
     }
     return null;
+  }
+
+  private String getFileName(ASTNode node) {
+    // TODO (jwren) there are two copies of this method, one here and one in ResolutionVerifier,
+    // they should be resolved into a single method
+    if (node != null) {
+      ASTNode root = node.getRoot();
+      if (root instanceof CompilationUnit) {
+        CompilationUnit rootCU = ((CompilationUnit) root);
+        if (rootCU.getElement() != null) {
+          return rootCU.getElement().getSource().getFullName();
+        } else {
+          return "<unknown file- CompilationUnit.getElement() returned null>";
+        }
+      } else {
+        return "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
+      }
+    }
+    return "<unknown file- ASTNode is null>";
   }
 }

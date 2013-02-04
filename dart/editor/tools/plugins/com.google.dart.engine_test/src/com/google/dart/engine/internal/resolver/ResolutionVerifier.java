@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CommentReference;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
@@ -85,6 +86,8 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
         writer.print("  ");
         writer.print(identifier.toString());
         writer.print(" (");
+        writer.print(getFileName(identifier));
+        writer.print(" : ");
         writer.print(identifier.getOffset());
         writer.println(")");
       }
@@ -182,5 +185,24 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return null;
+  }
+
+  private String getFileName(ASTNode node) {
+    // TODO (jwren) there are two copies of this method, one here and one in StaticTypeVerifier,
+    // they should be resolved into a single method
+    if (node != null) {
+      ASTNode root = node.getRoot();
+      if (root instanceof CompilationUnit) {
+        CompilationUnit rootCU = ((CompilationUnit) root);
+        if (rootCU.getElement() != null) {
+          return rootCU.getElement().getSource().getFullName();
+        } else {
+          return "<unknown file- CompilationUnit.getElement() returned null>";
+        }
+      } else {
+        return "<unknown file- CompilationUnit.getRoot() is not a CompilationUnit>";
+      }
+    }
+    return "<unknown file- ASTNode is null>";
   }
 }

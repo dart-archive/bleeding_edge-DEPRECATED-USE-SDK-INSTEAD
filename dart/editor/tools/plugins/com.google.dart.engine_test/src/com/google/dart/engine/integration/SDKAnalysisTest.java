@@ -17,12 +17,13 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.general.MemoryUtilities;
 import com.google.dart.engine.utilities.general.MemoryUtilities.MemoryUsage;
@@ -65,11 +66,27 @@ public class SDKAnalysisTest extends TestCase {
     // Validate the results.
     //
     StaticTypeVerifier staticTypeVerifier = new StaticTypeVerifier();
-    for (String dartUri : sdk.getUris()) {
-      Source source = sourceFactory.forFile(sdk.mapDartUri(dartUri));
-      CompilationUnit compilationUnit = context.resolve(source, null);
-      compilationUnit.accept(staticTypeVerifier);
+    ResolutionVerifier resolutionVerifier = new ResolutionVerifier();
+    for (LibraryElement libraryElement : libraryEltArray) {
+      // Reference the LibraryElement, and the CompilationUnitElements we want to verify was resolved
+      CompilationUnitElement definingCompilationUnitElement = libraryElement.getDefiningCompilationUnit();
+      CompilationUnitElement[] compilationUnitElements = libraryElement.getParts();
+
+      // Reference the defining CompilationUnit, and visit with the verifiers.
+      CompilationUnit definingCompilationUnit = context.resolve(
+          definingCompilationUnitElement.getSource(),
+          libraryElement);
+      definingCompilationUnit.accept(staticTypeVerifier);
+      definingCompilationUnit.accept(resolutionVerifier);
+
+      // Next, do the same for all the parts of the defining compilation unit.
+      for (CompilationUnitElement compilationUnitElement : compilationUnitElements) {
+        CompilationUnit compilationUnit = context.resolve(compilationUnitElement.getSource(), null);
+        compilationUnit.accept(staticTypeVerifier);
+        compilationUnit.accept(resolutionVerifier);
+      }
     }
     staticTypeVerifier.assertResolved();
+    resolutionVerifier.assertResolved();
   }
 }
