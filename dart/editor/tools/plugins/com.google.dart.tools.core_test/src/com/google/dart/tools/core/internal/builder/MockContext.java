@@ -14,7 +14,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
-import com.google.dart.tools.core.internal.analysis.model.ProjectImplTest;
+import com.google.dart.tools.core.CallList;
+import com.google.dart.tools.core.CallList.Call;
 
 import static junit.framework.Assert.fail;
 
@@ -35,45 +36,90 @@ import java.util.HashSet;
  */
 public class MockContext implements AnalysisContext {
 
+  private static final String CLEAR_RESOLUTION = "clearResolution";
+  private static final String DISCARDED = "discarded";
+  private static final String EXTRACT_ANALYSIS_CONTEXT = "extractAnalysisContext";
+  private static final String MERGE_ANALYSIS_CONTEXT = "mergeAnalysisContext";
+  private static final String SOURCE_CHANGED = "sourceChanged";
+  private static final String SOURCE_DELETED = "sourceDeleted";
+
+  private final CallList calls = new CallList();
   private SourceFactory factory;
-  private boolean clearResolution = false;
-  private boolean discarded = false;
-  private SourceContainer extractedContainer = null;
-  private AnalysisContext mergedContext = null;
-  private HashSet<Object> changedSources = new HashSet<Object>();
-  private HashSet<Object> deletedSources = new HashSet<Object>();
 
   public void assertClearResolution(boolean expected) {
-    ProjectImplTest.assertEquals(expected, clearResolution);
+    calls.assertExpectedCall(expected, this, CLEAR_RESOLUTION);
   }
 
   public void assertDiscarded(boolean expected) {
-    ProjectImplTest.assertEquals(expected, discarded);
+    calls.assertExpectedCall(expected, this, DISCARDED);
   }
 
   public void assertExtracted(IContainer expectedContainer) {
-    SourceContainer expected = expectedContainer == null ? null
-        : factory.forDirectory(expectedContainer.getLocation().toFile());
-    ProjectImplTest.assertEquals(expected, extractedContainer);
+    if (expectedContainer != null) {
+      calls.assertCall(
+          this,
+          EXTRACT_ANALYSIS_CONTEXT,
+          factory.forDirectory(expectedContainer.getLocation().toFile()));
+    } else {
+      calls.assertNoCall(new Call(this, EXTRACT_ANALYSIS_CONTEXT) {
+        @Override
+        protected boolean equalArguments(Object[] otherArgs) {
+          return true;
+        }
+      });
+    }
   }
 
   public void assertMergedContext(AnalysisContext expectedContext) {
-    ProjectImplTest.assertSame(expectedContext, mergedContext);
+    if (expectedContext != null) {
+      calls.assertCall(this, MERGE_ANALYSIS_CONTEXT, expectedContext);
+    } else {
+      calls.assertNoCall(new Call(this, MERGE_ANALYSIS_CONTEXT) {
+        @Override
+        protected boolean equalArguments(Object[] otherArgs) {
+          return true;
+        }
+      });
+    }
+  }
+
+  public void assertNoCalls() {
+    calls.assertNoCalls();
+  }
+
+  public void assertSourcesChanged(IResource... expected) {
+    for (IResource resource : expected) {
+      Source source = factory.forFile(resource.getLocation().toFile());
+      calls.assertCall(this, SOURCE_CHANGED, source);
+    }
+  }
+
+  public void assertSourcesDeleted(IResource... expected) {
+    for (IResource resource : expected) {
+      File file = resource.getLocation().toFile();
+      if (resource.getType() == IResource.FILE) {
+        Source source = factory.forFile(file);
+        calls.assertCall(this, SOURCE_DELETED, source);
+      } else {
+        SourceContainer sourceContainer = factory.forDirectory(file);
+        calls.assertCall(this, SOURCE_DELETED, sourceContainer);
+      }
+    }
   }
 
   @Override
   public void clearResolution() {
-    clearResolution = true;
+    calls.add(this, CLEAR_RESOLUTION);
   }
 
   @Override
   public void discard() {
-    discarded = true;
+    calls.add(this, DISCARDED);
   }
 
   @Override
   public AnalysisContext extractAnalysisContext(SourceContainer container) {
-    extractedContainer = container;
+    calls.add(this, EXTRACT_ANALYSIS_CONTEXT, container);
     return new MockContext();
   }
 
@@ -119,7 +165,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public void mergeAnalysisContext(AnalysisContext context) {
-    mergedContext = context;
+    calls.add(this, MERGE_ANALYSIS_CONTEXT, context);
   }
 
   @Override
@@ -149,25 +195,17 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public void sourceChanged(Source source) {
-    changedSources.add(source);
+    calls.add(this, SOURCE_CHANGED, source);
   }
 
   @Override
   public void sourceDeleted(Source source) {
-    deletedSources.add(source);
+    calls.add(this, SOURCE_DELETED, source);
   }
 
   @Override
   public void sourcesDeleted(SourceContainer container) {
-    deletedSources.add(container);
-  }
-
-  void assertSourcesChanged(IResource... expected) {
-    assertEqualContents(changedSources, expected);
-  }
-
-  void assertSourcesDeleted(IResource... expected) {
-    assertEqualContents(deletedSources, expected);
+    calls.add(this, SOURCE_DELETED, container);
   }
 
   private void assertEqualContents(HashSet<Object> sources, IResource[] resources) {

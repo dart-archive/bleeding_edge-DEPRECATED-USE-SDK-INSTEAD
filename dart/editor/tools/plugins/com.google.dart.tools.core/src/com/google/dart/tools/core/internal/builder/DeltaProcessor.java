@@ -18,6 +18,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -59,6 +60,11 @@ public class DeltaProcessor {
     @Override
     public Project getProject() {
       return project;
+    }
+
+    @Override
+    public PubFolder getPubFolder() {
+      return pubFolder;
     }
 
     @Override
@@ -115,6 +121,7 @@ public class DeltaProcessor {
 
   private final Project project;
   private DeltaListener listener;
+  private PubFolder pubFolder;
   private AnalysisContext context;
   private Event event;
 
@@ -443,11 +450,8 @@ public class DeltaProcessor {
    * @return {@code true} if the context was set, or {@code false} if not
    */
   private boolean setContextFor(IContainer container) {
-    AnalysisContext nextContext = project.getContext(container);
-    if (nextContext == null) {
-      return false;
-    }
-    context = nextContext;
+    pubFolder = project.getPubFolder(container);
+    context = pubFolder != null ? pubFolder.getContext() : project.getDefaultContext();
     return true;
   }
 }

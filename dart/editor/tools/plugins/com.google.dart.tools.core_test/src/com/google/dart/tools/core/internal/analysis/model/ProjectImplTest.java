@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -37,69 +38,69 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private MockFolder webContainer;
   private MockFolder subContainer;
   private MockFolder appContainer;
-  private MockFolder appLibContainer;
   private MockFolder subAppContainer;
   private ProjectImpl project;
 
-  public void test_container1Deleted() {
-    MockContext context1 = (MockContext) project.getContext(subContainer);
-    MockContext context2 = (MockContext) project.getContext(appContainer);
-    context1.assertDiscarded(false);
-    context2.assertDiscarded(false);
+  public void test_discardContextsIn_project() {
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+    MockContext defaultContext = (MockContext) project.getDefaultContext();
+    defaultContext.assertDiscarded(false);
+
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    project.discardContextsIn(projectContainer);
+
+    assertEquals(0, project.getPubFolders().length);
+    defaultContext.assertDiscarded(true);
+  }
+
+  public void test_discardContextsIn_project_web() {
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+    MockContext defaultContext = (MockContext) project.getDefaultContext();
+    defaultContext.assertDiscarded(false);
 
     projectContainer.remove("web");
     project.discardContextsIn(webContainer);
 
-    assertNotNull(project.getExistingContext(projectContainer));
-    assertNotNull(project.getExistingContext(appContainer));
-    assertNull(project.getExistingContext(webContainer));
-    assertNull(project.getExistingContext(subContainer));
-    context1.assertDiscarded(false);
-    context2.assertDiscarded(false);
-
-    projectContainer.remove("myapp");
-    project.discardContextsIn(appContainer);
-
-    assertNotNull(project.getExistingContext(projectContainer));
-    assertNull(project.getExistingContext(appContainer));
-    assertNull(project.getExistingContext(webContainer));
-    assertNull(project.getExistingContext(subContainer));
-    context1.assertDiscarded(false);
-    context2.assertDiscarded(true);
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(pubFolder, project.getPubFolder(projectContainer));
+    defaultContext.assertDiscarded(false);
   }
 
-  public void test_container2Deleted() {
-    MockContext context0 = (MockContext) project.getContext(projectContainer);
-    MockContext context1 = (MockContext) project.getContext(subContainer);
-    MockContext context2 = (MockContext) project.getContext(appContainer);
-    context1.assertDiscarded(false);
-    context2.assertDiscarded(false);
+  public void test_getContext_folder() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
 
-    project.discardContextsIn(projectContainer);
-
-    assertNull(project.getExistingContext(projectContainer));
-    assertNull(project.getExistingContext(appContainer));
-    assertNull(project.getExistingContext(webContainer));
-    assertNull(project.getExistingContext(subContainer));
-    context0.assertDiscarded(true);
-    context1.assertDiscarded(true);
-    context2.assertDiscarded(true);
-  }
-
-  public void test_getContext() {
     MockContext context1 = (MockContext) project.getContext(projectContainer);
     assertNotNull(context1);
+    assertSame(context1, project.getDefaultContext());
     assertSame(context1, project.getContext(webContainer));
     assertSame(context1, project.getContext(subContainer));
-    context1.assertExtracted(null);
 
     MockContext context2 = (MockContext) project.getContext(appContainer);
     assertNotNull(context2);
     assertNotSame(context1, context2);
+
     context1.assertExtracted(appContainer);
+    context2.assertExtracted(null);
 
     assertFactoryInitialized(projectContainer, context1);
     assertFactoryInitialized(appContainer, context2);
+  }
+
+  public void test_getContext_project() {
+    MockContext context1 = (MockContext) project.getContext(projectContainer);
+    assertNotNull(context1);
+    assertSame(context1, project.getDefaultContext());
+    assertSame(context1, project.getContext(webContainer));
+    assertSame(context1, project.getContext(subContainer));
+    assertSame(context1, project.getContext(appContainer));
+
+    context1.assertExtracted(null);
+
+    assertFactoryInitialized(projectContainer, context1);
   }
 
   public void test_getResource() {
@@ -121,6 +122,26 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertNotNull(project.getDefaultContext());
     assertNotSame(project.getDefaultContext(), pubFolder.getContext());
+
+    assertFactoryInitialized(projectContainer, project.getDefaultContext());
+    assertFactoryInitialized(appContainer, pubFolder.getContext());
+  }
+
+  public void test_pubFolder_none() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertNull(project.getPubFolder(projectContainer));
+    assertNull(project.getPubFolder(webContainer));
+    assertNull(project.getPubFolder(subContainer));
+    assertNull(project.getPubFolder(appContainer));
+
+    assertEquals(0, project.getPubFolders().length);
+
+    assertNotNull(project.getDefaultContext());
+
+    assertFactoryInitialized(projectContainer, project.getDefaultContext());
   }
 
   public void test_pubFolder_project() {
@@ -139,63 +160,147 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertNotNull(project.getDefaultContext());
     assertSame(project.getDefaultContext(), pubFolder.getContext());
+
+    assertFactoryInitialized(projectContainer, project.getDefaultContext());
   }
 
-  public void test_pubspecAdded() {
+  public void test_pubspecAdded_folder() {
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
-    MockContext context1 = (MockContext) project.getContext(projectContainer);
-    MockContext context2 = (MockContext) project.getContext(appLibContainer);
-    MockContext context3 = (MockContext) project.getContext(subAppContainer);
-    assertSame(context1, context2);
-    assertNotSame(context1, context3);
-    context1.assertClearResolution(false);
-    context1.assertExtracted(subAppContainer);
-    context3.assertExtracted(null);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
 
-    projectContainer.addFile(PUBSPEC_FILE_NAME);
-    project.pubspecAdded(projectContainer);
-    context1.assertClearResolution(true);
+    assertEquals(0, project.getPubFolders().length);
+    MockContext defaultContext = (MockContext) project.getDefaultContext();
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(null);
+    defaultContext.assertMergedContext(null);
+    assertFactoryInitialized(projectContainer, defaultContext);
 
     appContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(appContainer);
 
-    assertSame(context1, project.getExistingContext(projectContainer));
-    assertSame(context3, project.getExistingContext(subAppContainer));
-    context2 = (MockContext) project.getContext(appLibContainer);
-    assertFactoryInitialized(appContainer, context2);
-    assertSame(context2, project.getExistingContext(appContainer));
-    assertNotSame(context2, context1);
-    assertNotSame(context2, context3);
-    context1.assertExtracted(appContainer);
-    context2.assertExtracted(null);
-    context3.assertExtracted(null);
+    assertEquals(1, project.getPubFolders().length);
+    assertNull(project.getPubFolder(projectContainer));
+    PubFolder pubFolder = project.getPubFolder(appContainer);
+    assertNotNull(pubFolder);
+    assertSame(defaultContext, project.getDefaultContext());
+    assertNotSame(defaultContext, pubFolder.getContext());
+    assertSame(appContainer, pubFolder.getResource());
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(appContainer);
+    defaultContext.assertMergedContext(null);
+    assertFactoryInitialized(projectContainer, defaultContext);
   }
 
-  public void test_pubspecRemoved() {
-    MockContext context1 = (MockContext) project.getContext(projectContainer);
-    MockContext context2 = (MockContext) project.getContext(appLibContainer);
-    MockContext context3 = (MockContext) project.getContext(subAppContainer);
-    assertNotSame(context1, context2);
-    assertNotSame(context1, context3);
-    assertNotSame(context2, context3);
-    context1.assertClearResolution(false);
-    context1.assertMergedContext(null);
+  public void test_pubspecAdded_folder_ignored() {
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+
+    appContainer.addFile(PUBSPEC_FILE_NAME);
+    project.pubspecAdded(appContainer);
+
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(pubFolder, project.getPubFolder(projectContainer));
+  }
+
+  public void test_pubspecAdded_project() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertEquals(0, project.getPubFolders().length);
+    MockContext defaultContext = (MockContext) project.getDefaultContext();
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(null);
+    defaultContext.assertMergedContext(null);
+    assertFactoryInitialized(projectContainer, defaultContext);
+
+    projectContainer.addFile(PUBSPEC_FILE_NAME);
+    project.pubspecAdded(projectContainer);
+
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+    assertSame(defaultContext, project.getDefaultContext());
+    assertSame(defaultContext, pubFolder.getContext());
+    assertSame(projectContainer, pubFolder.getResource());
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(null);
+    defaultContext.assertMergedContext(null);
+    assertFactoryInitialized(projectContainer, defaultContext);
+  }
+
+  public void test_pubspecAdded_project_replacing_folder() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertEquals(1, project.getPubFolders().length);
+    assertNull(project.getPubFolder(projectContainer));
+    PubFolder oldPubFolder = project.getPubFolder(appContainer);
+    assertNotNull(oldPubFolder);
+    assertSame(appContainer, oldPubFolder.getResource());
+    MockContext defaultContext = (MockContext) project.getDefaultContext();
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(appContainer);
+    defaultContext.assertMergedContext(null);
+    assertFactoryInitialized(projectContainer, defaultContext);
+
+    projectContainer.addFile(PUBSPEC_FILE_NAME);
+    project.pubspecAdded(projectContainer);
+
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder newPubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(newPubFolder);
+    assertNotSame(oldPubFolder, newPubFolder);
+    assertSame(defaultContext, project.getDefaultContext());
+    assertSame(defaultContext, newPubFolder.getContext());
+    assertSame(projectContainer, newPubFolder.getResource());
+    defaultContext.assertClearResolution(false);
+    defaultContext.assertDiscarded(false);
+    defaultContext.assertExtracted(null);
+    defaultContext.assertMergedContext(oldPubFolder.getContext());
+    assertFactoryInitialized(projectContainer, defaultContext);
+  }
+
+  public void test_pubspecRemoved_project_to_folder() {
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
 
     projectContainer.remove(PUBSPEC_FILE_NAME);
     project.pubspecRemoved(projectContainer);
 
-    context1.assertClearResolution(true);
-    context1.assertMergedContext(null);
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(appContainer, project.getPubFolder(appContainer).getResource());
+    SourceFactory sourceFactory = project.getDefaultContext().getSourceFactory();
+    SourceContainer directory = sourceFactory.forDirectory(appContainer.getLocation().toFile());
+    ((MockContext) project.getDefaultContext()).extractAnalysisContext(directory);
+  }
 
+  public void test_pubspecRemoved_project_to_none() {
     appContainer.remove(PUBSPEC_FILE_NAME);
-    project.pubspecRemoved(appContainer);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
 
-    context1.assertMergedContext(context2);
-    assertSame(context1, project.getContext(projectContainer));
-    assertSame(context1, project.getContext(appContainer));
-    assertSame(context1, project.getContext(appLibContainer));
-    assertSame(context3, project.getContext(subAppContainer));
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(projectContainer);
+    assertNotNull(pubFolder);
+
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    project.pubspecRemoved(projectContainer);
+
+    assertEquals(0, project.getPubFolders().length);
+    ((MockContext) project.getDefaultContext()).assertClearResolution(true);
   }
 
   @Override
@@ -204,7 +309,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     webContainer = projectContainer.getMockFolder("web");
     subContainer = webContainer.getMockFolder("sub");
     appContainer = projectContainer.getMockFolder("myapp");
-    appLibContainer = appContainer.getMockFolder("lib");
     subAppContainer = appContainer.getMockFolder("subApp");
 
     project = new ProjectImpl(projectContainer, new AnalysisContextFactory() {

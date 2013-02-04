@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 
 import org.eclipse.core.resources.IResource;
 
@@ -33,6 +34,13 @@ public interface ResourceDeltaEvent {
    * @return the project (not {@code null})
    */
   Project getProject();
+
+  /**
+   * Answer the {@link PubFolder} in which the resource should be analyzed
+   * 
+   * @return the pub folder or {@code null} if the resource is not contained in a pub folder
+   */
+  PubFolder getPubFolder();
 
   /**
    * Answer the resource that was added, changed, or removed

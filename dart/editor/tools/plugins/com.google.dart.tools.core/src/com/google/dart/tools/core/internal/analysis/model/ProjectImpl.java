@@ -19,7 +19,6 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -28,7 +27,6 @@ import org.eclipse.core.runtime.IPath;
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -52,15 +50,6 @@ public class ProjectImpl implements Project {
    * The factory used to create new {@link AnalysisContext} (not {@code null})
    */
   private final AnalysisContextFactory factory;
-
-  /**
-   * A mapping of container to context used to analyze Dart source in that container. The content of
-   * this map is lazily built as clients request the context for a particular container. A
-   * container/context pair is added for each container for which a context is requested, and
-   * because a single context is used to analyze an entire directory tree, a particular context may
-   * appear multiple times in the map.
-   */
-  private final HashMap<IContainer, AnalysisContext> contexts = new HashMap<IContainer, AnalysisContext>();
 
   /**
    * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder} or {@code null} if not
@@ -125,75 +114,27 @@ public class ProjectImpl implements Project {
 
   @Override
   public void discardContextsIn(IContainer container) {
-    HashSet<AnalysisContext> toDiscard = new HashSet<AnalysisContext>();
-    HashSet<AnalysisContext> toSave = new HashSet<AnalysisContext>();
-
-    // Determine which contexts should be saved, and which should be discarded
-    // Since a single context may appear multiple times in the map (see field comment)
-    // any given context may be part of both lists
-    Iterator<Entry<IContainer, AnalysisContext>> iter = contexts.entrySet().iterator();
-    while (iter.hasNext()) {
-      Entry<IContainer, AnalysisContext> entry = iter.next();
-      if (equalsOrContains(container, entry.getKey())) {
-        toDiscard.add(entry.getValue());
-        iter.remove();
-      } else {
-        toSave.add(entry.getValue());
-      }
+    if (pubFolders == null) {
+      return;
     }
 
-    // Discard only those contexts which are no longer in the map
-    for (AnalysisContext context : toDiscard) {
-      if (!toSave.contains(context)) {
-        context.discard();
+    // Remove contained pub folders
+    IPath path = container.getFullPath();
+    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
+    while (iter.hasNext()) {
+      Entry<IPath, PubFolder> entry = iter.next();
+      IPath key = entry.getKey();
+      if (path.equals(key) || path.isPrefixOf(key)) {
+        entry.getValue().getContext().discard();
+        iter.remove();
       }
     }
   }
 
   @Override
   public AnalysisContext getContext(IContainer container) {
-
-    // Answer the cached context if there is one
-    AnalysisContext context = contexts.get(container);
-    if (context != null) {
-      return context;
-    }
-
-    if (!container.getProject().equals(resource)) {
-      throw new IllegalArgumentException();
-    }
-    IPath location = container.getLocation();
-    if (location == null) {
-      logNoLocation(container);
-      return null;
-    }
-
-    // Create a context for analyzing sources in the project
-    if (container.equals(resource)) {
-      context = factory.createContext();
-    } else {
-      AnalysisContext parentContext = getContext(container.getParent());
-      if (parentContext == null) {
-        return null;
-      }
-
-      // If the folder contains a pubspec, then create a new context for analyzing sources
-      if (((IFolder) container).getFile(DartCore.PUBSPEC_FILE_NAME).exists()) {
-        SourceFactory factory = parentContext.getSourceFactory();
-        context = parentContext.extractAnalysisContext(factory.forDirectory(location.toFile()));
-      }
-
-      // If no pubspec file, then return the parent context
-      else {
-        contexts.put(container, parentContext);
-        return parentContext;
-      }
-    }
-
-    // Initialize, cache, and return the new context
-    initContext(context, location.toFile());
-    contexts.put(container, context);
-    return context;
+    PubFolder pubFolder = getPubFolder(container);
+    return pubFolder != null ? pubFolder.getContext() : defaultContext;
   }
 
   @Override
@@ -202,21 +143,11 @@ public class ProjectImpl implements Project {
     return defaultContext;
   }
 
-  /**
-   * Answer the cached context for the specified container, but do not create a context or retrieve
-   * the parent context if a context is not already associated with this container. This differs
-   * from {@link #getContext(IContainer)} which will create a context or retrieve the parent context
-   * as appropriate if a context is not already associated with this container.
-   * 
-   * @param container the container (not {@code null})
-   * @return the associated context or {@code null} if none.
-   */
-  public AnalysisContext getExistingContext(IContainer container) {
-    return contexts.get(container);
-  }
-
   @Override
   public PubFolder getPubFolder(IContainer container) {
+    if (!container.getProject().equals(resource)) {
+      throw new IllegalArgumentException();
+    }
     initialize();
     return getPubFolder(container.getFullPath());
   }
@@ -235,82 +166,110 @@ public class ProjectImpl implements Project {
 
   @Override
   public void pubspecAdded(IContainer container) {
-
-    // If top level context pubspec added, then clear the current resolution
-    if (resource.equals(container)) {
-      AnalysisContext context = contexts.get(resource);
-      if (context != null) {
-        context.clearResolution();
-      }
+    if (pubFolders == null) {
       return;
     }
 
-    AnalysisContext context = contexts.get(container);
-    // If a context is not cached, then nothing to be updated
-    if (context == null) {
+    // If there is already a pubFolder, then ignore the addition
+    if (getPubFolder(container.getFullPath()) != null) {
       return;
     }
-    IPath location = container.getLocation();
-    if (location == null) {
-      logNoLocation(container);
-      return;
-    }
-    AnalysisContext parentContext = contexts.get(container.getParent());
-    // If a sub context has already been created, then nothing to update
-    if (context != parentContext) {
-      return;
-    }
-    // Extract the child context from the parent
-    SourceFactory factory = parentContext.getSourceFactory();
-    SourceContainer sourceContainer = factory.forDirectory(location.toFile());
-    context = parentContext.extractAnalysisContext(sourceContainer);
-    initContext(context, location.toFile());
-    for (Entry<IContainer, AnalysisContext> entry : contexts.entrySet()) {
-      if (equalsOrContains(container, entry.getKey()) && entry.getValue() == parentContext) {
-        entry.setValue(context);
+
+    // Create and cache a new pub folder
+    PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container));
+    pubFolders.put(container.getFullPath(), pubFolder);
+
+    // Merge any overlapping pub folders
+    for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator(); iter.hasNext();) {
+      Entry<IPath, PubFolder> entry = iter.next();
+      PubFolder parent = getParentPubFolder(entry.getKey());
+      if (parent != null) {
+        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
+        iter.remove();
       }
     }
   }
 
   @Override
   public void pubspecRemoved(IContainer container) {
-
-    // If top level context pubspec removed, then clear the current resolution
-    if (resource.equals(container)) {
-      AnalysisContext context = contexts.get(resource);
-      if (context != null) {
-        context.clearResolution();
-      }
+    if (pubFolders == null) {
       return;
     }
 
-    // Merge the child context into the parent
-    AnalysisContext context = contexts.get(container);
-    if (context == null) {
+    // If no pubFolder defined for this container, then ignore
+    PubFolder pubFolder = pubFolders.remove(container.getFullPath());
+    if (pubFolder == null) {
       return;
     }
-    AnalysisContext parentContext = contexts.get(container.getParent());
-    if (context == parentContext) {
-      return;
+
+    // Merge the context into the default context
+    if (defaultContext != pubFolder.getContext()) {
+      defaultContext.mergeAnalysisContext(pubFolder.getContext());
+    } else {
+      defaultContext.clearResolution();
     }
-    parentContext.mergeAnalysisContext(context);
-    for (Entry<IContainer, AnalysisContext> entry : contexts.entrySet()) {
-      if (entry.getValue() == context) {
-        entry.setValue(parentContext);
-      }
-    }
+
+    // Traverse container to find pubspec files that were overshadowed by the one just removed
+    createPubFolders(container);
   }
 
   /**
-   * Answer {@code true} if the container equals or contains the specified resource.
+   * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. This
+   * assumes that {@link #defaultContext} has already been set by {@link #initialize()}.
    * 
-   * @param directory the directory (not {@code null}, absolute file)
-   * @param file the file (not {@code null}, absolute file)
+   * @param container the container with sources to be analyzed (not {@code null})
+   * @return the context (not {@code null})
    */
-  private boolean equalsOrContains(IContainer container, IResource resource) {
-    IPath dirPath = container.getFullPath();
-    IPath filePath = resource.getFullPath();
-    return dirPath.equals(filePath) || dirPath.isPrefixOf(filePath);
+  private AnalysisContext createContext(IContainer container) {
+    if (container.equals(resource)) {
+      return defaultContext;
+    }
+    AnalysisContext context;
+    IPath location = container.getLocation();
+    if (location != null) {
+      SourceFactory defaultFactory = defaultContext.getSourceFactory();
+      SourceContainer sourceContainer = defaultFactory.forDirectory(location.toFile());
+      context = defaultContext.extractAnalysisContext(sourceContainer);
+    } else {
+      logNoLocation(container);
+      context = factory.createContext();
+    }
+    return initContext(context, container);
+  }
+
+  /**
+   * Create pub folders for any pubspec files found within the specified container
+   * 
+   * @param container the container (not {@code null})
+   */
+  private void createPubFolders(IContainer container) {
+    DeltaProcessor processor = new DeltaProcessor(this);
+    processor.addDeltaListener(new AbstractDeltaListener() {
+      @Override
+      public void pubspecAdded(ResourceDeltaEvent event) {
+        IContainer container = event.getResource().getParent();
+        IPath path = container.getFullPath();
+        // Pub folders do not nest, so don't create a folder if a parent folder already exists
+        if (getParentPubFolder(path) == null) {
+          pubFolders.put(path, new PubFolderImpl(container, createContext(container)));
+        }
+      }
+    });
+    try {
+      processor.traverse(container);
+    } catch (CoreException e) {
+      DartCore.logError("Failed to build pub folder mapping", e);
+    }
+    // Remove nested pub folders
+    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
+    while (iter.hasNext()) {
+      Entry<IPath, PubFolder> entry = iter.next();
+      PubFolder parent = getParentPubFolder(entry.getKey());
+      if (parent != null) {
+        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
+        iter.remove();
+      }
+    }
   }
 
   /**
@@ -348,20 +307,27 @@ public class ProjectImpl implements Project {
    * Initialize the context for analyzing sources in the specified directory
    * 
    * @param context the context to be initialized (not {@code null})
-   * @param directory the directory to be analyzed
+   * @param container the container with sources to be analyzed
+   * @return the context (not {@code null})
    */
-  private void initContext(AnalysisContext context, File directory) {
+  private AnalysisContext initContext(AnalysisContext context, IContainer container) {
     DartUriResolver dartResolver = getDartUriResolver();
-
-    File packagesDir = new File(directory, PACKAGES_DIRECTORY_NAME);
-    PackageUriResolver pkgResolver = new PackageUriResolver(packagesDir);
 
     FileUriResolver fileResolver = new FileUriResolver();
 
-    SourceFactory factory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
+    SourceFactory factory;
+    IPath location = container.getLocation();
+    if (location != null) {
+      File packagesDir = new File(location.toFile(), PACKAGES_DIRECTORY_NAME);
+      PackageUriResolver pkgResolver = new PackageUriResolver(packagesDir);
+      factory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
+    } else {
+      logNoLocation(container);
+      factory = new SourceFactory(dartResolver, fileResolver);
+    }
 
-    // Create and cache the context
     context.setSourceFactory(factory);
+    return context;
   }
 
   /**
@@ -371,44 +337,9 @@ public class ProjectImpl implements Project {
     if (pubFolders != null) {
       return;
     }
-    defaultContext = factory.createContext();
     pubFolders = new HashMap<IPath, PubFolder>();
-    DeltaProcessor processor = new DeltaProcessor(this);
-    processor.addDeltaListener(new AbstractDeltaListener() {
-      @Override
-      public void pubspecAdded(ResourceDeltaEvent event) {
-        IContainer parent = event.getResource().getParent();
-        IPath path = parent.getFullPath();
-        // Pub folders do not nest, so don't create a folder if a parent folder already exists
-        if (getParentPubFolder(path) == null) {
-          PubFolder pubFolder = new PubFolderImpl(parent, createContext(path));
-          pubFolders.put(path, pubFolder);
-        }
-      }
-
-      private AnalysisContext createContext(IPath path) {
-        if (path.segmentCount() == 1) {
-          return defaultContext;
-        }
-        // TODO (danrubel): Use defaultContext.extractContext
-        return factory.createContext();
-      }
-    });
-    try {
-      processor.traverse(resource);
-    } catch (CoreException e) {
-      DartCore.logError("Failed to build pub folder mapping", e);
-    }
-    // Remove nested pub folders
-    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
-    while (iter.hasNext()) {
-      Entry<IPath, PubFolder> entry = iter.next();
-      PubFolder parent = getParentPubFolder(entry.getKey());
-      if (parent != null) {
-        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
-        iter.remove();
-      }
-    }
+    defaultContext = initContext(factory.createContext(), resource);
+    createPubFolders(resource);
   }
 
   private void logNoLocation(IContainer container) {
