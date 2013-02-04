@@ -5,7 +5,6 @@
 #include "embedders/openglui/emulator/emulator_embedder.h"
 
 int main(int argc, char**argv) {
-    emulator_main(argc, argv, "raytrace.dart");
+  emulator_main(argc, argv, argv[argc-1]);
 }
-
 

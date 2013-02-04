@@ -10,16 +10,21 @@ import '../src/gl.dart';
 /**
  * A driver to run GL applications in the browser.
  */
-void glMain(setup, resize, draw) {
+
+bool is3d = false;
+
+void glMain(setup, resize, draw, onMotionDown) {
   // Setup a Canvas for GL to run inside.
-  final canvas = new CanvasElement(width: window.innerWidth, height: window.innerHeight);
+  final canvas = new CanvasElement(width: window.innerWidth,
+                                   height: window.innerHeight);
   document.body.nodes.add(canvas);
 
-  gl = canvas.getContext('experimental-webgl');
-
   // The first 'setup' entry point is called once.
-  setup(canvas.width, canvas.height);
+  setup(canvas, canvas.width, canvas.height);
 
+  canvas.on.mouseDown.add((e) {
+    onMotionDown(0, 0, 0);
+  });
   // The second 'render' entry point is called each time the canvas should
   // be re-drawn.
   var render;

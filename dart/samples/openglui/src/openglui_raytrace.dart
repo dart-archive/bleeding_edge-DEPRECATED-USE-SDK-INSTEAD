@@ -8,10 +8,12 @@
 /**
  * A sample GL application.
  */
-library raytrace;
+library openglui_raytrace;
 
 import 'gl.dart';
 import 'dart:math' as Math;
+
+WebGLRenderingContext gl = null;
 
 // Note: The first line of the fragment shader ("precision mediump float")
 // is not portable. It is required for WebGL and OpenGL ES. Desktop OpenGL
@@ -299,14 +301,17 @@ void drawScene() {
   var cameraCenter = vectAdd(cameraFrom, vectMul(cameraDir, cameraPersp));
 
   // cameraCenter + cameraUp + cameraLeft * ratio
-  var cameraTopLeft  = vectAdd(vectAdd(cameraCenter, cameraUp),
-             vectMul(cameraLeft, ratio));
-  var cameraBotLeft  = vectAdd(vectSub(cameraCenter, cameraUp),
-             vectMul(cameraLeft, ratio));
-  var cameraTopRight = vectSub(vectAdd(cameraCenter, cameraUp),
-             vectMul(cameraLeft, ratio));
-  var cameraBotRight = vectSub(vectSub(cameraCenter, cameraUp),
-             vectMul(cameraLeft, ratio));
+log("cameraLeft = ${cameraLeft}");
+log("ratio = ${ratio}");
+  var vl = vectMul(cameraLeft, ratio);
+  var cameraTopLeft  = vectAdd(vectAdd(cameraCenter, cameraUp), vl);
+             //vectMul(cameraLeft, ratio));
+  var cameraBotLeft  = vectAdd(vectSub(cameraCenter, cameraUp), vl);
+             //vectMul(cameraLeft, ratio));
+  var cameraTopRight = vectSub(vectAdd(cameraCenter, cameraUp), vl);
+             //vectMul(cameraLeft, ratio));
+  var cameraBotRight = vectSub(vectSub(cameraCenter, cameraUp), vl);
+             //vectMul(cameraLeft, ratio));
 
   var corners = [];
   pushVec(cameraTopRight, corners);
@@ -330,17 +335,22 @@ void drawScene() {
   }
 }
 
-void setup(int width, int height) {
+void setup(canvas, int w, int h) {
+  if (canvas == null) {
+    canvas = new CanvasElement(width: w, height: h);
+  }
+  gl = canvas.getContext("experimental-webgl");
   initShaders();
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   initBuffers();
-  resize(width, height);
+  resize(w, h);
+  log("Done setup");
 }
 
 void resize(int width, int height) {
-  ratio = width / height;
   gl.viewport(0, 0, width, height);
+  ratio = width / height;
   t -= 0.03;
   drawScene();
 }
@@ -349,21 +359,6 @@ void update() {
   drawScene();
 }
 
-/*
-TODO(gram): below are the current entry points for input events for the
-native code version. We need to integrate these somehow with the WebGL
-version:
-
-onMotionDown(num when, num x, num y) {}
-onMotionUp(num when, num x, num y) {}
-onMotionMove(num when, num x, num y) {}
-onMotionCancel(num when, num x, num y) {}
-onMotionOutside(num when, num x, num y) {}
-onMotionPointerDown(num when, num x, num y) {}
-onMotionPointerUp(num when, num x, num y) {}
-onKeyDown(num when, int flags, int keycode, int metastate, int repeat) {}
-onKeyUp(num when, int flags, int keycode, int metastate, int repeat) {}
-onKeyMultiple(num when, int flags, int keycode, int metastate, int repeat) {
+onMotionDown(num when, num x, num y) {
 }
-*/
 

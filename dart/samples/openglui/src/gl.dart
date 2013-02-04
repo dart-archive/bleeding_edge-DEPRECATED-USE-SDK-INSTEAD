@@ -12,6 +12,7 @@ library gl_html;
 import 'dart:html';
 export 'dart:html' show WebGLRenderingContext;
 export 'dart:html' show Float32Array;
+export 'dart:html' show ImageElement;
 
 WebGLRenderingContext gl;
 

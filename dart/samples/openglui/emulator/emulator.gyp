@@ -29,7 +29,8 @@
         'destination': '<(PRODUCT_DIR)',
         'files': [
            '../../../runtime/embedders/openglui/common/gl.dart',
-           '../src/raytrace.dart'
+           '../src/openglui_raytrace.dart',
+           '../src/openglui_canvas_tests.dart'
         ],
       }],
     },
@@ -50,7 +51,31 @@
          ['OS=="linux"',
            {
              'link_settings': {
-               'libraries': [ '-lGL', '-lglut', '-lGLU', '-lm', '-lc' ],
+               'libraries': [
+                 '-Wl,--start-group',
+                 '-lskia_effects',
+                 '-lskia_images',
+                 '-lskia_core',
+                 '-lskia_opts',
+                 '-lskia_opts_ssse3',
+                 '-lskia_ports',
+                 '-lskia_sfnt',
+                 '-lskia_utils',
+                 '-lskia_gr',
+                 '-lskia_skgr',
+                 '-Wl,--end-group',
+                 '-lfreetype',
+                 '-lGL',
+                 '-lglut',
+                 '-lGLU',
+                 '-lm',
+                 '-lc' ],
+              'ldflags': [
+                '-Wall',
+                '-g',
+                # TODO(gram): handle release mode.
+                '-Lthird_party/skia-desktop/trunk/out/Debug',
+              ],
              },
            }
          ],

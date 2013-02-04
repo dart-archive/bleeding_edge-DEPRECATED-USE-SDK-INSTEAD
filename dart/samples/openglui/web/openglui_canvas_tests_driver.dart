@@ -4,9 +4,10 @@
 
 import 'gl_driver.dart';
 // TODO(vsm): Make this a package URL.
-import '../src/raytrace.dart';
+import 'dart:html';
+import '../src/openglui_canvas_tests.dart';
 
 main() {
-  wrapVertexArray = true;
-  glMain(setup, resize, update);
+  glMain(setup, resize, update, onMotionDown);
 }
+
