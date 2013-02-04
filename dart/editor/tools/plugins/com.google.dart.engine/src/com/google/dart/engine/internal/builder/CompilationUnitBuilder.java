@@ -79,6 +79,7 @@ public class CompilationUnitBuilder {
     element.setSource(source);
     element.setTypeAliases(holder.getTypeAliases());
     element.setTypes(holder.getTypes());
+    unit.setElement(element);
     return element;
   }
 }
