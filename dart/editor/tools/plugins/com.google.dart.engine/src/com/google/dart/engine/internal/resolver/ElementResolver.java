@@ -33,10 +33,13 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
@@ -240,7 +243,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    // TODO(brianwilkerson) Resolve the method being invoked
+    SimpleIdentifier methodName = node.getMethodName();
+    Expression target = node.getTarget();
+    Element element;
+    if (target == null) {
+      element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
+    } else {
+      Type targetType = getType(target);
+      if (targetType instanceof InterfaceType) {
+        element = lookupInHierarchy(targetType.getElement(), methodName.getName());
+      } else {
+        //TODO(brianwilkerson) Report this error.
+        return null;
+      }
+    }
+    ExecutableElement invokedMethod = null;
+    if (element instanceof ExecutableElement) {
+      invokedMethod = (ExecutableElement) element;
+    } else if (element instanceof FieldElement) {
+      // TODO(brianwilkerson) Decide whether to resolve to the getter or the setter (or what to do
+      // when both are appropriate).
+    } else {
+      //TODO(brianwilkerson) Report this error (for example, found an "invocation" of a class).
+      return null;
+    }
+    if (invokedMethod == null) {
+      // TODO(brianwilkerson) Report this error.
+      return null;
+    }
+    recordResolution(methodName, invokedMethod);
+    //TODO(brianwilkerson) Validate the method invocation (number of arguments, etc.).
     return null;
   }
 
@@ -362,10 +394,31 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   @Override
+  public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    ClassElement enclosingClass = resolver.getEnclosingClass();
+    if (enclosingClass == null) {
+      // TODO(brianwilkerson) Report this error.
+      return null;
+    }
+    SimpleIdentifier name = node.getConstructorName();
+    ConstructorElement element;
+    if (name == null) {
+      element = enclosingClass.getUnnamedConstructor();
+    } else {
+      element = enclosingClass.getNamedConstructor(name.getName());
+    }
+    if (element == null) {
+      // TODO(brianwilkerson) Report this error and decide what element to associate with the node.
+    }
+    recordResolution(name, element);
+    return null;
+  }
+
+  @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     //
-    // There are two cases in which we defer the resolution of a simple identifier to the method in
-    // which we are resolving it's parent. We do this to prevent creating false positives.
+    // There are four cases in which we defer the resolution of a simple identifier to the method
+    // in which we are resolving it's parent. We do this to prevent creating false positives.
     //
     ASTNode parent = node.getParent();
     if (parent instanceof PrefixedIdentifier
@@ -373,6 +426,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     } else if (parent instanceof PropertyAccess
         && ((PropertyAccess) parent).getPropertyName() == node) {
+      return null;
+    } else if (parent instanceof RedirectingConstructorInvocation
+        || parent instanceof SuperConstructorInvocation) {
       return null;
     }
     //
@@ -386,6 +442,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
     recordResolution(node, element);
+    return null;
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    ClassElement enclosingClass = resolver.getEnclosingClass();
+    if (enclosingClass == null) {
+      // TODO(brianwilkerson) Report this error.
+      return null;
+    }
+    ClassElement superclass = getSuperclass(enclosingClass);
+    if (superclass == null) {
+      // TODO(brianwilkerson) Report this error.
+      return null;
+    }
+    SimpleIdentifier name = node.getConstructorName();
+    ConstructorElement element;
+    if (name == null) {
+      element = superclass.getUnnamedConstructor();
+    } else {
+      element = superclass.getNamedConstructor(name.getName());
+    }
+    if (element == null) {
+      // TODO(brianwilkerson) Report this error and decide what element to associate with the node.
+    }
+    recordResolution(name, element);
     return null;
   }
 

@@ -40,12 +40,14 @@ public class ResolverVisitor extends ScopedVisitor {
   private StaticTypeAnalyzer typeAnalyzer;
 
   /**
-   * The type element representing the type most recently being visited.
+   * The class element representing the class containing the current node, or {@code null} if the
+   * current node is not contained in a class.
    */
-  private ClassElement enclosingType = null;
+  private ClassElement enclosingClass = null;
 
   /**
-   * The executable element representing the method or function most recently being visited.
+   * The element representing the function containing the current node, or {@code null} if the
+   * current node is not contained in a function.
    */
   private ExecutableElement enclosingFunction = null;
 
@@ -64,14 +66,14 @@ public class ResolverVisitor extends ScopedVisitor {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerType = enclosingType;
+    ClassElement outerType = enclosingClass;
     try {
-      enclosingType = node.getElement();
-      typeAnalyzer.setThisType(enclosingType == null ? null : enclosingType.getType());
+      enclosingClass = node.getElement();
+      typeAnalyzer.setThisType(enclosingClass == null ? null : enclosingClass.getType());
       super.visitClassDeclaration(node);
     } finally {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
-      enclosingType = outerType;
+      enclosingClass = outerType;
     }
     return null;
   }
@@ -127,6 +129,16 @@ public class ResolverVisitor extends ScopedVisitor {
     // We don't visit type names or their children because they have already been resolved.
     //
     return null;
+  }
+
+  /**
+   * Return the class element representing the class containing the current node, or {@code null} if
+   * the current node is not contained in a class.
+   * 
+   * @return the class element representing the class containing the current node
+   */
+  protected ClassElement getEnclosingClass() {
+    return enclosingClass;
   }
 
   /**
