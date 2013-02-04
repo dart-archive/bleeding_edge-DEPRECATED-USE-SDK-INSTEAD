@@ -59,15 +59,21 @@ public class ReferencesSearchGroup extends ActionGroup {
     findReferencesAction = new FindReferencesAction(editor);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
-    editor.setAction("SearchReferencesInWorkspace", findReferencesAction); //$NON-NLS-1$
+    editor.setAction(
+        DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE,
+        findReferencesAction); //$NON-NLS-1$
     findDeclarationsAction = new FindDeclarationsAction(editor);
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
-    editor.setAction("SearchDeclarationsInWorkspace", findDeclarationsAction); //$NON-NLS-1$
+    editor.setAction(
+        DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE,
+        findDeclarationsAction); //$NON-NLS-1$
     findOverridesAction = new FindOverridesAction(editor);
     findOverridesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY);
     findOverridesAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY);
-    editor.setAction("SearchDeclarationsInHierarchy", findOverridesAction); //$NON-NLS-1$
+    editor.setAction(
+        DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY,
+        findOverridesAction); //$NON-NLS-1$
   }
 
   /**

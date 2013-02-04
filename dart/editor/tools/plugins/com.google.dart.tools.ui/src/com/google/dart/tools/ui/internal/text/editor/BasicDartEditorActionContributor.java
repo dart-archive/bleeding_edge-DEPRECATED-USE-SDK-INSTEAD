@@ -68,6 +68,9 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
   private RetargetTextEditorAction fRemoveOccurrenceAnnotationsAction;
 
   private RetargetTextEditorAction fOpenCallHierarchy;
+  private RetargetTextEditorAction findDeclarations;
+  private RetargetTextEditorAction findOverrides;
+  private RetargetTextEditorAction findReferences;
 
   public BasicDartEditorActionContributor() {
     super();
@@ -104,6 +107,21 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
         DartEditorMessages.getBundleForConstructedKeys(),
         "OpenCallHierarchy."); //$NON-NLS-1$
     fOpenCallHierarchy.setActionDefinitionId(DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY);
+
+    findDeclarations = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "FindDeclarations."); //$NON-NLS-1$
+    findDeclarations.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+
+    findOverrides = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "FindOverrides."); //$NON-NLS-1$
+    findOverrides.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY);
+
+    findReferences = new RetargetTextEditorAction(
+        DartEditorMessages.getBundleForConstructedKeys(),
+        "FindReferences."); //$NON-NLS-1$
+    findReferences.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
 
     fOpenStructure = new RetargetTextEditorAction(
         DartEditorMessages.getBundleForConstructedKeys(),
@@ -157,6 +175,9 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     IMenuManager navigateMenu = menu.findMenuUsingPath(IWorkbenchActionConstants.M_NAVIGATE);
     if (navigateMenu != null) {
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenDeclaration);
+      navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findDeclarations);
+      navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findReferences);
+      navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, findOverrides);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.OPEN_EXT, fOpenCallHierarchy);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
       navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fOpenHierarchy);
@@ -231,6 +252,15 @@ public class BasicDartEditorActionContributor extends BasicTextEditorActionContr
     fOpenCallHierarchy.setAction(getAction(
         textEditor,
         DartEditorActionDefinitionIds.ANALYZE_CALL_HIERARCHY));
+    findDeclarations.setAction(getAction(
+        textEditor,
+        DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE));
+    findOverrides.setAction(getAction(
+        textEditor,
+        DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_HIERARCHY));
+    findReferences.setAction(getAction(
+        textEditor,
+        DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE));
     fOpenHierarchy.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_HIERARCHY));
     fOpenStructure.setAction(getAction(textEditor, DartEditorActionDefinitionIds.OPEN_STRUCTURE));
 
