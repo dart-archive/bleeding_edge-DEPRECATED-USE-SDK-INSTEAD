@@ -58,6 +58,18 @@ public abstract class ASTNode {
   public abstract Token getBeginToken();
 
   /**
+   * Return the offset of the character immediately following the last character of this node's
+   * source range. This is equivalent to {@code node.getOffset() + node.getLength()}. For a
+   * compilation unit this will be equal to the length of the unit's source. For synthetic nodes
+   * this will be equivalent to the node's offset (because the length is zero (0) by definition).
+   * 
+   * @return the offset of the character just past the node's source range
+   */
+  public int getEnd() {
+    return getOffset() + getLength();
+  }
+
+  /**
    * Return the last token included in this node's source range.
    * 
    * @return the last token included in this node's source range
