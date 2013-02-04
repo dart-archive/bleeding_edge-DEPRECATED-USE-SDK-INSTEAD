@@ -103,10 +103,8 @@
       </copy>
     	
       <!-- dart.engine dependencies -->
-    	
       <property name="dart.engine.dir" 
                 location="${build.dir}/plugins/com.google.dart.engine" />
-    	
       <mkdir dir="${dart.engine.dir}/third_party" />
       <copy todir="${dart.engine.dir}/third_party">
           <fileset dir="${third_party.dir}">
@@ -115,6 +113,17 @@
               <include name="guava/**" />
               <include name="hamcrest/**" />
               <include name="json/**" />
+          </fileset>
+      </copy>
+
+      <!-- dart.engine.services dependencies -->
+      <property name="dart.engine.services.dir" 
+                location="${build.dir}/plugins/com.google.dart.engine.services" />
+      <mkdir dir="${dart.engine.services.dir}/third_party" />
+      <copy todir="${dart.engine.services.dir}/third_party">
+          <fileset dir="${third_party.dir}">
+              <include name="commons-lang/**" />
+              <include name="guava/**" />
           </fileset>
       </copy>
 

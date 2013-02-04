@@ -53,6 +53,14 @@ public final class SourceRange {
   }
 
   /**
+   * @return the 0-based index of the after-last character of the source code for this element,
+   *         relative to the source buffer in which this element is contained.
+   */
+  public int getEnd() {
+    return offset;
+  }
+
+  /**
    * Returns the number of characters of the source code for this element, relative to the source
    * buffer in which this element is contained.
    * 
