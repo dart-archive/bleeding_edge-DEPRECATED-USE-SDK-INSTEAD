@@ -20,6 +20,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -324,7 +325,7 @@ public final class ASTFactory {
         initializers == null || initializers.isEmpty() ? null : token(TokenType.PERIOD),
         initializers == null ? new ArrayList<ConstructorInitializer>() : initializers,
         null,
-        body);
+        body != null ? body : emptyFunctionBody());
   }
 
   public static ConstructorDeclaration constructorDeclaration(Identifier returnType, String name,
@@ -601,7 +602,7 @@ public final class ASTFactory {
   }
 
   public static SimpleIdentifier identifier(String lexeme) {
-    return new SimpleIdentifier(token(TokenType.IDENTIFIER, lexeme));
+    return lexeme != null ? new SimpleIdentifier(token(TokenType.IDENTIFIER, lexeme)) : null;
   }
 
   public static PrefixedIdentifier identifier(String prefix, SimpleIdentifier identifier) {
@@ -715,12 +716,12 @@ public final class ASTFactory {
   }
 
   public static IntegerLiteral integer(long value) {
-    return new IntegerLiteral(token(TokenType.INT, Long.toString(value)), value);
+    return new IntegerLiteral(token(TokenType.INT, Long.toString(value)), BigInteger.valueOf(value));
   }
 
   public static IntegerLiteral integerHex(long value) {
     String hexString = "0x" + Long.toHexString(value);
-    return new IntegerLiteral(token(TokenType.INT, hexString), value);
+    return new IntegerLiteral(token(TokenType.INT, hexString), BigInteger.valueOf(value));
   }
 
   public static InterpolationExpression interpolationExpression(Expression expression) {
@@ -1008,6 +1009,11 @@ public final class ASTFactory {
 
   public static RedirectingConstructorInvocation redirectingConstructorInvocation(
       String constructorName, Expression... arguments) {
+    return redirectingConstructorInvocation(constructorName, list(arguments));
+  }
+
+  public static RedirectingConstructorInvocation redirectingConstructorInvocation(
+      String constructorName, List<Expression> arguments) {
     return new RedirectingConstructorInvocation(
         token(Keyword.THIS),
         constructorName == null ? null : token(TokenType.PERIOD),

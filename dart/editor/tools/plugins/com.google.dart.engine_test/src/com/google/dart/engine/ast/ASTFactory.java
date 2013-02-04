@@ -20,6 +20,7 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.engine.scanner.TokenFactory.token;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -571,7 +572,7 @@ public final class ASTFactory {
   }
 
   public static IntegerLiteral integer(long value) {
-    return new IntegerLiteral(token(TokenType.INT, Long.toString(value)), value);
+    return new IntegerLiteral(token(TokenType.INT, Long.toString(value)), BigInteger.valueOf(value));
   }
 
   public static InterpolationExpression interpolationExpression(Expression expression) {

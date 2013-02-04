@@ -55,16 +55,6 @@ public class IntegerLiteral extends Literal {
     this.value = value;
   }
 
-  /**
-   * Initialize a newly created integer literal.
-   * 
-   * @param token the token representing the literal
-   * @param value the value of the literal
-   */
-  public IntegerLiteral(Token token, long value) {
-    this(token, BigInteger.valueOf(value));
-  }
-
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitIntegerLiteral(this);

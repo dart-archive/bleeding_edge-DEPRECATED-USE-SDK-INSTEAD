@@ -134,6 +134,17 @@ public class MainEngine {
         "com/google/dart/engine/error/GatheringErrorListener.java"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/parser"));
+    // configure renames
+    context.addRename(
+        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/ast/Expression;"
+            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
+            + "Lcom/google/dart/engine/scanner/Token;)",
+        "forTarget");
+    context.addRename(
+        "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/scanner/Token;"
+            + "Lcom/google/dart/engine/scanner/Token;Lcom/google/dart/engine/ast/Expression;"
+            + "Lcom/google/dart/engine/scanner/Token;)",
+        "forCascade");
     // translate into single CompilationUnit
     dartUnit = context.translate();
     // run processors
@@ -261,6 +272,7 @@ public class MainEngine {
         unit.getDeclarations().add(member);
       }
     }
+    EngineSemanticProcessor.generateConstructorWithNamedParametersInAST(context, unit);
     return unit;
   }
 

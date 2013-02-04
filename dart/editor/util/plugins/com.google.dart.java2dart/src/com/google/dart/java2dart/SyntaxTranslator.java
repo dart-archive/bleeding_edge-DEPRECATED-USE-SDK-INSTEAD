@@ -14,7 +14,6 @@
 
 package com.google.dart.java2dart;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
@@ -147,6 +146,7 @@ import org.eclipse.jdt.core.dom.SimpleName;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -164,14 +164,6 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     SyntaxTranslator translator = new SyntaxTranslator(context);
     javaUnit.accept(translator);
     return (CompilationUnit) translator.result;
-  }
-
-  private static String getBindingSignature(org.eclipse.jdt.core.dom.IBinding binding) {
-    if (binding != null) {
-      String signature = binding.getKey();
-      return JavaUtils.getJdtSignature(signature);
-    }
-    return null;
   }
 
   private static org.eclipse.jdt.core.dom.MethodDeclaration getEnclosingMethod(
@@ -242,6 +234,17 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       node = node.getParent();
     }
     return false;
+  }
+
+  /**
+   * @return <code>true</code> if "subConstructor" is constructor of inner class which call
+   *         "superConstructor".
+   */
+  private static boolean isSuperConstructor(IMethodBinding superConstructor,
+      IMethodBinding subConstructor) {
+    String superString = superConstructor.toString();
+    String subString = subConstructor.toString();
+    return superString.endsWith(subString);
   }
 
   private static int numberOfConstructors(org.eclipse.jdt.core.dom.ASTNode node) {
@@ -415,7 +418,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ClassInstanceCreation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    String signature = getBindingSignature(binding);
+    String signature = JavaUtils.getJdtSignature(binding);
     TypeName typeNameNode = (TypeName) translate(node.getType());
     final List<Expression> arguments = translateArguments(binding, node.arguments());
     final ClassDeclaration innerClass;
@@ -426,11 +429,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             + StringUtils.substringAfter(signature, ";");
         String name = typeNameNode.getName().getName();
         name = name + "_" + context.generateTechnicalAnonymousClassIndex();
-        innerClass = declareInnerClass(
-            signature,
-            anoDeclaration,
-            name,
-            ArrayUtils.EMPTY_STRING_ARRAY);
+        innerClass = declareInnerClass(binding, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);
         typeNameNode = typeName(name);
         // declare referenced final variables
         final String finalName = name;
@@ -485,7 +484,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         arguments);
     context.putNodeBinding(creation, binding);
     context.putAnonymousDeclaration(creation, innerClass);
-    context.getConstructorDescription(signature).instanceCreations.add(creation);
+    context.getConstructorDescription(binding).instanceCreations.add(creation);
     return done(creation);
   }
 
@@ -520,9 +519,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ConstructorInvocation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    String signature = getBindingSignature(binding);
     SimpleIdentifier nameNode = simpleIdentifier("jtdTmp");
-    context.getConstructorDescription(signature).implInvocations.add(nameNode);
+    context.getConstructorDescription(binding).implInvocations.add(nameNode);
     // invoke "impl"
     List<Expression> arguments = translateArguments(binding, node.arguments());
     if (isInEnumConstructor(node)) {
@@ -562,19 +560,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.EnumConstantDeclaration node) {
     String fieldName = node.getName().getIdentifier();
     IMethodBinding constructorBinding = node.resolveConstructorBinding();
-    String constructorSignature = getBindingSignature(constructorBinding);
     // prepare enum name
     org.eclipse.jdt.core.dom.EnumDeclaration parentEnum = (org.eclipse.jdt.core.dom.EnumDeclaration) node.getParent();
     String enumTypeName = parentEnum.getName().getIdentifier();
-    constructorSignature = parentEnum.resolveBinding().getKey()
-        + StringUtils.substringAfter(constructorSignature, ";");
     // may be create Dart top-level class for Java inner class
     String innerClassName = null;
     {
       AnonymousClassDeclaration anoClassDeclaration = node.getAnonymousClassDeclaration();
       if (anoClassDeclaration != null) {
         innerClassName = enumTypeName + "_" + fieldName;
-        declareInnerClass(constructorSignature, anoClassDeclaration, innerClassName, new String[] {
+        declareInnerClass(constructorBinding, anoClassDeclaration, innerClassName, new String[] {
             "String", "___name", "int", "___ordinal"});
       }
     }
@@ -592,7 +587,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       InstanceCreationExpression init;
       if (innerClassName == null) {
         init = instanceCreationExpression(Keyword.NEW, typeName(enumTypeName), argList);
-        context.getConstructorDescription(constructorSignature).instanceCreations.add(init);
+        context.getConstructorDescription(constructorBinding).instanceCreations.add(init);
       } else {
         init = instanceCreationExpression(Keyword.NEW, typeName(innerClassName), argList);
       }
@@ -938,21 +933,21 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       Statement conStatement = expressionStatement(implInvocation);
       Block constructorBody = block(conStatement);
       SimpleIdentifier nameNode = simpleIdentifier(constructorDeclName);
-      String signature = getBindingSignature(binding);
-      context.getConstructorDescription(signature).declName = constructorDeclName;
-      context.getConstructorDescription(signature).implName = multipleConstructors
+      context.getConstructorDescription(binding).declName = constructorDeclName;
+      context.getConstructorDescription(binding).implName = multipleConstructors
           ? constructorImplName : constructorDeclName;
-      context.putConstructorNameSignature(nameNode, signature);
       if (multipleConstructors) {
         body = blockFunctionBody(constructorBody);
       }
-      return done(constructorDeclaration(
+      ConstructorDeclaration constructor = constructorDeclaration(
           translateJavadoc(node),
           simpleIdentifier(node.getName().getIdentifier()),
           nameNode,
           parameterList,
           initializers,
-          body));
+          body);
+      context.putConstructorBinding(constructor, binding);
+      return done(constructor);
     } else {
       boolean isStatic = org.eclipse.jdt.core.dom.Modifier.isStatic(node.getModifiers());
       SimpleIdentifier dartMethodName = translateSimpleName(node.getName());
@@ -1010,7 +1005,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       return done(new DoubleLiteral(token(TokenType.DOUBLE, token), 0));
     } else {
       token = StringUtils.removeEndIgnoreCase(token, "L");
-      return done(new IntegerLiteral(token(TokenType.INT, token), 0));
+      return done(new IntegerLiteral(token(TokenType.INT, token), BigInteger.valueOf(0)));
     }
   }
 
@@ -1206,11 +1201,10 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SuperConstructorInvocation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    String signature = getBindingSignature(binding);
     // invoke "impl"
     List<Expression> arguments = translateArguments(binding, node.arguments());
     SuperConstructorInvocation superInvocation = superConstructorInvocation(arguments);
-    context.getConstructorDescription(signature).superInvocations.add(superInvocation);
+    context.getConstructorDescription(binding).superInvocations.add(superInvocation);
     return done(superInvocation);
   }
 
@@ -1428,7 +1422,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
   }
 
-  private ClassDeclaration declareInnerClass(String constructorSignature,
+  private ClassDeclaration declareInnerClass(IMethodBinding constructorBinding,
       AnonymousClassDeclaration anoClassDeclaration, String innerClassName,
       String[] additionalParameters) {
     ITypeBinding superTypeBinding = anoClassDeclaration.resolveBinding().getSuperclass();
@@ -1456,10 +1450,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       List<FormalParameter> parameters = Lists.newArrayList();
       List<Expression> arguments = Lists.newArrayList();
       // find "super" constructor
+      IMethodBinding superConstructor = null;
       for (IMethodBinding superMethod : superTypeBinding.getDeclaredMethods()) {
         if (superMethod.isConstructor()) {
-          String superMethodSignature = getBindingSignature(superMethod);
-          if (Objects.equal(superMethodSignature, constructorSignature)) {
+          if (isSuperConstructor(superMethod, constructorBinding)) {
+            superConstructor = superMethod;
             // additional parameters
             for (int i = 0; i < additionalParameters.length / 2; i++) {
               parameters.add(simpleFormalParameter(
@@ -1485,7 +1480,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       FormalParameterList parameterList = formalParameterList(parameters);
       ArgumentList argList = new ArgumentList(null, arguments, null);
       SuperConstructorInvocation superCI = new SuperConstructorInvocation(null, null, null, argList);
-      context.getConstructorDescription(constructorSignature).superInvocations.add(superCI);
+      context.getConstructorDescription(superConstructor).superInvocations.add(superCI);
       ConstructorDeclaration innerConstructor = constructorDeclaration(
           null,
           null,

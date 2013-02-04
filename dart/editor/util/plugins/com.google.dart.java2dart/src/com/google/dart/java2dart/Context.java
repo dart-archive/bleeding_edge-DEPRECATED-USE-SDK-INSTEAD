@@ -89,14 +89,14 @@ public class Context {
    * Information about constructor and its usages.
    */
   class ConstructorDescription {
-    final String binding;
+    final IMethodBinding binding;
     final List<SuperConstructorInvocation> superInvocations = Lists.newArrayList();
     final List<InstanceCreationExpression> instanceCreations = Lists.newArrayList();
     final List<SimpleIdentifier> implInvocations = Lists.newArrayList();
     String declName;
     String implName;
 
-    public ConstructorDescription(String binding) {
+    public ConstructorDescription(IMethodBinding binding) {
       this.binding = binding;
     }
   }
@@ -124,8 +124,8 @@ public class Context {
   private final Set<SimpleIdentifier> innerClassNames = Sets.newHashSet();
   // information about constructors
   private int technicalConstructorIndex;
-  private final Map<String, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
-  private final Map<SimpleIdentifier, String> constructorNameToBinding = Maps.newHashMap();
+  private final Map<IMethodBinding, ConstructorDescription> bindingToConstructor = Maps.newHashMap();
+  private final Map<ConstructorDeclaration, IMethodBinding> constructorToBinding = Maps.newHashMap();
   // information about inner classes
   private int technicalInnerClassIndex;
   private int technicalAnonymousClassIndex;
@@ -344,6 +344,44 @@ public class Context {
     return references != null ? references : Lists.<SimpleIdentifier> newArrayList();
   }
 
+  public void renameConstructor(ConstructorDeclaration node, String name) {
+    IMethodBinding binding = constructorToBinding.get(node);
+    //
+    SimpleIdentifier newIdentifier;
+    if (name == null) {
+      newIdentifier = null;
+    } else {
+      newIdentifier = identifier(name);
+    }
+    // rename constructor
+    node.setName(newIdentifier);
+    // update references
+    ConstructorDescription constructorDescription = bindingToConstructor.get(binding);
+    if (constructorDescription != null) {
+      // set name in InstanceCreationExpression
+      {
+        List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
+        for (InstanceCreationExpression creation : creations) {
+          creation.getConstructorName().setName(newIdentifier);
+        }
+      }
+      // set name in SuperConstructorInvocation
+      {
+        List<SuperConstructorInvocation> invocations = constructorDescription.superInvocations;
+        for (SuperConstructorInvocation invocation : invocations) {
+          invocation.setConstructorName(newIdentifier);
+        }
+      }
+      // set name in invocation of implementation
+      {
+        List<SimpleIdentifier> invocations = constructorDescription.implInvocations;
+        for (SimpleIdentifier identifier : invocations) {
+          identifier.setToken(token(TokenType.IDENTIFIER, constructorDescription.implName));
+        }
+      }
+    }
+  }
+
   /**
    * Sets the {@link SimpleIdentifier} name and updates all references.
    */
@@ -412,7 +450,7 @@ public class Context {
   /**
    * @return the not <code>null</code> {@link ConstructorDescription}, may be just added.
    */
-  ConstructorDescription getConstructorDescription(String binding) {
+  ConstructorDescription getConstructorDescription(IMethodBinding binding) {
     ConstructorDescription description = bindingToConstructor.get(binding);
     if (description == null) {
       description = new ConstructorDescription(binding);
@@ -435,8 +473,8 @@ public class Context {
    * Remembers that given {@link SimpleIdentifier} used as name of the named
    * {@link ConstructorDeclaration} is reference to the given Java signature.
    */
-  void putConstructorNameSignature(SimpleIdentifier name, String signature) {
-    constructorNameToBinding.put(name, signature);
+  void putConstructorBinding(ConstructorDeclaration node, IMethodBinding binding) {
+    constructorToBinding.put(node, binding);
   }
 
   /**
@@ -708,10 +746,10 @@ public class Context {
 
       @Override
       public Void visitConstructorDeclaration(ConstructorDeclaration node) {
-        SimpleIdentifier nameNode = node.getName();
-        String binding = constructorNameToBinding.get(nameNode);
+        IMethodBinding binding = constructorToBinding.get(node);
+        String bindingSignature = JavaUtils.getJdtSignature(binding);
         // prepare name
-        String name = renameMap.get(binding);
+        String name = renameMap.get(bindingSignature);
         if (name == null) {
           if (numConstructors == 1 || node.getParameters().getParameters().isEmpty()) {
             // don't set name, use unnamed constructor
@@ -727,35 +765,7 @@ public class Context {
         }
         memberNamesInClass.add(name);
         // apply name
-        if (name == null) {
-          // remove constructor name
-          node.setName(null);
-        } else {
-          // rename constructor
-          node.getName().setToken(token(TokenType.IDENTIFIER, name));
-          // set name in InstanceCreationExpression
-          ConstructorDescription constructorDescription = bindingToConstructor.get(binding);
-          {
-            List<InstanceCreationExpression> creations = constructorDescription.instanceCreations;
-            for (InstanceCreationExpression creation : creations) {
-              creation.getConstructorName().setName(identifier(name));
-            }
-          }
-          // set name in SuperConstructorInvocation
-          {
-            List<SuperConstructorInvocation> invocations = constructorDescription.superInvocations;
-            for (SuperConstructorInvocation invocation : invocations) {
-              invocation.setConstructorName(identifier(name));
-            }
-          }
-          // set name in invocation of implementation
-          {
-            List<SimpleIdentifier> invocations = constructorDescription.implInvocations;
-            for (SimpleIdentifier identifier : invocations) {
-              identifier.setToken(token(TokenType.IDENTIFIER, constructorDescription.implName));
-            }
-          }
-        }
+        renameConstructor(node, name);
         // continue
         return super.visitConstructorDeclaration(node);
       }

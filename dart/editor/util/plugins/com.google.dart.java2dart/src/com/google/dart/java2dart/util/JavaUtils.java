@@ -147,7 +147,11 @@ public class JavaUtils {
    * @return the JDT method or field signature without return type.
    */
   public static String getJdtSignature(IBinding binding) {
-    return getJdtSignature(binding.getKey());
+    if (binding != null) {
+      String signature = binding.getKey();
+      return JavaUtils.getJdtSignature(signature);
+    }
+    return null;
   }
 
   /**
