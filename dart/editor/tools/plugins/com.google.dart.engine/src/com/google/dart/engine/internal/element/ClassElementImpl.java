@@ -154,6 +154,17 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public ConstructorElement getNamedConstructor(String name) {
+    for (ConstructorElement element : getConstructors()) {
+      String elementName = element.getName();
+      if (elementName != null && elementName.equals(name)) {
+        return element;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public InterfaceType getSupertype() {
     return supertype;
   }
@@ -166,6 +177,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public TypeVariableElement[] getTypeVariables() {
     return typeVariables;
+  }
+
+  @Override
+  public ConstructorElement getUnnamedConstructor() {
+    for (ConstructorElement element : getConstructors()) {
+      if (element.getName() == null) {
+        return element;
+      }
+    }
+    return null;
   }
 
   @Override

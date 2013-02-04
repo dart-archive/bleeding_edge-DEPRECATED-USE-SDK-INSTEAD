@@ -104,4 +104,9 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   public void setSetter(boolean isSetter) {
     setModifier(Modifier.SETTER, isSetter);
   }
+
+  @Override
+  public String toString() {
+    return (isGetter() ? "getter " : "setter ") + getField().getType() + " " + getField().getName();
+  }
 }

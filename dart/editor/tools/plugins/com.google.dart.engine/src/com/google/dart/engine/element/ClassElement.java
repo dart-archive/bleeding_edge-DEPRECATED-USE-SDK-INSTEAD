@@ -63,6 +63,15 @@ public interface ClassElement extends Element {
   public InterfaceType[] getMixins();
 
   /**
+   * Return the named constructor in this class with the given name, or {@code null} if this class
+   * does not define a named constructor with the given name.
+   * 
+   * @param name the name of the constructor to be returned
+   * @return the element representing the specified constructor
+   */
+  public ConstructorElement getNamedConstructor(String name);
+
+  /**
    * Return the superclass of this class, or {@code null} if the class represents the class
    * 'Object'. All other classes will have a non-{@code null} superclass. If the superclass was not
    * explicitly declared then the implicit superclass 'Object' will be returned.
@@ -84,6 +93,14 @@ public interface ClassElement extends Element {
    * @return the type variables defined for this class
    */
   public TypeVariableElement[] getTypeVariables();
+
+  /**
+   * Return the unnamed constructor defined in this class, or {@code null} if this class does not
+   * define an unnamed constructor.
+   * 
+   * @return the unnamed constructor defined in this class
+   */
+  public ConstructorElement getUnnamedConstructor();
 
   /**
    * Return {@code true} if this class is abstract. A class is abstract if it has an explicit

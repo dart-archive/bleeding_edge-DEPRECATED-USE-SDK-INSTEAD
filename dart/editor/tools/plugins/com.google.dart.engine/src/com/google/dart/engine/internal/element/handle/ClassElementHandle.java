@@ -75,6 +75,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public ConstructorElement getNamedConstructor(String name) {
+    return getActualElement().getNamedConstructor(name);
+  }
+
+  @Override
   public InterfaceType getSupertype() {
     return getActualElement().getSupertype();
   }
@@ -87,6 +92,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public TypeVariableElement[] getTypeVariables() {
     return getActualElement().getTypeVariables();
+  }
+
+  @Override
+  public ConstructorElement getUnnamedConstructor() {
+    return getActualElement().getUnnamedConstructor();
   }
 
   @Override
