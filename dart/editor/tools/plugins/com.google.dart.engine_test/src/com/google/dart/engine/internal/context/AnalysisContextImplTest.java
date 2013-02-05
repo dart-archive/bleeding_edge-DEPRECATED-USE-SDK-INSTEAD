@@ -30,6 +30,8 @@ import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
+import java.util.Iterator;
+
 public class AnalysisContextImplTest extends EngineTestCase {
   public void fail_getElement_location() {
     AnalysisContextImpl context = new AnalysisContextImpl();
@@ -71,6 +73,20 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertLength(0, compilationUnit.getSyntacticErrors());
     assertLength(0, compilationUnit.getSemanticErrors());
     assertLength(0, compilationUnit.getErrors());
+  }
+
+  public void fail_sourcesToResolve() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
+    // TODO (danrubel): Replace this placeholder with a real test once resolution is in place
+    Iterable<Source> sourcesToResolve = context.sourcesToResolve(new Source[] {source});
+    Iterator<Source> iter = sourcesToResolve.iterator();
+    for (int i = 0; i < 23; i++) {
+      assertTrue(iter.hasNext());
+      assertNotNull(iter.next());
+    }
   }
 
   public void test_creation() {

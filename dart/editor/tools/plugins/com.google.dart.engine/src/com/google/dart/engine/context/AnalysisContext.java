@@ -235,4 +235,13 @@ public interface AnalysisContext {
   // TODO (danrubel): review the situations under which this method is and should be called
   // with an eye towards removing this method if it is not useful.
   public void sourcesDeleted(SourceContainer container);
+
+  /**
+   * Given a collection of sources with content that has changed, return an {@link Iterable}
+   * identifying the sources that need to be resolved.
+   * 
+   * @param changedSources an array of sources (not {@code null}, contains no {@code null}s)
+   * @return An iterable returning the sources to be resolved
+   */
+  public Iterable<Source> sourcesToResolve(Source[] changedSources);
 }

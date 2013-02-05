@@ -208,6 +208,11 @@ public class MockContext implements AnalysisContext {
     calls.add(this, SOURCE_DELETED, container);
   }
 
+  @Override
+  public Iterable<Source> sourcesToResolve(Source[] changedSources) {
+    throw new UnsupportedOperationException();
+  }
+
   private void assertEqualContents(HashSet<Object> sources, IResource[] resources) {
     if (sources.size() == resources.length) {
       boolean success = true;

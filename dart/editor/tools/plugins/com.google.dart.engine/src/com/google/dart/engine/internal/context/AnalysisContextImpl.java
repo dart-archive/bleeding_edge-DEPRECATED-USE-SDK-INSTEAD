@@ -37,6 +37,7 @@ import com.google.dart.engine.source.SourceFactory;
 import java.io.File;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -393,5 +394,11 @@ public class AnalysisContextImpl implements AnalysisContext {
         }
       }
     }
+  }
+
+  @Override
+  public Iterable<Source> sourcesToResolve(Source[] changedSources) {
+    // TODO (danrubel): Replace this sub implementation
+    return Arrays.asList(changedSources);
   }
 }
