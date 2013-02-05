@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.util.DartSourceString;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.buffer.Buffer;
 import com.google.dart.tools.core.internal.buffer.DocumentAdapter;
 import com.google.dart.tools.core.internal.util.CharOperation;
@@ -205,7 +206,7 @@ public abstract class SourceFileElementImpl<E> extends OpenableElementImpl imple
 
   @Override
   public boolean isReadOnly() {
-    return file.isReadOnly();
+    return file.isReadOnly() || DartCore.isPackagesResource(file);
   }
 
   @Override

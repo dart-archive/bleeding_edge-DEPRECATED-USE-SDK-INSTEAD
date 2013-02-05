@@ -4203,9 +4203,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Tells whether the content is editable.
    */
   private boolean isContentEditable() {
-    if (true) {
-      return true;
-    }
     if (!isEditableStateKnown) {
       IDocumentProvider p = getDocumentProvider();
       if (p instanceof ICompilationUnitDocumentProvider) {
