@@ -21,7 +21,6 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -47,6 +46,8 @@ public class RunPubAction extends SelectionDispatchAction {
         RunPubJob.INSTALL_COMMAND));
     return action;
   }
+
+
 
   public static RunPubAction createPubUpdateAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.UPDATE_COMMAND);
@@ -88,20 +89,21 @@ public class RunPubAction extends SelectionDispatchAction {
   public void run(IStructuredSelection selection) {
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
-      if (object instanceof IFolder
-          && ((IContainer) object).findMember(DartCore.PUBSPEC_FILE_NAME) == null) {
-        object = ((IFolder) object).getParent();
-      }
       if (object instanceof IFile) {
         object = ((IFile) object).getParent();
       }
-      runPubJob((IContainer) object);
-    } else {
-      MessageDialog.openError(
-          getShell(),
-          ActionMessages.RunPubAction_fail,
-          ActionMessages.RunPubAction_fileNotFound);
+      while (object != null && ((IContainer) object).findMember(DartCore.PUBSPEC_FILE_NAME) == null) {
+        object = ((IContainer) object).getParent();
+      }
+      if (object != null) {
+        runPubJob((IContainer) object);
+        return;
+      }
     }
+    MessageDialog.openError(
+        getShell(),
+        ActionMessages.RunPubAction_fail,
+        ActionMessages.RunPubAction_fileNotFound);
   }
 
   private void runPubJob(IContainer container) {
