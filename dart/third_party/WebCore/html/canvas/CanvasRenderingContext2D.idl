@@ -24,7 +24,7 @@
  */
 
 // FIXME: we should use CanvasWindingRule once support for WebIDL is completed. (bug #106553)
-// FIXME(antonm): support enums: enum CanvasWindingRule { "nonzero", "evenodd" };
+enum CanvasWindingRule { "nonzero", "evenodd" };
 
 interface CanvasRenderingContext2D : CanvasRenderingContext {
 
@@ -96,6 +96,10 @@ interface CanvasRenderingContext2D : CanvasRenderingContext {
 
     void beginPath();
 
+#if defined(ENABLE_CANVAS_PATH) && ENABLE_CANVAS_PATH
+    attribute DOMPath currentPath;
+#endif
+
     // FIXME: These methods should be shared with CanvasRenderingContext2D in the CanvasPathMethods interface.
     void closePath();
     void moveTo(in [Optional=DefaultIsUndefined] float x,
@@ -136,6 +140,8 @@ interface CanvasRenderingContext2D : CanvasRenderingContext {
     boolean isPointInPath(in [Optional=DefaultIsUndefined] float x,
                           in [Optional=DefaultIsUndefined] float y,
                           in [Optional] DOMString winding);
+    boolean isPointInStroke(in [Optional=DefaultIsUndefined] float x,
+                            in [Optional=DefaultIsUndefined] float y);
 
     // text
     attribute DOMString font;
