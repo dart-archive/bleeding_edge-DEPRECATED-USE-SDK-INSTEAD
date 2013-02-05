@@ -33,10 +33,7 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
-    Source source = event.getSource();
-    if (source != null) {
-      event.getContext().sourceChanged(source);
-    }
+    sourceChanged(event);
   }
 
   @Override
@@ -69,10 +66,7 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void sourceAdded(SourceDeltaEvent event) {
-    Source source = event.getSource();
-    if (source != null) {
-      sourceChanged(event);
-    }
+    sourceChanged(event);
   }
 
   @Override

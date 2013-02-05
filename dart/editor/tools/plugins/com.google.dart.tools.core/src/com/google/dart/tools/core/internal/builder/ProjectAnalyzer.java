@@ -14,10 +14,13 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
@@ -27,6 +30,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * {@code ProjectAnalyzer} analyzes sources in a project and updates Eclipse markers. Attach
@@ -37,6 +42,40 @@ import java.util.ArrayList;
  */
 public class ProjectAnalyzer extends AbstractDeltaListener {
 
+  /**
+   * A collection of changes for a specific analysis context
+   */
+  public static class ChangeSet {
+
+    private final PubFolder pubFolder;
+    private final AnalysisContext context;
+    private final HashSet<Source> changed = new HashSet<Source>();
+
+    public ChangeSet(PubFolder pubFolder, AnalysisContext context) {
+      this.pubFolder = pubFolder;
+      this.context = context;
+    }
+
+    public Source[] getChangedSources() {
+      return changed.toArray(new Source[changed.size()]);
+    }
+
+    public AnalysisContext getContext() {
+      return context;
+    }
+
+    public PubFolder getPubFolder() {
+      return pubFolder;
+    }
+
+    private void add(Source source) {
+      changed.add(source);
+    }
+  }
+
+  /**
+   * Internal class for caching a parse result for later conversion to markers
+   */
   private class ParseResult {
     private final IResource resource;
     private final AnalysisError[] errors;
@@ -76,6 +115,15 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
     }
   }
 
+  /**
+   * A mapping of {@link AnalysisContext} to a set of sources in that analysis context having
+   * content has changed.
+   */
+  HashMap<AnalysisContext, ChangeSet> changeSets = new HashMap<AnalysisContext, ChangeSet>();
+
+  /**
+   * A collection of results to be converted into markers
+   */
   private final ArrayList<ParseResult> parseResults = new ArrayList<ProjectAnalyzer.ParseResult>();
 
   @Override
@@ -115,11 +163,23 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
    * @param event the source event (not {@code null})
    */
   private void parse(SourceDeltaEvent event) {
+    AnalysisContext context = event.getContext();
+    Source source = event.getSource();
+
+    // Cache the changed sources for later resolution
+    ChangeSet changes = changeSets.get(context);
+    if (changes == null) {
+      changes = new ChangeSet(event.getPubFolder(), context);
+      changeSets.put(context, changes);
+    }
+    changes.add(source);
+
+    // Parse the changed source
     try {
-      CompilationUnit unit = event.getContext().parse(event.getSource());
+      CompilationUnit unit = context.parse(source);
       parseResults.add(new ParseResult(event.getResource(), unit.getSyntacticErrors()));
     } catch (AnalysisException e) {
-      DartCore.logError("Exception parsing source: " + event.getSource(), e);
+      DartCore.logError("Exception parsing source: " + source, e);
       return;
     }
   }
