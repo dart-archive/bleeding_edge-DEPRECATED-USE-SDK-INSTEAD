@@ -66,8 +66,8 @@ public class NamespaceBuilder {
     HashMap<String, Element> definedNames = createExportMapping(
         element.getImportedLibrary(),
         new HashSet<LibraryElement>());
-    apply(definedNames, element.getCombinators());
-    apply(definedNames, element.getPrefix());
+    definedNames = apply(definedNames, element.getCombinators());
+    definedNames = apply(definedNames, element.getPrefix());
     return new Namespace(definedNames);
   }
 
@@ -154,7 +154,7 @@ public class NamespaceBuilder {
    * @param definedNames the mapping table to which the namespace operations are to be applied
    * @param combinators the combinators to be applied
    */
-  private Map<String, Element> apply(Map<String, Element> definedNames,
+  private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
       NamespaceCombinator[] combinators) {
     for (NamespaceCombinator combinator : combinators) {
       if (combinator instanceof HideCombinator) {
@@ -176,7 +176,8 @@ public class NamespaceBuilder {
    * @param definedNames the names that were defined before this operation
    * @param prefixElement the element defining the prefix to be added to the names
    */
-  private Map<String, Element> apply(Map<String, Element> definedNames, PrefixElement prefixElement) {
+  private HashMap<String, Element> apply(HashMap<String, Element> definedNames,
+      PrefixElement prefixElement) {
     if (prefixElement != null) {
       String prefix = prefixElement.getName();
       HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
@@ -206,7 +207,9 @@ public class NamespaceBuilder {
       for (ExportElement element : library.getExports()) {
         LibraryElement exportedLibrary = element.getExportedLibrary();
         if (!visitedElements.contains(exportedLibrary)) {
-          Map<String, Element> exportedNames = createExportMapping(exportedLibrary, visitedElements);
+          HashMap<String, Element> exportedNames = createExportMapping(
+              exportedLibrary,
+              visitedElements);
           exportedNames = apply(exportedNames, element.getCombinators());
           addAll(definedNames, exportedNames);
         }
@@ -224,7 +227,7 @@ public class NamespaceBuilder {
    * @param definedNames the names that were defined before this operation
    * @param hiddenNames the names to be hidden
    */
-  private void hide(Map<String, Element> definedNames, String[] hiddenNames) {
+  private void hide(HashMap<String, Element> definedNames, String[] hiddenNames) {
     for (String name : hiddenNames) {
       definedNames.remove(name);
     }
@@ -237,7 +240,7 @@ public class NamespaceBuilder {
    * @param definedNames the names that were defined before this operation
    * @param shownNames the names to be shown
    */
-  private Map<String, Element> show(Map<String, Element> definedNames, String[] shownNames) {
+  private HashMap<String, Element> show(HashMap<String, Element> definedNames, String[] shownNames) {
     HashMap<String, Element> newNames = new HashMap<String, Element>(definedNames.size());
     for (String name : shownNames) {
       Element element = definedNames.get(name);
