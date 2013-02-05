@@ -13,7 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionProposal;
+import com.google.dart.tools.core.internal.completion.AnalysisUtil;
+import com.google.dart.tools.core.internal.completion.CompletionContext;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.Messages;
@@ -116,8 +119,12 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
   public List<ICompletionProposal> computeCompletionProposals(
       ContentAssistInvocationContext context, IProgressMonitor monitor) {
     if (context instanceof DartContentAssistInvocationContext) {
-      DartContentAssistInvocationContext javaContext = (DartContentAssistInvocationContext) context;
-      return internalComputeCompletionProposals(context.getInvocationOffset(), javaContext);
+      DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        return internalCreateCompletionProposals(context.getInvocationOffset(), dartContext);
+      } else {
+        return internalComputeCompletionProposals(context.getInvocationOffset(), dartContext);
+      }
     }
     return Collections.emptyList();
   }
@@ -374,6 +381,109 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
             DartTextMessages.CompletionProcessor_error_accessing_message,
             x.getStatus());
       }
+    }
+
+    ICompletionProposal[] javaProposals = collector.getDartCompletionProposals();
+    int contextInformationOffset = guessMethodContextInformationPosition(context);
+    if (contextInformationOffset != offset) {
+      for (int i = 0; i < javaProposals.length; i++) {
+        if (javaProposals[i] instanceof DartMethodCompletionProposal) {
+          DartMethodCompletionProposal jmcp = (DartMethodCompletionProposal) javaProposals[i];
+          jmcp.setContextInformationPosition(contextInformationOffset);
+        }
+      }
+    }
+
+    List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>(
+        Arrays.asList(javaProposals));
+    if (proposals.size() == 0) {
+      String error = collector.getErrorMessage();
+      if (error.length() > 0) {
+        fErrorMessage = error;
+      }
+    }
+    return proposals;
+  }
+
+  // This method will replace internalComputeCompletionProposals()
+  @SuppressWarnings("deprecation")
+  private List<ICompletionProposal> internalCreateCompletionProposals(int offset,
+      DartContentAssistInvocationContext context) {
+    ITextViewer viewer = context.getViewer();
+    CompletionProposalCollector collector = createCollector(context);
+    collector.setInvocationContext(context);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.TYPE_REF,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.FIELD_REF,
+        CompletionProposal.FIELD_IMPORT,
+        true);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.TYPE_REF,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.METHOD_REF,
+        CompletionProposal.METHOD_IMPORT,
+        true);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.CONSTRUCTOR_INVOCATION,
+        CompletionProposal.TYPE_REF,
+        true);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.ANONYMOUS_CLASS_CONSTRUCTOR_INVOCATION,
+        CompletionProposal.TYPE_REF,
+        true);
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.ANONYMOUS_CLASS_DECLARATION,
+        CompletionProposal.TYPE_REF,
+        true);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.TYPE_REF,
+        CompletionProposal.TYPE_REF,
+        true);
+
+    collector.setAllowsRequiredProposals(
+        CompletionProposal.TYPE_IMPORT,
+        CompletionProposal.TYPE_IMPORT,
+        true);
+
+    collector.setFavoriteReferences(getFavoriteStaticMembers());
+
+    try {
+      Point selection = viewer.getSelectedRange();
+      int len = 0;
+      if (selection.y > 0) {
+        collector.setReplacementLength(len = selection.y);
+      }
+      // Use new completion engine.
+      com.google.dart.engine.services.completion.CompletionEngine engine;
+      AnalysisUtil util = new AnalysisUtil();
+      util.setRequestor(collector);
+      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, util);
+      engine.complete(new CompletionContext(context.getInputUnit(), offset, len));
+    } catch (OperationCanceledException x) {
+      IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
+          IBindingService.class);
+      String keyBinding = bindingSvc.getBestActiveBindingFormattedFor(IWorkbenchCommandConstants.EDIT_CONTENT_ASSIST);
+      fErrorMessage = Messages.format(
+          DartTextMessages.CompletionProcessor_error_javaCompletion_took_too_long_message,
+          keyBinding);
     }
 
     ICompletionProposal[] javaProposals = collector.getDartCompletionProposals();

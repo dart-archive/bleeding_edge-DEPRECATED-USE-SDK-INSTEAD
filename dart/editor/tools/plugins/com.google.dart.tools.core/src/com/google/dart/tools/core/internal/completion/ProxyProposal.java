@@ -10,4 +10,7 @@ public class ProxyProposal extends CompletionProposal {
     this.proposal = proposal;
   }
 
+  com.google.dart.engine.services.completion.CompletionProposal getProposal() {
+    return proposal;
+  }
 }

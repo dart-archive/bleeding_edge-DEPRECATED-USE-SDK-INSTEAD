@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.core.internal.completion;
 
-import static junit.framework.Assert.fail;
-
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionMetrics;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.problem.Problem;
+
+import static junit.framework.Assert.fail;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -89,6 +89,11 @@ class MockCompletionRequestor extends CompletionRequestor {
 
   public int getExceptionCount() {
     return exceptionCount;
+  }
+
+  @Override
+  public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    return null;
   }
 
   @Override

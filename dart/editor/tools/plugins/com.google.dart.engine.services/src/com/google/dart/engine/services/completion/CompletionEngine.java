@@ -1,6 +1,6 @@
 package com.google.dart.engine.services.completion;
 
-import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.services.assist.AssistContext;
 
 import static com.google.dart.engine.services.completion.ProposalKind.METHOD;
 
@@ -11,6 +11,7 @@ public class CompletionEngine {
 
   private CompletionRequestor requestor;
   private CompletionFactory factory;
+  private AssistContext context;
 
   public CompletionEngine(CompletionRequestor requestor, CompletionFactory factory) {
     this.requestor = requestor;
@@ -18,10 +19,15 @@ public class CompletionEngine {
   }
 
   /**
-   * Analyze the given source unit to determine completion proposals at the given completion
-   * position.
+   * Analyze the source unit in the given context to determine completion proposals at the selection
+   * offset of the context.
    */
-  public void complete(CompilationUnit sourceUnit, int completionPosition) {
+  public void complete(AssistContext context) {
+    this.context = context;
     requestor.accept(factory.createCompletionProposal(METHOD)); // TODO: silence warning
+  }
+
+  public AssistContext getContext() {
+    return context;
   }
 }

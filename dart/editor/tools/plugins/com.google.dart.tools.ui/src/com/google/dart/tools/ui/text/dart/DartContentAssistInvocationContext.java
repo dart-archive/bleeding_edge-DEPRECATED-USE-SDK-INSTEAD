@@ -23,6 +23,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.SignatureUtil;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.jface.text.ITextViewer;
@@ -172,6 +173,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
    */
   public float getHistoryRelevance(String qualifiedTypeName) {
     return getRHSHistory().getRank(qualifiedTypeName);
+  }
+
+  public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    return ((DartEditor) fEditor).getInputUnit();
   }
 
   /**

@@ -2138,6 +2138,64 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return fCachedSelectedRange;
   }
 
+  /**
+   * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
+   * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
+   */
+  public com.google.dart.engine.element.Element getInputElement() {
+    return getInputUnit().getElement();
+  }
+
+  public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    // TODO(jwren) the Element should not be computed every time, instead, after the AnalysisContext
+    // API has been decided on, this method should get the information from a shared cache
+    java.io.File file = null;
+    if (getEditorInput() instanceof IFileEditorInput) {
+      IFileEditorInput input = (IFileEditorInput) getEditorInput();
+      if (input.getFile().getLocation() != null) {
+        file = input.getFile().getLocation().toFile();
+      }
+    }
+
+    if (file == null) {
+      return null;
+    }
+
+    AnalysisErrorListener ael = new AnalysisErrorListener() {
+      @Override
+      public void onError(AnalysisError error) {
+        // do nothing
+      }
+    };
+
+    // Scanner
+    Source source = new SourceFactory().forFile(file);
+    StringScanner scanner = null;
+    try {
+      scanner = new StringScanner(source, FileUtilities.getContents(file), ael);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    if (scanner == null) {
+      return null;
+    }
+    Token token = scanner.tokenize();
+
+    // Parser
+    Parser parser = new Parser(source, ael);
+    final com.google.dart.engine.ast.CompilationUnit unit = parser.parseCompilationUnit(token);
+
+    // Element Builder
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), ael);
+    CompilationUnitElement element = null;
+    try {
+      element = builder.buildCompilationUnit(source, unit);
+    } catch (AnalysisException e) {
+      e.printStackTrace();
+    }
+    return unit;
+  }
+
   /*
    * @see org.eclipse.ui.part.WorkbenchPart#getOrientation()
    */
@@ -3083,60 +3141,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   protected DartElement getInputDartElement() {
     return EditorUtility.getEditorInputDartElement(this, false);
-  }
-
-  /**
-   * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
-   * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
-   */
-  protected com.google.dart.engine.element.Element getInputElement() {
-    // TODO(jwren) the Element should not be computed every time, instead, after the AnalysisContext
-    // API has been decided on, this method should get the information from a shared cache
-    java.io.File file = null;
-    if (getEditorInput() instanceof IFileEditorInput) {
-      IFileEditorInput input = (IFileEditorInput) getEditorInput();
-      if (input.getFile().getLocation() != null) {
-        file = input.getFile().getLocation().toFile();
-      }
-    }
-
-    if (file == null) {
-      return null;
-    }
-
-    AnalysisErrorListener ael = new AnalysisErrorListener() {
-      @Override
-      public void onError(AnalysisError error) {
-        // do nothing
-      }
-    };
-
-    // Scanner
-    Source source = new SourceFactory().forFile(file);
-    StringScanner scanner = null;
-    try {
-      scanner = new StringScanner(source, FileUtilities.getContents(file), ael);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    if (scanner == null) {
-      return null;
-    }
-    Token token = scanner.tokenize();
-
-    // Parser
-    Parser parser = new Parser(source, ael);
-    final com.google.dart.engine.ast.CompilationUnit unit = parser.parseCompilationUnit(token);
-
-    // Element Builder
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), ael);
-    CompilationUnitElement element = null;
-    try {
-      element = builder.buildCompilationUnit(source, unit);
-    } catch (AnalysisException e) {
-      e.printStackTrace();
-    }
-    return element;
   }
 
   /**

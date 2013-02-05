@@ -166,6 +166,8 @@ public abstract class CompletionRequestor {
     return favoriteReferences;
   }
 
+  public abstract com.google.dart.engine.ast.CompilationUnit getInputUnit();
+
   /**
    * Answer the object used to report completion metrics or <code>null</code> if none. By default,
    * this method returns <code>null</code>, but subclasses may override as desired.

@@ -1790,18 +1790,6 @@ public class CompletionEngine {
     if (monitor != null) {
       monitor.beginTask(Messages.engine_completing, IProgressMonitor.UNKNOWN);
     }
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // Use new completion engine.
-      com.google.dart.engine.services.completion.CompletionEngine engine;
-      AnalysisUtil util = new AnalysisUtil();
-      util.setRequestor(requestor);
-      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, util);
-      engine.complete(null, completionPosition);
-      if (metrics != null) {
-        metrics.completionEnd();
-      }
-      return;
-    }
     try {
       fileName = sourceUnit.getPath();
       // look for the node that ends before the cursor position,

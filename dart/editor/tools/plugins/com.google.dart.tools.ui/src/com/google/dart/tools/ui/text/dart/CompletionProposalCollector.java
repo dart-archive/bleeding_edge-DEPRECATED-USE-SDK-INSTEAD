@@ -303,6 +303,11 @@ public class CompletionProposalCollector extends CompletionRequestor {
     return ""; //$NON-NLS-1$
   }
 
+  @Override
+  public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    return fInvocationContext.getInputUnit();
+  }
+
   /**
    * Returns the unsorted list of received keyword proposals.
    * 
