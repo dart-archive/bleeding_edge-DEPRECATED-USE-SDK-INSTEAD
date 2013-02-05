@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,19 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.utilities.source;
-
-import com.google.dart.engine.ExtendedTestSuite;
+package com.google.dart.engine.services.internal;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
 public class TestAll {
   public static Test suite() {
-    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(LineInfoTest.class);
-    suite.addTestSuite(SourceRangeTest.class);
-    suite.addTestSuite(SourceRangeFactoryTest.class);
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTest(com.google.dart.engine.services.internal.correction.TestAll.suite());
     return suite;
   }
 }

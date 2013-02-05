@@ -16,39 +16,75 @@ package com.google.dart.engine.services.assist;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.source.Source;
 
 /**
  * Context for which corrections should be provided.
  */
-public interface AssistContext {
+public class AssistContext {
+  private final Source source;
+  private final CompilationUnit compilationUnit;
+  private final int selectionOffset;
+  private final int selectionLength;
+  private ASTNode coveredNode;
+  private ASTNode coveringNode;
+
+  public AssistContext(Source source, CompilationUnit compilationUnit, int selectionOffset,
+      int selectionLength) {
+    this.source = source;
+    this.compilationUnit = compilationUnit;
+    this.selectionOffset = selectionOffset;
+    this.selectionLength = selectionLength;
+  }
+
   /**
    * @return the resolved {@link CompilationUnit} of the {@link Source}.
    */
-  CompilationUnit getCompilationUnit();
+  public CompilationUnit getCompilationUnit() {
+    return compilationUnit;
+  }
 
   /**
    * @return the {@link ASTNode} that is covered by the selection.
    */
-  ASTNode getCoveredNode();
+  public ASTNode getCoveredNode() {
+    if (coveredNode == null) {
+      NodeLocator locator = new NodeLocator(selectionOffset, selectionOffset);
+      coveredNode = locator.searchWithin(compilationUnit);
+    }
+    return coveredNode;
+  }
 
   /**
    * @return the ASTNode that covers the selection.
    */
-  ASTNode getCoveringNode();
+  public ASTNode getCoveringNode() {
+    if (coveringNode == null) {
+      NodeLocator locator = new NodeLocator(selectionOffset, selectionOffset + selectionLength);
+      coveringNode = locator.searchWithin(compilationUnit);
+    }
+    return coveringNode;
+  }
 
   /**
    * @return the length of the selection.
    */
-  int getSelectionLength();
+  public int getSelectionLength() {
+    return selectionLength;
+  }
 
   /**
    * @return the offset of the selection.
    */
-  int getSelectionOffset();
+  public int getSelectionOffset() {
+    return selectionOffset;
+  }
 
   /**
    * @return the {@link Source} to provide corrections in.
    */
-  Source getSource();
+  public Source getSource() {
+    return source;
+  }
 }

@@ -9,7 +9,9 @@ Require-Bundle: com.google.dart.engine
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: com.google.dart.engine.services.assist,
- com.google.dart.engine.services.completion
+ com.google.dart.engine.services.completion,
+ com.google.dart.engine.services.correction,
+ com.google.dart.engine.services.internal.correction;x-friends:="com.google.dart.engine.services_test"
 Bundle-ClassPath: .,
  third_party/guava/r13/guava-13.0.1.jar,
  third_party/commons-lang/3.1/commons-lang3-3.1.jar

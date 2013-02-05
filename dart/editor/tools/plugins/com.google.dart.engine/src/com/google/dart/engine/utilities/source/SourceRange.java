@@ -57,7 +57,7 @@ public final class SourceRange {
    *         relative to the source buffer in which this element is contained.
    */
   public int getEnd() {
-    return offset;
+    return offset + length;
   }
 
   /**

@@ -1029,9 +1029,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     waitEventLoop(0);
   }
 
-  private void assert_addTypeAnnotation(
-      String initialSource,
-      String offsetPattern,
+  private void assert_addTypeAnnotation(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_addTypeAnnotation,
@@ -1040,9 +1038,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         expectedSource);
   }
 
-  private void assert_addTypeAnnotation_classField(
-      String initialDeclaration,
-      String offsetPattern,
+  private void assert_addTypeAnnotation_classField(String initialDeclaration, String offsetPattern,
       String expectedDeclaration) throws Exception {
     String initialSource = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1059,10 +1055,8 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
-  private void assert_addTypeAnnotation_localVariable(
-      String initialStatement,
-      String offsetPattern,
-      String expectedStatement) throws Exception {
+  private void assert_addTypeAnnotation_localVariable(String initialStatement,
+      String offsetPattern, String expectedStatement) throws Exception {
     String initialSource = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -1078,10 +1072,8 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
-  private void assert_addTypeAnnotation_topLevelField(
-      String initialDeclaration,
-      String offsetPattern,
-      String expectedDeclaration) throws Exception {
+  private void assert_addTypeAnnotation_topLevelField(String initialDeclaration,
+      String offsetPattern, String expectedDeclaration) throws Exception {
     String initialSource = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         initialDeclaration,
@@ -1093,9 +1085,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
-  private void assert_convertGetterToMethodRefactoring(
-      String source,
-      String offsetPattern,
+  private void assert_convertGetterToMethodRefactoring(String source, String offsetPattern,
       boolean expected) throws Exception {
     String name = CorrectionMessages.ConvertGetterToMethodRefactoringProposal_name;
     if (expected) {
@@ -1105,9 +1095,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     }
   }
 
-  private void assert_convertMethodToGetterRefactoring(
-      String source,
-      String offsetPattern,
+  private void assert_convertMethodToGetterRefactoring(String source, String offsetPattern,
       boolean expected) throws Exception {
     String name = CorrectionMessages.ConvertMethodToGetterRefactoringProposal_name;
     if (expected) {
@@ -1117,10 +1105,8 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     }
   }
 
-  private void assert_convertOptionalParametersToNamedRefactoring(
-      String source,
-      String offsetPattern,
-      boolean expected) throws Exception {
+  private void assert_convertOptionalParametersToNamedRefactoring(String source,
+      String offsetPattern, boolean expected) throws Exception {
     String name = CorrectionMessages.ConvertOptionalParametersToNamedRefactoringProposal_name;
     if (expected) {
       assertHasProposal(source, offsetPattern, name);
@@ -1129,9 +1115,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     }
   }
 
-  private void assert_convertToBlockBody(
-      String initialSource,
-      String offsetPattern,
+  private void assert_convertToBlockBody(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_convertToBlockBody,
@@ -1145,9 +1129,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_convertToBlockBody(initialSource, offsetPattern, initialSource);
   }
 
-  private void assert_convertToExpressionBody(
-      String initialSource,
-      String offsetPattern,
+  private void assert_convertToExpressionBody(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_convertToExpressionBody,
@@ -1161,10 +1143,8 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_convertToExpressionBody(initialSource, offsetPattern, initialSource);
   }
 
-  private void assert_exchangeBinaryExpressionArguments_success(
-      String initialExpression,
-      String offsetPattern,
-      String expectedExpression) throws Exception {
+  private void assert_exchangeBinaryExpressionArguments_success(String initialExpression,
+      String offsetPattern, String expectedExpression) throws Exception {
     String initialSource = "var v = " + initialExpression + ";";
     String expectedSource = "var v = " + expectedExpression + ";";
     assert_runProcessor(
@@ -1174,15 +1154,12 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         expectedSource);
   }
 
-  private void assert_exchangeBinaryExpressionArguments_wrong(
-      String expression,
+  private void assert_exchangeBinaryExpressionArguments_wrong(String expression,
       String offsetPattern) throws Exception {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
   }
 
-  private void assert_joinVariableDeclaration(
-      String initialSource,
-      String offsetPattern,
+  private void assert_joinVariableDeclaration(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_joinVariableDeclaration,
@@ -1196,9 +1173,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_joinVariableDeclaration(expression, offsetPattern, expression);
   }
 
-  private void assert_removeTypeAnnotation(
-      String initialSource,
-      String offsetPattern,
+  private void assert_removeTypeAnnotation(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_removeTypeAnnotation,
@@ -1207,10 +1182,8 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         expectedSource);
   }
 
-  private void assert_removeTypeAnnotation_localVariable(
-      String initialStatement,
-      String offsetPattern,
-      String expectedStatement) throws Exception {
+  private void assert_removeTypeAnnotation_localVariable(String initialStatement,
+      String offsetPattern, String expectedStatement) throws Exception {
     String initialSource = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -1226,9 +1199,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_removeTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
-  private void assert_replaceConditionalWithIfElse(
-      String initialSource,
-      String offsetPattern,
+  private void assert_replaceConditionalWithIfElse(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_replaceConditionalWithIfElse,
@@ -1237,9 +1208,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
         expectedSource);
   }
 
-  private void assert_replaceIfElseWithConditional(
-      String initialSource,
-      String offsetPattern,
+  private void assert_replaceIfElseWithConditional(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_replaceIfElseWithConditional,
@@ -1256,10 +1225,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
   /**
    * Asserts that running proposal with given name produces expected source.
    */
-  private void assert_runProcessor(
-      String proposalName,
-      String initialSource,
-      String offsetPattern,
+  private void assert_runProcessor(String proposalName, String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
 //    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_splitAndCondition)) {
@@ -1277,9 +1243,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assertEquals(expectedSource, result);
   }
 
-  private void assert_splitAndCondition(
-      String initialSource,
-      String offsetPattern,
+  private void assert_splitAndCondition(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_splitAndCondition,
@@ -1293,9 +1257,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     assert_splitAndCondition(initialSource, offsetPattern, initialSource);
   }
 
-  private void assert_splitVariableDeclaration(
-      String initialSource,
-      String offsetPattern,
+  private void assert_splitVariableDeclaration(String initialSource, String offsetPattern,
       String expectedSource) throws Exception {
     assert_runProcessor(
         CorrectionMessages.QuickAssistProcessor_splitVariableDeclaration,

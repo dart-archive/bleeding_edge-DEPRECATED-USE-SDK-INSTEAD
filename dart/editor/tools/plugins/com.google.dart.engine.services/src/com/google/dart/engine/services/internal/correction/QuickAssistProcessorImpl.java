@@ -28,6 +28,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
+import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -36,6 +37,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Implementation of {@link QuickAssistProcessor}.
  */
 public class QuickAssistProcessorImpl implements QuickAssistProcessor {
+  private static final int DEFAULT_RELEVANCE = 30;
+
   /**
    * @return the {@link Edit} to replace {@link SourceRange} with "text".
    */
@@ -76,20 +79,37 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
   private Source source;
   private ASTNode node;
   private int selectionOffset;
-
   private int selectionLength;
+  private int proposalRelevance = DEFAULT_RELEVANCE;
 
   @Override
   public CorrectionProposal[] getProposals(AssistContext context) {
+    proposals.clear();
     source = context.getSource();
     node = context.getCoveringNode();
     selectionOffset = context.getSelectionOffset();
     selectionLength = context.getSelectionLength();
-    try {
-      textEdits.clear();
-      addProposal_exchangeOperands();
-    } catch (Throwable e) {
+    // TODO(scheglov) use ExecutionUtils
+    for (final Method method : QuickAssistProcessorImpl.class.getDeclaredMethods()) {
+      if (method.getName().startsWith("addProposal_")) {
+        resetProposalElements();
+        try {
+          method.invoke(QuickAssistProcessorImpl.this);
+        } catch (Throwable e) {
+        }
+//        ExecutionUtils.runIgnore(new RunnableEx() {
+//          @Override
+//          public void run() throws Exception {
+//            method.invoke(QuickAssistProcessor.this);
+//          }
+//        });
+      }
     }
+//    try {
+//      textEdits.clear();
+//      addProposal_exchangeOperands();
+//    } catch (Throwable e) {
+//    }
     return proposals.toArray(new CorrectionProposal[proposals.size()]);
   }
 
@@ -111,14 +131,14 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       // find "wide" enclosing binary expression with same operator
       while (binaryExpression.getParent() instanceof BinaryExpression) {
         BinaryExpression newBinaryExpression = (BinaryExpression) binaryExpression.getParent();
-        if (newBinaryExpression.getOperator() != binaryExpression.getOperator()) {
+        if (newBinaryExpression.getOperator().getType() != binaryExpression.getOperator().getType()) {
           break;
         }
         binaryExpression = newBinaryExpression;
       }
       // exchange parts of "wide" expression parts
-      SourceRange leftRange = SourceRangeFactory.forStartEnd(binaryExpression, leftOperand);
-      SourceRange rightRange = SourceRangeFactory.forStartEnd(rightOperand, binaryExpression);
+      SourceRange leftRange = SourceRangeFactory.rangeStartEnd(binaryExpression, leftOperand);
+      SourceRange rightRange = SourceRangeFactory.rangeStartEnd(rightOperand, binaryExpression);
       addReplaceEdit(leftRange, getSource(rightRange));
       addReplaceEdit(rightRange, getSource(leftRange));
     }
@@ -133,22 +153,17 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     textEdits.add(createReplaceEdit(range, text));
   }
 
-  // TODO(scheglov)
+  /**
+   * Adds {@link CorrectionProposal} with single {@link SourceChange} to {@link #proposals}.
+   */
   private void addUnitCorrectionProposal(String name, CorrectionImage image) {
-    CorrectionProposal proposal = new CorrectionProposal(image, name, selectionLength);
+    CorrectionProposal proposal = new CorrectionProposal(image, name, proposalRelevance);
     SourceChange change = new SourceChange(source);
     for (Edit edit : textEdits) {
       change.addEdit(edit);
     }
     proposal.addChange(change);
     proposals.add(proposal);
-  }
-
-  /**
-   * @return the part of {@link #source} content.
-   */
-  private String getSource(ASTNode node) throws Exception {
-    return getSource(node.getOffset(), node.getLength());
   }
 
   /**
@@ -170,10 +185,28 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     return result.get();
   }
 
+//  /**
+//   * @return the part of {@link #source} content.
+//   */
+//  private String getSource(ASTNode node) throws Exception {
+//    return getSource(node.getOffset(), node.getLength());
+//  }
+
   /**
    * @return the part of {@link #source} content.
    */
   private String getSource(SourceRange range) throws Exception {
     return getSource(range.getOffset(), range.getLength());
+  }
+
+  // TODO(scheglov) add more reset operations
+  private void resetProposalElements() {
+    textEdits.clear();
+    proposalRelevance = DEFAULT_RELEVANCE;
+//    linkedPositions.clear();
+//    positionStopEdits.clear();
+//    linkedPositionProposals.clear();
+//    proposal = null;
+//    proposalEndRange = null;
   }
 }
