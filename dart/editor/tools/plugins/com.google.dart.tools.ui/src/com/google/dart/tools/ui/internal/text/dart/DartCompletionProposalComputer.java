@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.completion.AnalysisUtil;
-import com.google.dart.tools.core.internal.completion.CompletionContext;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.Messages;
@@ -476,7 +476,7 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       AnalysisUtil util = new AnalysisUtil();
       util.setRequestor(collector);
       engine = new com.google.dart.engine.services.completion.CompletionEngine(util, util);
-      engine.complete(new CompletionContext(context.getInputUnit(), offset, len));
+      engine.complete(new AssistContext(context.getInputUnit(), offset, len));
     } catch (OperationCanceledException x) {
       IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
           IBindingService.class);

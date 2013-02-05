@@ -14,6 +14,8 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -32,6 +34,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -196,13 +199,16 @@ public class QuickAssistProcessorImplTest extends TestCase {
         return null;
       }
     }).when(testSource).getContents(any(Source.ContentReceiver.class));
+    // parse
+    CompilationUnit compilationUnit = ParserTestCase.parseCompilationUnit(testCode);
+    {
+      CompilationUnitElement element = mock(CompilationUnitElement.class);
+      when(element.getSource()).thenReturn(testSource);
+      compilationUnit.setElement(element);
+    }
     // prepare proposals
     int offset = findOffset(offsetPattern);
-    AssistContext context = new AssistContext(
-        testSource,
-        ParserTestCase.parseCompilationUnit(testCode),
-        offset,
-        selectionLength);
+    AssistContext context = new AssistContext(compilationUnit, offset, selectionLength);
     return PROCESSOR.getProposals(context);
   }
 }

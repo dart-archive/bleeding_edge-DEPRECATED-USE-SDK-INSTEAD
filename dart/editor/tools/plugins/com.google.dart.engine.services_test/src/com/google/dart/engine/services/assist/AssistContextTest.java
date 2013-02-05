@@ -16,12 +16,14 @@ package com.google.dart.engine.services.assist;
 
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.source.Source;
 
 import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AssistContextTest extends TestCase {
   private static String toString(String... lines) {
@@ -31,13 +33,12 @@ public class AssistContextTest extends TestCase {
   public void test_access() throws Exception {
     Source source = mock(Source.class);
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
+    CompilationUnitElement compilationUnitElement = mock(CompilationUnitElement.class);
+    when(compilationUnit.getElement()).thenReturn(compilationUnitElement);
+    when(compilationUnitElement.getSource()).thenReturn(source);
     int selectionOffset = 10;
     int selectionLength = 2;
-    AssistContext context = new AssistContext(
-        source,
-        compilationUnit,
-        selectionOffset,
-        selectionLength);
+    AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
     assertSame(source, context.getSource());
     assertSame(compilationUnit, context.getCompilationUnit());
     assertEquals(10, context.getSelectionOffset());
@@ -45,7 +46,6 @@ public class AssistContextTest extends TestCase {
   }
 
   public void test_getNode() throws Exception {
-    Source source = mock(Source.class);
     String sourceContent = toString(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -58,11 +58,7 @@ public class AssistContextTest extends TestCase {
       int selectionOffset = sourceContent.indexOf("tring ");
       int selectionEnd = sourceContent.indexOf("ng ");
       int selectionLength = selectionEnd - selectionOffset;
-      AssistContext context = new AssistContext(
-          source,
-          compilationUnit,
-          selectionOffset,
-          selectionLength);
+      AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
       assertSame(compilationUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String", context.getCoveringNode().toSource());
@@ -74,11 +70,7 @@ public class AssistContextTest extends TestCase {
       int selectionOffset = sourceContent.indexOf("tring ");
       int selectionEnd = sourceContent.indexOf(" = ''");
       int selectionLength = selectionEnd - selectionOffset;
-      AssistContext context = new AssistContext(
-          source,
-          compilationUnit,
-          selectionOffset,
-          selectionLength);
+      AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
       assertSame(compilationUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String text = ''", context.getCoveringNode().toSource());

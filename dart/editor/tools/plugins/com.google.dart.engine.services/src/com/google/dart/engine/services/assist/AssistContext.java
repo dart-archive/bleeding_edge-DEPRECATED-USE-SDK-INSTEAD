@@ -17,22 +17,20 @@ package com.google.dart.engine.services.assist;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.source.Source;
 
 /**
  * Context for which corrections should be provided.
  */
 public class AssistContext {
-  private final Source source;
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
   private final int selectionLength;
   private ASTNode coveredNode;
   private ASTNode coveringNode;
 
-  public AssistContext(Source source, CompilationUnit compilationUnit, int selectionOffset,
-      int selectionLength) {
-    this.source = source;
+  public AssistContext(CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
@@ -85,6 +83,10 @@ public class AssistContext {
    * @return the {@link Source} to provide corrections in.
    */
   public Source getSource() {
-    return source;
+    CompilationUnitElement element = compilationUnit.getElement();
+    if (element != null) {
+      return element.getSource();
+    }
+    return null;
   }
 }
