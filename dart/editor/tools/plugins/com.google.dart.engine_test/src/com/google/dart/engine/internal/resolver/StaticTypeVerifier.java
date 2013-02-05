@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.LibraryIdentifier;
@@ -104,6 +105,12 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitCommentReference(CommentReference node) {
+    // Do nothing.
+    return null;
+  }
+
+  @Override
   public Void visitExpression(Expression node) {
     node.visitChildren(this);
     if (node.getStaticType() == null) {
@@ -122,7 +129,8 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitTypeName(TypeName node) {
-    node.visitChildren(this);
+    // Note: do not visit children from this node, the child SimpleIdentifier in TypeName
+    // (i.e. "String") does not have a static type defined.
     if (node.getType() == null) {
       unresolvedTypes.add(node);
     } else {
