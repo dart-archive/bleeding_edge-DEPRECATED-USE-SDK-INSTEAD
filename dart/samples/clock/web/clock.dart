@@ -37,9 +37,9 @@ class CountDownClock {
   List<ClockNumber> hours = new List<ClockNumber>.fixedLength(2);
   List<ClockNumber> minutes = new List<ClockNumber>.fixedLength(2);
   List<ClockNumber> seconds = new List<ClockNumber>.fixedLength(2);
-  int displayedHour = 0;
-  int displayedMinute = 0;
-  int displayedSecond = 0;
+  int displayedHour = -1;
+  int displayedMinute = -1;
+  int displayedSecond = -1;
   Balls balls = new Balls();
 
   CountDownClock() {
