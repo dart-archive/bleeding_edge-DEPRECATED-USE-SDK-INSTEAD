@@ -17,9 +17,11 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
@@ -157,6 +159,18 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    Scope outerScope = nameScope;
+    try {
+      nameScope = new FunctionScope(nameScope, node.getElement());
+      super.visitConstructorDeclaration(node);
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @Override
   public Void visitDoStatement(DoStatement node) {
     LabelScope outerScope = labelScope;
     labelScope = new LabelScope(outerScope, false, false);
@@ -188,6 +202,18 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       super.visitForStatement(node);
     } finally {
       labelScope = outerScope;
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    Scope outerScope = nameScope;
+    try {
+      nameScope = new FunctionScope(nameScope, node.getElement());
+      super.visitFunctionDeclaration(node);
+    } finally {
+      nameScope = outerScope;
     }
     return null;
   }
