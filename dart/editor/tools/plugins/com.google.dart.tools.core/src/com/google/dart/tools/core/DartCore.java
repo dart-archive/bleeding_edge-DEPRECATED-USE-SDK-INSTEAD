@@ -146,6 +146,11 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PACKAGE_ROOT_DIR_PREFERENCE = "package root";
 
   /**
+   * Preference for the automatically running pub
+   */
+  public static final String PUB_AUTO_RUN_PREFERENCE = "pub auto run";
+
+  /**
    * Preference for the external resources directory
    */
   public static final String AUXILIARY_DIR_PREFERENCE = "external resources";
@@ -941,6 +946,11 @@ public class DartCore extends Plugin implements DartSdkListener {
     return System.getProperty("os.name").toLowerCase().startsWith("win");
   }
 
+  public static boolean isWindowsXp() {
+    // Look for the "Windows XP" OS name.
+    return System.getProperty("os.name").toLowerCase().equals("windows xp");
+  }
+
   /**
    * Log the given message as an error.
    * 
@@ -1262,6 +1272,10 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
+  }
+
+  public boolean isAutoRunPubEnabled() {
+    return DartCore.getPlugin().getPrefs().getBoolean(PUB_AUTO_RUN_PREFERENCE, true);
   }
 
   @Override

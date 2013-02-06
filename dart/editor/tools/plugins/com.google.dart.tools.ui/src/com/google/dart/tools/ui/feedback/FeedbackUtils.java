@@ -49,6 +49,7 @@ public class FeedbackUtils {
     public final long freeMem = Runtime.getRuntime().freeMemory();
     public final String indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
     public final String analysisStats = server.getAnalysisStatus("analysis");
+    public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
 
     @Override
     public String toString() {
@@ -59,6 +60,8 @@ public class FeedbackUtils {
 
       writer.print("# open dart files: ");
       writer.println(countString(numEditors));
+
+      writer.println("auto-run pub: " + autoRunPubEnabled);
 
       writer.print("mem max/total/free: ");
       writer.print(convertToMeg(maxMem));
