@@ -275,8 +275,7 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       if (member instanceof ClassDeclaration) {
         ClassDeclaration classDeclaration = (ClassDeclaration) member;
         String name = classDeclaration.getName().getName();
-        if (name.equals("NodeList") || name.equals("NodeLocator")
-            || name.equals("NodeFoundException")) {
+        if (name.equals("NodeList")) {
           iter.remove();
         }
       }

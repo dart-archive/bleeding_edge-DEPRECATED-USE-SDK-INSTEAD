@@ -54,7 +54,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  Object getAncestor(Type t) {",
         "    if (isInstanceOf(this, t)) {", // from javalib
-        "      return this as Object;",
+        "      return (this as Object);",
         "    }",
         "    return null;",
         "  }",
@@ -174,22 +174,6 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  int test(String p) => int.parse(p);",
         "  int testX(String p) => int.parse(p, radix: 16);",
-        "}");
-  }
-
-  public void test_Integer_toString() throws Exception {
-    translateSingleFile(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "package test;",
-        "public class Test {",
-        "  public String foo(int p) {",
-        "    return Integer.toString(p);",
-        "  }",
-        "}");
-    ObjectSemanticProcessor.INSTANCE.process(context, unit);
-    assertFormattedSource(//
-        "class Test {",
-        "  String foo(int p) => p.toString();",
         "}");
   }
 
@@ -401,7 +385,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    print(a + b);",
         "    print(a - b);",
         "    print(a * b);",
-        "    print(a / b);",
+        "    print(a ~/ b);",
         "    print(a << b);",
         "    print(a >> b);",
         "    print(~a);",
@@ -412,6 +396,36 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    print(a != b);",
         "  }",
         "  static void print(Object p) {",
+        "  }",
+        "}");
+  }
+
+  public void test_primitiveWrapper_toString() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void mainInteger(int p) {",
+        "    Integer.toString(p);",
+        "  }",
+        "  public void mainLong(long p) {",
+        "    Long.toString(p);",
+        "  }",
+        "  public void mainInteger(double p) {",
+        "    Double.toString(p);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void mainInteger(int p) {",
+        "    p.toString();",
+        "  }",
+        "  void mainLong(int p) {",
+        "    p.toString();",
+        "  }",
+        "  void mainInteger2(double p) {",
+        "    p.toString();",
         "  }",
         "}");
   }

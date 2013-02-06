@@ -20,7 +20,17 @@ bool isInstanceOf(o, Type t) {
     return true;
   }
   String oTypeName = o.runtimeType.toString();
-  if (oTypeName == "${t.toString()}Impl") {
+  String tTypeName = t.toString();
+  if (oTypeName == tTypeName) {
+    return true;
+  }
+  if (oTypeName == "${tTypeName}Impl") {
+    return true;
+  }
+  if (oTypeName.startsWith("_HashMap") && tTypeName == "Map") {
+    return true;
+  }
+  if (oTypeName.startsWith("List") && tTypeName == "List") {
     return true;
   }
   return false;

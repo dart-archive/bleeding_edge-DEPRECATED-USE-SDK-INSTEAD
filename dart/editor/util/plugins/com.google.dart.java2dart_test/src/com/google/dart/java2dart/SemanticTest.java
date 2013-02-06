@@ -23,6 +23,57 @@ import java.io.File;
  */
 public class SemanticTest extends AbstractSemanticTest {
 
+  // XXX
+  public void _test_generateEffectiveDivision() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  int mainA(int a, int b) {",
+            "    ",
+            "  ",
+            "  ",
+            "  ",
+            "  ",
+            "  ",
+            "  ",
+            "  ",
+            "  static void foo() {}",
+            "}",
+            ""));
+    setFileLines(
+        "test/B.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class B {",
+            "  static void bar() {",
+            "    print(A.foo);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    context.addRename("Ltest/A;.foo", "myField");
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  int myField = 0;",
+            "  static void foo() {",
+            "  }",
+            "}",
+            "class B {",
+            "  static void bar() {",
+            "    print(A.myField);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_anonymousClass_extendsClass() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -682,6 +733,42 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void bar() {",
             "    value();",
             "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  /**
+   * In Java we can have method parameter "foo" and invoke method named "foo", and parameter will
+   * not shadow invoked method. But in Dart it will.
+   */
+  public void test_giveUniqueName_methodParameter() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  public int foo() {",
+            "    return 42;",
+            "  }",
+            "  public int bar1(int foo) {",
+            "    return foo(foo);",
+            "  }",
+            "  public int bar2(int foo) {",
+            "    return foo;",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  int foo() => 42;",
+            "  int bar1(int foo2) => foo(foo2);",
+            "  int bar2(int foo) => foo;",
             "}"),
         getFormattedSource(unit));
   }

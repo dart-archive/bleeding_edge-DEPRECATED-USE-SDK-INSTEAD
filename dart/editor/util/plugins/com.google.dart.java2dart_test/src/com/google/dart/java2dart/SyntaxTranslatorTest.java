@@ -380,7 +380,7 @@ public class SyntaxTranslatorTest extends TestCase {
     assertDartSource(//
         "class Test {",
         "  void main(Object p) {",
-        "    print(p as int);",
+        "    print((p as int));",
         "  }",
         "}");
   }
@@ -1484,6 +1484,24 @@ public class SyntaxTranslatorTest extends TestCase {
     assertDartSource(//
         "class A {",
         "  void test(List<String> items, List<List<String>> labels) {",
+        "  }",
+        "}");
+  }
+
+  public void test_typeLiteral_wrapper() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void test() {",
+        "    print(Integer.class);",
+        "    print(Double.class);",
+        "  }",
+        "}");
+    assertDartSource(//
+        "class A {",
+        "  void test() {",
+        "    print(int);",
+        "    print(double);",
         "  }",
         "}");
   }

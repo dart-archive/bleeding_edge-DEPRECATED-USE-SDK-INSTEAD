@@ -25,12 +25,10 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import static com.google.dart.engine.ast.ASTFactory.*;
 import static com.google.dart.engine.scanner.TokenFactory.token;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitAdjacentStrings() {
@@ -1498,9 +1496,8 @@ public class ToSourceVisitorTest extends EngineTestCase {
    * @throws AFE if the visitor does not produce the expected source for the given node
    */
   private void assertSource(String expectedSource, ASTNode node) {
-    StringWriter writer = new StringWriter();
-    ToSourceVisitor visitor = new ToSourceVisitor(new PrintWriter(writer));
-    node.accept(visitor);
+    PrintStringWriter writer = new PrintStringWriter();
+    node.accept(new ToSourceVisitor(writer));
     assertEquals(expectedSource, writer.toString());
   }
 }

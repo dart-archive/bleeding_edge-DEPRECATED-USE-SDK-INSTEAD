@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -398,7 +399,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.CastExpression node) {
     Expression expression = translate(node.getExpression());
     TypeName typeName = translate(node.getType());
-    return done(asExpression(expression, typeName));
+    AsExpression asExpression = asExpression(expression, typeName);
+    return done(parenthesizedExpression(asExpression));
   }
 
   @Override
@@ -927,7 +929,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       //
       List<Expression> implInvArgs = Lists.newArrayList();
       for (FormalParameter parameter : parameterList.getParameters()) {
-        implInvArgs.add(simpleIdentifier(parameter.getIdentifier().getName()));
+        implInvArgs.add(parameter.getIdentifier());
       }
       Expression implInvocation = methodInvocation(constructorImplName, implInvArgs);
       Statement conStatement = expressionStatement(implInvocation);
@@ -1369,9 +1371,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.TypeLiteral node) {
     org.eclipse.jdt.core.dom.Type javaType = node.getType();
-    ASTNode result = null;
+    Identifier result = null;
     if (javaType instanceof org.eclipse.jdt.core.dom.SimpleType) {
-      result = translate(((org.eclipse.jdt.core.dom.SimpleType) javaType).getName());
+      result = ((TypeName) translate(javaType)).getName();
     }
     return done(result);
   }

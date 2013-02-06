@@ -29,6 +29,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.ListLiteral;
@@ -176,6 +177,63 @@ public class Context {
     Assert.isLegal(folder.isDirectory(), "Folder '" + folder + "' is not a folder.");
     folder = folder.getAbsoluteFile();
     sourceFolders.add(folder);
+  }
+
+  // XXX
+  public void ensureMethodParameterDoesNotHide(CompilationUnit unit) {
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      private String currentVariableName = null;
+      private boolean hasNameReference = false;
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        for (FormalParameter parameter : node.getParameters().getParameters()) {
+          final String parameterName = parameter.getIdentifier().getName();
+          final Object parameterBinding = getNodeBinding(parameter.getIdentifier());
+          final AtomicBoolean hasHiding = new AtomicBoolean();
+          node.accept(new RecursiveASTVisitor<Void>() {
+            @Override
+            public Void visitSimpleIdentifier(SimpleIdentifier node) {
+              if (node.getName().equals(parameterName) && getNodeBinding(node) != parameterBinding) {
+                hasHiding.set(true);
+              }
+              return super.visitSimpleIdentifier(node);
+            }
+          });
+          if (hasHiding.get()) {
+            String newName = generateUniqueName(parameterName);
+            renameIdentifier(parameter.getIdentifier(), newName);
+          }
+        }
+        return super.visitMethodDeclaration(node);
+      }
+
+      @Override
+      public Void visitSimpleIdentifier(SimpleIdentifier node) {
+        hasNameReference |= node.getName().equals(currentVariableName);
+        return super.visitSimpleIdentifier(node);
+      }
+
+      @Override
+      public Void visitVariableDeclaration(VariableDeclaration node) {
+        String oldVariableName = currentVariableName;
+        try {
+          currentVariableName = node.getName().getName();
+          hasNameReference = false;
+          Expression initializer = node.getInitializer();
+          if (initializer != null) {
+            initializer.accept(this);
+          }
+          if (hasNameReference || forbiddenNames.contains(currentVariableName)) {
+            String newName = generateUniqueName(currentVariableName);
+            renameIdentifier(node.getName(), newName);
+          }
+        } finally {
+          currentVariableName = oldVariableName;
+        }
+        return null;
+      }
+    });
   }
 
   public void ensureNoVariableNameReferenceFromInitializer(CompilationUnit unit) {
@@ -420,6 +478,7 @@ public class Context {
       dontUseThisInFieldInitializers(dartUniverse);
       ensureUniqueClassMemberNames(dartUniverse);
       ensureNoVariableNameReferenceFromInitializer(dartUniverse);
+      ensureMethodParameterDoesNotHide(dartUniverse);
       renameConstructors(dartUniverse);
     }
     // done

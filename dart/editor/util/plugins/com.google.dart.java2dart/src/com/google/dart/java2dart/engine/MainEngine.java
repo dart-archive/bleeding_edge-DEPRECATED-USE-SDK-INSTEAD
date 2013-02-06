@@ -114,6 +114,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast/visitor"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/element"));
@@ -134,6 +135,10 @@ public class MainEngine {
         "com/google/dart/engine/error/GatheringErrorListener.java"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/parser"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/ast"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/element"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/element"));
+    context.addSourceFiles(new File(engineTestFolder, "com/google/dart/engine/internal/type"));
     // configure renames
     context.addRename(
         "Lcom/google/dart/engine/ast/IndexExpression;.(Lcom/google/dart/engine/ast/Expression;"
@@ -252,6 +257,19 @@ public class MainEngine {
       Files.write(getFormattedSource(library), libraryFile, Charsets.UTF_8);
       Files.append(methodWriter.toString(), libraryFile, Charsets.UTF_8);
     }
+    {
+      CompilationUnit library = buildAstTestLibrary();
+      File astFile = new File(targetTestFolder + "/ast_test.dart");
+      Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
+    }
+    // TODO(scheglov)
+//    {
+//      CompilationUnit library = buildElementTestLibrary();
+//      Files.write(
+//          getFormattedSource(library),
+//          new File(targetTestFolder + "/element_test.dart"),
+//          Charsets.UTF_8);
+//    }
     System.out.println("Translation complete");
   }
 
@@ -276,6 +294,43 @@ public class MainEngine {
     return unit;
   }
 
+  private static CompilationUnit buildAstTestLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "ast_test"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(
+        importDirective(src_package + "element.dart", null, importShowCombinator("ClassElement")));
+    unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
+    unit.getDirectives().add(
+        importDirective("parser_test.dart", null, importShowCombinator("ParserTestCase")));
+    unit.getDirectives().add(importDirective("test_support.dart", null));
+    unit.getDirectives().add(
+        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "ast/")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
+      }
+    }
+    EngineSemanticProcessor.addMain(unit, mainStatements);
+    return unit;
+  }
+
   private static CompilationUnit buildElementLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "element"));
@@ -296,6 +351,45 @@ public class MainEngine {
         unit.getDeclarations().add(member);
       }
     }
+    return unit;
+  }
+
+  // TODO(scheglov)
+  private static CompilationUnit buildElementTestLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "parser_test"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "java_junit.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "source.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
+    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(
+        importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
+    unit.getDirectives().add(
+        importDirective(src_package + "element.dart", null, importHideCombinator("Annotation")));
+//    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
+    unit.getDirectives().add(importDirective("test_support.dart", null));
+    unit.getDirectives().add(
+        importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    List<Statement> mainStatements = Lists.newArrayList();
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEngineTestPath(file, "ast/") || isEngineTestPath(file, "element/")
+          || isEngineTestPath(file, "internal/element/")
+          || isEngineTestPath(file, "internal/type/")) {
+        List<CompilationUnitMember> unitMembers = entry.getValue();
+        for (CompilationUnitMember unitMember : unitMembers) {
+          boolean isTestSuite = EngineSemanticProcessor.gatherTestSuites(mainStatements, unitMember);
+          if (!isTestSuite) {
+            unit.getDeclarations().add(unitMember);
+          }
+        }
+      }
+    }
+    EngineSemanticProcessor.addMain(unit, mainStatements);
     return unit;
   }
 
@@ -397,7 +491,6 @@ public class MainEngine {
     return unit;
   }
 
-  // XXX
   private static CompilationUnit buildResolverLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "resolver"));

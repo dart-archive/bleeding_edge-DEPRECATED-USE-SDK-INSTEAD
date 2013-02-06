@@ -276,7 +276,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("parse"));
           return null;
         }
-        if (isMethodInClass(node, "toString", "java.lang.Integer")) {
+        if (isMethodInClass(node, "toString", "java.lang.Double")
+            || isMethodInClass(node, "toString", "java.lang.Integer")
+            || isMethodInClass(node, "toString", "java.lang.Long")) {
           replaceNode(node, methodInvocation(args.get(0), "toString"));
           return null;
         }
@@ -302,7 +304,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           } else if (isMethodInClass(node, "multiply", "java.math.BigInteger")) {
             tokenType = TokenType.STAR;
           } else if (isMethodInClass(node, "divide", "java.math.BigInteger")) {
-            tokenType = TokenType.SLASH;
+            tokenType = TokenType.TILDE_SLASH;
           } else if (isMethodInClass(node, "shiftLeft", "java.math.BigInteger")) {
             tokenType = TokenType.LT_LT;
           } else if (isMethodInClass(node, "shiftRight", "java.math.BigInteger")) {
