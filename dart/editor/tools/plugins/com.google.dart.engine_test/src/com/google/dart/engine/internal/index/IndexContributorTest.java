@@ -47,7 +47,6 @@ import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.TestSource;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
@@ -223,7 +222,6 @@ public class IndexContributorTest extends EngineTestCase {
 
   private IndexStore store = mock(IndexStore.class);
   private IndexContributor index = new IndexContributor(store);
-  private Source unitSource = mock(Source.class);
   private CompilationUnit unitNode = mock(CompilationUnit.class);
   private LibraryElement libraryElement = mock(LibraryElement.class);
   private ElementLocation libraryLocation = mock(ElementLocation.class);
@@ -1303,7 +1301,6 @@ public class IndexContributorTest extends EngineTestCase {
     when(libraryElement.getLocation()).thenReturn(libraryLocation);
     when(libraryElement.getDefiningCompilationUnit()).thenReturn(unitElement);
     when(unitNode.getElement()).thenReturn(unitElement);
-    when(unitElement.getSource()).thenReturn(unitSource);
     when(unitElement.getEnclosingElement()).thenReturn(libraryElement);
     index.visitCompilationUnit(unitNode);
   }
@@ -1375,10 +1372,11 @@ public class IndexContributorTest extends EngineTestCase {
     testCode = createSource(lines);
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     TestSource source = new TestSource(null, FileUtilities2.createFile("Test.dart"), testCode);
-    testUnit = ((AnalysisContextImpl) context).parse(source, null);
     // TODO(scheglov) replace parse() with requesting resolved unit
-    testUnit.setElement(unitElement);
-    //
+    testUnit = ((AnalysisContextImpl) context).parse(source, null);
+    // build elements
     new CompilationUnitBuilder(null, null).buildCompilationUnit(source, testUnit);
+    // replace CompilationUnitElement
+    testUnit.setElement(unitElement);
   }
 }
