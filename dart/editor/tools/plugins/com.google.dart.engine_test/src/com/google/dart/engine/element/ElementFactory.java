@@ -17,10 +17,12 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
@@ -76,6 +78,27 @@ public final class ElementFactory {
 
   public static ConstructorElement constructorElement(String name) {
     return new ConstructorElementImpl(name == null ? null : identifier(name));
+  }
+
+  public static FieldElement fieldElement(String name, boolean isStatic, boolean isFinal,
+      boolean isConst, Type type) {
+    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    field.setConst(isConst);
+    field.setFinal(isFinal);
+    field.setStatic(isStatic);
+    field.setType(type);
+
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    getter.setGetter(true);
+    field.setGetter(getter);
+
+    if (!isConst && !isFinal) {
+      PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
+      setter.setSetter(true);
+      field.setSetter(setter);
+    }
+
+    return field;
   }
 
   public static FunctionElement functionElement(String functionName) {

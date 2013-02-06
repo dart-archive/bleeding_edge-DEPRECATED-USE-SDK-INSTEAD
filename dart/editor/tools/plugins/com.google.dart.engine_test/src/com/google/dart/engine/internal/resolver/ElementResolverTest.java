@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -203,7 +204,16 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitSimpleIdentifier() throws Exception {
+  public void test_visitSimpleIdentifier_inClassScope() throws Exception {
+    InterfaceType doubleType = typeProvider.getDoubleType();
+    SimpleIdentifier node = identifier("NAN");
+    resolveInClass(node, classElement("DoublePlus", doubleType));
+    // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
+    assertEquals(doubleType.getElement().getFields()[0], node.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSimpleIdentifier_inLexicalScope() throws Exception {
     VariableElementImpl element = new VariableElementImpl(identifier("i"));
     SimpleIdentifier node = identifier("i");
     assertSame(element, resolve(node, element));
@@ -285,6 +295,29 @@ public class ElementResolverTest extends EngineTestCase {
   private Element resolve(IndexExpression node, Element... definedElements) {
     resolveNode(node, definedElements);
     return node.getElement();
+  }
+
+  /**
+   * Return the element associated with the given identifier after the resolver has resolved the
+   * identifier.
+   * 
+   * @param node the expression to be resolved
+   * @param enclosingClass the element representing the class enclosing the identifier
+   * @return the element to which the expression was resolved
+   */
+  private void resolveInClass(ASTNode node, ClassElement enclosingClass) {
+    try {
+      Field scopeField = visitor.getClass().getDeclaredField("enclosingClass");
+      scopeField.setAccessible(true);
+      try {
+        scopeField.set(visitor, enclosingClass);
+        node.accept(resolver);
+      } finally {
+        scopeField.set(visitor, null);
+      }
+    } catch (Exception exception) {
+      throw new IllegalArgumentException("Could not resolve node", exception);
+    }
   }
 
   /**

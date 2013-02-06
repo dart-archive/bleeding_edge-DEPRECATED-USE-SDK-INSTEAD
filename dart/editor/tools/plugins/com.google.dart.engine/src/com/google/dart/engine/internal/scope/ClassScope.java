@@ -14,9 +14,7 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -39,22 +37,6 @@ public class ClassScope extends EnclosedScope {
     super(new EnclosedScope(enclosingScope));
     defineTypeParameters(typeElement);
     defineMembers(typeElement);
-  }
-
-  @Override
-  protected Element lookup(String name, LibraryElement referencingLibrary) {
-    //
-    // First look in the lexical scope.
-    //
-    Element element = super.lookup(name, referencingLibrary);
-    if (element != null) {
-      return element;
-    }
-    //
-    // Then look in the inheritance scope.
-    //
-    // TODO(brianwilkerson) Look in the superclass, mixins and interfaces.
-    return null;
   }
 
   /**

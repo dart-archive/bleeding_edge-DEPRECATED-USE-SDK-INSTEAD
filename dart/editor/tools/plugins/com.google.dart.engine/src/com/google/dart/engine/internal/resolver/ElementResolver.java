@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
@@ -169,6 +170,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         node.setElement((MethodElement) member);
       } else {
         // TODO(brianwilkerson) Do we need to handle this case?
+        return null;
       }
     }
     return null;
@@ -238,6 +240,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       // TODO(brianwilkerson) Do we need to handle this case?
     }
+    return null;
+  }
+
+  @Override
+  public Void visitLibraryIdentifier(LibraryIdentifier node) {
+    // We don't resolve the individual components of the library identifier because they have no
+    // semantic meaning.
     return null;
   }
 
@@ -441,6 +450,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // If it's not one of those special cases, then the node should be resolved.
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+    if (element == null) {
+      element = lookupInHierarchy(resolver.getEnclosingClass(), node.getName());
+    }
+    if (element == null) {
+      // TODO(brianwilkerson) Report and recover from this error.
+    }
     recordResolution(node, element);
     return null;
   }

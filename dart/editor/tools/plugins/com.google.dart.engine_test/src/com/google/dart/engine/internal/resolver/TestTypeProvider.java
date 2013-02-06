@@ -22,6 +22,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getObject;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 
@@ -299,12 +300,11 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", intType, stringType),
     });
-    doubleElement.setFields(new FieldElement[] {
-//      static const double NAN = 0.0 / 0.0;
-//      static const double INFINITY = 1.0 / 0.0;
-//      static const double NEGATIVE_INFINITY = -INFINITY;
-//      static const double MIN_POSITIVE = 5e-324;
-//      static const double MAX_FINITE = 1.7976931348623157e+308;
+    doubleElement.setFields(new FieldElement[] {fieldElement("NAN", true, false, true, doubleType), // 0.0 / 0.0
+        fieldElement("INFINITY", true, false, true, doubleType), // 1.0 / 0.0
+        fieldElement("NEGATIVE_INFINITY", true, false, true, doubleType), // -INFINITY
+        fieldElement("MIN_POSITIVE", true, false, true, doubleType), // 5e-324
+        fieldElement("MAX_FINITE", true, false, true, doubleType), // 1.7976931348623157e+308;
     });
     doubleElement.setMethods(new MethodElement[] {
         methodElement("remainder", doubleType, numType), methodElement("+", doubleType, numType),
