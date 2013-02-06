@@ -11,7 +11,6 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-
 package com.google.dart.engine.services.assist;
 
 import com.google.dart.engine.ast.ASTNode;
@@ -21,7 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.source.Source;
 
 /**
- * Context for which corrections should be provided.
+ * Context for which assistance should be provided.
  */
 public class AssistContext {
   private final CompilationUnit compilationUnit;
