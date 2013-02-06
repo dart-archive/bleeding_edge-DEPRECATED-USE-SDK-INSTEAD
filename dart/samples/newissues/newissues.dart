@@ -13,7 +13,7 @@ class Issue {
 
   void addTo(Element div) {
     div.children.add(new Element.tag("h2")..text = json[r"title"][r"$t"]);
-    div.children.add(new Element.tag("pre")..text = json[r"content"][r"$t"]);
+    div.children.add(new Element.tag("p")..text = json[r"content"][r"$t"]);
   }
 }
 
@@ -24,18 +24,19 @@ List<Issue> getIssues(json) {
   return issues.map((data) => new Issue(data)).toList();
 }
 
-/// Iterates over the recieved issues and construct HTML for them.
-void processJson(json) {
+/// Iterates over the received issues and construct HTML for them.
+void processJson(String jsonText) {
+  var json = jsonlib.parse(jsonText);
   Element div = query("#content");
   List<Issue> list = getIssues(json);
   if (list == null) {
     div.children.add(new Element.tag("h2")..text = "... no issues found.");
   } else {
-    getIssues(json).forEach((Issue i) => i.addTo(div));
+    list.forEach((Issue i) => i.addTo(div));
   }
 }
 
-/// Sends a HTTPRequest and returns a future fo the date.
+/// Sends a HTTPRequest and returns a future for the data.
 Future<dynamic> requestJson(String url) {
   Completer c = new Completer<dynamic>();
   void callback(HttpRequest req) {
@@ -43,8 +44,7 @@ Future<dynamic> requestJson(String url) {
       c.complete(jsonlib.parse(req.response));
     }
   };
-  new HttpRequest.get(url, callback);
-  return c.future;
+  return HttpRequest.getString(url);
 }
 
 void main() {
