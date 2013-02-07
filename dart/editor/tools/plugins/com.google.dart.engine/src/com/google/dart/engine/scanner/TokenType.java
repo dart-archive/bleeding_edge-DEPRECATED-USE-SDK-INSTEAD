@@ -179,6 +179,23 @@ public enum TokenType {
   }
 
   /**
+   * Return {@code true} if this type of token represents an associative operator. An associative
+   * operator is an operator for which the following equality is true:
+   * {@code (a * b) * c == a * (b * c)}. In other words, if the result of applying the operator to
+   * multiple operands does not depend on the order in which those applications occur.
+   * <p>
+   * Note: This method considers the logical-and and logical-or operators to be associative, even
+   * though the order in which the application of those operators can have an effect because
+   * evaluation of the right-hand operand is conditional.
+   * 
+   * @return {@code true} if this type of token represents an associative operator
+   */
+  public boolean isAssociativeOperator() {
+    return this == AMPERSAND || this == AMPERSAND_AMPERSAND || this == BAR || this == BAR_BAR
+        || this == CARET || this == PLUS || this == STAR;
+  }
+
+  /**
    * Return {@code true} if this type of token represents an equality operator.
    * 
    * @return {@code true} if this type of token represents an equality operator
