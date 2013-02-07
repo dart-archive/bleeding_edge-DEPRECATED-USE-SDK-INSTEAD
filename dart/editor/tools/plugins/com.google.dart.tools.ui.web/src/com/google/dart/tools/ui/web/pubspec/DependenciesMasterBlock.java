@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -214,6 +215,7 @@ public class DependenciesMasterBlock extends MasterDetailsBlock implements IMode
     });
     viewer.setContentProvider(new MasterContentProvider());
     viewer.setLabelProvider(new MasterLabelProvider());
+    viewer.setComparator(new ViewerComparator());
     viewer.setInput(page.getEditor().getEditorInput());
     model.addModelListener(this);
   }

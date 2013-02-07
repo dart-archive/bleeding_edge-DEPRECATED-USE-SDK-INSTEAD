@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -49,6 +50,7 @@ import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Hyperlink;
+import org.eclipse.ui.forms.widgets.ImageHyperlink;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
@@ -59,23 +61,25 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 public class OverviewFormPage extends FormPage implements IModelListener {
 
   private static String NAME_MESSAGE_KEY = "nameMessage";
+
   private static String VERSION_MESSAGE_KEY = "versionMessage";
+
   private static String SDK_VERSION_MESSAGE_KEY = "sdkVersionMessage";
 
   private Control lastFocusControl;
-
   private DependenciesMasterBlock block;
+
   private Text nameText;
+
   private Text authorText;
+
   private Text versionText;
   private Text homepageText;
   private Text description;
   private SectionPart infoSectionPart;
   private FormToolkit toolkit;
   private IManagedForm form;
-
   private PubspecModel model;
-
   private boolean ignoreModify = false;
   private Text sdkVersionText;
 
@@ -178,7 +182,13 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     top.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 
     createInfoSection(top, scrolledForm, toolkit);
-    createExploreSection(top);
+    Composite right = toolkit.createComposite(top);
+    right.setLayout(new GridLayout());
+    GridData griData = new GridData(SWT.FILL, SWT.TOP, false, false);
+    griData.widthHint = 350;
+    right.setLayoutData(griData);
+    createExploreSection(right);
+    createActionsSection(right);
     block.createContent(form);
     model.addModelListener(this);
 
@@ -204,11 +214,35 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     });
   }
 
-  private void createExploreSection(Composite top) {
-    Section section = toolkit.createSection(top, Section.TITLE_BAR);//| Section.DESCRIPTION);
+  private void createActionsSection(Composite composite) {
+    Section section = toolkit.createSection(composite, Section.TITLE_BAR);
+    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
+    section.setLayoutData(sectionLayoutData);
+    section.setText("Actions");
+    Composite client = toolkit.createComposite(section);
+    client.setLayout(new TableWrapLayout());
+    section.setClient(client);
 
-    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.TOP, false, false);
-    sectionLayoutData.widthHint = 350;
+    Composite links = new Composite(client, SWT.NONE);
+
+    GridLayoutFactory.fillDefaults().spacing(15, 5).applyTo(links);
+
+    ImageHyperlink saveActionText = toolkit.createImageHyperlink(links, SWT.NONE);
+    saveActionText.setText("Save and run Pub install");
+    saveActionText.setImage(DartWebPlugin.getImage("pubspec.png"));
+    saveActionText.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        getEditor().doSave(new NullProgressMonitor());
+      }
+    });
+
+  }
+
+  private void createExploreSection(Composite top) {
+    Section section = toolkit.createSection(top, Section.TITLE_BAR);
+
+    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
     section.setLayoutData(sectionLayoutData);
     section.setText("Explore");
     Composite client = toolkit.createComposite(section);
