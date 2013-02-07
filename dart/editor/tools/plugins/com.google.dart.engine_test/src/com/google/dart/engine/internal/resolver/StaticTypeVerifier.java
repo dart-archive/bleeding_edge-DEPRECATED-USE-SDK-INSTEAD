@@ -16,8 +16,14 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryIdentifier;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
@@ -125,6 +131,27 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   public Void visitLibraryIdentifier(LibraryIdentifier node) {
     // Do nothing, LibraryIdentifiers and children don't have an associated static type.
     return null;
+  }
+
+  @Override
+  public Void visitSimpleIdentifier(SimpleIdentifier node) {
+    // In cases where identifiers are being used for something other than an expressions,
+    // then they can be ignored.
+    ASTNode parent = node.getParent();
+    if (parent instanceof MethodInvocation && node == ((MethodInvocation) parent).getMethodName()) {
+      return null;
+    } else if (parent instanceof RedirectingConstructorInvocation
+        && node == ((RedirectingConstructorInvocation) parent).getConstructorName()) {
+      return null;
+    } else if (parent instanceof SuperConstructorInvocation
+        && node == ((SuperConstructorInvocation) parent).getConstructorName()) {
+      return null;
+    } else if (parent instanceof ConstructorName && node == ((ConstructorName) parent).getName()) {
+      return null;
+    } else if (parent instanceof Label && node == ((Label) parent).getLabel()) {
+      return null;
+    }
+    return super.visitSimpleIdentifier(node);
   }
 
   @Override
