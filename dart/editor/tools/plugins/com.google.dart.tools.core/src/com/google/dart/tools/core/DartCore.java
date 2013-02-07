@@ -19,7 +19,9 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.OperationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
+import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -250,6 +252,12 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final QualifiedName PUB_PACKAGE_VERSION = new QualifiedName(
       DartCore.PLUGIN_ID,
       "pub.package.version");
+
+  /**
+   * The unique project manager used for analysis of anything in the workspace
+   */
+  private static ProjectManager projectManager = new ProjectManagerImpl(
+      ResourcesPlugin.getWorkspace().getRoot());
 
   /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
@@ -649,6 +657,15 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static ILog getPluginLog() {
     return PLUGIN_LOG != null ? PLUGIN_LOG : getPlugin().getLog();
+  }
+
+  /**
+   * Answer the unique project manager used for analysis of anything in the workspace.
+   * 
+   * @return the manager (not {@code null})
+   */
+  public static ProjectManager getProjectManager() {
+    return projectManager;
   }
 
   /**
