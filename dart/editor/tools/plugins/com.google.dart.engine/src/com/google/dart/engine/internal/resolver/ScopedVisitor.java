@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
@@ -212,6 +213,18 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     try {
       nameScope = new FunctionScope(nameScope, node.getElement());
       super.visitFunctionDeclaration(node);
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitFunctionExpression(FunctionExpression node) {
+    Scope outerScope = nameScope;
+    try {
+      nameScope = new FunctionScope(nameScope, node.getElement());
+      super.visitFunctionExpression(node);
     } finally {
       nameScope = outerScope;
     }
