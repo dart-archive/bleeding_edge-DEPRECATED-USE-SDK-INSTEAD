@@ -60,10 +60,10 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertEquals("lib.dart", unit.getName());
     assertEquals(element, unit.getLibrary());
     assertLength(0, unit.getAccessors());
-    assertLength(0, unit.getFields());
     assertLength(0, unit.getFunctions());
     assertLength(0, unit.getTypeAliases());
     assertLength(0, unit.getTypes());
+    assertLength(0, unit.getVariables());
   }
 
   public void test_invalidUri_part() throws Exception {

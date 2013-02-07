@@ -15,12 +15,12 @@ package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 
 /**
@@ -50,9 +50,6 @@ public class LibraryScope extends EnclosedScope {
     for (PropertyAccessorElement element : compilationUnit.getAccessors()) {
       define(element);
     }
-    for (FieldElement element : compilationUnit.getFields()) {
-      define(element);
-    }
     for (FunctionElement element : compilationUnit.getFunctions()) {
       define(element);
     }
@@ -60,6 +57,9 @@ public class LibraryScope extends EnclosedScope {
       define(element);
     }
     for (ClassElement element : compilationUnit.getTypes()) {
+      define(element);
+    }
+    for (VariableElement element : compilationUnit.getVariables()) {
       define(element);
     }
   }

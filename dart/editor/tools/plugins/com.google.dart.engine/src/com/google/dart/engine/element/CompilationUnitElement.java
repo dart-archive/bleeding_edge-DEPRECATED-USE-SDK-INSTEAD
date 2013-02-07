@@ -37,13 +37,6 @@ public interface CompilationUnitElement extends Element {
   public LibraryElement getEnclosingElement();
 
   /**
-   * Return an array containing all of the fields contained in this compilation unit.
-   * 
-   * @return the fields contained in this compilation unit
-   */
-  public FieldElement[] getFields();
-
-  /**
    * Return an array containing all of the top-level functions contained in this compilation unit.
    * 
    * @return the top-level functions contained in this compilation unit
@@ -70,4 +63,11 @@ public interface CompilationUnitElement extends Element {
    * @return the classes contained in this compilation unit
    */
   public ClassElement[] getTypes();
+
+  /**
+   * Return an array containing all of the variables contained in this compilation unit.
+   * 
+   * @return the variables contained in this compilation unit
+   */
+  public VariableElement[] getVariables();
 }

@@ -16,11 +16,11 @@ package com.google.dart.engine.internal.element.handle;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -48,11 +48,6 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
-  public FieldElement[] getFields() {
-    return getActualElement().getFields();
-  }
-
-  @Override
   public FunctionElement[] getFunctions() {
     return getActualElement().getFunctions();
   }
@@ -75,6 +70,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   @Override
   public ClassElement[] getTypes() {
     return getActualElement().getTypes();
+  }
+
+  @Override
+  public VariableElement[] getVariables() {
+    return getActualElement().getVariables();
   }
 
   @Override

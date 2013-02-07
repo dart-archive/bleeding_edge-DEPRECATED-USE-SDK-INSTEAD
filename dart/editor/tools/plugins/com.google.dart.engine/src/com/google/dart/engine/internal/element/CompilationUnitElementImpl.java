@@ -17,11 +17,11 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -36,14 +36,14 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private PropertyAccessorElement[] accessors = PropertyAccessorElementImpl.EMPTY_ARRAY;
 
   /**
-   * An array containing all of the fields contained in this compilation unit.
-   */
-  private FieldElement[] fields = FieldElementImpl.EMPTY_ARRAY;
-
-  /**
    * An array containing all of the top-level functions contained in this compilation unit.
    */
   private FunctionElement[] functions = FunctionElementImpl.EMPTY_ARRAY;
+
+  /**
+   * An array containing all of the variables contained in this compilation unit.
+   */
+  private VariableElement[] variables = VariableElementImpl.EMPTY_ARRAY;
 
   /**
    * The source that corresponds to this compilation unit.
@@ -93,9 +93,9 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
         return (PropertyAccessorElementImpl) accessor;
       }
     }
-    for (FieldElement field : fields) {
-      if (((FieldElementImpl) field).getIdentifier().equals(identifier)) {
-        return (FieldElementImpl) field;
+    for (VariableElement variable : variables) {
+      if (((VariableElementImpl) variable).getIdentifier().equals(identifier)) {
+        return (VariableElementImpl) variable;
       }
     }
     for (ExecutableElement function : functions) {
@@ -119,11 +119,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public LibraryElement getEnclosingElement() {
     return (LibraryElement) super.getEnclosingElement();
-  }
-
-  @Override
-  public FieldElement[] getFields() {
-    return fields;
   }
 
   @Override
@@ -157,6 +152,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
+  public VariableElement[] getVariables() {
+    return variables;
+  }
+
+  @Override
   public int hashCode() {
     return source.hashCode();
   }
@@ -172,18 +172,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((PropertyAccessorElementImpl) accessor).setEnclosingElement(this);
     }
     this.accessors = accessors;
-  }
-
-  /**
-   * Set the fields contained in this compilation unit to the given fields.
-   * 
-   * @param fields the fields contained in this compilation unit
-   */
-  public void setFields(FieldElement[] fields) {
-    for (FieldElement field : fields) {
-      ((FieldElementImpl) field).setEnclosingElement(this);
-    }
-    this.fields = fields;
   }
 
   /**
@@ -229,5 +217,17 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((ClassElementImpl) type).setEnclosingElement(this);
     }
     this.types = types;
+  }
+
+  /**
+   * Set the variables contained in this compilation unit to the given variables.
+   * 
+   * @param variables the variables contained in this compilation unit
+   */
+  public void setVariables(VariableElement[] variables) {
+    for (VariableElement field : variables) {
+      ((VariableElementImpl) field).setEnclosingElement(this);
+    }
+    this.variables = variables;
   }
 }

@@ -18,7 +18,6 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HideCombinator;
 import com.google.dart.engine.element.ImportElement;
@@ -28,6 +27,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 
 import java.util.HashMap;
@@ -134,9 +134,6 @@ public class NamespaceBuilder {
     for (PropertyAccessorElement element : compilationUnit.getAccessors()) {
       addIfPublic(definedNames, element);
     }
-    for (FieldElement element : compilationUnit.getFields()) {
-      addIfPublic(definedNames, element);
-    }
     for (FunctionElement element : compilationUnit.getFunctions()) {
       addIfPublic(definedNames, element);
     }
@@ -144,6 +141,9 @@ public class NamespaceBuilder {
       addIfPublic(definedNames, element);
     }
     for (ClassElement element : compilationUnit.getTypes()) {
+      addIfPublic(definedNames, element);
+    }
+    for (VariableElement element : compilationUnit.getVariables()) {
       addIfPublic(definedNames, element);
     }
   }

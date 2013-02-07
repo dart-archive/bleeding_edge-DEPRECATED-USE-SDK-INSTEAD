@@ -74,11 +74,11 @@ public class CompilationUnitBuilder {
 
     CompilationUnitElementImpl element = new CompilationUnitElementImpl(source.getShortName());
     element.setAccessors(holder.getAccessors());
-    element.setFields(holder.getFields());
     element.setFunctions(holder.getFunctions());
     element.setSource(source);
     element.setTypeAliases(holder.getTypeAliases());
     element.setTypes(holder.getTypes());
+    element.setVariables(holder.getVariables());
     unit.setElement(element);
     return element;
   }

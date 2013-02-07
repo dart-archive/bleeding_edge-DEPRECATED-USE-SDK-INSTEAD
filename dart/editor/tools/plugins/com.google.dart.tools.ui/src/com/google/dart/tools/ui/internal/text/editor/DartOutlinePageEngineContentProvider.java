@@ -120,11 +120,11 @@ public class DartOutlinePageEngineContentProvider implements ITreeContentProvide
 
   private void putCompUnitChildrenInList(CompilationUnitElement compUnitElt,
       ArrayList<Element> childrenList) {
-    Element[] fields = compUnitElt.getFields();
+    Element[] variables = compUnitElt.getVariables();
     Element[] functions = compUnitElt.getFunctions();
     Element[] types = compUnitElt.getTypes();
-    for (int i = 0; i < fields.length; i++) {
-      childrenList.add(fields[i]);
+    for (int i = 0; i < variables.length; i++) {
+      childrenList.add(variables[i]);
     }
     for (int i = 0; i < functions.length; i++) {
       childrenList.add(functions[i]);
