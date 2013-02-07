@@ -363,6 +363,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       }
       if (matches(property, Keyword.GET)) {
         PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
+        getter.setFunctions(holder.getFunctions());
+        getter.setLabels(holder.getLabels());
+        getter.setLocalVariables(holder.getVariables());
+
         getter.setField(field);
         getter.setGetter(true);
         field.setGetter(getter);
@@ -371,6 +375,11 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         propertyNameNode.setElement(getter);
       } else {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
+        setter.setFunctions(holder.getFunctions());
+        setter.setLabels(holder.getLabels());
+        setter.setLocalVariables(holder.getVariables());
+        setter.setParameters(holder.getParameters());
+
         setter.setField(field);
         setter.setSetter(true);
         field.setSetter(setter);
