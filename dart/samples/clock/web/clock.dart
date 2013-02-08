@@ -77,7 +77,7 @@ class CountDownClock {
 
   void setDigits(String digits, List<ClockNumber> numbers) {
     for (int i = 0; i < numbers.length; ++i) {
-      int digit = digits.charCodeAt(i) - '0'.charCodeAt(0);
+      int digit = digits.codeUnitAt(i) - '0'.codeUnitAt(0);
       numbers[i].setPixels(ClockNumbers.PIXELS[digit]);
     }
   }
