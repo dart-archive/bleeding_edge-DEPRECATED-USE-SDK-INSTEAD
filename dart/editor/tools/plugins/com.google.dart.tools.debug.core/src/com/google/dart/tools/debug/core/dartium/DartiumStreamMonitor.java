@@ -26,6 +26,9 @@ import java.util.List;
  * This is a Dartium specific implementation of an IStreamMonitor.
  */
 class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListener {
+  private final static String FAILED_TO_LOAD = "Failed to load resource";
+  private final static String CHROME_THUMB = "chrome://thumb/";
+
   private List<IStreamListener> listeners = new ArrayList<IStreamListener>();
 
   private String lastMessage;
@@ -46,15 +49,26 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   }
 
   @Override
-  public void messageAdded(String message) {
-    lastMessage = message;
+  public void messageAdded(final String message, final String url) {
+    String text = message;
 
-    message += "\n";
+    // If we get a failed to load message, also include the url that didn't load.
+    if (message != null && message.startsWith(FAILED_TO_LOAD)) {
+      if (url != null) {
+        text += "\n  " + url;
+      }
+    }
 
-    buffer.append(message);
+    lastMessage = text;
 
-    for (IStreamListener listener : listeners.toArray(new IStreamListener[listeners.size()])) {
-      listener.streamAppended(message, this);
+    text += "\n";
+
+    if (!shouldIgnoreMessage(message, url)) {
+      buffer.append(text);
+
+      for (IStreamListener listener : listeners.toArray(new IStreamListener[listeners.size()])) {
+        listener.streamAppended(text, this);
+      }
     }
   }
 
@@ -72,6 +86,23 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   @Override
   public void removeListener(IStreamListener listener) {
     listeners.remove(listener);
+  }
+
+  void messageAdded(String message) {
+    messageAdded(message, null);
+  }
+
+  boolean shouldIgnoreMessage(String message, String url) {
+    if (message == null || url == null) {
+      return false;
+    }
+
+    // Ignore all "failed to load" messages from chrome://thumb/... urls.
+    if (message.startsWith(FAILED_TO_LOAD) && url.startsWith(CHROME_THUMB)) {
+      return true;
+    }
+
+    return false;
   }
 
 }

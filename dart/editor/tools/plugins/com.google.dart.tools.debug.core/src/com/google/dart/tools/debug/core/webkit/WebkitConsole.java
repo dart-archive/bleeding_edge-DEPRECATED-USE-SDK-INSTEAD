@@ -37,8 +37,9 @@ public class WebkitConsole extends WebkitDomain {
      * Issued when new console message is added.
      * 
      * @param message
+     * @param url an optional parameter indicating the source url
      */
-    public void messageAdded(String message);
+    public void messageAdded(String message, String url);
 
     /**
      * Issued when subsequent message(s) are equal to the previous one(s).
@@ -88,23 +89,14 @@ public class WebkitConsole extends WebkitDomain {
   }
 
   protected void handleConsoleNotification(String method, JSONObject params) throws JSONException {
-    // If we get this specific error message, there's an additional "url" field with the bad
-    // reference.
-    final String FAILED_TO_LOAD = "Failed to load resource";
-
     if (method.equals(MESSAGE_ADDED)) {
       JSONObject message = params.getJSONObject("message");
 
       String text = message.getString("text");
-
-      if (text != null && text.contains(FAILED_TO_LOAD)) {
-        if (message.has("url")) {
-          text += "\n  " + message.getString("url");
-        }
-      }
+      String url = message.optString("url");
 
       for (ConsoleListener listener : listeners) {
-        listener.messageAdded(text);
+        listener.messageAdded(text, url);
       }
     } else if (method.equals(MESSAGE_CLEARED)) {
       for (ConsoleListener listener : listeners) {

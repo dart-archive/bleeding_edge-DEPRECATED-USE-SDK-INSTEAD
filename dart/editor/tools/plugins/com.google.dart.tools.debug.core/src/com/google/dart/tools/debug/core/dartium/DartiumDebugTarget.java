@@ -403,9 +403,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     Thread thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        // Delay one second.
+        // Delay five seconds.
         try {
-          Thread.sleep(1000);
+          Thread.sleep(5000);
         } catch (InterruptedException e) {
 
         }
