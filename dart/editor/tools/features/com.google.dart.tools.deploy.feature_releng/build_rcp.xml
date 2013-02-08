@@ -229,7 +229,7 @@ build system.  The PDE build system has to run under Eclipse.
         <delete file="${html5.archive}"/ -->
         
         <!-- copy the dart.js file into the samples directory -->
-        <copy todir="${samples.out.dir}" file="${build.source.root}/client/dart.js"/>
+        <copy todir="${samples.out.dir}" file="${build.source.root}/pkg/browser/lib/dart.js"/>
     </target>
     
     <!-- - - - - - - - - - - - - - - - - - - 
