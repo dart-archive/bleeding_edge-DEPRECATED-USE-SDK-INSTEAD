@@ -410,8 +410,8 @@ public class DartSdk {
       String contents = FileUtilities.getContents(librariesFile);
       libraryMap = new SdkLibrariesReader().readFrom(librariesFile, contents);
     } catch (Exception exception) {
-      // TODO Auto-generated catch block
-      exception.printStackTrace();
+      AnalysisEngine.getInstance().getLogger().logError(exception);
+      libraryMap = new LibraryMap();
     }
   }
 

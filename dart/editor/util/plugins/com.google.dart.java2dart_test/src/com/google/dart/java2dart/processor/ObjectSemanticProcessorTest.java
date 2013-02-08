@@ -480,7 +480,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(//
         "class Test {",
-        "  int foo(String s) => s.charCodeAt(0);",
+        "  int foo(String s) => s.codeUnitAt(0);",
         "}");
   }
 

@@ -210,7 +210,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "charAt", "java.lang.String")) {
-          nameNode.setToken(token("charCodeAt"));
+          nameNode.setToken(token("codeUnitAt"));
           return null;
         }
         if (isMethodInClass(node, "indexOf", "java.lang.String")) {

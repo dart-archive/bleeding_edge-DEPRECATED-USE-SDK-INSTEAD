@@ -606,19 +606,20 @@ public final class ASTFactory {
         formalParameterList(parameters));
   }
 
+  public static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) {
+    return new PrefixedIdentifier(prefix, token(TokenType.PERIOD), identifier);
+  }
+
   public static SimpleIdentifier identifier(String lexeme) {
     return lexeme != null ? new SimpleIdentifier(token(TokenType.IDENTIFIER, lexeme)) : null;
   }
 
   public static PrefixedIdentifier identifier(String prefix, SimpleIdentifier identifier) {
-    return new PrefixedIdentifier(identifier(prefix), token(TokenType.PERIOD), identifier);
+    return identifier(identifier(prefix), identifier);
   }
 
   public static PrefixedIdentifier identifier(String prefix, String identifier) {
-    return new PrefixedIdentifier(
-        identifier(prefix),
-        token(TokenType.PERIOD),
-        identifier(identifier));
+    return identifier(identifier(prefix), identifier(identifier));
   }
 
   public static List<SimpleIdentifier> identifiers(String... names) {
@@ -725,7 +726,7 @@ public final class ASTFactory {
   }
 
   public static IntegerLiteral integerHex(long value) {
-    String hexString = "0x" + Long.toHexString(value);
+    String hexString = "0x" + Long.toHexString(value).toUpperCase();
     return new IntegerLiteral(token(TokenType.INT, hexString), BigInteger.valueOf(value));
   }
 

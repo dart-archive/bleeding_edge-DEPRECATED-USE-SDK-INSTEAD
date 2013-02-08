@@ -23,57 +23,6 @@ import java.io.File;
  */
 public class SemanticTest extends AbstractSemanticTest {
 
-  // XXX
-  public void _test_generateEffectiveDivision() throws Exception {
-    setFileLines(
-        "test/A.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class A {",
-            "  int mainA(int a, int b) {",
-            "    ",
-            "  ",
-            "  ",
-            "  ",
-            "  ",
-            "  ",
-            "  ",
-            "  ",
-            "  static void foo() {}",
-            "}",
-            ""));
-    setFileLines(
-        "test/B.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class B {",
-            "  static void bar() {",
-            "    print(A.foo);",
-            "  }",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFiles(tmpFolder);
-    context.addRename("Ltest/A;.foo", "myField");
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class A {",
-            "  int myField = 0;",
-            "  static void foo() {",
-            "  }",
-            "}",
-            "class B {",
-            "  static void bar() {",
-            "    print(A.myField);",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
   public void test_anonymousClass_extendsClass() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -297,6 +246,35 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "}",
             "abstract class A_B {",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_classInner3() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public static class B {",
+            "    private static final int ZERO = 0;",
+            "    public int getValue() {",
+            "      return ZERO + 1;",
+            "    }",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "}",
+            "class A_B {",
+            "  static int ZERO = 0;",
+            "  int getValue() => ZERO + 1;",
             "}"),
         getFormattedSource(unit));
   }

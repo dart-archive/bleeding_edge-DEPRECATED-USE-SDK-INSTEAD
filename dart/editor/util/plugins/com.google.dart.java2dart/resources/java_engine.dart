@@ -1,5 +1,6 @@
 library java.engine;
 
+import "dart:io";
 import "java_core.dart";
 import "source.dart";
 import "error.dart";
@@ -47,34 +48,9 @@ class StringUtilities {
   static List<String> EMPTY_ARRAY = new List.fixedLength(0);
 }
 
-class SourceFactory {
-}
+File createFile(String path) => new File(path);
 
-class JavaFile {
-  String path;
-  JavaFile(this.path);
-}
-
-JavaFile createFile(String path) => new JavaFile(path);
-
-class FileBasedSource extends Source {
-  FileBasedSource(SourceFactory factory, JavaFile file) {}
-  bool operator ==(Object object) {
-    return identical(object, this);
-  }
-  void getContents(Source_ContentReceiver receiver) {
-    throw new UnsupportedOperationException();
-  }
-  String get fullName {
-    throw new UnsupportedOperationException();
-  }
-  String get shortName {
-    throw new UnsupportedOperationException();
-  }
-  bool isInSystemLibrary() {
-    throw new UnsupportedOperationException();
-  }
-  Source resolve(String uri) {
-    throw new UnsupportedOperationException();
-  }
+class OSUtilities {
+  static bool isWindows() => Platform.operatingSystem == 'windows';
+  static bool isMac() => Platform.operatingSystem == 'macos';
 }

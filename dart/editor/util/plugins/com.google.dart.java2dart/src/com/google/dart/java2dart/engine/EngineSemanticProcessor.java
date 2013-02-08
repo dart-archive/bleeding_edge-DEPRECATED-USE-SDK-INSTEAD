@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -34,6 +35,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
@@ -289,6 +291,10 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     unit.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
+        // visit copy of members (we modify them)
+        for (ClassMember member : Lists.newArrayList(node.getMembers())) {
+          member.accept(this);
+        }
         ITypeBinding typeBinding = context.getNodeTypeBinding(node);
         // hashCode is broken on Dart VM. So, we generate it using different way.
         // https://code.google.com/p/dart/issues/detail?id=5746
@@ -312,18 +318,46 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           SimpleIdentifier nameNode = node.getName();
           context.renameIdentifier(nameNode, "Type2");
         }
-        return super.visitClassDeclaration(node);
+        // done
+        return null;
+      }
+
+      @Override
+      public Void visitFieldDeclaration(FieldDeclaration node) {
+        super.visitFieldDeclaration(node);
+        ClassDeclaration parentClass = (ClassDeclaration) node.getParent();
+        if (parentClass.getName().getName().equals("FileBasedSource")) {
+          for (VariableDeclaration field : node.getFields().getVariables()) {
+            if (field.getName().getName().equals("_UTF_8_CHARSET")) {
+              parentClass.getMembers().remove(node);
+            }
+          }
+        }
+        return null;
       }
 
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
+        super.visitMethodDeclaration(node);
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
         String name = node.getName().getName();
         if ("accept".equals(name) && node.getParameters().getParameters().size() == 1) {
           node.setReturnType(null);
           FormalParameter formalParameter = node.getParameters().getParameters().get(0);
           ((SimpleFormalParameter) formalParameter).getType().setTypeArguments(null);
         }
-        return super.visitMethodDeclaration(node);
+        if (isMethodInClass(binding, "ensureVmIsExecutable", "com.google.dart.engine.sdk.DartSdk")) {
+          node.setBody(blockFunctionBody());
+          return null;
+        }
+        if (isMethodInClass(binding, "getContents", "com.google.dart.engine.source.FileBasedSource")) {
+          node.setBody(blockFunctionBody(expressionStatement(methodInvocation(
+              node.getParameters().getParameters().get(0).getIdentifier(),
+              "accept2",
+              methodInvocation(identifier("_file"), "readAsStringSync")))));
+          return null;
+        }
+        return null;
       }
 
       @Override
@@ -338,6 +372,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
             "equals",
             "com.google.dart.engine.utilities.general.ObjectUtilities")) {
           replaceNode(node, binaryExpression(args.get(0), TokenType.EQ_EQ, args.get(1)));
+          return null;
+        }
+        if (isMethodInClass(
+            node,
+            "getContents",
+            "com.google.dart.engine.utilities.io.FileUtilities")) {
+          replaceNode(node, methodInvocation(args.get(0), "readAsStringSync"));
           return null;
         }
         return super.visitMethodInvocation(node);
@@ -356,10 +397,15 @@ public class EngineSemanticProcessor extends SemanticProcessor {
         return super.visitTypeName(node);
       }
 
+      private boolean isMethodInClass(IMethodBinding binding, String reqName, String reqClassName) {
+        return binding != null && Objects.equal(binding.getName(), reqName)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
+      }
+
       private boolean isMethodInClass(MethodInvocation node, String reqName, String reqClassName) {
+        Object binding = context.getNodeBinding(node);
         String name = node.getMethodName().getName();
-        return Objects.equal(name, reqName)
-            && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
+        return Objects.equal(name, reqName) && JavaUtils.isMethodInClass(binding, reqClassName);
       }
     });
   }

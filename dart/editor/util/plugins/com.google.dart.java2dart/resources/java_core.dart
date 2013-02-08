@@ -1,11 +1,30 @@
 library java.core;
 
 import "dart:math" as math;
+import "dart:io";
+import "dart:uri";
 
 class System {
+  static final String pathSeparator = Platform.pathSeparator;
+  static final int pathSeparatorChar = Platform.pathSeparator.codeUnitAt(0);
+
   static int currentTimeMillis() {
-    return (new Date.now()).millisecondsSinceEpoch;
+    return (new DateTime.now()).millisecondsSinceEpoch;
   }
+  static String getProperty(String name) {
+    if (name == 'os.name') {
+      return Platform.operatingSystem;
+    }
+    if (name == 'line.separator') {
+      if (Platform.operatingSystem == 'windows') {
+        return '\r\n';
+      }
+      return '\n';
+    }
+    return null;
+  }
+  static String getenv(String name) => Platform.environment[name];
+
 }
 
 /**
@@ -90,7 +109,7 @@ class CharBuffer {
   final String _content;
   CharBuffer(this._content);
   static CharBuffer wrap(String content) => new CharBuffer(content);
-  int charAt(int index) => _content.charCodeAt(index);
+  int charAt(int index) => _content.codeUnitAt(index);
   int length() => _content.length;
   String subSequence(int start, int end) => _content.substring(start, end);
 }
@@ -109,7 +128,7 @@ String _printf(String fmt, List args) {
   bool markFound = false;
   int argIndex = 0;
   for (int i = 0; i < fmt.length; i++) {
-    int c = fmt.charCodeAt(i);
+    int c = fmt.codeUnitAt(i);
     if (c == 0x25) {
       if (markFound) {
         sb.addCharCode(c);
@@ -206,6 +225,14 @@ class UnsupportedOperationException implements Exception {
 
 class NumberFormatException implements Exception {
   String toString() => "NumberFormatException";
+}
+
+class URISyntaxException implements Exception {
+  String toString() => "URISyntaxException";
+}
+
+class IOException implements Exception {
+  String toString() => "IOException";
 }
 
 class ListWrapper<E> extends Collection<E> implements List<E> {
@@ -308,4 +335,22 @@ bool javaSetAdd(Set s, o) {
     return true;
   }
   return false;
+}
+
+File newRelativeFile(File base, String child) {
+  var childPath = new Path(base.fullPathSync()).join(new Path(child));
+  return new File.fromPath(childPath);
+}
+
+File newFileFromUri(Uri uri) {
+  return new File(uri.path);
+}
+
+File getAbsoluteFile(File file) {
+  var path = file.fullPathSync();
+  return new File(path);
+}
+
+Uri newUriFromFile(File file) {
+  return new Uri.fromComponents(path: file.fullPathSync());
 }

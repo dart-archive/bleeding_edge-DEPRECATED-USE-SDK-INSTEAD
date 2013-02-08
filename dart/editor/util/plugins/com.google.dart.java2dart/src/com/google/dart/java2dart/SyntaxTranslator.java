@@ -1126,9 +1126,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             || locationInParent == org.eclipse.jdt.core.dom.SwitchCase.EXPRESSION_PROPERTY
             || parent instanceof org.eclipse.jdt.core.dom.InfixExpression
             || parent instanceof org.eclipse.jdt.core.dom.ConditionalExpression) {
-          if (variableBinding.getDeclaringClass() != null
+          ITypeBinding declaringBinding = variableBinding.getDeclaringClass();
+          ITypeBinding enclosingBinding = getEnclosingTypeBinding(node);
+          if (declaringBinding != null && enclosingBinding != declaringBinding
               && org.eclipse.jdt.core.dom.Modifier.isStatic(variableBinding.getModifiers())) {
-            return done(identifier(variableBinding.getDeclaringClass().getName(), result));
+            SimpleIdentifier prefix = identifier(declaringBinding.getName());
+            putReference(declaringBinding, prefix);
+            return done(identifier(prefix, result));
           }
         }
       }
@@ -1142,10 +1146,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             && ((org.eclipse.jdt.core.dom.MethodInvocation) node.getParent()).getExpression() == null) {
           ITypeBinding declaringBinding = methodBinding.getDeclaringClass();
           ITypeBinding enclosingBinding = getEnclosingTypeBinding(node);
-          if (declaringBinding != null
-              && org.eclipse.jdt.core.dom.Modifier.isStatic(methodBinding.getModifiers())
-              && enclosingBinding != declaringBinding) {
-            return done(identifier(declaringBinding.getName(), result));
+          if (declaringBinding != null && enclosingBinding != declaringBinding
+              && org.eclipse.jdt.core.dom.Modifier.isStatic(methodBinding.getModifiers())) {
+            SimpleIdentifier prefix = identifier(declaringBinding.getName());
+            putReference(declaringBinding, prefix);
+            return done(identifier(prefix, result));
           }
         }
       }
@@ -1521,8 +1526,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     ITypeBinding typeBinding = context.getNodeTypeBinding(expression);
     if (typeBinding != null) {
       String name = typeBinding.getName();
-      return name.equals("int") || name.equals("long") || name.equals("float")
-          || name.equals("double");
+      return name.equals("char") || name.equals("short") || name.equals("int")
+          || name.equals("long") || name.equals("float") || name.equals("double");
     }
     return false;
   }
