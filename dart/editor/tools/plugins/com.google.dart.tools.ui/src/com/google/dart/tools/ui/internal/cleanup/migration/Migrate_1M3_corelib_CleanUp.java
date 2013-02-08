@@ -59,7 +59,6 @@ import java.util.List;
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
-
   /**
    * @return <code>E</code> for method <code>where(bool f(E element))</code>, may be
    *         <code>null</code> if other code structure given.
@@ -294,9 +293,16 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         Type type = node.getType();
         if (type != null && type.getElement() instanceof ClassNodeElement) {
           ClassNodeElement element = (ClassNodeElement) type.getElement();
-          if (element != null && element.getName().equals("Date")
-              && element.getLibrary().getName().equals("dart://core/core.dart")) {
-            addReplaceEdit(SourceRangeFactory.create(node), "DateTime");
+          if (element != null) {
+            // core
+            if (element.getLibrary().getName().equals("dart://core/core.dart")) {
+              if (element.getName().equals("Date")) {
+                addReplaceEdit(SourceRangeFactory.create(node), "DateTime");
+              }
+              if (element.getName().equals("IllegalJSRegExpException")) {
+                addReplaceEdit(SourceRangeFactory.create(node), "FormatException");
+              }
+            }
           }
         }
         return super.visitTypeNode(node);
