@@ -42,7 +42,8 @@ public class Dart2JSCompilerTest extends TestCase {
       CompilationResult result = compiler.compile(
           file.getLocation(),
           outFile.getLocation(),
-          new NullProgressMonitor());
+          new NullProgressMonitor(),
+          null);
 
       if (result.getExitCode() != 0) {
         System.err.print(result.getAllOutput());

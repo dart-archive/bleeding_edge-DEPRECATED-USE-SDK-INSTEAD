@@ -116,7 +116,7 @@ public class Dart2JSCompiler {
     console.println("Running dart2js...");
 
     try {
-      CompilationResult result = compiler.compile(inputPath, outputPath, monitor);
+      CompilationResult result = compiler.compile(inputPath, outputPath, monitor, console);
 
       refreshResources(library.getCorrespondingResource());
 
@@ -224,12 +224,13 @@ public class Dart2JSCompiler {
    * @param inputPath
    * @param outputPath
    * @param monitor
+   * @param console
    * @return
    * @throws IOException
    * @throws OperationCanceledException if the user cancelled the operation
    */
-  public CompilationResult compile(IPath inputPath, IPath outputPath, IProgressMonitor monitor)
-      throws IOException {
+  public CompilationResult compile(IPath inputPath, IPath outputPath, IProgressMonitor monitor,
+      MessageConsole console) throws IOException {
     ProcessBuilder builder = new ProcessBuilder();
 
     List<String> args = new ArrayList<String>();
@@ -244,6 +245,16 @@ public class Dart2JSCompiler {
     ProcessRunner runner = new ProcessRunner(builder);
 
     runner.runSync(monitor);
+
+    // Echo command line used to launch only if there is an error executing
+    if (runner.getExitCode() != 0 && console != null) {
+      StringBuilder msg = new StringBuilder();
+      for (String arg : args) {
+        msg.append(arg);
+        msg.append(" ");
+      }
+      console.println(msg.toString().trim());
+    }
 
     refreshParentFolder(outputPath);
 

@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -83,26 +84,31 @@ public class CompilationServer {
   }
 
   private void compile(CompilationUnit compilationUnit, File outFile) {
+    MessageConsole console = DartCore.getConsole();
     try {
       IPath inputPath = compilationUnit.getCorrespondingResource().getLocation();
       IPath outputPath = Path.fromOSString(outFile.getPath());
 
       Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-      DartCore.getConsole().println(
-          "Compiling " + compilationUnit.getCorrespondingResource().getFullPath() + "...");
+      console.println("Compiling " + compilationUnit.getCorrespondingResource().getFullPath()
+          + "...");
 
-      CompilationResult result = compiler.compile(inputPath, outputPath, new NullProgressMonitor());
+      CompilationResult result = compiler.compile(
+          inputPath,
+          outputPath,
+          new NullProgressMonitor(),
+          console);
 
       String output = result.getAllOutput();
 
       if (output.length() > 0) {
-        DartCore.getConsole().println(output);
+        console.println(output);
       }
     } catch (DartModelException ex) {
       DartDebugCorePlugin.logError(ex);
     } catch (IOException ex) {
-      DartCore.getConsole().println("Error while compiling: " + ex.toString());
+      console.println("Error while compiling: " + ex.toString());
 
       DartDebugCorePlugin.logError(ex);
     }
