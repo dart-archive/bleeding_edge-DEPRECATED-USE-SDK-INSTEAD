@@ -108,6 +108,17 @@ public interface Element {
   public int getNameOffset();
 
   /**
+   * Return {@code true} if this element, assuming that it is within scope, is accessible to code in
+   * the given library. This is defined by the Dart Language Specification in section 3.2:
+   * <blockquote> A declaration <i>m</i> is accessible to library <i>L</i> if <i>m</i> is declared
+   * in <i>L</i> or if <i>m</i> is public. </blockquote>
+   * 
+   * @param library the library in which a possible reference to this element would occur
+   * @return {@code true} if this element is accessible to code in the given library
+   */
+  public boolean isAccessibleIn(LibraryElement library);
+
+  /**
    * Return {@code true} if this element is synthetic. A synthetic element is an element that is not
    * represented in the source code explicitly, but is implied by the source code, such as the
    * default constructor for a class that does not explicitly define any constructors.

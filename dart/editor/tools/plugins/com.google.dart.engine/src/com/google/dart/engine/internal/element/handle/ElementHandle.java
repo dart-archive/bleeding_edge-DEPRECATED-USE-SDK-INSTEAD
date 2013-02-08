@@ -183,6 +183,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public boolean isAccessibleIn(LibraryElement library) {
+    return getActualElement().isAccessibleIn(library);
+  }
+
+  @Override
   public boolean isSynthetic() {
     return getActualElement().isSynthetic();
   }

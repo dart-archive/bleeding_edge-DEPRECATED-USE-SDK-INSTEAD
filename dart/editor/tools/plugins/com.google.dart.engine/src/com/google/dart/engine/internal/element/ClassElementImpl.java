@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -194,6 +195,87 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return hasModifier(Modifier.ABSTRACT);
   }
 
+  @Override
+  public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
+    PropertyAccessorElement element = getGetter(getterName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : mixins) {
+      ClassElement mixinElement = mixin.getElement();
+      if (mixinElement != null) {
+        element = ((ClassElementImpl) mixinElement).getGetter(getterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    if (supertype != null) {
+      ClassElement supertypeElement = supertype.getElement();
+      if (supertypeElement != null) {
+        element = supertypeElement.lookUpGetter(getterName, library);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public MethodElement lookUpMethod(String methodName, LibraryElement library) {
+    MethodElement element = getMethod(methodName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : mixins) {
+      ClassElement mixinElement = mixin.getElement();
+      if (mixinElement != null) {
+        element = ((ClassElementImpl) mixinElement).getMethod(methodName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    if (supertype != null) {
+      ClassElement supertypeElement = supertype.getElement();
+      if (supertypeElement != null) {
+        element = supertypeElement.lookUpMethod(methodName, library);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
+    PropertyAccessorElement element = getSetter(setterName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : mixins) {
+      ClassElement mixinElement = mixin.getElement();
+      if (mixinElement != null) {
+        element = ((ClassElementImpl) mixinElement).getSetter(setterName);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    if (supertype != null) {
+      ClassElement supertypeElement = supertype.getElement();
+      if (supertypeElement != null) {
+        element = supertypeElement.lookUpSetter(setterName, library);
+        if (element != null && element.isAccessibleIn(library)) {
+          return element;
+        }
+      }
+    }
+    return null;
+  }
+
   /**
    * Set whether this class is abstract to correspond to the given value.
    * 
@@ -304,5 +386,53 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   public String toString() {
     String name = getName();
     return name == null ? "<unnamed class>" : "class " + name;
+  }
+
+  /**
+   * Return the element representing the getter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a getter with the given name.
+   * 
+   * @param getterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  private PropertyAccessorElement getGetter(String getterName) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element representing the method with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a method with the given name.
+   * 
+   * @param methodName the name of the method to be returned
+   * @return the method declared in this class with the given name
+   */
+  private MethodElement getMethod(String methodName) {
+    for (MethodElement method : methods) {
+      if (method.getName().equals(methodName)) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element representing the setter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a setter with the given name.
+   * 
+   * @param setterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  private PropertyAccessorElement getSetter(String setterName) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isSetter() && accessor.getName().equals(setterName)) {
+        return accessor;
+      }
+    }
+    return null;
   }
 }

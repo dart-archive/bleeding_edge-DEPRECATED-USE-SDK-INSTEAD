@@ -548,7 +548,7 @@ public class ElementBuilderTest extends EngineTestCase {
         null,
         Keyword.OPERATOR,
         identifier(methodName),
-        formalParameterList(),
+        formalParameterList(simpleFormalParameter("addend")),
         blockFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
@@ -560,7 +560,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertLength(0, method.getFunctions());
     assertLength(0, method.getLabels());
     assertLength(0, method.getLocalVariables());
-    assertLength(0, method.getParameters());
+    assertLength(1, method.getParameters());
     assertFalse(method.isAbstract());
     assertFalse(method.isStatic());
     assertFalse(method.isSynthetic());

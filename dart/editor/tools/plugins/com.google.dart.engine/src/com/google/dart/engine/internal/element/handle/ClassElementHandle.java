@@ -17,6 +17,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -102,6 +103,21 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   @Override
   public boolean isAbstract() {
     return getActualElement().isAbstract();
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
+    return getActualElement().lookUpGetter(getterName, library);
+  }
+
+  @Override
+  public MethodElement lookUpMethod(String methodName, LibraryElement library) {
+    return getActualElement().lookUpMethod(methodName, library);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
+    return getActualElement().lookUpSetter(setterName, library);
   }
 
   @Override

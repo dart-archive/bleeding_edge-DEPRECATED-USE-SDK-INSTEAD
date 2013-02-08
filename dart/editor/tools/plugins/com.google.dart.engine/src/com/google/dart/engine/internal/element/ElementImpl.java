@@ -146,6 +146,14 @@ public abstract class ElementImpl implements Element {
   }
 
   @Override
+  public boolean isAccessibleIn(LibraryElement library) {
+    if (Identifier.isPrivateName(name)) {
+      return library.equals(getLibrary());
+    }
+    return true;
+  }
+
+  @Override
   public boolean isSynthetic() {
     return hasModifier(Modifier.SYNTHETIC);
   }

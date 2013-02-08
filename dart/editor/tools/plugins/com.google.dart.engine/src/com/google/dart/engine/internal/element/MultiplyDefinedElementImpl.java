@@ -107,6 +107,16 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 
   @Override
+  public boolean isAccessibleIn(LibraryElement library) {
+    for (Element element : conflictingElements) {
+      if (element.isAccessibleIn(library)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
   public boolean isSynthetic() {
     return true;
   }

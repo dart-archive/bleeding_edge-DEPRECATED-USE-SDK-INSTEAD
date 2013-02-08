@@ -22,11 +22,13 @@ import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -90,12 +92,23 @@ public final class ElementFactory {
 
     PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
     getter.setGetter(true);
+    getter.setSynthetic(true);
     field.setGetter(getter);
+
+    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+    getterType.setReturnType(type);
+    getter.setType(getterType);
 
     if (!isConst && !isFinal) {
       PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
       setter.setSetter(true);
+      setter.setSynthetic(true);
       field.setSetter(setter);
+
+      FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
+      setterType.setNormalParameterTypes(new Type[] {type});
+      setterType.setReturnType(VoidTypeImpl.getInstance());
+      setter.setType(setterType);
     }
 
     return field;
@@ -192,6 +205,23 @@ public final class ElementFactory {
     return objectElement;
   }
 
+  public static PropertyAccessorElement getterElement(String name, boolean isStatic, Type type) {
+    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    field.setStatic(isStatic);
+    field.setSynthetic(true);
+    field.setType(type);
+
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    getter.setGetter(true);
+    field.setGetter(getter);
+
+    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+    getterType.setReturnType(type);
+    getter.setType(getterType);
+
+    return getter;
+  }
+
   public static ImportElementImpl importFor(LibraryElement importedLibrary, PrefixElement prefix,
       NamespaceCombinator... combinators) {
     ImportElementImpl spec = new ImportElementImpl();
@@ -214,11 +244,48 @@ public final class ElementFactory {
   public static MethodElement methodElement(String methodName, Type returnType,
       Type... argumentTypes) {
     MethodElementImpl method = new MethodElementImpl(identifier(methodName));
+
+    int count = argumentTypes.length;
+    ParameterElement[] parameters = new ParameterElement[count];
+    for (int i = 0; i < count; i++) {
+      ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
+      parameter.setType(argumentTypes[i]);
+      parameters[i] = parameter;
+    }
+    method.setParameters(parameters);
+
     FunctionTypeImpl methodType = new FunctionTypeImpl(method);
     methodType.setNormalParameterTypes(argumentTypes);
     methodType.setReturnType(returnType);
     method.setType(methodType);
     return method;
+  }
+
+  public static PropertyAccessorElement setterElement(String name, boolean isStatic, Type type) {
+    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    field.setStatic(isStatic);
+    field.setSynthetic(true);
+    field.setType(type);
+
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    getter.setGetter(true);
+    field.setGetter(getter);
+
+    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+    getterType.setReturnType(type);
+    getter.setType(getterType);
+
+    PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
+    setter.setSetter(true);
+    setter.setSynthetic(true);
+    field.setSetter(setter);
+
+    FunctionTypeImpl setterType = new FunctionTypeImpl(getter);
+    setterType.setNormalParameterTypes(new Type[] {type});
+    setterType.setReturnType(VoidTypeImpl.getInstance());
+    setter.setType(setterType);
+
+    return setter;
   }
 
   /**
