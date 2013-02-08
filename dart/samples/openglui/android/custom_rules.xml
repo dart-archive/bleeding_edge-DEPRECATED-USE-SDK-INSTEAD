@@ -35,7 +35,7 @@
         <arg value="la_ere_gymnopedie.mp3.hex"/>
         <arg value="assets/music/la_ere_gymnopedie.mp3"/>
       </exec>
-      <move file="assets/dart/raytrace.dart"
+      <move file="assets/dart/openglui_canvas_tests.dart"
             tofile="assets/dart/main.dart"
             failonerror="false" />
     </target>

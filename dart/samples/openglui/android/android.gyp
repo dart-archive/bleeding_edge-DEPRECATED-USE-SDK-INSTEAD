@@ -56,7 +56,8 @@
             'copies': [ {
               'destination': 'assets/dart',
               'files': [
-                '../src/openglui_raytrace.dart'
+                '../src/openglui_raytrace.dart',
+                '../src/openglui_canvas_tests.dart'
               ],
             }],
           },

@@ -490,40 +490,6 @@ void lineDash() {
   log("Width = $width");
 }
 
-// TODO(gram) - apparently a canvas can have only one op in its lifetime,
-// so this test won't work until we can use off-screen canvases.
-void compositeOp() {
-  initTest("Composition");
-  var num = 0;
-  ctx.font = '10pt Verdana';
-  var numPerRow = width ~/ 95;
-  log("Width = $width, numPerRow = $numPerRow\n");
-  for (var mode in [ 'source-atop', 'source-in',
-                     'source-out', 'source-over',
-                     'destination-atop', 'destination-in',
-                     'destination-out', 'destination-over',
-                     'lighter', 'darker',
-                     'xor', 'copy']) {
-    var col = num % numPerRow;
-    var row = num ~/ numPerRow;
-    ctx.globalCompositeOperation = mode;
-    ctx.translate(95 * col, 100 * row);
-    log("Doing $mode at row $row, col $col\n");
-    ctx.beginPath();
-    ctx.rect(0, 0, 55, 55);
-    ctx.fillStyle = 'blue';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(50, 50, 35, 0, 2 * Math.PI, false);
-    ctx.fillStyle = 'red';
-    ctx.fill();
-    ctx.fillStyle = 'black';
-    ctx.fillText(mode, 0, 100);
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ++num;
-  }
-}
-
 void loadImage() {
   initTest("Image loading");
   var imageObj = new ImageElement();
@@ -598,8 +564,48 @@ void shear() {
   ctx.fillRect(-rectWidth / 2, rectHeight / -2, rectWidth, rectHeight);
 }
 
-int numtests = 21;
-int testnum = numtests - 1; // Start with latest.
+void composite() {
+  initTest("Composition");
+  var num = 0;
+  var numPerRow = width ~/ 150;
+  var tempCanvas = new CanvasElement(width: width, height:height);
+  var tempContext = tempCanvas.getContext("2d");
+  log("Width = $width, numPerRow = $numPerRow\n");
+  for (var mode in [ 'source-atop', 'source-in',
+                     'source-out', 'source-over',
+                     'destination-atop', 'destination-in',
+                     'destination-out', 'destination-over',
+                     'lighter', 'darker',
+                     'xor', 'copy']) {
+    tempContext.save();
+    tempContext.clearRect(0, 0, width, height);
+    tempContext.beginPath();
+    tempContext.rect(0, 0, 55, 55);
+    tempContext.fillStyle = 'blue';
+    tempContext.fill();
+
+    tempContext.globalCompositeOperation = mode;
+    tempContext.beginPath();
+    tempContext.arc(50, 50, 35, 0, 2 * Math.PI, false);
+    tempContext.fillStyle = 'red';
+    tempContext.fill();
+    tempContext.restore();
+    tempContext.font = '10pt Verdana';
+    tempContext.fillStyle = 'black';
+    tempContext.fillText(mode, 0, 100);
+    if (num > 0) {
+      if ((num % numPerRow) == 0) {
+        ctx.translate(-150 * (numPerRow-1), 150);
+      } else {
+        ctx.translate(150, 0);
+      }
+    }
+    ctx.drawImage(tempCanvas, 0, 0);
+    ++num;
+  }
+}
+
+int testnum = -1; // Start with latest.
 
 void update() {
   if (!isDirty) return;
@@ -667,8 +673,15 @@ void update() {
     case 20:
       shear();
       break;
+    case 21:
+      composite();
+      break;
     default:
-      testnum = 0;
+      if (testnum < 0) {
+        testnum = 21;
+      } else {
+        testnum = 0;
+      }
       update();
       break;
   }

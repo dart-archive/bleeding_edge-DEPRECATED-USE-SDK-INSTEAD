@@ -13,8 +13,28 @@ import 'dart:html';
 export 'dart:html' show WebGLRenderingContext;
 export 'dart:html' show Float32Array;
 export 'dart:html' show ImageElement;
-
-WebGLRenderingContext gl;
+export 'dart:html' show CanvasElement;
 
 log(message) => window.console.log(message);
+
+getDisplayCanvas(resize) {
+  final canvas = new CanvasElement(width: window.innerWidth, height: window.innerHeight);
+  document.body.nodes.add(canvas);
+
+  window.onResize.listen((e) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    resize(canvas.width, canvas.height);
+  });
+  return canvas;
+}
+
+animate(draw) {
+  var render;
+  render = (n) {
+    draw();
+    window.requestAnimationFrame(render);
+  };
+  render(0);
+}
 
