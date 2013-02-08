@@ -35,6 +35,12 @@ public abstract class DebugUIHelper {
     }
 
     @Override
+    public void showError(String title, String message) {
+      // no-op
+
+    }
+
+    @Override
     public void showStatusLineMessage(String message) {
       // no-op
 
@@ -90,6 +96,8 @@ public abstract class DebugUIHelper {
   }
 
   public abstract void activateApplication(File application, String name);
+
+  public abstract void showError(String title, String message);
 
   public abstract void showStatusLineMessage(String message);
 

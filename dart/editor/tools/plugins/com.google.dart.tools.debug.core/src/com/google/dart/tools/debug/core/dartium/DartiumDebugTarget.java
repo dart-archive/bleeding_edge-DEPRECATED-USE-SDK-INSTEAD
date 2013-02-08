@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitBreakpoint;
@@ -268,6 +269,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       @Override
       public void connectionClosed(WebkitConnection connection) {
         fireTerminateEvent();
+
+        checkForProcessTermination();
       }
     });
 
@@ -387,6 +390,36 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   public void writeToStdout(String message) {
     outputStreamMonitor.messageAdded(message);
+  }
+
+  /**
+   * This method is called when the debugger socket is closed. We delay a set amount of time, and
+   * then check to see if the Dartium process is still running. This is a sign that the user opened
+   * the Webkit inspector, killing the debugger but not Dartium. We warn the user when this occurs.
+   */
+  protected void checkForProcessTermination() {
+    final DartiumProcess _process = process;
+
+    Thread thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        // Delay one second.
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException e) {
+
+        }
+
+        if (!_process.isTerminated()) {
+          DebugUIHelper.getHelper().showError(
+              "Debugger Connection Closed",
+              "The debugger connection has been closed by the remote host.");
+        }
+      }
+    });
+
+    thread.setDaemon(true);
+    thread.start();
   }
 
   protected WebkitCallback<Boolean> createNavigateWebkitCallback(final String url) {

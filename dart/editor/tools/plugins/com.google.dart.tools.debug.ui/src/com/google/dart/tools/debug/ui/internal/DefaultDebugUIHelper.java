@@ -20,7 +20,9 @@ import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerView;
 
 import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
@@ -47,6 +49,26 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
       // This is not necessary on Linux.
 
     }
+  }
+
+  @Override
+  public void showError(final String title, final String message) {
+    final Display display = Display.getDefault();
+
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        if (display.isDisposed()) {
+          return;
+        }
+
+        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+
+        shell.forceActive();
+
+        MessageDialog.openError(shell, title, message);
+      }
+    });
   }
 
   @Override
