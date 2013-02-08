@@ -233,6 +233,24 @@ public class SyntaxTranslatorTest extends TestCase {
         "}");
   }
 
+  public void test_expression_equals() throws Exception {
+    parseJava(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  boolean testA(Object a, Object b) {",
+        "    return a == b;",
+        "  }",
+        "  boolean testB(Object p) {",
+        "    return p == null || p == 1 || p == 2L || p == 3.0f || p == 4.0d;",
+        "  }",
+        "}");
+    assertDartSource(
+        "class A {",
+        "  bool testA(Object a, Object b) => identical(a, b);",
+        "  bool testB(Object p) => p == null || p == 1 || p == 2 || p == 3.0 || p == 4.0;",
+        "}");
+  }
+
   public void test_expression_instanceOf() throws Exception {
     parseJava(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -991,13 +1009,13 @@ public class SyntaxTranslatorTest extends TestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
         "  void test() {",
-        "    assert 1 == 2;",
+        "    assert 1 < 2;",
         "  }",
         "}");
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    assert(1 == 2);",
+        "    assert(1 < 2);",
         "  }",
         "}");
   }
@@ -1236,7 +1254,7 @@ public class SyntaxTranslatorTest extends TestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
         "  void test() {",
-        "    if (1 == 1) {",
+        "    if (1 < 2) {",
         "      print(0);",
         "    }",
         "  }",
@@ -1244,7 +1262,7 @@ public class SyntaxTranslatorTest extends TestCase {
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    if (1 == 1) {",
+        "    if (1 < 2) {",
         "      print(0);",
         "    }",
         "  }",
@@ -1256,7 +1274,7 @@ public class SyntaxTranslatorTest extends TestCase {
         "// filler filler filler filler filler filler filler filler filler filler",
         "public class A {",
         "  void test() {",
-        "    if (1 == 1) {",
+        "    if (1 < 2) {",
         "      print(1);",
         "    } else {",
         "      print(2);",
@@ -1266,7 +1284,7 @@ public class SyntaxTranslatorTest extends TestCase {
     assertDartSource(//
         "class A {",
         "  void test() {",
-        "    if (1 == 1) {",
+        "    if (1 < 2) {",
         "      print(1);",
         "    } else {",
         "      print(2);",

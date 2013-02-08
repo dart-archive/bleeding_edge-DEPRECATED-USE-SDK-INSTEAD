@@ -46,3 +46,35 @@ class AnalysisContextImpl extends AnalysisContext {
 class StringUtilities {
   static List<String> EMPTY_ARRAY = new List.fixedLength(0);
 }
+
+class SourceFactory {
+}
+
+class JavaFile {
+  String path;
+  JavaFile(this.path);
+}
+
+JavaFile createFile(String path) => new JavaFile(path);
+
+class FileBasedSource extends Source {
+  FileBasedSource(SourceFactory factory, JavaFile file) {}
+  bool operator ==(Object object) {
+    return identical(object, this);
+  }
+  void getContents(Source_ContentReceiver receiver) {
+    throw new UnsupportedOperationException();
+  }
+  String get fullName {
+    throw new UnsupportedOperationException();
+  }
+  String get shortName {
+    throw new UnsupportedOperationException();
+  }
+  bool isInSystemLibrary() {
+    throw new UnsupportedOperationException();
+  }
+  Source resolve(String uri) {
+    throw new UnsupportedOperationException();
+  }
+}

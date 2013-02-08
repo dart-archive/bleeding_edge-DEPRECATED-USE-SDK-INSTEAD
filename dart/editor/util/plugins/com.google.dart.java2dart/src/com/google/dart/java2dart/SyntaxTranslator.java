@@ -50,6 +50,7 @@ import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
@@ -803,7 +804,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       tokenType = TokenType.GT_EQ;
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.EQUALS) {
-      tokenType = TokenType.EQ_EQ;
+      if (isNumberOrNull(left) || isNumberOrNull(right)) {
+        tokenType = TokenType.EQ_EQ;
+      } else {
+        return done(methodInvocation("identical", left, right));
+      }
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.NOT_EQUALS) {
       tokenType = TokenType.BANG_EQ;
@@ -1505,6 +1510,20 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
    */
   private boolean done(ASTNode node) {
     result = node;
+    return false;
+  }
+
+  private boolean isNumberOrNull(Expression expression) {
+    if (expression instanceof IntegerLiteral || expression instanceof DoubleLiteral
+        || expression instanceof NullLiteral) {
+      return true;
+    }
+    ITypeBinding typeBinding = context.getNodeTypeBinding(expression);
+    if (typeBinding != null) {
+      String name = typeBinding.getName();
+      return name.equals("int") || name.equals("long") || name.equals("float")
+          || name.equals("double");
+    }
     return false;
   }
 

@@ -819,7 +819,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "package test;",
             "public class Test {",
             "  static boolean equals(int a, int b) {",
-            "    return a == b;",
+            "    return a < b;",
             "  }",
             "  public boolean equals(Object o) {",
             "    return false;",
@@ -833,7 +833,7 @@ public class SemanticTest extends AbstractSemanticTest {
     assertEquals(
         toString(
             "class Test {",
-            "  static bool equals2(int a, int b) => a == b;",
+            "  static bool equals2(int a, int b) => a < b;",
             "  bool equals(Object o) => false;",
             "}"),
         getFormattedSource(unit));

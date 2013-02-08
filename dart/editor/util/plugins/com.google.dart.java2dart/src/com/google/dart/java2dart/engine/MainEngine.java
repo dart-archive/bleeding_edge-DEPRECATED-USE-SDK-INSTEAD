@@ -262,14 +262,13 @@ public class MainEngine {
       File astFile = new File(targetTestFolder + "/ast_test.dart");
       Files.write(getFormattedSource(library), astFile, Charsets.UTF_8);
     }
-    // TODO(scheglov)
-//    {
-//      CompilationUnit library = buildElementTestLibrary();
-//      Files.write(
-//          getFormattedSource(library),
-//          new File(targetTestFolder + "/element_test.dart"),
-//          Charsets.UTF_8);
-//    }
+    {
+      CompilationUnit library = buildElementTestLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetTestFolder + "/element_test.dart"),
+          Charsets.UTF_8);
+    }
     System.out.println("Translation complete");
   }
 
@@ -354,10 +353,9 @@ public class MainEngine {
     return unit;
   }
 
-  // TODO(scheglov)
   private static CompilationUnit buildElementTestLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
-    unit.getDirectives().add(libraryDirective("engine", "parser_test"));
+    unit.getDirectives().add(libraryDirective("engine", "element_test"));
     unit.getDirectives().add(importDirective("dart:collection", null));
     unit.getDirectives().add(importDirective(src_package + "java_core.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine.dart", null));
@@ -369,16 +367,16 @@ public class MainEngine {
         importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
     unit.getDirectives().add(
         importDirective(src_package + "element.dart", null, importHideCombinator("Annotation")));
-//    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
     unit.getDirectives().add(importDirective("test_support.dart", null));
     unit.getDirectives().add(
         importDirective("scanner_test.dart", null, importShowCombinator("TokenFactory")));
+    unit.getDirectives().add(
+        importDirective("ast_test.dart", null, importShowCombinator("ASTFactory")));
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (isEngineTestPath(file, "ast/") || isEngineTestPath(file, "element/")
-          || isEngineTestPath(file, "internal/element/")
+      if (isEngineTestPath(file, "element/") || isEngineTestPath(file, "internal/element/")
           || isEngineTestPath(file, "internal/type/")) {
         List<CompilationUnitMember> unitMembers = entry.getValue();
         for (CompilationUnitMember unitMember : unitMembers) {

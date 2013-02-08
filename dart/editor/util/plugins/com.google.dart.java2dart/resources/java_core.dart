@@ -55,7 +55,7 @@ class JavaArrays {
     }
     int result = 1;
     for (var element in a) {
-      result = 31 * result + (element == null ? 0 : element.hashCode());
+      result = 31 * result + (element == null ? 0 : element.hashCode);
     }
     return result;
   }
