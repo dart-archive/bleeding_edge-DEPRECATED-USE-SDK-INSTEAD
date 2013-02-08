@@ -52,6 +52,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -547,13 +548,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return member;
       }
       // return classElement.getType().lookUpGetter(methodName, resolver.getDefiningLibrary());
-      Element memberElement = lookUpGetterInInterfaces(
+      return lookUpGetterInInterfaces(
           (ClassElement) element,
           getterName,
           new HashSet<ClassElement>());
-      if (memberElement instanceof PropertyAccessorElement) {
-        return (PropertyAccessorElement) memberElement;
-      }
     }
     return null;
   }
@@ -676,7 +674,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
 //    if (element == DynamicTypeImpl.getInstance()) {
 //      return ?;
-//    } else
+//    }
+    if (element instanceof TypeVariableElement) {
+      Type bound = ((TypeVariableElement) element).getBound();
+      if (bound == null) {
+        element = resolver.getTypeProvider().getObjectType().getElement();
+      } else {
+        element = bound.getElement();
+      }
+    }
     if (element instanceof ClassElement) {
       ClassElement classElement = (ClassElement) element;
       MethodElement member = classElement.lookUpMethod(methodName, resolver.getDefiningLibrary());
@@ -684,11 +690,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return member;
       }
       // return classElement.getType().lookUpMethod(methodName, resolver.getDefiningLibrary());
-      member = lookUpMethodInInterfaces(
+      return lookUpMethodInInterfaces(
           (ClassElement) element,
           methodName,
           new HashSet<ClassElement>());
-      return member;
     }
     return null;
   }
@@ -770,11 +775,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return member;
       }
       // return classElement.getType().lookUpSetter(methodName, resolver.getDefiningLibrary());
-      member = lookUpSetterInInterfaces(
+      return lookUpSetterInInterfaces(
           (ClassElement) element,
           setterName,
           new HashSet<ClassElement>());
-      return member;
     }
     return null;
   }

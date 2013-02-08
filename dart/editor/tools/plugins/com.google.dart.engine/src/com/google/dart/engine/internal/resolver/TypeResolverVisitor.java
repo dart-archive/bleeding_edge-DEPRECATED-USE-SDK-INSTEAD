@@ -43,6 +43,7 @@ import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
@@ -51,6 +52,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -399,6 +401,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Element element = node.getName().getElement();
     if (element instanceof VariableElement) {
       ((VariableElementImpl) element).setType(declaredType);
+      if (element instanceof FieldElement) {
+        FieldElement field = (FieldElement) element;
+        PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) field.getGetter();
+        FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+        getterType.setReturnType(declaredType);
+        getter.setType(getterType);
+
+        PropertyAccessorElementImpl setter = (PropertyAccessorElementImpl) field.getSetter();
+        if (setter != null) {
+          FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
+          setterType.setReturnType(VoidTypeImpl.getInstance());
+          setterType.setNormalParameterTypes(new Type[] {declaredType});
+          setter.setType(setterType);
+        }
+      }
     } else {
       // TODO(brianwilkerson) Report the internal error.
     }

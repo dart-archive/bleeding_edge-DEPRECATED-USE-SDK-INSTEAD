@@ -490,11 +490,15 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       FieldElementImpl field = (FieldElementImpl) element;
       PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
       getter.setGetter(true);
+
+      currentHolder.addAccessor(getter);
       field.setGetter(getter);
 
       if (!isFinal) {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
         setter.setSetter(true);
+
+        currentHolder.addAccessor(setter);
         field.setSetter(setter);
       }
 

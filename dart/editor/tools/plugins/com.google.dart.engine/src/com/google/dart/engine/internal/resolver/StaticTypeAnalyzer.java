@@ -728,6 +728,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return recordType(node, ((VariableElement) element).getType());
     } else if (element instanceof MethodElement) {
       return recordType(node, ((MethodElement) element).getType());
+    } else if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
+      if (accessor.isGetter()) {
+        return recordType(node, accessor.getType().getReturnType());
+      } else {
+        return recordType(node, accessor.getType().getNormalParameterTypes()[0]);
+      }
     } else {
       // TODO(brianwilkerson) Compute and return the equivalent of 'this.id'.
       return recordType(node, typeProvider.getDynamicType());
