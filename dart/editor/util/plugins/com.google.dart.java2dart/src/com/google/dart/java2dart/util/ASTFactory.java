@@ -459,6 +459,11 @@ public final class ASTFactory {
     return fieldDeclaration(isStatic, keyword, null, variables);
   }
 
+  public static FieldDeclaration fieldDeclaration(boolean isStatic, TypeName type,
+      VariableDeclaration... variables) {
+    return fieldDeclaration(null, isStatic, null, type, list(variables));
+  }
+
   public static FieldDeclaration fieldDeclaration(Comment comment, boolean isStatic,
       Keyword keyword, TypeName type, List<VariableDeclaration> variables) {
     return new FieldDeclaration(

@@ -36,6 +36,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
@@ -45,14 +46,18 @@ import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
+import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.redirectingConstructorInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
+import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
 
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
@@ -285,6 +290,23 @@ public class EngineSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
         ITypeBinding typeBinding = context.getNodeTypeBinding(node);
+        // hashCode is broken on Dart VM. So, we generate it using different way.
+        // https://code.google.com/p/dart/issues/detail?id=5746
+        if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.ast.ASTNode")) {
+          node.getMembers().add(
+              fieldDeclaration(
+                  true,
+                  typeName("int"),
+                  variableDeclaration("_hashCodeGenerator", integer(0))));
+          node.getMembers().add(
+              fieldDeclaration(
+                  false,
+                  Keyword.FINAL,
+                  typeName("int"),
+                  variableDeclaration(
+                      "hashCode",
+                      prefixExpression(TokenType.PLUS_PLUS, identifier("_hashCodeGenerator")))));
+        }
         // "Type" is declared in dart:core, so replace it
         if (JavaUtils.isTypeNamed(typeBinding, "com.google.dart.engine.type.Type")) {
           SimpleIdentifier nameNode = node.getName();
