@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.intro;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
@@ -186,7 +187,15 @@ public class IntroEditor extends EditorPart {
     section.setClient(client);
 
     // Create the samples area.
-    section = toolkit.createSection(form.getBody(), /*Section.DESCRIPTION |*/Section.TITLE_BAR);
+    if (DartCore.isWindowsXp()) {
+      section = toolkit.createSection(form.getBody(), Section.DESCRIPTION | Section.TITLE_BAR);
+      section.setDescription("The samples require the dart.js file to run. In the sample's HTML file, "
+          + "change src=\"packages/browser/dart.js\" to point to the local copy of dart.js, "
+          + "located in the Editor's samples directory.");
+    } else {
+      section = toolkit.createSection(form.getBody(), /*Section.DESCRIPTION |*/Section.TITLE_BAR);
+    }
+
     section.setLayoutData(new TableWrapData(TableWrapData.FILL_GRAB, TableWrapData.FILL_GRAB, 1, 2));
     section.setText("Sample Applications");
     //section.setDescription("Open and run several Dart sample applications.");
