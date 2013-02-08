@@ -405,7 +405,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   public R visitNamespaceDirective(NamespaceDirective node) {
-    return visitDirective(node);
+    return visitUriBasedDirective(node);
   }
 
   public R visitNode(ASTNode node) {
@@ -429,7 +429,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitPartDirective(PartDirective node) {
-    return visitDirective(node);
+    return visitUriBasedDirective(node);
   }
 
   @Override
@@ -580,6 +580,10 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   @Override
   public R visitTypeParameterList(TypeParameterList node) {
     return visitNode(node);
+  }
+
+  public R visitUriBasedDirective(UriBasedDirective node) {
+    return visitDirective(node);
   }
 
   @Override

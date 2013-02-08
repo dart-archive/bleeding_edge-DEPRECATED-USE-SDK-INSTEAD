@@ -25,16 +25,11 @@ import java.util.List;
  *     {@link Annotation metadata} 'part' {@link StringLiteral partUri} ';'
  * </pre>
  */
-public class PartDirective extends Directive {
+public class PartDirective extends UriBasedDirective {
   /**
    * The token representing the 'part' token.
    */
   private Token partToken;
-
-  /**
-   * The URI of the part being included.
-   */
-  private StringLiteral partUri;
 
   /**
    * The semicolon terminating the directive.
@@ -52,9 +47,8 @@ public class PartDirective extends Directive {
    */
   public PartDirective(Comment comment, List<Annotation> metadata, Token partToken,
       StringLiteral partUri, Token semicolon) {
-    super(comment, metadata);
+    super(comment, metadata, partUri);
     this.partToken = partToken;
-    this.partUri = becomeParentOf(partUri);
     this.semicolon = semicolon;
   }
 
@@ -87,8 +81,9 @@ public class PartDirective extends Directive {
    * 
    * @return the URI of the part being included
    */
+  @Deprecated
   public StringLiteral getPartUri() {
-    return partUri;
+    return getUri();
   }
 
   /**
@@ -114,8 +109,9 @@ public class PartDirective extends Directive {
    * 
    * @param partUri the URI of the part being included
    */
+  @Deprecated
   public void setPartUri(StringLiteral partUri) {
-    this.partUri = becomeParentOf(partUri);
+    setUri(partUri);
   }
 
   /**
@@ -125,12 +121,6 @@ public class PartDirective extends Directive {
    */
   public void setSemicolon(Token semicolon) {
     this.semicolon = semicolon;
-  }
-
-  @Override
-  public void visitChildren(ASTVisitor<?> visitor) {
-    super.visitChildren(visitor);
-    safelyVisitChild(partUri, visitor);
   }
 
   @Override

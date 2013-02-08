@@ -103,7 +103,6 @@ public class ImportDirective extends NamespaceDirective {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(getLibraryUri(), visitor);
     safelyVisitChild(prefix, visitor);
     getCombinators().accept(visitor);
   }

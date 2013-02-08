@@ -49,7 +49,6 @@ public class ExportDirective extends NamespaceDirective {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(getLibraryUri(), visitor);
     getCombinators().accept(visitor);
   }
 }

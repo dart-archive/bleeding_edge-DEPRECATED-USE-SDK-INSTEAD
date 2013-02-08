@@ -27,16 +27,11 @@ import java.util.List;
  *   | {@link ImportDirective importDirective}
  * </pre>
  */
-public abstract class NamespaceDirective extends Directive {
+public abstract class NamespaceDirective extends UriBasedDirective {
   /**
    * The token representing the 'import' or 'export' keyword.
    */
   private Token keyword;
-
-  /**
-   * The URI of the library being imported or exported.
-   */
-  private StringLiteral libraryUri;
 
   /**
    * The combinators used to control which names are imported or exported.
@@ -60,9 +55,8 @@ public abstract class NamespaceDirective extends Directive {
    */
   public NamespaceDirective(Comment comment, List<Annotation> metadata, Token keyword,
       StringLiteral libraryUri, List<Combinator> combinators, Token semicolon) {
-    super(comment, metadata);
+    super(comment, metadata, libraryUri);
     this.keyword = keyword;
-    this.libraryUri = becomeParentOf(libraryUri);
     this.combinators.addAll(combinators);
     this.semicolon = semicolon;
   }
@@ -91,8 +85,9 @@ public abstract class NamespaceDirective extends Directive {
    * 
    * @return the URI of the library being imported or exported
    */
+  @Deprecated
   public StringLiteral getLibraryUri() {
-    return libraryUri;
+    return getUri();
   }
 
   /**
@@ -118,8 +113,9 @@ public abstract class NamespaceDirective extends Directive {
    * 
    * @param literal the URI of the library being imported or exported
    */
+  @Deprecated
   public void setLibraryUri(StringLiteral literal) {
-    libraryUri = becomeParentOf(literal);
+    setUri(literal);
   }
 
   /**
