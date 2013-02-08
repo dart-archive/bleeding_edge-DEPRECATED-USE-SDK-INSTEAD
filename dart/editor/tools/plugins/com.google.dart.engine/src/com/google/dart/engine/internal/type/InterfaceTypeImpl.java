@@ -445,4 +445,20 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     newType.setTypeArguments(substitute(typeArguments, argumentTypes, parameterTypes));
     return newType;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append(getName());
+    int argumentCount = typeArguments.length;
+    if (argumentCount > 0) {
+      builder.append("<");
+      for (int i = 0; i < argumentCount; i++) {
+        if (i > 0) {
+          builder.append(", ");
+        }
+        ((TypeImpl) typeArguments[i]).appendTo(builder);
+      }
+      builder.append(">");
+    }
+  }
 }

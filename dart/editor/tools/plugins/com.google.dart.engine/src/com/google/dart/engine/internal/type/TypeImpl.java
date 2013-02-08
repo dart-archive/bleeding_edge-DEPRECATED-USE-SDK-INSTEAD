@@ -98,6 +98,21 @@ public abstract class TypeImpl implements Type {
 
   @Override
   public String toString() {
-    return name == null ? "<unnamed type>" : "type " + name;
+    StringBuilder builder = new StringBuilder();
+    appendTo(builder);
+    return builder.toString();
+  }
+
+  /**
+   * Append a textual representation of this type to the given builder.
+   * 
+   * @param builder the builder to which the text is to be appended
+   */
+  protected void appendTo(StringBuilder builder) {
+    if (name == null) {
+      builder.append("<unnamed type>");
+    } else {
+      builder.append(name);
+    }
   }
 }

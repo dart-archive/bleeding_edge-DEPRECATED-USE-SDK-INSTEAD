@@ -321,8 +321,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
+  protected void appendTo(StringBuilder builder) {
     builder.append("(");
     boolean needsComma = false;
     if (normalParameterTypes.length > 0) {
@@ -332,7 +331,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        builder.append(type);
+        ((TypeImpl) type).appendTo(builder);
       }
     }
     if (optionalParameterTypes.length > 0) {
@@ -347,7 +346,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        builder.append(type);
+        ((TypeImpl) type).appendTo(builder);
       }
       builder.append("]");
       needsComma = true;
@@ -366,13 +365,12 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
         builder.append(entry.getKey());
         builder.append(": ");
-        builder.append(entry.getValue());
+        ((TypeImpl) entry.getValue()).appendTo(builder);
       }
       builder.append("}");
       needsComma = true;
     }
     builder.append(") -> ");
-    builder.append(returnType);
-    return builder.toString();
+    ((TypeImpl) returnType).appendTo(builder);
   }
 }
