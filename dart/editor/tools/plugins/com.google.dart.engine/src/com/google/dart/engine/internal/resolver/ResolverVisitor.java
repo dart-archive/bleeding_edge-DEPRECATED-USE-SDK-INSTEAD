@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
@@ -100,6 +101,14 @@ public class ResolverVisitor extends ScopedVisitor {
     } finally {
       enclosingFunction = outerFunction;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitLibraryIdentifier(LibraryIdentifier node) {
+    //
+    // We don't visit library identifiers or their children because they have already been resolved.
+    //
     return null;
   }
 

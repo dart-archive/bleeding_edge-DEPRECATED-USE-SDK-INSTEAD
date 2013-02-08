@@ -56,6 +56,7 @@ import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
+import com.google.dart.engine.internal.type.TypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
@@ -331,11 +332,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (argumentList != null) {
       NodeList<TypeName> arguments = argumentList.getArguments();
       int argumentCount = arguments.size();
-      int parameterCount = (type instanceof InterfaceType)
-          ? ((InterfaceType) type).getTypeArguments().length
-          : ((FunctionType) type).getTypeArguments().length;
+      Type[] parameters = getTypeArguments(type);
+      int parameterCount = parameters.length;
       if (argumentCount != parameterCount) {
-        // TODO(brianwilkerson) Report this error.
+        // TODO(brianwilkerson) Report this error and fix the code below to deal with the error.
 //      resolver.reportError(ResolverErrorCode.?, keyType);
       }
       ArrayList<Type> typeArguments = new ArrayList<Type>(argumentCount);
@@ -366,6 +366,20 @@ public class TypeResolverVisitor extends ScopedVisitor {
       } else {
         // TODO(brianwilkerson) Report this error.
 //      resolver.reportError(ResolverErrorCode.?, keyType);
+      }
+    } else {
+      //
+      // Check for the case where there are no type arguments given for a parameterized type.
+      //
+      Type[] parameters = getTypeArguments(type);
+      int parameterCount = parameters.length;
+      if (parameterCount > 0) {
+        DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
+        Type[] arguments = new Type[parameterCount];
+        for (int i = 0; i < parameterCount; i++) {
+          arguments[i] = dynamicType;
+        }
+        type = type.substitute(arguments, parameters);
       }
     }
     node.setType(type);
@@ -439,6 +453,21 @@ public class TypeResolverVisitor extends ScopedVisitor {
    */
   private Type getType(TypeName typeName) {
     return typeName.getType();
+  }
+
+  /**
+   * Return the type arguments associated with the given type.
+   * 
+   * @param type the type whole type arguments are to be returned
+   * @return the type arguments associated with the given type
+   */
+  private Type[] getTypeArguments(Type type) {
+    if (type instanceof InterfaceType) {
+      return ((InterfaceType) type).getTypeArguments();
+    } else if (type instanceof FunctionType) {
+      return ((FunctionType) type).getTypeArguments();
+    }
+    return TypeImpl.EMPTY_ARRAY;
   }
 
   /**

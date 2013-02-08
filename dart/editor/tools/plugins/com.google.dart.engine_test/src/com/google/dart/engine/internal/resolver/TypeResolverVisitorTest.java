@@ -33,6 +33,7 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -114,11 +115,6 @@ public class TypeResolverVisitorTest extends EngineTestCase {
 
   public void fail_visitMethodDeclaration() throws Exception {
     fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitTypeName() throws Exception {
-    fail("Not yet tested"); // with and without type arguments
     listener.assertNoErrors();
   }
 
@@ -253,6 +249,42 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     ParameterElementImpl element = new ParameterElementImpl(identifier);
     identifier.setElement(element);
     assertSame(intType, resolve(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitTypeName_noParameters_noArguments() throws Exception {
+    ClassElement classA = classElement("A");
+    TypeName typeName = typeName(classA);
+    typeName.setType(null); // The factory method sets the type, but we want the resolver to do so.
+    resolveNode(typeName, classA);
+    assertSame(classA.getType(), typeName.getType());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitTypeName_parameters_arguments() throws Exception {
+    ClassElement classA = classElement("A", "E");
+    ClassElement classB = classElement("B");
+    TypeName typeName = typeName(classA, typeName(classB));
+    typeName.setType(null); // The factory method sets the type, but we want the resolver to do so.
+    resolveNode(typeName, classA, classB);
+    InterfaceType resultType = (InterfaceType) typeName.getType();
+    assertSame(classA, resultType.getElement());
+    Type[] resultArguments = resultType.getTypeArguments();
+    assertLength(1, resultArguments);
+    assertSame(classB.getType(), resultArguments[0]);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitTypeName_parameters_noArguments() throws Exception {
+    ClassElement classA = classElement("A", "E");
+    TypeName typeName = typeName(classA);
+    typeName.setType(null); // The factory method sets the type, but we want the resolver to do so.
+    resolveNode(typeName, classA);
+    InterfaceType resultType = (InterfaceType) typeName.getType();
+    assertSame(classA, resultType.getElement());
+    Type[] resultArguments = resultType.getTypeArguments();
+    assertLength(1, resultArguments);
+    assertSame(DynamicTypeImpl.getInstance(), resultArguments[0]);
     listener.assertNoErrors();
   }
 

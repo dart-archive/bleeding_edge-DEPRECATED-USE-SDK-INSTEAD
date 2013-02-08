@@ -954,10 +954,10 @@ public final class ASTFactory {
    * @param element the element defining the type represented by the type name
    * @return the type name that was created
    */
-  public static TypeName typeName(ClassElement element) {
+  public static TypeName typeName(ClassElement element, TypeName... arguments) {
     SimpleIdentifier name = identifier(element.getName());
     name.setElement(element);
-    TypeName typeName = new TypeName(name, null);
+    TypeName typeName = typeName(name, arguments);
     typeName.setType(element.getType());
     return typeName;
   }
