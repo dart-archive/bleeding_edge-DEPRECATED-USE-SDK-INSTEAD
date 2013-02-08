@@ -34,6 +34,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Scope;
@@ -207,7 +208,7 @@ public class ElementResolverTest extends EngineTestCase {
   public void test_visitSimpleIdentifier_inClassScope() throws Exception {
     InterfaceType doubleType = typeProvider.getDoubleType();
     SimpleIdentifier node = identifier("NAN");
-    resolveInClass(node, classElement("DoublePlus", doubleType));
+    resolveInClass(node, doubleType.getElement());
     // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
     assertEquals(doubleType.getElement().getFields()[0], node.getElement());
     listener.assertNoErrors();
@@ -307,13 +308,24 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private void resolveInClass(ASTNode node, ClassElement enclosingClass) {
     try {
-      Field scopeField = visitor.getClass().getDeclaredField("enclosingClass");
+      Field enclosingClassField = visitor.getClass().getDeclaredField("enclosingClass");
+      enclosingClassField.setAccessible(true);
+
+      Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
       scopeField.setAccessible(true);
+      Scope outerScope = (Scope) scopeField.get(visitor);
+
       try {
-        scopeField.set(visitor, enclosingClass);
+        enclosingClassField.set(visitor, enclosingClass);
+
+        EnclosedScope innerScope = new ClassScope(outerScope, enclosingClass);
+        scopeField.set(visitor, innerScope);
+
         node.accept(resolver);
       } finally {
-        scopeField.set(visitor, null);
+        enclosingClassField.set(visitor, null);
+
+        scopeField.set(visitor, outerScope);
       }
     } catch (Exception exception) {
       throw new IllegalArgumentException("Could not resolve node", exception);

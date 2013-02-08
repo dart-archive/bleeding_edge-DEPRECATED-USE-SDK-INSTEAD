@@ -52,7 +52,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -61,6 +60,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+
+import java.util.HashSet;
 
 /**
  * Instances of the class {@code ElementResolver} are used by instances of {@link ResolverVisitor}
@@ -140,11 +141,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (leftType != null) {
           Element leftElement = leftType.getElement();
           if (leftElement != null) {
-            Element method = lookupInHierarchy(leftElement, operator.getLexeme());
-            if (method instanceof MethodElement) {
-              node.setElement((MethodElement) method);
+            MethodElement method = lookUpMethod(leftElement, operator.getLexeme());
+            if (method != null) {
+              node.setElement(method);
             } else {
-              // TODO(brianwilkerson) Do we need to handle this case?
+              // TODO(brianwilkerson) Report this error.
             }
           }
         }
@@ -163,14 +164,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       Element leftTypeElement = leftType.getElement();
       String methodName = operator.getLexeme();
-      Element member = lookupInHierarchy(leftTypeElement, methodName);
+      MethodElement member = lookUpMethod(leftTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
-      } else if (member instanceof MethodElement) {
-        node.setElement((MethodElement) member);
       } else {
-        // TODO(brianwilkerson) Do we need to handle this case?
-        return null;
+        node.setElement(member);
       }
     }
     return null;
@@ -232,13 +230,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       operator = TokenType.INDEX.getLexeme();
     }
-    Element member = lookupInHierarchy(arrayTypeElement, operator);
+    MethodElement member = lookUpMethod(arrayTypeElement, operator);
     if (member == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, node, operator);
-    } else if (member instanceof MethodElement) {
-      node.setElement((MethodElement) member);
     } else {
-      // TODO(brianwilkerson) Do we need to handle this case?
+      node.setElement(member);
     }
     return null;
   }
@@ -260,7 +256,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       Type targetType = getType(target);
       if (targetType instanceof InterfaceType) {
-        element = lookupInHierarchy(targetType.getElement(), methodName.getName());
+        element = lookUpMethod(targetType.getElement(), methodName.getName());
       } else {
         //TODO(brianwilkerson) Report this error.
         return null;
@@ -300,13 +296,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         methodName = TokenType.MINUS.getLexeme();
       }
-      Element member = lookupInHierarchy(operandTypeElement, methodName);
+      MethodElement member = lookUpMethod(operandTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
-      } else if (member instanceof MethodElement) {
-        node.setElement((MethodElement) member);
       } else {
-        // TODO(brianwilkerson) Do we need to handle this case?
+        node.setElement(member);
       }
     }
     return null;
@@ -325,23 +319,35 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       recordResolution(node, element);
     } else if (prefixElement instanceof ClassElement) {
       // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
-      Element memberElement = lookupInType((ClassElement) prefixElement, identifier.getName());
+      Element memberElement;
+      if (node.getIdentifier().inSetterContext()) {
+        memberElement = lookUpSetterInType((ClassElement) prefixElement, identifier.getName());
+      } else {
+        memberElement = lookUpGetterInType((ClassElement) prefixElement, identifier.getName());
+      }
       if (memberElement == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
-//      } else if (!element.isStatic()) {
-//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
       } else {
+//      if (!element.isStatic()) {
+//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
+//      }
         recordResolution(identifier, memberElement);
       }
     } else if (prefixElement instanceof VariableElement) {
       // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
       Element variableType = ((VariableElement) prefixElement).getType().getElement();
-      Element memberElement = lookupInHierarchy(variableType, identifier.getName());
+      PropertyAccessorElement memberElement;
+      if (node.getIdentifier().inGetterContext()) {
+        memberElement = lookUpGetter(variableType, identifier.getName());
+      } else {
+        memberElement = lookUpSetter(variableType, identifier.getName());
+      }
       if (memberElement == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
-//      } else if (!element.isStatic()) {
-//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
       } else {
+//      if (!element.isStatic()) {
+//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
+//      }
         recordResolution(identifier, memberElement);
       }
     } else {
@@ -369,13 +375,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         methodName = operator.getLexeme();
       }
-      Element member = lookupInHierarchy(operandTypeElement, methodName);
+      MethodElement member = lookUpMethod(operandTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
-      } else if (member instanceof MethodElement) {
-        node.setElement((MethodElement) member);
       } else {
-        // TODO(brianwilkerson) Do we need to handle this case?
+        node.setElement(member);
       }
     }
     return null;
@@ -388,10 +392,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Report this error
       return null;
     }
+    ClassElement targetElement = ((InterfaceType) targetType).getElement();
     SimpleIdentifier identifier = node.getPropertyName();
-    Element memberElement = lookupInHierarchy(
-        ((InterfaceType) targetType).getElement(),
-        identifier.getName());
+    PropertyAccessorElement memberElement;
+    if (identifier.inGetterContext()) {
+      memberElement = lookUpGetter(targetElement, identifier.getName());
+    } else {
+      memberElement = lookUpSetter(targetElement, identifier.getName());
+    }
     if (memberElement == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
 //    } else if (!element.isStatic()) {
@@ -451,7 +459,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
     if (element == null) {
-      element = lookupInHierarchy(resolver.getEnclosingClass(), node.getName());
+      if (node.inGetterContext()) {
+        element = lookUpGetter(resolver.getEnclosingClass(), node.getName());
+      } else {
+        element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
+      }
+      if (element == null) {
+        element = lookUpMethod(resolver.getEnclosingClass(), node.getName());
+      }
     }
     if (element == null) {
       // TODO(brianwilkerson) Report and recover from this error.
@@ -511,57 +526,88 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Look up the name of a member in the given type. Return the element representing the member that
-   * was found, or {@code null} if there is no member with the given name.
+   * Look up the getter with the given name in the given type. Return the element representing the
+   * getter that was found, or {@code null} if there is no getter with the given name.
    * 
-   * @param element the element representing the type in which the member is defined
-   * @param memberName the name of the member being looked up
-   * @return the element representing the member that was found
+   * @param element the element representing the type in which the getter is defined
+   * @param getterName the name of the getter being looked up
+   * @return the element representing the getter that was found
    */
-  private Element lookupInHierarchy(Element element, String memberName) {
+  private PropertyAccessorElement lookUpGetter(Element element, String getterName) {
     // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
 //    if (element == DynamicTypeImpl.getInstance()) {
 //      return ?;
 //    } else
     if (element instanceof ClassElement) {
-      ClassElement targetClass = (ClassElement) element;
-      Element member = lookupInType(targetClass, memberName);
-      while (member == null) {
-        targetClass = getSuperclass(targetClass);
-        if (targetClass == null) {
-          return null;
-        }
-        member = lookupInType(targetClass, memberName);
+      ClassElement classElement = (ClassElement) element;
+      PropertyAccessorElement member = classElement.lookUpGetter(
+          getterName,
+          resolver.getDefiningLibrary());
+      if (member != null) {
+        return member;
       }
-      // TODO(brianwilkerson) Look in mixins and possibly interfaces
-      return member;
+      // return classElement.getType().lookUpGetter(methodName, resolver.getDefiningLibrary());
+      Element memberElement = lookUpGetterInInterfaces(
+          (ClassElement) element,
+          getterName,
+          new HashSet<ClassElement>());
+      if (memberElement instanceof PropertyAccessorElement) {
+        return (PropertyAccessorElement) memberElement;
+      }
     }
     return null;
   }
 
   /**
-   * Look up the name of a member in the given type. Return the element representing the member that
-   * was found, or {@code null} if there is no member with the given name.
+   * Look up the name of a getter in the interfaces implemented by the given type, either directly
+   * or indirectly. Return the element representing the getter that was found, or {@code null} if
+   * there is no getter with the given name.
    * 
-   * @param element the element representing the type in which the member is defined
-   * @param memberName the name of the member being looked up
-   * @return the element representing the member that was found
+   * @param element the element representing the type in which the getter is defined
+   * @param memberName the name of the getter being looked up
+   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
+   *          to prevent infinite recursion and to optimize the search
+   * @return the element representing the getter that was found
    */
-  private Element lookupInType(ClassElement element, String memberName) {
-    ClassElement classElement = element;
-    for (FieldElement field : classElement.getFields()) {
-      if (field.getName().equals(memberName)) {
-        return field;
+  private PropertyAccessorElement lookUpGetterInInterfaces(ClassElement targetClass,
+      String memberName, HashSet<ClassElement> visitedInterfaces) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
+    // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
+    // finding the inherited member. We need to follow that scheme. The code below should cover the
+    // 80% case.
+    if (visitedInterfaces.contains(targetClass)) {
+      return null;
+    }
+    visitedInterfaces.add(targetClass);
+    PropertyAccessorElement member = lookUpGetterInType(targetClass, memberName);
+    if (member != null) {
+      return member;
+    }
+    for (InterfaceType interfaceType : targetClass.getInterfaces()) {
+      member = lookUpGetterInInterfaces(interfaceType.getElement(), memberName, visitedInterfaces);
+      if (member != null) {
+        return member;
       }
     }
-    for (MethodElement method : classElement.getMethods()) {
-      if (method.getName().equals(memberName)) {
-        return method;
-      }
+    ClassElement superclass = getSuperclass(targetClass);
+    if (superclass == null) {
+      return null;
     }
-    for (TypeVariableElement typeVariable : classElement.getTypeVariables()) {
-      if (typeVariable.getName().equals(memberName)) {
-        return typeVariable;
+    return lookUpGetterInInterfaces(superclass, memberName, visitedInterfaces);
+  }
+
+  /**
+   * Look up the name of a getter in the given type. Return the element representing the getter that
+   * was found, or {@code null} if there is no getter with the given name.
+   * 
+   * @param element the element representing the type in which the getter is defined
+   * @param memberName the name of the getter being looked up
+   * @return the element representing the getter that was found
+   */
+  private PropertyAccessorElement lookUpGetterInType(ClassElement element, String memberName) {
+    for (PropertyAccessorElement accessor : element.getAccessors()) {
+      if (accessor.isGetter() && accessor.getName().equals(memberName)) {
+        return accessor;
       }
     }
     return null;
@@ -616,6 +662,176 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     return labelElement;
+  }
+
+  /**
+   * Look up the method with the given name in the given type. Return the element representing the
+   * method that was found, or {@code null} if there is no method with the given name.
+   * 
+   * @param element the element representing the type in which the method is defined
+   * @param methodName the name of the method being looked up
+   * @return the element representing the method that was found
+   */
+  private MethodElement lookUpMethod(Element element, String methodName) {
+    // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
+//    if (element == DynamicTypeImpl.getInstance()) {
+//      return ?;
+//    } else
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      MethodElement member = classElement.lookUpMethod(methodName, resolver.getDefiningLibrary());
+      if (member != null) {
+        return member;
+      }
+      // return classElement.getType().lookUpMethod(methodName, resolver.getDefiningLibrary());
+      member = lookUpMethodInInterfaces(
+          (ClassElement) element,
+          methodName,
+          new HashSet<ClassElement>());
+      return member;
+    }
+    return null;
+  }
+
+  /**
+   * Look up the name of a member in the interfaces implemented by the given type, either directly
+   * or indirectly. Return the element representing the member that was found, or {@code null} if
+   * there is no member with the given name.
+   * 
+   * @param element the element representing the type in which the member is defined
+   * @param memberName the name of the member being looked up
+   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
+   *          to prevent infinite recursion and to optimize the search
+   * @return the element representing the member that was found
+   */
+  private MethodElement lookUpMethodInInterfaces(ClassElement targetClass, String memberName,
+      HashSet<ClassElement> visitedInterfaces) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
+    // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
+    // finding the inherited member. We need to follow that scheme. The code below should cover the
+    // 80% case.
+    if (visitedInterfaces.contains(targetClass)) {
+      return null;
+    }
+    visitedInterfaces.add(targetClass);
+    MethodElement member = lookUpMethodInType(targetClass, memberName);
+    if (member != null) {
+      return member;
+    }
+    for (InterfaceType interfaceType : targetClass.getInterfaces()) {
+      member = lookUpMethodInInterfaces(interfaceType.getElement(), memberName, visitedInterfaces);
+      if (member != null) {
+        return member;
+      }
+    }
+    ClassElement superclass = getSuperclass(targetClass);
+    if (superclass == null) {
+      return null;
+    }
+    return lookUpMethodInInterfaces(superclass, memberName, visitedInterfaces);
+  }
+
+  /**
+   * Look up the name of a method in the given type. Return the element representing the method that
+   * was found, or {@code null} if there is no method with the given name.
+   * 
+   * @param element the element representing the type in which the method is defined
+   * @param memberName the name of the method being looked up
+   * @return the element representing the method that was found
+   */
+  private MethodElement lookUpMethodInType(ClassElement element, String memberName) {
+    for (MethodElement method : element.getMethods()) {
+      if (method.getName().equals(memberName)) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Look up the setter with the given name in the given type. Return the element representing the
+   * setter that was found, or {@code null} if there is no setter with the given name.
+   * 
+   * @param element the element representing the type in which the setter is defined
+   * @param setterName the name of the setter being looked up
+   * @return the element representing the setter that was found
+   */
+  private PropertyAccessorElement lookUpSetter(Element element, String setterName) {
+    // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
+//    if (element == DynamicTypeImpl.getInstance()) {
+//      return ?;
+//    } else
+    if (element instanceof ClassElement) {
+      ClassElement classElement = (ClassElement) element;
+      PropertyAccessorElement member = classElement.lookUpSetter(
+          setterName,
+          resolver.getDefiningLibrary());
+      if (member != null) {
+        return member;
+      }
+      // return classElement.getType().lookUpSetter(methodName, resolver.getDefiningLibrary());
+      member = lookUpSetterInInterfaces(
+          (ClassElement) element,
+          setterName,
+          new HashSet<ClassElement>());
+      return member;
+    }
+    return null;
+  }
+
+  /**
+   * Look up the name of a setter in the interfaces implemented by the given type, either directly
+   * or indirectly. Return the element representing the setter that was found, or {@code null} if
+   * there is no setter with the given name.
+   * 
+   * @param element the element representing the type in which the setter is defined
+   * @param memberName the name of the setter being looked up
+   * @param visitedInterfaces a set containing all of the interfaces that have been examined, used
+   *          to prevent infinite recursion and to optimize the search
+   * @return the element representing the setter that was found
+   */
+  private PropertyAccessorElement lookUpSetterInInterfaces(ClassElement targetClass,
+      String memberName, HashSet<ClassElement> visitedInterfaces) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the specification (titled
+    // "Inheritance and Overriding" under "Interfaces") describes a much more complex scheme for
+    // finding the inherited member. We need to follow that scheme. The code below should cover the
+    // 80% case.
+    if (visitedInterfaces.contains(targetClass)) {
+      return null;
+    }
+    visitedInterfaces.add(targetClass);
+    PropertyAccessorElement member = lookUpSetterInType(targetClass, memberName);
+    if (member != null) {
+      return member;
+    }
+    for (InterfaceType interfaceType : targetClass.getInterfaces()) {
+      member = lookUpSetterInInterfaces(interfaceType.getElement(), memberName, visitedInterfaces);
+      if (member != null) {
+        return member;
+      }
+    }
+    ClassElement superclass = getSuperclass(targetClass);
+    if (superclass == null) {
+      return null;
+    }
+    return lookUpSetterInInterfaces(superclass, memberName, visitedInterfaces);
+  }
+
+  /**
+   * Look up the name of a setter in the given type. Return the element representing the setter that
+   * was found, or {@code null} if there is no setter with the given name.
+   * 
+   * @param element the element representing the type in which the setter is defined
+   * @param memberName the name of the setter being looked up
+   * @return the element representing the setter that was found
+   */
+  private PropertyAccessorElement lookUpSetterInType(ClassElement element, String memberName) {
+    for (PropertyAccessorElement accessor : element.getAccessors()) {
+      if (accessor.isSetter() && accessor.getName().equals(memberName)) {
+        return accessor;
+      }
+    }
+    return null;
   }
 
   /**
