@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
@@ -286,6 +287,10 @@ public final class ElementFactory {
     setter.setType(setterType);
 
     return setter;
+  }
+
+  public static VariableElement variableElement(String name) {
+    return new VariableElementImpl(name, -1);
   }
 
   /**

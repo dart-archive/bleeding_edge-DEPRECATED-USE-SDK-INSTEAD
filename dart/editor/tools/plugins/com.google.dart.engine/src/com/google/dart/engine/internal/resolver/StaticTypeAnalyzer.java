@@ -569,8 +569,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Element element = node.getIdentifier().getElement();
     if (element instanceof VariableElement) {
       // set the type on both the identifier node and the prefixed identifier node
-      recordType(node.getIdentifier(), ((VariableElement) element).getType());
-      return recordType(node, ((VariableElement) element).getType());
+      Type variableType = ((VariableElement) element).getType();
+      recordType(node.getIdentifier(), variableType);
+      return recordType(node, variableType);
+    } else if (element instanceof PropertyAccessorElement) {
+      Type propertyType = ((PropertyAccessorElement) element).getType().getReturnType();
+      recordType(node.getIdentifier(), propertyType);
+      return recordType(node, propertyType);
     } else {
       // TODO(jwren) Implement other cases.
     }

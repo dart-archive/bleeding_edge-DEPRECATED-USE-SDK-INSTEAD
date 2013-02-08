@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
@@ -37,6 +38,7 @@ import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
@@ -88,6 +90,8 @@ import static com.google.dart.engine.ast.ASTFactory.throwExpression;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
+import static com.google.dart.engine.element.ElementFactory.getterElement;
+import static com.google.dart.engine.element.ElementFactory.variableElement;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -149,11 +153,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   public void fail_visitMethodInvocation() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixedIdentifier() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
   }
@@ -635,6 +634,26 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // 0++
     PostfixExpression node = postfixExpression(resolvedInteger(0), TokenType.PLUS_PLUS);
     assertSame(typeProvider.getIntType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_property() throws Exception {
+    PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) getterElement(
+        "b",
+        false,
+        typeProvider.getBoolType());
+    PrefixedIdentifier node = identifier("a", "b");
+    node.getIdentifier().setElement(getter);
+    assertSame(typeProvider.getBoolType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_variable() throws Exception {
+    VariableElementImpl variable = (VariableElementImpl) variableElement("b");
+    variable.setType(typeProvider.getBoolType());
+    PrefixedIdentifier node = identifier("a", "b");
+    node.getIdentifier().setElement(variable);
+    assertSame(typeProvider.getBoolType(), analyze(node));
     listener.assertNoErrors();
   }
 
