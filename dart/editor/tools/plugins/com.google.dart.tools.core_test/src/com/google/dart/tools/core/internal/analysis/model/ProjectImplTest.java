@@ -28,6 +28,7 @@ import com.google.dart.tools.core.mock.MockProject;
 
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Path;
 
 import java.io.File;
@@ -105,6 +106,19 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
   public void test_getResource() {
     assertSame(projectContainer, project.getResource());
+  }
+
+  public void test_getResourceFor() {
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    File file = resource.getLocation().toFile();
+    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    assertSame(resource, project.getResourceFor(source));
+  }
+
+  public void test_getResourceFor_outside_resource() {
+    File file = new File("/does/not/exist.dart");
+    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    assertNull(project.getResourceFor(source));
   }
 
   public void test_pubFolder_folder() {

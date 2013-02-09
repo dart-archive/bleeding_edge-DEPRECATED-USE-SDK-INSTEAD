@@ -26,6 +26,7 @@ import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisCo
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import junit.framework.TestCase;
 
@@ -263,7 +264,9 @@ public class ScanTimings extends TestCase {
 
   private void scanWithParticipant(final IProject project) throws CoreException {
     IProgressMonitor monitor = new NullProgressMonitor();
-    final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(true) {
+    final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
+        true,
+        new DartIgnoreManager()) {
       private ProjectImpl project;
 
       @Override

@@ -14,10 +14,12 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockDelta;
 import com.google.dart.tools.core.mock.MockProject;
 
@@ -26,6 +28,7 @@ import static com.google.dart.tools.core.internal.builder.TestProjects.newPubPro
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
 
@@ -111,6 +114,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public IResource getResourceFor(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void pubspecAdded(IContainer container) {
       throw new RuntimeException("Unexpected call");
     }
@@ -131,7 +139,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     MockDeltaProcessor processor;
 
     Target(MockProject resource) {
-      super(true);
+      super(true, new DartIgnoreManager());
     }
 
     @Override

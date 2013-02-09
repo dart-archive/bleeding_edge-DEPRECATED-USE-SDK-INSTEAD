@@ -6,6 +6,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
@@ -23,6 +24,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,6 +47,13 @@ public class ProjectImpl implements Project {
    * The Eclipse project associated with this Dart project (not {@code null})
    */
   private final IProject resource;
+
+  /**
+   * The project resource location on disk or {@code null} if it has not yet been initialized.
+   * 
+   * @see #getResourceLocation()
+   */
+  private IPath resourceLocation;
 
   /**
    * The factory used to create new {@link AnalysisContext} (not {@code null})
@@ -162,6 +171,18 @@ public class ProjectImpl implements Project {
   @Override
   public IProject getResource() {
     return resource;
+  }
+
+  @Override
+  public IResource getResourceFor(Source source) {
+    IPath path = new Path(source.getFullName());
+    IPath projPath = getResourceLocation();
+    if (projPath.isPrefixOf(path)) {
+      IPath relPath = path.removeFirstSegments(projPath.segmentCount());
+      return resource.getFile(relPath);
+    }
+    // TODO (danrubel): Handle mapped subfolders
+    return null;
   }
 
   @Override
@@ -301,6 +322,16 @@ public class ProjectImpl implements Project {
       }
     }
     return null;
+  }
+
+  /**
+   * Answer the Eclipse project's resource location or {@code null} if it could not be determined.
+   */
+  private IPath getResourceLocation() {
+    if (resourceLocation == null) {
+      resourceLocation = resource.getLocation();
+    }
+    return resourceLocation;
   }
 
   /**

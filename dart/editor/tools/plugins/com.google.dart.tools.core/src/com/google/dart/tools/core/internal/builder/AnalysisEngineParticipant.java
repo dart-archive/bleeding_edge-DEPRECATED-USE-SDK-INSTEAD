@@ -21,6 +21,7 @@ import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
 
@@ -48,12 +49,21 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    */
   private Project project;
 
+  /**
+   * The object (not {@code null}) used to manage which resources should be not be analyzed.
+   */
+  private final DartIgnoreManager ignoreManager;
+
   public AnalysisEngineParticipant() {
-    this(DartCoreDebug.ENABLE_NEW_ANALYSIS);
+    this(DartCoreDebug.ENABLE_NEW_ANALYSIS, DartIgnoreManager.getInstance());
   }
 
-  public AnalysisEngineParticipant(boolean enabled) {
+  public AnalysisEngineParticipant(boolean enabled, DartIgnoreManager ignoreManager) {
+    if (ignoreManager == null) {
+      throw new IllegalArgumentException();
+    }
     this.enabled = enabled;
+    this.ignoreManager = ignoreManager;
   }
 
   /**
@@ -91,11 +101,11 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer();
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager);
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(delta);
-        analyzer.updateMarkers();
+        analyzer.analyze(monitor);
 
         return false;
       }
@@ -122,11 +132,11 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer();
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager);
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(resource);
-        analyzer.updateMarkers();
+        analyzer.analyze(monitor);
 
         return false;
       }

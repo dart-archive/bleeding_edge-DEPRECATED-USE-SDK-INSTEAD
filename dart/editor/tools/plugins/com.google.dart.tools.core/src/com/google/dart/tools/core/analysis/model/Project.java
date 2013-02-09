@@ -1,9 +1,11 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.Source;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 
 /**
  * Represents an Eclipse project that has a Dart nature
@@ -58,6 +60,14 @@ public interface Project {
    * @return the Eclipse project (not {@code null})
    */
   IProject getResource();
+
+  /**
+   * Answer the resource associated with the specified source.
+   * 
+   * @param source the source (not {@code null})
+   * @return the resource or {@code null} if it could not be determined
+   */
+  IResource getResourceFor(Source source);
 
   /**
    * Called when a pubspec file is added
