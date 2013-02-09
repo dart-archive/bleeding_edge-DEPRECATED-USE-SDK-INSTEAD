@@ -121,7 +121,7 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
       }
       try {
         CompilationUnit unit = context.parse(source);
-        errorMap.put(res, unit.getSyntacticErrors());
+        errorMap.put(res, unit.getParsingErrors());
       } catch (AnalysisException e) {
         DartCore.logError("Exception parsing source: " + source, e);
         return;
@@ -180,7 +180,7 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
       // TODO (danrubel): do not show errors on sources in the "packages" directory
       try {
         CompilationUnit unit = context.resolve(source, library);
-        errorMap.put(res, unit.getSemanticErrors());
+        errorMap.put(res, unit.getResolutionErrors());
       } catch (AnalysisException e) {
         DartCore.logError("Exception resolving source: " + source, e);
         return;

@@ -149,7 +149,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException {
+  public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException {
     return new AnalysisError[] {};
   }
 
@@ -159,7 +159,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException {
+  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
     return new AnalysisError[] {};
   }
 

@@ -247,7 +247,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getSemanticErrors(Source source) throws AnalysisException {
+  public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
@@ -257,7 +257,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getSyntacticErrors(Source source) throws AnalysisException {
+  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
@@ -281,7 +281,7 @@ public class AnalysisContextImpl implements AnalysisContext {
         Token token = scan(source, errorListener);
         Parser parser = new Parser(source, errorListener);
         unit = parser.parseCompilationUnit(token);
-        unit.setSyntacticErrors(errorListener.getErrors());
+        unit.setParsingErrors(errorListener.getErrors());
         parseCache.put(source, unit);
       }
       return unit;

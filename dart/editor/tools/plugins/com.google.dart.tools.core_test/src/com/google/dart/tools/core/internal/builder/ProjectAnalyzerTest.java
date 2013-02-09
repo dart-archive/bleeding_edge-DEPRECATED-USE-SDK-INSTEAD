@@ -81,14 +81,14 @@ public class ProjectAnalyzerTest extends TestCase {
     when(parseError.getMessage()).thenReturn(TEST_ERROR_MESSAGE);
     when(parseError.getOffset()).thenReturn(7);
     when(parseError.getLength()).thenReturn(95);
-    when(unit.getSyntacticErrors()).thenReturn(new AnalysisError[] {parseError});
+    when(unit.getParsingErrors()).thenReturn(new AnalysisError[] {parseError});
     AnalysisError resolutionError = mock(AnalysisError.class);
     when(resolutionError.getErrorCode()).thenReturn(ResolverErrorCode.LABEL_IN_OUTER_SCOPE);
     when(resolutionError.getSource()).thenReturn(source);
     when(resolutionError.getMessage()).thenReturn(TEST_ERROR_MESSAGE);
     when(resolutionError.getOffset()).thenReturn(7);
     when(resolutionError.getLength()).thenReturn(95);
-    when(unit.getSemanticErrors()).thenReturn(new AnalysisError[] {resolutionError});
+    when(unit.getResolutionErrors()).thenReturn(new AnalysisError[] {resolutionError});
 
     AnalysisContext context = mock(AnalysisContext.class);
     LibraryElement library = mock(LibraryElement.class);

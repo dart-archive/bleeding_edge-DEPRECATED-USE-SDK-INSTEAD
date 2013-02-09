@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
@@ -82,9 +81,9 @@ public class CompilationUnit extends ASTNode {
   private CompilationUnitElement element;
 
   /**
-   * The syntax errors encountered when the receiver was parsed.
+   * The parsing errors encountered when the receiver was parsed.
    */
-  private AnalysisError[] syntacticErrors;
+  private AnalysisError[] parsingErrors;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -177,6 +176,26 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
+   * Return an array containing all of the parsing errors associated with the receiver.
+   * 
+   * @return an array of errors (not {@code null}, contains no {@code null}s).
+   */
+  public AnalysisError[] getParsingErrors() {
+    return parsingErrors;
+  }
+
+  /**
+   * Return an array containing all of the resolution errors associated with the receiver. If the
+   * receiver has not been resolved, then return {@code null}.
+   * 
+   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
+   *         been resolved
+   */
+  public AnalysisError[] getResolutionErrors() {
+    throw new UnsupportedOperationException();
+  }
+
+  /**
    * Return the script tag at the beginning of the compilation unit, or {@code null} if there is no
    * script tag in this compilation unit.
    * 
@@ -184,26 +203,6 @@ public class CompilationUnit extends ASTNode {
    */
   public ScriptTag getScriptTag() {
     return scriptTag;
-  }
-
-  /**
-   * Return an array containing all of the semantic errors associated with the receiver. If the
-   * receiver has not been resolved, then return {@code null}.
-   * 
-   * @return an array of errors (contains no {@code null}s) or {@code null} if the receiver has not
-   *         been resolved
-   */
-  public AnalysisError[] getSemanticErrors() {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
-   * Return an array containing all of the syntactic errors associated with the receiver.
-   * 
-   * @return an array of errors (not {@code null}, contains no {@code null}s).
-   */
-  public AnalysisError[] getSyntacticErrors() {
-    return syntacticErrors;
   }
 
   /**
@@ -216,21 +215,21 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
+   * Called to cache the parsing errors when the unit is parsed.
+   * 
+   * @param errors an array of parsing errors (not {@code null}, contains no {@code null}s)
+   */
+  public void setParsingErrors(AnalysisError[] errors) {
+    this.parsingErrors = errors;
+  }
+
+  /**
    * Set the script tag at the beginning of the compilation unit to the given script tag.
    * 
    * @param scriptTag the script tag at the beginning of the compilation unit
    */
   public void setScriptTag(ScriptTag scriptTag) {
     this.scriptTag = becomeParentOf(scriptTag);
-  }
-
-  /**
-   * Called by the {@link AnalysisContext} to cache the syntax errors when the unit is parsed.
-   * 
-   * @param errors an array of syntax errors (not {@code null}, contains no {@code null}s)
-   */
-  public void setSyntacticErrors(AnalysisError[] errors) {
-    this.syntacticErrors = errors;
   }
 
   @Override

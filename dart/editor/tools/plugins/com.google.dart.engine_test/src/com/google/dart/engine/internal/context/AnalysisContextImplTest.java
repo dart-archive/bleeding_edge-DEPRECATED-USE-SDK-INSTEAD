@@ -70,8 +70,8 @@ public class AnalysisContextImplTest extends EngineTestCase {
     sourceFactory.setContents(source, "library lib;");
     CompilationUnit compilationUnit = context.resolve(source, null);
     assertNotNull(compilationUnit);
-    assertLength(0, compilationUnit.getSyntacticErrors());
-    assertLength(0, compilationUnit.getSemanticErrors());
+    assertLength(0, compilationUnit.getParsingErrors());
+    assertLength(0, compilationUnit.getResolutionErrors());
     assertLength(0, compilationUnit.getErrors());
   }
 
@@ -99,7 +99,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
     Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library lib;");
     CompilationUnit compilationUnit = context.parse(source);
-    assertLength(0, compilationUnit.getSyntacticErrors());
+    assertLength(0, compilationUnit.getParsingErrors());
     // TODO (danrubel): assert no semantic errors
 //    assertEquals(null, compilationUnit.getSemanticErrors());
 //    assertEquals(null, compilationUnit.getErrors());
@@ -111,7 +111,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
     Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library {");
     CompilationUnit compilationUnit = context.parse(source);
-    assertTrue("Expected syntax errors", compilationUnit.getSyntacticErrors().length > 0);
+    assertTrue("Expected syntax errors", compilationUnit.getParsingErrors().length > 0);
     // TODO (danrubel): assert no semantic errors
 //  assertEquals(null, compilationUnit.getSemanticErrors());
 //  assertEquals(null, compilationUnit.getErrors());
