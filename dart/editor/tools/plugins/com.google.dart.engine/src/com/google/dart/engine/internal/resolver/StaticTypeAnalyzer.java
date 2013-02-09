@@ -66,6 +66,7 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -852,6 +853,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private Void recordReturnType(Expression expression, Element element) {
     if (element instanceof ExecutableElement) {
       return recordType(expression, ((ExecutableElement) element).getType().getReturnType());
+    } else if (element instanceof VariableElement) {
+      Type variableType = ((VariableElement) element).getType();
+      if (variableType instanceof FunctionType) {
+        return recordType(expression, ((FunctionType) variableType).getReturnType());
+      }
     }
     return recordType(expression, typeProvider.getDynamicType());
   }
