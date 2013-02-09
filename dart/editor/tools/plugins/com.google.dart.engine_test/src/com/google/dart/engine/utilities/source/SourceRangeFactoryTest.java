@@ -96,6 +96,13 @@ public class SourceRangeFactoryTest extends TestCase {
     assertRangeEnd(range, 10 + 1, 20);
   }
 
+  public void test_rangeEndStart_NT() throws Exception {
+    ASTNode a = mockNode(10, 1);
+    Token b = mockToken(20, 2);
+    SourceRange range = SourceRangeFactory.rangeEndStart(a, b);
+    assertRangeEnd(range, 10 + 1, 20);
+  }
+
   public void test_rangeEndStart_RR() throws Exception {
     SourceRange a = new SourceRange(10, 1);
     SourceRange b = new SourceRange(20, 2);
@@ -186,14 +193,14 @@ public class SourceRangeFactoryTest extends TestCase {
     SourceRange a = new SourceRange(10, 1);
     SourceRange b = new SourceRange(20, 2);
     SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
-    assertRangeEnd(range, 10, 22);
+    assertRangeEnd(range, 10, 20 + 2);
   }
 
   public void test_rangeStartEnd_TT() throws Exception {
     Token a = mockToken(10, 1);
     Token b = mockToken(20, 2);
     SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
-    assertRangeEnd(range, 10, 22);
+    assertRangeEnd(range, 10, 20 + 2);
   }
 
   public void test_rangeStartLength_NI() throws Exception {
@@ -217,6 +224,20 @@ public class SourceRangeFactoryTest extends TestCase {
   public void test_rangeStartStart_NN() throws Exception {
     ASTNode a = mockNode(10, 1);
     ASTNode b = mockNode(20, 2);
+    SourceRange range = SourceRangeFactory.rangeStartStart(a, b);
+    assertRangeEnd(range, 10, 20);
+  }
+
+  public void test_rangeStartStart_RN() throws Exception {
+    SourceRange a = new SourceRange(10, 1);
+    ASTNode b = mockNode(20, 2);
+    SourceRange range = SourceRangeFactory.rangeStartStart(a, b);
+    assertRangeEnd(range, 10, 20);
+  }
+
+  public void test_rangeStartStart_RR() throws Exception {
+    SourceRange a = new SourceRange(10, 1);
+    SourceRange b = new SourceRange(20, 2);
     SourceRange range = SourceRangeFactory.rangeStartStart(a, b);
     assertRangeEnd(range, 10, 20);
   }

@@ -43,6 +43,20 @@ public final class SourceRange {
     this.length = length;
   }
 
+  /**
+   * @return <code>true</code> if <code>x</code> is in [offset, offset + length) interval.
+   */
+  public boolean contains(int x) {
+    return offset <= x && x < offset + length;
+  }
+
+  /**
+   * @return <code>true</code> if this {@link SourceRange} covers <code>otherRange</code>.
+   */
+  public boolean covers(SourceRange otherRange) {
+    return getOffset() <= otherRange.getOffset() && getEnd() >= otherRange.getEnd();
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (!(obj instanceof SourceRange)) {
@@ -61,6 +75,13 @@ public final class SourceRange {
   }
 
   /**
+   * @return the expanded instance of {@link SourceRange}, which has the same center.
+   */
+  public SourceRange getExpanded(int delta) {
+    return new SourceRange(offset - delta, delta + length + delta);
+  }
+
+  /**
    * Returns the number of characters of the source code for this element, relative to the source
    * buffer in which this element is contained.
    * 
@@ -69,6 +90,13 @@ public final class SourceRange {
    */
   public int getLength() {
     return length;
+  }
+
+  /**
+   * @return the instance of {@link SourceRange} with end moved on "delta".
+   */
+  public SourceRange getMoveEnd(int delta) {
+    return new SourceRange(offset, length + delta);
   }
 
   /**
@@ -85,6 +113,19 @@ public final class SourceRange {
   @Override
   public int hashCode() {
     return 31 * offset + length;
+  }
+
+  /**
+   * @return <code>true</code> if this {@link SourceRange} intersects with given.
+   */
+  public boolean intersects(SourceRange other) {
+    if (getEnd() <= other.getOffset()) {
+      return false;
+    }
+    if (getOffset() >= other.getEnd()) {
+      return false;
+    }
+    return true;
   }
 
   @Override

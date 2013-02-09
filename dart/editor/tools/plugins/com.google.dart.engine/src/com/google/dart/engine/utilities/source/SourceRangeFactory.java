@@ -80,6 +80,15 @@ public class SourceRangeFactory {
   }
 
   /**
+   * @return the {@link SourceRange} which start at end of "a" and ends at start of "b".
+   */
+  public static SourceRange rangeEndStart(ASTNode a, Token b) {
+    int start = a.getEnd();
+    int end = b.getOffset();
+    return rangeStartEnd(start, end);
+  }
+
+  /**
    * @return the {@link SourceRange} which start at the end of "a" and ends at the start of "b".
    */
   public static SourceRange rangeEndStart(SourceRange a, SourceRange b) {
@@ -227,6 +236,24 @@ public class SourceRangeFactory {
    * @return the {@link SourceRange} which start "start" and ends at start of "b".
    */
   public static SourceRange rangeStartStart(int start, ASTNode b) {
+    int end = b.getOffset();
+    return rangeStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at start of "b".
+   */
+  public static SourceRange rangeStartStart(SourceRange a, ASTNode b) {
+    int start = a.getOffset();
+    int end = b.getOffset();
+    return rangeStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at start of "b".
+   */
+  public static SourceRange rangeStartStart(SourceRange a, SourceRange b) {
+    int start = a.getOffset();
     int end = b.getOffset();
     return rangeStartEnd(start, end);
   }

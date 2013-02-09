@@ -51,6 +51,19 @@ public abstract class ASTNode {
   public abstract <R> R accept(ASTVisitor<R> visitor);
 
   /**
+   * @return the {@link ASTNode} of given {@link Class} which is {@link ASTNode} itself, or one of
+   *         its parents.
+   */
+  @SuppressWarnings("unchecked")
+  public <E extends ASTNode> E getAncestor(Class<E> enclosingClass) {
+    ASTNode node = this;
+    while (node != null && !enclosingClass.isInstance(node)) {
+      node = node.getParent();
+    };
+    return (E) node;
+  }
+
+  /**
    * Return the first token included in this node's source range.
    * 
    * @return the first token included in this node's source range

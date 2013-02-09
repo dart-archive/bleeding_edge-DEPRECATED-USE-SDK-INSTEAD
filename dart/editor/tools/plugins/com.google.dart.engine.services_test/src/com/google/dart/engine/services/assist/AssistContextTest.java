@@ -45,6 +45,12 @@ public class AssistContextTest extends TestCase {
     assertEquals(2, context.getSelectionLength());
   }
 
+  public void test_access_noElement() throws Exception {
+    CompilationUnit compilationUnit = mock(CompilationUnit.class);
+    AssistContext context = new AssistContext(compilationUnit, 0, 0);
+    assertSame(null, context.getSource());
+  }
+
   public void test_getNode() throws Exception {
     String sourceContent = toString(
         "// filler filler filler filler filler filler filler filler filler filler",

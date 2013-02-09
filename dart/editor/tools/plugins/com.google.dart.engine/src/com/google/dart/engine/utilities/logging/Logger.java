@@ -20,7 +20,10 @@ package com.google.dart.engine.utilities.logging;
  * or even ignore the information.
  */
 public interface Logger {
-  public static final Logger NULL = new Logger() {
+  /**
+   * Implementation of {@link Logger} that does nothing.
+   */
+  public class NullLogger implements Logger {
     @Override
     public void logError(String message) {
     }
@@ -40,7 +43,9 @@ public interface Logger {
     @Override
     public void logInformation(String message, Throwable exception) {
     }
-  };
+  }
+
+  public static final Logger NULL = new NullLogger();
 
   /**
    * Log the given message as an error.

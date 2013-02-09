@@ -21,7 +21,7 @@ import com.google.dart.engine.services.assist.AssistContext;
  */
 public interface QuickAssistProcessor {
   /**
-   * @return the {@link CorrectionProposal} applicable at given context.
+   * @return the {@link CorrectionProposal}s applicable at given context.
    */
-  CorrectionProposal[] getProposals(AssistContext context);
+  CorrectionProposal[] getProposals(AssistContext context) throws Exception;
 }

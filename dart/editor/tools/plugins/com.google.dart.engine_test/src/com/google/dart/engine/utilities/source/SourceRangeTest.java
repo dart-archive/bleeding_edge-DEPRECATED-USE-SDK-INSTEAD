@@ -25,6 +25,30 @@ public class SourceRangeTest extends TestCase {
     r.hashCode();
   }
 
+  public void test_contains() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    assertTrue(r.contains(5));
+    assertTrue(r.contains(10));
+    assertTrue(r.contains(14));
+    assertFalse(r.contains(0));
+    assertFalse(r.contains(15));
+  }
+
+  public void test_covers() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    // ends before
+    assertFalse(r.covers(new SourceRange(0, 3)));
+    // starts after
+    assertFalse(r.covers(new SourceRange(20, 3)));
+    // only intersects
+    assertFalse(r.covers(new SourceRange(0, 10)));
+    assertFalse(r.covers(new SourceRange(10, 10)));
+    // covers
+    assertTrue(r.covers(new SourceRange(5, 10)));
+    assertTrue(r.covers(new SourceRange(6, 9)));
+    assertTrue(r.covers(new SourceRange(6, 8)));
+  }
+
   public void test_equals() throws Exception {
     SourceRange r = new SourceRange(10, 1);
     assertFalse(r.equals(null));
@@ -32,6 +56,36 @@ public class SourceRangeTest extends TestCase {
     assertFalse(r.equals(new SourceRange(20, 2)));
     assertTrue(r.equals(new SourceRange(10, 1)));
     assertTrue(r.equals(r));
+  }
+
+  public void test_getExpanded() throws Exception {
+    SourceRange r = new SourceRange(5, 3);
+    assertEquals(r, r.getExpanded(0));
+    assertEquals(new SourceRange(3, 7), r.getExpanded(2));
+    assertEquals(new SourceRange(6, 1), r.getExpanded(-1));
+  }
+
+  public void test_getMoveEnd() throws Exception {
+    SourceRange r = new SourceRange(5, 3);
+    assertEquals(r, r.getMoveEnd(0));
+    assertEquals(new SourceRange(5, 6), r.getMoveEnd(3));
+    assertEquals(new SourceRange(5, 2), r.getMoveEnd(-1));
+  }
+
+  public void test_intersects() throws Exception {
+    SourceRange r = new SourceRange(5, 3);
+    // ends before
+    assertFalse(r.intersects(new SourceRange(0, 5)));
+    // begins after
+    assertFalse(r.intersects(new SourceRange(8, 5)));
+    // begins on same offset
+    assertTrue(r.intersects(new SourceRange(5, 1)));
+    // begins inside, ends inside
+    assertTrue(r.intersects(new SourceRange(6, 1)));
+    // begins inside, ends after
+    assertTrue(r.intersects(new SourceRange(6, 10)));
+    // begins before, ends after
+    assertTrue(r.intersects(new SourceRange(0, 10)));
   }
 
   public void test_toString() throws Exception {

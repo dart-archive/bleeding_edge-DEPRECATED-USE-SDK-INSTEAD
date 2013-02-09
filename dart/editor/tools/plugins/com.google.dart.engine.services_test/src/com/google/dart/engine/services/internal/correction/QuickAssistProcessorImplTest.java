@@ -14,33 +14,20 @@
 
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
 import com.google.dart.engine.services.correction.SourceChange;
-import com.google.dart.engine.source.Source;
-
-import junit.framework.TestCase;
-
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class QuickAssistProcessorImplTest extends TestCase {
+public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private static final QuickAssistProcessor PROCESSOR = CorrectionProcessors.getQuickAssistProcessor();
 
   /**
@@ -51,10 +38,84 @@ public class QuickAssistProcessorImplTest extends TestCase {
     return requiredName.equals(proposalName);
   }
 
-  private final Source testSource = mock(Source.class);
-  private String testCode;
-//  private int selectionStart = 0;
+  //  private int selectionStart = 0;
   private int selectionLength = 0;
+
+  public void test_convertToBlockBody_OK_closure() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() => print('done'));",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() {",
+        "    return print('done');",
+        "  });",
+        "}",
+        "");
+    assert_convertToBlockBody(initial, "() => print", expected);
+  }
+
+  public void test_convertToBlockBody_OK_method() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() => 123;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody(initial, "fff() ", expected);
+  }
+
+  public void test_convertToBlockBody_OK_onName() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  fff() => 123;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  fff() {",
+        "    return 123;",
+        "  }",
+        "}");
+    assert_convertToBlockBody(initial, "fff() ", expected);
+  }
+
+  public void test_convertToBlockBody_OK_onValue() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 123;");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody(initial, "23;", expected);
+  }
+
+  public void test_convertToBlockBody_wrong_noEnclosingFunction() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 123;");
+    assert_convertToBlockBody_wrong(initial, "v = 123");
+  }
+
+  public void test_convertToBlockBody_wrong_notExpressionBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 123;",
+        "}");
+    assert_convertToBlockBody_wrong(initial, "return 123;");
+  }
 
   /**
    * We should go up only until we have same operator.
@@ -120,6 +181,107 @@ public class QuickAssistProcessorImplTest extends TestCase {
     assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
   }
 
+  public void test_joinVariableDeclaration_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 1;",
+        "}");
+    assert_joinVariableDeclaration(initial, "v ", expected);
+  }
+
+  public void test_joinVariableDeclaration_wrong_notAdjacent() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  var bar;",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notAssignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  v + 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v +");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notDeclaration() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f(var v) {",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notLeftArgument() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  1 + v; // marker",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v; // marker");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notOneVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v, v2;",
+        "  v = 1;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_wrong_notSameBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v;",
+        "  {",
+        "    v = 1;",
+        "  }",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_splitVariableDeclaration_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    assert_splitVariableDeclaration(initial, "v ", expected);
+  }
+
+  public void test_splitVariableDeclaration_wrong_notOneVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1, v2;",
+        "}");
+    assert_splitVariableDeclaration_wrong(initial, "v = 1");
+  }
+
   /**
    * @return the result of applying {@link CorrectionProposal} with single {@link SourceChange} to
    *         the {@link #testCode}.
@@ -146,6 +308,16 @@ public class QuickAssistProcessorImplTest extends TestCase {
     return result;
   }
 
+  private void assert_convertToBlockBody(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Convert to block body", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_convertToBlockBody_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_convertToBlockBody(initialSource, offsetPattern, initialSource);
+  }
+
   private void assert_exchangeBinaryExpressionArguments_success(String initialExpression,
       String offsetPattern, String expectedExpression) throws Exception {
     String initialSource = "var v = " + initialExpression + ";";
@@ -156,6 +328,16 @@ public class QuickAssistProcessorImplTest extends TestCase {
   private void assert_exchangeBinaryExpressionArguments_wrong(String expression,
       String offsetPattern) throws Exception {
     assert_exchangeBinaryExpressionArguments_success(expression, offsetPattern, expression);
+  }
+
+  private void assert_joinVariableDeclaration(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Join variable declaration", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_joinVariableDeclaration_wrong(String expression, String offsetPattern)
+      throws Exception {
+    assert_joinVariableDeclaration(expression, offsetPattern, expression);
   }
 
   /**
@@ -179,36 +361,21 @@ public class QuickAssistProcessorImplTest extends TestCase {
     assertEquals(expectedSource, result);
   }
 
-  /**
-   * @return the offset of given <code>search</code> string in {@link testSource}. Fails test if not
-   *         found.
-   */
-  private int findOffset(String search) throws Exception {
-    int offset = testCode.indexOf(search);
-    assertThat(offset).describedAs(testCode).isNotEqualTo(-1);
-    return offset;
+  private void assert_splitVariableDeclaration(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Split variable declaration", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_splitVariableDeclaration_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
   }
 
   private CorrectionProposal[] getProposals(String code, String offsetPattern) throws Exception {
-    // set initial code
-    testCode = code;
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        ((Source.ContentReceiver) invocation.getArguments()[0]).accept(testCode);
-        return null;
-      }
-    }).when(testSource).getContents(any(Source.ContentReceiver.class));
-    // parse
-    CompilationUnit compilationUnit = ParserTestCase.parseCompilationUnit(testCode);
-    {
-      CompilationUnitElement element = mock(CompilationUnitElement.class);
-      when(element.getSource()).thenReturn(testSource);
-      compilationUnit.setElement(element);
-    }
+    parseTestUnit(code);
     // prepare proposals
     int offset = findOffset(offsetPattern);
-    AssistContext context = new AssistContext(compilationUnit, offset, selectionLength);
+    AssistContext context = new AssistContext(testUnit, offset, selectionLength);
     return PROCESSOR.getProposals(context);
   }
 }
