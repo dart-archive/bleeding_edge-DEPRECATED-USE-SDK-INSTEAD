@@ -402,8 +402,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (methodElement != null) {
           // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
           // type with no parameters and a return type that is equal to the function type of the method.
-          recordResolution(identifier, memberElement);
-          recordResolution(node, memberElement);
+          recordResolution(identifier, methodElement);
+          recordResolution(node, methodElement);
           return null;
         }
       }
@@ -449,8 +449,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       if (methodElement != null) {
         // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
         // type with no parameters and a return type that is equal to the function type of the method.
-        recordResolution(identifier, memberElement);
-        recordResolution(node, memberElement);
+        recordResolution(identifier, methodElement);
+        recordResolution(node, methodElement);
         return null;
       }
     }
@@ -466,18 +466,20 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPrefixExpression(PrefixExpression node) {
     Token operator = node.getOperator();
-    if (operator.isUserDefinableOperator()) {
+    TokenType operatorType = operator.getType();
+    if (operatorType.isUserDefinableOperator() || operatorType == TokenType.PLUS_PLUS
+        || operatorType == TokenType.MINUS_MINUS) {
       Type operandType = getType(node.getOperand());
       if (operandType == null) {
         return null;
       }
       Element operandTypeElement = operandType.getElement();
       String methodName;
-      if (operator.getType() == TokenType.PLUS_PLUS) {
+      if (operatorType == TokenType.PLUS_PLUS) {
         methodName = TokenType.PLUS.getLexeme();
-      } else if (operator.getType() == TokenType.MINUS_MINUS) {
+      } else if (operatorType == TokenType.MINUS_MINUS) {
         methodName = TokenType.MINUS.getLexeme();
-      } else if (operator.getType() == TokenType.MINUS) {
+      } else if (operatorType == TokenType.MINUS) {
         methodName = "unary-";
       } else {
         methodName = operator.getLexeme();

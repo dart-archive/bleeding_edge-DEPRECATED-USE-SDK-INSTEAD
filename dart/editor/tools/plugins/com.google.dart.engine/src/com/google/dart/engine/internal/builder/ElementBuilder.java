@@ -120,6 +120,9 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       //
       ConstructorElementImpl constructor = new ConstructorElementImpl(null);
       constructor.setSynthetic(true);
+      FunctionTypeImpl type = new FunctionTypeImpl(constructor);
+      type.setReturnType(element.getType());
+      constructor.setType(type);
       constructors = new ConstructorElement[] {constructor};
     }
     element.setAbstract(node.getAbstractKeyword() != null);
