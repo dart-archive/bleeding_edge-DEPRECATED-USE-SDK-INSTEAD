@@ -63,18 +63,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertTrue(errors.length > 0);
   }
 
-  public void fail_resolve() throws Exception {
-    AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
-    SourceFactory sourceFactory = context.getSourceFactory();
-    Source source = sourceFactory.forFile(createFile("/lib.dart"));
-    sourceFactory.setContents(source, "library lib;");
-    CompilationUnit compilationUnit = context.resolve(source, null);
-    assertNotNull(compilationUnit);
-    assertLength(0, compilationUnit.getParsingErrors());
-    assertLength(0, compilationUnit.getResolutionErrors());
-    assertLength(0, compilationUnit.getErrors());
-  }
-
   public void fail_sourcesToResolve() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
@@ -126,6 +114,18 @@ public class AnalysisContextImplTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     CompilationUnit compilationUnit = context.parse(source, listener);
     assertNotNull(compilationUnit);
+  }
+
+  public void test_resolve() throws Exception {
+    AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
+    SourceFactory sourceFactory = context.getSourceFactory();
+    Source source = sourceFactory.forFile(createFile("/lib.dart"));
+    sourceFactory.setContents(source, "library lib;");
+    CompilationUnit compilationUnit = context.resolve(source, null);
+    assertNotNull(compilationUnit);
+    assertLength(0, compilationUnit.getParsingErrors());
+    assertLength(0, compilationUnit.getResolutionErrors());
+    assertLength(0, compilationUnit.getErrors());
   }
 
   public void test_scan() throws Exception {
