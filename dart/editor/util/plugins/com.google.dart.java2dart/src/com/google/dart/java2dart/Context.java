@@ -251,11 +251,11 @@ public class Context {
   public void ensureUniqueClassMemberNames(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
       private final Set<ClassMember> untouchableMethods = Sets.newHashSet();
-      private final Set<String> usedClassMemberNames = Sets.newHashSet();
+      private final Map<String, ClassMember> usedClassMembers = Maps.newHashMap();
 
       @Override
       public Void visitClassDeclaration(ClassDeclaration node) {
-        usedClassMemberNames.clear();
+        usedClassMembers.clear();
         // fill "static" methods from super classes
         {
           org.eclipse.jdt.core.dom.ITypeBinding binding = getNodeTypeBinding(node);
@@ -264,7 +264,7 @@ public class Context {
             while (binding != null) {
               for (org.eclipse.jdt.core.dom.IMethodBinding method : binding.getDeclaredMethods()) {
                 if (org.eclipse.jdt.core.dom.Modifier.isStatic(method.getModifiers())) {
-                  usedClassMemberNames.add(method.getName());
+                  usedClassMembers.put(method.getName(), null);
                 }
               }
               binding = binding.getSuperclass();
@@ -278,18 +278,31 @@ public class Context {
             Object binding = nodeToBinding.get(member);
             if (JavaUtils.isMethodDeclaredInClass(binding, "java.lang.Object")) {
               untouchableMethods.add(member);
-              usedClassMemberNames.add(methodDeclaration.getName().getName());
+              usedClassMembers.put(methodDeclaration.getName().getName(), null);
             }
           }
         }
         // ensure unique method names (and prefer to keep method name over field name)
         for (ClassMember member : node.getMembers()) {
           if (member instanceof MethodDeclaration) {
-            MethodDeclaration methodDeclaration = (MethodDeclaration) member;
-            if (untouchableMethods.contains(methodDeclaration)) {
+            MethodDeclaration method = (MethodDeclaration) member;
+            // untouchable
+            if (untouchableMethods.contains(method)) {
               continue;
             }
-            ensureUniqueName(methodDeclaration.getName());
+            // getter/setter can share name
+            {
+              ClassMember otherMember = usedClassMembers.get(method.getName().getName());
+              if (otherMember instanceof MethodDeclaration) {
+                MethodDeclaration otherMethod = (MethodDeclaration) otherMember;
+                if (method.isGetter() && otherMethod.isSetter() || method.isSetter()
+                    && otherMethod.isGetter()) {
+                  continue;
+                }
+              }
+            }
+            // ensure unique name
+            ensureUniqueName(method.getName(), method);
           }
         }
         // ensure unique field names (if name is already used be method)
@@ -297,7 +310,7 @@ public class Context {
           if (member instanceof FieldDeclaration) {
             FieldDeclaration fieldDeclaration = (FieldDeclaration) member;
             for (VariableDeclaration field : fieldDeclaration.getFields().getVariables()) {
-              ensureUniqueName(field.getName());
+              ensureUniqueName(field.getName(), fieldDeclaration);
             }
           }
         }
@@ -305,11 +318,11 @@ public class Context {
         return null;
       }
 
-      private void ensureUniqueName(Identifier declarationName) {
+      private void ensureUniqueName(Identifier declarationName, ClassMember member) {
         if (declarationName instanceof SimpleIdentifier) {
           SimpleIdentifier declarationIdentifier = (SimpleIdentifier) declarationName;
           String name = declarationIdentifier.getName();
-          if (forbiddenNames.contains(name) || usedClassMemberNames.contains(name)) {
+          if (!isUniqueClassMemberName(name)) {
             String newName = generateUniqueName(name);
             // rename binding
             if (!newName.equals(name)) {
@@ -318,8 +331,31 @@ public class Context {
             }
           }
           // remember that name is used
-          usedClassMemberNames.add(name);
+          usedClassMembers.put(name, member);
         }
+      }
+
+      private String generateUniqueName(String name) {
+        if (!isGloballyUniqueClassMemberName(name)) {
+          int index = 2;
+          while (true) {
+            String newName = name + index;
+            if (isGloballyUniqueClassMemberName(newName)) {
+              usedNames.add(newName);
+              return newName;
+            }
+            index++;
+          }
+        }
+        return name;
+      }
+
+      private boolean isGloballyUniqueClassMemberName(String name) {
+        return isUniqueClassMemberName(name) && !usedNames.contains(name);
+      }
+
+      private boolean isUniqueClassMemberName(String name) {
+        return !forbiddenNames.contains(name) && !usedClassMembers.containsKey(name);
       }
     });
   }

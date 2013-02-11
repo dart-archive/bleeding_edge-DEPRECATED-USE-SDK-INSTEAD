@@ -97,6 +97,35 @@ public class PropertySemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_makeProperty_shareGetSetNames() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int getFoo() {",
+        "    return 0;",
+        "  }",
+        "  public void setFoo(int v) {",
+        "  }",
+        "  public void main() {",
+        "    setFoo(1);",
+        "    print(getFoo());",
+        "  }",
+        "}");
+    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    context.ensureUniqueClassMemberNames(unit);
+    assertFormattedSource(
+        "class Test {",
+        "  int get foo => 0;",
+        "  void set foo(int v) {",
+        "  }",
+        "  void main() {",
+        "    foo = 1;",
+        "    print(foo);",
+        "  }",
+        "}");
+  }
+
   public void test_renamePrivateFields() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
