@@ -13,10 +13,20 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngine;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
 public interface ProjectManager {
+
+  /**
+   * Answer the global index used for all Dart source
+   * 
+   * @return the index (not {@code null})
+   */
+  Index getIndex();
 
   /**
    * Answer the project for the specified Eclipse resource
@@ -39,4 +49,11 @@ public interface ProjectManager {
    * @return the Eclipse workspace (not {@code null})
    */
   IWorkspaceRoot getResource();
+
+  /**
+   * Create and answer a new search engine backed by the global index
+   * 
+   * @return a search engine (not {@code null})
+   */
+  SearchEngine newSearchEngine();
 }

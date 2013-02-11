@@ -13,6 +13,10 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.internal.search.SearchEngineImpl;
+import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 
@@ -28,9 +32,15 @@ public class ProjectManagerImpl implements ProjectManager {
 
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
+  private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
 
   public ProjectManagerImpl(IWorkspaceRoot resource) {
     this.resource = resource;
+  }
+
+  @Override
+  public Index getIndex() {
+    return index;
   }
 
   @Override
@@ -56,5 +66,10 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public IWorkspaceRoot getResource() {
     return resource;
+  }
+
+  @Override
+  public SearchEngine newSearchEngine() {
+    return new SearchEngineImpl(getIndex());
   }
 }
