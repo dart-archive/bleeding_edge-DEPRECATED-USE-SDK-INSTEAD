@@ -138,6 +138,16 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String DART_PROBLEM_MARKER_TYPE = PLUGIN_ID + ".problem";
 
   /**
+   * Eclipse problem marker type used to display Dart parsing errors
+   */
+  public static final String DART_PARSING_PROBLEM_MARKER_TYPE = PLUGIN_ID + ".parsingProblem";
+
+  /**
+   * Eclipse problem marker type used to display Dart resolution errors
+   */
+  public static final String DART_RESOLUTION_PROBLEM_MARKER_TYPE = PLUGIN_ID + ".resolutionProblem";
+
+  /**
    * Extension for single unit compiled into JavaScript.
    */
   public static final String EXTENSION_JS = "js";
