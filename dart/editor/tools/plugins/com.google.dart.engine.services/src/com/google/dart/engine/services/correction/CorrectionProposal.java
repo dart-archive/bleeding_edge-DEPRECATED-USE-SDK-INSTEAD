@@ -15,8 +15,12 @@
 package com.google.dart.engine.services.correction;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.dart.engine.services.internal.correction.LinkedPositionProposal;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Proposal for single source file change.
@@ -26,6 +30,8 @@ public class CorrectionProposal {
   private final String name;
   private final int relevance;
   private final List<SourceChange> changes = Lists.newArrayList();
+  private Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+  private Map<String, List<LinkedPositionProposal>> linkedPositionProposals = Maps.newHashMap();
 
   public CorrectionProposal(CorrectionImage image, String name, int relevance) {
     this.image = image;
@@ -55,6 +61,20 @@ public class CorrectionProposal {
   }
 
   /**
+   * @return the {@link Map} or position IDs to their proposals.
+   */
+  public Map<String, List<LinkedPositionProposal>> getLinkedPositionProposals() {
+    return linkedPositionProposals;
+  }
+
+  /**
+   * @return the {@link Map} of position IDs to their locations.
+   */
+  public Map<String, List<SourceRange>> getLinkedPositions() {
+    return linkedPositions;
+  }
+
+  /**
    * @return the string to be displayed in the list of correction proposals.
    */
   public String getName() {
@@ -66,5 +86,20 @@ public class CorrectionProposal {
    */
   public int getRelevance() {
     return relevance;
+  }
+
+  /**
+   * Sets {@link Map} of position IDs to their proposals.
+   */
+  public void setLinkedPositionProposals(
+      Map<String, List<LinkedPositionProposal>> linkedPositionProposals) {
+    this.linkedPositionProposals = linkedPositionProposals;
+  }
+
+  /**
+   * Sets the {@link Map} or position IDs to their locations.
+   */
+  public void setLinkedPositions(Map<String, List<SourceRange>> linkedPositions) {
+    this.linkedPositions = linkedPositions;
   }
 }

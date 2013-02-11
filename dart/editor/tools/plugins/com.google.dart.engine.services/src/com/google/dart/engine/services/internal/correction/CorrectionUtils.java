@@ -14,11 +14,14 @@
 package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
@@ -28,6 +31,8 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNodes;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,19 +64,22 @@ public class CorrectionUtils {
    * @return the updated {@link String} with applied {@link Edit}s.
    */
   public static String applyReplaceEdits(String s, List<Edit> edits) {
-    // sort cope
+    // sort edits
     edits = Lists.newArrayList(edits);
     Collections.sort(edits, new Comparator<Edit>() {
       @Override
       public int compare(Edit o1, Edit o2) {
-        return o2.offset - o1.offset;
+        return o1.offset - o2.offset;
       }
     });
     // apply edits
+    int delta = 0;
     for (Edit edit : edits) {
-      String beforeEdit = s.substring(0, edit.offset);
-      String afterEdit = s.substring(edit.offset + edit.length);
+      int editOffset = edit.offset + delta;
+      String beforeEdit = s.substring(0, editOffset);
+      String afterEdit = s.substring(editOffset + edit.length);
       s = beforeEdit + edit.replacement + afterEdit;
+      delta += getDeltaOffset(edit);
     }
     // done
     return s;
@@ -93,6 +101,32 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return given {@link Statement} if not {@link Block}, first child {@link Statement} if
+   *         {@link Block}, or <code>null</code> if more than one child.
+   */
+  public static Statement getSingleStatement(Statement statement) {
+    if (statement instanceof Block) {
+      List<Statement> blockStatements = ((Block) statement).getStatements();
+      if (blockStatements.size() != 1) {
+        return null;
+      }
+      return blockStatements.get(0);
+    }
+    return statement;
+  }
+
+  /**
+   * @return given {@link DartStatement} if not {@link DartBlock}, all children
+   *         {@link DartStatement}s if {@link DartBlock}.
+   */
+  public static List<Statement> getStatements(Statement statement) {
+    if (statement instanceof Block) {
+      return ((Block) statement).getStatements();
+    }
+    return ImmutableList.of(statement);
+  }
+
+  /**
    * @return the whitespace prefix of the given {@link String}.
    */
   public static String getStringPrefix(String s) {
@@ -101,31 +135,6 @@ public class CorrectionUtils {
       return s;
     }
     return s.substring(0, index);
-  }
-
-  /**
-   * @return the actual type source of the given {@link Expression}, may be <code>null</code> if can
-   *         not be resolved, should be treated as <code>Dynamic</code>.
-   */
-  public static String getTypeSource(Expression expression) {
-    if (expression == null) {
-      return null;
-    }
-    Type type = expression.getStaticType();
-    String typeSource = getTypeSource(type);
-    if ("dynamic".equals(typeSource)) {
-      return null;
-    }
-    return typeSource;
-  }
-
-  /**
-   * @return the source of the given {@link Type}.
-   */
-  public static String getTypeSource(Type type) {
-    String typeSource = type.toString();
-    typeSource = StringUtils.substringBefore(typeSource, "<");
-    return typeSource;
   }
 
 //  /**
@@ -224,9 +233,35 @@ public class CorrectionUtils {
 //    return operands;
 //  }
 
+  /**
+   * @return the actual type source of the given {@link Expression}, may be <code>null</code> if can
+   *         not be resolved, should be treated as <code>Dynamic</code>.
+   */
+  public static String getTypeSource(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    Type type = expression.getStaticType();
+    String typeSource = getTypeSource(type);
+    if ("dynamic".equals(typeSource)) {
+      return null;
+    }
+    return typeSource;
+  }
+
+  /**
+   * @return the source of the given {@link Type}.
+   */
+  public static String getTypeSource(Type type) {
+    String typeSource = type.toString();
+    typeSource = StringUtils.substringBefore(typeSource, "<");
+    return typeSource;
+  }
+
   private final CompilationUnit unit;
 
   private String buffer;
+
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
@@ -244,14 +279,14 @@ public class CorrectionUtils {
     });
   }
 
-//  /**
-//   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
-//   *         to "newIndent", keeping indentation of the lines relative to each other.
-//   */
-//  public Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
-//    String newSource = getIndentSource(range, oldIndent, newIndent);
-//    return new Edit(range.getOffset(), range.getLength(), newSource);
-//  }
+  /**
+   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
+   *         to "newIndent", keeping indentation of the lines relative to each other.
+   */
+  public Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
+    String newSource = getIndentSource(range, oldIndent, newIndent);
+    return new Edit(range.getOffset(), range.getLength(), newSource);
+  }
 
   /**
    * @return the EOL to use for this {@link CompilationUnit}.
@@ -280,63 +315,63 @@ public class CorrectionUtils {
     return StringUtils.repeat("  ", level);
   }
 
-//  /**
-//   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
-//   *         to "newIndent", keeping indentation of the lines relative to each other.
-//   */
-//  public String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
-//    String oldSource = getText(range);
-//    return getIndentSource(oldSource, oldIndent, newIndent);
-//  }
-//
-//  /**
-//   * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
-//   *         indentation of the lines relative to each other.
-//   */
-//  public String getIndentSource(String source, String oldIndent, String newIndent) {
-//    StringBuilder sb = new StringBuilder();
-//    String eol = getEndOfLine();
-//    String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
-//    for (int i = 0; i < lines.length; i++) {
-//      String line = lines[i];
-//      // last line, stop if empty
-//      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
-//        break;
-//      }
-//      // line should have new indent
-//      line = newIndent + StringUtils.removeStart(line, oldIndent);
-//      // append line
-//      sb.append(line);
-//      sb.append(eol);
-//    }
-//    return sb.toString();
-//  }
-//
-//  /**
-//   * @return the index of the first not space or tab on the right from the given one, if form
-//   *         statement or method end, then this is in most cases start of the next line.
-//   */
-//  public int getLineContentEnd(int index) {
-//    int length = buffer.length();
-//    // skip whitespace characters
-//    while (index < length) {
-//      char c = buffer.charAt(index);
-//      if (!Character.isWhitespace(c) || c == '\r' || c == '\n') {
-//        break;
-//      }
-//      index++;
-//    }
-//    // skip single \r
-//    if (index < length && buffer.charAt(index) == '\r') {
-//      index++;
-//    }
-//    // skip single \n
-//    if (index < length && buffer.charAt(index) == '\n') {
-//      index++;
-//    }
-//    // done
-//    return index;
-//  }
+  /**
+   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
+   *         to "newIndent", keeping indentation of the lines relative to each other.
+   */
+  public String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
+    String oldSource = getText(range);
+    return getIndentSource(oldSource, oldIndent, newIndent);
+  }
+
+  /**
+   * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
+   *         indentation of the lines relative to each other.
+   */
+  public String getIndentSource(String source, String oldIndent, String newIndent) {
+    StringBuilder sb = new StringBuilder();
+    String eol = getEndOfLine();
+    String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
+        break;
+      }
+      // line should have new indent
+      line = newIndent + StringUtils.removeStart(line, oldIndent);
+      // append line
+      sb.append(line);
+      sb.append(eol);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Skips whitespace characters and single EOL on the right from the given position. If from
+   * statement or method end, then this is in the most cases start of the next line.
+   */
+  public int getLineContentEnd(int index) {
+    int length = buffer.length();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.charAt(index);
+      if (!Character.isWhitespace(c) || c == '\r' || c == '\n') {
+        break;
+      }
+      index++;
+    }
+    // skip single \r
+    if (index < length && buffer.charAt(index) == '\r') {
+      index++;
+    }
+    // skip single \n
+    if (index < length && buffer.charAt(index) == '\n') {
+      index++;
+    }
+    // done
+    return index;
+  }
 
   /**
    * @return the index of the last space or tab on the left from the given one, if from statement or
@@ -398,29 +433,29 @@ public class CorrectionUtils {
     return getText(lineStart, lineNonWhitespace - lineStart);
   }
 
-//  /**
-//   * @return the {@link #getLinesRange(SourceRange)} for given {@link DartStatement}s.
-//   */
-//  public SourceRange getLinesRange(List<Statement> statements) {
-//    SourceRange range = rangeNodes(statements);
-//    return getLinesRange(range);
-//  }
-//
-//  /**
-//   * @return the {@link SourceRange} which starts at the start of the line of "offset" and ends at
-//   *         the start of the next line after "end" of the given {@link SourceRange}, i.e. basically
-//   *         complete lines of the source for given {@link SourceRange}.
-//   */
-//  public SourceRange getLinesRange(SourceRange range) {
-//    // start
-//    int startOffset = range.getOffset();
-//    int startLineOffset = getLineContentStart(startOffset);
-//    // end
-//    int endOffset = range.getEnd();
-//    int afterEndLineOffset = getLineContentEnd(endOffset);
-//    // range
-//    return rangeStartEnd(startLineOffset, afterEndLineOffset);
-//  }
+  /**
+   * @return the {@link #getLinesRange(SourceRange)} for given {@link DartStatement}s.
+   */
+  public SourceRange getLinesRange(List<Statement> statements) {
+    SourceRange range = rangeNodes(statements);
+    return getLinesRange(range);
+  }
+
+  /**
+   * @return the {@link SourceRange} which starts at the start of the line of "offset" and ends at
+   *         the start of the next line after "end" of the given {@link SourceRange}, i.e. basically
+   *         complete lines of the source for given {@link SourceRange}.
+   */
+  public SourceRange getLinesRange(SourceRange range) {
+    // start
+    int startOffset = range.getOffset();
+    int startLineOffset = getLineContentStart(startOffset);
+    // end
+    int endOffset = range.getEnd();
+    int afterEndLineOffset = getLineContentEnd(endOffset);
+    // range
+    return rangeStartEnd(startLineOffset, afterEndLineOffset);
+  }
 
   /**
    * @return the start index of the line which contains given index.
@@ -496,27 +531,6 @@ public class CorrectionUtils {
     return buffer.substring(offset, offset + length);
   }
 
-  /**
-   * @return the given range of text from unit.
-   */
-  public String getText(SourceRange range) {
-    return getText(range.getOffset(), range.getLength());
-  }
-
-//  /**
-//   * @return the offset of the token on the right from given "offset" on the same line or offset of
-//   *         the next line.
-//   */
-//  public int getTokenOrNextLineOffset(int offset) {
-//    int nextOffset = getLineContentEnd(offset);
-//    String sourceToNext = getText(offset, nextOffset - offset);
-//    List<com.google.dart.engine.scanner.Token> tokens = TokenUtils.getTokens(sourceToNext);
-//    if (tokens.isEmpty()) {
-//      return nextOffset;
-//    }
-//    return tokens.get(0).getOffset();
-//  }
-//
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -575,30 +589,31 @@ public class CorrectionUtils {
 //  }
 
   /**
+   * @return the given range of text from unit.
+   */
+  public String getText(SourceRange range) {
+    return getText(range.getOffset(), range.getLength());
+  }
+
+//  /**
+//   * @return the offset of the token on the right from given "offset" on the same line or offset of
+//   *         the next line.
+//   */
+//  public int getTokenOrNextLineOffset(int offset) {
+//    int nextOffset = getLineContentEnd(offset);
+//    String sourceToNext = getText(offset, nextOffset - offset);
+//    List<Token> tokens = TokenUtils.getTokens(sourceToNext);
+//    if (tokens.isEmpty()) {
+//      return nextOffset;
+//    }
+//    return tokens.get(0).getOffset();
+//  }
+
+  /**
    * @return the underlying {@link CompilationUnit}.
    */
   public CompilationUnit getUnit() {
     return unit;
-  }
-
-  /**
-   * @return <code>true</code> if selection range contains only whitespace.
-   */
-  public boolean isJustWhitespace(SourceRange range) {
-    return getText(range).trim().length() == 0;
-  }
-
-  /**
-   * @return <code>true</code> if selection range contains only whitespace or comments
-   */
-  public boolean isJustWhitespaceOrComment(SourceRange range) {
-    final String trimmedText = getText(range).trim();
-    // may be whitespace
-    if (trimmedText.isEmpty()) {
-      return true;
-    }
-    // may be comment
-    return TokenUtils.getTokens(trimmedText).isEmpty();
   }
 
 //  public boolean rangeIncludesNonWhitespaceOutsideNode(SourceRange range, ASTNode node) {
@@ -649,5 +664,25 @@ public class CorrectionUtils {
 //      SourceRange selectionRange) {
 //    return rangeIncludesNonWhitespaceOutsideRange(selectionRange, rangeNodes(operands));
 //  }
+
+  /**
+   * @return <code>true</code> if selection range contains only whitespace.
+   */
+  public boolean isJustWhitespace(SourceRange range) {
+    return getText(range).trim().length() == 0;
+  }
+
+  /**
+   * @return <code>true</code> if selection range contains only whitespace or comments
+   */
+  public boolean isJustWhitespaceOrComment(SourceRange range) {
+    final String trimmedText = getText(range).trim();
+    // may be whitespace
+    if (trimmedText.isEmpty()) {
+      return true;
+    }
+    // may be comment
+    return TokenUtils.getTokens(trimmedText).isEmpty();
+  }
 
 }

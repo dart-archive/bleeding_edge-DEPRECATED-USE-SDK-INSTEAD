@@ -16,10 +16,12 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -27,11 +29,13 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -63,6 +67,28 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertTrue(CorrectionUtils.covers(rangeStartLength(0, 1000), testUnit));
   }
 
+  public void test_createIndentEdit() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    print(0);",
+        "  }",
+        "} // marker");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    SourceRange range = rangeStartEnd(findOffset("  if (true"), findOffset("} // marker"));
+    Edit edit = utils.createIndentEdit(range, "  ", "");
+    assertEquals(
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "if (true) {",
+            "  print(0);",
+            "}",
+            "} // marker"),
+        CorrectionUtils.applyReplaceEdits(testCode, ImmutableList.of(edit)));
+  }
+
   public void test_getDeltaOffset() throws Exception {
     assertEquals(1, CorrectionUtils.getDeltaOffset(new Edit(0, 5, "123456")));
     assertEquals(-2, CorrectionUtils.getDeltaOffset(new Edit(0, 5, "123")));
@@ -72,8 +98,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    * Test for {@link CorrectionUtils#getEndOfLine()}.
    */
   public void test_getEndOfLine_default() throws Exception {
-    CompilationUnit unit = parseUnit("");
-    CorrectionUtils utils = new CorrectionUtils(unit);
+    parseTestUnit("");
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(CorrectionUtils.DEFAULT_END_OF_LINE, utils.getEndOfLine());
   }
 
@@ -81,8 +107,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    * Test for {@link CorrectionUtils#getEndOfLine()}.
    */
   public void test_getEndOfLine_unix() throws Exception {
-    CompilationUnit unit = parseUnit("// aaa\n// bbb\n// ccc");
-    CorrectionUtils utils = new CorrectionUtils(unit);
+    parseTestUnit("// aaa\n// bbb\n// ccc");
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("\n", utils.getEndOfLine());
   }
 
@@ -90,8 +116,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    * Test for {@link CorrectionUtils#getEndOfLine()}.
    */
   public void test_getEndOfLine_windows() throws Exception {
-    CompilationUnit unit = parseUnit("// aaa\r\n// bbb\r\n// ccc");
-    CorrectionUtils utils = new CorrectionUtils(unit);
+    parseTestUnit("// aaa\r\n// bbb\r\n// ccc");
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("\r\n", utils.getEndOfLine());
   }
 
@@ -101,6 +127,57 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("", utils.getIndent(0));
     assertEquals("  ", utils.getIndent(1));
     assertEquals("    ", utils.getIndent(2));
+  }
+
+  public void test_getIndentSource_SourceRange() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    print(0);",
+        "  }",
+        "} // marker");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals("if (true) {\n  print(0);\n}\n", utils.getIndentSource(
+        rangeStartEnd(findOffset("  if (true"), findOffset("} // marker")),
+        "  ",
+        ""));
+  }
+
+  public void test_getIndentSource_String() throws Exception {
+    parseTestUnit("");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals("{\n  B\n}\n", utils.getIndentSource("  {\n    B\n  }\n", "  ", ""));
+    assertEquals("  {\n    B\n  }\n", utils.getIndentSource("{\n  B\n}\n", "", "  "));
+    assertEquals("  {\n  \n    B\n  }\n", utils.getIndentSource("{\n\n  B\n}\n", "", "  "));
+    assertEquals(
+        "    {\n      B\n    }\n",
+        utils.getIndentSource("  {\n    B\n  }\n", "  ", "    "));
+  }
+
+  public void test_getLineContentEnd() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// 1 \t ",
+        "// 2\r",
+        "// 3",
+        "",
+        "// 4");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals(findOffset("// 2"), utils.getLineContentEnd(findEnd("// 1")));
+    assertEquals(findOffset("// 3"), utils.getLineContentEnd(findEnd("// 2")));
+    assertEquals(findOffset("\n// 4"), utils.getLineContentEnd(findEnd("// 3")));
+  }
+
+  public void test_getLineContentStart() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// 1",
+        " \t // 2",
+        "// 3");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertEquals(findOffset("// 1"), utils.getLineContentStart(findOffset("// 1")));
+    assertEquals(findOffset(" \t // 2"), utils.getLineContentStart(findOffset("// 2")));
   }
 
   public void test_getLineNext() throws Exception {
@@ -119,8 +196,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    * Test for {@link CorrectionUtils#getLinePrefix(int)}.
    */
   public void test_getLinePrefix() throws Exception {
-    CompilationUnit unit = parseUnit("//000\n  //111\n   \n  ");
-    CorrectionUtils utils = new CorrectionUtils(unit);
+    parseTestUnit("//000\n  //111\n   \n  ");
+    CorrectionUtils utils = getTestCorrectionUtils();
     // 0
     assertEquals("", utils.getLinePrefix(0));
     assertEquals("", utils.getLinePrefix(1));
@@ -139,36 +216,61 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("  ", utils.getLinePrefix(19));
   }
 
-  // TODO(scheglov) finish this test
   public void test_getLinesRange_SourceRange() throws Exception {
-//    parseTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "// 1",
-//        "// 2",
-//        "// 3");
-//    CorrectionUtils utils = getTestCorrectionUtils();
-//    // use lines start/end already
-//    {
-//      int rs = findOffset("// filler");
-//      int re = findOffset("// 2");
-//      assertEquals(rangeStartEnd(rs, re), utils.getLinesRange(rangeStartEnd(rs, re)));
-//    }
-//    // use start/end with offsets from lines
-//    {
-//      int as = findOffset("// filler") + 1;
-//      int ae = findOffset("// 2") + 2;
-//      int rs = findOffset("// filler");
-//      int re = findOffset("// 2");
-//      assertEquals(rangeStartEnd(rs, re), utils.getLinesRange(rangeStartEnd(as, ae)));
-//    }
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// 1",
+        "  \t // 2 \t  ",
+        "// 3");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    // use lines start/end already
+    {
+      int rs = findOffset("// 1");
+      int re = findOffset("// 2");
+      assertEquals(rangeStartEnd(rs, re), utils.getLinesRange(rangeStartEnd(rs, re)));
+    }
+    // use start/end with offsets from lines
+    {
+      int as = findOffset("// 2");
+      int ae = findEnd("// 2");
+      int rs = findOffset("  \t // 2");
+      int re = findOffset("// 3");
+      assertEquals(rangeStartEnd(rs, re), utils.getLinesRange(rangeStartEnd(as, ae)));
+    }
+  }
+
+  public void test_getLinesRange_Statements() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() { // marker",
+        "  var a;",
+        "  var b;",
+        "  var c;",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    Block block = findTestNode("{ // marker", Block.class);
+    Statement statementA = findTestNode("var a", Statement.class);
+    Statement statementB = findTestNode("var b", Statement.class);
+    Statement statementC = findTestNode("var c", Statement.class);
+    {
+      SourceRange range = utils.getLinesRange(ImmutableList.of(statementA, statementB));
+      assertEquals(rangeStartEnd(statementA.getOffset() - 2, statementC.getOffset() - 2), range);
+    }
+    {
+      SourceRange range = utils.getLinesRange(ImmutableList.of(statementC));
+      assertEquals(
+          rangeStartEnd(statementC.getOffset() - 2, block.getRightBracket().getOffset()),
+          range);
+    }
   }
 
   /**
    * Test for {@link CorrectionUtils#getLineThis(int)}.
    */
   public void test_getLineThis() throws Exception {
-    CompilationUnit unit = parseUnit("//aaa\r\n//bbbb\r\nccccc");
-    CorrectionUtils utils = new CorrectionUtils(unit);
+    parseTestUnit("//aaa\r\n//bbbb\r\nccccc");
+    CorrectionUtils utils = getTestCorrectionUtils();
     // 0
     assertEquals(0, utils.getLineThis(0));
     assertEquals(0, utils.getLineThis(1));
@@ -224,7 +326,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "");
     // find node
     FunctionExpression node = findTestNode("() => true", FunctionExpression.class);
-    assertNotNull(node);
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("  ", utils.getNodePrefix(node));
@@ -246,12 +347,70 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getNonWhitespaceForward() throws Exception {
     String code = " \t//0123456789  ";
     parseTestUnit(code);
-    CorrectionUtils utils = new CorrectionUtils(testUnit);
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(2, utils.getNonWhitespaceForward(0));
     assertEquals(2, utils.getNonWhitespaceForward(1));
     assertEquals(2, utils.getNonWhitespaceForward(2));
     assertEquals(3, utils.getNonWhitespaceForward(3));
     assertEquals(code.length(), utils.getNonWhitespaceForward(code.indexOf("9") + 1));
+  }
+
+  public void test_getSingleStatement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var singleStatement;",
+        "  { // marker-1",
+        "    var blockWithSingleStatement;",
+        "  }",
+        "  { // marker-2",
+        "    var blockWith;",
+        "    var severalStatements;",
+        "  }",
+        "");
+    {
+      Statement statement = findTestNode("var singleStatement", Statement.class);
+      assertSame(statement, CorrectionUtils.getSingleStatement(statement));
+    }
+    {
+      Block block = findTestNode("{ // marker-1", Block.class);
+      Statement statement = findTestNode("var blockWithSingleStatement", Statement.class);
+      assertSame(statement, CorrectionUtils.getSingleStatement(block));
+    }
+    {
+      Block block = findTestNode("{ // marker-2", Block.class);
+      assertSame(null, CorrectionUtils.getSingleStatement(block));
+    }
+  }
+
+  public void test_getStatements() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var singleStatement;",
+        "  { // marker-1",
+        "    var blockWithSingleStatement;",
+        "  }",
+        "  { // marker-2",
+        "    var statementA;",
+        "    var statementB;",
+        "  }",
+        "");
+    {
+      Statement statement = findTestNode("var singleStatement", Statement.class);
+      assertThat(CorrectionUtils.getStatements(statement)).containsExactly(statement);
+    }
+    {
+      Block block = findTestNode("{ // marker-1", Block.class);
+      Statement statement = findTestNode("var blockWithSingleStatement", Statement.class);
+      assertThat(CorrectionUtils.getStatements(block)).containsExactly(statement);
+    }
+    {
+      Block block = findTestNode("{ // marker-2", Block.class);
+      Statement statementA = findTestNode("var statementA;", Statement.class);
+      Statement statementB = findTestNode("var statementB", Statement.class);
+      assertThat(CorrectionUtils.getStatements(block)).containsExactly(statementA, statementB);
+    }
   }
 
   public void test_getStringPrefix() throws Exception {
@@ -268,7 +427,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getText() throws Exception {
     String code = "// 0123456789";
     parseTestUnit(code);
-    CorrectionUtils utils = new CorrectionUtils(testUnit);
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(code, utils.getText());
   }
 
@@ -278,7 +437,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getText_ASTNode() throws Exception {
     parseTestUnit("class AAA {}");
     ASTNode node = findTestNode("AAA {", Identifier.class);
-    CorrectionUtils utils = new CorrectionUtils(testUnit);
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("AAA", utils.getText(node));
   }
 
@@ -287,7 +446,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    */
   public void test_getText_ints() throws Exception {
     parseTestUnit("// 0123456789");
-    CorrectionUtils utils = new CorrectionUtils(testUnit);
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("0123", utils.getText(3, 4));
   }
 
@@ -296,7 +455,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    */
   public void test_getText_SourceRange() throws Exception {
     parseTestUnit("// 0123456789");
-    CorrectionUtils utils = new CorrectionUtils(testUnit);
+    CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("0123", utils.getText(rangeStartLength(3, 4)));
   }
 
@@ -338,7 +497,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
 
   public void test_getUnit() throws Exception {
     parseTestUnit("");
-    assertSame(testUnit, getTestCorrectionUtils().getUnit());
+    CorrectionUtils utils = getTestCorrectionUtils();
+    assertSame(testUnit, utils.getUnit());
   }
 
   public void test_isJustWhitespace() throws Exception {
@@ -396,7 +556,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     VariableDeclarationStatement node = findTestNode(
         nodePattern,
         VariableDeclarationStatement.class);
-    assertNotNull(node);
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(expectedPrefix, utils.getNodePrefix(node));

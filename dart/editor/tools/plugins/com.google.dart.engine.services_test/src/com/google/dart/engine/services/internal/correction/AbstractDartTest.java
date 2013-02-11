@@ -46,18 +46,20 @@ public class AbstractDartTest extends TestCase {
    * @return {@link ASTNode} which has required offset and type.
    */
   public static <E extends ASTNode> E findNode(ASTNode root, final int offset, final Class<E> clazz) {
-    final AtomicReference<E> result = new AtomicReference<E>();
+    final AtomicReference<E> resultRef = new AtomicReference<E>();
     root.accept(new GeneralizingASTVisitor<Void>() {
       @Override
       @SuppressWarnings("unchecked")
       public Void visitNode(ASTNode node) {
         if (node.getOffset() == offset && clazz.isInstance(node)) {
-          result.set((E) node);
+          resultRef.set((E) node);
         }
         return super.visitNode(node);
       }
     });
-    return result.get();
+    E result = resultRef.get();
+    assertNotNull(result);
+    return result;
   }
 
   /**
@@ -105,6 +107,14 @@ public class AbstractDartTest extends TestCase {
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
+
+  /**
+   * @return the offset directly after given <code>search</code> string in {@link testUnit}. Fails
+   *         test if not found.
+   */
+  protected final int findEnd(String search) {
+    return findOffset(search) + search.length();
+  }
 
   /**
    * @return the offset of given <code>search</code> string in {@link testUnit}. Fails test if not

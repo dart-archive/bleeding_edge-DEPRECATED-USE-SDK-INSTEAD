@@ -11,18 +11,16 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+package com.google.dart.engine.services.status;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.engine.services.assist.TestAll.suite());
-    suite.addTest(com.google.dart.engine.services.correction.TestAll.suite());
-    suite.addTest(com.google.dart.engine.services.status.TestAll.suite());
-    suite.addTest(com.google.dart.engine.services.internal.TestAll.suite());
-    return suite;
-  }
+/**
+ * Severity of {@link RefactoringStatus}.
+ */
+public enum RefactoringStatusSeverity {
+  OK,
+  INFO,
+  WARNING,
+  ERROR,
+  FATAL
 }

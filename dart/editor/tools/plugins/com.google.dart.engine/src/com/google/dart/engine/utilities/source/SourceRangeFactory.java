@@ -43,6 +43,15 @@ public class SourceRangeFactory {
   /**
    * @return the {@link SourceRange} which start at end of "a" and ends at end of "b".
    */
+  public static SourceRange rangeEndEnd(ASTNode a, SourceRange b) {
+    int start = a.getEnd();
+    int end = b.getEnd();
+    return rangeStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} which start at end of "a" and ends at end of "b".
+   */
   public static SourceRange rangeEndEnd(SourceRange a, SourceRange b) {
     int start = a.getEnd();
     int end = b.getEnd();

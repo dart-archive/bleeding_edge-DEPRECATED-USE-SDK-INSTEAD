@@ -13,18 +13,31 @@
  */
 package com.google.dart.engine.services.internal.correction;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.engine.services.correction.CorrectionImage;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionUtilsTest.class);
-    suite.addTestSuite(LinkedPositionProposalTest.class);
-    suite.addTestSuite(SelectionAnalyzerTest.class);
-    suite.addTestSuite(StatementAnalyzerTest.class);
-    suite.addTestSuite(SourceBuilderTest.class);
-    suite.addTestSuite(QuickAssistProcessorImplTest.class);
-    return suite;
+/**
+ * Proposal for linked position.
+ */
+public class LinkedPositionProposal {
+  private final CorrectionImage icon;
+  private final String text;
+
+  public LinkedPositionProposal(CorrectionImage icon, String text) {
+    this.icon = icon;
+    this.text = text;
+  }
+
+  /**
+   * @return the icon to show for this proposal, may be <code>null</code>.
+   */
+  public CorrectionImage getIcon() {
+    return icon;
+  }
+
+  /**
+   * @return text to put into position.
+   */
+  public String getText() {
+    return text;
   }
 }

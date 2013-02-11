@@ -51,10 +51,25 @@ public final class SourceRange {
   }
 
   /**
+   * @return <code>true</code> if <code>otherRange</code> covers this {@link SourceRange}.
+   */
+  public boolean coveredBy(SourceRange otherRange) {
+    return otherRange.covers(this);
+  }
+
+  /**
    * @return <code>true</code> if this {@link SourceRange} covers <code>otherRange</code>.
    */
   public boolean covers(SourceRange otherRange) {
-    return getOffset() <= otherRange.getOffset() && getEnd() >= otherRange.getEnd();
+    return getOffset() <= otherRange.getOffset() && otherRange.getEnd() <= getEnd();
+  }
+
+  /**
+   * @return <code>true</code> if this {@link SourceRange} ends in <code>otherRange</code>.
+   */
+  public boolean endsIn(SourceRange otherRange) {
+    int thisEnd = getEnd();
+    return otherRange.contains(thisEnd);
   }
 
   @Override
@@ -126,6 +141,13 @@ public final class SourceRange {
       return false;
     }
     return true;
+  }
+
+  /**
+   * @return <code>true</code> if this {@link SourceRange} starts in <code>otherRange</code>.
+   */
+  public boolean startsIn(SourceRange otherRange) {
+    return otherRange.contains(offset);
   }
 
   @Override

@@ -14,10 +14,17 @@
 
 package com.google.dart.engine.services.correction;
 
+import com.google.common.collect.Maps;
+import com.google.dart.engine.services.internal.correction.LinkedPositionProposal;
+import com.google.dart.engine.utilities.source.SourceRange;
+
 import junit.framework.TestCase;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+
+import java.util.List;
+import java.util.Map;
 
 public class CorrectionProposalTest extends TestCase {
   public void test_access() throws Exception {
@@ -43,5 +50,18 @@ public class CorrectionProposalTest extends TestCase {
     proposal.addChange(changeA);
     proposal.addChange(changeB);
     assertThat(proposal.getChanges()).containsExactly(changeA, changeB);
+  }
+
+  public void test_linkedPositions() throws Exception {
+    CorrectionProposal proposal = new CorrectionProposal(
+        CorrectionImage.IMG_CORRECTION_CHANGE,
+        "test",
+        42);
+    Map<String, List<SourceRange>> linkedPositions = Maps.newHashMap();
+    Map<String, List<LinkedPositionProposal>> linkedPositions2 = Maps.newHashMap();
+    proposal.setLinkedPositions(linkedPositions);
+    proposal.setLinkedPositionProposals(linkedPositions2);
+    assertSame(linkedPositions, proposal.getLinkedPositions());
+    assertSame(linkedPositions2, proposal.getLinkedPositionProposals());
   }
 }

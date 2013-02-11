@@ -34,6 +34,20 @@ public class SourceRangeTest extends TestCase {
     assertFalse(r.contains(15));
   }
 
+  public void test_coveredBy() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    // ends before
+    assertFalse(r.coveredBy(new SourceRange(20, 10)));
+    // starts after
+    assertFalse(r.coveredBy(new SourceRange(0, 3)));
+    // only intersects
+    assertFalse(r.coveredBy(new SourceRange(0, 10)));
+    assertFalse(r.coveredBy(new SourceRange(10, 10)));
+    // covered
+    assertTrue(r.coveredBy(new SourceRange(0, 20)));
+    assertTrue(r.coveredBy(new SourceRange(5, 10)));
+  }
+
   public void test_covers() throws Exception {
     SourceRange r = new SourceRange(5, 10);
     // ends before
@@ -47,6 +61,17 @@ public class SourceRangeTest extends TestCase {
     assertTrue(r.covers(new SourceRange(5, 10)));
     assertTrue(r.covers(new SourceRange(6, 9)));
     assertTrue(r.covers(new SourceRange(6, 8)));
+  }
+
+  public void test_endsIn() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    // ends before
+    assertFalse(r.endsIn(new SourceRange(20, 10)));
+    // starts after
+    assertFalse(r.endsIn(new SourceRange(0, 3)));
+    // ends
+    assertTrue(r.endsIn(new SourceRange(10, 20)));
+    assertTrue(r.endsIn(new SourceRange(0, 20)));
   }
 
   public void test_equals() throws Exception {
@@ -86,6 +111,17 @@ public class SourceRangeTest extends TestCase {
     assertTrue(r.intersects(new SourceRange(6, 10)));
     // begins before, ends after
     assertTrue(r.intersects(new SourceRange(0, 10)));
+  }
+
+  public void test_startsIn() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    // ends before
+    assertFalse(r.startsIn(new SourceRange(20, 10)));
+    // starts after
+    assertFalse(r.startsIn(new SourceRange(0, 3)));
+    // starts
+    assertTrue(r.startsIn(new SourceRange(5, 1)));
+    assertTrue(r.startsIn(new SourceRange(0, 20)));
   }
 
   public void test_toString() throws Exception {

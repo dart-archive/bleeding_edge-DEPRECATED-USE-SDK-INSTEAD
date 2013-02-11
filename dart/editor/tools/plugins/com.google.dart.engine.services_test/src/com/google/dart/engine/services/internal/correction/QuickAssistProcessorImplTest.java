@@ -23,8 +23,6 @@ import com.google.dart.engine.services.correction.SourceChange;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class QuickAssistProcessorImplTest extends AbstractDartTest {
@@ -38,8 +36,73 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     return requiredName.equals(proposalName);
   }
 
-  //  private int selectionStart = 0;
+  private int selectionOffset = 0;
   private int selectionLength = 0;
+
+  public void test_addTypeAnnotation_classField_OK_final() throws Exception {
+    assert_addTypeAnnotation_classField("final v = 1;", " = 1", "final int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_classField_OK_int() throws Exception {
+    assert_addTypeAnnotation_classField("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_int() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  // TODO(scheglov) fails because type of initializer resolved as <dynamic>
+  public void test_addTypeAnnotation_local_OK_List() throws Exception {
+//    assert_addTypeAnnotation_localVariable(
+//        "var v = new List<String>();",
+//        " = new",
+//        "List<String> v = new List<String>();");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onInitializer() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 123;", "23;", "int v = 123;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onName() throws Exception {
+    assert_addTypeAnnotation_localVariable("var abc = 1;", "bc ", "int abc = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_OK_onVar() throws Exception {
+    assert_addTypeAnnotation_localVariable("var v = 1;", "var ", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_local_wrong_multiple() throws Exception {
+    String source = "var a = 1, b = '';";
+    assert_addTypeAnnotation_localVariable(source, "var ", source);
+  }
+
+  public void test_addTypeAnnotation_local_wrong_null() throws Exception {
+    String source = "var v = null;";
+    assert_addTypeAnnotation_localVariable(source, " = null", source);
+  }
+
+  public void test_addTypeAnnotation_local_wrong_unknown() throws Exception {
+    String source = "var v = unknownVar;";
+    assert_addTypeAnnotation_localVariable(source, " = unknown", source);
+  }
+
+  public void test_addTypeAnnotation_topLevelField_OK_int() throws Exception {
+    assert_addTypeAnnotation_topLevelField("var v = 1;", " = 1", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_topLevelField_OK_onVar() throws Exception {
+    assert_addTypeAnnotation_topLevelField("var v = 1;", "var", "int v = 1;");
+  }
+
+  public void test_addTypeAnnotation_topLevelField_wrong_multiple() throws Exception {
+    String source = "var a = 1, b = '';";
+    assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
+
+  public void test_addTypeAnnotation_topLevelField_wrong_noValue() throws Exception {
+    String source = "var v;";
+    assert_addTypeAnnotation_topLevelField(source, "var ", source);
+  }
 
   public void test_convertToBlockBody_OK_closure() throws Exception {
     String initial = makeSource(
@@ -115,6 +178,124 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  return 123;",
         "}");
     assert_convertToBlockBody_wrong(initial, "return 123;");
+  }
+
+  public void test_convertToExpressionBody_OK_closure() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() {",
+        "    return 42;",
+        "  });",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "setup(x) {}",
+        "main() {",
+        "  setup(() => 42);",
+        "}",
+        "");
+    assert_convertToExpressionBody(initial, "42;", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_method_onBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  f() { // marker",
+        "    return 0;",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  f() => 0;",
+        "}");
+    assert_convertToExpressionBody(initial, "{ // marker", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_topFunction_onBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() { // marker",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assert_convertToExpressionBody(initial, "{ // marker", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_topFunction_onName() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() {",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff() => 0;");
+    assert_convertToExpressionBody(initial, "ff() {", expected);
+  }
+
+  public void test_convertToExpressionBody_OK_topFunction_onReturnStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return 0;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assert_convertToExpressionBody(initial, "return 0;", expected);
+  }
+
+  public void test_convertToExpressionBody_wrong_already() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() => 0;");
+    assert_convertToExpressionBody_wrong(initial, "f()");
+//    assertNoProposal(
+//        initial,
+//        "f()",
+//        "Convert into using function with expression body");
+  }
+
+  public void test_convertToExpressionBody_wrong_moreThanOneStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v1 = 1;",
+        "  var v2 = 2;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "v1 = 1");
+  }
+
+  public void test_convertToExpressionBody_wrong_noEnclosingFunction() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 0;");
+    assert_convertToExpressionBody_wrong(initial, "v = 0");
+  }
+
+  public void test_convertToExpressionBody_wrong_noReturn() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 0;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "v = 0");
+  }
+
+  public void test_convertToExpressionBody_wrong_noReturnValue() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return;",
+        "}");
+    assert_convertToExpressionBody_wrong(initial, "return;");
   }
 
   /**
@@ -212,9 +393,9 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  var v;",
-        "  v + 1;",
+        "  v += 1;",
         "}");
-    assert_joinVariableDeclaration_wrong(initial, "v +");
+    assert_joinVariableDeclaration_wrong(initial, "v +=");
   }
 
   public void test_joinVariableDeclaration_wrong_notDeclaration() throws Exception {
@@ -258,6 +439,328 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v =");
   }
 
+  public void test_removeTypeAnnotation_classField_OK() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var v = 1;",
+        "}");
+    assert_removeTypeAnnotation(initial, "int ", expected);
+  }
+
+  public void test_removeTypeAnnotation_localVariable_OK() throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1, b = 2;",
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var a = 1, b = 2;",
+        "}",
+        "");
+    assert_removeTypeAnnotation(initialSource, "int a", expectedSource);
+  }
+
+  public void test_removeTypeAnnotation_topLevelVariable_OK() throws Exception {
+    assert_removeTypeAnnotation("int v = 1;", "int ", "var v = 1;");
+  }
+
+  public void test_replaceConditionalWithIfElse_OK_assignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  vvv = true ? 111 : 222;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on variable
+    assert_replaceConditionalWithIfElse(initial, "vv =", expected);
+  }
+
+  public void test_replaceConditionalWithIfElse_OK_return() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return true ? 111 : 222;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  if (true) {",
+        "    return 111;",
+        "  } else {",
+        "    return 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on statement
+    assert_replaceConditionalWithIfElse(initial, "return ", expected);
+  }
+
+  public void test_replaceConditionalWithIfElse_OK_variableDeclaration() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1, vvv = true ? 111 : 222, b = 2;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int a = 1, vvv, b = 2;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    // on conditional
+    assert_replaceConditionalWithIfElse(initial, "11 :", expected);
+    // on variable
+    assert_replaceConditionalWithIfElse(initial, "vv =", expected);
+    // on statement
+    assert_replaceConditionalWithIfElse(initial, "int ", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_OK_assignment() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    vvv = 111;",
+        "  } else {",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  vvv = true ? 111 : 222;",
+        "}");
+    assert_replaceIfElseWithConditional(initial, "if (true)", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_OK_return() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  if (true) {",
+        "    return 111;",
+        "  } else {",
+        "    return 222;",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  return true ? 111 : 222;",
+        "}");
+    assert_replaceIfElseWithConditional(initial, "if (true)", expected);
+  }
+
+  public void test_replaceIfElseWithConditional_wrong_notIfStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  print(0);",
+        "}");
+    assert_replaceIfElseWithConditional_wrong(initial, "print(0)");
+  }
+
+  public void test_replaceIfElseWithConditional_wrong_notSingleStatememt() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  int vvv;",
+        "  if (true) {",
+        "    print(0);",
+        "    vvv = 111;",
+        "  } else {",
+        "    print(0);",
+        "    vvv = 222;",
+        "  }",
+        "}");
+    assert_replaceIfElseWithConditional_wrong(initial, "if (true)");
+  }
+
+  public void test_splitAndCondition_OK_innerAndExpression() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2 && 3 == 3) {",
+        "    print(0);",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1) {",
+        "    if (2 == 2 && 3 == 3) {",
+        "      print(0);",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& 2 == 2", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false) {",
+        "    print(0);",
+        "    if (3 == 3) {",
+        "      print(1);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    if (false) {",
+        "      print(0);",
+        "      if (3 == 3) {",
+        "        print(1);",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenBlock_elseBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false) {",
+        "    print(0);",
+        "  } else {",
+        "    print(1);",
+        "    if (2 == 2) {",
+        "      print(2);",
+        "    }",
+        "  }",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true) {",
+        "    if (false) {",
+        "      print(0);",
+        "    } else {",
+        "      print(1);",
+        "      if (2 == 2) {",
+        "        print(2);",
+        "      }",
+        "    }",
+        "  }",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false)",
+        "    print(0);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true)",
+        "    if (false)",
+        "      print(0);",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_OK_thenStatement_elseStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true && false)",
+        "    print(0);",
+        "  else",
+        "    print(1);",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true)",
+        "    if (false)",
+        "      print(0);",
+        "    else",
+        "      print(1);",
+        "}");
+    assert_splitAndCondition(initial, "&& false)", expected);
+  }
+
+  public void test_splitAndCondition_wrong() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (1 == 1 && 2 == 2) {",
+        "    print(0);",
+        "  }",
+        "  print(3 == 3 && 4 == 4);",
+        "}");
+    // not binary expression
+    assert_splitAndCondition_wrong(initial, "main() {");
+    // selection is not empty and includes more than just operator
+    {
+      selectionLength = 5;
+      assert_splitAndCondition_wrong(initial, "&& 2 == 2");
+      selectionLength = 0;
+    }
+  }
+
+  public void test_splitAndCondition_wrong_notPartOfIf() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1 == 1 && 2 == 2);",
+        "}");
+    assert_splitAndCondition_wrong(initial, "&& 2");
+  }
+
+  public void test_splitAndCondition_wrong_notTopLevelAnd() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true || (1 == 1 && 2 == 2)) {",
+        "    print(0);",
+        "  }",
+        "  if (true && (3 == 3 && 4 == 4)) {",
+        "    print(0);",
+        "  }",
+        "}");
+    assert_splitAndCondition_wrong(initial, "&& 2");
+    assert_splitAndCondition_wrong(initial, "&& 4");
+  }
+
   public void test_splitVariableDeclaration_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -282,6 +785,186 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_splitVariableDeclaration_wrong(initial, "v = 1");
   }
 
+  public void test_surroundWith_block() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "block");
+  }
+
+  public void test_surroundWith_doWhile() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  do {",
+        "    print(0);",
+        "    print(1);",
+        "  } while (condition);",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'do-while'");
+  }
+
+  public void test_surroundWith_for() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  for (var v = init; condition; increment) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'for'");
+  }
+
+  public void test_surroundWith_forIn() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  for (var item in iterable) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'for-in'");
+  }
+
+  public void test_surroundWith_if() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  if (condition) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'if'");
+  }
+
+  public void test_surroundWith_tryCatch() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  try {",
+        "    print(0);",
+        "    print(1);",
+        "  } on Exception catch (e) {",
+        "    // TODO",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'try-catch'");
+  }
+
+  public void test_surroundWith_tryFinally() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  try {",
+        "    print(0);",
+        "    print(1);",
+        "  } finally {",
+        "    // TODO",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'try-finally'");
+  }
+
+  public void test_surroundWith_while() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "  print(1);",
+        "// end",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  while (condition) {",
+        "    print(0);",
+        "    print(1);",
+        "  }",
+        "// end",
+        "}");
+    assert_surroundsWith(initial, expected, "'while'");
+  }
+
   /**
    * @return the result of applying {@link CorrectionProposal} with single {@link SourceChange} to
    *         the {@link #testCode}.
@@ -293,19 +976,72 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assertSame(testSource, change.getSource());
     // prepare edits
     List<Edit> edits = change.getEdits();
-    Collections.sort(edits, new Comparator<Edit>() {
-      @Override
-      public int compare(Edit o1, Edit o2) {
-        return o2.offset - o1.offset;
-      }
-    });
-    // apply edits
-    String result = testCode;
-    for (Edit edit : edits) {
-      result = result.substring(0, edit.offset) + edit.replacement
-          + result.substring(edit.offset + edit.length);
-    }
+    String result = CorrectionUtils.applyReplaceEdits(testCode, edits);
+//    Collections.sort(edits, new Comparator<Edit>() {
+//      @Override
+//      public int compare(Edit o1, Edit o2) {
+//        return o2.offset - o1.offset;
+//      }
+//    });
+//    // apply edits
+//    String result = testCode;
+//    for (Edit edit : edits) {
+//      result = result.substring(0, edit.offset) + edit.replacement
+//          + result.substring(edit.offset + edit.length);
+//    }
     return result;
+  }
+
+  private void assert_addTypeAnnotation(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Add type annotation", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_classField(String initialDeclaration, String offsetPattern,
+      String expectedDeclaration) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  " + initialDeclaration,
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  " + expectedDeclaration,
+        "}",
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_localVariable(String initialStatement,
+      String offsetPattern, String expectedStatement) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + initialStatement,
+        "}",
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  " + expectedStatement,
+        "}",
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_addTypeAnnotation_topLevelField(String initialDeclaration,
+      String offsetPattern, String expectedDeclaration) throws Exception {
+    String initialSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        initialDeclaration,
+        "");
+    String expectedSource = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        expectedDeclaration,
+        "");
+    assert_addTypeAnnotation(initialSource, offsetPattern, expectedSource);
   }
 
   private void assert_convertToBlockBody(String initialSource, String offsetPattern,
@@ -316,6 +1052,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   private void assert_convertToBlockBody_wrong(String initialSource, String offsetPattern)
       throws Exception {
     assert_convertToBlockBody(initialSource, offsetPattern, initialSource);
+  }
+
+  private void assert_convertToExpressionBody(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        "Convert into using function with expression body",
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_convertToExpressionBody_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_convertToExpressionBody(initialSource, offsetPattern, initialSource);
   }
 
   private void assert_exchangeBinaryExpressionArguments_success(String initialExpression,
@@ -340,18 +1090,45 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration(expression, offsetPattern, expression);
   }
 
+  private void assert_removeTypeAnnotation(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Remove type annotation", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_replaceConditionalWithIfElse(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        "Replace conditional with 'if-else'",
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_replaceIfElseWithConditional(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor(
+        "Replace 'if-else' with conditional ('c ? x : y')",
+        initialSource,
+        offsetPattern,
+        expectedSource);
+  }
+
+  private void assert_replaceIfElseWithConditional_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_replaceIfElseWithConditional(initialSource, offsetPattern, initialSource);
+  }
+
   /**
    * Asserts that running proposal with given name produces expected source.
    */
-  private void assert_runProcessor(String proposalName, String initialSource, String offsetPattern,
-      String expectedSource) throws Exception {
+  private void assert_runProcessor(String proposalName, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals(CorrectionMessages.QuickAssistProcessor_splitAndCondition)) {
+//    if (!proposalName.equals("Convert into using function with expression body")) {
 //      return;
 //    }
-    CorrectionProposal[] proposals = getProposals(initialSource, offsetPattern);
+    CorrectionProposal[] proposals = getProposals();
     // find and apply required proposal
-    String result = initialSource;
+    String result = testCode;
     for (CorrectionProposal proposal : proposals) {
       if (isProposal(proposal, proposalName)) {
         result = applyProposal(proposal);
@@ -359,6 +1136,26 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     }
     // assert result
     assertEquals(expectedSource, result);
+  }
+
+  /**
+   * Asserts that running proposal with given name produces expected source.
+   */
+  private void assert_runProcessor(String proposalName, String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    parseTestUnit(initialSource);
+    selectionOffset = findOffset(offsetPattern);
+    assert_runProcessor(proposalName, expectedSource);
+  }
+
+  private void assert_splitAndCondition(String initialSource, String offsetPattern,
+      String expectedSource) throws Exception {
+    assert_runProcessor("Split && condition", initialSource, offsetPattern, expectedSource);
+  }
+
+  private void assert_splitAndCondition_wrong(String initialSource, String offsetPattern)
+      throws Exception {
+    assert_splitAndCondition(initialSource, offsetPattern, initialSource);
   }
 
   private void assert_splitVariableDeclaration(String initialSource, String offsetPattern,
@@ -371,11 +1168,20 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_splitVariableDeclaration(initialSource, offsetPattern, initialSource);
   }
 
-  private CorrectionProposal[] getProposals(String code, String offsetPattern) throws Exception {
-    parseTestUnit(code);
-    // prepare proposals
-    int offset = findOffset(offsetPattern);
-    AssistContext context = new AssistContext(testUnit, offset, selectionLength);
+  private void assert_surroundsWith(String initialSource, String expectedSource, String surroundName)
+      throws Exception {
+    parseTestUnit(initialSource);
+    setSelectionFromStartEndComments();
+    assert_runProcessor("Surround with " + surroundName, expectedSource);
+  }
+
+  private CorrectionProposal[] getProposals() throws Exception {
+    AssistContext context = new AssistContext(testUnit, selectionOffset, selectionLength);
     return PROCESSOR.getProposals(context);
+  }
+
+  private void setSelectionFromStartEndComments() throws Exception {
+    selectionOffset = findEnd("// start\n");
+    selectionLength = findOffset("// end") - selectionOffset;
   }
 }
