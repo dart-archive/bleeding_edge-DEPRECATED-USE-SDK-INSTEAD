@@ -40,16 +40,23 @@ import java.util.Map;
  */
 public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
 
+  /**
+   * Flag indicating whether the sources are being reanalyzed and pub does NOT need to be run.
+   */
+  private boolean reanalyze = false;
+
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
-    if (DartCore.getPlugin().isAutoRunPubEnabled()) {
+    if (reanalyze) {
+      reanalyze = false;
+    } else if (DartCore.getPlugin().isAutoRunPubEnabled()) {
       event.traverse(this, false);
     }
   }
 
   @Override
   public void clean(CleanEvent event, IProgressMonitor monitor) {
-    // nothing to do
+    reanalyze = true;
   }
 
   @Override
