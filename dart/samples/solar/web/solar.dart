@@ -135,9 +135,7 @@ class SolarSystem {
   }
 
   void drawBackground(CanvasRenderingContext2D context) {
-    context.fillStyle = "white";
-    context.rect(0, 0, width, height);
-    context.fill();
+    context.clearRect(0, 0, width, height);
   }
 
   void drawPlanets(CanvasRenderingContext2D context) {
@@ -212,38 +210,41 @@ class PlanetaryBody {
   }
 
   void drawSelf(CanvasRenderingContext2D context, num x, num y) {
-    context.save();
-
-    try {
-      context.lineWidth = 0.5;
-      context.fillStyle = color;
-      context.strokeStyle = color;
-
-      if (bodySize >= 2.0) {
-        context.shadowOffsetX = 2;
-        context.shadowOffsetY = 2;
-        context.shadowBlur = 2;
-        context.shadowColor = "#ddd";
-      }
-
-      context.beginPath();
-      context.arc(x, y, bodySize, 0, PI * 2, false);
-      context.fill();
-      context.closePath();
-      context.stroke();
-
-      context.shadowOffsetX = 0;
-      context.shadowOffsetY = 0;
-      context.shadowBlur = 0;
-
-      context.beginPath();
-      context.arc(x, y, bodySize, 0, PI * 2, false);
-      context.fill();
-      context.closePath();
-      context.stroke();
-    } finally {
-      context.restore();
+    // Check for clipping.
+    if (x + bodySize < 0 || x - bodySize >= context.canvas.width) {
+      return;
     }
+
+    if (y + bodySize < 0 || y - bodySize >= context.canvas.height) {
+      return;
+    }
+
+    // Draw the figure.
+    context.lineWidth = 0.5;
+    context.fillStyle = color;
+    context.strokeStyle = color;
+
+    if (bodySize >= 2.0) {
+      context.shadowOffsetX = 2;
+      context.shadowOffsetY = 2;
+      context.shadowBlur = 2;
+      context.shadowColor = "#ddd";
+    }
+
+    context.beginPath();
+    context.arc(x, y, bodySize, 0, PI * 2, false);
+    context.fill();
+    context.closePath();
+
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
+    context.shadowBlur = 0;
+
+    context.beginPath();
+    context.arc(x, y, bodySize, 0, PI * 2, false);
+    context.fill();
+    context.closePath();
+    context.stroke();
   }
 
   void drawChildren(CanvasRenderingContext2D context, num x, num y) {
