@@ -67,4 +67,10 @@ public class PrefixElementImpl extends ElementImpl implements PrefixElement {
     }
     this.importedLibraries = importedLibraries;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append("as ");
+    super.appendTo(builder);
+  }
 }

@@ -15,7 +15,7 @@ package com.google.dart.engine.internal.element;
 
 /**
  * The enumeration {@code Modifier} defines constants for all of the modifiers defined by the Dart
- * language.
+ * language and for a few additional flags that are useful.
  */
 public enum Modifier {
   ABSTRACT,
@@ -23,6 +23,7 @@ public enum Modifier {
   FACTORY,
   FINAL,
   GETTER,
+  INITIALIZING_FORMAL,
   SETTER,
   STATIC,
   SYNTHETIC;

@@ -53,4 +53,13 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    String name = getName();
+    if (name != null) {
+      builder.append(name);
+    }
+    super.appendTo(builder);
+  }
 }

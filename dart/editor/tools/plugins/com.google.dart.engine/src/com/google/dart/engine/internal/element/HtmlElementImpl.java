@@ -103,4 +103,13 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   public void setSource(Source source) {
     this.source = source;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    if (source == null) {
+      builder.append("{HTML file}");
+    } else {
+      builder.append(source.getFullName());
+    }
+  }
 }

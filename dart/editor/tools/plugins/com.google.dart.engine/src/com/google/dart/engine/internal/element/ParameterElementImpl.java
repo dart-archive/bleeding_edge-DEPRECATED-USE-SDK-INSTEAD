@@ -51,6 +51,20 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
     return parameterKind;
   }
 
+  @Override
+  public boolean isInitializingFormal() {
+    return hasModifier(Modifier.INITIALIZING_FORMAL);
+  }
+
+  /**
+   * Set whether this parameter is an initializing formal parameter to match the given value.
+   * 
+   * @param isInitializingFormal {@code true} if this parameter is an initializing formal parameter
+   */
+  public void setInitializingFormal(boolean isInitializingFormal) {
+    setModifier(Modifier.INITIALIZING_FORMAL, isInitializingFormal);
+  }
+
   /**
    * Set the kind of this parameter to the given kind.
    * 
@@ -61,7 +75,12 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
-  public String toString() {
-    return "parameter " + getType() + " " + getName() + " (" + getKind() + ")";
+  protected void appendTo(StringBuilder builder) {
+    builder.append(getType());
+    builder.append(" ");
+    builder.append(getName());
+    builder.append(" (");
+    builder.append(getKind());
+    builder.append(")");
   }
 }

@@ -64,4 +64,15 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   public void setFactory(boolean isFactory) {
     setModifier(Modifier.FACTORY, isFactory);
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append(getEnclosingElement().getName());
+    String name = getName();
+    if (name != null && !name.isEmpty()) {
+      builder.append(".");
+      builder.append(name);
+    }
+    super.appendTo(builder);
+  }
 }

@@ -95,4 +95,10 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
   public void setPrefix(PrefixElement prefix) {
     this.prefix = prefix;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append("import ");
+    ((LibraryElementImpl) importedLibrary).appendTo(builder);
+  }
 }

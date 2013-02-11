@@ -42,6 +42,11 @@ public class ParameterElementHandle extends VariableElementHandle implements Par
   }
 
   @Override
+  public boolean isInitializingFormal() {
+    return getActualElement().isInitializingFormal();
+  }
+
+  @Override
   protected ParameterElement getActualElement() {
     return (ParameterElement) super.getActualElement();
   }

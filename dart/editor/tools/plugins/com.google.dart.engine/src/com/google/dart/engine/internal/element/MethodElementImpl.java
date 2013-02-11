@@ -36,6 +36,17 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
     super(name);
   }
 
+  /**
+   * Initialize a newly created method element to have the given name.
+   * 
+   * @param name the name of this element
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public MethodElementImpl(String name, int nameOffset) {
+    super(name, nameOffset);
+  }
+
   @Override
   public ClassElement getEnclosingElement() {
     return (ClassElement) super.getEnclosingElement();
@@ -75,13 +86,10 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   }
 
   @Override
-  public String toString() {
-    StringBuilder builder = new StringBuilder();
-    builder.append("method ");
+  protected void appendTo(StringBuilder builder) {
     builder.append(getEnclosingElement().getName());
     builder.append(".");
     builder.append(getName());
-    builder.append(getType());
-    return builder.toString();
+    super.appendTo(builder);
   }
 }

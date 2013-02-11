@@ -48,4 +48,18 @@ public class HideCombinatorImpl implements HideCombinator {
   public void setHiddenNames(String[] hiddenNames) {
     this.hiddenNames = hiddenNames;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("show ");
+    int count = hiddenNames.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(hiddenNames[i]);
+    }
+    return builder.toString();
+  }
 }

@@ -230,4 +230,13 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
     }
     this.variables = variables;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    if (source == null) {
+      builder.append("{compilation unit}");
+    } else {
+      builder.append(source.getFullName());
+    }
+  }
 }

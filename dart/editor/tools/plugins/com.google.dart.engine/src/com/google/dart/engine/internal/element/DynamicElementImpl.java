@@ -23,6 +23,15 @@ import com.google.dart.engine.scanner.Keyword;
  */
 public class DynamicElementImpl extends ElementImpl {
   /**
+   * Return the unique instance of this class.
+   * 
+   * @return the unique instance of this class
+   */
+  public static DynamicElementImpl getInstance() {
+    return (DynamicElementImpl) DynamicTypeImpl.getInstance().getElement();
+  }
+
+  /**
    * The type defined by this element.
    */
   private DynamicTypeImpl type;
@@ -30,8 +39,7 @@ public class DynamicElementImpl extends ElementImpl {
   /**
    * Initialize a newly created instance of this class. Instances of this class should <b>not</b> be
    * created except as part of creating the type associated with this element. The single instance
-   * of this class should be accessed through the single instance of the class
-   * {@link DynamicTypeImpl}.
+   * of this class should be accessed through the method {@link #getInstance()}.
    */
   public DynamicElementImpl() {
     super(Keyword.DYNAMIC.getSyntax(), -1);

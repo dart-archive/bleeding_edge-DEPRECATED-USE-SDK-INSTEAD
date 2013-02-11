@@ -45,4 +45,8 @@ public class AnnotationImpl implements Annotation {
     return element;
   }
 
+  @Override
+  public String toString() {
+    return "@" + element.toString();
+  }
 }

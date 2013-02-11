@@ -47,4 +47,18 @@ public class ShowCombinatorImpl implements ShowCombinator {
   public void setShownNames(String[] shownNames) {
     this.shownNames = shownNames;
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("show ");
+    int count = shownNames.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      builder.append(shownNames[i]);
+    }
+    return builder.toString();
+  }
 }

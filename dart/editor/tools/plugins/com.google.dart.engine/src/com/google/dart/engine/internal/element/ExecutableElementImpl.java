@@ -181,4 +181,21 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   public void setType(FunctionType type) {
     this.type = type;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      ((ParameterElementImpl) parameters[i]).appendTo(builder);
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(" -> ");
+      builder.append(type.getReturnType());
+    }
+  }
 }

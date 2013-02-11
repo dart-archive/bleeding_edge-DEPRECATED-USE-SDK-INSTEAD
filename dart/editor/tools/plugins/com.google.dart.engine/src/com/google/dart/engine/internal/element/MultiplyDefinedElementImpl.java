@@ -121,6 +121,21 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return true;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("[");
+    int count = conflictingElements.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      ((ElementImpl) conflictingElements[i]).appendTo(builder);
+    }
+    builder.append("]");
+    return builder.toString();
+  }
+
   /**
    * Add the given element to the list of elements. If the element is a multiply-defined element,
    * add all of the conflicting elements that it represents.

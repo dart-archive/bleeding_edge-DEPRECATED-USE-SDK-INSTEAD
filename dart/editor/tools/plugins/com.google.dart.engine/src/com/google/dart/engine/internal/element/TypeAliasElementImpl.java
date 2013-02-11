@@ -129,4 +129,34 @@ public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElemen
     }
     this.typeVariables = typeVariables;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append("typedef ");
+    builder.append(getName());
+    int variableCount = typeVariables.length;
+    if (variableCount > 0) {
+      builder.append("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          builder.append(", ");
+        }
+        ((TypeVariableElementImpl) typeVariables[i]).appendTo(builder);
+      }
+      builder.append(">");
+    }
+    builder.append("(");
+    int parameterCount = parameters.length;
+    for (int i = 0; i < parameterCount; i++) {
+      if (i > 0) {
+        builder.append(", ");
+      }
+      ((ParameterElementImpl) parameters[i]).appendTo(builder);
+    }
+    builder.append(")");
+    if (type != null) {
+      builder.append(" -> ");
+      builder.append(type.getReturnType());
+    }
+  }
 }

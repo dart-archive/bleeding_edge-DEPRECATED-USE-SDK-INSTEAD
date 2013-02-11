@@ -124,7 +124,9 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
   }
 
   @Override
-  public String toString() {
-    return "variable " + getType() + " " + getName();
+  protected void appendTo(StringBuilder builder) {
+    builder.append(getType());
+    builder.append(" ");
+    builder.append(getName());
   }
 }

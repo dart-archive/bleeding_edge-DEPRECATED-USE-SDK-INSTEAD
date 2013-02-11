@@ -26,4 +26,11 @@ public interface ParameterElement extends VariableElement {
    * @return the kind of this parameter
    */
   public ParameterKind getParameterKind();
+
+  /**
+   * Return {@code true} if this parameter is an initializing formal parameter.
+   * 
+   * @return {@code true} if this parameter is an initializing formal parameter
+   */
+  public boolean isInitializingFormal();
 }

@@ -80,4 +80,13 @@ public class TypeVariableElementImpl extends ElementImpl implements TypeVariable
   public void setType(TypeVariableType type) {
     this.type = type;
   }
+
+  @Override
+  protected void appendTo(StringBuilder builder) {
+    builder.append(getName());
+    if (bound != null) {
+      builder.append(" extends ");
+      builder.append(bound);
+    }
+  }
 }

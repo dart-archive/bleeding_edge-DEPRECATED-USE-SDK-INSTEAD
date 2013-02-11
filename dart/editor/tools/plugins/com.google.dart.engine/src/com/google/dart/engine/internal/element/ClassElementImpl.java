@@ -183,7 +183,8 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ConstructorElement getUnnamedConstructor() {
     for (ConstructorElement element : getConstructors()) {
-      if (element.getName() == null) {
+      String name = element.getName();
+      if (name == null || name.isEmpty()) {
         return element;
       }
     }
@@ -383,9 +384,24 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
-  public String toString() {
+  protected void appendTo(StringBuilder builder) {
     String name = getName();
-    return name == null ? "<unnamed class>" : "class " + name;
+    if (name == null) {
+      builder.append("{unnamed class}");
+    } else {
+      builder.append(name);
+    }
+    int variableCount = typeVariables.length;
+    if (variableCount > 0) {
+      builder.append("<");
+      for (int i = 0; i < variableCount; i++) {
+        if (i > 0) {
+          builder.append(", ");
+        }
+        ((TypeVariableElementImpl) typeVariables[i]).appendTo(builder);
+      }
+      builder.append(">");
+    }
   }
 
   /**

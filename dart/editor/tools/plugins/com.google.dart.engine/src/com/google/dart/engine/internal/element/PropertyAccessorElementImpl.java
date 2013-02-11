@@ -106,7 +106,9 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
-  public String toString() {
-    return (isGetter() ? "getter " : "setter ") + getField().getType() + " " + getField().getName();
+  protected void appendTo(StringBuilder builder) {
+    builder.append(isGetter() ? "get " : "set ");
+    builder.append(getField().getName());
+    super.appendTo(builder);
   }
 }

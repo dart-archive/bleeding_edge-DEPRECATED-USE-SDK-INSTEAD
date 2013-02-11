@@ -176,6 +176,28 @@ public abstract class ElementImpl implements Element {
     setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
+  @Override
+  public final String toString() {
+    StringBuilder builder = new StringBuilder();
+    appendTo(builder);
+    return builder.toString();
+  }
+
+  /**
+   * Append a textual representation of this type to the given builder.
+   * 
+   * @param builder the builder to which the text is to be appended
+   */
+  protected void appendTo(StringBuilder builder) {
+    if (name == null) {
+      builder.append("<unnamed ");
+      builder.append(getClass().getName());
+      builder.append(">");
+    } else {
+      builder.append(name);
+    }
+  }
+
   /**
    * Return an identifier that uniquely identifies this element among the children of this element's
    * parent.

@@ -93,6 +93,11 @@ public class ElementLocationImpl implements ElementLocation {
     return Arrays.hashCode(components);
   }
 
+  @Override
+  public String toString() {
+    return getEncoding();
+  }
+
   /**
    * Decode the encoded form of a location into an array of components.
    * 
