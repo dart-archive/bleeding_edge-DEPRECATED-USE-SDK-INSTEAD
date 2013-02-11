@@ -1681,7 +1681,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart';");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(0, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -1692,7 +1692,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart';");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(0, directive.getCombinators());
@@ -1715,7 +1715,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "part 'lib/lib.dart';");
     assertNotNull(directive.getPartToken());
-    assertNotNull(directive.getPartUri());
+    assertNotNull(directive.getUri());
     assertNotNull(directive.getSemicolon());
   }
 
@@ -1794,7 +1794,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart' hide A, B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(1, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -1805,7 +1805,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart' hide A show B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(2, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -1816,7 +1816,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart';");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(0, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -1827,7 +1827,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart' show A, B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(1, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -1838,7 +1838,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "export 'lib/lib.dart' show B hide A;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertSize(2, directive.getCombinators());
     assertNotNull(directive.getSemicolon());
   }
@@ -2593,7 +2593,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' hide A, B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(1, directive.getCombinators());
@@ -2606,7 +2606,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart';");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(0, directive.getCombinators());
@@ -2619,7 +2619,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' as a;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSize(0, directive.getCombinators());
@@ -2632,7 +2632,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' as a hide A show B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSize(2, directive.getCombinators());
@@ -2645,7 +2645,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' as a show B hide A;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNotNull(directive.getAsToken());
     assertNotNull(directive.getPrefix());
     assertSize(2, directive.getCombinators());
@@ -2658,7 +2658,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "import 'lib/lib.dart' show A, B;");
     assertNotNull(directive.getKeyword());
-    assertNotNull(directive.getLibraryUri());
+    assertNotNull(directive.getUri());
     assertNull(directive.getAsToken());
     assertNull(directive.getPrefix());
     assertSize(1, directive.getCombinators());
@@ -3195,7 +3195,7 @@ public class SimpleParserTest extends ParserTestCase {
         new Object[] {emptyCommentAndMetadata()},
         "part 'lib/lib.dart';");
     assertNotNull(directive.getPartToken());
-    assertNotNull(directive.getPartUri());
+    assertNotNull(directive.getUri());
     assertNotNull(directive.getSemicolon());
   }
 

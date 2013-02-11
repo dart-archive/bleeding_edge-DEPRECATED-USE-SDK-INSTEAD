@@ -107,7 +107,7 @@ public class LibraryElementBuilder {
         }
       } else if (directive instanceof PartDirective) {
         hasPartDirective = true;
-        StringLiteral partUri = ((PartDirective) directive).getPartUri();
+        StringLiteral partUri = ((PartDirective) directive).getUri();
         Source partSource = library.getSource(partUri);
         if (partSource != null) {
           CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource);

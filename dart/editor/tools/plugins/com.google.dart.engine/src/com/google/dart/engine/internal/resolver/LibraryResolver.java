@@ -401,7 +401,7 @@ public class LibraryResolver {
     for (Directive directive : unit.getDirectives()) {
       if (directive instanceof ImportDirective) {
         ImportDirective importDirective = (ImportDirective) directive;
-        Source importedSource = library.getSource(importDirective.getLibraryUri());
+        Source importedSource = library.getSource(importDirective.getUri());
         if (importedSource.equals(coreLibrarySource)) {
           explicitlyImportsCore = true;
         }
@@ -413,7 +413,7 @@ public class LibraryResolver {
         library.addImport(importDirective, importedLibrary);
       } else if (directive instanceof ExportDirective) {
         ExportDirective exportDirective = (ExportDirective) directive;
-        Source exportedSource = library.getSource(exportDirective.getLibraryUri());
+        Source exportedSource = library.getSource(exportDirective.getUri());
         Library exportedLibrary = libraryMap.get(exportedSource);
         if (exportedLibrary == null) {
           exportedLibrary = createLibrary(exportedSource);

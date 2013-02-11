@@ -77,16 +77,6 @@ public class PartDirective extends UriBasedDirective {
   }
 
   /**
-   * Return the URI of the part being included.
-   * 
-   * @return the URI of the part being included
-   */
-  @Deprecated
-  public StringLiteral getPartUri() {
-    return getUri();
-  }
-
-  /**
    * Return the semicolon terminating the directive.
    * 
    * @return the semicolon terminating the directive
@@ -102,16 +92,6 @@ public class PartDirective extends UriBasedDirective {
    */
   public void setPartToken(Token partToken) {
     this.partToken = partToken;
-  }
-
-  /**
-   * Set the URI of the part being included to the given string.
-   * 
-   * @param partUri the URI of the part being included
-   */
-  @Deprecated
-  public void setPartUri(StringLiteral partUri) {
-    setUri(partUri);
   }
 
   /**

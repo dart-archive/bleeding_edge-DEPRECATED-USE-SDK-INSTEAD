@@ -81,16 +81,6 @@ public abstract class NamespaceDirective extends UriBasedDirective {
   }
 
   /**
-   * Return the URI of the library being imported or exported.
-   * 
-   * @return the URI of the library being imported or exported
-   */
-  @Deprecated
-  public StringLiteral getLibraryUri() {
-    return getUri();
-  }
-
-  /**
    * Return the semicolon terminating the directive.
    * 
    * @return the semicolon terminating the directive
@@ -106,16 +96,6 @@ public abstract class NamespaceDirective extends UriBasedDirective {
    */
   public void setKeyword(Token exportToken) {
     this.keyword = exportToken;
-  }
-
-  /**
-   * Set the URI of the library being imported or exported to the given literal.
-   * 
-   * @param literal the URI of the library being imported or exported
-   */
-  @Deprecated
-  public void setLibraryUri(StringLiteral literal) {
-    setUri(literal);
   }
 
   /**

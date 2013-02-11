@@ -362,7 +362,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitNamespaceDirective(NamespaceDirective node) {
     Element element = node.getElement();
-    Location location = createLocation(node.getLibraryUri());
+    Location location = createLocation(node.getUri());
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitNamespaceDirective(node);
   }
@@ -370,7 +370,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitPartDirective(PartDirective node) {
     Element element = node.getElement();
-    Location location = createLocation(node.getPartUri());
+    Location location = createLocation(node.getUri());
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitPartDirective(node);
   }
