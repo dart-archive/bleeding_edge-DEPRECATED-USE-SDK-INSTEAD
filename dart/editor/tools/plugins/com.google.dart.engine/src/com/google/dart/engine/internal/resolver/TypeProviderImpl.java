@@ -50,6 +50,11 @@ public class TypeProviderImpl implements TypeProvider {
   private Type dynamicType;
 
   /**
+   * The type representing the built-in type 'Function'.
+   */
+  private InterfaceType functionType;
+
+  /**
    * The type representing the built-in type 'int'.
    */
   private InterfaceType intType;
@@ -93,111 +98,61 @@ public class TypeProviderImpl implements TypeProvider {
     initializeFrom(coreLibrary);
   }
 
-  /**
-   * Return the type representing the built-in type 'bool'.
-   * 
-   * @return the type representing the built-in type 'bool'
-   */
   @Override
   public InterfaceType getBoolType() {
     return boolType;
   }
 
-  /**
-   * Return the type representing the type 'bottom'.
-   * 
-   * @return the type representing the type 'bottom'
-   */
   @Override
   public Type getBottomType() {
     return bottomType;
   }
 
-  /**
-   * Return the type representing the built-in type 'double'.
-   * 
-   * @return the type representing the built-in type 'double'
-   */
   @Override
   public InterfaceType getDoubleType() {
     return doubleType;
   }
 
-  /**
-   * Return the type representing the built-in type 'dynamic'.
-   * 
-   * @return the type representing the built-in type 'dynamic'
-   */
   @Override
   public Type getDynamicType() {
     return dynamicType;
   }
 
-  /**
-   * Return the type representing the built-in type 'int'.
-   * 
-   * @return the type representing the built-in type 'int'
-   */
+  @Override
+  public InterfaceType getFunctionType() {
+    return functionType;
+  }
+
   @Override
   public InterfaceType getIntType() {
     return intType;
   }
 
-  /**
-   * Return the type representing the built-in type 'List'.
-   * 
-   * @return the type representing the built-in type 'List'
-   */
   @Override
   public InterfaceType getListType() {
     return listType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Map'.
-   * 
-   * @return the type representing the built-in type 'Map'
-   */
   @Override
   public InterfaceType getMapType() {
     return mapType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Object'.
-   * 
-   * @return the type representing the built-in type 'Object'
-   */
   @Override
   public InterfaceType getObjectType() {
     return objectType;
   }
 
-  /**
-   * Return the type representing the built-in type 'StackTrace'.
-   * 
-   * @return the type representing the built-in type 'StackTrace'
-   */
   @Override
   public InterfaceType getStackTraceType() {
     return stackTraceType;
   }
 
-  /**
-   * Return the type representing the built-in type 'String'.
-   * 
-   * @return the type representing the built-in type 'String'
-   */
   @Override
   public InterfaceType getStringType() {
     return stringType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Type'.
-   * 
-   * @return the type representing the built-in type 'Type'
-   */
   @Override
   public InterfaceType getTypeType() {
     return typeType;
@@ -231,6 +186,7 @@ public class TypeProviderImpl implements TypeProvider {
     bottomType = BottomTypeImpl.getInstance();
     doubleType = getType(namespace, "double");
     dynamicType = DynamicTypeImpl.getInstance();
+    functionType = getType(namespace, "Function");
     intType = getType(namespace, "int");
     listType = getType(namespace, "List");
     mapType = getType(namespace, "Map");

@@ -38,6 +38,7 @@ public class TypeProviderImplTest extends EngineTestCase {
     InterfaceType boolType = classElement("bool", objectType).getType();
     InterfaceType numType = classElement("num", objectType).getType();
     InterfaceType doubleType = classElement("double", numType).getType();
+    InterfaceType functionType = classElement("Function", objectType).getType();
     InterfaceType intType = classElement("int", numType).getType();
     InterfaceType listType = classElement("List", objectType, "E").getType();
     InterfaceType mapType = classElement("Map", objectType, "K", "V").getType();
@@ -46,8 +47,8 @@ public class TypeProviderImplTest extends EngineTestCase {
     InterfaceType typeType = classElement("Type", objectType).getType();
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl("lib.dart");
     unit.setTypes(new ClassElement[] {
-        boolType.getElement(), doubleType.getElement(), intType.getElement(),
-        listType.getElement(), mapType.getElement(), objectType.getElement(),
+        boolType.getElement(), doubleType.getElement(), functionType.getElement(),
+        intType.getElement(), listType.getElement(), mapType.getElement(), objectType.getElement(),
         stackTraceType.getElement(), stringType.getElement(), typeType.getElement(),});
     LibraryElementImpl library = new LibraryElementImpl(
         new AnalysisContextImpl(),
@@ -61,6 +62,7 @@ public class TypeProviderImplTest extends EngineTestCase {
     assertNotNull(provider.getBottomType());
     assertSame(doubleType, provider.getDoubleType());
     assertNotNull(provider.getDynamicType());
+    assertSame(functionType, provider.getFunctionType());
     assertSame(intType, provider.getIntType());
     assertSame(listType, provider.getListType());
     assertSame(mapType, provider.getMapType());

@@ -52,6 +52,11 @@ public class TestTypeProvider implements TypeProvider {
   private Type dynamicType;
 
   /**
+   * The type representing the built-in type 'Function'.
+   */
+  private InterfaceType functionType;
+
+  /**
    * The type representing the built-in type 'int'.
    */
   private InterfaceType intType;
@@ -99,11 +104,6 @@ public class TestTypeProvider implements TypeProvider {
     super();
   }
 
-  /**
-   * Return the type representing the built-in type 'bool'.
-   * 
-   * @return the type representing the built-in type 'bool'
-   */
   @Override
   public InterfaceType getBoolType() {
     if (boolType == null) {
@@ -112,11 +112,6 @@ public class TestTypeProvider implements TypeProvider {
     return boolType;
   }
 
-  /**
-   * Return the type representing the type 'bottom'.
-   * 
-   * @return the type representing the type 'bottom'
-   */
   @Override
   public Type getBottomType() {
     if (bottomType == null) {
@@ -125,11 +120,6 @@ public class TestTypeProvider implements TypeProvider {
     return bottomType;
   }
 
-  /**
-   * Return the type representing the built-in type 'double'.
-   * 
-   * @return the type representing the built-in type 'double'
-   */
   @Override
   public InterfaceType getDoubleType() {
     if (doubleType == null) {
@@ -138,11 +128,6 @@ public class TestTypeProvider implements TypeProvider {
     return doubleType;
   }
 
-  /**
-   * Return the type representing the built-in type 'dynamic'.
-   * 
-   * @return the type representing the built-in type 'dynamic'
-   */
   @Override
   public Type getDynamicType() {
     if (dynamicType == null) {
@@ -151,11 +136,14 @@ public class TestTypeProvider implements TypeProvider {
     return dynamicType;
   }
 
-  /**
-   * Return the type representing the built-in type 'int'.
-   * 
-   * @return the type representing the built-in type 'int'
-   */
+  @Override
+  public InterfaceType getFunctionType() {
+    if (functionType == null) {
+      functionType = classElement("Function").getType();
+    }
+    return functionType;
+  }
+
   @Override
   public InterfaceType getIntType() {
     if (intType == null) {
@@ -164,11 +152,6 @@ public class TestTypeProvider implements TypeProvider {
     return intType;
   }
 
-  /**
-   * Return the type representing the built-in type 'List'.
-   * 
-   * @return the type representing the built-in type 'List'
-   */
   @Override
   public InterfaceType getListType() {
     if (listType == null) {
@@ -177,11 +160,6 @@ public class TestTypeProvider implements TypeProvider {
     return listType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Map'.
-   * 
-   * @return the type representing the built-in type 'Map'
-   */
   @Override
   public InterfaceType getMapType() {
     if (mapType == null) {
@@ -190,11 +168,6 @@ public class TestTypeProvider implements TypeProvider {
     return mapType;
   }
 
-  /**
-   * Return the type representing the built-in type 'double'.
-   * 
-   * @return the type representing the built-in type 'double'
-   */
   public InterfaceType getNumType() {
     if (numType == null) {
       initializeNumericTypes();
@@ -202,11 +175,6 @@ public class TestTypeProvider implements TypeProvider {
     return numType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Object'.
-   * 
-   * @return the type representing the built-in type 'Object'
-   */
   @Override
   public InterfaceType getObjectType() {
     if (objectType == null) {
@@ -215,11 +183,6 @@ public class TestTypeProvider implements TypeProvider {
     return objectType;
   }
 
-  /**
-   * Return the type representing the built-in type 'StackTrace'.
-   * 
-   * @return the type representing the built-in type 'StackTrace'
-   */
   @Override
   public InterfaceType getStackTraceType() {
     if (stackTraceType == null) {
@@ -228,11 +191,6 @@ public class TestTypeProvider implements TypeProvider {
     return stackTraceType;
   }
 
-  /**
-   * Return the type representing the built-in type 'String'.
-   * 
-   * @return the type representing the built-in type 'String'
-   */
   @Override
   public InterfaceType getStringType() {
     if (stringType == null) {
@@ -241,11 +199,6 @@ public class TestTypeProvider implements TypeProvider {
     return stringType;
   }
 
-  /**
-   * Return the type representing the built-in type 'Type'.
-   * 
-   * @return the type representing the built-in type 'Type'
-   */
   @Override
   public InterfaceType getTypeType() {
     if (typeType == null) {
@@ -254,6 +207,10 @@ public class TestTypeProvider implements TypeProvider {
     return typeType;
   }
 
+  /**
+   * Initialize the numeric types. They are created as a group so that we can (a) create the right
+   * hierarchy and (b) add members to them.
+   */
   private void initializeNumericTypes() {
     //
     // Create the type hierarchy.

@@ -50,6 +50,13 @@ public interface TypeProvider {
   public Type getDynamicType();
 
   /**
+   * Return the type representing the built-in type 'Function'.
+   * 
+   * @return the type representing the built-in type 'Function'
+   */
+  public InterfaceType getFunctionType();
+
+  /**
    * Return the type representing the built-in type 'int'.
    * 
    * @return the type representing the built-in type 'int'
