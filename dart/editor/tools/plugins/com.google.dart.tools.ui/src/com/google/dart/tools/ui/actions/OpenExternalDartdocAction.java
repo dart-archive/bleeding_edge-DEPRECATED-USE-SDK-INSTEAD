@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -71,25 +72,56 @@ public class OpenExternalDartdocAction extends SelectionDispatchAction {
 
   @Override
   public void run(ITextSelection selection) {
+    long start = System.currentTimeMillis();
+
     selectedElement = getDartElementToOpen(selection);
     if (selectedElement == null) {
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("OpenExternalDartDoc", elapsed).with("Selected Element", "null").log();
       return;
     }
     Type type = getTypeParent(selectedElement);
     DartLibrary library = getDartLibraryParent(selectedElement);
     if (library == null) {
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("OpenExternalDartDoc", elapsed).with("Library", "null").log();
       return;
     }
     String libraryName = library.getElementName();
     libraryName = libraryName.replace(':', '_');
+
     if (type != null) {
       String classNameHTML = type.getElementName();
       classNameHTML = classNameHTML.substring(0, classNameHTML.length()) + ".html";
-      ExternalBrowserUtil.openInExternalBrowser("http://api.dartlang.org/docs/continuous/"
-          + libraryName + '/' + classNameHTML);
+      String url = "http://api.dartlang.org/docs/continuous/" + libraryName + '/' + classNameHTML;
+      ExternalBrowserUtil.openInExternalBrowser(url);
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("OpenExternalDartDoc", elapsed).with("ClickTarget", "type").log();
+
+      Instrumentation.operation("OpenExternalDartDoc", elapsed).with("LibraryName", libraryName).with(
+          "ClassNameHtml",
+          classNameHTML).with("Url", url).with("test", selection.getText()).with(
+          "startLine",
+          selection.getStartLine()).with("length", selection.getLength()).with(
+          "endLine",
+          selection.getEndLine()).log();
+
     } else {
-      ExternalBrowserUtil.openInExternalBrowser("http://api.dartlang.org/docs/continuous/"
-          + libraryName + ".html");
+      String url = "http://api.dartlang.org/docs/continuous/" + libraryName + ".html";
+      ExternalBrowserUtil.openInExternalBrowser(url);
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("OpenExternalDartDoc", elapsed).with("ClickTarget", "library").log();
+
+      Instrumentation.operation("OpenExternalDartDoc", elapsed).with("LibraryName", libraryName).with(
+          "ClassNameHtml",
+          "null").with("Url", url).with("test", selection.getText()).with(
+          "startLine",
+          selection.getStartLine()).with("length", selection.getLength()).with(
+          "endLine",
+          selection.getEndLine()).log();
+
     }
 
   }

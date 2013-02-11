@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.OperationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -137,6 +139,9 @@ public class DeleteResourceAction extends SelectionListenerAction {
 
   @Override
   public void run() {
+
+    long start = System.currentTimeMillis();
+
     final IResource[] resources = getSelectedResourcesArray();
 
     // on Windows platform call out to system to do the delete, since 
@@ -145,12 +150,35 @@ public class DeleteResourceAction extends SelectionListenerAction {
       if (confirmDelete(resources)) {
         windowsDelete(resources);
       }
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
+          "Windows",
+          "true").with("Success", "true").log();
+
+      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
+      for (IResource ir : resources) {
+        builder = builder.with("resourceName", ir.getName());
+      }
+      builder.log();
+
       return;
     }
 
     if (LTKLauncher.openDeleteWizard(getStructuredSelection())) {
 
       EditorUtility.closeOrphanedEditors();
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
+          "Windows",
+          "false").with("Success", "true").log();
+
+      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
+      for (IResource ir : resources) {
+        builder = builder.with("resourceName", ir.getName());
+      }
+      builder.log();
 
       return;
     }
@@ -161,7 +189,20 @@ public class DeleteResourceAction extends SelectionListenerAction {
     // For more details, see Bug 60606 [Navigator] (data loss) Navigator
     // deletes/moves the wrong file
     if (!confirmDelete(resources)) {
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
+          "Windows",
+          "false").with("Confirmed", "false").log();
+
+      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
+      for (IResource ir : resources) {
+        builder = builder.with("resourceName", ir.getName());
+      }
+      builder.log();
+
       return;
+
     }
 
     Job deletionCheckJob = new Job(IDEWorkbenchMessages.DeleteResourceAction_checkJobName) {
@@ -177,15 +218,27 @@ public class DeleteResourceAction extends SelectionListenerAction {
       @Override
       protected IStatus run(IProgressMonitor monitor) {
         if (resources.length == 0) {
+
           return Status.CANCEL_STATUS;
         }
         scheduleDeleteJob(resources);
+
         return Status.OK_STATUS;
       }
     };
 
     deletionCheckJob.schedule();
 
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
+        "Windows",
+        "false").with("Scheduled", "true").log();
+
+    OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
+    for (IResource ir : resources) {
+      builder = builder.with("resourceName", ir.getName());
+    }
+    builder.log();
   }
 
   /**

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.jface.action.IAction;
@@ -38,7 +39,18 @@ public final class DeleteAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+    long start = System.currentTimeMillis();
+
     createWorkbenchAction(selection).run();
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("Delete", elapsed).log();
+    try {
+      Instrumentation.operation("Delete", elapsed).with(
+          "selection-firstelement",
+          selection.getFirstElement().toString()).log();
+    } catch (Exception e) {
+    }
     return;
   }
 
