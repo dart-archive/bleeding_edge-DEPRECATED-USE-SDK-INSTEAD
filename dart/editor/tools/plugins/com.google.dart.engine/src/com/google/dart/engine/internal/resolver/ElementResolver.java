@@ -15,9 +15,11 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
@@ -25,9 +27,11 @@ import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -56,12 +60,15 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -142,7 +149,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (leftType != null) {
           Element leftElement = leftType.getElement();
           if (leftElement != null) {
-            MethodElement method = lookUpMethod(leftElement, operator.getLexeme());
+            MethodElement method = lookUpMethod(leftElement, operator.getLexeme(), 1);
             if (method != null) {
               node.setElement(method);
             } else {
@@ -160,12 +167,16 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Token operator = node.getOperator();
     if (operator.isUserDefinableOperator()) {
       Type leftType = getType(node.getLeftOperand());
+      Element leftTypeElement;
       if (leftType == null) {
         return null;
+      } else if (leftType instanceof FunctionType) {
+        leftTypeElement = resolver.getTypeProvider().getFunctionType().getElement();
+      } else {
+        leftTypeElement = leftType.getElement();
       }
-      Element leftTypeElement = leftType.getElement();
       String methodName = operator.getLexeme();
-      MethodElement member = lookUpMethod(leftTypeElement, methodName);
+      MethodElement member = lookUpMethod(leftTypeElement, methodName, 1);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
       } else {
@@ -182,6 +193,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (labelElement != null && labelElement.isOnSwitchMember()) {
       resolver.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
     }
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorName(ConstructorName node) {
+    Type type = node.getType().getType();
+    if (!(type instanceof InterfaceType)) {
+      // TODO(brianwilkerson) Report this error.
+      return null;
+    }
+    ClassElement classElement = ((InterfaceType) type).getElement();
+    ConstructorElement constructor;
+    SimpleIdentifier name = node.getName();
+    if (name == null) {
+      constructor = classElement.getUnnamedConstructor();
+    } else {
+      constructor = classElement.getNamedConstructor(name.getName());
+    }
+    node.setElement(constructor);
     return null;
   }
 
@@ -231,12 +261,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       operator = TokenType.INDEX.getLexeme();
     }
-    MethodElement member = lookUpMethod(arrayTypeElement, operator);
+    MethodElement member = lookUpMethod(arrayTypeElement, operator, 1);
     if (member == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, node, operator);
     } else {
       node.setElement(member);
     }
+    return null;
+  }
+
+  @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    node.setElement(node.getConstructorName().getElement());
     return null;
   }
 
@@ -257,7 +293,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       Type targetType = getType(target);
       if (targetType instanceof InterfaceType) {
-        element = lookUpMethod(targetType.getElement(), methodName.getName());
+        int parameterCount = 0;
+        ArrayList<String> parameterNames = new ArrayList<String>();
+        ArgumentList argumentList = node.getArgumentList();
+        for (Expression argument : argumentList.getArguments()) {
+          if (argument instanceof NamedExpression) {
+            parameterNames.add(((NamedExpression) argument).getName().getLabel().getName());
+          } else {
+            parameterCount++;
+          }
+        }
+        element = lookUpMethod(
+            targetType.getElement(),
+            methodName.getName(),
+            parameterCount,
+            parameterNames.toArray(new String[parameterNames.size()]));
       } else {
         //TODO(brianwilkerson) Report this error.
         return null;
@@ -297,7 +347,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         methodName = TokenType.MINUS.getLexeme();
       }
-      MethodElement member = lookUpMethod(operandTypeElement, methodName);
+      MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
       } else {
@@ -311,15 +361,32 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefix = node.getPrefix();
     SimpleIdentifier identifier = node.getIdentifier();
-
+    //
+    // First, check to see whether the "prefix" is really a prefix or whether it's an expression
+    // that happens to be a simple identifier.
+    //
     Element prefixElement = resolver.getNameScope().lookup(prefix, resolver.getDefiningLibrary());
-    recordResolution(prefix, prefixElement);
-    // TODO(brianwilkerson) This needs to be an ImportElement
     if (prefixElement instanceof PrefixElement) {
+      // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
+      // defines the prefix, not the prefix's element.
+      recordResolution(prefix, prefixElement);
+
       Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+      if (element == null) {
+        // TODO(brianwilkerson) Report this error.
+      }
       recordResolution(node, element);
-    } else if (prefixElement instanceof ClassElement) {
-      // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
+      return null;
+    }
+    //
+    // Otherwise, this is really equivalent to a property access node.
+    //
+    // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
+    recordResolution(prefix, prefixElement);
+    //
+    // Look to see whether we're accessing a static member of a class.
+    //
+    if (prefixElement instanceof ClassElement) {
       Element memberElement;
       if (node.getIdentifier().inSetterContext()) {
         memberElement = lookUpSetterInType((ClassElement) prefixElement, identifier.getName());
@@ -327,21 +394,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         memberElement = lookUpGetterInType((ClassElement) prefixElement, identifier.getName());
       }
       if (memberElement == null) {
-        resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
-      } else {
-//      if (!element.isStatic()) {
-//        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
-//      }
-        recordResolution(identifier, memberElement);
-      }
-    } else if (prefixElement instanceof VariableElement) {
-      // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
-      Element variableType = ((VariableElement) prefixElement).getType().getElement();
-      PropertyAccessorElement memberElement;
-      if (node.getIdentifier().inGetterContext()) {
-        memberElement = lookUpGetter(variableType, identifier.getName());
-      } else {
-        memberElement = lookUpSetter(variableType, identifier.getName());
+        MethodElement methodElement = lookUpMethod(prefixElement, identifier.getName(), -1);
+        if (methodElement != null) {
+          // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
+          // type with no parameters and a return type that is equal to the function type of the method.
+          recordResolution(identifier, memberElement);
+          recordResolution(node, memberElement);
+          return null;
+        }
       }
       if (memberElement == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
@@ -350,9 +410,51 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
 //      }
         recordResolution(identifier, memberElement);
+        recordResolution(node, memberElement);
       }
+      return null;
+    }
+    //
+    // Otherwise, determine the type of the left-hand side.
+    //
+    Element variableType;
+    if (prefixElement instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) prefixElement;
+      if (accessor.isGetter()) {
+        variableType = accessor.getType().getReturnType().getElement();
+      } else {
+        variableType = accessor.getType().getNormalParameterTypes()[0].getElement();
+      }
+    } else if (prefixElement instanceof VariableElement) {
+      variableType = ((VariableElement) prefixElement).getType().getElement();
     } else {
       // reportError(ResolverErrorCode.UNDEFINED_PREFIX);
+      return null;
+    }
+    //
+    // Then find the property being accessed.
+    //
+    PropertyAccessorElement memberElement;
+    if (node.getIdentifier().inGetterContext()) {
+      memberElement = lookUpGetter(variableType, identifier.getName());
+    } else {
+      memberElement = lookUpSetter(variableType, identifier.getName());
+    }
+    if (memberElement == null) {
+      MethodElement methodElement = lookUpMethod(variableType, identifier.getName(), -1);
+      if (methodElement != null) {
+        // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
+        // type with no parameters and a return type that is equal to the function type of the method.
+        recordResolution(identifier, memberElement);
+        recordResolution(node, memberElement);
+        return null;
+      }
+    }
+    if (memberElement == null) {
+      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
+    } else {
+      recordResolution(identifier, memberElement);
+      recordResolution(node, memberElement);
     }
     return null;
   }
@@ -376,7 +478,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         methodName = operator.getLexeme();
       }
-      MethodElement member = lookUpMethod(operandTypeElement, methodName);
+      MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
       } else {
@@ -427,8 +529,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Report this error and decide what element to associate with the node.
+      return null;
     }
-    recordResolution(name, element);
+    if (name != null) {
+      recordResolution(name, element);
+    }
+    node.setElement(element);
     return null;
   }
 
@@ -466,7 +572,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
       }
       if (element == null) {
-        element = lookUpMethod(resolver.getEnclosingClass(), node.getName());
+        element = lookUpMethod(resolver.getEnclosingClass(), node.getName(), 0);
       }
     }
     if (element == null) {
@@ -497,8 +603,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Report this error and decide what element to associate with the node.
+      return null;
     }
-    recordResolution(name, element);
+    if (name != null) {
+      recordResolution(name, element);
+    }
+    node.setElement(element);
     return null;
   }
 
@@ -535,10 +645,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the getter that was found
    */
   private PropertyAccessorElement lookUpGetter(Element element, String getterName) {
-    // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
-//    if (element == DynamicTypeImpl.getInstance()) {
-//      return ?;
-//    } else
+    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
+    if (element == DynamicTypeImpl.getInstance()) {
+      return null;
+    }
+    element = resolveTypeVariable(element);
     if (element instanceof ClassElement) {
       ClassElement classElement = (ClassElement) element;
       PropertyAccessorElement member = classElement.lookUpGetter(
@@ -670,19 +781,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param methodName the name of the method being looked up
    * @return the element representing the method that was found
    */
-  private MethodElement lookUpMethod(Element element, String methodName) {
-    // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
-//    if (element == DynamicTypeImpl.getInstance()) {
-//      return ?;
-//    }
-    if (element instanceof TypeVariableElement) {
-      Type bound = ((TypeVariableElement) element).getBound();
-      if (bound == null) {
-        element = resolver.getTypeProvider().getObjectType().getElement();
-      } else {
-        element = bound.getElement();
-      }
+  private MethodElement lookUpMethod(Element element, String methodName, int parameterCount,
+      String... parameterNames) {
+    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
+    if (element == DynamicTypeImpl.getInstance()) {
+      return null;
     }
+    element = resolveTypeVariable(element);
     if (element instanceof ClassElement) {
       ClassElement classElement = (ClassElement) element;
       MethodElement member = classElement.lookUpMethod(methodName, resolver.getDefiningLibrary());
@@ -762,10 +867,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the element representing the setter that was found
    */
   private PropertyAccessorElement lookUpSetter(Element element, String setterName) {
-    // TODO(brianwilkerson) Decide how to represent members defined in 'dynamic'.
-//    if (element == DynamicTypeImpl.getInstance()) {
-//      return ?;
-//    } else
+    // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
+    if (element == DynamicTypeImpl.getInstance()) {
+      return null;
+    }
+    element = resolveTypeVariable(element);
     if (element instanceof ClassElement) {
       ClassElement classElement = (ClassElement) element;
       PropertyAccessorElement member = classElement.lookUpSetter(
@@ -885,5 +991,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (element != null) {
       node.setElement(element);
     }
+  }
+
+  /**
+   * If the given element is a type variable, resolve it to the class that should be used when
+   * looking up members. Otherwise, return the original element.
+   * 
+   * @param element the element that is to be resolved if it is a type variable
+   * @return the class that should be used in place of the argument if it is a type variable, or the
+   *         original argument if it isn't a type variable
+   */
+  private Element resolveTypeVariable(Element element) {
+    if (element instanceof TypeVariableElement) {
+      Type bound = ((TypeVariableElement) element).getBound();
+      if (bound == null) {
+        return resolver.getTypeProvider().getObjectType().getElement();
+      }
+      return bound.getElement();
+    }
+    return element;
   }
 }
