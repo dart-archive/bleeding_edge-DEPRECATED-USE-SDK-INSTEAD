@@ -33,21 +33,12 @@ def _BuildOptions():
     cleanup will cleanup the Google storage continuous bucket
     promote will promote code between different stages
 
-    If you do not specify the location of GSUtil with --gsutilloc the
-    program will look in:
-    /b/build/scripts/slave/gsutil (BuildBot location)
-    ~/gsutil/gsutil (local disk)
-    search your path for gsutil
-
     Examples:
       cleanup saving the last 150 revisions
         python gsTool.py cleanup --keepcount=150
 
-      promote revision 567 from continuous to integration
-        python gsTool.py promote --continuous --revision=567
-
-      promote revision 567 from integration to release
-        python gsTool.py promote --integration --revision=567"""
+      promote revision 567 from trunk to integration
+        python gsTool.py promote --trunk --revision=567"""
 
 
   result = optparse.OptionParser(usage=usage)
@@ -100,8 +91,6 @@ def _BuildOptions():
 
 def main():
   """Main entry point for Google Storage Tools."""
-
-  _PrintSeparator('main')
 
   parser = _BuildOptions()
   (options, args) = parser.parse_args()
@@ -238,17 +227,30 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
     to_bucket: the bucket to promote to
   """
   
-  src = '{0}/{1}/*'.format(from_bucket, revision)
-  integ_rev = '{0}/{1}/'.format(to_bucket, revision)
-  integ_latest = '{0}/{1}/'.format(to_bucket, 'latest')
+  # print the gsutil version
+  _Gsutil(['version'])
+  
+  src = '%s/%s' % (from_bucket, revision)
+  dest = '%s/%s' % (to_bucket, revision)
 
-  # copy from continuous/REVISION to integration/REVISION
-  print 'copying: {0} -> {1}'.format(src, integ_rev)
-  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_rev])
+  # We make these copies explicit instead of using a -R copy because of
+  # multiple failures when promoting with the -R flag.
+  
+  # copy from trunk/REVISION to integration/REVISION
+  print '\n--- copying: %s -> %s ---' % (src, dest)
+  _Gsutil(['cp', '-a', 'public-read', src + '/*', dest])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/*', dest + '/eclipse-update'])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/plugins/*', dest + '/eclipse-update/plugins'])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/features/*', dest +  '/eclipse-update/features'])
 
-  # copy from continuous/REVISION to integration/latest
-  print 'copying: {0} -> {1}'.format(src, integ_latest)
-  _Gsutil(['cp', '-R', '-a', 'public-read', src, integ_latest])
+  dest = '%s/%s/' % (to_bucket, 'latest')
+  
+  # copy from trunk/REVISION to integration/latest
+  print '\n--- copying: %s -> %s ---' % (src, dest)
+  _Gsutil(['cp', '-a', 'public-read', src + '/*', dest])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/*', dest + '/eclipse-update'])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/plugins/*', dest + '/eclipse-update/plugins'])
+  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/features/*', dest +  '/eclipse-update/features'])
 
 
 def _PrintSeparator(text):
