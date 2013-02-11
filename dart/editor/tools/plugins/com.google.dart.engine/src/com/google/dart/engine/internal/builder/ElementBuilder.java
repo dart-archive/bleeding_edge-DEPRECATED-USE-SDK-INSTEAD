@@ -38,7 +38,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
-import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -113,12 +113,20 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
-    MethodElement[] methods = holder.getMethods();
+    ConstructorElement[] constructors = holder.getConstructors();
+    if (constructors.length == 0) {
+      //
+      // Create the default constructor.
+      //
+      ConstructorElementImpl constructor = new ConstructorElementImpl(null);
+      constructor.setSynthetic(true);
+      constructors = new ConstructorElement[] {constructor};
+    }
     element.setAbstract(node.getAbstractKeyword() != null);
     element.setAccessors(holder.getAccessors());
-    element.setConstructors(holder.getConstructors());
+    element.setConstructors(constructors);
     element.setFields(holder.getFields());
-    element.setMethods(methods);
+    element.setMethods(holder.getMethods());
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
     element.setTypeVariables(typeVariables);
 
@@ -232,6 +240,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       SimpleIdentifier parameterName = node.getIdentifier();
       ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
       parameter.setConst(node.isConst());
+      parameter.setInitializingFormal(true);
       parameter.setFinal(node.isFinal());
       parameter.setParameterKind(node.getKind());
 
@@ -339,7 +348,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     Token property = node.getPropertyKeyword();
     if (property == null) {
       Identifier methodName = node.getName();
-      MethodElementImpl element = new MethodElementImpl(methodName);
+      String nameOfMethod = methodName.getName();
+      if (nameOfMethod.equals(TokenType.MINUS.getLexeme())
+          && node.getParameters().getParameters().size() == 0) {
+        nameOfMethod = "unary-";
+      }
+      MethodElementImpl element = new MethodElementImpl(nameOfMethod, methodName.getOffset());
       Token keyword = node.getModifierKeyword();
       element.setAbstract(matches(keyword, Keyword.ABSTRACT));
       element.setFunctions(holder.getFunctions());
