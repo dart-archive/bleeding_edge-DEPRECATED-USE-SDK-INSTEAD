@@ -92,7 +92,7 @@ public class CompilationUnit extends ASTNode {
   private AnalysisError[] parsingErrors = AnalysisError.NO_ERRORS;
 
   /**
-   * The resolution errors encountered when the receiver was parsed.
+   * The resolution errors encountered when the receiver was resolved.
    */
   private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
@@ -265,7 +265,7 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
-   * Called to cache the resolution errors when the unit is parsed.
+   * Called to cache the resolution errors when the unit is resolved.
    * 
    * @param errors an array of resolution errors, if <code>null</code> is passed, the error array is
    *          set to an empty array, {@link AnalysisError#NO_ERRORS}
