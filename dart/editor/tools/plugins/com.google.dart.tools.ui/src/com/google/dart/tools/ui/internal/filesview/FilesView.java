@@ -234,7 +234,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new ResourceContentProvider());
-    resourceLabelProvider = new ResourceLabelProvider();
+    resourceLabelProvider = ResourceLabelProvider.createInstance();
     treeViewer.setLabelProvider(new DecoratingStyledCellLabelProvider(
         resourceLabelProvider,
         new ProblemsLabelDecorator(),
