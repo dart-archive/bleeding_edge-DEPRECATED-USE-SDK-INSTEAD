@@ -30,7 +30,7 @@ import org.eclipse.ui.navigator.ICommonLabelProvider;
 public class DartNavigatorLabelProvider extends LabelProvider implements ICommonLabelProvider,
     IStyledLabelProvider {
 
-  private final ResourceLabelProvider resourceLabelProvider = new ResourceLabelProvider();
+  private final ResourceLabelProvider resourceLabelProvider = ResourceLabelProvider.createInstance();
 
   @Override
   public void addListener(ILabelProviderListener listener) {
