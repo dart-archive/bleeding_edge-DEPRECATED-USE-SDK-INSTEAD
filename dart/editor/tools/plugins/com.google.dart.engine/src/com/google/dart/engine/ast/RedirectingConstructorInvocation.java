@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -46,6 +47,12 @@ public class RedirectingConstructorInvocation extends ConstructorInitializer {
    * The list of arguments to the constructor.
    */
   private ArgumentList argumentList;
+
+  /**
+   * The element associated with the constructor, or {@code null} if the AST structure has not been
+   * resolved or if the constructor could not be resolved.
+   */
+  private ConstructorElement element;
 
   /**
    * Initialize a newly created redirecting invocation to invoke the constructor with the given name
@@ -93,6 +100,16 @@ public class RedirectingConstructorInvocation extends ConstructorInitializer {
     return constructorName;
   }
 
+  /**
+   * Return the element associated with the constructor, or {@code null} if the AST structure has
+   * not been resolved or if the constructor could not be resolved.
+   * 
+   * @return the element associated with the super constructor
+   */
+  public ConstructorElement getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return argumentList.getEndToken();
@@ -133,6 +150,15 @@ public class RedirectingConstructorInvocation extends ConstructorInitializer {
    */
   public void setConstructorName(SimpleIdentifier identifier) {
     constructorName = becomeParentOf(identifier);
+  }
+
+  /**
+   * Set the element associated with the constructor to the given element.
+   * 
+   * @param element the element associated with the constructor
+   */
+  public void setElement(ConstructorElement element) {
+    this.element = element;
   }
 
   /**
