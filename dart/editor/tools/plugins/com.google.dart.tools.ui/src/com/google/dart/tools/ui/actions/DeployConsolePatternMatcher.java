@@ -13,10 +13,13 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
@@ -33,6 +36,12 @@ import org.eclipse.ui.ide.IDE;
 
 /**
  * Watch for Dart source file locations in the console and create hyperlinks for them.
+ * <p>
+ * Match:
+ * <ul>
+ * <li>(file:///C:/foo/bar/baz.dart:71:3)
+ * <li>(package:web_ui/dwc.dart:71:3)
+ * </ul>
  */
 public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
@@ -102,21 +111,28 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
 
   @Override
   public String getPattern() {
-    return "( .*\\.dart:\\d*)|(file:/\\S+)";
+    // (file:///C:/foo/bar/baz.dart:71:3)
+    // (package:web_ui/dwc.dart:71:3)
+
+    return "\\((file|package):.*\\.dart:\\d*:\\d*\\)";
   }
 
   @Override
   public void matchFound(PatternMatchEvent event) {
+    if (console == null) {
+      return;
+    }
+
     try {
       String match = console.getDocument().get(event.getOffset(), event.getLength());
 
       Location location = parseMatch(match);
 
       if (location != null && doesLocationExist(location)) {
-        int matchOffset = event.getOffset() + match.indexOf(location.file);
-        int matchLength = location.file.length();
-
-        console.addHyperlink(new DeployConsoleHyperlink(location), matchOffset, matchLength);
+        console.addHyperlink(
+            new DeployConsoleHyperlink(location),
+            event.getOffset(),
+            event.getLength());
       }
     } catch (BadLocationException e) {
 
@@ -164,39 +180,76 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
   }
 
   private Location parseMatch(String match) {
-    // " foo.dart:123"
+    // "(file:///Users/devoncarew/temp/pub-test/build.dart:23:3)"
+    // "(package:web_ui/dwc.dart:71:3)"
 
-    match = match.trim();
+    match = stripParens(match.trim());
 
-    // it could look something like this:
-    // #2      main (file:///Users/devoncarew/temp/pub-test/build.dart:23
+    // Remove the last :num
+    int index = match.lastIndexOf(':');
 
-    int index = match.lastIndexOf('(');
-
-    if (index != -1) {
-      match = match.substring(index + 1);
+    if (index == -1) {
+      return null;
     }
 
-    if (match.startsWith("file://")) {
-      match = match.substring("file://".length());
+    match = match.substring(0, index);
+
+    index = match.lastIndexOf(':');
+
+    if (index == -1) {
+      return null;
     }
 
-    if (match.startsWith("file:")) {
-      match = match.substring("file:".length());
+    String url = match.substring(0, index);
+    int lineNumber = 1;
+
+    try {
+      lineNumber = Integer.parseInt(match.substring(index + 1));
+    } catch (NumberFormatException nfe) {
+      return null;
     }
 
-    if (match.indexOf(':') != -1) {
-      String[] strs = match.split(":");
+    if (url.startsWith("package:")) {
+      // Locate the corresponding file for "package:web_ui/dwc.dart".
+      String filePath = resolvePackageUrl(url);
 
-      if (strs.length == 2) {
-        try {
-          return new Location(strs[0], Integer.parseInt(strs[1]));
-        } catch (NumberFormatException nfe) {
+      if (filePath != null) {
+        return new Location(filePath, lineNumber);
+      } else {
+        return null;
+      }
+    } else if (url.startsWith("file:")) {
+      if (url.startsWith("file://")) {
+        url = url.substring("file://".length());
+      } else {
+        url = url.substring("file:".length());
+      }
 
+      return new Location(url, lineNumber);
+    } else {
+      return null;
+    }
+  }
+
+  /**
+   * Given "package:web_ui/dwc.dart", return "/Users/foo/dart/sample/packages/web_ui/dwc.dart".
+   * 
+   * @param packageUrl
+   * @return
+   */
+  private String resolvePackageUrl(String packageUrl) {
+    String urlSnippet = packageUrl.substring("package:".length());
+
+    for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+      IFolder packagesDir = project.getFolder(DartCore.PACKAGES_DIRECTORY_NAME);
+
+      if (packagesDir.exists()) {
+        IFile file = packagesDir.getFile(urlSnippet);
+
+        if (file.exists() && file.isAccessible()) {
+          return file.getLocation().toPortableString();
         }
       }
-    } else {
-      return new Location(match, 1);
     }
 
     return null;
@@ -212,4 +265,11 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
     }
   }
 
+  private String stripParens(String str) {
+    if (str.startsWith("(") && str.endsWith(")")) {
+      return str.substring(1, str.length() - 1);
+    } else {
+      return str;
+    }
+  }
 }
