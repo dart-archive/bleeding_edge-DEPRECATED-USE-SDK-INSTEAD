@@ -210,6 +210,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       constructor = classElement.getUnnamedConstructor();
     } else {
       constructor = classElement.getNamedConstructor(name.getName());
+      name.setElement(constructor);
     }
     node.setElement(constructor);
     return null;
@@ -290,6 +291,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element element;
     if (target == null) {
       element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
+      if (element == null) {
+        element = lookUpMethod(resolver.getEnclosingClass(), methodName.getName(), -1);
+      }
     } else {
       Type targetType = getType(target);
       if (targetType instanceof InterfaceType) {

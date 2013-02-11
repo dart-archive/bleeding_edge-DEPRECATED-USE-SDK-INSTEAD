@@ -38,6 +38,12 @@ public class FunctionScope extends EnclosedScope {
    */
   private void defineParameters(ExecutableElement functionElement) {
     Scope parameterScope = getEnclosingScope();
+    if (functionElement.getEnclosingElement() instanceof ExecutableElement) {
+      String name = functionElement.getName();
+      if (name != null && !name.isEmpty()) {
+        parameterScope.define(functionElement);
+      }
+    }
     for (ParameterElement parameter : functionElement.getParameters()) {
       if (!parameter.isInitializingFormal()) {
         parameterScope.define(parameter);
