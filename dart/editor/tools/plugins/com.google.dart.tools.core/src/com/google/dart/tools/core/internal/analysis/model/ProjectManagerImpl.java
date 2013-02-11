@@ -17,10 +17,12 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.search.SearchEngineImpl;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
 import java.util.HashMap;
@@ -66,6 +68,18 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public IWorkspaceRoot getResource() {
     return resource;
+  }
+
+  @Override
+  public IResource getResourceFor(Source source) {
+    // TODO (danrubel): revisit and optimize performance
+    for (Project project : getProjects()) {
+      IResource res = project.getResourceFor(source);
+      if (res != null) {
+        return res;
+      }
+    }
+    return null;
   }
 
   @Override

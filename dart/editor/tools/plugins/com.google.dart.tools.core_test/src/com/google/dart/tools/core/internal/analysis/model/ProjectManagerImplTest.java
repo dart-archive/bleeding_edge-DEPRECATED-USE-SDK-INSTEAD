@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockProject;
@@ -20,16 +22,25 @@ import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IResource;
+
+import java.io.File;
+
 public class ProjectManagerImplTest extends TestCase {
 
-  private MockWorkspaceRoot mockRoot;
-  private MockProject mockProject;
+  private MockWorkspaceRoot rootContainer;
+  private MockProject projectContainer;
   private ProjectManagerImpl manager;
 
+  public void test_getIndex() throws Exception {
+    Index index = manager.getIndex();
+    assertSame(index, manager.getIndex());
+  }
+
   public void test_getProject() {
-    Project actual = manager.getProject(mockProject);
+    Project actual = manager.getProject(projectContainer);
     assertNotNull(actual);
-    assertSame(mockProject, actual.getResource());
+    assertSame(projectContainer, actual.getResource());
   }
 
   public void test_getProjects() {
@@ -37,18 +48,37 @@ public class ProjectManagerImplTest extends TestCase {
     assertNotNull(actual);
     assertEquals(1, actual.length);
     assertNotNull(actual[0]);
-    assertSame(manager.getProject(mockProject), actual[0]);
+    assertSame(manager.getProject(projectContainer), actual[0]);
   }
 
   public void test_getResource() {
-    assertSame(mockRoot, manager.getResource());
+    assertSame(rootContainer, manager.getResource());
+  }
+
+  public void test_getResourceFor() {
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    File file = resource.getLocation().toFile();
+    Project project = manager.getProject(projectContainer);
+    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    assertSame(resource, manager.getResourceFor(source));
+  }
+
+  public void test_getResourceFor_outside_resource() {
+    File file = new File("/does/not/exist.dart");
+    Project project = manager.getProject(projectContainer);
+    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    assertNull(manager.getResourceFor(source));
+  }
+
+  public void test_newSearchEngine() throws Exception {
+    assertNotNull(manager.newSearchEngine());
   }
 
   @Override
   protected void setUp() throws Exception {
-    mockRoot = new MockWorkspaceRoot();
-    mockProject = TestProjects.newPubProject3(mockRoot);
-    mockRoot.add(mockProject);
-    manager = new ProjectManagerImpl(mockRoot);
+    rootContainer = new MockWorkspaceRoot();
+    projectContainer = TestProjects.newPubProject3(rootContainer);
+    rootContainer.add(projectContainer);
+    manager = new ProjectManagerImpl(rootContainer);
   }
 }
