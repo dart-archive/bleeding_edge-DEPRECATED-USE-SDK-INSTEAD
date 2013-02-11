@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.omni.elements.ClassProvider;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
@@ -146,18 +148,22 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private static final int MAX_COUNT_TOTAL = 20;
 
+  private static OmniProposalProvider createClassProvider(IProgressMonitor pm) {
+    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new ClassProvider(pm) : new TypeProvider(pm);
+  }
+
   private OmniProposalProvider[] providers;
 
   private final IWorkbenchWindow window;
 
   protected Table table;
-
   private LocalResourceManager resourceManager = new LocalResourceManager(
       JFaceResources.getResources());
   private static final String TEXT_ARRAY = "textArray"; //$NON-NLS-1$
   private static final String TEXT_ENTRIES = "textEntries"; //$NON-NLS-1$
   private static final String ORDERED_PROVIDERS = "orderedProviders"; //$NON-NLS-1$
   private static final String ORDERED_ELEMENTS = "orderedElements"; //$NON-NLS-1$
+
   static final int MAXIMUM_NUMBER_OF_ELEMENTS = 60;
 
   static final int MAXIMUM_NUMBER_OF_TEXT_ENTRIES_PER_ELEMENT = 3;
@@ -167,12 +173,12 @@ public class OmniBoxPopup extends BasePopupDialog {
   protected Map<Object, ArrayList<String>> textMap = new HashMap<Object, ArrayList<String>>();
 
   protected Map<String, Object> elementMap = new HashMap<String, Object>();
-
   private LinkedList<OmniElement> previousPicksList = new LinkedList<OmniElement>();
   protected Map<String, OmniProposalProvider> providerMap;
   private TextLayout textLayout;
   private TriggerSequence[] invokingCommandKeySequences;
   private Command invokingCommand;
+
   private KeyAdapter keyAdapter;
 
   private boolean showAllMatches = true;
@@ -180,8 +186,8 @@ public class OmniBoxPopup extends BasePopupDialog {
   protected boolean resized = false;
 
   private Text filterControl;
-
   private Job refreshJob = new OmniRefreshJob();
+
   private String searchFilter;
 
   private int searchItemCount;
@@ -799,7 +805,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   private OmniProposalProvider[] createProviders() {
     return new OmniProposalProvider[] {
         new PreviousPicksProvider(), new TextSearchProvider(this),
-        new TypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
+        createClassProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
