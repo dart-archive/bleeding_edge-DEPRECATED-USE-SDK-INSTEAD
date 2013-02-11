@@ -160,8 +160,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
     super.visitConstructorDeclaration(node);
     ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
     FunctionTypeImpl type = new FunctionTypeImpl(element);
-    // TODO(brianwilkerson) Get the return type of the function
     setTypeInformation(type, null, element.getParameters());
+    type.setReturnType(((ClassElement) element.getEnclosingElement()).getType());
     element.setType(type);
     return null;
   }
