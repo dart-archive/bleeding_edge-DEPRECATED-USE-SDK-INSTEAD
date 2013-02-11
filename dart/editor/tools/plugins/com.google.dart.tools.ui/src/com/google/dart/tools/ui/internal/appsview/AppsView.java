@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -161,6 +162,9 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void createPartControl(Composite parent) {
+
+    long start = System.currentTimeMillis();
+
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
     treeViewer = new TreeViewer(parent);
     treeViewer.setContentProvider(new AppsViewContentProvider());
@@ -209,6 +213,10 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     restoreState();
     int eventMask = ElementChangedEvent.POST_RECONCILE;
     DartModelManager.getInstance().addElementChangedListener(modelListener, eventMask);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView.createPartControl", elapsed);
+
   }
 
   @Override
@@ -245,13 +253,22 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   @Override
   public void init(IViewSite site, IMemento memento) throws PartInitException {
+
+    long start = System.currentTimeMillis();
+
     super.init(site, memento);
     this.memento = memento;
     DartModelManager.getInstance().addIgnoreListener(ignoreListener);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView.init", elapsed);
   }
 
   @Override
   public void saveState(IMemento memento) {
+
+    long start = System.currentTimeMillis();
+
     memento.putBoolean(LINK_WITH_EDITOR_ID, linkWithEditorAction.getLinkWithEditor());
 
     //save expanded elements
@@ -293,20 +310,43 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         }
       }
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView-SaveState", elapsed).log();
+
   }
 
   @Override
   public void selectReveal(ISelection selection) {
+
+    long start = System.currentTimeMillis();
+
     try {
-      treeViewer.setSelection(selection, true);
+      treeViewer.setSelection(selection, true); //This will do the detailed instrumentation
     } catch (NullPointerException ex) {
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("AppsView.selectReveal", elapsed).with("NPE", "true").log();
+      return;
+
       // ignore resource creation -- those files are not in apps view
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView.selectReveal", elapsed).with("NPE", "false").log();
+
   }
 
   @Override
   public void setFocus() {
+
+    long start = System.currentTimeMillis();
+
     treeViewer.getTree().setFocus();
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView-setFocus", elapsed);
+
   }
 
   protected void createContextMenu() {
@@ -343,20 +383,46 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void handleDoubleClick(DoubleClickEvent event) {
+
+    long start = System.currentTimeMillis();
+
     IStructuredSelection selection = (IStructuredSelection) event.getSelection();
     Object element = selection.getFirstElement();
 
     if (treeViewer.isExpandable(element)) {
       treeViewer.setExpandedState(element, !treeViewer.getExpandedState(element));
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("AppsView-handleDoubleClick", elapsed).with("expandable", "true").log();
     }
 
     if (element instanceof ElementTreeNode) {
       element = ((ElementTreeNode) element).getModelElement();
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("AppsView-handleDoubleClick", elapsed).with(
+          "element",
+          "ElementTreeNode").log();
+
+      Instrumentation.operation("AppsView-handleDoubleClick", elapsed).with(
+          "element",
+          "ElementTreeNode").with("name", ((DartElement) element).getElementName()).log();
+
     }
     if (element instanceof CompilationUnit) {
       try {
         CompilationUnit cu = (CompilationUnit) element;
         EditorUtility.openInEditor(cu);
+
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("AppsView-handleDoubleClick", elapsed).with(
+            "element",
+            "CompilationUnit").log();
+
+        Instrumentation.operation("AppsView-handleDoubleClick", elapsed).with(
+            "element",
+            "CompilationUnit").with("name", cu.getElementName()).log();
+
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
       } catch (CoreException ex) {
@@ -365,6 +431,14 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     } else if (element instanceof IFileStore) {
       try {
         IDE.openEditorOnFileStore(getViewSite().getPage(), (IFileStore) element);
+
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("AppsView-handleDoubleClick", elapsed).with("element", "FileStore").log();
+
+        Instrumentation.operation("AppsView-handleDoubleClick", elapsed).with(
+            "element",
+            "FileStore").with("name", ((IFileStore) element).getName()).log();
+
       } catch (PartInitException e) {
         DartToolsPlugin.log(e);
       }
@@ -372,7 +446,13 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void restoreState() {
+
+    long start = System.currentTimeMillis();
+
     if (memento == null) {
+
+      Instrumentation.metric("AppsView-restoreState").with("momento", "null").log();
+
       return;
     }
 
@@ -397,6 +477,13 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         }
       }
       treeViewer.setExpandedElements(elements.toArray());
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("AppsView-restoreState", elapsed).with(
+          "expandedElements",
+          elements.size()).log();
+
+      //TODO(lukechurch): If necessary add detailed expansion logging here
     }
     //restore selection
     childMem = memento.getChild(TAG_SELECTION);
@@ -409,7 +496,11 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
         }
       }
       treeViewer.setSelection(new StructuredSelection(list));
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("AppsView-restoreState", elapsed).with("Selection", list.size()).log();
     }
+
   }
 
   protected void updateColors() {
@@ -417,11 +508,18 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
   }
 
   protected void updateTreeFont() {
+
+    long start = System.currentTimeMillis();
+
     Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
     Font oldFont = treeViewer.getTree().getFont();
     Font font = SWTUtil.changeFontSize(oldFont, newFont);
     treeViewer.getTree().setFont(font);
     appLabelProvider.updateFont(font);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("AppsView-handleDoubleClick", elapsed).with("element", "FileStore").log();
+
   }
 
   Shell getShell() {
