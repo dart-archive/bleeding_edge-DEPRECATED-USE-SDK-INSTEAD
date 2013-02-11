@@ -534,8 +534,8 @@ class IsolatedServer {
     _messageRate = new Rate();
 
     // Start a timer for cleanup events.
-    _cleanupTimer =
-        new Timer.repeating(10000, (timer) => _topic._handleTimer(timer));
+    _cleanupTimer = new Timer.repeating(const Duration(seconds: 10),
+                                        _topic._handleTimer);
   }
 
   // Start timer for periodic logging.
@@ -591,7 +591,8 @@ class IsolatedServer {
       try {
         _server.listen(_host, _port, backlog: message.backlog);
         replyTo.send(new ChatServerStatus.started(_server.port), null);
-        _loggingTimer = new Timer.repeating(1000, _handleLogging);
+        _loggingTimer =
+            new Timer.repeating(const Duration(seconds: 1), _handleLogging);
       } catch (e) {
         replyTo.send(new ChatServerStatus.error2(e.toString()), null);
       }

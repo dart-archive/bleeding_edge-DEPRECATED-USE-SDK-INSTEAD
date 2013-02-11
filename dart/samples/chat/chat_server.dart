@@ -22,6 +22,6 @@ void main() {
 
   // Start a shutdown timer if requested.
   if (stopAfter != null) {
-    new Timer(stopAfter * 1000, (timer) => serverMain.shutdown());
+    new Timer(new Duration(seconds: stopAfter), serverMain.shutdown);
   }
 }
