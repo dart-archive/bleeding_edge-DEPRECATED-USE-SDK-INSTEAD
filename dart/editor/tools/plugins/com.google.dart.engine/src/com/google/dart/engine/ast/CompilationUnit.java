@@ -17,6 +17,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -81,9 +82,19 @@ public class CompilationUnit extends ASTNode {
   private CompilationUnitElement element;
 
   /**
+   * The {@link LineInfo} for this {@link CompilationUnit}.
+   */
+  private LineInfo lineInfo;
+
+  /**
    * The parsing errors encountered when the receiver was parsed.
    */
-  private AnalysisError[] parsingErrors;
+  private AnalysisError[] parsingErrors = AnalysisError.NO_ERRORS;
+
+  /**
+   * The resolution errors encountered when the receiver was parsed.
+   */
+  private AnalysisError[] resolutionErrors = AnalysisError.NO_ERRORS;
 
   /**
    * Initialize a newly created compilation unit to have the given directives and declarations.
@@ -154,7 +165,18 @@ public class CompilationUnit extends ASTNode {
    *         been resolved
    */
   public AnalysisError[] getErrors() {
-    throw new UnsupportedOperationException();
+    AnalysisError[] parserErrors = getParsingErrors();
+    AnalysisError[] resolverErrors = getResolutionErrors();
+    if (resolverErrors.length == 0) {
+      return parserErrors;
+    } else if (parserErrors.length == 0) {
+      return resolverErrors;
+    } else {
+      AnalysisError[] allErrors = new AnalysisError[parserErrors.length + resolverErrors.length];
+      System.arraycopy(parserErrors, 0, allErrors, 0, parserErrors.length);
+      System.arraycopy(resolverErrors, 0, allErrors, parserErrors.length, resolverErrors.length);
+      return allErrors;
+    }
   }
 
   @Override
@@ -164,6 +186,15 @@ public class CompilationUnit extends ASTNode {
       return 0;
     }
     return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset();
+  }
+
+  /**
+   * Get the {@link LineInfo} object for this compilation unit.
+   * 
+   * @return the associated {@link LineInfo}
+   */
+  public LineInfo getLineInfo() {
+    return lineInfo;
   }
 
   @Override
@@ -192,7 +223,7 @@ public class CompilationUnit extends ASTNode {
    *         been resolved
    */
   public AnalysisError[] getResolutionErrors() {
-    throw new UnsupportedOperationException();
+    return resolutionErrors;
   }
 
   /**
@@ -215,12 +246,32 @@ public class CompilationUnit extends ASTNode {
   }
 
   /**
+   * Set the {@link LineInfo} object for this compilation unit.
+   * 
+   * @param errors LineInfo to associate with this compilation unit
+   */
+  public void setLineInfo(LineInfo lineInfo) {
+    this.lineInfo = lineInfo;
+  }
+
+  /**
    * Called to cache the parsing errors when the unit is parsed.
    * 
-   * @param errors an array of parsing errors (not {@code null}, contains no {@code null}s)
+   * @param errors an array of parsing errors, if <code>null</code> is passed, the error array is
+   *          set to an empty array, {@link AnalysisError#NO_ERRORS}
    */
   public void setParsingErrors(AnalysisError[] errors) {
-    this.parsingErrors = errors;
+    parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
+  }
+
+  /**
+   * Called to cache the resolution errors when the unit is parsed.
+   * 
+   * @param errors an array of resolution errors, if <code>null</code> is passed, the error array is
+   *          set to an empty array, {@link AnalysisError#NO_ERRORS}
+   */
+  public void setResolutionErrors(AnalysisError[] errors) {
+    resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
   }
 
   /**
