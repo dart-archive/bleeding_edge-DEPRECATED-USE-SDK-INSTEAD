@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.filesview.FilesView;
 
@@ -54,10 +55,21 @@ public class CopyFilePathAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     if (isEnabled()) {
       IResource selectedResource = (IResource) (selection.toArray()[0]);
       String path = selectedResource.getLocation().toOSString();
       copyToClipboard(path, getSite().getShell());
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("CopyFilePath", elapsed).with("Enabled", "true").log();
+      Instrumentation.operation("CopyFilePath", elapsed).with("text", path).log();
+    } else {
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("CopyFilePath", elapsed).with("Enabled", "false").log();
     }
   }
 

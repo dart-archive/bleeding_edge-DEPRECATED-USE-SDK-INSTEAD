@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -74,12 +76,23 @@ public class CopyDetailsToClipboardAction extends Action {
 
   @Override
   public void run() {
+    long start = System.currentTimeMillis();
 
     Clipboard clipboard = new Clipboard(getShell().getDisplay());
     try {
       copyToClipboard(clipboard, detailsProvider.getDetails(), 0);
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("CopyToClipboard", elapsed).with("Success", "true").log();
+      Instrumentation.operation("CopyToClipboard", elapsed).with(
+          "text",
+          detailsProvider.getDetails()).log();
+
     } finally {
       clipboard.dispose();
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("CopyToClipboard", elapsed).log();
+
     }
   }
 
