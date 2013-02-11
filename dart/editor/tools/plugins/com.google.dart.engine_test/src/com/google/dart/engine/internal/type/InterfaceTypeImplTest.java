@@ -388,6 +388,14 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertLength(0, type.getTypeArguments());
   }
 
+  public void test_isDirectSupertypeOf_extends() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    assertTrue(typeA.isDirectSupertypeOf(typeB));
+  }
+
   public void test_isDirectSupertypeOf_false() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B");
@@ -397,9 +405,19 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     assertFalse(typeA.isDirectSupertypeOf(typeC));
   }
 
-  public void test_isDirectSupertypeOf_true() {
+  public void test_isDirectSupertypeOf_implements() {
     ClassElement elementA = classElement("A");
-    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElement elementB = classElement("B");
+    ((ClassElementImpl) elementB).setInterfaces(new InterfaceType[] {elementA.getType()});
+    InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
+    InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
+    assertTrue(typeA.isDirectSupertypeOf(typeB));
+  }
+
+  public void test_isDirectSupertypeOf_with() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B");
+    ((ClassElementImpl) elementB).setMixins(new InterfaceType[] {elementA.getType()});
     InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
     InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
     assertTrue(typeA.isDirectSupertypeOf(typeB));

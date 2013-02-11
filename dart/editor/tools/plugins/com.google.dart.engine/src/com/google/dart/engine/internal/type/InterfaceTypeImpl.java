@@ -259,7 +259,7 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   public boolean isDirectSupertypeOf(InterfaceType type) {
     ClassElement i = getElement();
     ClassElement j = type.getElement();
-    Type supertype = j.getSupertype();
+    InterfaceType supertype = j.getSupertype();
     //
     // If J has no direct supertype then it is Object, and Object has no direct supertypes.
     //
@@ -269,30 +269,31 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     //
     // I is listed in the extends clause of J.
     //
-    ClassElement supertypeElement = (ClassElement) supertype.getElement();
+    ClassElement supertypeElement = supertype.getElement();
     if (supertypeElement.equals(i)) {
       return true;
     }
     //
     // I is listed in the implements clause of J.
     //
-    for (Type interfaceType : j.getInterfaces()) {
-      if (interfaceType.equals(i)) {
+    for (InterfaceType interfaceType : j.getInterfaces()) {
+      if (interfaceType.getElement().equals(i)) {
         return true;
       }
     }
     //
     // I is listed in the with clause of J.
     //
-    for (Type mixinType : j.getMixins()) {
-      if (mixinType.equals(i)) {
+    for (InterfaceType mixinType : j.getMixins()) {
+      if (mixinType.getElement().equals(i)) {
         return true;
       }
     }
     //
     // J is a mixin application of the mixin of I.
     //
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson) Determine whether this needs to be implemented or whether it is covered
+    // by the case above.
     return false;
   }
 
