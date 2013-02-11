@@ -14,7 +14,7 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.ParameterElement;
 
 /**
  * Instances of the class {@code FunctionScope} implement the scope defined by a function.
@@ -38,8 +38,10 @@ public class FunctionScope extends EnclosedScope {
    */
   private void defineParameters(ExecutableElement functionElement) {
     Scope parameterScope = getEnclosingScope();
-    for (VariableElement parameter : functionElement.getParameters()) {
-      parameterScope.define(parameter);
+    for (ParameterElement parameter : functionElement.getParameters()) {
+      if (!parameter.isInitializingFormal()) {
+        parameterScope.define(parameter);
+      }
     }
   }
 }
