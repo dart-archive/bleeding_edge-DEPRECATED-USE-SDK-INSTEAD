@@ -101,7 +101,7 @@ public abstract class AbstractScanner {
    */
   public Token tokenize() {
     long startTime = System.currentTimeMillis();
-    parse();
+    scan();
     appendEofToken();
     long endTime = System.currentTimeMillis();
     Instrumentation.metric("Engine-Html-Scanner", endTime - startTime).with("chars", getOffset()).log();
@@ -159,7 +159,23 @@ public abstract class AbstractScanner {
     return tokens.getNext();
   }
 
-  private void parse() {
+  private int recordStartOfLineAndAdvance(int c) {
+    if (c == '\r') {
+      c = advance();
+      if (c == '\n') {
+        c = advance();
+      }
+      recordStartOfLine();
+    } else if (c == '\n') {
+      c = advance();
+      recordStartOfLine();
+    } else {
+      c = advance();
+    }
+    return c;
+  }
+
+  private void scan() {
     boolean inBrackets = false;
     boolean passThrough = false;
 
@@ -284,7 +300,7 @@ public abstract class AbstractScanner {
         c = advance();
 
       } else if (!inBrackets) {
-        c = advance();
+        c = recordStartOfLineAndAdvance(c);
         while (c != '<' && c >= 0) {
           c = recordStartOfLineAndAdvance(c);
         }
@@ -323,21 +339,5 @@ public abstract class AbstractScanner {
 
       }
     }
-  }
-
-  private int recordStartOfLineAndAdvance(int c) {
-    if (c == '\r') {
-      c = advance();
-      if (c == '\n') {
-        c = advance();
-      }
-      recordStartOfLine();
-    } else if (c == '\n') {
-      c = advance();
-      recordStartOfLine();
-    } else {
-      c = advance();
-    }
-    return c;
   }
 }

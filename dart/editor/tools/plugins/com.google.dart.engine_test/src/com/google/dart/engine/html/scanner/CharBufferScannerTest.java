@@ -13,10 +13,13 @@
  */
 package com.google.dart.engine.html.scanner;
 
-public class StringScannerTest extends AbstractScannerTest {
+import java.nio.CharBuffer;
+
+public class CharBufferScannerTest extends AbstractScannerTest {
 
   @Override
   protected AbstractScanner newScanner(String input) {
-    return new StringScanner(null, input);
+    CharBuffer buffer = CharBuffer.wrap(input);
+    return new CharBufferScanner(null, buffer);
   }
 }
