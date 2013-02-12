@@ -16,11 +16,23 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code FunctionElementImpl} implement a {@code FunctionElement}.
  */
 public class FunctionElementImpl extends ExecutableElementImpl implements FunctionElement {
+  /**
+   * The offset to the beginning of the visible range for this element.
+   */
+  private int visibleRangeOffset;
+
+  /**
+   * The length of the visible range for this element, or {@code -1} if this element does not have a
+   * visible range.
+   */
+  private int visibleRangeLength = -1;
+
   /**
    * An empty array of function elements.
    */
@@ -52,6 +64,27 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
+  }
+
+  @Override
+  public SourceRange getVisibleRange() {
+    if (visibleRangeLength < 0) {
+      return null;
+    }
+    return new SourceRange(visibleRangeOffset, visibleRangeLength);
+  }
+
+  /**
+   * Set the visible range for this element to the range starting at the given offset with the given
+   * length.
+   * 
+   * @param offset the offset to the beginning of the visible range for this element
+   * @param length the length of the visible range for this element, or {@code -1} if this element
+   *          does not have a visible range
+   */
+  public void setVisibleRange(int offset, int length) {
+    visibleRangeOffset = offset;
+    visibleRangeLength = length;
   }
 
   @Override

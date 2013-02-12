@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code FunctionElementHandle} implement a handle to a
@@ -33,5 +34,15 @@ public class FunctionElementHandle extends ExecutableElementHandle implements Fu
   @Override
   public ElementKind getKind() {
     return ElementKind.FUNCTION;
+  }
+
+  @Override
+  public SourceRange getVisibleRange() {
+    return getActualElement().getVisibleRange();
+  }
+
+  @Override
+  protected FunctionElement getActualElement() {
+    return (FunctionElement) super.getActualElement();
   }
 }
