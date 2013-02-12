@@ -149,6 +149,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public LibraryElement getLibraryElementOrNull(Source source) {
+    return null;
+  }
+
+  @Override
+  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
+    return new AnalysisError[] {};
+  }
+
+  @Override
   public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException {
     return new AnalysisError[] {};
   }
@@ -156,11 +166,6 @@ public class MockContext implements AnalysisContext {
   @Override
   public SourceFactory getSourceFactory() {
     return factory;
-  }
-
-  @Override
-  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
-    return new AnalysisError[] {};
   }
 
   @Override
