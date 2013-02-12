@@ -21,11 +21,13 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -131,6 +133,17 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
   public Void visitLibraryIdentifier(LibraryIdentifier node) {
     // Do nothing, LibraryIdentifiers and children don't have an associated static type.
     return null;
+  }
+
+  @Override
+  public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    // In cases where we have a prefixed identifier where the prefix is dynamic, we don't want to
+    // assert that the node will have a type.
+    if (node.getStaticType() == null
+        && node.getPrefix().getStaticType() == DynamicTypeImpl.getInstance()) {
+      return null;
+    }
+    return super.visitPrefixedIdentifier(node);
   }
 
   @Override
