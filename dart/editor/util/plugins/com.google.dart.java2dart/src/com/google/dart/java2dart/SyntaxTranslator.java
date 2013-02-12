@@ -16,6 +16,7 @@ package com.google.dart.java2dart;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
@@ -151,6 +152,7 @@ import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -428,21 +430,31 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       AnonymousClassDeclaration anoDeclaration = node.getAnonymousClassDeclaration();
       if (anoDeclaration != null) {
-        signature = anoDeclaration.resolveBinding().getSuperclass().getKey()
-            + StringUtils.substringAfter(signature, ";");
-        String name = typeNameNode.getName().getName();
+        ITypeBinding superclass = anoDeclaration.resolveBinding().getSuperclass();
+        signature = superclass.getKey() + StringUtils.substringAfter(signature, ";");
+        String name = typeNameNode.getName().getName().replace('.', '_');
         name = name + "_" + context.generateTechnicalAnonymousClassIndex();
         innerClass = declareInnerClass(binding, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);
         typeNameNode = typeName(name);
         // declare referenced final variables
         final String finalName = name;
         anoDeclaration.accept(new ASTVisitor() {
+          final Set<org.eclipse.jdt.core.dom.IVariableBinding> addedParameters = Sets.newHashSet();
           final List<FormalParameter> constructorParameters = Lists.newArrayList();
           int index;
 
           @Override
           public void endVisit(AnonymousClassDeclaration node) {
             if (!constructorParameters.isEmpty()) {
+              // add parameters to the existing "inner" constructor
+              for (ClassMember classMember : innerClass.getMembers()) {
+                if (classMember instanceof ConstructorDeclaration) {
+                  ConstructorDeclaration innerConstructor = (ConstructorDeclaration) classMember;
+                  innerConstructor.getParameters().getParameters().addAll(constructorParameters);
+                  return;
+                }
+              }
+              // create new "inner" constructor
               innerClass.getMembers().add(
                   index,
                   constructorDeclaration(
@@ -461,7 +473,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               org.eclipse.jdt.core.dom.IVariableBinding variableBinding = (org.eclipse.jdt.core.dom.IVariableBinding) nameBinding;
               org.eclipse.jdt.core.dom.MethodDeclaration enclosingMethod = getEnclosingMethod(node);
               if (!variableBinding.isField() && enclosingMethod != null
-                  && variableBinding.getDeclaringMethod() != enclosingMethod.resolveBinding()) {
+                  && variableBinding.getDeclaringMethod() != enclosingMethod.resolveBinding()
+                  && addedParameters.add(variableBinding)) {
                 TypeName parameterTypeName = translateTypeName(variableBinding.getType());
                 String parameterName = variableBinding.getName();
                 SimpleIdentifier parameterNameNode = identifier(parameterName);
@@ -1217,6 +1230,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     List<Expression> arguments = translateArguments(binding, node.arguments());
     SuperConstructorInvocation superInvocation = superConstructorInvocation(arguments);
     context.getConstructorDescription(binding).superInvocations.add(superInvocation);
+    context.putNodeBinding(superInvocation, binding);
     return done(superInvocation);
   }
 
@@ -1443,10 +1457,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     {
       ITypeBinding[] superInterfaces = anoClassDeclaration.resolveBinding().getInterfaces();
       if (superInterfaces.length != 0) {
+        superTypeBinding = superInterfaces[0];
         TypeName superType = typeName(superInterfaces[0].getName());
+        putReference(superTypeBinding, (SimpleIdentifier) superType.getName());
         implementsClause = implementsClause(superType);
       } else {
         TypeName superType = typeName(superTypeBinding.getName());
+        putReference(superTypeBinding, (SimpleIdentifier) superType.getName());
         extendsClause = extendsClause(superType);
       }
     }

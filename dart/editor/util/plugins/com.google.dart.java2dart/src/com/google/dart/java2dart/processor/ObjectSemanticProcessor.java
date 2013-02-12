@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
@@ -181,6 +182,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         NodeList<Expression> args = node.getArgumentList().getArguments();
         if (args.isEmpty()) {
           if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
+              || isMethodInClass(node, "isEmpty", "java.lang.String")
               || isMethodInClass(node, "values", "java.lang.Enum")) {
             replaceNode(node, propertyAccess(node.getTarget(), nameNode));
             return null;
@@ -370,13 +372,22 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       }
 
       @Override
+      public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+        super.visitSuperConstructorInvocation(node);
+        IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
+        if (isMethodInClass2(binding, "<init>(java.lang.Throwable)", "java.lang.Exception")) {
+          node.setConstructorName(identifier("withCause"));
+        }
+        return null;
+      }
+
+      @Override
       public Void visitTypeName(TypeName node) {
+        ITypeBinding typeBinding = (ITypeBinding) context.getNodeBinding(node);
         // in Dart we cannot use separate type parameters for methods, so we replace
         // them with type bounds
         if (getAncestor(node, MethodDeclaration.class) != null) {
-          Object binding = context.getNodeBinding(node);
-          if (binding instanceof ITypeBinding) {
-            ITypeBinding typeBinding = (ITypeBinding) binding;
+          if (typeBinding != null) {
             if (typeBinding.isTypeVariable() && typeBinding.getDeclaringMethod() != null) {
               replaceNode(node, typeName(typeBinding.getErasure().getName()));
             }
@@ -386,6 +397,13 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
+          // Exception -> JavaException
+          if (JavaUtils.isTypeNamed(typeBinding, "java.lang.Exception")) {
+            replaceNode(nameNode, simpleIdentifier("JavaException"));
+          }
+          if (JavaUtils.isTypeNamed(typeBinding, "java.lang.Throwable")) {
+            replaceNode(nameNode, simpleIdentifier("Exception"));
+          }
           // StringBuilder -> StringBuffer
           if (name.equals("StringBuilder")) {
             replaceNode(nameNode, simpleIdentifier("StringBuffer"));
@@ -405,11 +423,16 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
       }
 
+      private boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
+          String reqClassName) {
+        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
+      }
+
       private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
           String reqClassName) {
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
+        return isMethodInClass2(binding, reqSignature, reqClassName);
       }
     });
   }

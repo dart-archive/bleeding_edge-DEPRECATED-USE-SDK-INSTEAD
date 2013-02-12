@@ -338,7 +338,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitExportDirective(ExportDirective node) {
     writer.print("export ");
-    visit(node.getLibraryUri());
+    visit(node.getUri());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
     return null;
@@ -521,7 +521,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     writer.print("import ");
-    visit(node.getLibraryUri());
+    visit(node.getUri());
     visit(" as ", node.getPrefix());
     visitList(" ", node.getCombinators(), " ");
     writer.print(';');
@@ -704,7 +704,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitPartDirective(PartDirective node) {
     writer.print("part ");
-    visit(node.getPartUri());
+    visit(node.getUri());
     writer.print(';');
     return null;
   }

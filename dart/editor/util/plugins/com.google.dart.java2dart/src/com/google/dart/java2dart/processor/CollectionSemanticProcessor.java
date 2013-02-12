@@ -42,6 +42,7 @@ import com.google.dart.java2dart.util.TokenFactory;
 
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
+import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
@@ -87,11 +88,15 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             node.getArgumentList().getArguments().clear();
             return null;
           }
-          // new HashMap(5) -> new HashMap()
+          // new HashMap(5) -> new Map()
           if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashMap")) {
             ((SimpleIdentifier) node.getConstructorName().getType().getName()).setToken(token("Map"));
             node.getArgumentList().getArguments().clear();
             return null;
+          }
+          // new ArrayList(Collection) -> new List.from(Iterable)
+          if (isMethodInClass2(methodBinding, "<init>(java.util.Collection)", "java.util.ArrayList")) {
+            node.getConstructorName().setName(identifier("from"));
           }
           // translate java.util.Comparator to function expression
           if (methodBinding.isConstructor() && declaringClass.isAnonymous()) {
@@ -157,10 +162,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         if (isMethodInClass(node, "iterator", "java.util.Collection")) {
           replaceNode(
               node,
-              instanceCreationExpression(
-                  Keyword.NEW,
-                  typeName("HasNextIterator"),
-                  propertyAccess(node.getTarget(), node.getMethodName())));
+              instanceCreationExpression(Keyword.NEW, typeName("JavaIterator"), node.getTarget()));
           return null;
         }
         if (isMethodInClass(node, "hasNext", "java.util.Iterator")) {
@@ -201,6 +203,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "add", "java.util.Set")) {
           replaceNode(node, methodInvocation("javaSetAdd", node.getTarget(), args.get(0)));
+          return null;
+        }
+        if (isMethodInClass(node, "putAll", "java.util.Map")) {
+          replaceNode(node, methodInvocation("javaMapPutAll", node.getTarget(), args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
@@ -256,7 +262,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             return null;
           }
           if (JavaUtils.isTypeNamed(binding, "java.util.Iterator")) {
-            nameNode.setToken(token("HasNextIterator"));
+            nameNode.setToken(token("JavaIterator"));
             return null;
           }
         }
@@ -269,11 +275,16 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
       }
 
+      private boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
+          String reqClassName) {
+        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+            && JavaUtils.isMethodInClass(binding, reqClassName);
+      }
+
       private boolean isMethodInClass2(MethodInvocation node, String reqSignature,
           String reqClassName) {
         IMethodBinding binding = (IMethodBinding) context.getNodeBinding(node);
-        return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
-            && JavaUtils.isMethodInClass(binding, reqClassName);
+        return isMethodInClass2(binding, reqSignature, reqClassName);
       }
     });
   }

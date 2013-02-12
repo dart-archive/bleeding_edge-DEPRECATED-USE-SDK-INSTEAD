@@ -24,18 +24,22 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "import java.util.List;",
         "import java.util.ArrayList;",
         "public class Test {",
-        "  public List<String> foo() {",
+        "  public List<String> test1() {",
         "    ArrayList<String> result = new ArrayList<String>();",
         "    return result;",
+        "  }",
+        "  public List<String> test2(List<String> p) {",
+        "    return new ArrayList<String>(p);",
         "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  List<String> foo() {",
+        "  List<String> test1() {",
         "    List<String> result = new List<String>();",
         "    return result;",
         "  }",
+        "  List<String> test2(List<String> p) => new List<String>.from(p);",
         "}");
   }
 
@@ -239,6 +243,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    Iterator<String> iter = items.iterator();",
         "    if (iter.hasNext()) {",
         "      iter.next();",
+        "      iter.remove();",
         "    }",
         "  }",
         "}");
@@ -246,9 +251,10 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(//
         "class Test {",
         "  void main(List<String> items) {",
-        "    HasNextIterator<String> iter = new HasNextIterator(items.iterator);",
+        "    JavaIterator<String> iter = new JavaIterator(items);",
         "    if (iter.hasNext) {",
         "      iter.next();",
+        "      iter.remove();",
         "    }",
         "  }",
         "}");
@@ -398,6 +404,25 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "class Test {",
         "  void foo(Map<Object, Object> items) {",
         "    items[this] = 42;",
+        "  }",
+        "}");
+  }
+
+  public void test_Map_putAll() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Map;",
+        "public class Test {",
+        "  void main(Map<String, Integer> target, Map<String, Integer> source) {",
+        "    target.putAll(source);",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void main(Map<String, int> target, Map<String, int> source) {",
+        "    javaMapPutAll(target, source);",
         "  }",
         "}");
   }

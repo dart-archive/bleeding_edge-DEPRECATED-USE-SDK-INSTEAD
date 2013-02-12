@@ -121,6 +121,49 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_extendsException() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test extends Exception {",
+        "  public Test() {",
+        "  }",
+        "  public Test(String msg) {",
+        "    super(msg);",
+        "  }",
+        "  public Test(String msg, Throwable e) {",
+        "    super(msg, e);",
+        "  }",
+        "  public Test(Throwable e) {",
+        "    super(e);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test extends JavaException {",
+        "  Test() {",
+        "    _jtd_constructor_0_impl();",
+        "  }",
+        "  _jtd_constructor_0_impl() {",
+        "  }",
+        "  Test.con1(String msg) : super(msg) {",
+        "    _jtd_constructor_1_impl(msg);",
+        "  }",
+        "  _jtd_constructor_1_impl(String msg) {",
+        "  }",
+        "  Test.con2(String msg, Exception e) : super(msg, e) {",
+        "    _jtd_constructor_2_impl(msg, e);",
+        "  }",
+        "  _jtd_constructor_2_impl(String msg, Exception e) {",
+        "  }",
+        "  Test.con3(Exception e) : super.withCause(e) {",
+        "    _jtd_constructor_3_impl(e);",
+        "  }",
+        "  _jtd_constructor_3_impl(Exception e) {",
+        "  }",
+        "}");
+  }
+
   public void test_Integer_intValue() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -577,14 +620,18 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
         "public class Test {",
-        "  public int foo(String s) {",
-        "    return s.length();",
+        "  void main(String s) {",
+        "    s.length();",
+        "    s.isEmpty();",
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(//
         "class Test {",
-        "  int foo(String s) => s.length;",
+        "  void main(String s) {",
+        "    s.length;",
+        "    s.isEmpty;",
+        "  }",
         "}");
   }
 

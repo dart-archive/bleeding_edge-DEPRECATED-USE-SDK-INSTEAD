@@ -78,6 +78,7 @@ class JavaArrays {
     }
     return result;
   }
+  static List asList(List list) => list;
 }
 
 class Character {
@@ -207,9 +208,17 @@ class RuntimeException implements Exception {
   String toString() => "RuntimeException";
 }
 
+class JavaException implements Exception {
+  final String message;
+  final Exception e;
+  JavaException([this.message = "", this.e = null]);
+  JavaException.withCause(this.e) : message = null;
+  String toString() => "JavaException: $message $e";
+}
+
 class IllegalArgumentException implements Exception {
   final String message;
-  const IllegalArgumentException([this.message = ""]);
+  const IllegalArgumentException([this.message = "", Exception e = null]);
   String toString() => "IllegalStateException: $message";
 }
 
@@ -313,6 +322,42 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   }
 }
 
+class JavaIterator<E> {
+  Collection<E> _collection;
+  List<E> _elements = new List<E>();
+  int _coPos = 0;
+  int _elPos = 0;
+  E _current = null;
+  JavaIterator(this._collection) {
+    Iterator iterator = _collection.iterator;
+    while (iterator.moveNext()) {
+      _elements.add(iterator.current);
+    }
+  }
+
+  bool get hasNext {
+    return _elPos < _elements.length;
+  }
+
+  E next() {
+    _current = _elements[_elPos];
+    _coPos++;
+    _elPos++;
+    return _current;
+  }
+
+  void remove() {
+    if (_collection is List) {
+      _coPos--;
+      (_collection as List).remove(_coPos);
+    } else if (_collection is Set) {
+      _collection.remove(_current);
+    } else {
+      throw new StateError("Unsupported collection ${_collection.runtimeType}");
+    }
+  }
+}
+
 class MapEntry<K, V> {
   K _key;
   V _value;
@@ -335,6 +380,12 @@ bool javaSetAdd(Set s, o) {
     return true;
   }
   return false;
+}
+
+void javaMapPutAll(Map target, Map source) {
+  source.forEach((k, v) {
+    target[k] = v;
+  });
 }
 
 File newRelativeFile(File base, String child) {
