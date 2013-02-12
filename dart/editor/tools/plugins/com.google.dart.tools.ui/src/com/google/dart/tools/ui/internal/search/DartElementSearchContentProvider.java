@@ -31,7 +31,7 @@ import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.ImportedDartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
-import com.google.dart.tools.ui.StandardDartElementContentProvider;
+import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -52,7 +52,7 @@ import java.util.WeakHashMap;
  * A base content provider for Dart elements tailored to presenting elements for search (e.g., in
  * search results).
  * <p>
- * Based on {@link StandardDartElementContentProvider} and modified to suit.
+ * Based on {@link OldStandardDartElementContentProvider} and modified to suit.
  * <p>
  * TODO(pquitslund): cleanup and decruft
  * <p>

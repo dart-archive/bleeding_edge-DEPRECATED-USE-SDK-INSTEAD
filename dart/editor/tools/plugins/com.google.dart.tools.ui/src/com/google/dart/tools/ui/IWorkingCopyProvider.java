@@ -24,7 +24,7 @@ package com.google.dart.tools.ui;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  * 
- * @see com.google.dart.tools.ui.StandardDartElementContentProvider
+ * @see com.google.dart.tools.ui.OldStandardDartElementContentProvider
  */
 public interface IWorkingCopyProvider {
 

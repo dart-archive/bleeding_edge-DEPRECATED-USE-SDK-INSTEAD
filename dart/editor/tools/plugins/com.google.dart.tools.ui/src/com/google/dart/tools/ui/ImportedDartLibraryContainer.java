@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class is used by the {@link StandardDartElementContentProvider} as the "Imported Libraries"
+ * This class is used by the {@link OldStandardDartElementContentProvider} as the "Imported Libraries"
  * element. This children of this element is an array of {@link ImportedDartLibrary}s.
  */
 public class ImportedDartLibraryContainer {

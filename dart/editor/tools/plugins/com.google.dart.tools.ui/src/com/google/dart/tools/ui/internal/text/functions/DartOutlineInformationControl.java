@@ -24,7 +24,7 @@ import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
-import com.google.dart.tools.ui.StandardDartElementContentProvider;
+import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -129,7 +129,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     }
 
   }
-  private class OutlineContentProvider extends StandardDartElementContentProvider {
+  private class OutlineContentProvider extends OldStandardDartElementContentProvider {
 
     private boolean fShowInheritedMembers;
 

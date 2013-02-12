@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.DartProject;
 
 /**
  * This class wraps some {@link DartLibrary}. This class is used by the
- * {@link StandardDartElementContentProvider} to distinguish between {@link DartLibrary}s which are
+ * {@link OldStandardDartElementContentProvider} to distinguish between {@link DartLibrary}s which are
  * children of some {@link DartProject} versus the children of an "Imported Libraries" element, see
  * {@link ImportedDartLibraryContainer}.
  */

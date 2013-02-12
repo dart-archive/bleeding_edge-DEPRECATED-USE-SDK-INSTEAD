@@ -23,7 +23,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.StandardDartElementContentProvider;
+import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -46,14 +46,14 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * A subclass of {@link StandardDartElementContentProvider} which implements
+ * A subclass of {@link OldStandardDartElementContentProvider} which implements
  * {@link ElementChangedListener} to update itself when changes are made to the Dart model.
  * <p>
  * This content provider is used by the {@link DartOutlinePage}.
  * 
  * @see DartOutlinePage
  */
-public class DartOutlinePageContentProvider extends StandardDartElementContentProvider implements
+public class DartOutlinePageContentProvider extends OldStandardDartElementContentProvider implements
     ElementChangedListener {
 
   protected static final int ORIGINAL = 0;

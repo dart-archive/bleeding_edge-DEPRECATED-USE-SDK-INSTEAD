@@ -17,21 +17,18 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.internal.element.ClassElementImpl;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.ElementChangedEvent;
-import com.google.dart.tools.core.model.ElementChangedListener;
+import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
 
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import java.util.ArrayList;
 
 /**
- * This is a first cut of the content provider of the Outline view with the Elements created by the
- * Analysis Engine.
+ * "New" outline content provider.
+ * <p>
+ * To replace {@link DartOutlinePageContentProvider}.
  */
-public class DartOutlinePageEngineContentProvider implements ITreeContentProvider,
-    ElementChangedListener {
+public class DartOutlinePageEngineContentProvider extends NewStandardDartElementContentProvider {
 
 //  private TreeViewer viewer;
 //
@@ -41,14 +38,8 @@ public class DartOutlinePageEngineContentProvider implements ITreeContentProvide
 
   @Override
   public void dispose() {
-//    System.out.println("DartOutlinePageEngineContentProvider.dispose()");
-  }
 
-  /**
-   * @see {@link ElementChangedListener#elementChanged(ElementChangedEvent)}.
-   */
-  @Override
-  public void elementChanged(ElementChangedEvent event) {
+//    System.out.println("DartOutlinePageEngineContentProvider.dispose()");
   }
 
   @Override
@@ -111,9 +102,9 @@ public class DartOutlinePageEngineContentProvider implements ITreeContentProvide
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
     //this.viewer = (TreeViewer) viewer;
     if (oldInput == null && newInput != null) {
-      DartCore.addElementChangedListener(this);
+      //TODO (pquitslund): add delta listener
     } else if (oldInput != null && newInput == null) {
-      DartCore.removeElementChangedListener(this);
+      //TODO (pquitslund): add delta listener
     }
     //input = newInput;
   }

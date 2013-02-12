@@ -63,8 +63,10 @@ import java.util.WeakHashMap;
  *          Imported Libraries
  * </pre>
  * </p>
+ * <p>
+ * <b>NOTE:</b> this class will be removed when the move to the new analysis engine is complete.
  */
-public class StandardDartElementContentProvider implements ITreeContentProvider,
+public class OldStandardDartElementContentProvider implements ITreeContentProvider,
     IWorkingCopyProvider {
 
   /**
@@ -115,7 +117,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
    * Creates a new content provider. The content provider does not provide members of compilation
    * units or class files.
    */
-  public StandardDartElementContentProvider() {
+  public OldStandardDartElementContentProvider() {
     this(true);
   }
 
@@ -124,7 +126,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
    * 
    * @param provideMembers if <code>true</code>, members below compilation units are provided
    */
-  public StandardDartElementContentProvider(boolean provideMembers) {
+  public OldStandardDartElementContentProvider(boolean provideMembers) {
     this(provideMembers, true);
   }
 
@@ -135,7 +137,7 @@ public class StandardDartElementContentProvider implements ITreeContentProvider,
    * @param libsTopLevel of <code>true</code>, then the children of a workspace will be the
    *          libraries in any contained project, not the set of projects
    */
-  public StandardDartElementContentProvider(boolean provideMembers, boolean libsTopLevel) {
+  public OldStandardDartElementContentProvider(boolean provideMembers, boolean libsTopLevel) {
     this.provideMembers = provideMembers;
     this.provideWorkingCopy = provideMembers;
     this.libsTopLevel = libsTopLevel;
