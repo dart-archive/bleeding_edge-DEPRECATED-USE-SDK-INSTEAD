@@ -110,7 +110,10 @@ public interface AnalysisContext {
   public HtmlElement getHtmlElement(Source source);
 
   /**
-   * Parse and build an element model for the library defined by the given source.
+   * Return the element model corresponding to the library defined by the given source. If the
+   * element model does not yet exist it will be created. The process of creating an element model
+   * for a library can long-running, depending on the size of the library and the number of
+   * libraries that are imported into it that also need to have a model built for them.
    * 
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source or
@@ -118,6 +121,15 @@ public interface AnalysisContext {
    *         not be performed
    */
   public LibraryElement getLibraryElement(Source source);
+
+  /**
+   * Return the element model corresponding to the library defined by the given source, or
+   * {@code null} if the element model does not yet exist.
+   * 
+   * @param source the source defining the library whose element model is to be returned
+   * @return the element model corresponding to the library defined by the given source
+   */
+  public LibraryElement getLibraryElementOrNull(Source source);
 
   /**
    * Return an array containing all of the parsing errors associated with the given source.
