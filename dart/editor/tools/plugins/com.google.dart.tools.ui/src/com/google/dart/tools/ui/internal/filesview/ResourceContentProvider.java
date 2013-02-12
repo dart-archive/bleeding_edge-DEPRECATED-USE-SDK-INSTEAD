@@ -47,7 +47,7 @@ public class ResourceContentProvider implements ITreeContentProvider, IResourceC
   public ResourceContentProvider() {
     ResourcesPlugin.getWorkspace().addResourceChangeListener(this, IResourceChangeEvent.POST_CHANGE);
 
-    sdkNode = new DartSdkNode();
+    sdkNode = DartSdkNode.createInstance();
   }
 
   @Override

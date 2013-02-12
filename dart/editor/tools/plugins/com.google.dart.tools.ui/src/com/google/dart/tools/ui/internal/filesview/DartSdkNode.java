@@ -14,127 +14,17 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.compiler.SystemLibrary;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.ui.DartToolsPlugin;
-
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.runtime.IAdapterFactory;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.model.IWorkbenchAdapter;
-import org.eclipse.ui.model.WorkbenchAdapter;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.google.dart.tools.core.DartCoreDebug;
 
 /**
  * A class used to represent the Dart SDK in the Files view.
  */
-class DartSdkNode implements IDartNode {
+abstract class DartSdkNode implements IDartNode {
 
-  static class SdkDirectoryWorkbenchAdapter extends WorkbenchAdapter implements IAdapterFactory {
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Object getAdapter(Object adaptableObject, Class adapterType) {
-      if (adapterType == IWorkbenchAdapter.class) {
-        return this;
-      } else {
-        return null;
-      }
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public Class[] getAdapterList() {
-      return new Class[] {IWorkbenchAdapter.class};
-    }
-
-    @Override
-    public ImageDescriptor getImageDescriptor(Object object) {
-      return ((IDartNode) object).getImageDescriptor();
-    }
-
-    @Override
-    public String getLabel(Object object) {
-      return ((IDartNode) object).getLabel();
-    }
+  public static DartSdkNode createInstance() {
+    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewDartSdkNode() : new OldDartSdkNode();
   }
 
-  static {
-    Platform.getAdapterManager().registerAdapters(
-        new SdkDirectoryWorkbenchAdapter(),
-        IDartNode.class);
-  }
-
-  private DartLibraryNode[] libraries;
-
-  public DartSdkNode() {
-    libraries = getLibraries();
-  }
-
-  @Override
-  public ImageDescriptor getImageDescriptor() {
-    return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png");
-  }
-
-  @Override
-  public String getLabel() {
-    return "Dart SDK";
-  }
-
-  public DartLibraryNode[] getLibraries() {
-    if (libraries == null) {
-      List<DartLibraryNode> libs = new ArrayList<DartLibraryNode>();
-
-      File file;
-
-      if (!DartSdkManager.getManager().hasSdk()) {
-        file = null;
-      } else {
-        Collection<SystemLibrary> systemLibraries = PackageLibraryManagerProvider.getAnyLibraryManager().getSystemLibraries();
-        for (SystemLibrary systemLibrary : systemLibraries) {
-          if (systemLibrary.isDocumented()) {
-            file = systemLibrary.getLibraryDir();
-            String pathToLib = systemLibrary.getPathToLib();
-            if (pathToLib.indexOf("/") != -1) {
-              file = new File(file, new Path(pathToLib).removeLastSegments(1).toOSString());
-            }
-            if (!systemLibrary.isShared()) {
-              libs.add(new DartLibraryNode(
-                  this,
-                  EFS.getLocalFileSystem().fromLocalFile(file),
-                  systemLibrary.getShortName(),
-                  systemLibrary.getCategory().toLowerCase()));
-            } else {
-              libs.add(new DartLibraryNode(
-                  this,
-                  EFS.getLocalFileSystem().fromLocalFile(file),
-                  systemLibrary.getShortName()));
-            }
-
-          }
-        }
-
-      }
-
-      libraries = libs.toArray(new DartLibraryNode[libs.size()]);
-    }
-    return libraries;
-  }
-
-  @Override
-  public IDartNode getParent() {
-    return null;
-  }
-
-  @Override
-  public String toString() {
-    return getLabel();
-  }
+  public abstract DartLibraryNode[] getLibraries();
 
 }
