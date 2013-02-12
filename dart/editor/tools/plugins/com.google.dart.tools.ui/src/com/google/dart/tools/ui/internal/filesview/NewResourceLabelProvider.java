@@ -193,37 +193,30 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
   @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void pubspecAdded(ResourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void pubspecChanged(ResourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void pubspecRemoved(ResourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
@@ -231,29 +224,28 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
     listeners.remove(listener);
 
     if (listeners.isEmpty()) {
-      DartCore.removeElementChangedListener(this);
+      //TODO (pquitslund): remove delta listener
+      //DartCore.getProjectManager().removeDeltaListener(this);
     }
 
   }
 
   @Override
   public void sourceAdded(SourceDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
+    //TODO (pquitslund): migrate to an elementChanged() callback when there is one
     notifyListeners();
   }
 
   @Override
   public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
-    notifyListeners();
   }
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    notifyListeners();
   }
 
   private void notifyListeners() {

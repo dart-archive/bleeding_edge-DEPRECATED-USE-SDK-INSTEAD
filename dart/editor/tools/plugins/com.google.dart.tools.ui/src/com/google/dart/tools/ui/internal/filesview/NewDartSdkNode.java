@@ -74,12 +74,12 @@ class NewDartSdkNode extends DartSdkNode {
 
   @Override
   public ImageDescriptor getImageDescriptor() {
-    return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png");
+    return DartToolsPlugin.getImageDescriptor("icons/full/dart16/sdk.png"); //$NON-NLS-1$
   }
 
   @Override
   public String getLabel() {
-    return "Dart SDK";
+    return "Dart SDK"; //$NON-NLS-1$
   }
 
   @Override

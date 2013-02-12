@@ -44,7 +44,7 @@ import java.util.Map.Entry;
  * {@link DeltaProcessor} traverse method. Once the traverse method completes, call
  * {@link #updateMarkers()} to update the Eclipse markers.
  */
-public class ProjectAnalyzer extends AbstractDeltaListener {
+public class ProjectAnalyzer extends DeltaAdapter {
 
   /**
    * A collection of changes for a specific analysis context

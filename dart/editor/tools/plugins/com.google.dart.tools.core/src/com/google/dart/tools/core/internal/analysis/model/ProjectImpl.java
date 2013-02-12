@@ -12,7 +12,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
-import com.google.dart.tools.core.internal.builder.AbstractDeltaListener;
+import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -266,7 +266,7 @@ public class ProjectImpl implements Project {
    */
   private void createPubFolders(IContainer container) {
     DeltaProcessor processor = new DeltaProcessor(this);
-    processor.addDeltaListener(new AbstractDeltaListener() {
+    processor.addDeltaListener(new DeltaAdapter() {
       @Override
       public void pubspecAdded(ResourceDeltaEvent event) {
         IContainer container = event.getResource().getParent();

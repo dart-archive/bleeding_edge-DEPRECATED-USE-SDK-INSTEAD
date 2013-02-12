@@ -3,7 +3,7 @@ package com.google.dart.tools.core.internal.builder;
 /**
  * Abstract {@link DeltaListener} to be subclassed for convenience.
  */
-public class AbstractDeltaListener implements DeltaListener {
+public class DeltaAdapter implements DeltaListener {
 
   @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
