@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartInvocation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
@@ -49,6 +50,7 @@ import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIA
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
 import static com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.isSubType;
 
+import java.math.BigInteger;
 import java.text.MessageFormat;
 import java.util.List;
 
@@ -254,7 +256,32 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       @Override
       public Void visitNewExpression(DartNewExpression node) {
         ConstructorElement element = node.getElement();
+        DartNode constructor = node.getConstructor();
         List<DartExpression> args = node.getArguments();
+        // Timer
+        if (args.size() == 2
+            && element != null
+            && Migrate_1M2_methods_CleanUp.isSubType(
+                element.getConstructorType().getType(),
+                "Timer",
+                "dart://async/async.dart")) {
+          super.visitNewExpression(node);
+          // new Timer(0, (){})  --->  Timer.run((){})
+          if (args.get(0) instanceof DartIntegerLiteral) {
+            DartIntegerLiteral msLiteral = (DartIntegerLiteral) args.get(0);
+            if (msLiteral.getValue().equals(BigInteger.ZERO)) {
+              addReplaceEdit(SourceRangeFactory.forStartStart(node, constructor), "");
+              addReplaceEdit(SourceRangeFactory.forEndStart(constructor, args.get(1)), ".run(");
+              return null;
+            }
+          }
+          // new Timer(ms, (){})  --->  new Timer(const Duration(milliseconds: ms), (){})
+          addReplaceEdit(
+              SourceRangeFactory.forStartLength(args.get(0), 0),
+              "const Duration(milliseconds: ");
+          addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ")");
+          return null;
+        }
         // new List(5)  --->  new List.fixedLength(5)
         if (element != null && element.getConstructorType().getName().equals("List")
             && StringUtils.isEmpty(element.getName()) && args.size() == 1) {
@@ -268,7 +295,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
             }
           }
         }
-        DartNode constructor = node.getConstructor();
+        // named constructors rename
         if (constructor instanceof DartPropertyAccess) {
           DartPropertyAccess prop = (DartPropertyAccess) constructor;
           String typeName = prop.getQualifier().toSource();

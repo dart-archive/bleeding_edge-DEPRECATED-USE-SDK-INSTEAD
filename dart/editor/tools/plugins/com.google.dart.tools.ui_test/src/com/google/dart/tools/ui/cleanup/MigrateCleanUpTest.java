@@ -1381,4 +1381,25 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M3_Timer() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main() {",
+        "  new Timer(0, (t) {});",
+        "  new Timer(100, (t) {});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main() {",
+        "  Timer.run((t) {});",
+        "  new Timer(const Duration(milliseconds: 100), (t) {});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
 }
