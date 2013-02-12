@@ -87,8 +87,9 @@ public class SimpleIdentifier extends Identifier {
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      if (prefixed.getIdentifier() != this) {
-        return false;
+      // if this is the prefix, then return true
+      if (prefixed.getPrefix() == this) {
+        return true;
       }
       parent = prefixed.getParent();
       target = prefixed;
@@ -118,7 +119,8 @@ public class SimpleIdentifier extends Identifier {
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      if (prefixed.getIdentifier() != this) {
+      // if this is the prefix, then return false
+      if (prefixed.getPrefix() == this) {
         return false;
       }
       parent = prefixed.getParent();

@@ -44,6 +44,13 @@ public class SimpleIdentifierTest extends ParserTestCase {
     assertTrue(identifier.inGetterContext());
   }
 
+  public void test_inGetterContext_qualifier() throws Exception {
+    SimpleIdentifier identifier = identifier("field");
+    // field.
+    identifier(identifier, null);
+    assertTrue(identifier.inGetterContext());
+  }
+
   public void test_inGetterContext_whenQualified_false() throws Exception {
     SimpleIdentifier identifier = identifier("field");
     PrefixedIdentifier prefixedIdentifier = identifier("myPrefix", identifier);
@@ -121,6 +128,13 @@ public class SimpleIdentifierTest extends ParserTestCase {
     // ++field
     prefixExpression(TokenType.PLUS_PLUS, identifier);
     assertTrue(identifier.inSetterContext());
+  }
+
+  public void test_inSetterContext_qualifier() throws Exception {
+    SimpleIdentifier identifier = identifier("field");
+    // field.
+    identifier(identifier, null);
+    assertFalse(identifier.inSetterContext());
   }
 
   public void test_inSetterContext_whenQualified_prefixParent_bang() throws Exception {
