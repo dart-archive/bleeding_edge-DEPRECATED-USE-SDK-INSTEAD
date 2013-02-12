@@ -1,5 +1,6 @@
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -33,7 +34,21 @@ public class ExtractLocalAction extends SelectionDispatchAction {
 
   @Override
   public void run(ITextSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     if (!ActionUtil.isEditable(editor)) {
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("ExtractLocal", elapsed).with("Success", "false").with(
+          "Editor-Editable",
+          "false").log();
+      Instrumentation.operation("ExtractLocal", elapsed).with("text", selection.getText()).with(
+          "StartLine",
+          selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
+          "Offset",
+          selection.getOffset()).with("Length", selection.getLength()).log();
+
       return;
     }
     ExtractLocalRefactoring refactoring = new ExtractLocalRefactoring(
@@ -46,6 +61,15 @@ public class ExtractLocalAction extends SelectionDispatchAction {
         RefactoringMessages.ExtractLocalAction_dialog_title,
         RefactoringSaveHelper.SAVE_ALL);
     // TODO(scheglov) replace with SAVE_NOTHING, when parsing working copy will be fixed by Dan
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ExtractLocal", elapsed).with("Success", "true").log();
+    Instrumentation.operation("ExtractLocal", elapsed).with("text", selection.getText()).with(
+        "StartLine",
+        selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
+        "Offset",
+        selection.getOffset()).with("Length", selection.getLength()).log();
+
   }
 
   @Override

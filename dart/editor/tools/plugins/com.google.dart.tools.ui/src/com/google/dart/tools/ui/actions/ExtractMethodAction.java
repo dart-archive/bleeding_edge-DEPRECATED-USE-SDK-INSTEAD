@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -49,7 +50,21 @@ public class ExtractMethodAction extends SelectionDispatchAction {
 
   @Override
   public void run(ITextSelection selection) {
+
+    long start = System.currentTimeMillis();
+
     if (!ActionUtil.isEditable(editor)) {
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("ExtractMethod", elapsed).with("Success", "false").with(
+          "Editor-Editable",
+          "false").log();
+      Instrumentation.operation("ExtractMethod", elapsed).with("text", selection.getText()).with(
+          "StartLine",
+          selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
+          "Offset",
+          selection.getOffset()).with("Length", selection.getLength()).log();
+
       return;
     }
     ExtractMethodRefactoring refactoring = new ExtractMethodRefactoring(
@@ -61,6 +76,15 @@ public class ExtractMethodAction extends SelectionDispatchAction {
         getShell(),
         RefactoringMessages.ExtractMethodAction_dialog_title,
         RefactoringSaveHelper.SAVE_NOTHING);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("ExtractMethod", elapsed).with("Success", "true").log();
+    Instrumentation.operation("ExtractMethod", elapsed).with("text", selection.getText()).with(
+        "StartLine",
+        selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
+        "Offset",
+        selection.getOffset()).with("Length", selection.getLength()).log();
+
   }
 
   @Override

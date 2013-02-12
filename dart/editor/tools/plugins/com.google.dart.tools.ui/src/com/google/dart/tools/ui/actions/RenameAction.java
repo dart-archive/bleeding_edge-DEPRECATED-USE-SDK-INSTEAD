@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameResourceAction;
@@ -72,19 +73,48 @@ public class RenameAction extends SelectionDispatchAction {
 
   @Override
   public void run(IStructuredSelection selection) {
+    long start = System.currentTimeMillis();
+    Boolean renameRan = false;
     if (fRenameDartElement.isEnabled()) {
       fRenameDartElement.run(selection);
+
+      renameRan = true;
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Element").log();
+      Instrumentation.operation("RenameAction", elapsed).with(
+          "element",
+          fRenameDartElement.getText()).log();
     }
     if (fRenameResource != null && fRenameResource.isEnabled()) {
       fRenameResource.run(selection);
+
+      renameRan = true;
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Resource").log();
+      Instrumentation.operation("RenameAction", elapsed).with("Resource", fRenameResource.getText()).log();
     }
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("RenameAction", elapsed).with("renameRan", String.valueOf(renameRan)).log();
   }
 
   @Override
   public void run(ITextSelection selection) {
+    long start = System.currentTimeMillis();
+
     if (fRenameDartElement.isEnabled()) {
       fRenameDartElement.run(selection);
+
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Element").log();
+      Instrumentation.operation("RenameAction", elapsed).with(
+          "element",
+          fRenameDartElement.getText()).log();
+    } else {
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("RenameAction", elapsed).with("renameRan", "false").log();
     }
+
   }
 
   @Override
