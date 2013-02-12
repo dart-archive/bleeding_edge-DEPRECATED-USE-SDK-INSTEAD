@@ -38,6 +38,8 @@ public class WebkitPage extends WebkitDomain {
 
     public void frameNavigated(String frameId, String url);
 
+    public void frameStoppedLoading(String frameId);
+
     public void loadEventFired(int timestamp);
   }
 
@@ -58,6 +60,11 @@ public class WebkitPage extends WebkitDomain {
     }
 
     @Override
+    public void frameStoppedLoading(String frameId) {
+
+    }
+
+    @Override
     public void loadEventFired(int timestamp) {
 
     }
@@ -67,6 +74,7 @@ public class WebkitPage extends WebkitDomain {
   private static final String PAGE_DOMCONTENTEVENTFIRED = "Page.domContentEventFired";
   private static final String PAGE_FRAMENAVIGATED = "Page.frameNavigated";
   private static final String PAGE_FRAMEDETACHED = "Page.frameDetached";
+  private static final String PAGE_FRAMESTOPPEDLOADING = "Page.frameStoppedLoading";
 
   private List<PageListener> listeners = new ArrayList<PageListener>();
 
@@ -150,6 +158,14 @@ public class WebkitPage extends WebkitDomain {
 
       for (PageListener listener : listeners) {
         listener.frameDetached(frameId);
+      }
+    } else if (method.equals(PAGE_FRAMESTOPPEDLOADING)) {
+      // {"method":"Page.frameStoppedLoading","params":{"frameId":"4620.1"}}
+
+      String frameId = params.getString("frameId");
+
+      for (PageListener listener : listeners) {
+        listener.frameStoppedLoading(frameId);
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);
