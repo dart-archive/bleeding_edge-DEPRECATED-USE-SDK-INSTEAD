@@ -133,6 +133,18 @@ public class ResolverTestCase extends EngineTestCase {
     return library;
   }
 
+  protected AnalysisContext getAnalysisContext() {
+    return analysisContext;
+  }
+
+  protected GatheringErrorListener getErrorListener() {
+    return errorListener;
+  }
+
+  protected SourceFactory getSourceFactory() {
+    return sourceFactory;
+  }
+
   /**
    * Given a library and all of its parts, resolve the contents of the library and the contents of
    * the parts. This assumes that the sources for the library and its parts have already been added
