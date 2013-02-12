@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
@@ -37,6 +38,7 @@ import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
@@ -372,7 +374,15 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-    return breakpoint instanceof DartBreakpoint;
+    if (breakpoint instanceof DartBreakpoint) {
+      DartBreakpoint bp = (DartBreakpoint) breakpoint;
+      ILaunchConfiguration config = getLaunch().getLaunchConfiguration();
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+
+      return wrapper.getProject().equals(bp.getFile().getProject());
+    } else {
+      return false;
+    }
   }
 
   public boolean supportsSetScriptSource() {

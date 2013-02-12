@@ -18,6 +18,7 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
@@ -30,6 +31,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
@@ -40,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * An implementation of IDebugTarget for Dart VM debug connections.
@@ -355,7 +358,15 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-    return breakpoint instanceof DartBreakpoint;
+    if (breakpoint instanceof DartBreakpoint) {
+      DartBreakpoint bp = (DartBreakpoint) breakpoint;
+      ILaunchConfiguration config = getLaunch().getLaunchConfiguration();
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+
+      return wrapper.getProject().equals(bp.getFile().getProject());
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -449,14 +460,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private void firstIsolateInit(VmIsolate isolate) {
-    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
-    // Turn on break-on-exceptions.
-    try {
-      connection.setPauseOnException(isolate, getPauseType());
-    } catch (IOException e) {
-      DartDebugCorePlugin.logError(e);
-    }
-
     // Set up the existing breakpoints.
     IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
         DartDebugCorePlugin.DEBUG_MODEL_ID);
@@ -473,6 +476,30 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       connection.enableAllStepping(isolate);
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
+    }
+
+    final CountDownLatch latch = new CountDownLatch(1);
+
+    // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
+    // Turn on break-on-exceptions.
+    try {
+      connection.setPauseOnException(isolate, getPauseType(), new VmCallback<Boolean>() {
+        @Override
+        public void handleResult(VmResult<Boolean> result) {
+          latch.countDown();
+        }
+      });
+    } catch (IOException e) {
+      DartDebugCorePlugin.logError(e);
+    } finally {
+      latch.countDown();
+    }
+
+    try {
+      // Wait for all our debugger commands to be processed before we resume execution.
+      latch.await();
+    } catch (InterruptedException e) {
+
     }
 
     maybeResume(isolate);

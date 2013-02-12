@@ -41,4 +41,12 @@ public interface IResourceResolver {
    */
   public String getUrlForResource(IResource resource);
 
+  /**
+   * Given an IResource, return the corresponding regex used to match the resource.
+   * 
+   * @param resource
+   * @return
+   */
+  public String getUrlRegexForResource(IResource resource);
+
 }

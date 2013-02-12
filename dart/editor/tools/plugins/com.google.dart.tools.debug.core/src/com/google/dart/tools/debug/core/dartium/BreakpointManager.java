@@ -192,22 +192,21 @@ class BreakpointManager implements IBreakpointListener {
 
   private void addBreakpoint(final DartBreakpoint breakpoint) throws IOException {
     if (breakpoint.isBreakpointEnabled()) {
-      // String url = resourceResolver.getUrlForResource(breakpoint.getFile());
-      String regex = breakpoint.getFile().getFullPath().toPortableString();
+      String regex = resourceResolver.getUrlRegexForResource(breakpoint.getFile());
 
-      int index = regex.indexOf(PACKAGES_DIRECTORY_PATH);
-      if (index != -1) {
-        regex = regex.substring(index);
-      }
+      int packagesIndex = regex.indexOf(PACKAGES_DIRECTORY_PATH);
+      int libIndex = regex.indexOf(LIB_DIRECTORY_PATH);
 
-      // check if source is located in the "lib" directory and if there is a link to it from the 
-      // packages directory breakpoint should be /packages/...
-      index = regex.indexOf(LIB_DIRECTORY_PATH);
-      if (index != -1) {
+      if (packagesIndex != -1) {
+        regex = regex.substring(packagesIndex);
+      } else if (libIndex != -1) {
+        // check if source is located in the "lib" directory and if there is a link to it from the 
+        // packages directory breakpoint should be /packages/...
         String packageName = DartCore.getSelfLinkedPackageName(breakpoint.getFile().getProject());
+
         if (packageName != null) {
           regex = PACKAGES_DIRECTORY_PATH + packageName + "/"
-              + regex.substring(index + LIB_DIRECTORY_PATH.length());
+              + regex.substring(libIndex + LIB_DIRECTORY_PATH.length());
         }
       }
 

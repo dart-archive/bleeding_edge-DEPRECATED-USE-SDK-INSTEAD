@@ -101,6 +101,14 @@ public class ResourceServer implements IResourceResolver {
     return getUrlForUri(fileUri);
   }
 
+  @Override
+  public String getUrlRegexForResource(IResource resource) {
+    IProject project = resource.getProject();
+    File projectDir = project.getLocation().toFile();
+
+    return projectDir.getName() + "/" + resource.getProjectRelativePath().toPortableString();
+  }
+
   /**
    * Close the resource server.
    */

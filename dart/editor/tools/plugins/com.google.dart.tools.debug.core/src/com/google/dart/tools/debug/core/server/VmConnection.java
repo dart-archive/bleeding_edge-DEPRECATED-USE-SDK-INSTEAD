@@ -531,12 +531,7 @@ public class VmConnection {
       sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
-          if (object.has("error")) {
-            if (DartDebugCorePlugin.LOGGING) {
-              System.out.println("    error setting breakpoint at " + url + ", " + line + ": "
-                  + JsonUtils.getString(object, "error"));
-            }
-          } else {
+          if (!object.has("error")) {
             int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
             VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
@@ -585,18 +580,38 @@ public class VmConnection {
   /**
    * Set the VM to pause on exceptions.
    * 
+   * @param isolate
    * @param kind
    * @throws IOException
    */
   public void setPauseOnException(VmIsolate isolate, BreakOnExceptionsType kind) throws IOException {
-    // pauseOnException
+    setPauseOnException(isolate, kind, null);
+  }
+
+  /**
+   * Set the VM to pause on exceptions.
+   * 
+   * @param isolate
+   * @param kind
+   * @param callback
+   * @throws IOException
+   */
+  public void setPauseOnException(VmIsolate isolate, BreakOnExceptionsType kind,
+      final VmCallback<Boolean> callback) throws IOException {
     try {
       JSONObject request = new JSONObject();
 
       request.put("command", "setPauseOnException");
       request.put("params", new JSONObject().put("exceptions", kind.toString()));
 
-      sendRequest(request, isolate.getId(), null);
+      sendRequest(request, isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<Boolean> callbackResult = VmResult.createFrom(result);
+          callbackResult.setResult(true);
+          callback.handleResult(callbackResult);
+        }
+      });
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
