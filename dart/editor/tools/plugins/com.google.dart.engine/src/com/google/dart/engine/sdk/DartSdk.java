@@ -16,7 +16,6 @@ package com.google.dart.engine.sdk;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
-import com.google.dart.engine.internal.sdk.SdkLibrary;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
@@ -274,6 +273,15 @@ public class DartSdk {
    */
   public File getPackageDirectory() {
     return new File(getDirectory(), PKG_DIRECTORY_NAME);
+  }
+
+  /**
+   * Return an array containing all of the libraries defined in this SDK.
+   * 
+   * @return the libraries defined in this SDK
+   */
+  public SdkLibrary[] getSdkLibraries() {
+    return libraryMap.getSdkLibraries();
   }
 
   /**

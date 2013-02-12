@@ -13,17 +13,19 @@
  */
 package com.google.dart.engine.internal.sdk;
 
+import com.google.dart.engine.sdk.SdkLibrary;
+
 import java.util.HashMap;
 
 /**
- * Instances of the class {@code LibraryMap} map Dart library URI's to the {@link SdkLibrary
+ * Instances of the class {@code LibraryMap} map Dart library URI's to the {@link SdkLibraryImpl
  * library}.
  */
 public class LibraryMap {
   /**
    * A table mapping Dart library URI's to the library.
    */
-  private HashMap<String, SdkLibrary> libraryMap = new HashMap<String, SdkLibrary>();
+  private HashMap<String, SdkLibraryImpl> libraryMap = new HashMap<String, SdkLibraryImpl>();
 
   /**
    * Initialize a newly created library map to be empty.
@@ -43,6 +45,15 @@ public class LibraryMap {
   }
 
   /**
+   * Return an array containing all the sdk libraries {@link SdkLibraryImpl} in the mapping
+   * 
+   * @return the sdk libraries in the mapping
+   */
+  public SdkLibrary[] getSdkLibraries() {
+    return libraryMap.values().toArray(new SdkLibraryImpl[libraryMap.size()]);
+  }
+
+  /**
    * Return an array containing the library URI's for which a mapping is available.
    * 
    * @return the library URI's for which a mapping is available
@@ -57,7 +68,7 @@ public class LibraryMap {
    * @param dartUri the URI of the library to be returned
    * @param library the library with the given URI
    */
-  public void setLibrary(String dartUri, SdkLibrary library) {
+  public void setLibrary(String dartUri, SdkLibraryImpl library) {
     libraryMap.put(dartUri, library);
   }
 

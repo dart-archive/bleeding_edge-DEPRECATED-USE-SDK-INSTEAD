@@ -13,11 +13,13 @@
  */
 package com.google.dart.engine.internal.sdk;
 
+import com.google.dart.engine.sdk.SdkLibrary;
+
 /**
  * Instances of the class {@code SdkLibrary} represent the information known about a single library
  * within the SDK.
  */
-public class SdkLibrary {
+public class SdkLibraryImpl implements SdkLibrary {
   /**
    * The short name of the library. This is the name used after {@code dart:} in a URI.
    */
@@ -67,63 +69,46 @@ public class SdkLibrary {
    * 
    * @param name the short name of the library
    */
-  public SdkLibrary(String name) {
+  public SdkLibraryImpl(String name) {
     this.shortName = name;
   }
 
-  /**
-   * Return the name of the category containing the library.
-   * 
-   * @return the name of the category containing the library
-   */
+  @Override
   public String getCategory() {
     return category;
   }
 
-  /**
-   * Return the path to the file defining the library. The path is relative to the {@code lib}
-   * directory within the SDK.
-   * 
-   * @return the path to the file defining the library
-   */
+  @Override
   public String getPath() {
     return path;
   }
 
-  /**
-   * Return the short name of the library. This is the name used after {@code dart:} in a URI.
-   * 
-   * @return the short name of the library
-   */
+  @Override
   public String getShortName() {
     return shortName;
   }
 
-  /**
-   * Return {@code true} if this library can be compiled to JavaScript by dart2js.
-   * 
-   * @return {@code true} if this library can be compiled to JavaScript by dart2js
-   */
+  @Override
   public boolean isDart2JsLibrary() {
     return (platforms & DART2JS_PLATFORM) != 0;
   }
 
-  /**
-   * Return {@code true} if the library is documented.
-   * 
-   * @return {@code true} if the library is documented
-   */
+  @Override
   public boolean isDocumented() {
     return documented;
   }
 
-  /**
-   * Return {@code true} if the library is an implementation library.
-   * 
-   * @return {@code true} if the library is an implementation library
-   */
+  @Override
   public boolean isImplementation() {
     return implementation;
+  }
+
+  /**
+   * Return {@code true} if library can be used for both client and server
+   */
+  @Override
+  public boolean isShared() {
+    return category.equals("Shared");
   }
 
   /**
@@ -131,6 +116,7 @@ public class SdkLibrary {
    * 
    * @return {@code true} if this library can be run on the VM
    */
+  @Override
   public boolean isVmLibrary() {
     return (platforms & VM_PLATFORM) != 0;
   }

@@ -116,7 +116,7 @@ public class SdkLibrariesReader {
       }
       Expression value = node.getValue();
       if (value instanceof InstanceCreationExpression) {
-        SdkLibrary library = new SdkLibrary(libraryName);
+        SdkLibraryImpl library = new SdkLibraryImpl(libraryName);
         List<Expression> arguments = ((InstanceCreationExpression) value).getArgumentList().getArguments();
         for (Expression argument : arguments) {
           if (argument instanceof SimpleStringLiteral) {

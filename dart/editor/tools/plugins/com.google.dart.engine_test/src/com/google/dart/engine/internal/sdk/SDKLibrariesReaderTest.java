@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.sdk;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.sdk.SdkLibrary;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
