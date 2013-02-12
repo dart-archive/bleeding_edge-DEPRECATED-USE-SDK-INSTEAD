@@ -15,8 +15,8 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
-import com.google.dart.engine.internal.search.SearchEngineImpl;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -84,6 +84,6 @@ public class ProjectManagerImpl implements ProjectManager {
 
   @Override
   public SearchEngine newSearchEngine() {
-    return new SearchEngineImpl(getIndex());
+    return SearchEngineFactory.createSearchEngine(getIndex());
   }
 }
