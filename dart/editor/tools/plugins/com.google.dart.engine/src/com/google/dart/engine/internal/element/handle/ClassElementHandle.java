@@ -46,6 +46,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public InterfaceType[] getAllSupertypes() {
+    return getActualElement().getAllSupertypes();
+  }
+
+  @Override
   public ConstructorElement[] getConstructors() {
     return getActualElement().getConstructors();
   }

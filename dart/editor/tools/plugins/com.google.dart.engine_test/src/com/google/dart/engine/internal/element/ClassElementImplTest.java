@@ -18,6 +18,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
@@ -25,7 +26,48 @@ import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.setterElement;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class ClassElementImplTest extends EngineTestCase {
+
+  public void test_allSupertypes_interface() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = elementA.getSupertype();
+    InterfaceType typeA = elementA.getType();
+    InterfaceType typeB = elementB.getType();
+    InterfaceType typeC = elementC.getType();
+    elementC.setInterfaces(new InterfaceType[] {typeB});
+    InterfaceType[] supers = elementC.getAllSupertypes();
+    List<InterfaceType> types = new ArrayList<InterfaceType>();
+    Collections.addAll(types, supers);
+    assertTrue(types.contains(typeA));
+    assertTrue(types.contains(typeB));
+    assertTrue(types.contains(typeObject));
+    assertFalse(types.contains(typeC));
+  }
+
+  public void test_allSupertypes_mixins() {
+    ClassElement elementA = classElement("A");
+    ClassElement elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    InterfaceType typeObject = elementA.getSupertype();
+    InterfaceType typeA = elementA.getType();
+    InterfaceType typeB = elementB.getType();
+    InterfaceType typeC = elementC.getType();
+    elementC.setMixins(new InterfaceType[] {typeB});
+    InterfaceType[] supers = elementC.getAllSupertypes();
+    List<InterfaceType> types = new ArrayList<InterfaceType>();
+    Collections.addAll(types, supers);
+    assertFalse(types.contains(typeA));
+    assertTrue(types.contains(typeB));
+    assertTrue(types.contains(typeObject));
+    assertFalse(types.contains(typeC));
+  }
+
   public void test_lookUpGetter_declared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
     ClassElementImpl classA = (ClassElementImpl) classElement("A");

@@ -27,6 +27,13 @@ public interface ClassElement extends Element {
   public PropertyAccessorElement[] getAccessors();
 
   /**
+   * Return an array containing all the supertypes defined for this class and its supertypes.
+   * 
+   * @return all the supertypes of this class, including mixins
+   */
+  public InterfaceType[] getAllSupertypes();
+
+  /**
    * Return an array containing all of the constructors declared in this class.
    * 
    * @return the constructors declared in this class
