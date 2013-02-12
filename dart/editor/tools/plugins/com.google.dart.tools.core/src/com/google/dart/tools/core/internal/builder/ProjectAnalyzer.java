@@ -105,8 +105,7 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
         monitor.setTaskName("Parsing " + source.getShortName());
         parseSource(source);
       }
-      // TODO (danrubel): pass DART_PARSE_PROBLEM_MARKER_TYPE
-      showCachedErrors(DartCore.DART_PROBLEM_MARKER_TYPE);
+      showCachedErrors(DartCore.DART_PARSING_PROBLEM_MARKER_TYPE);
     }
 
     /**
@@ -158,8 +157,7 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
           }
         }
       }
-      // TODO (danrubel): pass DART_RESOLUTION_PROBLEM_MARKER_TYPE
-      showCachedErrors(null);
+      showCachedErrors(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE);
     }
 
     /**
@@ -187,19 +185,19 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
       }
     }
 
+    /**
+     * Add markers for the cached analysis errors
+     * 
+     * @param markerType the type of marker to be created (not {@code null})
+     */
     void showCachedErrors(final String markerType) {
       IWorkspaceRunnable op = new IWorkspaceRunnable() {
         @Override
         public void run(IProgressMonitor monitor) throws CoreException {
           for (Entry<IResource, AnalysisError[]> entry : errorMap.entrySet()) {
             IResource resource = entry.getKey();
-            // TODO (danrubel): Split DartCore.DART_PROBLEM_MARKER_TYPE 
-            // into syntactic markers and semantic markers 
-            // so that each can be cleared and created in separate passes
-            if (markerType != null) {
-              resource.deleteMarkers(markerType, false, IResource.DEPTH_ZERO);
-            }
-            showErrors(resource, entry.getValue());
+            resource.deleteMarkers(markerType, false, IResource.DEPTH_ZERO);
+            showErrors(resource, markerType, entry.getValue());
           }
           errorMap.clear();
         }
@@ -215,9 +213,11 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
      * Add markers on the specified resource representing the specified analysis errors
      * 
      * @param resource the resource (not {@code null})
+     * @param markerType the type of marker to be created (not {@code null})
      * @param errorsToShow the errors to be shown (not {@code null}, contains no {@code null}s)
      */
-    void showErrors(IResource resource, AnalysisError[] errorsToShow) throws CoreException {
+    void showErrors(IResource resource, String markerType, AnalysisError[] errorsToShow)
+        throws CoreException {
       for (AnalysisError error : errorsToShow) {
         int severity;
         ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
@@ -231,7 +231,7 @@ public class ProjectAnalyzer extends AbstractDeltaListener {
           continue;
         }
 
-        IMarker marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+        IMarker marker = resource.createMarker(markerType);
         marker.setAttribute(IMarker.SEVERITY, severity);
         marker.setAttribute(IMarker.CHAR_START, error.getOffset());
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());

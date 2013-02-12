@@ -47,7 +47,8 @@ public class ProjectAnalyzerTest extends TestCase {
   private ProjectAnalyzer analyzer;
   private IResource resource;
   private SourceDeltaEvent event;
-  private IMarker marker;
+  private IMarker parseErrorMarker;
+  private IMarker resolutionErrorMarker;
 
   public void testSourceAdded() throws Exception {
     analyzer.sourceAdded(event);
@@ -66,9 +67,12 @@ public class ProjectAnalyzerTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     resource = mock(IResource.class);
-    marker = mock(IMarker.class);
-    when(resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE)).thenReturn(marker).thenReturn(
-        mock(IMarker.class));
+    parseErrorMarker = mock(IMarker.class);
+    when(resource.createMarker(DartCore.DART_PARSING_PROBLEM_MARKER_TYPE)).thenReturn(
+        parseErrorMarker);
+    resolutionErrorMarker = mock(IMarker.class);
+    when(resource.createMarker(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE)).thenReturn(
+        resolutionErrorMarker);
     when(resource.getLocation()).thenReturn(new Path("does_not_exist.dart"));
     Source source = mock(Source.class);
     ArrayList<Source> sources = new ArrayList<Source>();
@@ -110,13 +114,28 @@ public class ProjectAnalyzerTest extends TestCase {
   }
 
   private void verifyMarkersCreated() throws CoreException {
-    verify(resource).deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, false, IResource.DEPTH_ZERO);
-    verify(resource, times(2)).createMarker(DartCore.DART_PROBLEM_MARKER_TYPE); // resolution error
-    verify(marker).setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-    verify(marker).setAttribute(IMarker.MESSAGE, TEST_ERROR_MESSAGE);
-    verify(marker).setAttribute(IMarker.CHAR_START, 7);
-    verify(marker).setAttribute(IMarker.CHAR_END, 102);
-//    verify(marker).setAttribute(IMarker.LINE_NUMBER, 22);
-//    verify(marker).setAttribute("errorCode", 9);
+    verify(resource, times(1)).deleteMarkers(
+        DartCore.DART_PARSING_PROBLEM_MARKER_TYPE,
+        false,
+        IResource.DEPTH_ZERO);
+    verify(resource, times(1)).createMarker(DartCore.DART_PARSING_PROBLEM_MARKER_TYPE);
+    verify(parseErrorMarker).setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+    verify(parseErrorMarker).setAttribute(IMarker.MESSAGE, TEST_ERROR_MESSAGE);
+    verify(parseErrorMarker).setAttribute(IMarker.CHAR_START, 7);
+    verify(parseErrorMarker).setAttribute(IMarker.CHAR_END, 102);
+//  verify(parseErrorMarker).setAttribute(IMarker.LINE_NUMBER, 22);
+//  verify(parseErrorMarker).setAttribute("errorCode", 9);
+
+    verify(resource, times(1)).deleteMarkers(
+        DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE,
+        false,
+        IResource.DEPTH_ZERO);
+    verify(resource, times(1)).createMarker(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE);
+    verify(resolutionErrorMarker).setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+    verify(resolutionErrorMarker).setAttribute(IMarker.MESSAGE, TEST_ERROR_MESSAGE);
+    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_START, 7);
+    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_END, 102);
+//    verify(resolutionErrorMarker).setAttribute(IMarker.LINE_NUMBER, 22);
+//    verify(resolutionErrorMarker).setAttribute("errorCode", 9);
   }
 }
