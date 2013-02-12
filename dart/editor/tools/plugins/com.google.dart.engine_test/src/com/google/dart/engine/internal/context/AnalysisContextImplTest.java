@@ -24,12 +24,14 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
+import java.io.File;
 import java.util.Iterator;
 
 public class AnalysisContextImplTest extends EngineTestCase {
@@ -61,6 +63,15 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisError[] errors = context.getErrors(source);
     assertNotNull(errors);
     assertTrue(errors.length > 0);
+  }
+
+  public void fail_parse_non_existent_source() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
+    context.setSourceFactory(sourceFactory);
+    Source source = sourceFactory.forFile(new File("/does/not/exist.dart"));
+    CompilationUnit unit = context.parse(source);
+    assertNotNull(unit);
   }
 
   public void fail_sourcesToResolve() throws Exception {
