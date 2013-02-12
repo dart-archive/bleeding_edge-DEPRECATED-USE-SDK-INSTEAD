@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.pub.RunPubJob;
@@ -47,8 +48,6 @@ public class RunPubAction extends SelectionDispatchAction {
     return action;
   }
 
-
-
   public static RunPubAction createPubUpdateAction(IWorkbenchWindow window) {
     RunPubAction action = new RunPubAction(window, RunPubJob.UPDATE_COMMAND);
     action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Update"));
@@ -67,6 +66,7 @@ public class RunPubAction extends SelectionDispatchAction {
 
   @Override
   public void run(ISelection selection) {
+    long start = System.currentTimeMillis();
     if (selection instanceof ITextSelection) {
       IWorkbenchPage page = DartToolsPlugin.getActivePage();
       if (page != null) {
@@ -77,16 +77,52 @@ public class RunPubAction extends SelectionDispatchAction {
           if (dartProject != null) {
             IProject project = dartProject.getProject();
             runPubJob(project);
+
+            long elapsed = System.currentTimeMillis() - start;
+            Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+                "Success",
+                "true").log();
+            Instrumentation.operation("RunPubAction-run", elapsed).with("command", command).with(
+                "Success",
+                "true").with("Project", project.getName()).log();
+
+          } else {
+            //dartProject == null
+            long elapsed = System.currentTimeMillis() - start;
+            Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+                "DartProject",
+                "null").log();
           }
+
+        } else {
+          //part == null
+          long elapsed = System.currentTimeMillis() - start;
+          Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+              "part",
+              "null").log();
         }
+
+      } else {
+        //page == null
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+            "page",
+            "null").log();
       }
 
+    } else {
+      //selection != ITextSelection
+      long elapsed = System.currentTimeMillis() - start;
+      Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+          "ITextSelection",
+          "false").log();
     }
-
   }
 
   @Override
   public void run(IStructuredSelection selection) {
+    long start = System.currentTimeMillis();
+
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
       if (object instanceof IFile) {
@@ -97,13 +133,35 @@ public class RunPubAction extends SelectionDispatchAction {
       }
       if (object != null) {
         runPubJob((IContainer) object);
+
+        long elapsed = System.currentTimeMillis() - start;
+
+        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).log();
+
+        Instrumentation.operation("RunPubAction-run", elapsed).with("command", command).with(
+            "name",
+            ((IContainer) object).getName()).log();
         return;
+      } else {
+        long elapsed = System.currentTimeMillis() - start;
+        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+            "object",
+            "null").log();
       }
+
     }
+
+    long beforeDialog = System.currentTimeMillis() - start;
+
     MessageDialog.openError(
         getShell(),
         ActionMessages.RunPubAction_fail,
         ActionMessages.RunPubAction_fileNotFound);
+
+    long elapsed = System.currentTimeMillis() - start;
+    Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
+        "Error",
+        "After dialog").with("MessageShownFor", elapsed - beforeDialog).log();
   }
 
   private void runPubJob(IContainer container) {
