@@ -17,6 +17,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code VariableElementHandle} implement a handle to a
@@ -45,6 +46,11 @@ public class VariableElementHandle extends ElementHandle implements VariableElem
   @Override
   public Type getType() {
     return getActualElement().getType();
+  }
+
+  @Override
+  public SourceRange getVisibleRange() {
+    return getActualElement().getVisibleRange();
   }
 
   @Override
