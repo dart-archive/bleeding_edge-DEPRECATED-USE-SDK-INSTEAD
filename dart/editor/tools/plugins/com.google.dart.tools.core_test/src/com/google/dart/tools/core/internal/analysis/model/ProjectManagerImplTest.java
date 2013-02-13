@@ -63,6 +63,10 @@ public class ProjectManagerImplTest extends TestCase {
     assertSame(resource, manager.getResourceFor(source));
   }
 
+  public void test_getResourceFor_null() {
+    assertNull(manager.getResourceFor(null));
+  }
+
   public void test_getResourceFor_outside_resource() {
     File file = new File("/does/not/exist.dart");
     Project project = manager.getProject(projectContainer);

@@ -55,7 +55,7 @@ public interface ProjectManager {
   /**
    * Answer the resource associated with the specified source.
    * 
-   * @param source the source (not {@code null})
+   * @param source the source
    * @return the resource or {@code null} if it could not be determined
    */
   IResource getResourceFor(Source source);

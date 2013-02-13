@@ -175,6 +175,9 @@ public class ProjectImpl implements Project {
   @Override
   public IResource getResourceFor(Source source) {
     // TODO (danrubel): revisit and optimize performance
+    if (source == null) {
+      return null;
+    }
     IPath path = new Path(source.getFullName());
     IPath projPath = getResourceLocation();
     if (projPath.isPrefixOf(path)) {

@@ -73,6 +73,9 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public IResource getResourceFor(Source source) {
     // TODO (danrubel): revisit and optimize performance
+    if (source == null) {
+      return null;
+    }
     for (Project project : getProjects()) {
       IResource res = project.getResourceFor(source);
       if (res != null) {
