@@ -23,11 +23,11 @@ class ConveyorView extends CompositeView {
   // which view is selected? (e.g. the MVVM pattern)
   Function viewSelected;
 
-  int animationTimeoutId;
+  Timer animationTimer;
 
   ConveyorView()
   : super('conveyor-view', true),
-    animationTimeoutId = null {
+    animationTimer = null {
   }
 
   Element render() {
@@ -61,13 +61,10 @@ class ConveyorView extends CompositeView {
     final xTranslationPercent = -index * 100;
     style.transform = 'translate3d(${xTranslationPercent}%, 0px, 0px)';
 
-    if (animationTimeoutId != null) {
-      window.clearTimeout(animationTimeoutId);
-    }
-
     if (animate) {
-      animationTimeoutId = window.setTimeout(
-          () { _onAnimationEnd(); }, (durationSeconds * 1000).toInt());
+      animationTimer = new Timer(
+          new Duration(milliseconds: ((durationSeconds * 1000).toInt())),
+          () { _onAnimationEnd(); });
     }
     // TODO(mattsh), we should set the visibility to hide everything but the
     // selected view.

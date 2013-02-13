@@ -28,9 +28,9 @@ class CallbackData {
  * Animation scheduler implementing the functionality provided by
  * [:window.requestAnimationFrame:] for platforms that do not support it
  * or support it badly.  When multiple UI components are animating at once,
- * this approach yields superior performance to calling setTimeout directly as
- * all pieces of the UI will animate at the same time resulting in fewer
- * layouts.
+ * this approach yields superior performance to calling setTimeout/Timer
+ * directly as all pieces of the UI will animate at the same time resulting in
+ * fewer layouts.
  */
 // TODO(jacobr): use window.requestAnimationFrame when it is available and
 // 60fps for the current browser.
@@ -41,7 +41,7 @@ class AnimationScheduler {
 
   /** List of callbacks to be executed next animation frame. */
   List<CallbackData> _callbacks;
-  int _intervalId;
+  Timer _timer;
   bool _isMobileSafari = false;
   CssStyleDeclaration _safariHackStyle;
   int _frameCount = 0;
@@ -84,21 +84,22 @@ class AnimationScheduler {
 
   void _requestAnimationFrameHelper(CallbackData callbackData) {
     _callbacks.add(callbackData);
-    if (_intervalId == null) {
+    if (_timer == null) {
       _setupInterval();
     }
   }
 
   void _setupInterval() {
     // Assert that we never schedule multiple frames at once.
-    assert(_intervalId == null);
+    assert(__timer == null);
     if (USE_INTERVALS) {
-      _intervalId = window.setInterval(_step, MS_PER_FRAME);
+      _timer = new Timer.repeating(const Duration(milliseconds: MS_PER_FRAME),
+          (_) { _step(); });
     } else {
       if (_webkitAnimationFrameMaybeAvailable) {
         try {
           // TODO(jacobr): passing in document should not be required.
-          _intervalId = window.webkitRequestAnimationFrame(
+          window.webkitRequestAnimationFrame(
               (int ignored) { _step(); });
               // TODO(jacobr) fix this odd type error.
         } catch (e) {
@@ -106,7 +107,8 @@ class AnimationScheduler {
         }
       }
       if (!_webkitAnimationFrameMaybeAvailable) {
-        _intervalId = window.setTimeout(() { _step(); }, MS_PER_FRAME);
+        _timer = new Timer(const Duration(milliseconds: MS_PER_FRAME),
+             _step());
       }
     }
   }
@@ -115,13 +117,13 @@ class AnimationScheduler {
     if (_callbacks.isEmpty) {
       // Cancel the interval on the first frame where there aren't actually
       // any available callbacks.
-      assert(_intervalId != null);
+      assert(_timer != null);
       if (USE_INTERVALS) {
-        window.clearInterval(_intervalId);
+        _timer.cancel();
       }
-      _intervalId = null;
+      _timer = null;
     } else if (USE_INTERVALS == false) {
-      _intervalId = null;
+      _timer = null;
       _setupInterval();
     }
     int numRemaining = 0;
