@@ -28,7 +28,12 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -51,6 +56,11 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
    * A list containing all of the AST nodes that were not resolved.
    */
   private ArrayList<ASTNode> unresolvedNodes = new ArrayList<ASTNode>();
+
+  /**
+   * A list containing all of the AST nodes that were resolved to an element of the wrong type.
+   */
+  private ArrayList<ASTNode> wrongTypedNodes = new ArrayList<ASTNode>();
 
   /**
    * Initialize a newly created verifier to verify that all of the nodes in the visited AST
@@ -93,6 +103,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
       }
       Assert.fail(writer.toString());
     }
+    Assert.assertEquals(0, wrongTypedNodes.size());
   }
 
   @Override
@@ -101,51 +112,56 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), MethodElement.class);
+  }
+
+  @Override
+  public Void visitCompilationUnit(CompilationUnit node) {
+    return checkResolved(node, node.getElement(), CompilationUnitElement.class);
   }
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), LibraryElement.class);
   }
 
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     node.visitChildren(this);
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), FunctionElement.class);
   }
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    checkResolved(node, node.getElement());
+    checkResolved(node, node.getElement(), LibraryElement.class);
     SimpleIdentifier prefix = node.getPrefix();
     if (prefix == null) {
       return null;
     }
-    return checkResolved(prefix, prefix.getElement());
+    return checkResolved(prefix, prefix.getElement(), PrefixElement.class);
   }
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     node.visitChildren(this);
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), MethodElement.class);
   }
 
   @Override
   public Void visitLibraryDirective(LibraryDirective node) {
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), LibraryElement.class);
   }
 
   @Override
   public Void visitPartDirective(PartDirective node) {
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), CompilationUnitElement.class);
   }
 
   @Override
   public Void visitPartOfDirective(PartOfDirective node) {
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), LibraryElement.class);
   }
 
   @Override
@@ -154,7 +170,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), MethodElement.class);
   }
 
   @Override
@@ -163,7 +179,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
     if (!node.getOperator().isUserDefinableOperator()) {
       return null;
     }
-    return checkResolved(node, node.getElement());
+    return checkResolved(node, node.getElement(), MethodElement.class);
   }
 
   @Override
@@ -175,13 +191,21 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   }
 
   private Void checkResolved(ASTNode node, Element element) {
-    if (node != null && element == null) {
+    return checkResolved(node, element, null);
+  }
+
+  private Void checkResolved(ASTNode node, Element element, Class<? extends Element> expectedClass) {
+    if (element == null) {
       if (node.getParent() instanceof CommentReference) {
         // TODO(brianwilkerson) Remove this when comments are being resolved.
         return null;
       }
       if (knownExceptions == null || !knownExceptions.contains(node)) {
         unresolvedNodes.add(node);
+      }
+    } else if (expectedClass != null) {
+      if (!expectedClass.isInstance(element)) {
+        wrongTypedNodes.add(node);
       }
     }
     return null;

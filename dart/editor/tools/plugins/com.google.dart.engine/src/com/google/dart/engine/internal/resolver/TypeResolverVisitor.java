@@ -282,8 +282,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
       DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
       VoidTypeImpl voidType = VoidTypeImpl.getInstance();
       if (typeName.getName().equals(dynamicType.getName())) {
+        element = dynamicType.getElement();
         type = dynamicType;
+        setElement(typeName, element);
       } else if (typeName.getName().equals(voidType.getName())) {
+        // There is no element for 'void'.
         type = voidType;
       } else {
         ASTNode parent = node.getParent();
@@ -305,6 +308,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
               //
               name.setName(((PrefixedIdentifier) typeName).getIdentifier());
               node.setName(prefix);
+              typeName = prefix;
             }
           }
         }
@@ -384,6 +388,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         type = type.substitute(arguments, parameters);
       }
     }
+    typeName.setStaticType(type);
     node.setType(type);
     return null;
   }
