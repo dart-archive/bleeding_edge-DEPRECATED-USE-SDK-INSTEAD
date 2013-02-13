@@ -51,7 +51,7 @@ class Suite {
 
       // Run the test several times.
       try {
-        // TODO(antonm): use timer to schedule next run as JS
+        // TODO(antonm): use .setTimeout to schedule next run as JS
         // version does.  That allows to report the intermidiate results
         // more smoothly as well.
         for (int i = 0; i < _N_RUNS; i++) {
@@ -90,12 +90,12 @@ class Suite {
       if (currentOperation < _operations.length) {
         _operations[currentOperation]();
         currentOperation++;
-        new Timer(const Duration(milliseconds: 1), handler);
+        _window.setTimeout(handler, 1);
       } else {
         _postMessage('over');
       }
     }
-    Timer.run(handler);
+    _window.setTimeout(handler, 0);
   }
 
   _reportTestResults(String name, Result result) {

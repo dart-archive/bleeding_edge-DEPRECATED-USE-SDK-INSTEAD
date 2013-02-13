@@ -52,7 +52,7 @@ class Scrollbar implements ScrollListener {
   num _currentScrollStartOffset;
   bool _currentScrollVertical;
   num _currentScrollRatio;
-  Timer _timer;
+  num _timerId;
 
   bool _displayOnHover;
   bool _hovering = false;
@@ -148,7 +148,7 @@ class Scrollbar implements ScrollListener {
           // Start hiding immediately if we aren't
           // scrolling or already in the process of
           // hidng the scrollbar
-          if (!_scrollInProgress && _timer == null) {
+          if (!_scrollInProgress && _timerId == null) {
             _boundHideFn();
           }
         });
@@ -232,8 +232,7 @@ class Scrollbar implements ScrollListener {
    */
   void _onScrollerEnd(Event e) {
     _cancelTimeout();
-    _timer = new Timer(const Duration(milliseconds: _DISPLAY_TIME),
-        _boundHideFn);
+    _timerId = window.setTimeout(_boundHideFn, _DISPLAY_TIME);
     _scrollInProgress = false;
   }
   void onScrollerMoved(num scrollX, num scrollY, bool decelerating) {
@@ -282,9 +281,9 @@ class Scrollbar implements ScrollListener {
   }
 
   void _cancelTimeout() {
-    if (_timer != null) {
-      _timer.cancel();
-      _timer = null;
+    if (_timerId != null) {
+      window.clearTimeout(_timerId);
+      _timerId = null;
     }
   }
 

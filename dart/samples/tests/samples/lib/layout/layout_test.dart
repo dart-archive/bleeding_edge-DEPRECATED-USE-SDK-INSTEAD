@@ -4,7 +4,6 @@
 
 library layout_tests;
 
-import 'dart:async';
 import 'dart:html';
 import '../../../../swarm/swarm_ui_lib/base/base.dart';
 import '../../../../swarm/swarm_ui_lib/layout/layout.dart';
@@ -157,10 +156,10 @@ main() {
 usingGrid(String example, void test_(View grid)) {
   final grid = createGrid(GridExamples.styles[example]);
   grid.addToDocument(document.body);
-  Timer.run(() {
+  window.setTimeout(() {
     test_(grid);
-    Timer.run(expectAsync0(() { grid.removeFromDocument(); }));
-  });
+    window.setTimeout(expectAsync0(() { grid.removeFromDocument(); }), 0);
+  }, 0);
 }
 
 verifyGrid(String example, [Map expected = null]) {
