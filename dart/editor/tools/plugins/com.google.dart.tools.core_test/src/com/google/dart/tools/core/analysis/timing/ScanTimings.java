@@ -16,6 +16,10 @@ package com.google.dart.tools.core.analysis.timing;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
@@ -67,6 +71,29 @@ public class ScanTimings extends TestCase {
     @Override
     public CompilationUnit parse(Source source) throws AnalysisException {
       return compilationUnit;
+    }
+  }
+
+  private final class MockIndexForScan implements Index {
+    @Override
+    public void getRelationships(Element element, Relationship relationship,
+        RelationshipCallback callback) {
+      // ignored
+    }
+
+    @Override
+    public void indexUnit(CompilationUnit unit) {
+      // ignored
+    }
+
+    @Override
+    public void removeSource(Source source) {
+      // ignored
+    }
+
+    @Override
+    public void run() {
+      // ignored
     }
   }
 
@@ -266,7 +293,8 @@ public class ScanTimings extends TestCase {
     IProgressMonitor monitor = new NullProgressMonitor();
     final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
         true,
-        new DartIgnoreManager()) {
+        new DartIgnoreManager(),
+        new MockIndexForScan()) {
       private ProjectImpl project;
 
       @Override

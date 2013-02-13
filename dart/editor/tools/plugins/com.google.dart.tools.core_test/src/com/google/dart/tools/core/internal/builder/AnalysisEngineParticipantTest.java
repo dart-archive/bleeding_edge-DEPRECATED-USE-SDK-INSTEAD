@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -136,10 +137,13 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   private class Target extends AnalysisEngineParticipant {
 
     private MockProjectImpl project;
-    MockDeltaProcessor processor;
+    private MockDeltaProcessor processor;
 
-    Target(MockProject resource) {
-      super(true, new DartIgnoreManager());
+    Target() {
+      super(
+          true,
+          new DartIgnoreManager(),
+          IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()));
     }
 
     @Override
@@ -189,6 +193,6 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   @Override
   protected void setUp() throws Exception {
     projectContainer = newPubProject3();
-    participant = new Target(projectContainer);
+    participant = new Target();
   }
 }

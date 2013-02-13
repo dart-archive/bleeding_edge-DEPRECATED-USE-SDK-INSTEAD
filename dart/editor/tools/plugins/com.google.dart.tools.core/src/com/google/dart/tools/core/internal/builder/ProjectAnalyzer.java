@@ -19,6 +19,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -38,11 +39,11 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 /**
- * {@code ProjectAnalyzer} analyzes sources in a project and updates Eclipse markers. Attach
- * instances of {@code ProjectAnalyzer} to a delta processor via
+ * {@code ProjectAnalyzer} analyzes sources in a project, updates Eclipse markers, and updates the
+ * index. Attach instances of {@code ProjectAnalyzer} to a delta processor via
  * {@link DeltaProcessor#addDeltaListener(DeltaListener)} then call the appropriate
  * {@link DeltaProcessor} traverse method. Once the traverse method completes, call
- * {@link #updateMarkers()} to update the Eclipse markers.
+ * {@link #analyze(IProgressMonitor)} to update the markers and the index.
  */
 public class ProjectAnalyzer extends DeltaAdapter {
 
@@ -118,13 +119,14 @@ public class ProjectAnalyzer extends DeltaAdapter {
       if (res == null) {
         return;
       }
+      CompilationUnit unit;
       try {
-        CompilationUnit unit = context.parse(source);
-        errorMap.put(res, unit.getParsingErrors());
+        unit = context.parse(source);
       } catch (AnalysisException e) {
         DartCore.logError("Exception parsing source: " + source, e);
         return;
       }
+      errorMap.put(res, unit.getParsingErrors());
     }
 
     /**
@@ -135,12 +137,18 @@ public class ProjectAnalyzer extends DeltaAdapter {
      *          the user and detecting whether the operation has been canceled
      */
     void resolve(IProgressMonitor monitor) {
-      ArrayList<Source> allChangedSources = new ArrayList<Source>(changedSources.size()
-          + changedPackageSources.size());
-      allChangedSources.addAll(changedSources);
-      allChangedSources.addAll(changedPackageSources);
-      Iterator<Source> iter = context.sourcesToResolve(
-          changedSources.toArray(new Source[changedSources.size()])).iterator();
+      ArrayList<Source> sources;
+      if (changedSources.size() == 0) {
+        sources = changedPackageSources;
+      } else if (changedPackageSources.size() == 0) {
+        sources = changedSources;
+      } else {
+        sources = new ArrayList<Source>(changedSources.size() + changedPackageSources.size());
+        sources.addAll(changedSources);
+        sources.addAll(changedPackageSources);
+      }
+      Source[] sourcesArray = sources.toArray(new Source[sources.size()]);
+      Iterator<Source> iter = context.sourcesToResolve(sourcesArray).iterator();
       while (iter.hasNext()) {
         if (monitor.isCanceled()) {
           return;
@@ -150,11 +158,8 @@ public class ProjectAnalyzer extends DeltaAdapter {
         try {
           resolveSource(source);
         } catch (Exception e) {
-          // TODO (danrubel): Remove this once semantic errors are reported
-          if (!reportedNoSemanticErrors) {
-            reportedNoSemanticErrors = true;
-            DartCore.logError(">>>> Semantic error reporting not implemented yet", e);
-          }
+          // TODO (danrubel): Remove this once engine and analyzer are more stable
+          logError("Exception resolving source", e);
         }
       }
       showCachedErrors(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE);
@@ -176,13 +181,15 @@ public class ProjectAnalyzer extends DeltaAdapter {
         return;
       }
       // TODO (danrubel): do not show errors on sources in the "packages" directory
+      CompilationUnit unit;
       try {
-        CompilationUnit unit = context.resolve(source, library);
-        errorMap.put(res, unit.getResolutionErrors());
+        unit = context.resolve(source, library);
       } catch (AnalysisException e) {
         DartCore.logError("Exception resolving source: " + source, e);
         return;
       }
+      errorMap.put(res, unit.getResolutionErrors());
+      index.indexUnit(unit);
     }
 
     /**
@@ -248,16 +255,22 @@ public class ProjectAnalyzer extends DeltaAdapter {
    */
   HashMap<AnalysisContext, ChangeSet> changeSets = new HashMap<AnalysisContext, ChangeSet>();
 
-  // TODO (danrubel): remove this once semantic errors are being reported
-  private static boolean reportedNoSemanticErrors = false;
+  // TODO (danrubel): remove this once engine, analyzer, and index are more stable
+  private static int numberOfErrorsLogged = 0;
 
   /**
    * The object (not {@code null}) used to manage which resources should be not be analyzed.
    */
   private final DartIgnoreManager ignoreManager;
 
-  public ProjectAnalyzer(DartIgnoreManager ignoreManager) {
+  /**
+   * The index to be updated (not {@code null}).
+   */
+  private final Index index;
+
+  public ProjectAnalyzer(DartIgnoreManager ignoreManager, Index index) {
     this.ignoreManager = ignoreManager;
+    this.index = index;
   }
 
   /**
@@ -290,6 +303,11 @@ public class ProjectAnalyzer extends DeltaAdapter {
   }
 
   @Override
+  public void packageSourceRemoved(SourceDeltaEvent event) {
+    index.removeSource(event.getSource());
+  }
+
+  @Override
   public void sourceAdded(SourceDeltaEvent event) {
     getChangeSet(event).addSource(event.getSource());
   }
@@ -297,6 +315,11 @@ public class ProjectAnalyzer extends DeltaAdapter {
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
     getChangeSet(event).addSource(event.getSource());
+  }
+
+  @Override
+  public void sourceRemoved(SourceDeltaEvent event) {
+    index.removeSource(event.getSource());
   }
 
   /**
@@ -313,5 +336,13 @@ public class ProjectAnalyzer extends DeltaAdapter {
       changeSets.put(context, changes);
     }
     return changes;
+  }
+
+  // TODO (danrubel): Remove this once engine, analyzer, and index are more stable
+  private void logError(String message, Exception e) {
+    if (numberOfErrorsLogged < 10) {
+      numberOfErrorsLogged++;
+      DartCore.logError(message, e);
+    }
   }
 }

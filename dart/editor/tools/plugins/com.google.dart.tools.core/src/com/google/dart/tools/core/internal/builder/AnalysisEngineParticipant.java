@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.builder.BuildEvent;
@@ -54,16 +56,25 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    */
   private final DartIgnoreManager ignoreManager;
 
+  /**
+   * The index (not {@code null}) to be updated.
+   */
+  private final Index index;
+
   public AnalysisEngineParticipant() {
-    this(DartCoreDebug.ENABLE_NEW_ANALYSIS, DartIgnoreManager.getInstance());
+    this(
+        DartCoreDebug.ENABLE_NEW_ANALYSIS,
+        DartIgnoreManager.getInstance(),
+        DartCore.getProjectManager().getIndex());
   }
 
-  public AnalysisEngineParticipant(boolean enabled, DartIgnoreManager ignoreManager) {
-    if (ignoreManager == null) {
+  public AnalysisEngineParticipant(boolean enabled, DartIgnoreManager ignoreManager, Index index) {
+    if (ignoreManager == null | index == null) {
       throw new IllegalArgumentException();
     }
     this.enabled = enabled;
     this.ignoreManager = ignoreManager;
+    this.index = index;
   }
 
   /**
@@ -101,7 +112,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager);
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager, index);
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(delta);
@@ -132,7 +143,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager);
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager, index);
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(resource);

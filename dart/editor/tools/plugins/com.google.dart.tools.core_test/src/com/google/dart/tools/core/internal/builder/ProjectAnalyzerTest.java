@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
@@ -44,24 +45,84 @@ public class ProjectAnalyzerTest extends TestCase {
 
   private static final String TEST_ERROR_MESSAGE = "test error message";
 
-  private ProjectAnalyzer analyzer;
   private IResource resource;
-  private SourceDeltaEvent event;
+  private Source source;
+  private Project project;
+  private AnalysisContext context;
+  private ProjectAnalyzer analyzer;
+  private CompilationUnit unit;
   private IMarker parseErrorMarker;
   private IMarker resolutionErrorMarker;
+  private Index index;
 
-  public void testSourceAdded() throws Exception {
-    analyzer.sourceAdded(event);
+  public void test_packageSourceAdded() throws Exception {
+    analyzer.packageSourceAdded(mockSourceEvent());
     verifyZeroInteractions(resource);
     analyzer.analyze(new NullProgressMonitor());
-    verifyMarkersCreated();
+    // TODO (danrubel): don't show error markers on packages
+//    verifyNoMarkersCreated();
+    verify(index).indexUnit(unit);
   }
 
-  public void testSourceChanged() throws Exception {
-    analyzer.sourceChanged(event);
+  public void test_packageSourceChanged() throws Exception {
+    analyzer.packageSourceChanged(mockSourceEvent());
+    verifyZeroInteractions(resource);
+    analyzer.analyze(new NullProgressMonitor());
+    // TODO (danrubel): don't show error markers on packages
+//  verifyNoMarkersCreated();
+    verify(index).indexUnit(unit);
+  }
+
+  public void test_packageSourceRemoved() throws Exception {
+    analyzer.packageSourceRemoved(mockSourceEvent());
+    verify(index).removeSource(source);
+  }
+
+  public void test_sourceAdded() throws Exception {
+    analyzer.sourceAdded(mockSourceEvent());
     verifyZeroInteractions(resource);
     analyzer.analyze(new NullProgressMonitor());
     verifyMarkersCreated();
+    verify(index).indexUnit(unit);
+  }
+
+  public void test_sourceChanged() throws Exception {
+    analyzer.sourceChanged(mockSourceEvent());
+    verifyZeroInteractions(resource);
+    analyzer.analyze(new NullProgressMonitor());
+    verifyMarkersCreated();
+    verify(index).indexUnit(unit);
+  }
+
+  public void test_sourceRemoved() throws Exception {
+    analyzer.sourceRemoved(mockSourceEvent());
+    verifyNoMarkersCreated();
+    verify(index).removeSource(source);
+  }
+
+  // TODO (danrubel): implement
+  public void xtest_packageSourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = mock(SourceContainerDeltaEvent.class);
+    when(event.getContext()).thenReturn(context);
+//    when(event.getSource()).thenReturn(source);
+    when(event.getResource()).thenReturn(resource);
+    when(event.getProject()).thenReturn(project);
+
+    analyzer.packageSourceContainerRemoved(event);
+    fail("not implemented yet");
+  }
+
+  // TODO (danrubel): implement
+  public void xtest_sourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = mock(SourceContainerDeltaEvent.class);
+    when(event.getContext()).thenReturn(context);
+//    when(event.getSource()).thenReturn(source);
+    when(event.getResource()).thenReturn(resource);
+    when(event.getProject()).thenReturn(project);
+
+    analyzer.sourceContainerRemoved(event);
+    verifyNoMarkersCreated();
+    fail("not implemented yet");
   }
 
   @Override
@@ -74,11 +135,11 @@ public class ProjectAnalyzerTest extends TestCase {
     when(resource.createMarker(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE)).thenReturn(
         resolutionErrorMarker);
     when(resource.getLocation()).thenReturn(new Path("does_not_exist.dart"));
-    Source source = mock(Source.class);
+    source = mock(Source.class);
     ArrayList<Source> sources = new ArrayList<Source>();
     sources.add(source);
 
-    CompilationUnit unit = mock(CompilationUnit.class);
+    unit = mock(CompilationUnit.class);
     AnalysisError parseError = mock(AnalysisError.class);
     when(parseError.getErrorCode()).thenReturn(ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
     when(parseError.getSource()).thenReturn(source);
@@ -94,23 +155,28 @@ public class ProjectAnalyzerTest extends TestCase {
     when(resolutionError.getLength()).thenReturn(95);
     when(unit.getResolutionErrors()).thenReturn(new AnalysisError[] {resolutionError});
 
-    AnalysisContext context = mock(AnalysisContext.class);
+    context = mock(AnalysisContext.class);
     LibraryElement library = mock(LibraryElement.class);
     when(context.parse(source)).thenReturn(unit);
     when(context.sourcesToResolve(sources.toArray(new Source[sources.size()]))).thenReturn(sources);
     when(context.getLibraryElement(source)).thenReturn(library);
     when(context.resolve(source, library)).thenReturn(unit);
 
-    Project project = mock(Project.class);
+    project = mock(Project.class);
     when(project.getResourceFor(source)).thenReturn(resource);
 
-    event = mock(SourceDeltaEvent.class);
+    index = mock(Index.class);
+
+    analyzer = new ProjectAnalyzer(new DartIgnoreManager(), index);
+  }
+
+  private SourceDeltaEvent mockSourceEvent() {
+    SourceDeltaEvent event = mock(SourceDeltaEvent.class);
     when(event.getContext()).thenReturn(context);
     when(event.getSource()).thenReturn(source);
     when(event.getResource()).thenReturn(resource);
     when(event.getProject()).thenReturn(project);
-
-    analyzer = new ProjectAnalyzer(new DartIgnoreManager());
+    return event;
   }
 
   private void verifyMarkersCreated() throws CoreException {
@@ -137,5 +203,13 @@ public class ProjectAnalyzerTest extends TestCase {
     verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_END, 102);
 //    verify(resolutionErrorMarker).setAttribute(IMarker.LINE_NUMBER, 22);
 //    verify(resolutionErrorMarker).setAttribute("errorCode", 9);
+  }
+
+  private void verifyNoMarkersCreated() throws CoreException {
+    verify(resource, times(0)).deleteMarkers(
+        DartCore.DART_PROBLEM_MARKER_TYPE,
+        false,
+        IResource.DEPTH_ZERO);
+    verify(resource, times(0)).createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
   }
 }
