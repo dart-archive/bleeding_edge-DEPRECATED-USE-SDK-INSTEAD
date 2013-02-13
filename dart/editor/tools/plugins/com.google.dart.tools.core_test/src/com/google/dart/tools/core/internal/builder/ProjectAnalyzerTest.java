@@ -21,6 +21,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -151,9 +152,10 @@ public class ProjectAnalyzerTest extends TestCase {
     when(resolutionError.getErrorCode()).thenReturn(ResolverErrorCode.LABEL_IN_OUTER_SCOPE);
     when(resolutionError.getSource()).thenReturn(source);
     when(resolutionError.getMessage()).thenReturn(TEST_ERROR_MESSAGE);
-    when(resolutionError.getOffset()).thenReturn(7);
-    when(resolutionError.getLength()).thenReturn(95);
+    when(resolutionError.getOffset()).thenReturn(120);
+    when(resolutionError.getLength()).thenReturn(20);
     when(unit.getResolutionErrors()).thenReturn(new AnalysisError[] {resolutionError});
+    when(unit.getLineInfo()).thenReturn(new LineInfo(new int[] {0, 20, 91}));
 
     context = mock(AnalysisContext.class);
     LibraryElement library = mock(LibraryElement.class);
@@ -189,7 +191,7 @@ public class ProjectAnalyzerTest extends TestCase {
     verify(parseErrorMarker).setAttribute(IMarker.MESSAGE, TEST_ERROR_MESSAGE);
     verify(parseErrorMarker).setAttribute(IMarker.CHAR_START, 7);
     verify(parseErrorMarker).setAttribute(IMarker.CHAR_END, 102);
-//  verify(parseErrorMarker).setAttribute(IMarker.LINE_NUMBER, 22);
+    verify(parseErrorMarker).setAttribute(IMarker.LINE_NUMBER, 1);
 //  verify(parseErrorMarker).setAttribute("errorCode", 9);
 
     verify(resource, times(1)).deleteMarkers(
@@ -199,9 +201,9 @@ public class ProjectAnalyzerTest extends TestCase {
     verify(resource, times(1)).createMarker(DartCore.DART_RESOLUTION_PROBLEM_MARKER_TYPE);
     verify(resolutionErrorMarker).setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
     verify(resolutionErrorMarker).setAttribute(IMarker.MESSAGE, TEST_ERROR_MESSAGE);
-    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_START, 7);
-    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_END, 102);
-//    verify(resolutionErrorMarker).setAttribute(IMarker.LINE_NUMBER, 22);
+    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_START, 120);
+    verify(resolutionErrorMarker).setAttribute(IMarker.CHAR_END, 140);
+    verify(resolutionErrorMarker).setAttribute(IMarker.LINE_NUMBER, 3);
 //    verify(resolutionErrorMarker).setAttribute("errorCode", 9);
   }
 

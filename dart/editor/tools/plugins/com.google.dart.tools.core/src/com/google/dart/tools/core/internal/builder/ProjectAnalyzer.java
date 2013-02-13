@@ -21,6 +21,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -56,7 +57,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
     private final AnalysisContext context;
     private final ArrayList<Source> changedPackageSources = new ArrayList<Source>();
     private final ArrayList<Source> changedSources = new ArrayList<Source>();
-    private final HashMap<IResource, AnalysisError[]> errorMap = new HashMap<IResource, AnalysisError[]>();
+    private final HashMap<IResource, Result> results = new HashMap<IResource, Result>();
 
     ChangeSet(Project project, AnalysisContext context) {
       this.project = project;
@@ -126,7 +127,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
         DartCore.logError("Exception parsing source: " + source, e);
         return;
       }
-      errorMap.put(res, unit.getParsingErrors());
+      results.put(res, new Result(unit, unit.getParsingErrors()));
     }
 
     /**
@@ -188,7 +189,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
         DartCore.logError("Exception resolving source: " + source, e);
         return;
       }
-      errorMap.put(res, unit.getResolutionErrors());
+      results.put(res, new Result(unit, unit.getResolutionErrors()));
       index.indexUnit(unit);
     }
 
@@ -201,12 +202,10 @@ public class ProjectAnalyzer extends DeltaAdapter {
       IWorkspaceRunnable op = new IWorkspaceRunnable() {
         @Override
         public void run(IProgressMonitor monitor) throws CoreException {
-          for (Entry<IResource, AnalysisError[]> entry : errorMap.entrySet()) {
-            IResource resource = entry.getKey();
-            resource.deleteMarkers(markerType, false, IResource.DEPTH_ZERO);
-            showErrors(resource, markerType, entry.getValue());
+          for (Entry<IResource, Result> entry : results.entrySet()) {
+            entry.getValue().showErrors(entry.getKey(), markerType);
           }
-          errorMap.clear();
+          results.clear();
         }
       };
       try {
@@ -215,17 +214,29 @@ public class ProjectAnalyzer extends DeltaAdapter {
         DartCore.logError("Exception translating errors/warnings into markers", e);
       }
     }
+  }
+
+  /**
+   * The result of a parse or resolve operation
+   */
+  private class Result {
+    private final LineInfo lineInfo;
+    private final AnalysisError[] errors;
+
+    public Result(CompilationUnit unit, AnalysisError[] errors) {
+      this.lineInfo = unit.getLineInfo();
+      this.errors = errors;
+    }
 
     /**
-     * Add markers on the specified resource representing the specified analysis errors
+     * Set markers on the specified resource to represent the cached analysis errors
      * 
      * @param resource the resource (not {@code null})
      * @param markerType the type of marker to be created (not {@code null})
-     * @param errorsToShow the errors to be shown (not {@code null}, contains no {@code null}s)
      */
-    void showErrors(IResource resource, String markerType, AnalysisError[] errorsToShow)
-        throws CoreException {
-      for (AnalysisError error : errorsToShow) {
+    public void showErrors(IResource resource, String markerType) throws CoreException {
+      resource.deleteMarkers(markerType, false, IResource.DEPTH_ZERO);
+      for (AnalysisError error : errors) {
         int severity;
         ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
         if (errorSeverity == ErrorSeverity.ERROR) {
@@ -238,14 +249,17 @@ public class ProjectAnalyzer extends DeltaAdapter {
           continue;
         }
 
+        int lineNum = lineInfo.getLocation(error.getOffset()).getLineNumber();
+
         IMarker marker = resource.createMarker(markerType);
         marker.setAttribute(IMarker.SEVERITY, severity);
         marker.setAttribute(IMarker.CHAR_START, error.getOffset());
         marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
-//        marker.setAttribute(IMarker.LINE_NUMBER, error.getLineNumber());
+        marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
 //        marker.setAttribute("errorCode", error.getErrorCode());
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
       }
+
     }
   }
 
