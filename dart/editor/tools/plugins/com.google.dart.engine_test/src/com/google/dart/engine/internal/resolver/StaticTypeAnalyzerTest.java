@@ -511,31 +511,50 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
   public void test_visitInstanceCreationExpression_named() throws Exception {
     // new C.m()
-    ClassElement type = classElement("C");
+    ClassElement classElement = classElement("C");
     String constructorName = "m";
     ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(constructorName);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setReturnType(type.getType());
+    constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
     InstanceCreationExpression node = instanceCreationExpression(
         null,
-        typeName(type),
+        typeName(classElement),
         identifier(constructorName));
     node.setElement(constructor);
-    assertSame(type.getType(), analyze(node));
+    assertSame(classElement.getType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitInstanceCreationExpression_typeParameters() throws Exception {
+    // new C<I>()
+    ClassElement elementC = classElement("C", "E");
+    ClassElement elementI = classElement("I");
+    ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(null);
+    FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
+    constructorType.setReturnType(elementC.getType());
+    constructor.setType(constructorType);
+    InstanceCreationExpression node = instanceCreationExpression(
+        null,
+        typeName(elementC, typeName(elementI)));
+    node.setElement(constructor);
+    InterfaceType interfaceType = (InterfaceType) analyze(node);
+    Type[] typeArgs = interfaceType.getTypeArguments();
+    assertEquals(1, typeArgs.length);
+    assertEquals(elementI.getType(), typeArgs[0]);
     listener.assertNoErrors();
   }
 
   public void test_visitInstanceCreationExpression_unnamed() throws Exception {
     // new C()
-    ClassElement type = classElement("C");
+    ClassElement classElement = classElement("C");
     ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(null);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
-    constructorType.setReturnType(type.getType());
+    constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
-    InstanceCreationExpression node = instanceCreationExpression(null, typeName(type));
+    InstanceCreationExpression node = instanceCreationExpression(null, typeName(classElement));
     node.setElement(constructor);
-    assertSame(type.getType(), analyze(node));
+    assertSame(classElement.getType(), analyze(node));
     listener.assertNoErrors();
   }
 

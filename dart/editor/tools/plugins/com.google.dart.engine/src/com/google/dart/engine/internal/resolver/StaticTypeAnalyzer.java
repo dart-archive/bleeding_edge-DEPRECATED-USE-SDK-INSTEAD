@@ -383,7 +383,31 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    return recordReturnType(node, node.getElement());
+    // TODO(jwren) Revisit general case of needing to make substitutions before recording the type.
+    // See StaticTypeAnalyzerTest#test_visitInstanceCreationExpression_typeParameters
+    Element element = node.getElement();
+    if (element != null) {
+      FunctionTypeImpl type = (FunctionTypeImpl) ((ExecutableElement) element).getType();
+      if (type != null) {
+        Type returnType = type.getReturnType();
+        if (returnType instanceof InterfaceType) {
+          InterfaceType interfaceReturnType = (InterfaceType) returnType;
+          // now that we have the return type that we can call substitute on, we need to get the Type[]
+          // to call substitute() with
+          TypeArgumentList constructorTypeArgumentList = node.getConstructorName().getType().getTypeArguments();
+          if (constructorTypeArgumentList != null) {
+            NodeList<TypeName> typeNameList = constructorTypeArgumentList.getArguments();
+            TypeName[] typeNames = typeNameList.toArray(new TypeName[typeNameList.size()]);
+            Type[] types = new Type[typeNames.length];
+            for (int i = 0; i < types.length; i++) {
+              types[i] = typeNames[i].getType();
+            }
+            return recordType(node, interfaceReturnType.substitute(types));
+          }
+        }
+      }
+    }
+    return recordReturnType(node, element);
   }
 
   /**

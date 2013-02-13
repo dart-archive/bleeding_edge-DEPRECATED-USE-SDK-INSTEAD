@@ -944,6 +944,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
     assertSource("a[i]", indexExpression(identifier("a"), identifier("i")));
   }
 
+  public void test_visitInstanceCreationExpression_const() {
+    assertSource("const C()", instanceCreationExpression(Keyword.CONST, typeName("C")));
+  }
+
   public void test_visitInstanceCreationExpression_named() {
     assertSource("new C.c()", instanceCreationExpression(Keyword.NEW, typeName("C"), "c"));
   }
