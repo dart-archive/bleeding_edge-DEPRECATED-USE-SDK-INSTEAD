@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,10 +14,14 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.engine.sdk.SdkLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileSystem;
 import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.model.IWorkbenchAdapter;
@@ -87,38 +91,37 @@ class NewDartSdkNode extends DartSdkNode {
     if (libraries == null) {
       List<DartLibraryNode> libs = new ArrayList<DartLibraryNode>();
 
-      @SuppressWarnings("unused")
-      File file;
+      File libFile;
 
       if (!DartSdkManager.getManager().hasSdk()) {
-        file = null;
+        libFile = null;
       } else {
+        SdkLibrary[] systemLibraries = DartSdkManager.getManager().getNewSdk().getSdkLibraries();
+        //TODO (pquitslund): fix how we're getting the SDK directory
+        File sdkDirectory = DartSdkManager.getManager().getSdk().getDirectory();
+        IFileSystem fileSystem = EFS.getLocalFileSystem();
+        for (SdkLibrary systemLibrary : systemLibraries) {
+          if (systemLibrary.isDocumented()) {
+            libFile = new File(sdkDirectory, "lib"); //$NON-NLS-1$
+            String pathToLib = systemLibrary.getPath();
+            if (pathToLib.indexOf("/") != -1) { //$NON-NLS-1$
+              libFile = new File(libFile, new Path(pathToLib).removeLastSegments(1).toOSString());
+            }
+            if (!systemLibrary.isShared()) {
+              libs.add(new DartLibraryNode(
+                  this,
+                  fileSystem.fromLocalFile(libFile),
+                  systemLibrary.getShortName(),
+                  systemLibrary.getCategory().toLowerCase()));
+            } else {
+              libs.add(new DartLibraryNode(
+                  this,
+                  fileSystem.fromLocalFile(libFile),
+                  systemLibrary.getShortName()));
+            }
 
-//TODO (pquitslund): add system libraries        
-
-//        Collection<SystemLibrary> systemLibraries = PackageLibraryManagerProvider.getAnyLibraryManager().getSystemLibraries();
-//        for (SystemLibrary systemLibrary : systemLibraries) {
-//          if (systemLibrary.isDocumented()) {
-//            file = systemLibrary.getLibraryDir();
-//            String pathToLib = systemLibrary.getPathToLib();
-//            if (pathToLib.indexOf("/") != -1) {
-//              file = new File(file, new Path(pathToLib).removeLastSegments(1).toOSString());
-//            }
-//            if (!systemLibrary.isShared()) {
-//              libs.add(new DartLibraryNode(
-//                  this,
-//                  EFS.getLocalFileSystem().fromLocalFile(file),
-//                  systemLibrary.getShortName(),
-//                  systemLibrary.getCategory().toLowerCase()));
-//            } else {
-//              libs.add(new DartLibraryNode(
-//                  this,
-//                  EFS.getLocalFileSystem().fromLocalFile(file),
-//                  systemLibrary.getShortName()));
-//            }
-//
-//          }
-//        }
+          }
+        }
 
       }
 
