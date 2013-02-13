@@ -50,7 +50,7 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 public class DependencyDetailsPage extends AbstractFormPart implements IDetailsPage {
 
   private static String EMPTY_STRING = "";
-  private static String[] sourceList = {"git", "pub.dartlang.org"};
+  private static String[] sourceList = {"git", "local", "pub.dartlang.org"};
   private static String VERSION_CONTSTRAINTS_KEY = "versionConstraints";
 
   private DependencyObject input;
@@ -142,17 +142,23 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     sourceCombo.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
-        if (sourceCombo.getSelectionIndex() == 0) {
-          updateModelandSourceFields(true, Type.GIT);
-        } else {
-          updateModelandSourceFields(false, Type.HOSTED);
+        int index = sourceCombo.getSelectionIndex();
+        switch (index) {
+          case 0:
+            updateModelandSourceFields(Type.GIT);
+            break;
+          case 1:
+            updateModelandSourceFields(Type.LOCAL);
+            break;
+          case 2:
+            updateModelandSourceFields(Type.HOSTED);
         }
         setTextDirty();
       }
     });
 
     toolkit.createLabel(client, "");
-    pathLabel = toolkit.createLabel(client, "Git path:");
+    pathLabel = toolkit.createLabel(client, "Path:");
     pathText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
     pathText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
     pathText.addModifyListener(new ModifyListener() {
@@ -222,26 +228,37 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       versionText.setText(input.getVersion() != null ? input.getVersion() : EMPTY_STRING);
       if (input.getType().equals(Type.GIT)) {
         sourceCombo.select(0);
-        updateModelandSourceFields(true, Type.GIT);
+        updateModelandSourceFields(Type.GIT);
         pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
         gitrefText.setText(input.getGitRef() != null ? input.getGitRef() : EMPTY_STRING);
-      } else if (input.getType().equals(Type.HOSTED)) {
+      } else if (input.getType().equals(Type.LOCAL)) {
         sourceCombo.select(1);
+        updateModelandSourceFields(Type.LOCAL);
+        pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
+      } else {
+        sourceCombo.select(2);
         pathText.setText(EMPTY_STRING);
         gitrefText.setText(EMPTY_STRING);
-        updateModelandSourceFields(false, Type.HOSTED);
+        updateModelandSourceFields(Type.HOSTED);
       }
     }
   }
 
-  private void updateModelandSourceFields(boolean value, Type type) {
+  private void updateModelandSourceFields(Type type) {
     if (input != null) {
       input.setType(type);
     }
-    pathLabel.setVisible(value);
-    pathText.setVisible(value);
-    gitrefLabel.setVisible(value);
-    gitrefText.setVisible(value);
+    boolean pathFields = false;
+    boolean gitRefFields = false;
+    if (type.equals(Type.GIT)) {
+      pathFields = gitRefFields = true;
+    } else if (type.equals(Type.LOCAL)) {
+      pathFields = true;
+    }
+    pathLabel.setVisible(pathFields);
+    pathText.setVisible(pathFields);
+    gitrefLabel.setVisible(gitRefFields);
+    gitrefText.setVisible(gitRefFields);
   }
 
   private boolean validateVersionConstriants(String version) {
