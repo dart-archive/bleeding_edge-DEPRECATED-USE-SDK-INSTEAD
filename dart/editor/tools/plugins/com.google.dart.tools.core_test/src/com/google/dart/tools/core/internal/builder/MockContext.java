@@ -13,6 +13,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
@@ -144,6 +145,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public SourceKind getKnownKindOf(Source source) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     return null;
   }
@@ -151,6 +157,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public LibraryElement getLibraryElementOrNull(Source source) {
     return null;
+  }
+
+  @Override
+  public SourceKind getOrComputeKindOf(Source source) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

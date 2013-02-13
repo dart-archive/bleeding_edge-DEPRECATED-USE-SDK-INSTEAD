@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
@@ -33,6 +35,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.SourceKind;
 
 import java.io.File;
 import java.nio.CharBuffer;
@@ -86,6 +89,16 @@ public class AnalysisContextImpl implements AnalysisContext {
    * The object used to synchronize access to all of the caches.
    */
   private Object cacheLock = new Object();
+
+  /**
+   * The suffix used by sources that contain Dart.
+   */
+  private static final String DART_SUFFIX = ".dart";
+
+  /**
+   * The suffix used by sources that contain HTML.
+   */
+  private static final String HTML_SUFFIX = ".html";
 
   /**
    * Initialize a newly created analysis context.
@@ -171,6 +184,26 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public SourceKind getKnownKindOf(Source source) {
+    if (source.getFullName().endsWith(HTML_SUFFIX)) {
+      return SourceKind.HTML;
+    }
+    if (!source.getFullName().endsWith(DART_SUFFIX)) {
+      return SourceKind.UNKNOWN;
+    }
+    synchronized (cacheLock) {
+      if (libraryElementCache.containsKey(source)) {
+        return SourceKind.LIBRARY;
+      }
+      CompilationUnit unit = parseCache.get(source);
+      if (unit != null && hasPartOfDirective(unit)) {
+        return SourceKind.PART;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     synchronized (cacheLock) {
       LibraryElement element = libraryElementCache.get(source);
@@ -197,10 +230,32 @@ public class AnalysisContextImpl implements AnalysisContext {
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
    */
+  @Override
   public LibraryElement getLibraryElementOrNull(Source source) {
     synchronized (cacheLock) {
       return libraryElementCache.get(source);
     }
+  }
+
+  @Override
+  public SourceKind getOrComputeKindOf(Source source) {
+    SourceKind kind = getKnownKindOf(source);
+    if (kind != null) {
+      return kind;
+    }
+    try {
+      if (hasPartOfDirective(parse(source))) {
+        return SourceKind.PART;
+      }
+    } catch (AnalysisException exception) {
+      return SourceKind.UNKNOWN;
+    }
+    return SourceKind.LIBRARY;
+  }
+
+  @Override
+  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -254,11 +309,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
-  }
-
-  @Override
-  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -400,5 +450,20 @@ public class AnalysisContextImpl implements AnalysisContext {
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
     // TODO (danrubel): Replace this sub implementation
     return Arrays.asList(changedSources);
+  }
+
+  /**
+   * Return {@code true} if the given compilation unit has a part-of directive.
+   * 
+   * @param unit the compilation unit being tested
+   * @return {@code true} if the compilation unit has a part-of directive
+   */
+  private boolean hasPartOfDirective(CompilationUnit unit) {
+    for (Directive directive : unit.getDirectives()) {
+      if (directive instanceof PartOfDirective) {
+        return true;
+      }
+    }
+    return false;
   }
 }

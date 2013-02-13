@@ -24,6 +24,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.SourceKind;
 
 import java.util.Collection;
 
@@ -110,6 +111,16 @@ public interface AnalysisContext {
   public HtmlElement getHtmlElement(Source source);
 
   /**
+   * Return the kind of the given source if it is already known, or {@code null} if the kind is not
+   * already known.
+   * 
+   * @param source the source whose kind is to be returned
+   * @return the kind of the given source
+   * @see #getOrComputeKindOf(Source)
+   */
+  public SourceKind getKnownKindOf(Source source);
+
+  /**
    * Return the element model corresponding to the library defined by the given source. If the
    * element model does not yet exist it will be created. The process of creating an element model
    * for a library can long-running, depending on the size of the library and the number of
@@ -130,6 +141,15 @@ public interface AnalysisContext {
    * @return the element model corresponding to the library defined by the given source
    */
   public LibraryElement getLibraryElementOrNull(Source source);
+
+  /**
+   * Return the kind of the given source, computing it's kind if it is not already known.
+   * 
+   * @param source the source whose kind is to be returned
+   * @return the kind of the given source
+   * @see #getKnownKindOf(Source)
+   */
+  public SourceKind getOrComputeKindOf(Source source);
 
   /**
    * Return an array containing all of the parsing errors associated with the given source.
