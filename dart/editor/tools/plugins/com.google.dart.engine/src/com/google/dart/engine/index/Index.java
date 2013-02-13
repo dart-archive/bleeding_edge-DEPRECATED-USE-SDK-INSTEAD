@@ -65,4 +65,9 @@ public interface Index {
    * Should be called in separate {@link Thread} to process request in this {@link Index}.
    */
   void run();
+
+  /**
+   * Should be called to stop process running {@link #run()}, so stop processing requests.
+   */
+  void stop();
 }

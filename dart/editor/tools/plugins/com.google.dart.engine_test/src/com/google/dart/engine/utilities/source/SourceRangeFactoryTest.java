@@ -64,6 +64,13 @@ public class SourceRangeFactoryTest extends TestCase {
     assertRangeEnd(range, 10 + 1, 20 + 2);
   }
 
+  public void test_rangeEndEnd_NR() throws Exception {
+    ASTNode a = mockNode(10, 1);
+    SourceRange b = new SourceRange(20, 2);
+    SourceRange range = SourceRangeFactory.rangeEndEnd(a, b);
+    assertRangeEnd(range, 10 + 1, 20 + 2);
+  }
+
   public void test_rangeEndEnd_RR() throws Exception {
     SourceRange a = new SourceRange(10, 1);
     SourceRange b = new SourceRange(20, 2);

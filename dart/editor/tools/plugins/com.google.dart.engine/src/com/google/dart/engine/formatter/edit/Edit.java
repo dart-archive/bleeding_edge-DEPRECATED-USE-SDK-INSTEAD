@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.formatter.edit;
 
+import com.google.dart.engine.utilities.source.SourceRange;
+
 /**
  * Describes a text edit. Edits are executed by applying them to a document via an
  * {@link EditOperation}.
@@ -56,6 +58,18 @@ public class Edit {
   public Edit(int offset, int length, String replacement) {
     this.offset = offset;
     this.length = length;
+    this.replacement = replacement;
+  }
+
+  /**
+   * Create an edit.
+   * 
+   * @param range the {@link SourceRange} to replace
+   * @param replacement the replacement text
+   */
+  public Edit(SourceRange range, String replacement) {
+    this.offset = range.getOffset();
+    this.length = range.getLength();
     this.replacement = replacement;
   }
 

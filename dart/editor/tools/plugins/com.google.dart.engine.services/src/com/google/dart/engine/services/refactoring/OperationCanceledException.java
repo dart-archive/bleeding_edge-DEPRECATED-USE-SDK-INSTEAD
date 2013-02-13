@@ -11,16 +11,20 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.correction;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+package com.google.dart.engine.services.refactoring;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionProcessorsTest.class);
-    suite.addTestSuite(CorrectionProposalTest.class);
-    return suite;
+/**
+ * This exception is thrown to blow out of a long-running method when the user cancels it.
+ */
+public final class OperationCanceledException extends RuntimeException {
+  private static final long serialVersionUID = 1L;
+
+  public OperationCanceledException() {
+    super();
+  }
+
+  public OperationCanceledException(String message) {
+    super(message);
   }
 }

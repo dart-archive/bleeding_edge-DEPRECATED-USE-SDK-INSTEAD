@@ -11,16 +11,20 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.correction;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+package com.google.dart.engine.services.refactoring;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionProcessorsTest.class);
-    suite.addTestSuite(CorrectionProposalTest.class);
-    return suite;
+import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+
+public class NullProgressMonitorTest extends AbstractDartTest {
+  public void test() throws Exception {
+    ProgressMonitor pm = new NullProgressMonitor();
+    pm.beginTask("", 0);
+    pm.worked(0);
+    pm.internalWorked(0);
+    pm.done();
+    pm.subTask("");
+    pm.setCanceled();
+    assertFalse(pm.isCanceled());
   }
 }

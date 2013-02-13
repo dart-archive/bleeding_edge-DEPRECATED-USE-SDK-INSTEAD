@@ -48,10 +48,10 @@ import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
-import com.google.dart.engine.services.correction.SourceChange;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -1110,7 +1110,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       proposal.setLinkedPositions(linkedPositions);
       proposal.setLinkedPositionProposals(linkedPositionProposals);
       // add change
-      SourceChange change = new SourceChange(source);
+      SourceChange change = new SourceChange(name, source);
       for (Edit edit : textEdits) {
         change.addEdit(edit);
       }

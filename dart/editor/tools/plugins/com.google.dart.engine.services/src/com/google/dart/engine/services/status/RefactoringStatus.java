@@ -22,6 +22,24 @@ import java.util.List;
  */
 public class RefactoringStatus {
   /**
+   * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#ERROR}.
+   */
+  public static RefactoringStatus createErrorStatus(String msg) {
+    RefactoringStatus status = new RefactoringStatus();
+    status.addError(msg);
+    return status;
+  }
+
+  /**
+   * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#WARNING}.
+   */
+  public static RefactoringStatus createWarningStatus(String msg) {
+    RefactoringStatus status = new RefactoringStatus();
+    status.addWarning(msg);
+    return status;
+  }
+
+  /**
    * @return the {@link Enum} value with maximal ordinal.
    */
   private static <T extends Enum<T>> T max(T a, T b) {
@@ -77,6 +95,13 @@ public class RefactoringStatus {
   }
 
   /**
+   * @return the {@link RefactoringStatusEntry}s.
+   */
+  public List<RefactoringStatusEntry> getEntries() {
+    return entries;
+  }
+
+  /**
    * @return the RefactoringStatusEntry with the highest severity, or <code>null</code> if no
    *         entries are present.
    */
@@ -103,6 +128,13 @@ public class RefactoringStatus {
       return null;
     }
     return entry.getMessage();
+  }
+
+  /**
+   * @return the current severity of the {@link RefactoringStatus}.
+   */
+  public RefactoringStatusSeverity getSeverity() {
+    return severity;
   }
 
   /**
@@ -147,6 +179,20 @@ public class RefactoringStatus {
    */
   public boolean isOK() {
     return severity == RefactoringStatusSeverity.OK;
+  }
+
+  /**
+   * Merges the receiver and the parameter statuses. The resulting list of entries in the receiver
+   * will contain entries from both. The resulting severity in the receiver will be the more severe
+   * of its current severity and the parameter's severity. Merging with <code>null</code> is allowed
+   * - it has no effect.
+   */
+  public void merge(RefactoringStatus other) {
+    if (other == null) {
+      return;
+    }
+    entries.addAll(other.entries);
+    severity = max(severity, other.getSeverity());
   }
 
   @Override

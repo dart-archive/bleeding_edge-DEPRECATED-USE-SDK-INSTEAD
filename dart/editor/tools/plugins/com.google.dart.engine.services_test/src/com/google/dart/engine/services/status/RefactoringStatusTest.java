@@ -19,17 +19,26 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import java.util.List;
+
 public class RefactoringStatusTest extends AbstractDartTest {
 
   public void test_addError() throws Exception {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
+    // initial state
+    assertSame(RefactoringStatusSeverity.OK, refactoringStatus.getSeverity());
     // add ERROR
     refactoringStatus.addError("msg");
+    assertSame(RefactoringStatusSeverity.ERROR, refactoringStatus.getSeverity());
     assertFalse(refactoringStatus.isOK());
     assertFalse(refactoringStatus.hasFatalError());
     assertTrue(refactoringStatus.hasError());
     assertTrue(refactoringStatus.hasWarning());
     assertTrue(refactoringStatus.hasInfo());
+    // entries
+    List<RefactoringStatusEntry> entries = refactoringStatus.getEntries();
+    assertThat(entries).hasSize(1);
+    assertEquals("msg", entries.get(0).getMessage());
     // toString()
     assertEquals("<ERROR\n\tERROR: msg\n>", refactoringStatus.toString());
   }
@@ -98,6 +107,41 @@ public class RefactoringStatusTest extends AbstractDartTest {
     }
     // get message
     assertEquals("msgFatalError", refactoringStatus.getMessage());
+  }
+
+  public void test_merge_Error_withWarning() throws Exception {
+    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    refactoringStatus.addError("err");
+    assertSame(RefactoringStatusSeverity.ERROR, refactoringStatus.getSeverity());
+    // merge with OK
+    {
+      RefactoringStatus other = new RefactoringStatus();
+      other.addWarning("warn");
+      refactoringStatus.merge(other);
+    }
+    assertSame(RefactoringStatusSeverity.ERROR, refactoringStatus.getSeverity());
+  }
+
+  public void test_merge_Warning_null() throws Exception {
+    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    refactoringStatus.addWarning("warn");
+    assertSame(RefactoringStatusSeverity.WARNING, refactoringStatus.getSeverity());
+    // merge with "null"
+    refactoringStatus.merge(null);
+    assertSame(RefactoringStatusSeverity.WARNING, refactoringStatus.getSeverity());
+  }
+
+  public void test_merge_Warning_withError() throws Exception {
+    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    refactoringStatus.addWarning("warn");
+    assertSame(RefactoringStatusSeverity.WARNING, refactoringStatus.getSeverity());
+    // merge with ERROR
+    {
+      RefactoringStatus other = new RefactoringStatus();
+      other.addError("err");
+      refactoringStatus.merge(other);
+    }
+    assertSame(RefactoringStatusSeverity.ERROR, refactoringStatus.getSeverity());
   }
 
   public void test_new() throws Exception {

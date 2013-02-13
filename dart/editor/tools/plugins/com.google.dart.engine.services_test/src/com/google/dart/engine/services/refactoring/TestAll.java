@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.correction;
+package com.google.dart.engine.services.refactoring;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,8 +19,11 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionProcessorsTest.class);
-    suite.addTestSuite(CorrectionProposalTest.class);
+    suite.addTestSuite(OperationCancelledExceptionTest.class);
+    suite.addTestSuite(NullProgressMonitorTest.class);
+    suite.addTestSuite(SubProgressMonitorTest.class);
+    suite.addTestSuite(RefactoringTest.class);
+    suite.addTestSuite(RefactoringFactoryTest.class);
     return suite;
   }
 }

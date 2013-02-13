@@ -95,6 +95,11 @@ public class ScanTimings extends TestCase {
     public void run() {
       // ignored
     }
+
+    @Override
+    public void stop() {
+      // ignored
+    }
   }
 
   private int fileCount;

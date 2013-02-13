@@ -79,4 +79,9 @@ public class IndexImplTest extends EngineTestCase {
     index.run();
     verify(processor).run();
   }
+
+  public void test_stop() throws Exception {
+    index.stop();
+    verify(processor).stop(false);
+  }
 }

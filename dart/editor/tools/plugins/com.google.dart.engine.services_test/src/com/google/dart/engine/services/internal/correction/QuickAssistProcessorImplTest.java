@@ -16,10 +16,10 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionProcessors;
 import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.engine.services.correction.QuickAssistProcessor;
-import com.google.dart.engine.services.correction.SourceChange;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -976,20 +976,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assertSame(testSource, change.getSource());
     // prepare edits
     List<Edit> edits = change.getEdits();
-    String result = CorrectionUtils.applyReplaceEdits(testCode, edits);
-//    Collections.sort(edits, new Comparator<Edit>() {
-//      @Override
-//      public int compare(Edit o1, Edit o2) {
-//        return o2.offset - o1.offset;
-//      }
-//    });
-//    // apply edits
-//    String result = testCode;
-//    for (Edit edit : edits) {
-//      result = result.substring(0, edit.offset) + edit.replacement
-//          + result.substring(edit.offset + edit.length);
-//    }
-    return result;
+    return CorrectionUtils.applyReplaceEdits(testCode, edits);
   }
 
   private void assert_addTypeAnnotation(String initialSource, String offsetPattern,

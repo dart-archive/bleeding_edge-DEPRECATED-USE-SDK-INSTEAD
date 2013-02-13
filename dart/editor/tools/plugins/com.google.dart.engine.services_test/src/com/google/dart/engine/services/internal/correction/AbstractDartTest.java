@@ -18,9 +18,14 @@ import com.google.common.base.Joiner;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.Source;
@@ -36,6 +41,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AbstractDartTest extends TestCase {
@@ -69,7 +75,7 @@ public class AbstractDartTest extends TestCase {
     // initialize AnslysisContext
     if (ANALYSIS_CONTEXT == null) {
       DartSdk defaultSdk = DartSdk.getDefaultSdk();
-      ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();;
+      ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
       ANALYSIS_CONTEXT.setSourceFactory(new SourceFactory(new DartUriResolver(defaultSdk)));
       // use single Source
       SOURCE = mock(Source.class);
@@ -86,7 +92,10 @@ public class AbstractDartTest extends TestCase {
     //
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
     //
-    return ANALYSIS_CONTEXT.resolve(SOURCE, library);
+    CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolve(SOURCE, library);
+    libraryUnit.setElement(library.getDefiningCompilationUnit());
+    fixEnclosingOfTopLevelElements(libraryUnit);
+    return libraryUnit;
     // parse
 //    CompilationUnit compilationUnit = ParserTestCase.parseCompilationUnit(code);
 //    // set CompilationUnitElement mock with Source mock
@@ -104,6 +113,17 @@ public class AbstractDartTest extends TestCase {
     return Joiner.on("\n").join(lines);
   }
 
+  // TODO(scheglov) remove this after Resolver fix
+  private static void fixEnclosingOfTopLevelElements(CompilationUnit unit) throws Exception {
+    CompilationUnitElement unitElement = unit.getElement();
+    Method method = ElementImpl.class.getDeclaredMethod("setEnclosingElement", ElementImpl.class);
+    method.setAccessible(true);
+    FunctionElement[] functions = unitElement.getFunctions();
+    for (FunctionElement main : functions) {
+      method.invoke(main, unitElement);
+    }
+  }
+
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
@@ -114,6 +134,14 @@ public class AbstractDartTest extends TestCase {
    */
   protected final int findEnd(String search) {
     return findOffset(search) + search.length();
+  }
+
+  /**
+   * @return the {@link Element} of the {@link SimpleIdentifier} at the given search pattern.
+   */
+  @SuppressWarnings("unchecked")
+  protected final <T extends Element> T findIdentifierElement(String search) {
+    return (T) findTestNode(search, SimpleIdentifier.class).getElement();
   }
 
   /**

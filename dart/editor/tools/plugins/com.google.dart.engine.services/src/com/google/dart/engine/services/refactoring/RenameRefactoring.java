@@ -11,16 +11,17 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.correction;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+package com.google.dart.engine.services.refactoring;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionProcessorsTest.class);
-    suite.addTestSuite(CorrectionProposalTest.class);
-    return suite;
-  }
+import com.google.dart.engine.element.Element;
+
+/**
+ * Abstract {@link Refactoring} to rename some {@link Element}.
+ */
+public abstract class RenameRefactoring extends Refactoring {
+  /**
+   * Sets the new name for the {@link Element}.
+   */
+  public abstract void setNewName(String newName);
 }

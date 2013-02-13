@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.engine.services.correction;
+package com.google.dart.engine.services.change;
 
 import com.google.common.collect.Lists;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -21,13 +21,14 @@ import com.google.dart.engine.source.Source;
 import java.util.List;
 
 /**
- * Change to apply to single {@link Source}.
+ * {@link Change} to apply to single {@link Source}.
  */
-public class SourceChange {
+public class SourceChange extends Change {
   private final Source source;
   private final List<Edit> edits = Lists.newArrayList();
 
-  public SourceChange(Source source) {
+  public SourceChange(String name, Source source) {
+    super(name);
     this.source = source;
   }
 

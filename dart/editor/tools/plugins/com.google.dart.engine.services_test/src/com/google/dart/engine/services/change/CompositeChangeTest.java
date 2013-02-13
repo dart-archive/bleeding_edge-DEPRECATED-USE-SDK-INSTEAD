@@ -12,33 +12,27 @@
  * the License.
  */
 
-package com.google.dart.engine.services.correction;
-
-import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.source.Source;
+package com.google.dart.engine.services.change;
 
 import junit.framework.TestCase;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class SourceChangeTest extends TestCase {
-  private final Source source = mock(Source.class);
-
+public class CompositeChangeTest extends TestCase {
   public void test_access() throws Exception {
-    SourceChange change = new SourceChange(source);
-    assertSame(source, change.getSource());
+    CompositeChange change = new CompositeChange("myName");
+    assertEquals("myName", change.getName());
   }
 
-  public void test_edits() throws Exception {
-    Edit editA = mock(Edit.class);
-    Edit editB = mock(Edit.class);
+  public void test_children() throws Exception {
+    Change changeA = mock(Change.class);
+    Change changeB = mock(Change.class);
     // empty
-    SourceChange change = new SourceChange(source);
-    assertThat(change.getEdits()).isEmpty();
+    CompositeChange change = new CompositeChange("myName");
+    assertThat(change.getChildren()).isEmpty();
     // add edits
-    change.addEdit(editA);
-    change.addEdit(editB);
-    assertThat(change.getEdits()).containsExactly(editA, editB);
+    change.add(changeA, changeB);
+    assertThat(change.getChildren()).containsExactly(changeA, changeB);
   }
 }

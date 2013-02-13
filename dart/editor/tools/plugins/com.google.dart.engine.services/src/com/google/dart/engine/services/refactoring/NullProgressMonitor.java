@@ -11,16 +11,39 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.correction;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+package com.google.dart.engine.services.refactoring;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(CorrectionProcessorsTest.class);
-    suite.addTestSuite(CorrectionProposalTest.class);
-    return suite;
+/**
+ * {@link ProgressMonitor} which ignores interactions.
+ */
+public class NullProgressMonitor implements ProgressMonitor {
+  @Override
+  public void beginTask(String name, int totalWork) {
+  }
+
+  @Override
+  public void done() {
+  }
+
+  @Override
+  public void internalWorked(double work) {
+  }
+
+  @Override
+  public boolean isCanceled() {
+    return false;
+  }
+
+  @Override
+  public void setCanceled() {
+  }
+
+  @Override
+  public void subTask(String name) {
+  }
+
+  @Override
+  public void worked(int work) {
   }
 }

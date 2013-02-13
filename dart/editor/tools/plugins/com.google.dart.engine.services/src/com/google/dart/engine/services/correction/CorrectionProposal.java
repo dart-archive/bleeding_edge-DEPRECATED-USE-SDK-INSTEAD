@@ -16,6 +16,7 @@ package com.google.dart.engine.services.correction;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.LinkedPositionProposal;
 import com.google.dart.engine.utilities.source.SourceRange;
 

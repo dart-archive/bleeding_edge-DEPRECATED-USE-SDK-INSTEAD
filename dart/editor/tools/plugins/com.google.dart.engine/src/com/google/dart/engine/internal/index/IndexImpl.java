@@ -60,4 +60,9 @@ public class IndexImpl implements Index {
   public void run() {
     processor.run();
   }
+
+  @Override
+  public void stop() {
+    processor.stop(false);
+  }
 }
