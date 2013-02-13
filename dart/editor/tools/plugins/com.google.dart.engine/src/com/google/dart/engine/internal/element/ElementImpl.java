@@ -19,6 +19,7 @@ import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
 
 import java.util.EnumSet;
 
@@ -138,6 +139,14 @@ public abstract class ElementImpl implements Element {
   @Override
   public int getNameOffset() {
     return nameOffset;
+  }
+
+  @Override
+  public Source getSource() {
+    if (enclosingElement == null) {
+      return null;
+    }
+    return enclosingElement.getSource();
   }
 
   @Override

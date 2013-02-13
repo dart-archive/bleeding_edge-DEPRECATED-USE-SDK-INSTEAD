@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.element;
 
-import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code HtmlElement} defines the behavior of elements representing an HTML file.
@@ -27,11 +26,4 @@ public interface HtmlElement extends Element {
    * @return the libraries referenced from script tags in the HTML file
    */
   public LibraryElement[] getLibraries();
-
-  /**
-   * Return the source that corresponds to this HTML file.
-   * 
-   * @return the source that corresponds to this HTML file
-   */
-  public Source getSource();
 }

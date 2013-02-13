@@ -20,6 +20,7 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
+import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
 
@@ -104,6 +105,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @Override
   public int getNameOffset() {
     return -1;
+  }
+
+  @Override
+  public Source getSource() {
+    return null;
   }
 
   @Override

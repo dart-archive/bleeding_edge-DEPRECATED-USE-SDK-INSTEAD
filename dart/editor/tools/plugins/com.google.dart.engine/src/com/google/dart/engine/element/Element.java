@@ -14,6 +14,7 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code Element} defines the behavior common to all of the elements in the element
@@ -106,6 +107,14 @@ public interface Element {
    * @return the offset of the name of this element
    */
   public int getNameOffset();
+
+  /**
+   * Return the source that contains this element, or {@code null} if this element is not contained
+   * in a source.
+   * 
+   * @return the source that contains this element
+   */
+  public Source getSource();
 
   /**
    * Return {@code true} if this element, assuming that it is within scope, is accessible to code in

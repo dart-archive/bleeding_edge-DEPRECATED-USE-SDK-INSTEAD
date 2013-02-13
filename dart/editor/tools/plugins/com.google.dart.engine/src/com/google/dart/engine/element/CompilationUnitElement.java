@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.element;
 
-import com.google.dart.engine.source.Source;
 
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
@@ -42,13 +41,6 @@ public interface CompilationUnitElement extends Element {
    * @return the top-level functions contained in this compilation unit
    */
   public FunctionElement[] getFunctions();
-
-  /**
-   * Return the source that corresponds to this compilation unit.
-   * 
-   * @return the source that corresponds to this compilation unit
-   */
-  public Source getSource();
 
   /**
    * Return an array containing all of the type aliases contained in this compilation unit.

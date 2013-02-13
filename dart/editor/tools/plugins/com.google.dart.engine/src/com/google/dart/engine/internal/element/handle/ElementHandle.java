@@ -31,6 +31,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.source.Source;
 
 import java.lang.ref.WeakReference;
 
@@ -175,6 +176,11 @@ public abstract class ElementHandle implements Element {
   @Override
   public int getNameOffset() {
     return getActualElement().getNameOffset();
+  }
+
+  @Override
+  public Source getSource() {
+    return getActualElement().getSource();
   }
 
   @Override
