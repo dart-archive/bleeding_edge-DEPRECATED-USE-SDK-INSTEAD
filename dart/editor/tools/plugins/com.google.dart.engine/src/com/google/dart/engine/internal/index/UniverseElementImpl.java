@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.index.UniverseElement;
 import com.google.dart.engine.internal.element.ElementImpl;
 
@@ -24,6 +25,13 @@ public class UniverseElementImpl extends ElementImpl implements UniverseElement 
 
   public UniverseElementImpl() {
     super("--universe--", -1);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    // Visitors currently can't visit this kind of node. To 'fix' this, we would need to add an
+    // interface for this element kind.
+    return null;
   }
 
   @Override

@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -73,6 +74,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   public CompilationUnitElementImpl(String name) {
     // Compilation units do not contain their own declaration.
     super(name, -1);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitCompilationUnitElement(this);
   }
 
   @Override
@@ -229,6 +235,16 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((VariableElementImpl) field).setEnclosingElement(this);
     }
     this.variables = variables;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(functions, visitor);
+    safelyVisitChildren(typeAliases, visitor);
+    safelyVisitChildren(types, visitor);
+    safelyVisitChildren(variables, visitor);
   }
 
   @Override

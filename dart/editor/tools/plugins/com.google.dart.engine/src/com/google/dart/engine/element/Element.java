@@ -38,6 +38,14 @@ import com.google.dart.engine.source.Source;
  */
 public interface Element {
   /**
+   * Use the given visitor to visit this element.
+   * 
+   * @param visitor the visitor that will visit this element
+   * @return the value returned by the visitor as a result of visiting this element
+   */
+  public <R> R accept(ElementVisitor<R> visitor);
+
+  /**
    * Return the element of the given class that most immediately encloses this element, or
    * {@code null} if there is no enclosing element of the given class.
    * 
@@ -135,4 +143,12 @@ public interface Element {
    * @return {@code true} if this element is synthetic
    */
   public boolean isSynthetic();
+
+  /**
+   * Use the given visitor to visit all of the children of this element. There is no guarantee of
+   * the order in which the children will be visited.
+   * 
+   * @param visitor the visitor that will be used to visit the children of this element
+   */
+  public void visitChildren(ElementVisitor<?> visitor);
 }

@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
@@ -34,6 +35,11 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
    */
   public ConstructorElementImpl(Identifier name) {
     super(name);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitConstructorElement(this);
   }
 
   @Override

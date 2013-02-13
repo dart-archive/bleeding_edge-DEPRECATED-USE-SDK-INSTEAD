@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -53,6 +54,11 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
    */
   public FunctionElementImpl(Identifier name) {
     super(name);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitFunctionElement(this);
   }
 
   @Override

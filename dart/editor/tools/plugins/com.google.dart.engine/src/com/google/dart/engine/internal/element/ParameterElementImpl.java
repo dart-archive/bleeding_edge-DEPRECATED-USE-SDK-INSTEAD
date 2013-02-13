@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
@@ -39,6 +40,11 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
    */
   public ParameterElementImpl(Identifier name) {
     super(name);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitParameterElement(this);
   }
 
   @Override

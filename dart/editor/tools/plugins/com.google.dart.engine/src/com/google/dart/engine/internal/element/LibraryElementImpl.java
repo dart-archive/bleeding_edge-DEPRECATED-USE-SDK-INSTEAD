@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -78,6 +79,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   public LibraryElementImpl(AnalysisContext context, LibraryIdentifier name) {
     super(name);
     this.context = context;
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitLibraryElement(this);
   }
 
   @Override
@@ -230,6 +236,15 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       ((CompilationUnitElementImpl) compilationUnit).setEnclosingElement(this);
     }
     this.parts = parts;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(definingCompilationUnit, visitor);
+    safelyVisitChildren(exports, visitor);
+    safelyVisitChildren(imports, visitor);
+    safelyVisitChildren(parts, visitor);
   }
 
   /**

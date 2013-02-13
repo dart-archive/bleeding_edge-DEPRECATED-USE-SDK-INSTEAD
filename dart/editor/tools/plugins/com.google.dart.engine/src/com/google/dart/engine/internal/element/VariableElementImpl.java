@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.Type;
@@ -69,6 +70,11 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
    */
   public VariableElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitVariableElement(this);
   }
 
   @Override
@@ -154,6 +160,12 @@ public class VariableElementImpl extends ElementImpl implements VariableElement 
   public void setVisibleRange(int offset, int length) {
     visibleRangeOffset = offset;
     visibleRangeLength = length;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(initializer, visitor);
   }
 
   @Override

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -180,6 +181,15 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    */
   public void setType(FunctionType type) {
     this.type = type;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(functions, visitor);
+    safelyVisitChildren(labels, visitor);
+    safelyVisitChildren(localVariables, visitor);
+    safelyVisitChildren(parameters, visitor);
   }
 
   @Override

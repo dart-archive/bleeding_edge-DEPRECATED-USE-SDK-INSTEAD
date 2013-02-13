@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 
@@ -55,6 +56,11 @@ public class FieldElementImpl extends VariableElementImpl implements FieldElemen
   public FieldElementImpl(String name) {
     super(name, -1);
     setSynthetic(true);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitFieldElement(this);
   }
 
   @Override

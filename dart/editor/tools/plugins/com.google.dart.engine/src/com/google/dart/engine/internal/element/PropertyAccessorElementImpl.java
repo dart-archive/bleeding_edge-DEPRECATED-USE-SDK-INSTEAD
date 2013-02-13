@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 
@@ -53,6 +54,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    */
   public PropertyAccessorElementImpl(Identifier name) {
     super(name);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitPropertyAccessorElement(this);
   }
 
   @Override

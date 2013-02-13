@@ -20,6 +20,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
@@ -134,6 +135,11 @@ public abstract class ElementHandle implements Element {
   }
 
   @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return getActualElement().accept(visitor);
+  }
+
+  @Override
   public boolean equals(Object object) {
     return object instanceof Element && ((Element) object).getLocation().equals(location);
   }
@@ -196,6 +202,11 @@ public abstract class ElementHandle implements Element {
   @Override
   public boolean isSynthetic() {
     return getActualElement().isSynthetic();
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    getActualElement().visitChildren(visitor);
   }
 
   /**

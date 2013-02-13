@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
@@ -90,6 +91,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public ClassElementImpl(Identifier name) {
     super(name);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitClassElement(this);
   }
 
   @Override
@@ -391,6 +397,16 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       ((TypeVariableElementImpl) typeVariable).setEnclosingElement(this);
     }
     this.typeVariables = typeVariables;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(accessors, visitor);
+    safelyVisitChildren(constructors, visitor);
+    safelyVisitChildren(fields, visitor);
+    safelyVisitChildren(methods, visitor);
+    safelyVisitChildren(typeVariables, visitor);
   }
 
   @Override

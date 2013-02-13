@@ -18,6 +18,7 @@ import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.source.Source;
@@ -55,6 +56,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
       Element secondElement) {
     name = firstElement.getName();
     conflictingElements = computeConflictingElements(firstElement, secondElement);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitMultiplyDefinedElement(this);
   }
 
   @Override
@@ -140,6 +146,11 @@ public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     builder.append("]");
     return builder.toString();
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    // There are no children to visit
   }
 
   /**

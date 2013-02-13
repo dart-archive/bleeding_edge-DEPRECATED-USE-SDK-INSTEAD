@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
@@ -45,6 +46,11 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   public ImportElementImpl() {
     super(null);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitImportElement(this);
   }
 
   @Override
@@ -94,6 +100,12 @@ public class ImportElementImpl extends ElementImpl implements ImportElement {
    */
   public void setPrefix(PrefixElement prefix) {
     this.prefix = prefix;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChild(prefix, visitor);
   }
 
   @Override

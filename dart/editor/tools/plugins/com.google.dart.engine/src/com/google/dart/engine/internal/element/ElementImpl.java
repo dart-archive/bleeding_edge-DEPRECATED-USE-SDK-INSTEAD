@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Annotation;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
@@ -192,6 +193,11 @@ public abstract class ElementImpl implements Element {
     return builder.toString();
   }
 
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    // There are no children to visit
+  }
+
   /**
    * Append a textual representation of this type to the given builder.
    * 
@@ -225,6 +231,32 @@ public abstract class ElementImpl implements Element {
    */
   protected boolean hasModifier(Modifier modifier) {
     return modifiers.contains(modifier);
+  }
+
+  /**
+   * If the given child is not {@code null}, use the given visitor to visit it.
+   * 
+   * @param child the child to be visited
+   * @param visitor the visitor to be used to visit the child
+   */
+  protected void safelyVisitChild(Element child, ElementVisitor<?> visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
+  }
+
+  /**
+   * Use the given visitor to visit all of the children in the given array.
+   * 
+   * @param children the children to be visited
+   * @param visitor the visitor being used to visit the children
+   */
+  protected void safelyVisitChildren(Element[] children, ElementVisitor<?> visitor) {
+    if (children != null) {
+      for (Element child : children) {
+        child.accept(visitor);
+      }
+    }
   }
 
   /**

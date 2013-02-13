@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
@@ -38,6 +39,11 @@ public class ExportElementImpl extends ElementImpl implements ExportElement {
    */
   public ExportElementImpl() {
     super(null);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitExportElement(this);
   }
 
   @Override

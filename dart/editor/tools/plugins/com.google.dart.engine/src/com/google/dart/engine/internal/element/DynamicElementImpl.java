@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 
@@ -44,6 +45,13 @@ public class DynamicElementImpl extends ElementImpl {
   public DynamicElementImpl() {
     super(Keyword.DYNAMIC.getSyntax(), -1);
     setModifier(Modifier.SYNTHETIC, true);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    // Visitors currently can't visit this kind of node. To 'fix' this, we would need to add an
+    // interface for this element kind.
+    return null;
   }
 
   @Override

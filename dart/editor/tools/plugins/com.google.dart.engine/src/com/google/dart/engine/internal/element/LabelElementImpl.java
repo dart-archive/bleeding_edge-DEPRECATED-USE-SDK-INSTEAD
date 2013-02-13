@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
 
@@ -50,6 +51,11 @@ public class LabelElementImpl extends ElementImpl implements LabelElement {
     super(name);
     this.onSwitchStatement = onSwitchStatement;
     this.onSwitchMember = onSwitchMember;
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitLabelElement(this);
   }
 
   @Override

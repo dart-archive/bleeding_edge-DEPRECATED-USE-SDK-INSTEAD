@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
@@ -52,6 +53,11 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   public HtmlElementImpl(AnalysisContext context, String name) {
     super(name, -1);
     this.context = context;
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitHtmlElement(this);
   }
 
   @Override
@@ -102,6 +108,12 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
    */
   public void setSource(Source source) {
     this.source = source;
+  }
+
+  @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(libraries, visitor);
   }
 
   @Override

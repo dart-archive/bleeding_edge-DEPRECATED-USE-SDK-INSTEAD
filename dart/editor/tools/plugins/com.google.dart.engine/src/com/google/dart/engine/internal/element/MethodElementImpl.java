@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.MethodElement;
 
 /**
@@ -45,6 +46,11 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
    */
   public MethodElementImpl(String name, int nameOffset) {
     super(name, nameOffset);
+  }
+
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitMethodElement(this);
   }
 
   @Override
