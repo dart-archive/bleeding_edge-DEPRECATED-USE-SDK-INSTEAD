@@ -1,0 +1,39 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+namespace pushMessaging{
+
+  dictionary Message {
+    // The subchannel the message was sent on;
+    // only values 0-3 are valid.
+    long subchannelId;
+
+    // The payload associated with the message, if any.
+    DOMString payload;
+  };
+
+  dictionary ChannelIdResult {
+    // The channel ID for this app to use for push messaging.
+    DOMString channelId;
+  };
+
+  callback ChannelIdCallback = void (ChannelIdResult channelId);
+
+  interface Functions {
+    // Retrieves the channel ID associated with this app or extension.
+    // Typically an app or extension will want to send this value
+    // to its application server so the server can use it
+    // to trigger push messages back to the app or extension.
+    // If the interactive flag is set, we will ask the user to log in
+    // when they are not already logged in.
+    static void getChannelId(optional boolean interactive,
+                             ChannelIdCallback callback);
+  };
+
+  interface Events {
+    // Fired when a push message has been received.
+    // |message| : The details associated with the message.
+    static void onMessage(Message message);
+  };
+};

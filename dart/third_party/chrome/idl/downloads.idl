@@ -1,0 +1,431 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+[permissions=downloads]
+namespace downloads {
+  [inline_doc] dictionary HeaderNameValuePair {
+    // Name of the HTTP header.
+    DOMString name;
+
+    // Value of the HTTP header.
+    DOMString value;
+  };
+
+  [inline_doc] enum HttpMethod {GET, POST};
+
+  [inline_doc] dictionary DownloadOptions {
+    // The URL to download.
+    DOMString url;
+
+    // A file path relative to the Downloads directory to contain the downloaded
+    // file.
+    DOMString? filename;
+
+    // Use a file-chooser to allow the user to select a filename.
+    boolean? saveAs;
+
+    // The HTTP method to use if the URL uses the HTTP[S] protocol.
+    HttpMethod? method;
+
+    // Extra HTTP headers to send with the request if the URL uses the HTTP[s]
+    // protocol. Each header is represented as a dictionary containing the keys
+    // <code>name</code> and either <code>value</code> or
+    // <code>binaryValue</code>, restricted to those allowed by XMLHttpRequest.
+    HeaderNameValuePair[]? headers;
+
+    // Post body.
+    DOMString? body;
+  };
+
+  // <dl><dt>file</dt>
+  //     <dd>The download's filename is suspicious.</dd>
+  //     <dt>url</dt>
+  //     <dd>The download's URL is known to be malicious.</dd>
+  //     <dt>content</dt>
+  //     <dd>The downloaded file is known to be malicious.</dd>
+  //     <dt>uncommon</dt>
+  //     <dd>The download's URL is not commonly downloaded and could be
+  //     dangerous.</dd>
+  //     <dt>host</dt>
+  //     <dd>The download came from a host known to distribute malicious
+  //     binaries and is likely dangerous.</dd>
+  //     <dt>safe</dt>
+  //     <dd>The download presents no known danger to the user's computer.</dd>
+  // </dl>
+  // These string constants will never change, however the set of DangerTypes
+  // may change.
+  enum DangerType {file, url, content, uncommon, host, safe};
+
+  // <dl><dt>in_progress</dt>
+  //     <dd>The download is currently receiving data from the server.</dd>
+  //     <dt>interrupted</dt>
+  //     <dd>An error broke the connection with the file host.</dd>
+  //     <dt>complete</dt>
+  //     <dd>The download completed successfully.</dd>
+  // </dl>
+  // These string constants will never change, however the set of States may
+  // change.
+  enum State {in_progress, interrupted, complete};
+
+  // The state of the process of downloading a file.
+  dictionary DownloadItem {
+    // An identifier that is persistent across browser sessions.
+    long id;
+
+    // Absolute URL.
+    DOMString url;
+
+    // Absolute local path.
+    DOMString filename;
+
+    // False if this download is recorded in the history, true if it is not
+    // recorded.
+    boolean incognito;
+
+    // Indication of whether this download is thought to be safe or known to be
+    // suspicious.
+    DangerType danger;
+
+    // True if the user has accepted the download's danger.
+    boolean? dangerAccepted;
+
+    // The file's MIME type.
+    DOMString mime;
+
+    // The time when the download began in ISO 8601 format. May be passed
+    // directly to the Date constructor: <code>chrome.downloads.search({},
+    // function(items){items.forEach(function(item){console.log(new
+    // Date(item.startTime))})})</code>
+    DOMString startTime;
+
+    // The time when the download ended in ISO 8601 format. May be passed
+    // directly to the Date constructor: <code>chrome.downloads.search({},
+    // function(items){items.forEach(function(item){if (item.endTime)
+    // console.log(new Date(item.endTime))})})</code>
+    DOMString? endTime;
+
+    // Indicates whether the download is progressing, interrupted, or complete.
+    State state;
+
+    // True if the download has stopped reading data from the host, but kept the
+    // connection open.
+    boolean paused;
+
+    // Number indicating why a download was interrupted.
+    long? error;
+
+    // Number of bytes received so far from the host, without considering file
+    // compression.
+    long bytesReceived;
+
+    // Number of bytes in the whole file, without considering file compression,
+    // or -1 if unknown.
+    long totalBytes;
+
+    // Number of bytes in the whole file post-decompression, or -1 if unknown.
+    long fileSize;
+
+    // Whether the downloaded file still exists. This information may be out of
+    // date because Chrome does not automatically watch for file removal. Call
+    // $ref:search() in order to trigger the check for file existence. When the
+    // existence check completes, if the file has been deleted, then an
+    // $ref:onChanged event will fire. Note that $ref:search() does not wait
+    // for the existence check to finish before returning, so results from
+    // $ref:search() may not accurately reflect the file system. Also,
+    // $ref:search() may be called as often as necessary, but will not check for
+    // file existence any more frequently than once every 10 seconds.
+    boolean exists;
+  };
+
+  [inline_doc] dictionary DownloadQuery {
+    // This space-separated string of search terms that may be grouped using
+    // quotation marks limits results to
+    // $ref:DownloadItem whose <code>filename</code>
+    // or <code>url</code> contain all of the search terms that do not begin with a dash '-'
+    // and none of the search terms that do begin with a dash.
+    DOMString? query;
+
+    // Limits results to $ref:DownloadItem that
+    // started before the given ms since the epoch.
+    DOMString? startedBefore;
+
+    // Limits results to $ref:DownloadItem that
+    // started after the given ms since the epoch.
+    DOMString? startedAfter;
+
+    // Limits results to $ref:DownloadItem that ended before the given ms since the
+    // epoch.
+    DOMString? endedBefore;
+
+    // Limits results to $ref:DownloadItem that ended after the given ms since the
+    // epoch.
+    DOMString? endedAfter;
+
+    // Limits results to $ref:DownloadItem whose
+    // <code>totalBytes</code> is greater than the given integer.
+    long? totalBytesGreater;
+
+    // Limits results to $ref:DownloadItem whose
+    // <code>totalBytes</code> is less than the given integer.
+    long? totalBytesLess;
+
+    // Limits results to $ref:DownloadItem whose
+    // <code>filename</code> matches the given regular expression.
+    DOMString? filenameRegex;
+
+    // Limits results to $ref:DownloadItem whose
+    // <code>url</code> matches the given regular expression.
+    DOMString? urlRegex;
+
+    // Setting this integer limits the number of results. Otherwise, all
+    // matching $ref:DownloadItem will be returned.
+    long? limit;
+
+    // Setting this string to a $ref:DownloadItem
+    // property sorts the $ref:DownloadItem prior
+    // to applying the above filters. For example, setting
+    // <code>orderBy='startTime'</code> sorts the
+    // $ref:DownloadItem by their start time in
+    // ascending order. To specify descending order, prefix <code>orderBy</code>
+    // with a hyphen: '-startTime'.
+    DOMString? orderBy;
+
+    // The <code>id</code> of the $ref:DownloadItem
+    // that changed.
+    long? id;
+
+    // Absolute URL.
+    DOMString? url;
+
+    // Absolute local path.
+    DOMString? filename;
+
+    // Indication of whether this download is thought to be safe or known to be
+    // suspicious.
+    DangerType? danger;
+
+    // True if the user has accepted the download's danger.
+    boolean? dangerAccepted;
+
+    // The file's MIME type.
+    DOMString? mime;
+
+    // The time when the download began in ISO 8601 format.
+    DOMString? startTime;
+
+    // The time when the download ended in ISO 8601 format.
+    DOMString? endTime;
+
+    // Indicates whether the download is progressing, interrupted, or complete.
+    State? state;
+
+    // True if the download has stopped reading data from the host, but kept the
+    // connection open.
+    boolean? paused;
+
+    // Number indicating why a download was interrupted.
+    long? error;
+
+    // Number of bytes received so far from the host, without considering file
+    // compression.
+    long? bytesReceived;
+
+    // Number of bytes in the whole file, without considering file compression,
+    // or -1 if unknown.
+    long? totalBytes;
+
+    // Number of bytes in the whole file post-decompression, or -1 if unknown.
+    long? fileSize;
+
+    // Whether the downloaded file exists;
+    boolean? exists;
+  };
+
+  [inline_doc] dictionary DownloadStringDiff {
+    DOMString? previous;
+    DOMString? current;
+  };
+
+  [inline_doc] dictionary DownloadLongDiff {
+    long? previous;
+    long? current;
+  };
+
+  [inline_doc] dictionary DownloadBooleanDiff {
+    boolean? previous;
+    boolean? current;
+  };
+
+  // Encapsulates a change in a DownloadItem.
+  [inline_doc] dictionary DownloadDelta {
+    // An identifier that is persistent across browser sessions.
+    long id;
+
+    // The change in <code>url</code>, if any.
+    DownloadStringDiff? url;
+
+    // The change in <code>filename</code>, if any.
+    DownloadStringDiff? filename;
+
+    // The change in <code>danger</code>, if any.
+    DownloadStringDiff? danger;
+
+    // The change in <code>dangerAccepted</code>, if any.
+    DownloadBooleanDiff? dangerAccepted;
+
+    // The change in <code>mime</code>, if any.
+    DownloadStringDiff? mime;
+
+    // The change in <code>startTime</code>, if any.
+    DownloadStringDiff? startTime;
+
+    // The change in <code>endTime</code>, if any.
+    DownloadStringDiff? endTime;
+
+    // The change in <code>state</code>, if any.
+    DownloadStringDiff? state;
+
+    // The change in <code>paused</code>, if any.
+    DownloadBooleanDiff? paused;
+
+    // The change in <code>error</code>, if any.
+    DownloadLongDiff? error;
+
+    // The change in <code>totalBytes</code>, if any.
+    DownloadLongDiff? totalBytes;
+
+    // The change in <code>fileSize</code>, if any.
+    DownloadLongDiff? fileSize;
+
+    // The change in <code>exists</code>, if any.
+    DownloadBooleanDiff? exists;
+  };
+
+  [inline_doc] dictionary GetFileIconOptions {
+    // The size of the icon.  The returned icon will be square with dimensions
+    // size * size pixels.  The default size for the icon is 32x32 pixels.
+    [legalValues=(16,32)] long? size;
+  };
+
+  callback DownloadCallback = void(long downloadId);
+  callback SearchCallback = void(DownloadItem[] results);
+  callback EraseCallback = void(long[] erasedIds);
+  callback NullCallback = void();
+  callback GetFileIconCallback = void(optional DOMString iconURL);
+
+  interface Functions {
+    // Download a URL. If the URL uses the HTTP[S] protocol, then the request
+    // will include all cookies currently set for its hostname. If both
+    // <code>filename</code> and <code>saveAs</code> are specified, then the
+    // Save As dialog will be displayed, pre-populated with the specified
+    // <code>filename</code>. If the download started successfully,
+    // <code>callback</code> will be called with the new $ref:DownloadItem's
+    // <code>downloadId</code>. If there was an error starting the download,
+    // then <code>callback</code> will be called with
+    // <code>downloadId=undefined</code> and
+    // $ref:runtime.lastError
+    // will contain a descriptive string. The error strings are not guaranteed
+    // to remain backwards compatible between releases. You must not parse it.
+    // |options|: What to download and how.
+    // |callback|: Called with the id of the new $ref:DownloadItem.
+    static void download(DownloadOptions options,
+                         optional DownloadCallback callback);
+
+    // Find $ref:DownloadItem. Set
+    // <code>query</code> to the empty object to get all
+    // $ref:DownloadItem. To get a specific
+    // $ref:DownloadItem, set only the <code>id</code>
+    // field.
+    static void search(DownloadQuery query, SearchCallback callback);
+
+    // Pause the download. If the request was successful the download is in a
+    // paused state. Otherwise
+    // $ref:runtime.lastError
+    // contains an error message. The request will fail if the download is not
+    // active.
+    // |downloadId|: The id of the download to pause.
+    // |callback|: Called when the pause request is completed.
+    static void pause(long downloadId, optional NullCallback callback);
+
+    // Resume a paused download. If the request was successful the download is
+    // in progress and unpaused. Otherwise
+    // $ref:runtime.lastError
+    // contains an error message. The request will fail if the download is not
+    // active.
+    // |downloadId|: The id of the download to resume.
+    // |callback|: Called when the resume request is completed.
+    static void resume(long downloadId, optional NullCallback callback);
+
+    // Cancel a download. When <code>callback</code> is run, the download is
+    // cancelled, completed, interrupted or doesn't exist anymore.
+    // |downloadId|: The id of the download to cancel.
+    // |callback|: Called when the cancel request is completed.
+    static void cancel(long downloadId, optional NullCallback callback);
+
+    // Retrieve an icon for the specified download. For new downloads, file
+    // icons are available after the $ref:onCreated
+    // event has been received. The image returned by this function while a
+    // download is in progress may be different from the image returned after
+    // the download is complete. Icon retrieval is done by querying the
+    // underlying operating system or toolkit depending on the platform. The
+    // icon that is returned will therefore depend on a number of factors
+    // including state of the download, platform, registered file types and
+    // visual theme. If a file icon cannot be determined,
+    // $ref:runtime.lastError
+    // will contain an error message.
+    // |downloadId|: The identifier for the download.
+    // |callback|: A URL to an image that represents the download.
+    static void getFileIcon(long downloadId,
+                            optional GetFileIconOptions options,
+                            GetFileIconCallback callback);
+
+    // Open the downloaded file now if the $ref:DownloadItem is complete;
+    // returns an error through $ref:runtime.lastError otherwise. An
+    // $ref:onChanged event will fire when the item is opened for the first
+    // time.
+    // |downloadId|: The identifier for the downloaded file.
+    static void open(long downloadId);
+
+    // Show the downloaded file in its folder in a file manager.
+    // |downloadId|: The identifier for the downloaded file.
+    static void show(long downloadId);
+
+    // Erase matching $ref:DownloadItem from history. An $ref:onErased event
+    // will fire for each $ref:DownloadItem that matches <code>query</code>,
+    // then <code>callback</code> will be called.
+    static void erase(DownloadQuery query, optional EraseCallback callback);
+
+    // TODO(benjhayden) Comment.
+    [nodoc] static void setDestination(long downloadId, DOMString relativePath);
+
+    // Prompt the user to accept a dangerous download. Does not automatically
+    // accept dangerous downloads. If the download is accepted, then an
+    // $ref:onChanged event will fire, otherwise nothing will happen.  When all
+    // the data is fetched into a temporary file and either the download is not
+    // dangerous or the danger has been accepted, then the temporary file is
+    // renamed to the target filename, the |state| changes to 'complete', and
+    // $ref:onChanged fires.
+    // |downloadId|: The identifier for the $ref:DownloadItem.
+    static void acceptDanger(long downloadId);
+
+    // Initiate dragging the downloaded file to another application.
+    static void drag(long downloadId);
+  };
+
+  interface Events {
+    // This event fires with the $ref:DownloadItem
+    // object when a download begins.
+    static void onCreated(DownloadItem downloadItem);
+
+    // Fires with the <code>downloadId</code> when a download is erased from
+    // history.
+    // |downloadId|: The <code>id</code> of the $ref:DownloadItem that was erased.
+    static void onErased(long downloadId);
+
+    // When any of a $ref:DownloadItem's properties
+    // except <code>bytesReceived</code> changes, this event fires with the
+    // <code>downloadId</code> and an object containing the properties that changed.
+    static void onChanged(DownloadDelta downloadDelta);
+  };
+};

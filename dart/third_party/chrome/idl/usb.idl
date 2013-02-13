@@ -1,0 +1,175 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+namespace usb {
+
+  // Direction, Recipient and RequestType all map to their namesakes within the
+  // USB specification.
+  enum Direction {in, out};
+  enum Recipient {device, _interface, endpoint, other};
+  enum RequestType {standard, class, vendor, reserved};
+
+  // A Device encapsulates everything that is needed to communicate with a USB
+  // device. They are returned by findDevice calls and have all of their
+  // fields populated before being returned.
+  dictionary Device {
+    long handle;
+    long vendorId;
+    long productId;
+  };
+
+  // ControlTransferInfo represents that parameters to a single USB control
+  // transfer.
+  dictionary ControlTransferInfo {
+    // The direction of this transfer.
+    Direction direction;
+
+    // The intended recipient for this transfer.
+    Recipient recipient;
+
+    // The type of this request.
+    RequestType requestType;
+
+    long request;
+    long value;
+    long index;
+
+    // If this transfer is an input transfer, then this field must be set to
+    // indicate the expected data length. If this is an output transfer, then
+    // this field is ignored.
+    long? length;
+
+    // The data payload carried by this transfer. If this is an output tranfer
+    // then this field must be set.
+    ArrayBuffer? data;
+  };
+
+  // GenericTransferInfo is used by both bulk and interrupt transfers to
+  // specify the parameters of the transfer.
+  dictionary GenericTransferInfo {
+    // The direction of this transfer.
+    Direction direction;
+
+    long endpoint;
+
+    // If this is an input transfer then this field indicates the size of the
+    // input buffer. If this is an output transfer then this field is ignored.
+    long? length;
+
+    // If this is an output transfer then this field must be populated.
+    // Otherwise, it will be ignored.
+    ArrayBuffer? data;
+  };
+
+  // IsochronousTransferInfo describes a single multi-packet isochronous
+  // transfer.
+  dictionary IsochronousTransferInfo {
+    // All of the normal transfer parameters are encapsulated in the
+    // transferInfo parameters. Note that the data specified in this parameter
+    // block is split along packetLength boundaries to form the individual
+    // packets of the transfer.
+    GenericTransferInfo transferInfo;
+
+    // The total number of packets in this transfer.
+    long packets;
+
+    // The length of each of the packets in this transfer.
+    long packetLength;
+  };
+
+  dictionary TransferResultInfo {
+    // A value of 0 indicates that the transfer was a success. Other values
+    // indicate failure.
+    long? resultCode;
+
+    // If the transfer was an input transfer then this field will contain all
+    // of the input data requested.
+    ArrayBuffer? data;
+  };
+
+  // FindDevicesOptions describes the properties of devices which are found and
+  // opened via findDevices.
+  dictionary FindDevicesOptions {
+    long vendorId;
+    long productId;
+  };
+
+  callback VoidCallback = void ();
+  callback FindDevicesCallback = void (Device[] device);
+  callback CloseDeviceCallback = void ();
+  callback TransferCallback = void (TransferResultInfo info);
+
+  interface Functions {
+    // Finds the first instance of the USB device specified by the vendorId/
+    // productId pair and, if permissions allow, opens it for use.
+    // Upon successfully opening a device the callback is invoked with a
+    // populated Device object. On failure, the callback is invoked with null.
+    // |options|: The properties to search for on target devices.
+    // |callback|: Invoked with the opened Device on success.
+    static void findDevices(FindDevicesOptions options,
+        FindDevicesCallback callback);
+
+    // Closes an open device instance. Invoking operations on a device after it
+    // has been closed is a safe operation, but causes no action to be taken.
+    // |device|: The device to close.
+    // |callback|: The callback to invoke once the device is closed.
+    static void closeDevice(Device device,
+        optional CloseDeviceCallback callback);
+
+    // Claims an interface on the specified USB device.
+    // |device|: The device on which the interface is to be claimed.
+    // |interface|: The interface number to be claimed.
+    // |callback|: The callback to invoke once the interface is claimed.
+    static void claimInterface(Device device, long interfaceNumber,
+        VoidCallback callback);
+
+    // Releases a claim to an interface on the provided device.
+    // |device|: The device on which the interface is to be released.
+    // |interface|: The interface number to be released.
+    // |callback|: The callback to invoke once the interface is released.
+    static void releaseInterface(Device device, long interfaceNumber,
+        VoidCallback callback);
+
+    // Selects an alternate setting on a previously claimed interface on a
+    // device.
+    // |device|: The device on which the interface settings are to be set.
+    // |interface|: The interface number to be set.
+    // |alternateSetting|: The alternate setting to set.
+    // |callback|: The callback to invoke once the interface setting is set.
+    static void setInterfaceAlternateSetting(Device device,
+        long interfaceNumber, long alternateSetting, VoidCallback callback);
+
+    // Performs a control transfer on the specified device. See the
+    // ControlTransferInfo structure for the parameters required to make a
+    // transfer.
+    // |device|: An open device to make the transfer on.
+    // |transferInfo|: The parameters to the transfer. See ControlTransferInfo.
+    // |callback|: Invoked once the transfer has completed.
+    static void controlTransfer(Device device,
+        ControlTransferInfo transferInfo, TransferCallback callback);
+
+    // Performs a bulk transfer on the specified device.
+    // |device|: An open device to make the transfer on.
+    // |transferInfo|: The paramters to the transfer. See GenericTransferInfo.
+    // |callback|: Invoked once the transfer has completed.
+    static void bulkTransfer(Device device, GenericTransferInfo transferInfo,
+        TransferCallback callback);
+
+    // Performs an interrupt transfer on the specified device.
+    // |device|: An open device to make the transfer on.
+    // |transferInfo|: The paramters to the transfer. See GenericTransferInfo.
+    // |callback|: Invoked once the transfer has completed.
+    static void interruptTransfer(Device device,
+        GenericTransferInfo transferInfo, TransferCallback callback);
+
+    // Performs an isochronous transfer on the specific device.
+    // |device|: An open device to make the transfer on.
+    // |transferInfo|: The parameters to the transfer. See
+    // IsochronousTransferInfo.
+    // |callback|: Invoked once the transfer has been completed.
+    static void isochronousTransfer(Device device,
+        IsochronousTransferInfo transferInfo,
+        TransferCallback callback);
+  };
+};

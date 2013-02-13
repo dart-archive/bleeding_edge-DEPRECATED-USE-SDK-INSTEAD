@@ -1,0 +1,439 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+{
+  "activeTab": {
+    "channel": "dev",
+    "extension_types": ["extension", "packaged_app"],
+    "min_manifest_version": 2
+  },
+  "alarms": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "min_manifest_version": 2
+  },
+  "app.runtime": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "app.window": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "developerPrivate": {
+    "channel": "dev",
+    "extension_types": ["packaged_app"],
+    "location": "component",
+    "whitelist": "lphgohfeebnhcpiohjndkgbhhkoapkjc" // Apps Debugger
+  },
+  "appNotifications": {
+    "channel": "stable",
+    "extension_types": ["packaged_app", "hosted_app"]
+  },
+    "autotestPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "audioCapture": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "background": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app"
+    ]
+  },
+  "bluetooth": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "bluetoothDevices": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "bookmarkManagerPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "bookmarks": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "browsingData": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "chromePrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "whitelist": [
+      "haiffjcadagjlijoggckpgfnoeiflnem",  // Citrix Receiver
+      "gnedhmakppccajfpfiihfcdlnpgomkcf",  // Citrix Receiver Beta
+      "fjcibdnjlbfnbfdjneajpipnlcppleek"   // Citrix Receiver Dev
+    ]
+  },
+  "chromeosInfoPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "clipboardRead": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "clipboardWrite": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "cloudPrintPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    // CloudPrint
+    "whitelist": ["mfehgcgbbipciphmccgaenjidiccnmng"]
+  },
+  "contentSettings": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "contextMenus": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "cookies": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "debugger": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "devtools": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "declarativeContent": {
+    "channel": "trunk",
+    "extension_types": ["extension"]
+  },
+  "declarativeWebRequest": {
+    "channel": "beta",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "downloads": {
+    "channel": "dev",
+    "extension_types": [
+      "extension", "packaged_app"
+    ]
+  },
+  "dial": {
+    "channel": "stable",
+    "extension_types": ["extension"],
+    "whitelist": [
+      "pkedcjkdefgpdelpbcmbmeomcjbeemfm",  // CV
+      "fmfcbgogabcbclcofgocippekhfcmgfj",  // CV Staging
+      "hfaagokkkhdbgiakmmlclaapfelnkoah"   // CV Canary
+    ]
+  },
+  "experimental": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "fileBrowserHandler": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "fileBrowserPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "fileSystem": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "fileSystem.write": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "fontSettings": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "geolocation": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "history": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "idle": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "input": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "inplies_full_url_access": true
+  },
+  "inputMethodPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "whitelist": [
+      "haiffjcadagjlijoggckpgfnoeiflnem",  // Citrix Receiver
+      "gnedhmakppccajfpfiihfcdlnpgomkcf",  // Citrix Receiver Beta
+      "fjcibdnjlbfnbfdjneajpipnlcppleek",  // Citrix Receiver Dev
+      "pnhechapfaindjhompbnflcldabbghjo",  // HTerm
+      "okddffdblfhhnmhodogpojmfkjmhinfp"   // HTerm dev
+    ]
+  },
+  "managedModePrivate": {
+    "channel": "dev",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "management": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "mediaGalleries": {
+    "channel": "stable",
+    "extension_types": [ "platform_app" ]
+  },
+  "mediaGalleries.allAutoDetected": {
+    "channel": "stable",
+    "extension_types": [ "platform_app" ]
+  },
+  "mediaGalleries.read": {
+    "channel": "stable",
+    "extension_types": [ "platform_app" ]
+  },
+  "mediaGalleries.write": {
+    "channel": "stable",
+    "extension_types": [ "platform_app" ]
+  },
+  // TODO(thestig) Remove this as part of http:://crbug.com/144496
+  "mediaGalleriesPrivate": {
+    "channel": "stable",
+    "extension_types": [ "platform_app" ],
+    "whitelist": [
+      "ebpbnabdhheoknfklmpddcdijjkmklkp",
+      "efjnaogkjbogokcnohkmnjdojkikgobo",
+      "ejegoaikibpmikoejfephaneibodccma"
+    ]
+  },
+  "mediaPlayerPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "metricsPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "whitelist": [
+      // The file manager is a component extension, and it can currently use
+      // whitelisted interfaces without being on the corresponding whitelist.
+      // Adding it to this whitelist documents its dependency, however, and also
+      // doesn't hurt anything.
+      "hhaomjibdihmijegdhdafkllkbggdgoj",  // File manager
+      "gbkeegbaiigmenfmjfclcdgdpimamgkj",  // Quickoffice
+      "ionpfmkccalenbmnddpbmocokhaknphg"   // Quickoffice dev
+    ]
+  },
+  "notifications": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "echoPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "pageCapture": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "pointerLock": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "plugin": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "privacy": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "proxy": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "pushMessaging": {
+    "channel": "stable",
+    "extension_types": ["extension", "platform_app"]
+  },
+  "rtcPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "whitelist": [
+      "nckgahadagoaajjgafhacjanaoiihapd",  // Google Talk prod
+      "eggnbpckecmjlblplehfpjjdhhidfdoj",  // Google Talk beta
+      "ppleadejekpmccmnpjdimmlfljlkdfej",  // Google Talk alpha
+      "ljclpkphhpbpinifbeabbhlfddcpfdde"   // Google Talk debug
+    ]
+  },
+  // Note: runtime is not actually a permission, but some systems check these
+  // values to verify restrictions.
+  "runtime": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "min_manifest_version": 2
+  },
+  "screensaver": {
+    "channel": "stable",
+    "extension_types": ["packaged_app", "hosted_app", "platform_app"]
+  },
+  "serial": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "sessionRestore": {
+    "channel": "dev",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "socket": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "syncFileSystem": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "systemIndicator": {
+    "channel": "dev",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "storage": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "min_manifest_version": 2
+  },
+  "systemInfo.display": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "systemPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "location": "component"
+  },
+  "tabs": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "tabCapture": [{
+    "channel": "dev",
+    "extension_types": ["extension", "packaged_app"]
+  }, {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "whitelist": [
+      "pkedcjkdefgpdelpbcmbmeomcjbeemfm",  // CV
+      "fmfcbgogabcbclcofgocippekhfcmgfj",  // CV Staging
+      "hfaagokkkhdbgiakmmlclaapfelnkoah"   // CV Canary
+    ]
+  }],
+  "terminalPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"],
+    "whitelist": [
+      "pnhechapfaindjhompbnflcldabbghjo",  // HTerm
+      "okddffdblfhhnmhodogpojmfkjmhinfp"   // HTerm dev
+    ]
+  },
+  "topSites": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "tts": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app", "platform_app"]
+  },
+  "ttsEngine": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "unlimitedStorage": {
+    "channel": "stable",
+    "extension_types": [
+      "extension", "packaged_app", "hosted_app", "platform_app"
+    ]
+  },
+  "usb": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "usbDevices": {
+    "channel": "dev",
+    "extension_types": ["platform_app"]
+  },
+  "videoCapture": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  },
+  "wallpaperPrivate": {
+    "channel": "stable",
+    "extension_types": ["platform_app"],
+    "location": "component"
+  },
+  "webNavigation": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "webSocketProxyPrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "whitelist": [
+      "haiffjcadagjlijoggckpgfnoeiflnem",  // Citrix Receiver
+      "gnedhmakppccajfpfiihfcdlnpgomkcf",  // Citrix Receiver Beta
+      "fjcibdnjlbfnbfdjneajpipnlcppleek",  // Citrix Receiver Dev
+      "pnhechapfaindjhompbnflcldabbghjo",  // HTerm
+      "okddffdblfhhnmhodogpojmfkjmhinfp"   // HTerm dev
+    ]
+  },
+  "webstorePrivate": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"],
+    "whitelist": [
+      "ahfgeienlihckogmohjhadlkjgocpleb",  // Web Store
+      "afchcafgojfnemjkcbhfekplkmjaldaa"   // Enterprise Web Store
+    ]
+  },
+  "webRequest": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "webRequestBlocking": {
+    "channel": "stable",
+    "extension_types": ["extension", "packaged_app"]
+  },
+  "webview": {
+    "channel": "stable",
+    "extension_types": ["platform_app"]
+  }
+}

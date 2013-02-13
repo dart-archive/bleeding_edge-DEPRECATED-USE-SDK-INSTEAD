@@ -1,0 +1,69 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// An API for tab media streams.
+
+namespace tabCapture {
+
+  enum TabCaptureState {
+    requested,
+    pending,
+    active,
+    stopped,
+    error
+  };
+
+  dictionary CaptureInfo {
+    // The id of the tab whose status changed.
+    long tabId;
+
+    // The new capture status of the tab.
+    TabCaptureState status;
+  };
+
+  // MediaTrackConstraints for the media streams that will be passed to WebRTC.
+  // See section on MediaTrackConstraints:
+  // http://dev.w3.org/2011/webrtc/editor/getusermedia.html
+  dictionary MediaStreamConstraint {
+    object mandatory;
+  };
+
+  // Whether we are requesting tab video and/or audio and the
+  // MediaTrackConstraints that should be set for these streams.
+  dictionary CaptureOptions {
+    boolean? audio;
+    boolean? video;
+    MediaStreamConstraint? audioConstraints;
+    MediaStreamConstraint? videoConstraints;
+  };
+
+  callback GetTabMediaCallback =
+      void ([instanceOf=LocalMediaStream] object stream);
+
+  callback GetCapturedTabsCallback = void (CaptureInfo[] result);
+
+  interface Functions {
+    // Captures the visible area of the currently active tab.
+    // Extensions must have the "tabCapture" permission to use this method.
+    // |options| : Configures the returned media stream.
+    // |callback| : Callback with either the stream returned or null.
+    static void capture(CaptureOptions options,
+                        GetTabMediaCallback callback);
+
+    // Returns a list of tabs that have requested capture or are being
+    // captured, i.e. status != stopped and status != error.
+    // This allows extensions to inform the user that there is an existing
+    // tab capture that would prevent a new tab capture from succeeding (or
+    // to prevent redundant requests for the same tab).
+    static void getCapturedTabs(GetCapturedTabsCallback callback);
+  };
+
+  interface Events {
+    // Event fired when the capture status of a tab changes.
+    // This allows extension authors to keep track of the capture status of
+    // tabs to keep UI elements like page actions and infobars in sync.
+    static void onStatusChanged(CaptureInfo info);
+  };
+
+};

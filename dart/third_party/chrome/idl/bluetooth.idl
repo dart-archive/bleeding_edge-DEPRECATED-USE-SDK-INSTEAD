@@ -1,0 +1,238 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+// Bluetooth API.
+
+namespace bluetooth {
+  dictionary AdapterState {
+    // The address of the adapter, in the format 'XX:XX:XX:XX:XX:XX'.
+    DOMString address;
+
+    // The human-readable name of the adapter.
+    DOMString name;
+
+    // Indicates whether or not the adapter has power.
+    boolean powered;
+
+    // Indicates whether or not the adapter is available (i.e. enabled).
+    boolean available;
+
+    // Indicates whether or not the adapter is currently discovering.
+    boolean discovering;
+  };
+
+  dictionary Device {
+    // The address of the device, in the format 'XX:XX:XX:XX:XX:XX'.
+    DOMString address;
+
+    // The human-readable name of the device.
+    DOMString name;
+
+    // Indicates whether or not the device is paired with the system.
+    boolean paired;
+
+    // Indicates whether or not the device is bonded with the system. A device
+    // is bonded if it is paired and high-security link keys have been
+    // exchanged so that connections may be encrypted.
+    boolean bonded;
+
+    // Indicates whether the device is currently connected to the system.
+    boolean connected;
+  };
+
+  dictionary ServiceRecord {
+    // The name of the service.
+    DOMString name;
+
+    // The UUID of the service.
+    DOMString? uuid;
+  };
+
+  dictionary Socket {
+    // The remote Bluetooth device associated with this socket.
+    Device device;
+
+    // The remote Bluetooth service associated with this socket.
+    DOMString serviceUuid;
+
+    // An identifier for this socket that should be used with the
+    // read/write/disconnect methods.
+    long id;
+  };
+
+  dictionary OutOfBandPairingData {
+    // Simple Pairing Hash C.
+    // Always 16 octets long.
+    ArrayBuffer hash;
+
+    // Simple Pairing Randomizer R.
+    // Always 16 octets long.
+    ArrayBuffer randomizer;
+  };
+
+  callback AdapterStateCallback = void(AdapterState result);
+  callback AddressCallback = void (DOMString result);
+  callback BooleanCallback = void (boolean result);
+  callback DataCallback = void (optional ArrayBuffer result);
+  callback DeviceCallback = void (Device device);
+  callback DevicesCallback = void (Device[] result);
+  callback NameCallback = void (DOMString result);
+  callback OutOfBandPairingDataCallback = void (OutOfBandPairingData data);
+  callback ResultCallback = void ();
+  callback ServicesCallback = void(ServiceRecord[] result);
+  callback SizeCallback = void (long result);
+  callback SocketCallback = void (Socket result);
+
+  // Options for the getDevices function. If neither |uuid| or |name| are
+  // provided, all devices known to the system are returned.
+  dictionary GetDevicesOptions {
+    // Only devices providing a service with a UUID that matches |uuid| will be
+    // returned.
+    DOMString? uuid;
+
+    // Only devices providing a service with a name that matches |name| will be
+    // returned.
+    DOMString? name;
+
+    // Called for each matching device.  Note that a service discovery request
+    // must be made to each non-matching device before it can be definitively
+    // excluded.  This can take some time.
+    DeviceCallback deviceCallback;
+  };
+
+  // Options for the getServices function.
+  dictionary GetServicesOptions {
+    // The address of the device to inquire about. |deviceAddress| should be
+    // in the format 'XX:XX:XX:XX:XX:XX'.
+    DOMString deviceAddress;
+  };
+
+  // Options for the connect function.
+  dictionary ConnectOptions {
+    // The connection is made to the device at |deviceAddress|.
+    // |deviceAddress| should be in the format 'XX:XX:XX:XX:XX:XX'.
+    DOMString deviceAddress;
+
+    // The connection is made to the service with UUID |serviceUuid|.
+    DOMString serviceUuid;
+  };
+
+  // Options for the disconnect function.
+  dictionary DisconnectOptions {
+    // The socket to disconnect.
+    long socketId;
+  };
+
+  // Options for the read function.
+  dictionary ReadOptions {
+    // The socket to read from.
+    long socketId;
+  };
+
+  // Options for the write function.
+  dictionary WriteOptions {
+    // The socket to write to.
+    long socketId;
+
+    // The data to write.
+    ArrayBuffer data;
+  };
+
+  // Options for the setOutOfBandPairingData function.
+  dictionary SetOutOfBandPairingDataOptions {
+    // The address of the remote device that the data should be associated
+    // with. |deviceAddress| should be in the format 'XX:XX:XX:XX:XX:XX'.
+    DOMString address;
+
+    // The Out Of Band Pairing Data. If this is omitted, the data for the
+    // device is cleared instead.
+    OutOfBandPairingData? data;
+  };
+
+  // Options for the startDiscovery function.
+  dictionary StartDiscoveryOptions {
+    // Called for each device that is discovered.
+    DeviceCallback deviceCallback;
+  };
+
+  // These functions all report failures via chrome.runtime.lastError.
+  interface Functions {
+    // Get information about the Bluetooth adapter.
+    // |callback| : Called with an AdapterState object describing the adapter
+    //              state.
+    static void getAdapterState(AdapterStateCallback callback);
+
+    // Get a bluetooth devices known to the system.  Known devices are either
+    // currently bonded, or have been bonded in the past.
+    // |options|  : Controls which devices are returned and provides
+    //              |deviceCallback|, which is called for each matching device.
+    // |callback| : Called when the search is completed.
+    //              |options.deviceCallback| will not be called after
+    //              |callback| has been called.
+    static void getDevices(GetDevicesOptions options,
+                           ResultCallback callback);
+
+    // Get a list of services provided by a device.
+    static void getServices(GetServicesOptions options,
+                            ServicesCallback callback);
+
+    // Connect to a service on a device.
+    // |options|  : The options for the connection.
+    // |callback| : Called when the connection is established with a Socket
+    //              that can be used to communicate with |device|.
+    static void connect(ConnectOptions options,
+                        SocketCallback callback);
+
+    // Close a Bluetooth connection.
+    // |options|  : The options for this function.
+    // |callback| : Called to indicate success or failure.
+    static void disconnect(DisconnectOptions options,
+                           optional ResultCallback callback);
+
+    // Read data from a Bluetooth connection.
+    // |options|  : The options for this function.
+    // |callback| : Called with the data when it is available.
+    static void read(ReadOptions options,
+                     DataCallback callback);
+
+    // Write data to a Bluetooth connection.
+    // |options|  : The options for this function.
+    // |callback| : Called with the number of bytes written.
+    static void write(WriteOptions options,
+                      optional SizeCallback callback);
+
+    // Get the local Out of Band Pairing data.
+    // |callback| : Called with the data.
+    static void getLocalOutOfBandPairingData(
+        OutOfBandPairingDataCallback callback);
+
+    // Set the Out of Band Pairing data for a remote device.
+    // Any previous Out Of Band Pairing Data for this device is overwritten.
+    // |options|  : The options for this function.
+    // |callback| : Called to indicate success or failure.
+    static void setOutOfBandPairingData(SetOutOfBandPairingDataOptions options,
+                                        optional ResultCallback callback);
+
+    // Start discovery. Discovered devices will be returned via the
+    // |onDeviceDiscovered| callback.  Discovery will fail to start if it is
+    // already in progress.  Discovery can be resource intensive: stopDiscovery
+    // should be called as soon as possible.
+    // |options|  : The options for this function.
+    // |callback| : Called to indicate success or failure.
+    static void startDiscovery(
+        StartDiscoveryOptions options,
+        optional ResultCallback callback);
+
+    // Stop discovery.
+    // |callback| : Called to indicate success or failure.
+    static void stopDiscovery(
+        optional ResultCallback callback);
+  };
+
+  interface Events {
+    // Fired when the state of the Bluetooth adapter changes.
+    // |state| : The new state of the adapter.
+    static void onAdapterStateChanged(AdapterState state);
+  };
+};

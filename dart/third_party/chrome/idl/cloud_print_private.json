@@ -1,0 +1,84 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+[
+  {
+    "namespace": "cloudPrintPrivate",
+    "nodoc": "true",
+    "functions": [
+      {
+        "name": "setupConnector",
+        "description": "Setup Cloud Print Connector.",
+        "type": "function",
+        "parameters": [
+          {
+            "name": "userEmail",
+            "type": "string",
+            "description": "The email address of the user."
+          },
+          {
+            "name": "robotEmail",
+            "type": "string",
+            "description": "The email address of the robot account."
+          },
+          {
+            "name": "credentials",
+            "type": "string",
+            "description": "The login credentials(OAuth2 Auth code)."
+          },
+          {
+            "name": "connectNewPrinters",
+            "type": "boolean",
+            "description": "True if new printers should be connected."
+          },
+          {
+            "name": "printerBlacklist",
+            "description": "Printers that should not be connected.",
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        ]
+      },
+      {
+        "name": "getHostName",
+        "description": "Returns local hostname.",
+        "type": "function",
+        "parameters": [
+          {
+            "name": "callback",
+            "type": "function",
+            "description": "Called to return host name.",
+            "parameters": [
+              {
+                "name": "result",
+                "type": "string",
+                "description": "Host name."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "getPrinters",
+        "description": "Returns local printers.",
+        "type": "function",
+        "parameters": [
+          {
+            "name": "callback",
+            "type": "function",
+            "description": "Called to return printers.",
+            "parameters": [
+              {
+                "name": "result",
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "List of printer names."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

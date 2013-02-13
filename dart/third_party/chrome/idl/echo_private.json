@@ -1,0 +1,55 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+[
+  {
+    "namespace": "echoPrivate",
+    "nodoc": true,
+    "platforms": ["chromeos"],
+    "types": [],
+    "functions": [
+      {
+        "name": "getRegistrationCode",
+        "description": "Get the group or coupon code from underlying storage.",
+        "type": "function",
+        "parameters": [
+          {
+            "name": "type",
+            "type": "string",
+            "description": "Type of coupon code requested to be read (coupon or group)."
+          },
+          {
+            "name": "callback",
+            "type": "function",
+            "parameters": [
+              {
+                "name": "result",
+                "type": "string",
+                "description" : "The coupon code."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "getOobeTimestamp",
+        "description": "Get the OOBE timestamp.",
+        "type": "function",
+        "parameters": [
+          {
+            "name": "callback",
+            "type": "function",
+            "parameters": [
+              {
+                "name": "result",
+                "type": "string",
+                "description" : "The OOBE timestamp."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

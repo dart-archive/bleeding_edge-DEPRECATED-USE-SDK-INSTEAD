@@ -1,0 +1,366 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+[
+  {
+    "namespace": "runtime",
+    "dependencies": [ "events", "tabs" ],
+    "documentation_permissions_required": ["runtime"],
+    "types": [
+      {
+        "id": "Port",
+        "type": "object",
+        "description": "An object which allows two way communication with other pages.",
+        "properties": {
+          "name": {"type": "string"},
+          "disconnect": { "type": "function" },
+          "onDisconnect": { "$ref": "events.Event" },
+          "onMessage": { "$ref": "events.Event" },
+          "postMessage": {"type": "function"},
+          "sender": {
+            "$ref": "MessageSender",
+            "optional": true,
+            "description": "This property will <b>only</b> be present on ports passed to onConnect/onConnectExternal listeners."
+          }
+        },
+        "additionalProperties": { "type": "any"}
+      },
+      {
+        "id": "MessageSender",
+        "type": "object",
+        "description": "An object containing information about the script context that sent a message or request.",
+        "properties": {
+          "tab": {"$ref": "tabs.Tab", "optional": true, "description":"This property will <b>only</b> be present when the connection was opened from a tab or content script."},
+          "id": {"type": "string", "description": "The ID of the extension/app that opened the connection."}
+        }
+      }
+    ],
+    "properties": {
+      "lastError": {
+        "type": "object",
+        "optional": true,
+        "description": "This will be defined during an API method callback if there was an error",
+        "unprivileged": true,
+        "properties": {
+          "message": {
+            "optional": true,
+            "type": "string",
+            "description": "Details about the error which occurred."
+          }
+        }
+      },
+      "id": {
+        "type": "string",
+        "description": "The ID of the extension/app.",
+        "unprivileged": true
+      }
+    },
+    "functions": [
+      {
+        "name": "getBackgroundPage",
+        "type": "function",
+        "description": "Retrieves the JavaScript 'window' object for the background page running inside the current extension/app. If the background page is an event page, the system will ensure it is loaded before calling the callback. If there is no background page, an error is set.",
+        "parameters": [
+          {
+            "type": "function",
+            "name": "callback",
+            "parameters": [
+              {
+                "name": "backgroundPage",
+                // Note: Only optional because we don't support validation
+                // for custom callbacks.
+                "optional": true,
+                "type": "object",
+                "isInstanceOf": "global",
+                "additionalProperties": { "type": "any" },
+                "description": "The JavaScript 'window' object for the background page."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "getManifest",
+        "description": "Returns details about the app or extension from the manifest. The object returned is a serialization of the full <a href=\"manifest.html\">manifest file</a>.",
+        "type": "function",
+        "unprivileged": true,
+        "parameters": [],
+        "returns": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": { "type": "any" },
+          "description": "The manifest details."
+        }
+      },
+      {
+        "name": "getURL",
+        "type": "function",
+        "unprivileged": true,
+        "description": "Converts a relative path within an app/extension install directory to a fully-qualified URL.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "path",
+            "description": "A path to a resource within an app/extension expressed relative to its install directory."
+          }
+        ],
+        "returns": {
+          "type": "string",
+          "description": "The fully-qualified URL to the resource."
+        }
+      },
+      {
+        "name": "reload",
+        "description": "Reloads the app or extension.",
+        "type": "function",
+        "unprivileged": true,
+        "parameters": []
+      },
+      {
+        "name": "requestUpdateCheck",
+        "type": "function",
+        "unprivileged": true,
+        "description": "Requests an update check for this app/extension.",
+        "parameters": [
+          {
+            "type": "function",
+            "name": "callback",
+            "parameters": [
+              {
+                "name": "status",
+                "type": "string",
+                "enum": ["throttled", "no_update", "update_available"],
+                "description": "Result of the update check."
+              },
+              {
+                "name": "details",
+                "type": "object",
+                "optional": true,
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "description": "The version of the available update."
+                  }
+                },
+                "description": "If an update is available, this contains more information about the available update."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "connect",
+        "type": "function",
+        "unprivileged": true,
+        "description": "Attempts to connect to other listeners within the extension/app (such as the background page), or other extensions/apps. This is useful for content scripts connecting to their extension processes. Note that this does not connect to any listeners in a content script. Extensions may connect to content scripts embedded in tabs via $ref:tabs.connect.",
+        "parameters": [
+          {"type": "string", "name": "extensionId", "optional": true, "description": "The ID of the extension/app you want to connect to. If omitted, default is your own extension."},
+          {
+            "type": "object",
+            "name": "connectInfo",
+            "properties": {
+              "name": { "type": "string", "optional": true, "description": "Will be passed into onConnect for processes that are listening for the connection event." }
+            },
+            "optional": true
+          }
+        ],
+        "returns": {
+          "$ref": "Port",
+          "description": "Port through which messages can be sent and received. The port's $ref:[runtime.Port onDisconnect] event is fired if the extension/app does not exist. "
+        }
+      },
+      {
+        "name": "connectNative",
+        "nodoc": true,
+        "type": "function",
+        "description": "Attempts to connect a native application in the host machine. The native application must have already registered itself in the proper directory.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "appName",
+            "description": "The name of the registered app to connect to."
+          }
+        ],
+        "returns": {
+          "$ref": "Port",
+          "description": "Port through which messages can be sent and received with the application"
+        }
+      },
+      {
+        "name": "sendMessage",
+        "type": "function",
+        "allowAmbiguousOptionalArguments": true,
+        "unprivileged": true,
+        "description": "Sends a single message to onMessage event listeners within the extension (or another extension/app). Similar to chrome.runtime.connect, but only sends a single message with an optional response. The $ref:runtime.onMessage event is fired in each extension page of the extension. Note that extensions cannot send messages to content scripts using this method. To send messages to content scripts, use $ref:tabs.sendMessage.",
+        "parameters": [
+          {"type": "string", "name": "extensionId", "optional": true, "description": "The extension ID of the extension you want to connect to. If omitted, default is your own extension."},
+          { "type": "any", "name": "message" },
+          {
+            "type": "function",
+            "name": "responseCallback",
+            "optional": true,
+            "parameters": [
+              {
+                "name": "response",
+                "type": "any",
+                "description": "The JSON response object sent by the handler of the message. If an error occurs while connecting to the extension, the callback will be called with no arguments and $ref:runtime.lastError will be set to the error message."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sendNativeMessage",
+        "nodoc": true,
+        "type": "function",
+        "description": "Send a single message to a registered native application.",
+        "parameters": [
+          {
+            "name": "registeredNativeApp",
+            "description": "The name of the registered native application.",
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "description": "The message that will be passed to the registered native application.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "any"
+            }
+          },
+          {
+            "type": "function",
+            "name": "callback",
+            "optional": true,
+            "description": "Called with the response from the native application.",
+            "parameters": [
+              {
+                "name": "nativeResponse",
+                "type": "object",
+                "description": "Whatever the native application responds with.",
+                "additionalProperties": {
+                  "type": "any"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "name": "onStartup",
+        "type": "function",
+        "description": "Fired when the browser first starts up."
+      },
+      {
+        "name": "onInstalled",
+        "type": "function",
+        "description": "Fired when the extension is first installed, when the extension is updated to a new version, and when Chrome is updated to a new version.",
+        "parameters": [
+          {
+            "type": "object",
+            "name": "details",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": ["install", "update", "chrome_update"],
+                "description": "The reason that this event is being dispatched."
+              },
+              "previousVersion": {
+                "type": "string",
+                "optional": true,
+                "description": "Indicates the previous version of the extension, which has just been updated. This is present only if 'reason' is 'update'."
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "onSuspend",
+        "type": "function",
+        "description": "Sent to the event page just before it is unloaded. This gives the extension opportunity to do some clean up. Note that since the page is unloading, any asynchronous operations started while handling this event are not guaranteed to complete. If more activity for the event page occurs before it gets unloaded the onSuspendCanceled event will be sent and the page won't be unloaded. "
+      },
+      {
+        "name": "onSuspendCanceled",
+        "type": "function",
+        "description": "Sent after onSuspend() to indicate that the app won't be unloaded after all."
+      },
+      {
+        "name": "onUpdateAvailable",
+        "type": "function",
+        "description": "Fired when an update is available, but isn't installed immediately because the app is currently running. If you do nothing, the update will be installed the next time the background page gets unloaded, if you want it to be installed sooner you can explicitly call chrome.runtime.reload().",
+        "parameters": [
+          {
+            "type": "object",
+            "name": "details",
+            "properties": {
+              "version": {
+                "type": "string",
+                "description": "The version number of the available update."
+              }
+            },
+            "additionalProperties": { "type": "any" },
+            "description": "The manifest details of the available update."
+          }
+        ]
+      },
+      {
+        "name": "onConnect",
+        "type": "function",
+        "unprivileged": true,
+        "anonymous": true,
+        "description": "Fired when a connection is made from either an extension process or a content script.",
+        "parameters": [
+          {"$ref": "Port", "name": "port"}
+        ]
+      },
+      {
+        "name": "onConnectExternal",
+        "type": "function",
+        "anonymous": true,
+        "description": "Fired when a connection is made from another extension.",
+        "parameters": [
+          {"$ref": "Port", "name": "port"}
+        ]
+      },
+      {
+        "name": "onMessage",
+        "type": "function",
+        "anonymous": true,
+        "unprivileged": true,
+        "description": "Fired when a message is sent from either an extension process or a content script.",
+        "parameters": [
+          {"name": "message", "type": "any", "description": "The message sent by the calling script."},
+          {"name": "sender", "$ref": "MessageSender" },
+          {"name": "sendResponse", "type": "function", "description": "Function to call (at most once) when you have a response. The argument should be any JSON-ifiable object. If you have more than one <code>onMessage</code> listener in the same document, then only one may send a response. This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until <code>sendResponse</code> is called)." }
+        ],
+        "returns": {
+          "type": "boolean",
+          "optional": "true",
+          "description": "Return true from the event listener if you wish to call <code>sendResponse</code> after the event listener returns."
+        }
+      },
+      {
+        "name": "onMessageExternal",
+        "type": "function",
+        "anonymous": true,
+        "description": "Fired when a message is sent from another extension/app. Cannot be used in a content script.",
+        "parameters": [
+          {"name": "message", "type": "any", "description": "The message sent by the calling script."},
+          {"name": "sender", "$ref": "MessageSender" },
+          {"name": "sendResponse", "type": "function", "description": "Function to call (at most once) when you have a response. The argument should be any JSON-ifiable object. If you have more than one <code>onMessage</code> listener in the same document, then only one may send a response. This function becomes invalid when the event listener returns, unless you return true from the event listener to indicate you wish to send a response asynchronously (this will keep the message channel open to the other end until <code>sendResponse</code> is called)." }
+        ],
+        "returns": {
+          "type": "boolean",
+          "optional": "true",
+          "description": "Return true from the event listener if you wish to call <code>sendResponse</code> after the event listener returns."
+        }
+      }
+
+
+
+    ]
+  }
+]
