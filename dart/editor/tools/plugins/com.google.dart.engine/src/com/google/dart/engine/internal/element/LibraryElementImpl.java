@@ -239,8 +239,6 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   private boolean isOrImportsBrowserLibrary() {
     List<LibraryElement> visited = new ArrayList<LibraryElement>(10);
-    // TODO(keertip) : maybe we don't need to ask for cu always? Explore other ways to get Source
-    // for dart libraries
     Source htmlLibSource = getDefiningCompilationUnit().getSource().resolve(DartSdk.DART_HTML);
     visited.add(this);
     for (int index = 0; index < visited.size(); index++) {
