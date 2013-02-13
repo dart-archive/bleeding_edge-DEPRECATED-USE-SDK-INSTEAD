@@ -91,8 +91,7 @@ public class ProjectImpl implements Project {
   private static DartUriResolver getDartUriResolver() {
     synchronized (lock) {
       if (dartResolver == null) {
-        DartSdkManager sdkManager = com.google.dart.tools.core.model.DartSdkManager.getManager();
-        DartSdk sdk = new DartSdk(sdkManager.getSdk().getDirectory());
+        DartSdk sdk = DartSdkManager.getManager().getNewSdk();
         dartResolver = new DartUriResolver(sdk);
       }
       return dartResolver;

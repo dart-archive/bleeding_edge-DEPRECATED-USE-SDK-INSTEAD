@@ -114,7 +114,10 @@ public class DartSdkManager {
     return null;
   }
 
-  private DartSdk sdk;
+  private DartSdk oldSdk;
+
+  // To replace the oldSdk
+  private com.google.dart.engine.sdk.DartSdk newSdk;
 
   private List<DartSdkListener> listeners = new ArrayList<DartSdkListener>();
 
@@ -126,11 +129,28 @@ public class DartSdkManager {
     listeners.add(lisener);
   }
 
+  /**
+   * Get a handle on the "new" SDK.
+   * <p>
+   * This will eventually replace {@link #getSdk()}.
+   */
+  public com.google.dart.engine.sdk.DartSdk getNewSdk() {
+
+    if (newSdk == null) {
+      newSdk = new com.google.dart.engine.sdk.DartSdk(getSdk().getDirectory());
+    }
+
+    return newSdk;
+  }
+
   public DartSdk getSdk() {
-    return sdk;
+    return oldSdk;
   }
 
   public boolean hasSdk() {
+
+    //TODO (pquitslund): add a switch to check for analysis engine enablement
+
     return getSdk() != null && getSdk() != NONE;
   }
 
@@ -254,11 +274,11 @@ public class DartSdkManager {
 
   private void initSdk() {
     if (getDefaultPluginsSdkDirectory().exists()) {
-      sdk = new DartSdk(getDefaultPluginsSdkDirectory());
+      oldSdk = new DartSdk(getDefaultPluginsSdkDirectory());
     } else if (getDefaultEditorSdkDirectory().exists()) {
-      sdk = new DartSdk(getDefaultEditorSdkDirectory());
+      oldSdk = new DartSdk(getDefaultEditorSdkDirectory());
     } else {
-      sdk = NONE;
+      oldSdk = NONE;
     }
   }
 
@@ -330,9 +350,9 @@ public class DartSdkManager {
       unzipNewSDK(newSdk, mon.newChild(10));
 
       // swap out the new sdk for the old
-      if (sdk != null) {
-        sdk.dispose();
-        sdk = null;
+      if (oldSdk != null) {
+        oldSdk.dispose();
+        oldSdk = null;
       }
 
       initSdk();
