@@ -1,6 +1,9 @@
 import "dart:io";
 
-final Path WATCHED_FILE = new Path.raw("web/{name.lower}.dart");
+final List<Path> WATCHED_FILES = [
+  new Path.raw("web/background.dart"),
+  new Path.raw("web/{name.lower}.dart")
+];
 
 bool get isWindows => Platform.operatingSystem == 'windows';
 Path get sdkBinPath => new Path(new Options().executable).directoryPath;
@@ -11,13 +14,15 @@ Path get dart2jsPath => sdkBinPath.append(isWindows ? 'dart2js.bat' : 'dart2js')
 /// flag causes dart2js to output CSP (and Chrome app) friendly code.
 void main() {
   var args = new Options().arguments;
-  
+
   bool fullBuild = args.contains("--full");
   bool dartFilesChanged = args.any(
       (arg) => arg.startsWith("--changed=") && arg.endsWith(".dart"));
 
   if (fullBuild || dartFilesChanged) {
-    callDart2js(WATCHED_FILE.toNativePath());
+    for (Path path in WATCHED_FILES) {
+      callDart2js(path.toNativePath());
+    }
   }
 }
 

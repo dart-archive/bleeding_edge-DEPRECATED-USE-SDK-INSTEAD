@@ -1,16 +1,21 @@
+import 'dart:chrome';
 import 'dart:html';
+
+int boundsChange = 100;
 
 void main() {
   query("#sample_text_id")
     ..text = "Click me!"
-    ..onClick.listen(reverseText);
+    ..onClick.listen(resizeWindow);
 }
 
-void reverseText(MouseEvent event) {
-  var text = query("#sample_text_id").text;
-  var buffer = new StringBuffer();
-  for (int i = text.length - 1; i >= 0; i--) {
-    buffer.add(text[i]);
-  }
-  query("#sample_text_id").text = buffer.toString();
+void resizeWindow(MouseEvent event) {
+  AppWindowAppWindow appWindow = chrome.app.window.current();
+
+  AppWindowBounds bounds = appWindow.getBounds();
+  bounds.width += boundsChange;
+  bounds.left -= boundsChange ~/ 2;
+  appWindow.setBounds(bounds);
+
+  boundsChange *= -1;
 }

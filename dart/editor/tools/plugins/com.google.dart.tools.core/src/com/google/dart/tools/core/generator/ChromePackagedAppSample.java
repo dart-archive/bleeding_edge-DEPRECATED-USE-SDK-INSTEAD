@@ -33,11 +33,11 @@ public class ChromePackagedAppSample extends AbstractSample {
     templates.add(new String[] {
         "pubspec.yaml",
         "name: {name}\ndescription: A sample chrome packaged application\n"
-            + "dependencies:\n  browser: any\n  js: any\n"});
+            + "#dependencies:\n#  js: any\n"});
     templates.add(new String[] {"README.md", "@chrome/readme.md"});
 
     templates.add(new String[] {"web/dart_icon.png", "@chrome/dart_icon.png"});
-    templates.add(new String[] {"web/main.js", "@chrome/main.js"});
+    templates.add(new String[] {"web/background.dart", "@chrome/background.dart"});
     templates.add(new String[] {"web/manifest.json", "@chrome/manifest.json"});
     templates.add(new String[] {"web/{name.lower}.dart", "@chrome/sample.dart"});
     templates.add(new String[] {"web/{name.lower}.html", "@chrome/sample.html"});

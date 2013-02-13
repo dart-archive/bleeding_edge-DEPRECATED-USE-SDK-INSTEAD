@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
+import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.util.BrowserManager;
 
 import org.eclipse.core.resources.IContainer;
@@ -147,11 +148,15 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
 
     }
 
+    // TODO(devoncarew): we need to wait until the process is started before we can try and activate
+    // the window. We need to find a better way to do this then just a fixed delay.
+    sleep(1000);
+    DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
+
     monitor.done();
 
     long elapsed = System.currentTimeMillis() - start;
     Instrumentation.metric("ChromeAppLaunchLaunchConfiguration-launch", elapsed).with("mode", mode).log();
-
   }
 
   /**
@@ -179,6 +184,14 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
         DartDebugCorePlugin.PLUGIN_ID,
         t.toString(),
         t));
+  }
+
+  private void sleep(int millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (Exception exception) {
+
+    }
   }
 
 }
