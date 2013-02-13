@@ -209,6 +209,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, methodInvocation("javaMapPutAll", node.getTarget(), args.get(0)));
           return null;
         }
+        if (isMethodInClass(node, "addAll", "java.util.Collections")) {
+          replaceNode(node, methodInvocation(args.get(0), "addAll", args.get(1)));
+          return null;
+        }
         if (isMethodInClass(node, "sort", "java.util.Arrays")) {
           replaceNode(node, methodInvocation(args.get(0), "sort"));
           return null;
