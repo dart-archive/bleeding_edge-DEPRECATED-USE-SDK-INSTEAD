@@ -114,8 +114,8 @@ class Scrollbar implements ScrollListener {
 
     _scroller.addScrollListener(this);
     _showScrollbars(false);
-    _scroller.onScrollerStart.add(_onScrollerStart);
-    _scroller.onScrollerEnd.add(_onScrollerEnd);
+    _scroller.onScrollerStart.listen(_onScrollerStart);
+    _scroller.onScrollerEnd.listen(_onScrollerEnd);
     if (_displayOnHover) {
       // TODO(jacobr): rather than adding all these event listeners we could
       // instead attach a single global event listener and let data in the
@@ -222,7 +222,7 @@ class Scrollbar implements ScrollListener {
   void _onEnd(UIEvent e) {
     _scrollBarDragInProgress = false;
     // TODO(jacobr): make scrollbar less tightly coupled to the scroller.
-    _scroller.onScrollerDragEnd.dispatch(
+    _scroller._onScrollerDragEnd.add(
         new Event(ScrollerEventType.DRAG_END));
   }
 

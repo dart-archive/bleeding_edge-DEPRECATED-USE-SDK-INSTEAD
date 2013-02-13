@@ -122,9 +122,9 @@ class PagedColumnView extends View {
         },
         Scroller.FAST_SNAP_DECELERATION_FACTOR);
 
-    scroller.onDecelStart.add(_snapToPage);
-    scroller.onScrollerDragEnd.add(_snapToPage);
-    scroller.onContentMoved.add(_onContentMoved);
+    scroller.onDecelStart.listen(_snapToPage);
+    scroller.onScrollerDragEnd.listen(_snapToPage);
+    scroller.onContentMoved.listen(_onContentMoved);
     return node;
   }
 

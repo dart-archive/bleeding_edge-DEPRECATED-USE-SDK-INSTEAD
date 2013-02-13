@@ -74,11 +74,11 @@ class Scroller implements Draggable, MomentumDelegate {
 
   Momentum _momentum;
 
-  EventListenerList _onScrollerStart;
-  EventListenerList _onScrollerEnd;
-  EventListenerList _onScrollerDragEnd;
-  EventListenerList _onContentMoved;
-  EventListenerList _onDecelStart;
+  StreamController<Event> _onScrollerStart;
+  StreamController<Event> _onScrollerEnd;
+  StreamController<Event> _onScrollerDragEnd;
+  StreamController<Event> _onContentMoved;
+  StreamController<Event> _onDecelStart;
 
   /** Set if vertical scrolling should be enabled. */
   bool verticalEnabled;
@@ -239,39 +239,39 @@ class Scroller implements Draggable, MomentumDelegate {
     _initLayer();
   }
 
-  EventListenerList get onScrollerStart {
+  Stream<Event> get onScrollerStart {
     if (_onScrollerStart == null) {
-      _onScrollerStart = new SimpleEventListenerList();
+      _onScrollerStart = new StreamController<Event>.broadcast();
     }
-    return _onScrollerStart;
+    return _onScrollerStart.stream;
   }
 
-  EventListenerList get onScrollerEnd {
+  Stream<Event> get onScrollerEnd {
     if (_onScrollerEnd == null) {
-      _onScrollerEnd = new SimpleEventListenerList();
+      _onScrollerEnd = new StreamController<Event>.broadcast();
     }
-    return _onScrollerEnd;
+    return _onScrollerEnd.stream;
   }
 
-  EventListenerList get onScrollerDragEnd {
+  Stream<Event> get onScrollerDragEnd {
     if (_onScrollerDragEnd == null) {
-      _onScrollerDragEnd = new SimpleEventListenerList();
+      _onScrollerDragEnd = new StreamController<Event>.broadcast();
     }
-    return _onScrollerDragEnd;
+    return _onScrollerDragEnd.stream;
   }
 
-  EventListenerList get onContentMoved {
+  Stream<Event> get onContentMoved {
     if (_onContentMoved == null) {
-      _onContentMoved = new SimpleEventListenerList();
+      _onContentMoved = new StreamController<Event>.broadcast();
     }
-    return _onContentMoved;
+    return _onContentMoved.stream;
   }
 
-  EventListenerList get onDecelStart {
+  Stream<Event> get onDecelStart {
     if (_onDecelStart == null) {
-      _onDecelStart = new SimpleEventListenerList();
+      _onDecelStart = new StreamController<Event>.broadcast();
     }
-    return _onDecelStart;
+    return _onDecelStart.stream;
   }
 
 
@@ -341,7 +341,9 @@ class Scroller implements Draggable, MomentumDelegate {
                 snappedTarget,
                 decelerationFactor),
             decelerationFactor);
-        onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
+        if (_onDecelStart != null) {
+          _onDecelStart.add(new Event(ScrollerEventType.DECEL_START));
+        }
       }
     });
   }
@@ -432,7 +434,9 @@ class Scroller implements Draggable, MomentumDelegate {
   }
 
   void onDecelerationEnd() {
-    onScrollerEnd.dispatch(new Event(ScrollerEventType.SCROLLER_END));
+    if (_onScrollerEnd != null) {
+      _onScrollerEnd.add(new Event(ScrollerEventType.SCROLLER_END));
+    }
     _started = false;
   }
 
@@ -446,14 +450,20 @@ class Scroller implements Draggable, MomentumDelegate {
       }
     }
 
-    onScrollerDragEnd.dispatch(new Event(ScrollerEventType.DRAG_END));
+    if (_onScrollerDragEnd != null) {
+      _onScrollerDragEnd.add(new Event(ScrollerEventType.DRAG_END));
+    }
 
     if (!decelerating) {
       _snapContentOffsetToBounds();
-      onScrollerEnd.dispatch(new Event(ScrollerEventType.SCROLLER_END));
+      if (_onScrollerEnd != null) {
+        _onScrollerEnd.add(new Event(ScrollerEventType.SCROLLER_END));
+      }
       _started = false;
     } else {
-      onDecelStart.dispatch(new Event(ScrollerEventType.DECEL_START));
+      if (_onDecelStart != null) {
+        _onDecelStart.add(new Event(ScrollerEventType.DECEL_START));
+      }
     }
     _activeGesture = false;
   }
@@ -477,7 +487,9 @@ class Scroller implements Draggable, MomentumDelegate {
     }
     if (!_started) {
       _started = true;
-      onScrollerStart.dispatch(new Event(ScrollerEventType.SCROLLER_START));
+      if (_onScrollerStart != null) {
+        _onScrollerStart.add(new Event(ScrollerEventType.SCROLLER_START));
+      }
     }
     _setContentOffset(newX, newY);
   }
@@ -574,7 +586,9 @@ class Scroller implements Draggable, MomentumDelegate {
     _contentOffset.x = x;
     _contentOffset.y = y;
     _setOffsetFunction(_element, x, y);
-    onContentMoved.dispatch(new Event(ScrollerEventType.CONTENT_MOVED));
+    if (_onContentMoved != null) {
+      _onContentMoved.add(new Event(ScrollerEventType.CONTENT_MOVED));
+    }
   }
 
   /**
@@ -671,49 +685,6 @@ class ScrollerEventType {
   static const DRAG_END = "scroller:drag_end";
   static const CONTENT_MOVED = "scroller:content_moved";
   static const DECEL_START = "scroller:decel_start";
-}
-
-// TODO(jacobr): for now this ignores capture.
-class SimpleEventListenerList implements EventListenerList {
-  // Ignores capture for now.
-  List<EventListener> _listeners;
-
-  SimpleEventListenerList() : _listeners = new List<EventListener>() { }
-
-  EventListenerList add(EventListener handler, [bool useCapture = false]) {
-    _add(handler, useCapture);
-    return this;
-  }
-
-  EventListenerList remove(EventListener handler, [bool useCapture = false]) {
-    _remove(handler, useCapture);
-    return this;
-  }
-
-  EventListenerList addCapture(EventListener handler) {
-    _add(handler, true);
-    return this;
-  }
-
-  EventListenerList removeCapture(EventListener handler) {
-    _remove(handler, true);
-    return this;
-  }
-
-  void _add(EventListener handler, bool useCapture) {
-    _listeners.add(handler);
-  }
-
-  void _remove(EventListener handler, bool useCapture) {
-    // TODO(jacobr): implemenet as needed.
-    throw 'Not implemented yet.';
-  }
-
-  bool dispatch(Event evt) {
-    for (EventListener listener in _listeners) {
-      listener(evt);
-    }
-  }
 }
 
 class ScrollerScrollTechnique {

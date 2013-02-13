@@ -51,7 +51,7 @@ class ScrollWatcher {
    */
   void initialize() {
     _scrollerEl = _scroller.getElement();
-    _scroller.onContentMoved.add((e) { _onContentMoved(e); });
+    _scroller.onContentMoved.listen((e) { _onContentMoved(e); });
   }
 
   /**

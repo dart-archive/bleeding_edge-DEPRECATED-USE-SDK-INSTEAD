@@ -226,14 +226,14 @@ class GenericListView<D> extends View {
           },
           _paginate && _snapToItems ?
               Scroller.FAST_SNAP_DECELERATION_FACTOR : 1);
-      scroller.onContentMoved.add((e) => renderVisibleItems(false));
+      scroller.onContentMoved.listen((e) => renderVisibleItems(false));
       if (_pages != null) {
         watch(_pages.target, (s) => _onPageSelected());
       }
 
       if (_snapToItems) {
-        scroller.onDecelStart.add((e) => _decelStart());
-        scroller.onScrollerDragEnd.add((e) => _decelStart());
+        scroller.onDecelStart.listen((e) => _decelStart());
+        scroller.onScrollerDragEnd.listen((e) => _decelStart());
       }
       if (_showScrollbar) {
         _scrollbar = new Scrollbar(scroller, true);

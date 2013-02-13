@@ -129,7 +129,7 @@ class InfiniteScroller {
    * Register the event listeners.
    */
   void _registerEventListeners() {
-    _scroller.onScrollerEnd.add((Event event) { _onScrollEnd(); });
+    _scroller.onScrollerEnd.listen((Event event) { _onScrollEnd(); });
   }
 
   /**
