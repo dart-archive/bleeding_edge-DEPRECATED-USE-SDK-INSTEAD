@@ -195,16 +195,9 @@ class Solar3DApplication {
   }
 
   void fullscreenChange(Event event) {
-    if (_fullScreened) {
-      // Resize the canvas to fill the screen
-      canvas.width = window.screen.width;
-      canvas.height = window.screen.height;
-    } else {
-      // Resize the canvas to the default size.
-      canvas.height = 512;
-      canvas.width = 512;
-    }
-    camera.aspectRatio = canvas.width/canvas.height;
+    canvas.width = (canvas.parent as Element).clientWidth;
+    canvas.height = (canvas.parent as Element).clientHeight;
+    camera.aspectRatio = canvas.width / canvas.height;
   }
 
   // Bind input event callbacks
