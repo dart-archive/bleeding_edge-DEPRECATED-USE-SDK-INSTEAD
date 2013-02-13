@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.services.util;
 
-import com.google.dart.engine.services.completion.CompletionEngineTest;
+import com.google.dart.engine.services.completion.CompletionTests;
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.CompletionRequestor;
 
@@ -30,7 +30,7 @@ public class MockCompletionRequestor implements CompletionRequestor {
 
   @Override
   public void accept(CompletionProposal proposal) {
-    CompletionEngineTest.assertEquals("Expected accept to be called after beginReporting", 1, state);
+    CompletionTests.assertEquals("Expected accept to be called after beginReporting", 1, state);
     suggestions.add(proposal.getCompletion());
   }
 
@@ -39,7 +39,7 @@ public class MockCompletionRequestor implements CompletionRequestor {
    */
   public void assertNotSuggested(String suggestion) {
     if (suggestions.contains(suggestion)) {
-      CompletionEngineTest.fail("Invalid suggestion: " + suggestion);
+      CompletionTests.fail("Invalid suggestion: " + suggestion);
     }
   }
 
@@ -48,13 +48,13 @@ public class MockCompletionRequestor implements CompletionRequestor {
    */
   public void assertSuggested(String suggestion) {
     if (!suggestions.contains(suggestion)) {
-      CompletionEngineTest.fail("Expected suggestion: " + suggestion);
+      CompletionTests.fail("Expected suggestion: " + suggestion);
     }
   }
 
   @Override
   public void beginReporting() {
-    CompletionEngineTest.assertEquals("Expected beginReporting to be called first", 0, state++);
+    CompletionTests.assertEquals("Expected beginReporting to be called first", 0, state++);
   }
 
 //  @Override
@@ -68,7 +68,7 @@ public class MockCompletionRequestor implements CompletionRequestor {
 
   @Override
   public void endReporting() {
-    CompletionEngineTest.assertEquals(
+    CompletionTests.assertEquals(
         "Expected endReporting to be called after beginReporting",
         1,
         state++);

@@ -473,9 +473,12 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       }
       // Use new completion engine.
       com.google.dart.engine.services.completion.CompletionEngine engine;
+      com.google.dart.engine.services.completion.CompletionFactory factory;
       AnalysisUtil util = new AnalysisUtil();
       util.setRequestor(collector);
-      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, util);
+      factory = new com.google.dart.engine.services.completion.CompletionFactory();
+      engine = new com.google.dart.engine.services.completion.CompletionEngine(util, factory);
+      // Caution: resolution has not yet been done, so this path is incomplete.
       engine.complete(new AssistContext(context.getInputUnit(), offset, len));
     } catch (OperationCanceledException x) {
       IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(

@@ -2143,7 +2143,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
    */
   public com.google.dart.engine.element.Element getInputElement() {
-    return getInputUnit().getElement();
+    com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+    return unit == null ? null : unit.getElement();
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {

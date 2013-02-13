@@ -23,6 +23,8 @@ public interface CompletionProposal {
 
   String getName();
 
+  String[] getParameterNames();
+
   int getReplacementLength();
 
   CompletionProposal setCompletion(String x);
@@ -32,6 +34,8 @@ public interface CompletionProposal {
   CompletionProposal setLocation(int x);
 
   CompletionProposal setName(String x);
+
+  CompletionProposal setParameterNames(String[] params);
 
   CompletionProposal setReplacementLength(int x);
 }

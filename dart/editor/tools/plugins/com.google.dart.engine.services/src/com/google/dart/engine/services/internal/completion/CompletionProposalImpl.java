@@ -18,8 +18,11 @@ import com.google.dart.engine.services.completion.ProposalKind;
 
 public class CompletionProposalImpl implements CompletionProposal {
 
+  private static final String[] EMPTY_STRINGS = new String[0];
+
   private String completion;
   private String name;
+  private String[] parameterNames = EMPTY_STRINGS;
   private ProposalKind kind;
   private int location;
   private int replacementLength;
@@ -42,6 +45,11 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public String getName() {
     return name;
+  }
+
+  @Override
+  public String[] getParameterNames() {
+    return parameterNames;
   }
 
   @Override
@@ -70,6 +78,12 @@ public class CompletionProposalImpl implements CompletionProposal {
   @Override
   public CompletionProposal setName(String x) {
     name = x;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setParameterNames(String[] params) {
+    parameterNames = params;
     return this;
   }
 

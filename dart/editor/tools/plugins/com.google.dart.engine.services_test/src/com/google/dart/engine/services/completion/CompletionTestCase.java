@@ -1,43 +1,24 @@
-/*
- * Copyright (c) 2013, the Dart project authors.
- * 
- * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- * 
- * http://www.eclipse.org/legal/epl-v10.html
- * 
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
 package com.google.dart.engine.services.completion;
 
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.completion.CompletionProposalImpl;
 import com.google.dart.engine.services.util.LocationSpec;
 import com.google.dart.engine.services.util.MockCompletionRequestor;
 import com.google.dart.engine.source.Source;
 
-import junit.framework.TestCase;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-/**
- * Short, specific code completion tests.
- */
-public class CompletionEngineTest extends TestCase {
+public class CompletionTestCase extends ResolverTestCase {
 
-  public void test001() throws Exception {
-    String source = Joiner.on("\n").join("void r(var v) {", "  v.to!1;", "}");
-    test(source, "1+toString");
+  protected static final String NAME_OF_SOURCE_TO_ANALYZE = "/some/long/name/that/is/unique/in/tests";
+
+  protected static String src(String... parts) {
+    return Joiner.on('\n').join(parts);
   }
 
   /**
@@ -52,27 +33,24 @@ public class CompletionEngineTest extends TestCase {
    * @param originalSource The source for a completion test that contains completion points
    * @param validationStrings The positive and negative predictions
    */
-  private void test(String originalSource, String... results) throws URISyntaxException {
+  protected void test(String originalSource, String... results) throws URISyntaxException,
+      AnalysisException {
     Collection<LocationSpec> completionTests = LocationSpec.from(originalSource, results);
     assertTrue(
         "Expected exclamation point ('!') within the source"
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
-    Source source = mock(Source.class);
-    CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    CompilationUnitElement compilationUnitElement = mock(CompilationUnitElement.class);
-    when(compilationUnit.getElement()).thenReturn(compilationUnitElement);
-    when(compilationUnitElement.getSource()).thenReturn(source);
+    CompilationUnit compilationUnit = analyze(completionTests.iterator().next().source);
+    CompletionFactory factory = new CompletionFactory() {
+      @Override
+      public CompletionProposal createCompletionProposal(ProposalKind kind) {
+        CompletionProposalImpl prop = new CompletionProposalImpl();
+        prop.setKind(kind);
+        return prop;
+      }
+    };
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
-      CompletionFactory factory = new CompletionFactory() {
-        @Override
-        public CompletionProposal createCompletionProposal(ProposalKind kind) {
-          CompletionProposalImpl prop = new CompletionProposalImpl();
-          prop.setKind(kind);
-          return prop;
-        }
-      };
       CompletionEngine engine = new CompletionEngine(requestor, factory);
       engine.complete(new AssistContext(compilationUnit, test.testLocation, 0));
       if (test.positiveResults.size() > 0) {
@@ -86,4 +64,12 @@ public class CompletionEngineTest extends TestCase {
       }
     }
   }
+
+  private CompilationUnit analyze(String content) throws AnalysisException {
+    Source source = addSource(NAME_OF_SOURCE_TO_ANALYZE, content);
+    resolve(source);
+    CompilationUnit unit = getAnalysisContext().parse(source);
+    return unit;
+  }
+
 }
