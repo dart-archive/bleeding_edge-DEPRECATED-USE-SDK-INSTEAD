@@ -177,7 +177,10 @@ public class BrowserManager {
       DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
 
       try {
-        DartiumDebugTarget.getActiveTarget().navigateToUrl(url, enableBreakpoints);
+        DartiumDebugTarget.getActiveTarget().navigateToUrl(
+            launch.getLaunchConfiguration(),
+            url,
+            enableBreakpoints);
       } catch (IOException e) {
         DartDebugCorePlugin.logError(e);
       }
@@ -269,6 +272,10 @@ public class BrowserManager {
             DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Chromium"));
       }
+
+      // Even when Dartium has reported all the debuggable tabs to us, the debug server
+      // may not yet have started up. Delay a small fixed amount of time.
+      sleep(100);
 
       WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
 

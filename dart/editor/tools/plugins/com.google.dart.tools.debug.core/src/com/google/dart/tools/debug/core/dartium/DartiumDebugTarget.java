@@ -35,6 +35,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -76,6 +77,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private HtmlScriptManager htmlScriptManager;
   private DartCodeManager dartCodeManager;
   private boolean canSetScriptSource;
+  private ILaunchConfiguration launchConfig;
 
   /**
    * @param target
@@ -91,6 +93,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.connection = connection;
     this.launch = launch;
     this.resourceResolver = resourceResolver;
+
+    launchConfig = launch.getLaunchConfiguration();
 
     debugThread = new DartiumDebugThread(this);
     process = new DartiumProcess(executable, this, javaProcess);
@@ -245,11 +249,14 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
    * @param url
    * @throws IOException
    */
-  public void navigateToUrl(final String url, boolean enableBreakpoints) throws IOException {
+  public void navigateToUrl(ILaunchConfiguration launchConfig, final String url,
+      boolean enableBreakpoints) throws IOException {
     if (breakpointManager != null) {
       breakpointManager.dispose(true);
       breakpointManager = null;
     }
+
+    this.launchConfig = launchConfig;
 
     if (enableBreakpoints) {
       connection.getDebugger().setPauseOnExceptions(
@@ -376,10 +383,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
     if (breakpoint instanceof DartBreakpoint) {
       DartBreakpoint bp = (DartBreakpoint) breakpoint;
-      ILaunchConfiguration config = getLaunch().getLaunchConfiguration();
-      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
 
-      return wrapper.getProject().equals(bp.getFile().getProject());
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launchConfig);
+      IProject project = wrapper.getProject();
+
+      return project.equals(bp.getFile().getProject());
     } else {
       return false;
     }
