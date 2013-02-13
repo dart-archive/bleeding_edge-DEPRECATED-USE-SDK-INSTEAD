@@ -58,6 +58,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -579,13 +580,14 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordType(prefixedIdentifier, propertyType);
       return recordType(node, propertyType);
     } else if (element instanceof MethodElement) {
-      Type propertyType = ((MethodElement) element).getType();
-      recordType(prefixedIdentifier, propertyType);
-      return recordType(node, propertyType);
+      Type returnType = ((MethodElement) element).getType();
+      recordType(prefixedIdentifier, returnType);
+      return recordType(node, returnType);
     } else {
       // TODO(jwren) Implement other cases.
     }
-    return null;
+    recordType(prefixedIdentifier, typeProvider.getDynamicType());
+    return recordType(node, typeProvider.getDynamicType());
   }
 
   /**
@@ -648,25 +650,32 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitPropertyAccess(PropertyAccess node) {
-    // TODO Implement this
-    Element element = node.getPropertyName().getElement();
+    SimpleIdentifier propertyName = node.getPropertyName();
+    Element element = propertyName.getElement();
     if (element instanceof MethodElement) {
-      return recordType(node, ((MethodElement) element).getType());
+      FunctionType type = ((MethodElement) element).getType();
+      recordType(propertyName, type);
+      return recordType(node, type);
     } else if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) element;
       if (accessor.isGetter()) {
         if (accessor.getType() == null) {
           // TODO(brianwilkerson) I think this can go away when everything is done because the type
           // of the accessor should never be null.
+          recordType(propertyName, typeProvider.getDynamicType());
           return recordType(node, typeProvider.getDynamicType());
         }
-        return recordType(node, accessor.getType().getReturnType());
+        Type returnType = accessor.getType().getReturnType();
+        recordType(propertyName, returnType);
+        return recordType(node, returnType);
       } else {
+        recordType(propertyName, VoidTypeImpl.getInstance());
         return recordType(node, VoidTypeImpl.getInstance());
       }
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
+    recordType(propertyName, typeProvider.getDynamicType());
     return recordType(node, typeProvider.getDynamicType());
   }
 
@@ -743,6 +752,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
     } else if (element instanceof ExecutableElement) {
       return recordType(node, ((ExecutableElement) element).getType());
+    } else if (element instanceof PrefixElement) {
+      return null;
     } else {
       return recordType(node, typeProvider.getDynamicType());
     }

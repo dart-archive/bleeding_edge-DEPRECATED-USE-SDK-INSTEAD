@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
@@ -27,6 +28,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
@@ -162,6 +164,11 @@ public class StaticTypeVerifier extends GeneralizingASTVisitor<Void> {
     } else if (parent instanceof ConstructorName && node == ((ConstructorName) parent).getName()) {
       return null;
     } else if (parent instanceof Label && node == ((Label) parent).getLabel()) {
+      return null;
+    } else if (parent instanceof ImportDirective && node == ((ImportDirective) parent).getPrefix()) {
+      return null;
+    } else if (node.getElement() instanceof PrefixElement) {
+      // Prefixes don't have a type.
       return null;
     }
     return super.visitSimpleIdentifier(node);

@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ASTVisitor;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -312,6 +313,42 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             methodName.getName(),
             parameterCount,
             parameterNames.toArray(new String[parameterNames.size()]));
+      } else if (target instanceof SimpleIdentifier) {
+        Element targetElement = ((SimpleIdentifier) target).getElement();
+        if (targetElement instanceof PrefixElement) {
+          // TODO(brianwilkerson) This isn't a method invocation, it's a function invocation where
+          // the function name is a prefixed identifier. Consider re-writing the AST.
+          final String name = ((SimpleIdentifier) target).getName() + "." + methodName;
+          Identifier functionName = new Identifier() {
+            @Override
+            public <R> R accept(ASTVisitor<R> visitor) {
+              return null;
+            }
+
+            @Override
+            public Token getBeginToken() {
+              return null;
+            }
+
+            @Override
+            public Token getEndToken() {
+              return null;
+            }
+
+            @Override
+            public String getName() {
+              return name;
+            }
+
+            @Override
+            public void visitChildren(ASTVisitor<?> visitor) {
+            }
+          };
+          element = resolver.getNameScope().lookup(functionName, resolver.getDefiningLibrary());
+        } else {
+          //TODO(brianwilkerson) Report this error.
+          return null;
+        }
       } else {
         //TODO(brianwilkerson) Report this error.
         return null;
@@ -369,24 +406,22 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // First, check to see whether the "prefix" is really a prefix or whether it's an expression
     // that happens to be a simple identifier.
     //
-    Element prefixElement = resolver.getNameScope().lookup(prefix, resolver.getDefiningLibrary());
+    Element prefixElement = prefix.getElement();
     if (prefixElement instanceof PrefixElement) {
       // TODO(brianwilkerson) The prefix needs to be resolved to the element for the import that
       // defines the prefix, not the prefix's element.
-      recordResolution(prefix, prefixElement);
 
       Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
       if (element == null) {
         // TODO(brianwilkerson) Report this error.
+        return null;
       }
+      recordResolution(identifier, element);
       recordResolution(node, element);
       return null;
     }
     //
     // Otherwise, this is really equivalent to a property access node.
-    //
-    // TODO(brianwilkerson) Should we replace this node with a PropertyAccess node?
-    recordResolution(prefix, prefixElement);
     //
     // Look to see whether we're accessing a static member of a class.
     //
@@ -504,10 +539,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ClassElement targetElement = ((InterfaceType) targetType).getElement();
     SimpleIdentifier identifier = node.getPropertyName();
     PropertyAccessorElement memberElement;
-    if (identifier.inGetterContext()) {
-      memberElement = lookUpGetter(targetElement, identifier.getName());
-    } else {
+    if (identifier.inSetterContext()) {
       memberElement = lookUpSetter(targetElement, identifier.getName());
+    } else {
+      memberElement = lookUpGetter(targetElement, identifier.getName());
+    }
+    if (memberElement == null) {
+      MethodElement methodElement = lookUpMethod(targetElement, identifier.getName(), -1);
+      if (methodElement != null) {
+        // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
+        // type with no parameters and a return type that is equal to the function type of the method.
+        recordResolution(identifier, methodElement);
+        return null;
+      }
     }
     if (memberElement == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
@@ -547,28 +591,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     //
-    // There are four cases in which we defer the resolution of a simple identifier to the method
-    // in which we are resolving it's parent. We do this to prevent creating false positives.
-    //
-    ASTNode parent = node.getParent();
-    if (parent instanceof PrefixedIdentifier
-        && ((PrefixedIdentifier) parent).getIdentifier() == node) {
-      return null;
-    } else if (parent instanceof PropertyAccess
-        && ((PropertyAccess) parent).getPropertyName() == node) {
-      return null;
-    } else if (parent instanceof RedirectingConstructorInvocation
-        || parent instanceof SuperConstructorInvocation) {
-      return null;
-    }
-    //
-    // We also ignore identifiers that have already been resolved.
+    // We ignore identifiers that have already been resolved, such as identifiers representing the
+    // name in a declaration.
     //
     if (node.getElement() != null) {
       return null;
     }
     //
-    // If it's not one of those special cases, then the node should be resolved.
+    // Otherwise, the node should be resolved.
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
     if (element == null) {
@@ -577,9 +607,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
       }
-      if (element == null) {
-        element = lookUpMethod(resolver.getEnclosingClass(), node.getName(), 0);
-      }
+    }
+    if (element == null) {
+      element = lookUpMethod(resolver.getEnclosingClass(), node.getName(), -1);
     }
     if (element == null) {
       // TODO(brianwilkerson) Report and recover from this error.

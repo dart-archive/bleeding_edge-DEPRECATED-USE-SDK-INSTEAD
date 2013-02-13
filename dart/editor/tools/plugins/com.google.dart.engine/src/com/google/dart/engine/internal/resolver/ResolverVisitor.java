@@ -14,12 +14,18 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
@@ -127,6 +133,67 @@ public class ResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitNode(ASTNode node) {
     node.visitChildren(this);
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    //
+    // We visit the prefix, but do not visit the identifier because it needs to be visited in the
+    // context of the prefix.
+    //
+    SimpleIdentifier prefix = node.getPrefix();
+    if (prefix != null) {
+      prefix.accept(this);
+    }
+    // TODO(brianwilkerson) Re-write the AST structure if the prefix did not resolve to a PrefixElement.
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitPropertyAccess(PropertyAccess node) {
+    //
+    // We visit the target, but do not visit the property name because it needs to be visited in the
+    // context of the property access node.
+    //
+    Expression target = node.getTarget();
+    if (target != null) {
+      target.accept(this);
+    }
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+    //
+    // We visit the argument list, but do not visit the optional identifier because it needs to be
+    // visited in the context of the constructor invocation.
+    //
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList != null) {
+      argumentList.accept(this);
+    }
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    //
+    // We visit the argument list, but do not visit the optional identifier because it needs to be
+    // visited in the context of the constructor invocation.
+    //
+    ArgumentList argumentList = node.getArgumentList();
+    if (argumentList != null) {
+      argumentList.accept(this);
+    }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
