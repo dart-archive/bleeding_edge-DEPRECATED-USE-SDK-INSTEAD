@@ -34,6 +34,13 @@ public interface LibraryElement extends Element {
   public FunctionElement getEntryPoint();
 
   /**
+   * Return an array containing all of the libraries that are exported from this library.
+   * 
+   * @return an array containing all of the libraries that are exported from this library
+   */
+  public LibraryElement[] getExportedLibraries();
+
+  /**
    * Return an array containing all of the exports defined in this library.
    * 
    * @return the exports defined in this library
@@ -72,4 +79,11 @@ public interface LibraryElement extends Element {
    * @return the prefixes used to {@code import} libraries into this library
    */
   public PrefixElement[] getPrefixes();
+
+  /**
+   * Answer {@code true} if this library is an application that can be run in the browser.
+   * 
+   * @return {@code true} if this library is an application that can be run in the browser
+   */
+  public boolean isBrowserApplication();
 }

@@ -22,8 +22,12 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.Source;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Instances of the class {@code LibraryElementImpl} implement a {@code LibraryElement}.
@@ -111,6 +115,16 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public LibraryElement[] getExportedLibraries() {
+    HashSet<LibraryElement> libraries = new HashSet<LibraryElement>(exports.length);
+    for (ExportElement element : exports) {
+      LibraryElement library = element.getExportedLibrary();
+      libraries.add(library);
+    }
+    return libraries.toArray(new LibraryElement[libraries.size()]);
+  }
+
+  @Override
   public ExportElement[] getExports() {
     return exports;
   }
@@ -162,6 +176,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return definingCompilationUnit.hashCode();
   }
 
+  @Override
+  public boolean isBrowserApplication() {
+    return entryPoint != null && isOrImportsBrowserLibrary();
+  }
+
   /**
    * Set the compilation unit that defines this library to the given compilation unit.
    * 
@@ -211,5 +230,36 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       ((CompilationUnitElementImpl) compilationUnit).setEnclosingElement(this);
     }
     this.parts = parts;
+  }
+
+  /**
+   * Answer {@code true} if the receiver directly or indirectly imports the dart:html libraries.
+   * 
+   * @return {@code true} if the receiver directly or indirectly imports the dart:html libraries
+   */
+  private boolean isOrImportsBrowserLibrary() {
+    List<LibraryElement> visited = new ArrayList<LibraryElement>(10);
+    // TODO(keertip) : maybe we don't need to ask for cu always? Explore other ways to get Source
+    // for dart libraries
+    Source htmlLibSource = getDefiningCompilationUnit().getSource().resolve(DartSdk.DART_HTML);
+    visited.add(this);
+    for (int index = 0; index < visited.size(); index++) {
+      LibraryElement library = visited.get(index);
+      Source source = library.getDefiningCompilationUnit().getSource();
+      if (source.equals(htmlLibSource)) {
+        return true;
+      }
+      for (LibraryElement importedLibrary : library.getImportedLibraries()) {
+        if (!visited.contains(importedLibrary)) {
+          visited.add(importedLibrary);
+        }
+      }
+      for (LibraryElement exportedLibrary : library.getExportedLibraries()) {
+        if (!visited.contains(exportedLibrary)) {
+          visited.add(exportedLibrary);
+        }
+      }
+    }
+    return false;
   }
 }

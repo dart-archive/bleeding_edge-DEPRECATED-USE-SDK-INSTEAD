@@ -46,6 +46,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public LibraryElement[] getExportedLibraries() {
+    return getActualElement().getExportedLibraries();
+  }
+
+  @Override
   public ExportElement[] getExports() {
     return getActualElement().getExports();
   }
@@ -73,6 +78,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   @Override
   public PrefixElement[] getPrefixes() {
     return getActualElement().getPrefixes();
+  }
+
+  @Override
+  public boolean isBrowserApplication() {
+    return getActualElement().isBrowserApplication();
   }
 
   @Override

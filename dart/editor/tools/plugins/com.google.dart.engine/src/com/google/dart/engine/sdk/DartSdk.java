@@ -26,6 +26,12 @@ import java.io.IOException;
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
  */
 public class DartSdk {
+
+  /**
+   * The short name of the dart SDK html library.
+   */
+  public static final String DART_HTML = "dart:html";
+
   /**
    * The directory containing the SDK.
    */
