@@ -588,7 +588,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitExportDirective_combinator() {
     assertSource(
         "export 'a.dart' show A;",
-        exportDirective("a.dart", (Combinator) importShowCombinator(identifier("A"))));
+        exportDirective("a.dart", (Combinator) showCombinator(identifier("A"))));
   }
 
   public void test_visitExportDirective_combinators() {
@@ -596,8 +596,8 @@ public class ToSourceVisitorTest extends EngineTestCase {
         "export 'a.dart' show A hide B;",
         exportDirective(
             "a.dart",
-            importShowCombinator(identifier("A")),
-            importHideCombinator(identifier("B"))));
+            showCombinator(identifier("A")),
+            hideCombinator(identifier("B"))));
   }
 
   public void test_visitExportDirective_minimal() {
@@ -887,7 +887,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_combinator() {
     assertSource(
         "import 'a.dart' show A;",
-        importDirective("a.dart", null, importShowCombinator(identifier("A"))));
+        importDirective("a.dart", null, showCombinator(identifier("A"))));
   }
 
   public void test_visitImportDirective_combinators() {
@@ -896,8 +896,8 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             null,
-            importShowCombinator(identifier("A")),
-            importHideCombinator(identifier("B"))));
+            showCombinator(identifier("A")),
+            hideCombinator(identifier("B"))));
   }
 
   public void test_visitImportDirective_minimal() {
@@ -911,7 +911,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitImportDirective_prefix_combinator() {
     assertSource(
         "import 'a.dart' as p show A;",
-        importDirective("a.dart", "p", importShowCombinator(identifier("A"))));
+        importDirective("a.dart", "p", showCombinator(identifier("A"))));
   }
 
   public void test_visitImportDirective_prefix_combinators() {
@@ -920,24 +920,24 @@ public class ToSourceVisitorTest extends EngineTestCase {
         importDirective(
             "a.dart",
             "p",
-            importShowCombinator(identifier("A")),
-            importHideCombinator(identifier("B"))));
+            showCombinator(identifier("A")),
+            hideCombinator(identifier("B"))));
   }
 
   public void test_visitImportHideCombinator_multiple() {
-    assertSource("hide a, b", importHideCombinator(identifier("a"), identifier("b")));
+    assertSource("hide a, b", hideCombinator(identifier("a"), identifier("b")));
   }
 
   public void test_visitImportHideCombinator_single() {
-    assertSource("hide a", importHideCombinator(identifier("a")));
+    assertSource("hide a", hideCombinator(identifier("a")));
   }
 
   public void test_visitImportShowCombinator_multiple() {
-    assertSource("show a, b", importShowCombinator(identifier("a"), identifier("b")));
+    assertSource("show a, b", showCombinator(identifier("a"), identifier("b")));
   }
 
   public void test_visitImportShowCombinator_single() {
-    assertSource("show a", importShowCombinator(identifier("a")));
+    assertSource("show a", showCombinator(identifier("a")));
   }
 
   public void test_visitIndexExpression() {

@@ -513,7 +513,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // new C.m()
     ClassElement classElement = classElement("C");
     String constructorName = "m";
-    ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(constructorName);
+    ConstructorElementImpl constructor = constructorElement(constructorName);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
@@ -530,7 +530,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // new C<I>()
     ClassElement elementC = classElement("C", "E");
     ClassElement elementI = classElement("I");
-    ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(null);
+    ConstructorElementImpl constructor = constructorElement(null);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(elementC.getType());
     constructor.setType(constructorType);
@@ -548,7 +548,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   public void test_visitInstanceCreationExpression_unnamed() throws Exception {
     // new C()
     ClassElement classElement = classElement("C");
-    ConstructorElementImpl constructor = (ConstructorElementImpl) constructorElement(null);
+    ConstructorElementImpl constructor = constructorElement(null);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
@@ -657,10 +657,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   public void test_visitPrefixedIdentifier_property() throws Exception {
-    PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) getterElement(
-        "b",
-        false,
-        typeProvider.getBoolType());
+    PropertyAccessorElementImpl getter = getterElement("b", false, typeProvider.getBoolType());
     PrefixedIdentifier node = identifier("a", "b");
     node.getIdentifier().setElement(getter);
     assertSame(typeProvider.getBoolType(), analyze(node));
@@ -668,7 +665,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   public void test_visitPrefixedIdentifier_variable() throws Exception {
-    VariableElementImpl variable = (VariableElementImpl) variableElement("b");
+    VariableElementImpl variable = variableElement("b");
     variable.setType(typeProvider.getBoolType());
     PrefixedIdentifier node = identifier("a", "b");
     node.getIdentifier().setElement(variable);

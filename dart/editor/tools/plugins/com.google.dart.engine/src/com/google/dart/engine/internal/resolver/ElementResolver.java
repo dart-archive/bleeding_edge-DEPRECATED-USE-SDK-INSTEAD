@@ -20,19 +20,21 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.LibraryDirective;
-import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -40,6 +42,7 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
@@ -48,6 +51,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -61,6 +65,8 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
@@ -228,6 +234,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   @Override
+  public Void visitExportDirective(ExportDirective node) {
+    resolveCombinators(
+        ((ExportElement) node.getElement()).getExportedLibrary(),
+        node.getCombinators());
+    return null;
+  }
+
+  @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // TODO(brianwilkerson) Resolve the function being invoked?
     return null;
@@ -235,18 +249,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitImportDirective(ImportDirective node) {
-    // TODO(brianwilkerson) Determine whether this still needs to be done.
-    // TODO(brianwilkerson) Resolve the names in combinators
     SimpleIdentifier prefixNode = node.getPrefix();
     if (prefixNode != null) {
       String prefixName = prefixNode.getName();
       for (PrefixElement prefixElement : resolver.getDefiningLibrary().getPrefixes()) {
         if (prefixElement.getName().equals(prefixName)) {
           recordResolution(prefixNode, prefixElement);
+          break;
         }
-        return null;
       }
     }
+    resolveCombinators(
+        ((ImportElement) node.getElement()).getImportedLibrary(),
+        node.getCombinators());
     return null;
   }
 
@@ -275,13 +290,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.setElement(node.getConstructorName().getElement());
-    return null;
-  }
-
-  @Override
-  public Void visitLibraryIdentifier(LibraryIdentifier node) {
-    // We don't resolve the individual components of the library identifier because they have no
-    // semantic meaning.
     return null;
   }
 
@@ -376,24 +384,22 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitPostfixExpression(PostfixExpression node) {
     Token operator = node.getOperator();
-    if (operator.isUserDefinableOperator()) {
-      Type operandType = getType(node.getOperand());
-      if (operandType == null) {
-        return null;
-      }
-      Element operandTypeElement = operandType.getElement();
-      String methodName;
-      if (operator.getType() == TokenType.PLUS_PLUS) {
-        methodName = TokenType.PLUS.getLexeme();
-      } else {
-        methodName = TokenType.MINUS.getLexeme();
-      }
-      MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
-      if (member == null) {
-        resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
-      } else {
-        node.setElement(member);
-      }
+    Type operandType = getType(node.getOperand());
+    if (operandType == null) {
+      return null;
+    }
+    Element operandTypeElement = operandType.getElement();
+    String methodName;
+    if (operator.getType() == TokenType.PLUS_PLUS) {
+      methodName = TokenType.PLUS.getLexeme();
+    } else {
+      methodName = TokenType.MINUS.getLexeme();
+    }
+    MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
+    if (member == null) {
+      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+    } else {
+      node.setElement(member);
     }
     return null;
   }
@@ -1026,6 +1032,30 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   private void recordResolution(Identifier node, Element element) {
     if (element != null) {
       node.setElement(element);
+    }
+  }
+
+  /**
+   * Resolve the names in the given combinators in the scope of the given library.
+   * 
+   * @param library the library that defines the names
+   * @param combinators the combinators containing the names to be resolved
+   */
+  private void resolveCombinators(LibraryElement library, NodeList<Combinator> combinators) {
+    Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
+    for (Combinator combinator : combinators) {
+      NodeList<SimpleIdentifier> names;
+      if (combinator instanceof HideCombinator) {
+        names = ((HideCombinator) combinator).getHiddenNames();
+      } else {
+        names = ((ShowCombinator) combinator).getShownNames();
+      }
+      for (SimpleIdentifier name : names) {
+        Element element = namespace.get(name.getName());
+        if (element != null) {
+          name.setElement(element);
+        }
+      }
     }
   }
 

@@ -30,11 +30,11 @@ import java.util.Set;
 public class InterfaceTypeImplTest extends EngineTestCase {
 
   public void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D");
-    ClassElementImpl elementE = (ClassElementImpl) classElement("E");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
+    ClassElementImpl elementD = classElement("D");
+    ClassElementImpl elementE = classElement("E");
     elementB.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementC.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementD.setInterfaces(new InterfaceType[] {elementC.getType()});
@@ -50,7 +50,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementB = classElement("B", elementA.getType());
     ClassElement elementC = classElement("C", elementA.getType());
     ClassElement elementD = classElement("D", elementC.getType());
-    ClassElementImpl elementE = (ClassElementImpl) classElement("E", elementB.getType());
+    ClassElementImpl elementE = classElement("E", elementB.getType());
     elementE.setInterfaces(new InterfaceType[] {elementD.getType()});
     // assertion: even though the longest path to Object for typeB is 2, and typeE extends typeB,
     // the longest path for typeE is 4 since it also implements typeD
@@ -65,9 +65,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_computeLongestInheritancePathToObject_singleInterfacePath() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
     elementB.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementC.setInterfaces(new InterfaceType[] {elementB.getType()});
     assertEquals(1, InterfaceTypeImpl.computeLongestInheritancePathToObject(elementA.getType()));
@@ -85,11 +85,11 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_computeSuperinterfaceSet_multipleInterfacePaths() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D");
-    ClassElementImpl elementE = (ClassElementImpl) classElement("E");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
+    ClassElementImpl elementD = classElement("D");
+    ClassElementImpl elementE = classElement("E");
     elementB.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementC.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementD.setInterfaces(new InterfaceType[] {elementC.getType()});
@@ -117,7 +117,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementB = classElement("B", elementA.getType());
     ClassElement elementC = classElement("C", elementA.getType());
     ClassElement elementD = classElement("D", elementC.getType());
-    ClassElementImpl elementE = (ClassElementImpl) classElement("E", elementB.getType());
+    ClassElementImpl elementE = classElement("E", elementB.getType());
     elementE.setInterfaces(new InterfaceType[] {elementD.getType()});
     // D
     Set<InterfaceType> superinterfacesOfD = InterfaceTypeImpl.computeSuperinterfaceSet(elementD.getType());
@@ -138,9 +138,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_computeSuperinterfaceSet_singleInterfacePath() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
     elementB.setInterfaces(new InterfaceType[] {elementA.getType()});
     elementC.setInterfaces(new InterfaceType[] {elementB.getType()});
     // A
@@ -198,9 +198,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_directInterfaceCase() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
@@ -211,9 +211,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_directSubclassCase() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C", elementB.getType());
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = classElement("C", elementB.getType());
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
     assertEquals(typeB, typeB.getLeastUpperBound(typeC));
@@ -230,7 +230,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
     ClassElement elementC = classElement("C", elementA.getType());
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D", elementB.getType());
+    ClassElementImpl elementD = classElement("D", elementB.getType());
     InterfaceType typeA = elementA.getType();
     InterfaceType typeC = elementC.getType();
     InterfaceType typeD = elementD.getType();
@@ -247,8 +247,8 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_object() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     Type typeObject = typeA.getElement().getSupertype();
@@ -270,9 +270,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperclass1() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C", elementA.getType());
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = classElement("C", elementA.getType());
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
@@ -281,10 +281,10 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperclass2() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C", elementA.getType());
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D", elementC.getType());
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = classElement("C", elementA.getType());
+    ClassElementImpl elementD = classElement("D", elementC.getType());
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeD = elementD.getType();
@@ -293,10 +293,10 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperclass3() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C", elementB.getType());
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D", elementB.getType());
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = classElement("C", elementB.getType());
+    ClassElementImpl elementD = classElement("D", elementB.getType());
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
     InterfaceType typeD = elementD.getType();
@@ -308,8 +308,8 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementA = classElement("A");
     ClassElement elementA2 = classElement("A2");
     ClassElement elementA3 = classElement("A3");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C", elementA.getType());
+    ClassElementImpl elementB = classElement("B", elementA.getType());
+    ClassElementImpl elementC = classElement("C", elementA.getType());
     InterfaceType typeA = elementA.getType();
     InterfaceType typeA2 = elementA2.getType();
     InterfaceType typeA3 = elementA3.getType();
@@ -322,9 +322,9 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperinterface1() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
@@ -335,10 +335,10 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperinterface2() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
+    ClassElementImpl elementD = classElement("D");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
@@ -351,10 +351,10 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_getLeastUpperBound_sharedSuperinterface3() {
-    ClassElementImpl elementA = (ClassElementImpl) classElement("A");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
-    ClassElementImpl elementD = (ClassElementImpl) classElement("D");
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
+    ClassElementImpl elementD = classElement("D");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
     InterfaceType typeC = elementC.getType();
@@ -370,8 +370,8 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement elementA = classElement("A");
     ClassElement elementA2 = classElement("A2");
     ClassElement elementA3 = classElement("A3");
-    ClassElementImpl elementB = (ClassElementImpl) classElement("B");
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementB = classElement("B");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeA = elementA.getType();
     InterfaceType typeA2 = elementA2.getType();
     InterfaceType typeA3 = elementA3.getType();
@@ -406,18 +406,18 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   }
 
   public void test_isDirectSupertypeOf_implements() {
-    ClassElement elementA = classElement("A");
-    ClassElement elementB = classElement("B");
-    ((ClassElementImpl) elementB).setInterfaces(new InterfaceType[] {elementA.getType()});
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    elementB.setInterfaces(new InterfaceType[] {elementA.getType()});
     InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
     InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
     assertTrue(typeA.isDirectSupertypeOf(typeB));
   }
 
   public void test_isDirectSupertypeOf_with() {
-    ClassElement elementA = classElement("A");
-    ClassElement elementB = classElement("B");
-    ((ClassElementImpl) elementB).setMixins(new InterfaceType[] {elementA.getType()});
+    ClassElementImpl elementA = classElement("A");
+    ClassElementImpl elementB = classElement("B");
+    elementB.setMixins(new InterfaceType[] {elementA.getType()});
     InterfaceTypeImpl typeA = new InterfaceTypeImpl(elementA);
     InterfaceTypeImpl typeB = new InterfaceTypeImpl(elementB);
     assertTrue(typeA.isDirectSupertypeOf(typeB));
@@ -499,7 +499,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSubtypeOf_interface() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
@@ -515,7 +515,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSubtypeOf_mixins() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
@@ -605,7 +605,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSupertypeOf_interface() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
@@ -621,7 +621,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
   public void test_isSupertypeOf_mixins() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();

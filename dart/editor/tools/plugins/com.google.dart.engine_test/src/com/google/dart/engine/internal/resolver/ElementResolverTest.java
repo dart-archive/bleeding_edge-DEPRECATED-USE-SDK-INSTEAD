@@ -18,15 +18,26 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -38,6 +49,7 @@ import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Scope;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -47,13 +59,30 @@ import com.google.dart.engine.type.InterfaceType;
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
 import static com.google.dart.engine.ast.ASTFactory.breakStatement;
+import static com.google.dart.engine.ast.ASTFactory.constructorName;
 import static com.google.dart.engine.ast.ASTFactory.continueStatement;
+import static com.google.dart.engine.ast.ASTFactory.exportDirective;
+import static com.google.dart.engine.ast.ASTFactory.hideCombinator;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.importDirective;
 import static com.google.dart.engine.ast.ASTFactory.indexExpression;
+import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.ASTFactory.integer;
 import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
+import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
+import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
+import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
+import static com.google.dart.engine.ast.ASTFactory.showCombinator;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.constructorElement;
+import static com.google.dart.engine.element.ElementFactory.exportFor;
+import static com.google.dart.engine.element.ElementFactory.getterElement;
+import static com.google.dart.engine.element.ElementFactory.importFor;
+import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
+import static com.google.dart.engine.element.ElementFactory.prefix;
+import static com.google.dart.engine.element.ElementFactory.variableElement;
 
 import java.lang.reflect.Field;
 
@@ -69,6 +98,11 @@ public class ElementResolverTest extends EngineTestCase {
   private TestTypeProvider typeProvider;
 
   /**
+   * The library containing the code being resolved.
+   */
+  private LibraryElementImpl definingLibrary;
+
+  /**
    * The resolver visitor that maintains the state for the resolver.
    */
   private ResolverVisitor visitor;
@@ -78,8 +112,11 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver resolver;
 
-  public void fail_visitAssignmentExpression() throws Exception {
+  public void fail_visitExportDirective_combinators() {
     fail("Not yet tested");
+    // Need to set up the exported library so that the identifier can be resolved
+    ExportDirective directive = exportDirective(null, hideCombinator("A"));
+    resolveNode(directive);
     listener.assertNoErrors();
   }
 
@@ -88,38 +125,34 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void fail_visitImportDirective() {
+  public void fail_visitImportDirective_combinators_noPrefix() {
+    fail("Not yet tested");
+    // Need to set up the imported library so that the identifier can be resolved
+    ImportDirective directive = importDirective(null, null, showCombinator("A"));
+    resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitImportDirective_combinators_prefix() {
+    fail("Not yet tested");
+    // Need to set up the imported library so that the identifiers can be resolved
+    String prefixName = "p";
+    definingLibrary.setImports(new ImportElement[] {importFor(null, prefix(prefixName))});
+    ImportDirective directive = importDirective(
+        null,
+        prefixName,
+        showCombinator("A"),
+        hideCombinator("B"));
+    resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitRedirectingConstructorInvocation() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
   }
 
-  public void fail_visitMethodInvocation() throws Exception {
-    InterfaceType numType = typeProvider.getNumType();
-    SimpleIdentifier left = identifier("i");
-    left.setStaticType(numType);
-    MethodInvocation invocation = methodInvocation(left, "abs");
-    resolveNode(invocation);
-    // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
-    assertSame(numType.getElement().getMethods()[9], invocation.getMethodName().getElement());
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPostfixExpression() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixedIdentifier() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixExpression() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPropertyAccess() throws Exception {
+  public void fail_visitSuperConstructorInvocation() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
   }
@@ -129,6 +162,19 @@ public class ElementResolverTest extends EngineTestCase {
     listener = new GatheringErrorListener();
     typeProvider = new TestTypeProvider();
     resolver = createResolver();
+  }
+
+  public void test_visitAssignmentExpression_compound() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    SimpleIdentifier leftHandSide = identifier("a");
+    leftHandSide.setStaticType(intType);
+    AssignmentExpression assignment = assignmentExpression(
+        leftHandSide,
+        TokenType.PLUS_EQ,
+        integer(1L));
+    resolveNode(assignment);
+    assertSame(getMethod(typeProvider.getNumType(), "+"), assignment.getElement());
+    listener.assertNoErrors();
   }
 
   public void test_visitAssignmentExpression_simple() throws Exception {
@@ -147,8 +193,7 @@ public class ElementResolverTest extends EngineTestCase {
     left.setStaticType(numType);
     BinaryExpression expression = binaryExpression(left, TokenType.PLUS, identifier("j"));
     resolveNode(expression);
-    // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
-    assertEquals(numType.getElement().getMethods()[0], expression.getElement());
+    assertEquals(getMethod(numType, "+"), expression.getElement());
     listener.assertNoErrors();
   }
 
@@ -166,6 +211,28 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitConstructorName_named() {
+    ClassElementImpl classA = classElement("A");
+    String constructorName = "a";
+    ConstructorElement constructor = constructorElement(constructorName);
+    classA.setConstructors(new ConstructorElement[] {constructor});
+    ConstructorName name = constructorName(typeName(classA), constructorName);
+    resolveNode(name);
+    assertSame(constructor, name.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitConstructorName_unnamed() {
+    ClassElementImpl classA = classElement("A");
+    String constructorName = null;
+    ConstructorElement constructor = constructorElement(constructorName);
+    classA.setConstructors(new ConstructorElement[] {constructor});
+    ConstructorName name = constructorName(typeName(classA), constructorName);
+    resolveNode(name);
+    assertSame(constructor, name.getElement());
+    listener.assertNoErrors();
+  }
+
   public void test_visitContinueStatement_withLabel() throws Exception {
     String label = "loop";
     LabelElementImpl labelElement = new LabelElementImpl(identifier(label), false, false);
@@ -180,8 +247,34 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitExportDirective_noCombinators() {
+    ExportDirective directive = exportDirective(null);
+    directive.setElement(exportFor(library(definingLibrary.getContext(), "lib")));
+    resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitImportDirective_noCombinators_noPrefix() {
+    ImportDirective directive = importDirective(null, null);
+    directive.setElement(importFor(library(definingLibrary.getContext(), "lib"), null));
+    resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitImportDirective_noCombinators_prefix() {
+    String prefixName = "p";
+    ImportElement importElement = importFor(
+        library(definingLibrary.getContext(), "lib"),
+        prefix(prefixName));
+    definingLibrary.setImports(new ImportElement[] {importElement});
+    ImportDirective directive = importDirective(null, prefixName);
+    directive.setElement(importElement);
+    resolveNode(directive);
+    listener.assertNoErrors();
+  }
+
   public void test_visitIndexExpression_get() throws Exception {
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     InterfaceType intType = typeProvider.getIntType();
     MethodElement getter = methodElement("[]", intType, intType);
     classA.setMethods(new MethodElement[] {getter});
@@ -193,7 +286,7 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitIndexExpression_set() throws Exception {
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     InterfaceType intType = typeProvider.getIntType();
     MethodElement setter = methodElement("[]=", intType, intType);
     classA.setMethods(new MethodElement[] {setter});
@@ -205,12 +298,99 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitInstanceCreationExpression_named() {
+    ClassElementImpl classA = classElement("A");
+    String constructorName = "a";
+    ConstructorElement constructor = constructorElement(constructorName);
+    classA.setConstructors(new ConstructorElement[] {constructor});
+    ConstructorName name = constructorName(typeName(classA), constructorName);
+    name.setElement(constructor);
+    InstanceCreationExpression creation = instanceCreationExpression(Keyword.NEW, name);
+    resolveNode(creation);
+    assertSame(constructor, creation.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitInstanceCreationExpression_unnamed() {
+    ClassElementImpl classA = classElement("A");
+    String constructorName = null;
+    ConstructorElement constructor = constructorElement(constructorName);
+    classA.setConstructors(new ConstructorElement[] {constructor});
+    ConstructorName name = constructorName(typeName(classA), constructorName);
+    name.setElement(constructor);
+    InstanceCreationExpression creation = instanceCreationExpression(Keyword.NEW, name);
+    resolveNode(creation);
+    assertSame(constructor, creation.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitMethodInvocation() throws Exception {
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier left = identifier("i");
+    left.setStaticType(numType);
+    String methodName = "abs";
+    MethodInvocation invocation = methodInvocation(left, methodName);
+    resolveNode(invocation);
+    assertSame(getMethod(numType, methodName), invocation.getMethodName().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPostfixExpression() throws Exception {
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier operand = identifier("i");
+    operand.setStaticType(numType);
+    PostfixExpression expression = postfixExpression(operand, TokenType.PLUS_PLUS);
+    resolveNode(expression);
+    assertEquals(getMethod(numType, "+"), expression.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "b";
+    PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    SimpleIdentifier target = identifier("a");
+    VariableElementImpl variable = variableElement(target.getName());
+    variable.setType(classA.getType());
+    target.setElement(variable);
+    target.setStaticType(classA.getType());
+    PrefixedIdentifier identifier = identifier(target, identifier(getterName));
+    resolveNode(identifier);
+    assertSame(getter, identifier.getElement());
+    assertSame(getter, identifier.getIdentifier().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixExpression() throws Exception {
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier operand = identifier("i");
+    operand.setStaticType(numType);
+    PrefixExpression expression = prefixExpression(TokenType.PLUS_PLUS, operand);
+    resolveNode(expression);
+    assertEquals(getMethod(numType, "+"), expression.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "b";
+    PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    SimpleIdentifier target = identifier("a");
+    target.setStaticType(classA.getType());
+    PropertyAccess access = propertyAccess(target, getterName);
+    resolveNode(access);
+    assertSame(getter, access.getPropertyName().getElement());
+    listener.assertNoErrors();
+  }
+
   public void test_visitSimpleIdentifier_inClassScope() throws Exception {
     InterfaceType doubleType = typeProvider.getDoubleType();
-    SimpleIdentifier node = identifier("NAN");
+    String fieldName = "NAN";
+    SimpleIdentifier node = identifier(fieldName);
     resolveInClass(node, doubleType.getElement());
-    // TODO(brianwilkerson) Implement a more reliable mechanism for getting the expected element
-    assertEquals(doubleType.getElement().getFields()[0], node.getElement());
+    assertEquals(getGetter(doubleType, fieldName), node.getElement());
     listener.assertNoErrors();
   }
 
@@ -229,8 +409,8 @@ public class ElementResolverTest extends EngineTestCase {
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.setSourceFactory(new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk())));
-    CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
-    LibraryElementImpl definingLibrary = new LibraryElementImpl(context, null);
+    CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
+    definingLibrary = library(context, "test");
     definingLibrary.setDefiningCompilationUnit(definingCompilationUnit);
     Library library = new Library(context, listener, null);
     library.setLibraryElement(definingLibrary);
@@ -242,6 +422,40 @@ public class ElementResolverTest extends EngineTestCase {
     } catch (Exception exception) {
       throw new IllegalArgumentException("Could not create resolver", exception);
     }
+  }
+
+  /**
+   * Return the getter in the given type with the given name. Inherited getters are ignored.
+   * 
+   * @param type the type in which the getter is declared
+   * @param getterName the name of the getter to be returned
+   * @return the property accessor element representing the getter with the given name
+   */
+  private PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
+    for (PropertyAccessorElement accessor : type.getElement().getAccessors()) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
+        return accessor;
+      }
+    }
+    fail("Could not find getter named " + getterName + " in " + type.getName());
+    return null;
+  }
+
+  /**
+   * Return the method in the given type with the given name. Inherited methods are ignored.
+   * 
+   * @param type the type in which the method is declared
+   * @param methodName the name of the method to be returned
+   * @return the method element representing the method with the given name
+   */
+  private MethodElement getMethod(InterfaceType type, String methodName) {
+    for (MethodElement method : type.getElement().getMethods()) {
+      if (method.getName().equals(methodName)) {
+        return method;
+      }
+    }
+    fail("Could not find method named " + methodName + " in " + type.getName());
+    return null;
   }
 
   /**

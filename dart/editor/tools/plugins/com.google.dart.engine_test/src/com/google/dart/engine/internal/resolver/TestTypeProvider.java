@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -215,13 +216,13 @@ public class TestTypeProvider implements TypeProvider {
     //
     // Create the type hierarchy.
     //
-    ClassElementImpl numElement = (ClassElementImpl) classElement("num");
+    ClassElementImpl numElement = classElement("num");
     numType = numElement.getType();
 
-    ClassElementImpl intElement = (ClassElementImpl) classElement("int", numType);
+    ClassElementImpl intElement = classElement("int", numType);
     intType = intElement.getType();
 
-    ClassElementImpl doubleElement = (ClassElementImpl) classElement("double", numType);
+    ClassElementImpl doubleElement = classElement("double", numType);
     doubleType = doubleElement.getType();
     //
     // Add the methods.
@@ -257,12 +258,19 @@ public class TestTypeProvider implements TypeProvider {
         methodElement("toString", stringType),
 //      methodElement(/*external static*/ "parse", intType, stringType),
     });
-    doubleElement.setFields(new FieldElement[] {fieldElement("NAN", true, false, true, doubleType), // 0.0 / 0.0
+    FieldElement[] fields = new FieldElement[] {fieldElement("NAN", true, false, true, doubleType), // 0.0 / 0.0
         fieldElement("INFINITY", true, false, true, doubleType), // 1.0 / 0.0
         fieldElement("NEGATIVE_INFINITY", true, false, true, doubleType), // -INFINITY
         fieldElement("MIN_POSITIVE", true, false, true, doubleType), // 5e-324
         fieldElement("MAX_FINITE", true, false, true, doubleType), // 1.7976931348623157e+308;
-    });
+    };
+    doubleElement.setFields(fields);
+    int fieldCount = fields.length;
+    PropertyAccessorElement[] accessors = new PropertyAccessorElement[fieldCount];
+    for (int i = 0; i < fieldCount; i++) {
+      accessors[i] = fields[i].getGetter();
+    }
+    doubleElement.setAccessors(accessors);
     doubleElement.setMethods(new MethodElement[] {
         methodElement("remainder", doubleType, numType), methodElement("+", doubleType, numType),
         methodElement("-", doubleType, numType), methodElement("*", doubleType, numType),

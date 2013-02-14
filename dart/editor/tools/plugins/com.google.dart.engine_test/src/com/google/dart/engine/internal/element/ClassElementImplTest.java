@@ -35,7 +35,7 @@ public class ClassElementImplTest extends EngineTestCase {
   public void test_allSupertypes_interface() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
@@ -53,7 +53,7 @@ public class ClassElementImplTest extends EngineTestCase {
   public void test_allSupertypes_mixins() {
     ClassElement elementA = classElement("A");
     ClassElement elementB = classElement("B", elementA.getType());
-    ClassElementImpl elementC = (ClassElementImpl) classElement("C");
+    ClassElementImpl elementC = classElement("C");
     InterfaceType typeObject = elementA.getSupertype();
     InterfaceType typeA = elementA.getType();
     InterfaceType typeB = elementB.getType();
@@ -70,7 +70,7 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpGetter_declared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String getterName = "g";
     PropertyAccessorElement getter = getterElement(getterName, false, null);
     classA.setAccessors(new PropertyAccessorElement[] {getter});
@@ -80,11 +80,11 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpGetter_inherited() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String getterName = "g";
     PropertyAccessorElement getter = getterElement(getterName, false, null);
     classA.setAccessors(new PropertyAccessorElement[] {getter});
-    ClassElementImpl classB = (ClassElementImpl) classElement("B", classA.getType());
+    ClassElementImpl classB = classElement("B", classA.getType());
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(getter, classB.lookUpGetter(getterName, library));
@@ -92,14 +92,14 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpGetter_undeclared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpGetter("g", library));
   }
 
   public void test_lookUpMethod_declared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String methodName = "m";
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
@@ -109,11 +109,11 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpMethod_inherited() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String methodName = "m";
     MethodElement method = methodElement(methodName, null);
     classA.setMethods(new MethodElement[] {method});
-    ClassElementImpl classB = (ClassElementImpl) classElement("B", classA.getType());
+    ClassElementImpl classB = classElement("B", classA.getType());
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(method, classB.lookUpMethod(methodName, library));
@@ -121,14 +121,14 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpMethod_undeclared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpMethod("m", library));
   }
 
   public void test_lookUpSetter_declared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String setterName = "s";
     PropertyAccessorElement setter = setterElement(setterName, false, null);
     classA.setAccessors(new PropertyAccessorElement[] {setter});
@@ -138,11 +138,11 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpSetter_inherited() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     String setterName = "s";
     PropertyAccessorElement setter = setterElement(setterName, false, null);
     classA.setAccessors(new PropertyAccessorElement[] {setter});
-    ClassElementImpl classB = (ClassElementImpl) classElement("B", classA.getType());
+    ClassElementImpl classB = classElement("B", classA.getType());
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {
         classA, classB});
     assertSame(setter, classB.lookUpSetter(setterName, library));
@@ -150,7 +150,7 @@ public class ClassElementImplTest extends EngineTestCase {
 
   public void test_lookUpSetter_undeclared() {
     LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
-    ClassElementImpl classA = (ClassElementImpl) classElement("A");
+    ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpSetter("s", library));
   }

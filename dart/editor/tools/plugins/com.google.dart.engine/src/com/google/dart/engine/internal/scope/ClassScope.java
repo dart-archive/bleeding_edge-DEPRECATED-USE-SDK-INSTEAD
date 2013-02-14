@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.scope;
 
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -47,9 +46,6 @@ public class ClassScope extends EnclosedScope {
   private void defineMembers(ClassElement typeElement) {
     for (PropertyAccessorElement accessor : typeElement.getAccessors()) {
       define(accessor);
-    }
-    for (FieldElement field : typeElement.getFields()) {
-      define(field);
     }
     for (MethodElement method : typeElement.getMethods()) {
       define(method);

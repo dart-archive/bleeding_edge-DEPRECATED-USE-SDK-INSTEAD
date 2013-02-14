@@ -28,6 +28,13 @@ import java.util.List;
  * The class {@code ASTFactory} defines utility methods that can be used to create AST nodes. The
  * nodes that are created are complete in the sense that all of the tokens that would have been
  * associated with the nodes by a parser are also created, but the token stream is not constructed.
+ * None of the nodes are resolved.
+ * <p>
+ * The general pattern is for the name of the factory method to be the same as the name of the class
+ * of AST node being created. There are two notable exceptions. The first is for methods creating
+ * nodes that are part of a cascade expression. These methods are all prefixed with 'cascaded'. The
+ * second is places where a shorter name seemed unambiguous and easier to read, such as using
+ * 'identifier' rather than 'prefixedIdentifier', or 'integer' rather than 'integerLiteral'.
  */
 public final class ASTFactory {
   public static AdjacentStrings adjacentStrings(StringLiteral... strings) {
@@ -487,6 +494,18 @@ public final class ASTFactory {
         formalParameterList(parameters));
   }
 
+  public static HideCombinator hideCombinator(SimpleIdentifier... identifiers) {
+    return new HideCombinator(token("hide"), list(identifiers));
+  }
+
+  public static HideCombinator hideCombinator(String... identifiers) {
+    ArrayList<SimpleIdentifier> identifierList = new ArrayList<SimpleIdentifier>();
+    for (String identifier : identifiers) {
+      identifierList.add(identifier(identifier));
+    }
+    return new HideCombinator(token("hide"), identifierList);
+  }
+
   public static PrefixedIdentifier identifier(SimpleIdentifier prefix, SimpleIdentifier identifier) {
     return new PrefixedIdentifier(prefix, token(TokenType.PERIOD), identifier);
   }
@@ -544,14 +563,6 @@ public final class ASTFactory {
     return importDirective(new ArrayList<Annotation>(), uri, prefix, combinators);
   }
 
-  public static HideCombinator importHideCombinator(SimpleIdentifier... identifiers) {
-    return new HideCombinator(token("hide"), list(identifiers));
-  }
-
-  public static ShowCombinator importShowCombinator(SimpleIdentifier... identifiers) {
-    return new ShowCombinator(token("show"), list(identifiers));
-  }
-
   public static IndexExpression indexExpression(Expression array, Expression index) {
     return new IndexExpression(
         array,
@@ -561,18 +572,22 @@ public final class ASTFactory {
   }
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
+      ConstructorName name, Expression... arguments) {
+    return new InstanceCreationExpression(
+        keyword == null ? null : token(keyword),
+        name,
+        argumentList(arguments));
+  }
+
+  public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
       TypeName type, Expression... arguments) {
     return instanceCreationExpression(keyword, type, null, arguments);
   }
 
   public static InstanceCreationExpression instanceCreationExpression(Keyword keyword,
       TypeName type, String identifier, Expression... arguments) {
-    return new InstanceCreationExpression(
-        keyword == null ? null : token(keyword),
-        new ConstructorName(
-            type,
-            identifier == null ? null : token(TokenType.PERIOD),
-            identifier == null ? null : identifier(identifier)), argumentList(arguments));
+    return instanceCreationExpression(keyword, new ConstructorName(type, identifier == null ? null
+        : token(TokenType.PERIOD), identifier == null ? null : identifier(identifier)), arguments);
   }
 
   public static IntegerLiteral integer(long value) {
@@ -807,6 +822,18 @@ public final class ASTFactory {
 
   public static ScriptTag scriptTag(String scriptTag) {
     return new ScriptTag(token(scriptTag));
+  }
+
+  public static ShowCombinator showCombinator(SimpleIdentifier... identifiers) {
+    return new ShowCombinator(token("show"), list(identifiers));
+  }
+
+  public static ShowCombinator showCombinator(String... identifiers) {
+    ArrayList<SimpleIdentifier> identifierList = new ArrayList<SimpleIdentifier>();
+    for (String identifier : identifiers) {
+      identifierList.add(identifier(identifier));
+    }
+    return new ShowCombinator(token("show"), identifierList);
   }
 
   public static SimpleFormalParameter simpleFormalParameter(Keyword keyword, String parameterName) {

@@ -17,12 +17,14 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
@@ -42,15 +44,16 @@ import java.util.LinkedHashMap;
 
 /**
  * The class {@code ElementFactory} defines utility methods used to create elements for testing
- * purposes.
+ * purposes. The elements that are created are complete in the sense that as much of the element
+ * model as can be created, given the provided information, has been created.
  */
 public final class ElementFactory {
   /**
    * The element representing the class 'Object'.
    */
-  private static ClassElement objectElement;
+  private static ClassElementImpl objectElement;
 
-  public static ClassElement classElement(String typeName, InterfaceType superclassType,
+  public static ClassElementImpl classElement(String typeName, InterfaceType superclassType,
       String... parameterNames) {
     ClassElementImpl element = new ClassElementImpl(identifier(typeName));
     element.setSupertype(superclassType);
@@ -75,15 +78,23 @@ public final class ElementFactory {
     return element;
   }
 
-  public static ClassElement classElement(String typeName, String... parameterNames) {
+  public static ClassElementImpl classElement(String typeName, String... parameterNames) {
     return classElement(typeName, getObject().getType(), parameterNames);
   }
 
-  public static ConstructorElement constructorElement(String name) {
+  public static ConstructorElementImpl constructorElement(String name) {
     return new ConstructorElementImpl(name == null ? null : identifier(name));
   }
 
-  public static FieldElement fieldElement(String name, boolean isStatic, boolean isFinal,
+  public static ExportElementImpl exportFor(LibraryElement exportedLibrary,
+      NamespaceCombinator... combinators) {
+    ExportElementImpl spec = new ExportElementImpl();
+    spec.setExportedLibrary(exportedLibrary);
+    spec.setCombinators(combinators);
+    return spec;
+  }
+
+  public static FieldElementImpl fieldElement(String name, boolean isStatic, boolean isFinal,
       boolean isConst, Type type) {
     FieldElementImpl field = new FieldElementImpl(identifier(name));
     field.setConst(isConst);
@@ -115,16 +126,17 @@ public final class ElementFactory {
     return field;
   }
 
-  public static FunctionElement functionElement(String functionName) {
+  public static FunctionElementImpl functionElement(String functionName) {
     return functionElement(functionName, null, null, null, null);
   }
 
-  public static FunctionElement functionElement(String functionName, ClassElement returnElement) {
+  public static FunctionElementImpl functionElement(String functionName, ClassElement returnElement) {
     return functionElement(functionName, returnElement, null, null);
   }
 
-  public static FunctionElement functionElement(String functionName, ClassElement returnElement,
-      ClassElement[] normalParameters, ClassElement[] optionalParameters) {
+  public static FunctionElementImpl functionElement(String functionName,
+      ClassElement returnElement, ClassElement[] normalParameters, ClassElement[] optionalParameters) {
+    // We don't create parameter elements because we don't have parameter names
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
@@ -153,8 +165,10 @@ public final class ElementFactory {
     return functionElement;
   }
 
-  public static FunctionElement functionElement(String functionName, ClassElement returnElement,
-      ClassElement[] normalParameters, String[] names, ClassElement[] namedParameters) {
+  public static FunctionElementImpl functionElement(String functionName,
+      ClassElement returnElement, ClassElement[] normalParameters, String[] names,
+      ClassElement[] namedParameters) {
+    // We don't create parameter elements because we don't have parameter names for non-named parameters
     FunctionElementImpl functionElement = new FunctionElementImpl(identifier(functionName));
     FunctionTypeImpl functionType = new FunctionTypeImpl(functionElement);
     functionElement.setType(functionType);
@@ -185,28 +199,29 @@ public final class ElementFactory {
     return functionElement;
   }
 
-  public static FunctionElement functionElement(String functionName, ClassElement[] normalParameters) {
+  public static FunctionElementImpl functionElement(String functionName,
+      ClassElement[] normalParameters) {
     return functionElement(functionName, null, normalParameters, null);
   }
 
-  public static FunctionElement functionElement(String functionName,
+  public static FunctionElementImpl functionElement(String functionName,
       ClassElement[] normalParameters, ClassElement[] optionalParameters) {
     return functionElement(functionName, null, normalParameters, optionalParameters);
   }
 
-  public static FunctionElement functionElement(String functionName,
+  public static FunctionElementImpl functionElement(String functionName,
       ClassElement[] normalParameters, String[] names, ClassElement[] namedParameters) {
     return functionElement(functionName, null, normalParameters, names, namedParameters);
   }
 
-  public static ClassElement getObject() {
+  public static ClassElementImpl getObject() {
     if (objectElement == null) {
       objectElement = classElement("Object", (InterfaceType) null);
     }
     return objectElement;
   }
 
-  public static PropertyAccessorElement getterElement(String name, boolean isStatic, Type type) {
+  public static PropertyAccessorElementImpl getterElement(String name, boolean isStatic, Type type) {
     FieldElementImpl field = new FieldElementImpl(identifier(name));
     field.setStatic(isStatic);
     field.setSynthetic(true);
@@ -242,7 +257,7 @@ public final class ElementFactory {
     return library;
   }
 
-  public static MethodElement methodElement(String methodName, Type returnType,
+  public static MethodElementImpl methodElement(String methodName, Type returnType,
       Type... argumentTypes) {
     MethodElementImpl method = new MethodElementImpl(identifier(methodName));
 
@@ -262,7 +277,11 @@ public final class ElementFactory {
     return method;
   }
 
-  public static PropertyAccessorElement setterElement(String name, boolean isStatic, Type type) {
+  public static PrefixElementImpl prefix(String name) {
+    return new PrefixElementImpl(identifier(name));
+  }
+
+  public static PropertyAccessorElementImpl setterElement(String name, boolean isStatic, Type type) {
     FieldElementImpl field = new FieldElementImpl(identifier(name));
     field.setStatic(isStatic);
     field.setSynthetic(true);
@@ -289,7 +308,7 @@ public final class ElementFactory {
     return setter;
   }
 
-  public static VariableElement variableElement(String name) {
+  public static VariableElementImpl variableElement(String name) {
     return new VariableElementImpl(name, -1);
   }
 
