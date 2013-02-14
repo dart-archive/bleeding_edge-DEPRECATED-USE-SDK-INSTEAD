@@ -21,5 +21,5 @@ import com.google.dart.engine.internal.index.UniverseElementImpl;
  * relations without specifying exact library.
  */
 public interface UniverseElement extends Element {
-  UniverseElement INSTANCE = new UniverseElementImpl();
+  UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;
 }

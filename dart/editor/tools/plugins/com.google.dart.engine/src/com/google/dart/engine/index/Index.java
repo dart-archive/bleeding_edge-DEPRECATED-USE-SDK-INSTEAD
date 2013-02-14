@@ -70,7 +70,7 @@ public interface Index {
    * <p>
    * This method should be invoked when multiple sources are no longer part of the code base.
    * 
-   * @param sources the {@link SourceContainer} holding the sources being removed
+   * @param container the {@link SourceContainer} holding the sources being removed
    */
   void removeSources(SourceContainer container);
 

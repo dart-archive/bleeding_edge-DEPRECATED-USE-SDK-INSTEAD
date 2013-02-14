@@ -25,7 +25,9 @@ import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
+import com.google.dart.engine.internal.index.operation.RemoveSourcesOperation;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 import org.mockito.ArgumentCaptor;
 
@@ -73,6 +75,15 @@ public class IndexImplTest extends EngineTestCase {
     ArgumentCaptor<RemoveSourceOperation> argument = ArgumentCaptor.forClass(RemoveSourceOperation.class);
     verify(queue).enqueue(argument.capture());
     assertSame(source, argument.getValue().getSource());
+  }
+
+  public void test_removeSources() throws Exception {
+    SourceContainer container = mock(SourceContainer.class);
+    index.removeSources(container);
+    // verify
+    ArgumentCaptor<RemoveSourcesOperation> argument = ArgumentCaptor.forClass(RemoveSourcesOperation.class);
+    verify(queue).enqueue(argument.capture());
+    assertSame(container, argument.getValue().getContainer());
   }
 
   public void test_run() throws Exception {

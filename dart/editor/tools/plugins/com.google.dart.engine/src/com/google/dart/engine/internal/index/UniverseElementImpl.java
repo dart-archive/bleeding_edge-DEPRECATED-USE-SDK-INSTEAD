@@ -22,8 +22,9 @@ import com.google.dart.engine.internal.element.ElementImpl;
  * Implementation of {@link UniverseElement}.
  */
 public class UniverseElementImpl extends ElementImpl implements UniverseElement {
+  public static final UniverseElementImpl INSTANCE = new UniverseElementImpl();
 
-  public UniverseElementImpl() {
+  private UniverseElementImpl() {
     super("--universe--", -1);
   }
 

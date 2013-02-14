@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -22,26 +23,53 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
+
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Set;
+
 public class MemoryIndexStoreImplTest extends EngineTestCase {
+  /**
+   * @return the {@link SourceContainer} mock with contains given {@link Source}s.
+   */
+  private static SourceContainer mockSourceContainer(Source... sources) {
+    final Set<Source> sourceSet = ImmutableSet.<Source> builder().add(sources).build();
+    SourceContainer container = mock(SourceContainer.class);
+    when(container.contains(any(Source.class))).then(new Answer<Boolean>() {
+      @Override
+      public Boolean answer(InvocationOnMock invocation) throws Throwable {
+        return sourceSet.contains(invocation.getArguments()[0]);
+      }
+    });
+    return container;
+  }
+
   private MemoryIndexStoreImpl store = new MemoryIndexStoreImpl();
   private ElementLocation elementLocationA = mock(ElementLocation.class);
   private ElementLocation elementLocationB = mock(ElementLocation.class);
   private ElementLocation elementLocationC = mock(ElementLocation.class);
+  private ElementLocation elementLocationD = mock(ElementLocation.class);
   private Element elementA = mock(Element.class);
   private Element elementB = mock(Element.class);
   private Element elementC = mock(Element.class);
+  private Element elementD = mock(Element.class);
   private Source sourceA = mock(Source.class);
   private Source sourceB = mock(Source.class);
   private Source sourceC = mock(Source.class);
+  private Source sourceD = mock(Source.class);
   private CompilationUnitElement unitElementA = mock(CompilationUnitElement.class);
   private CompilationUnitElement unitElementB = mock(CompilationUnitElement.class);
   private CompilationUnitElement unitElementC = mock(CompilationUnitElement.class);
+  private CompilationUnitElement unitElementD = mock(CompilationUnitElement.class);
   private Relationship relationship = Relationship.getRelationship("test-relationship");
+
   private Location location = mock(Location.class);
 
   public void test_clear() throws Exception {
@@ -209,6 +237,53 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertThat(locations).containsOnly(locationC);
   }
 
+  public void test_removeSources_withDeclaration() throws Exception {
+    Location locationB = mock(Location.class);
+    Location locationC = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(locationC.getElement()).thenReturn(elementC);
+    // record: [B -> A],  [C -> A] and [B -> C]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      store.recordRelationship(elementC, relationship, locationB);
+      assertEquals(3, store.getRelationshipCount());
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationB, locationC);
+    }
+    // remove container with [A], only [B -> D] left
+    SourceContainer containerA = mockSourceContainer(sourceA);
+    store.removeSources(containerA);
+    assertEquals(1, store.getRelationshipCount());
+    assertEquals(1, store.getLocationCount());
+    {
+      Location[] locations = store.getRelationships(elementC, relationship);
+      assertThat(locations).containsOnly(locationB);
+    }
+  }
+
+  public void test_removeSources_withRelationship() throws Exception {
+    Location locationB = mock(Location.class);
+    Location locationC = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(locationC.getElement()).thenReturn(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.getRelationshipCount());
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationB, locationC);
+    }
+    // remove container with [B], 1 relation and 1 location left
+    SourceContainer containerB = mockSourceContainer(sourceB);
+    store.removeSources(containerB);
+    assertEquals(1, store.getRelationshipCount());
+    assertEquals(1, store.getLocationCount());
+    Location[] locations = store.getRelationships(elementA, relationship);
+    assertThat(locations).containsOnly(locationC);
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -216,11 +291,14 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(elementA.getLocation()).thenReturn(elementLocationA);
     when(elementB.getLocation()).thenReturn(elementLocationB);
     when(elementC.getLocation()).thenReturn(elementLocationC);
+    when(elementD.getLocation()).thenReturn(elementLocationD);
     when(elementA.getEnclosingElement()).thenReturn(unitElementA);
     when(elementB.getEnclosingElement()).thenReturn(unitElementB);
     when(elementC.getEnclosingElement()).thenReturn(unitElementC);
+    when(elementD.getEnclosingElement()).thenReturn(unitElementD);
     when(unitElementA.getSource()).thenReturn(sourceA);
     when(unitElementB.getSource()).thenReturn(sourceB);
     when(unitElementC.getSource()).thenReturn(sourceC);
+    when(unitElementD.getSource()).thenReturn(sourceD);
   }
 }

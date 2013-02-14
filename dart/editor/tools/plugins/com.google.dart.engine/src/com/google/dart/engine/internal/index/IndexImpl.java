@@ -24,6 +24,7 @@ import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
+import com.google.dart.engine.internal.index.operation.RemoveSourcesOperation;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
@@ -59,7 +60,7 @@ public class IndexImpl implements Index {
 
   @Override
   public void removeSources(SourceContainer container) {
-    // TODO (danrubel): implement this
+    queue.enqueue(new RemoveSourcesOperation(store, container));
   }
 
   @Override

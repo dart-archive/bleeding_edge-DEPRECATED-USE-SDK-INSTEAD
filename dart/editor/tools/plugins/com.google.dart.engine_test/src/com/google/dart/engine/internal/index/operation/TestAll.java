@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(GetRelationshipsOperationTest.class);
     suite.addTestSuite(IndexUnitOperationTest.class);
     suite.addTestSuite(RemoveSourceOperationTest.class);
+    suite.addTestSuite(RemoveSourcesOperationTest.class);
     suite.addTestSuite(OperationQueueTest.class);
     suite.addTestSuite(OperationProcessorTest.class);
     return suite;

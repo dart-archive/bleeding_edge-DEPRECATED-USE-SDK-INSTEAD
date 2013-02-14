@@ -15,38 +15,39 @@ package com.google.dart.engine.internal.index.operation;
 
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 /**
- * Instances of the {@link RemoveSourceOperation} implement an operation that removes from the index
- * any data based on the content of a specified source.
+ * Instances of the {@link RemoveSourcesOperation} implement an operation that removes from the
+ * index any data based on the content of source belonging to a {@link SourceContainer}.
  */
-public class RemoveSourceOperation implements IndexOperation {
+public class RemoveSourcesOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   private IndexStore indexStore;
 
   /**
-   * The source being indexed.
+   * The source container to remove.
    */
-  private Source source;
+  private SourceContainer container;
 
   /**
    * Initialize a newly created operation that will remove the specified resource.
    * 
    * @param indexStore the index store against which this operation is being run
-   * @param source the {@link Source} to remove from index
+   * @param container the {@link SourceContainer} to remove from index
    */
-  public RemoveSourceOperation(IndexStore indexStore, Source source) {
+  public RemoveSourcesOperation(IndexStore indexStore, SourceContainer container) {
     this.indexStore = indexStore;
-    this.source = source;
+    this.container = container;
   }
 
   /**
-   * @return the {@link Source} that was removed.
+   * @return the {@link SourceContainer} that was removed.
    */
-  public Source getSource() {
-    return source;
+  public SourceContainer getContainer() {
+    return container;
   }
 
   @Override
@@ -57,7 +58,7 @@ public class RemoveSourceOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeSource(source);
+      indexStore.removeSources(container);
     }
   }
 
@@ -68,6 +69,6 @@ public class RemoveSourceOperation implements IndexOperation {
 
   @Override
   public String toString() {
-    return "RemoveSource(" + source.getFullName() + ")";
+    return "RemoveSources(" + container + ")";
   }
 }

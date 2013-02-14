@@ -16,6 +16,7 @@ package com.google.dart.engine.index;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 /**
  * Container of information computed by the index - relationships between elements.
@@ -96,4 +97,15 @@ public interface IndexStore {
    * @param source the source being removed
    */
   void removeSource(Source source);
+
+  /**
+   * Remove from the index all of the information associated with elements or locations in the given
+   * sources. This includes relationships between an element in the given sources and any other
+   * locations, relationships between any other elements and a location within the given sources.
+   * <p>
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   * 
+   * @param container the {@link SourceContainer} holding the sources being removed
+   */
+  void removeSources(SourceContainer container);
 }

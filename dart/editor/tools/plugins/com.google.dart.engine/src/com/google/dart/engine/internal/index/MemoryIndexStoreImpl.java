@@ -26,6 +26,7 @@ import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -196,6 +197,21 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       for (ContributedLocation contributedLocation : contributedLocations) {
         contributedLocation.getLocationOwner().remove(contributedLocation);
       }
+    }
+  }
+
+  @Override
+  public void removeSources(SourceContainer container) {
+    // prepare sources to remove
+    Set<Source> sourcesToRemove = Sets.newHashSet();
+    for (Source source : sources) {
+      if (container.contains(source)) {
+        sourcesToRemove.add(source);
+      }
+    }
+    // do remove sources
+    for (Source source : sourcesToRemove) {
+      removeSource(source);
     }
   }
 
