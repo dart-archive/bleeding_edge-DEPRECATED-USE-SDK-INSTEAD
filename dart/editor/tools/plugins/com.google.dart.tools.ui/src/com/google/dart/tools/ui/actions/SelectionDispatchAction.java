@@ -22,7 +22,10 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -79,7 +82,14 @@ public abstract class SelectionDispatchAction extends AbstractInstrumentedAction
   public ISelection getSelection() {
     ISelectionProvider selectionProvider = getSelectionProvider();
     if (selectionProvider != null) {
-      return selectionProvider.getSelection();
+      ISelection selection = selectionProvider.getSelection();
+      if (selection.isEmpty()) {
+        IEditorInput input = getSite().getPage().getActiveEditor().getEditorInput();
+        if (input instanceof IFileEditorInput) {
+          return new StructuredSelection(((IFileEditorInput) input).getFile());
+        }
+      }
+      return selection;
     } else {
       return null;
     }

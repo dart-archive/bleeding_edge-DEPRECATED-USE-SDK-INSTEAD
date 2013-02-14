@@ -18,6 +18,7 @@ import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
+import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -187,8 +188,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     GridData griData = new GridData(SWT.FILL, SWT.TOP, false, false);
     griData.widthHint = 350;
     right.setLayoutData(griData);
-    createExploreSection(right);
     createActionsSection(right);
+    createExploreSection(right);
     block.createContent(form);
     model.addModelListener(this);
 
@@ -216,9 +217,9 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
   private void createActionsSection(Composite composite) {
     Section section = toolkit.createSection(composite, Section.TITLE_BAR);
-    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
+    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
     section.setLayoutData(sectionLayoutData);
-    section.setText("Actions");
+    section.setText("Pub Actions");
     Composite client = toolkit.createComposite(section);
     client.setLayout(new TableWrapLayout());
     section.setClient(client);
@@ -228,12 +229,23 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     GridLayoutFactory.fillDefaults().spacing(15, 5).applyTo(links);
 
     ImageHyperlink saveActionText = toolkit.createImageHyperlink(links, SWT.NONE);
-    saveActionText.setText("Save and run Pub install");
+    saveActionText.setText("Run Pub install");
     saveActionText.setImage(DartWebPlugin.getImage("pubspec.png"));
     saveActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
         getEditor().doSave(new NullProgressMonitor());
+      }
+    });
+
+    ImageHyperlink publishActionText = toolkit.createImageHyperlink(links, SWT.NONE);
+    publishActionText.setText("Publish on pub.dartlang.org...");
+    publishActionText.setImage(DartWebPlugin.getImage("export.gif"));
+    publishActionText.addHyperlinkListener(new HyperlinkAdapter() {
+      @Override
+      public void linkActivated(HyperlinkEvent e) {
+        RunPubAction pubAction = RunPubAction.createPubPublishAction(getSite().getWorkbenchWindow());
+        pubAction.run();
       }
     });
 
@@ -281,7 +293,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       FormToolkit toolkit) {
     Section section = toolkit.createSection(parent, Section.TITLE_BAR);
 
-    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.FILL, true, false);
+    GridData sectionLayoutData = new GridData(SWT.FILL, SWT.BOTTOM, true, false);
     sectionLayoutData.horizontalSpan = 1;
     section.setLayoutData(sectionLayoutData);
     section.setRedraw(true);

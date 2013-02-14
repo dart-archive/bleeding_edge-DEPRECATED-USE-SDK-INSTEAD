@@ -352,6 +352,10 @@ public final class ActionMessages extends NLS {
   public static String RemoveFromClasspathAction_Problems_occurred;
   public static String RunPubAction_fileNotFound;
   public static String RunPubAction_fail;
+  public static String RunPubAction_publish_missing_requirements;
+  public static String RunPubAction_publish_dialog_title;
+  public static String RunPubAction_publish_upload_message;
+  public static String RunPubAction_publish_upload_cancel;
   public static String AddDelegateMethodsAction_error_title;
   public static String AddDelegateMethodsAction_error_actionfailed;
   public static String AddDelegateMethodsAction_label;

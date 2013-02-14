@@ -241,6 +241,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private NewFileCommandAction newFileAction;
 
+  private RunPubAction pubPublishAction;
+
   /**
    * Constructs a new action builder which contributes actions to the given window.
    * 
@@ -496,6 +498,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     pubInstallAction = RunPubAction.createPubInstallAction(window);
 
     pubUpdateAction = RunPubAction.createPubUpdateAction(window);
+
+    pubPublishAction = RunPubAction.createPubPublishAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 
@@ -1046,6 +1050,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(pubInstallAction);
     menu.add(pubUpdateAction);
+    menu.add(pubPublishAction);
 
     menu.add(new Separator());
 

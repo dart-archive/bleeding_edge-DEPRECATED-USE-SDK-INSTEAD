@@ -32,7 +32,7 @@ public class RunPubJob extends Job {
   public static final String UPDATE_COMMAND = "update"; //$NON-NLS-1$
   public static final String INSTALL_COMMAND = "install"; //$NON-NLS-1$
 
-  private static final String PUB_PATH = "util/pub/pub.dart"; //$NON-NLS-1$
+  public static final String PUB_PATH = "util/pub/pub.dart"; //$NON-NLS-1$
 
   /**
    * The pub command to be run (e.g. "install", "update")
