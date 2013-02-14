@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
@@ -35,9 +36,11 @@ public class ProjectManagerImpl implements ProjectManager {
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+  private final DartSdk sdk;
 
-  public ProjectManagerImpl(IWorkspaceRoot resource) {
+  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk) {
     this.resource = resource;
+    this.sdk = sdk;
   }
 
   @Override
@@ -49,7 +52,7 @@ public class ProjectManagerImpl implements ProjectManager {
   public Project getProject(IProject resource) {
     Project result = projects.get(resource);
     if (result == null) {
-      result = new ProjectImpl(resource);
+      result = new ProjectImpl(resource, sdk);
       projects.put(resource, result);
     }
     return result;
@@ -83,6 +86,11 @@ public class ProjectManagerImpl implements ProjectManager {
       }
     }
     return null;
+  }
+
+  @Override
+  public DartSdk getSdk() {
+    return sdk;
   }
 
   @Override

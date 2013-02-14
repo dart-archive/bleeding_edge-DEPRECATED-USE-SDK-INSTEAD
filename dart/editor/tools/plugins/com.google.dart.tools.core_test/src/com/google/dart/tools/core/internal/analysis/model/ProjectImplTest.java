@@ -14,10 +14,12 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.AbstractDartCoreTest;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.MockContext;
@@ -31,6 +33,8 @@ import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Path;
 
+import static org.mockito.Mockito.mock;
+
 import java.io.File;
 
 public class ProjectImplTest extends AbstractDartCoreTest {
@@ -40,7 +44,8 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private MockFolder subContainer;
   private MockFolder appContainer;
   private MockFolder subAppContainer;
-  private ProjectImpl project;
+  private Project project;
+  private DartSdk expectedSdk;
 
   public void test_discardContextsIn_project() {
     assertEquals(1, project.getPubFolders().length);
@@ -123,6 +128,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     File file = new File("/does/not/exist.dart");
     Source source = project.getDefaultContext().getSourceFactory().forFile(file);
     assertNull(project.getResourceFor(source));
+  }
+
+  public void test_getSdk() throws Exception {
+    final DartSdk sdk = project.getSdk();
+    assertNotNull(sdk);
+    assertSame(expectedSdk, sdk);
   }
 
   public void test_pubFolder_folder() {
@@ -328,8 +339,9 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     subContainer = webContainer.getMockFolder("sub");
     appContainer = projectContainer.getMockFolder("myapp");
     subAppContainer = appContainer.getMockFolder("subApp");
+    expectedSdk = mock(DartSdk.class);
 
-    project = new ProjectImpl(projectContainer, new AnalysisContextFactory() {
+    project = new ProjectImpl(projectContainer, expectedSdk, new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
         return new MockContext();

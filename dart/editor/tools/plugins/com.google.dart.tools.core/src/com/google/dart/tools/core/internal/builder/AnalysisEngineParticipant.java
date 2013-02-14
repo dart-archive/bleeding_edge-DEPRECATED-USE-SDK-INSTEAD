@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -198,6 +199,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @return the dart project
    */
   protected Project createProject(IProject resource) {
-    return new ProjectImpl(resource);
+    return new ProjectImpl(resource, DartSdk.getDefaultSdk());
   }
 }

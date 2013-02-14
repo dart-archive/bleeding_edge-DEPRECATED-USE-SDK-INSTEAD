@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.PubspecModel;
 
@@ -45,13 +46,19 @@ public class PubFolderImpl implements PubFolder {
   private final AnalysisContext context;
 
   /**
+   * The Dart SDK used when constructing the context.
+   */
+  private final DartSdk sdk;
+
+  /**
    * The pubspec model or {@code null} if it is not yet cached.
    */
   private PubspecModel pubspec;
 
-  public PubFolderImpl(IContainer container, AnalysisContext context) {
+  public PubFolderImpl(IContainer container, AnalysisContext context, DartSdk sdk) {
     this.container = container;
     this.context = context;
+    this.sdk = sdk;
   }
 
   @Override
@@ -72,5 +79,10 @@ public class PubFolderImpl implements PubFolder {
   @Override
   public IContainer getResource() {
     return container;
+  }
+
+  @Override
+  public DartSdk getSdk() {
+    return sdk;
   }
 }

@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.pub.PubspecModel;
 
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -35,7 +37,8 @@ public class PubFolderImplTest extends TestCase {
 
   private IContainer container;
   private AnalysisContext context;
-  private PubFolderImpl pubFolder;
+  private PubFolder pubFolder;
+  private DartSdk expectedSdk;
 
   public void test_getContext() {
     assertSame(context, pubFolder.getContext());
@@ -59,10 +62,17 @@ public class PubFolderImplTest extends TestCase {
     verifyNoMoreInteractions(container, context);
   }
 
+  public void test_getSdk() throws Exception {
+    final DartSdk sdk = pubFolder.getSdk();
+    assertNotNull(sdk);
+    assertSame(expectedSdk, sdk);
+  }
+
   @Override
   protected void setUp() throws Exception {
     container = mock(IContainer.class);
     context = mock(AnalysisContext.class);
-    pubFolder = new PubFolderImpl(container, context);
+    expectedSdk = mock(DartSdk.class);
+    pubFolder = new PubFolderImpl(container, context, expectedSdk);
   }
 }

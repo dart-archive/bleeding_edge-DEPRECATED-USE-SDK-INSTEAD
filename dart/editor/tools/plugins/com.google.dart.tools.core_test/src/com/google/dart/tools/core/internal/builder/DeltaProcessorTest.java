@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -35,6 +36,7 @@ import org.eclipse.core.resources.IResource;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
+import static org.mockito.Mockito.mock;
 
 public class DeltaProcessorTest extends AbstractDartCoreTest {
 
@@ -51,7 +53,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     private final CallList calls = new CallList();
 
     MockProjectImpl(IProject resource) {
-      super(resource, new AnalysisContextFactory() {
+      super(resource, mock(DartSdk.class), new AnalysisContextFactory() {
         @Override
         public AnalysisContext createContext() {
           return new MockContext();

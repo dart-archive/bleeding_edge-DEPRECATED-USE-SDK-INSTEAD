@@ -73,6 +73,11 @@ public class ProjectImpl implements Project {
   private AnalysisContext defaultContext;
 
   /**
+   * The Dart SDK used when constructing the default context.
+   */
+  private DartSdk sdk;
+
+  /**
    * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
    * Synchronize against {@link #lock} when accessing this field. See {@link #getDartUriResolver()}
    */
@@ -102,22 +107,26 @@ public class ProjectImpl implements Project {
    * Construct a new instance representing a Dart project
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
+   * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
+   * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource) {
-    this(resource, new AnalysisContextFactory());
+  public ProjectImpl(IProject resource, DartSdk sdk, AnalysisContextFactory factory) {
+    if (resource == null | factory == null | sdk == null) {
+      throw new IllegalArgumentException();
+    }
+    this.resource = resource;
+    this.factory = factory;
+    this.sdk = sdk;
   }
 
   /**
    * Construct a new instance representing a Dart project
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
+   * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource, AnalysisContextFactory factory) {
-    if (resource == null | factory == null) {
-      throw new IllegalArgumentException();
-    }
-    this.resource = resource;
-    this.factory = factory;
+  public ProjectImpl(IProject resource, DartSdk sdk) {
+    this(resource, sdk, new AnalysisContextFactory());
   }
 
   @Override
@@ -189,6 +198,11 @@ public class ProjectImpl implements Project {
   }
 
   @Override
+  public DartSdk getSdk() {
+    return sdk;
+  }
+
+  @Override
   public void pubspecAdded(IContainer container) {
     if (pubFolders == null) {
       return;
@@ -200,7 +214,7 @@ public class ProjectImpl implements Project {
     }
 
     // Create and cache a new pub folder
-    PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container));
+    PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container, sdk), sdk);
     pubFolders.put(container.getFullPath(), pubFolder);
 
     // Merge any overlapping pub folders
@@ -242,9 +256,10 @@ public class ProjectImpl implements Project {
    * assumes that {@link #defaultContext} has already been set by {@link #initialize()}.
    * 
    * @param container the container with sources to be analyzed (not {@code null})
+   * @param sdk the Dart SDK to use when initializing the context (not {@code null})
    * @return the context (not {@code null})
    */
-  private AnalysisContext createContext(IContainer container) {
+  private AnalysisContext createContext(IContainer container, DartSdk sdk) {
     if (container.equals(resource)) {
       return defaultContext;
     }
@@ -258,7 +273,7 @@ public class ProjectImpl implements Project {
       logNoLocation(container);
       context = factory.createContext();
     }
-    return initContext(context, container);
+    return initContext(context, container, sdk);
   }
 
   /**
@@ -275,7 +290,7 @@ public class ProjectImpl implements Project {
         IPath path = container.getFullPath();
         // Pub folders do not nest, so don't create a folder if a parent folder already exists
         if (getParentPubFolder(path) == null) {
-          pubFolders.put(path, new PubFolderImpl(container, createContext(container)));
+          pubFolders.put(path, new PubFolderImpl(container, createContext(container, sdk), sdk));
         }
       }
     });
@@ -342,9 +357,10 @@ public class ProjectImpl implements Project {
    * 
    * @param context the context to be initialized (not {@code null})
    * @param container the container with sources to be analyzed
+   * @param sdk the Dart SDK to use when initializing the context (not {@code null})
    * @return the context (not {@code null})
    */
-  private AnalysisContext initContext(AnalysisContext context, IContainer container) {
+  private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk) {
     DartUriResolver dartResolver = getDartUriResolver();
 
     FileUriResolver fileResolver = new FileUriResolver();
@@ -372,7 +388,7 @@ public class ProjectImpl implements Project {
       return;
     }
     pubFolders = new HashMap<IPath, PubFolder>();
-    defaultContext = initContext(factory.createContext(), resource);
+    defaultContext = initContext(factory.createContext(), resource, sdk);
     createPubFolders(resource);
   }
 

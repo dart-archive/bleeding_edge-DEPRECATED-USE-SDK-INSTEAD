@@ -14,8 +14,10 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.mock.MockWorkspaceRoot;
@@ -24,13 +26,16 @@ import junit.framework.TestCase;
 
 import org.eclipse.core.resources.IResource;
 
+import static org.mockito.Mockito.mock;
+
 import java.io.File;
 
 public class ProjectManagerImplTest extends TestCase {
 
   private MockWorkspaceRoot rootContainer;
   private MockProject projectContainer;
-  private ProjectManagerImpl manager;
+  private ProjectManager manager;
+  private DartSdk expectedSdk;
 
   public void test_getIndex() throws Exception {
     Index index = manager.getIndex();
@@ -74,6 +79,12 @@ public class ProjectManagerImplTest extends TestCase {
     assertNull(manager.getResourceFor(source));
   }
 
+  public void test_getSdk() throws Exception {
+    final DartSdk sdk = manager.getSdk();
+    assertNotNull(sdk);
+    assertSame(expectedSdk, sdk);
+  }
+
   public void test_newSearchEngine() throws Exception {
     assertNotNull(manager.newSearchEngine());
   }
@@ -83,6 +94,7 @@ public class ProjectManagerImplTest extends TestCase {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
-    manager = new ProjectManagerImpl(rootContainer);
+    expectedSdk = mock(DartSdk.class);
+    manager = new ProjectManagerImpl(rootContainer, expectedSdk);
   }
 }

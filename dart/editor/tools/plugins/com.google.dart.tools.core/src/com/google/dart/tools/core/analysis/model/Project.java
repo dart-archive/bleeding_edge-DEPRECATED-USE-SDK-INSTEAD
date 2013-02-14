@@ -1,6 +1,7 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 import org.eclipse.core.resources.IContainer;
@@ -68,6 +69,13 @@ public interface Project {
    * @return the resource or {@code null} if it could not be determined
    */
   IResource getResourceFor(Source source);
+
+  /**
+   * Answer the {@link DartSdk} used when constructing the default analysis context.
+   * 
+   * @return the sdk (not {@code null})
+   */
+  DartSdk getSdk();
 
   /**
    * Called when a pubspec file is added

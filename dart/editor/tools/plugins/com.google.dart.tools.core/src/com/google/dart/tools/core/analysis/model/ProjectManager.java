@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 
@@ -59,6 +60,13 @@ public interface ProjectManager {
    * @return the resource or {@code null} if it could not be determined
    */
   IResource getResourceFor(Source source);
+
+  /**
+   * Answer the {@link DartSdk} default Dart SDK
+   * 
+   * @return the sdk (not {@code null})
+   */
+  DartSdk getSdk();
 
   /**
    * Create and answer a new search engine backed by the global index

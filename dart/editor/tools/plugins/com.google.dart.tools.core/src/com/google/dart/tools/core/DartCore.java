@@ -267,7 +267,8 @@ public class DartCore extends Plugin implements DartSdkListener {
    * The unique project manager used for analysis of anything in the workspace
    */
   private static ProjectManager projectManager = new ProjectManagerImpl(
-      ResourcesPlugin.getWorkspace().getRoot());
+      ResourcesPlugin.getWorkspace().getRoot(),
+      com.google.dart.engine.sdk.DartSdk.getDefaultSdk());
 
   /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which

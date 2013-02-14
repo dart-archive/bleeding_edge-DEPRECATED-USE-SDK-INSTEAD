@@ -20,6 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
@@ -48,6 +49,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 
@@ -321,7 +324,7 @@ public class ScanTimings extends TestCase {
 
       @Override
       protected Project createProject(IProject resource) {
-        project = new ProjectImpl(resource, new AnalysisContextFactory() {
+        project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {
           @Override
           public AnalysisContext createContext() {
             contextCount++;

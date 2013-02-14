@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -116,6 +117,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     @Override
     public IResource getResourceFor(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DartSdk getSdk() {
       throw new UnsupportedOperationException();
     }
 
