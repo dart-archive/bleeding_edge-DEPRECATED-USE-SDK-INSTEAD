@@ -317,6 +317,11 @@ public class ProjectAnalyzer extends DeltaAdapter {
   }
 
   @Override
+  public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
+    index.removeSources(event.getSourceContainer());
+  }
+
+  @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
     index.removeSource(event.getSource());
   }
@@ -329,6 +334,11 @@ public class ProjectAnalyzer extends DeltaAdapter {
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
     getChangeSet(event).addSource(event.getSource());
+  }
+
+  @Override
+  public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
+    index.removeSources(event.getSourceContainer());
   }
 
   @Override

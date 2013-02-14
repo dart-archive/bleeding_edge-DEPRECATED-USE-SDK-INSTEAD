@@ -21,6 +21,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -74,6 +75,13 @@ public class ProjectAnalyzerTest extends TestCase {
     verify(index).indexUnit(unit);
   }
 
+  public void test_packageSourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = mockSourceContainerEvent();
+    analyzer.packageSourceContainerRemoved(event);
+    verifyNoMarkersCreated();
+    verify(index).removeSources(event.getSourceContainer());
+  }
+
   public void test_packageSourceRemoved() throws Exception {
     analyzer.packageSourceRemoved(mockSourceEvent());
     verify(index).removeSource(source);
@@ -95,35 +103,17 @@ public class ProjectAnalyzerTest extends TestCase {
     verify(index).indexUnit(unit);
   }
 
+  public void test_sourceContainerRemoved() throws Exception {
+    SourceContainerDeltaEvent event = mockSourceContainerEvent();
+    analyzer.sourceContainerRemoved(event);
+    verifyNoMarkersCreated();
+    verify(index).removeSources(event.getSourceContainer());
+  }
+
   public void test_sourceRemoved() throws Exception {
     analyzer.sourceRemoved(mockSourceEvent());
     verifyNoMarkersCreated();
     verify(index).removeSource(source);
-  }
-
-  // TODO (danrubel): implement
-  public void xtest_packageSourceContainerRemoved() throws Exception {
-    SourceContainerDeltaEvent event = mock(SourceContainerDeltaEvent.class);
-    when(event.getContext()).thenReturn(context);
-//    when(event.getSource()).thenReturn(source);
-    when(event.getResource()).thenReturn(resource);
-    when(event.getProject()).thenReturn(project);
-
-    analyzer.packageSourceContainerRemoved(event);
-    fail("not implemented yet");
-  }
-
-  // TODO (danrubel): implement
-  public void xtest_sourceContainerRemoved() throws Exception {
-    SourceContainerDeltaEvent event = mock(SourceContainerDeltaEvent.class);
-    when(event.getContext()).thenReturn(context);
-//    when(event.getSource()).thenReturn(source);
-    when(event.getResource()).thenReturn(resource);
-    when(event.getProject()).thenReturn(project);
-
-    analyzer.sourceContainerRemoved(event);
-    verifyNoMarkersCreated();
-    fail("not implemented yet");
   }
 
   @Override
@@ -170,6 +160,15 @@ public class ProjectAnalyzerTest extends TestCase {
     index = mock(Index.class);
 
     analyzer = new ProjectAnalyzer(new DartIgnoreManager(), index);
+  }
+
+  private SourceContainerDeltaEvent mockSourceContainerEvent() {
+    SourceContainerDeltaEvent event = mock(SourceContainerDeltaEvent.class);
+    when(event.getContext()).thenReturn(context);
+    when(event.getSourceContainer()).thenReturn(mock(SourceContainer.class));
+    when(event.getResource()).thenReturn(resource);
+    when(event.getProject()).thenReturn(project);
+    return event;
   }
 
   private SourceDeltaEvent mockSourceEvent() {

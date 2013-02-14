@@ -16,6 +16,7 @@ package com.google.dart.engine.index;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 /**
  * The interface {@link Index} defines the behavior of objects that maintain an index storing
@@ -60,6 +61,18 @@ public interface Index {
    * @param source the {@link Source} being removed
    */
   void removeSource(Source source);
+
+  /**
+   * Asynchronously remove from the index all of the information associated with elements or
+   * locations in the given sources. This includes relationships between an element in the given
+   * sources and any other locations, relationships between any other elements and a location within
+   * the given sources.
+   * <p>
+   * This method should be invoked when multiple sources are no longer part of the code base.
+   * 
+   * @param sources the {@link SourceContainer} holding the sources being removed
+   */
+  void removeSources(SourceContainer container);
 
   /**
    * Should be called in separate {@link Thread} to process request in this {@link Index}.

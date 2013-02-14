@@ -95,6 +95,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public void removeSources(SourceContainer container) {
+      // ignored
+    }
+
+    @Override
     public void run() {
       // ignored
     }

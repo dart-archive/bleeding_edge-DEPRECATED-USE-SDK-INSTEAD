@@ -25,6 +25,7 @@ import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
 import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceContainer;
 
 /**
  * Implementation of {@link Index}.
@@ -54,6 +55,11 @@ public class IndexImpl implements Index {
   @Override
   public void removeSource(Source source) {
     queue.enqueue(new RemoveSourceOperation(store, source));
+  }
+
+  @Override
+  public void removeSources(SourceContainer container) {
+    // TODO (danrubel): implement this
   }
 
   @Override
