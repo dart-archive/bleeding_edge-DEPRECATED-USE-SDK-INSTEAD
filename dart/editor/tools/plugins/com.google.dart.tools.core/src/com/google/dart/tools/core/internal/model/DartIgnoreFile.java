@@ -69,9 +69,9 @@ public class DartIgnoreFile {
    * Add the given pattern to the list.
    * 
    * @param pattern the pattern to add
-   * @return a reference to this ignore file
+   * @return {@code true} if the receiver's collection of patterns changed
    */
-  public DartIgnoreFile add(String pattern) {
+  public boolean add(String pattern) {
 
     //only add if not subsumed by an existing pattern
     if (!isSubsumedIn(pattern, ignores)) {
@@ -79,8 +79,9 @@ public class DartIgnoreFile {
       Collection<String> submsumed = getSubsumedPatterns(pattern, ignores);
       ignores.removeAll(submsumed);
       ignores.add(pattern);
+      return true;
     }
-    return this;
+    return false;
   }
 
   /**
@@ -90,6 +91,21 @@ public class DartIgnoreFile {
    */
   public Collection<String> getPatterns() {
     return ignores;
+  }
+
+  /**
+   * Ensure that the file exists, can be written, and can be read
+   */
+  public void initFile() throws IOException {
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    if (!file.canRead()) {
+      file.setReadable(true);
+    }
+    if (!file.canWrite()) {
+      file.setWritable(true);
+    }
   }
 
   /**
@@ -120,11 +136,9 @@ public class DartIgnoreFile {
    * </p>
    * 
    * @param pattern the pattern to remove
-   * @return a reference to this ignore file
+   * @return the patterns removed from the receiver (not {@code null}, contains no {@code null}s)
    */
-  public DartIgnoreFile remove(String pattern) {
-
-    ignores.remove(pattern);
+  public Collection<String> remove(String pattern) {
 
     //collect all patterns that contain the target pattern
     ArrayList<String> toRemove = new ArrayList<String>();
@@ -135,8 +149,7 @@ public class DartIgnoreFile {
     }
 
     ignores.removeAll(toRemove);
-
-    return this;
+    return toRemove;
   }
 
   /**

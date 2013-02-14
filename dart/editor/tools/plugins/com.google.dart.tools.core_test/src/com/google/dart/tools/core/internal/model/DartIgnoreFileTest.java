@@ -19,6 +19,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Smoke tests for {@link DartIgnoreFile}.
@@ -28,19 +29,19 @@ public class DartIgnoreFileTest extends TestCase {
   private DartIgnoreFile ignoreFile;
 
   public void testAdd() throws Exception {
-    add("/Users/foo/bar/");
+    add("/Users/foo/bar/", true);
     assertContains("/Users/foo/bar/");
   }
 
   public void testAddAlreadyContained() throws Exception {
-    add("/Users/foo/bar/");
-    add("/Users/foo/bar/baz.dart"); //should get dropped since it's contained
+    add("/Users/foo/bar/", true);
+    add("/Users/foo/bar/baz.dart", false); //should get dropped since it's contained
     assertContainsExactly("/Users/foo/bar/");
   }
 
   public void testAddThatPrunes() throws Exception {
-    add("/Users/foo/bar/baz.dart");
-    add("/Users/foo/bar/"); //contained baz.dart should get dropped
+    add("/Users/foo/bar/baz.dart", true);
+    add("/Users/foo/bar/", true); //contained baz.dart should get dropped
     assertContainsExactly("/Users/foo/bar/");
   }
 
@@ -52,15 +53,15 @@ public class DartIgnoreFileTest extends TestCase {
   }
 
   public void testRemove() throws Exception {
-    add("/Users/foo/bar/");
-    remove("/Users/foo/bar/");
+    add("/Users/foo/bar/", true);
+    remove("/Users/foo/bar/", "/Users/foo/bar/");
     assertEmpty();
   }
 
   public void testRemoveContained() throws Exception {
-    add("/Users/foo/bar/");
-    add("/Users/foo/bar/baz.dart");
-    remove("/Users/foo/bar/baz.dart");
+    add("/Users/foo/bar/", true);
+    add("/Users/foo/bar/baz.dart", false);
+    remove("/Users/foo/bar/baz.dart", "/Users/foo/bar/");
     assertEmpty();
   }
 
@@ -70,8 +71,8 @@ public class DartIgnoreFileTest extends TestCase {
     ignoreFile = new DartIgnoreFile(new File("test-ignore"));
   }
 
-  private void add(String pattern) {
-    ignoreFile.add(pattern);
+  private void add(String pattern, boolean changed) {
+    assertEquals(changed, ignoreFile.add(pattern));
   }
 
   private void assertContains(String pattern) {
@@ -90,8 +91,9 @@ public class DartIgnoreFileTest extends TestCase {
     assertTrue(DartIgnoreFile.isSubsumedIn(pattern, Arrays.asList(ignores)));
   }
 
-  private void remove(String pattern) {
-    ignoreFile.remove(pattern);
+  private void remove(String pattern, String expectedRemoved) {
+    Collection<String> actualRemoved = ignoreFile.remove(pattern);
+    assertEquals(Arrays.asList(new String[] {expectedRemoved}), actualRemoved);
   }
 
 }
