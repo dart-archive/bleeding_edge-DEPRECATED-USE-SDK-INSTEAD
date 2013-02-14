@@ -11,7 +11,7 @@ class Dom {
   static void ready(void f()) {
     if (document.readyState == 'interactive' ||
         document.readyState == 'complete') {
-      window.setTimeout(f, 0);
+      Timer.run(f);
     } else {
       // TODO(jacobr): give this event a named property.
       window.onContentLoaded.listen((Event e) { f(); });
