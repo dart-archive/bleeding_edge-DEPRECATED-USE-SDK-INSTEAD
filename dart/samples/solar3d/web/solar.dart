@@ -109,7 +109,7 @@ class Solar3DApplication {
   bool get _fullScreened => canvas == document.webkitFullscreenElement;
 
   void clicked(Event event) {
-    canvas.webkitRequestPointerLock();
+    canvas.requestPointerLock();
   }
 
   /* Returns true if the pointer is owned by our canvas element */
@@ -124,7 +124,7 @@ class Solar3DApplication {
     if (_fullScreened) {
       document.webkitCancelFullScreen();
     } else {
-      canvas.webkitRequestFullscreen();
+      canvas.requestFullscreen();
     }
   }
 
@@ -173,9 +173,7 @@ class Solar3DApplication {
       // We don't rotate the view if we don't own the mouse
       return;
     }
-    //controller.accumDX += event.webkitMovementX;
-    //controller.accumDY += event.webkitMovementY;
-    controller.accumScroll += event.webkitMovementY;
+    controller.accumScroll += event.movementY;
     event.preventDefault();
   }
 

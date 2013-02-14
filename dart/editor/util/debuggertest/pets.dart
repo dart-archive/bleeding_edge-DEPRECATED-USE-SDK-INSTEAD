@@ -219,7 +219,5 @@ void createARealBigArray() {
 
   print("big array created");
 
-  arr[0] = "assdsdf";
-
   arr[0]++;
 }

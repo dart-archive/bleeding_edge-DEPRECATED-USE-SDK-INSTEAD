@@ -4,6 +4,7 @@
 
 library swipe;
 
+import 'dart:async';
 import 'dart:html';
 import 'dart:math';
 
@@ -13,7 +14,7 @@ var figureWidth;
 
 double anglePos = 0.0;
 
-var timeoutHandle;
+Timer timer;
 
 void main() {
   target = query('#target');
@@ -109,11 +110,11 @@ void spinFigure(Element figure, int direction) {
  */
 void startSpin(Element figure, int direction) {
   // If we're not already spinning -
-  if (timeoutHandle == null) {
+  if (timer == null) {
     spinFigure(figure, direction);
 
-    timeoutHandle = window.setInterval(
-        () => spinFigure(figure, direction), 100);
+    timer = new Timer.repeating(const Duration(milliseconds: 100),
+        (Timer t) => spinFigure(figure, direction));
   }
 }
 
@@ -121,8 +122,8 @@ void startSpin(Element figure, int direction) {
  * Stop any spin that may be in progress.
  */
 void stopSpin() {
-  if (timeoutHandle != null) {
-    window.clearInterval(timeoutHandle);
-    timeoutHandle = null;
+  if (timer != null) {
+    timer.cancel();
+    timer = null;
   }
 }

@@ -12,7 +12,7 @@ num rotatePos = 0;
 void main() {
   query("#text").text = "Welcome to Dart!";
 
-  query("#text").on.click.add(rotateText);
+  query("#text").onClick.listen(rotateText);
 
   testAnimals();
 }
@@ -45,7 +45,7 @@ void testAnimals() {
   checkTypes();
 
   createARealBigArray();
-  
+
   var dog = new Dog("Scooter");
 
   dog.performAction();
