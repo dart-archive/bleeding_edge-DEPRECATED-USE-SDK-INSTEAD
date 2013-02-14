@@ -425,40 +425,6 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   /**
-   * Return the getter in the given type with the given name. Inherited getters are ignored.
-   * 
-   * @param type the type in which the getter is declared
-   * @param getterName the name of the getter to be returned
-   * @return the property accessor element representing the getter with the given name
-   */
-  private PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
-    for (PropertyAccessorElement accessor : type.getElement().getAccessors()) {
-      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
-        return accessor;
-      }
-    }
-    fail("Could not find getter named " + getterName + " in " + type.getName());
-    return null;
-  }
-
-  /**
-   * Return the method in the given type with the given name. Inherited methods are ignored.
-   * 
-   * @param type the type in which the method is declared
-   * @param methodName the name of the method to be returned
-   * @return the method element representing the method with the given name
-   */
-  private MethodElement getMethod(InterfaceType type, String methodName) {
-    for (MethodElement method : type.getElement().getMethods()) {
-      if (method.getName().equals(methodName)) {
-        return method;
-      }
-    }
-    fail("Could not find method named " + methodName + " in " + type.getName());
-    return null;
-  }
-
-  /**
    * Return the element associated with the label of the given statement after the resolver has
    * resolved the statement.
    * 

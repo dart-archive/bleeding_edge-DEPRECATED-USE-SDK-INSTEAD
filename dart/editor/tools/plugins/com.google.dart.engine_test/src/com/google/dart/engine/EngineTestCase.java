@@ -14,10 +14,13 @@
 package com.google.dart.engine;
 
 import com.google.common.base.Objects;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -321,5 +324,39 @@ public class EngineTestCase extends TestCase {
     }
 
     return diffPos;
+  }
+
+  /**
+   * Return the getter in the given type with the given name. Inherited getters are ignored.
+   * 
+   * @param type the type in which the getter is declared
+   * @param getterName the name of the getter to be returned
+   * @return the property accessor element representing the getter with the given name
+   */
+  protected PropertyAccessorElement getGetter(InterfaceType type, String getterName) {
+    for (PropertyAccessorElement accessor : type.getElement().getAccessors()) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
+        return accessor;
+      }
+    }
+    fail("Could not find getter named " + getterName + " in " + type.getName());
+    return null;
+  }
+
+  /**
+   * Return the method in the given type with the given name. Inherited methods are ignored.
+   * 
+   * @param type the type in which the method is declared
+   * @param methodName the name of the method to be returned
+   * @return the method element representing the method with the given name
+   */
+  protected MethodElement getMethod(InterfaceType type, String methodName) {
+    for (MethodElement method : type.getElement().getMethods()) {
+      if (method.getName().equals(methodName)) {
+        return method;
+      }
+    }
+    fail("Could not find method named " + methodName + " in " + type.getName());
+    return null;
   }
 }

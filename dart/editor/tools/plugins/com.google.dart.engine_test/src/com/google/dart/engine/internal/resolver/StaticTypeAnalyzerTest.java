@@ -14,6 +14,8 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FormalParameter;
@@ -113,23 +115,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private TestTypeProvider typeProvider;
 
-  public void fail_visitAssignmentExpression_compound() throws Exception {
-    // Fails because the type analyzer doesn't implement method look-up.
-    InterfaceType intType = typeProvider.getIntType();
-    SimpleIdentifier identifier = resolvedVariable(intType, "i");
-    Expression node = assignmentExpression(identifier, TokenType.PLUS_EQ, resolvedInteger(1));
-    assertSame(intType, analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitBinaryExpression_plus() throws Exception {
-    // Fails because the type analyzer doesn't implement method look-up.
-    // TODO(brianwilkerson) Test other operators when this test starts passing.
-    Expression node = binaryExpression(resolvedInteger(2), TokenType.PLUS, resolvedInteger(2));
-    assertSame(typeProvider.getNumType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
   public void fail_visitFunctionExpressionInvocation() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
@@ -154,30 +139,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
   public void fail_visitMethodInvocation() throws Exception {
     fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixExpression_minus() throws Exception {
-    PrefixExpression node = prefixExpression(TokenType.MINUS, resolvedInteger(0));
-    assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixExpression_minusMinus() throws Exception {
-    PrefixExpression node = prefixExpression(TokenType.MINUS_MINUS, resolvedInteger(0));
-    assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixExpression_plusPlus() throws Exception {
-    PrefixExpression node = prefixExpression(TokenType.PLUS_PLUS, resolvedInteger(0));
-    assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPrefixExpression_tilde() throws Exception {
-    PrefixExpression node = prefixExpression(TokenType.TILDE, resolvedInteger(0));
-    assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
 
@@ -223,6 +184,19 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitAssignmentExpression_compound() throws Exception {
+    // i += 1
+    InterfaceType numType = typeProvider.getNumType();
+    SimpleIdentifier identifier = resolvedVariable(typeProvider.getIntType(), "i");
+    AssignmentExpression node = assignmentExpression(
+        identifier,
+        TokenType.PLUS_EQ,
+        resolvedInteger(1));
+    node.setElement(getMethod(numType, "+"));
+    assertSame(numType, analyze(node));
+    listener.assertNoErrors();
+  }
+
   public void test_visitAssignmentExpression_simple() throws Exception {
     // i = 0
     InterfaceType intType = typeProvider.getIntType();
@@ -265,6 +239,14 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // 2 != 3
     Expression node = binaryExpression(resolvedInteger(2), TokenType.BANG_EQ, resolvedInteger(3));
     assertSame(typeProvider.getBoolType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitBinaryExpression_plus() throws Exception {
+    // 2 + 2
+    BinaryExpression node = binaryExpression(resolvedInteger(2), TokenType.PLUS, resolvedInteger(2));
+    node.setElement(getMethod(typeProvider.getNumType(), "+"));
+    assertSame(typeProvider.getNumType(), analyze(node));
     listener.assertNoErrors();
   }
 
@@ -680,10 +662,42 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitPrefixExpression_minus() throws Exception {
+    // -0
+    PrefixExpression node = prefixExpression(TokenType.MINUS, resolvedInteger(0));
+    node.setElement(getMethod(typeProvider.getNumType(), "-"));
+    assertSame(typeProvider.getNumType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixExpression_minusMinus() throws Exception {
+    // --0
+    PrefixExpression node = prefixExpression(TokenType.MINUS_MINUS, resolvedInteger(0));
+    node.setElement(getMethod(typeProvider.getNumType(), "-"));
+    assertSame(typeProvider.getNumType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
   public void test_visitPrefixExpression_not() throws Exception {
     // !true
     Expression node = prefixExpression(TokenType.BANG, booleanLiteral(true));
     assertSame(typeProvider.getBoolType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixExpression_plusPlus() throws Exception {
+    // ++0
+    PrefixExpression node = prefixExpression(TokenType.PLUS_PLUS, resolvedInteger(0));
+    node.setElement(getMethod(typeProvider.getNumType(), "+"));
+    assertSame(typeProvider.getNumType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixExpression_tilde() throws Exception {
+    // ~0
+    PrefixExpression node = prefixExpression(TokenType.TILDE, resolvedInteger(0));
+    node.setElement(getMethod(typeProvider.getIntType(), "~"));
+    assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
 
