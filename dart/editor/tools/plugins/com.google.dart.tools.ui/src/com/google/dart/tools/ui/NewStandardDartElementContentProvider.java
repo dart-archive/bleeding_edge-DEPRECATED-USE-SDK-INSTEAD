@@ -13,8 +13,21 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.tools.core.model.DartProject;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+
+import java.util.ArrayList;
 
 /**
  * "New" base content provider for Dart elements. It provides access to the Dart element hierarchy
@@ -41,46 +54,203 @@ public class NewStandardDartElementContentProvider implements ITreeContentProvid
 
   protected static final Object[] NO_CHILDREN = new Object[0];
 
+  // Whether to return members when asking a compilation unit for its children.
+  private final boolean provideMembers;
+
+  /**
+   * Creates a new <code>NewStandardDartElementContentProvider</code>.
+   * 
+   * @param provideMembers if <code>true</code>, members below compilation units are provided
+   */
+  public NewStandardDartElementContentProvider(boolean provideMembers) {
+    this.provideMembers = provideMembers;
+  }
+
   @Override
   public void dispose() {
-    // TODO Auto-generated method stub
+  }
+
+  @Override
+  public Object[] getChildren(Object element) {
+
+    //TODO (pquitslund): complete cases
+
+    if (!exists(element)) {
+      return NO_CHILDREN;
+    }
+
+    if (element instanceof IProject) {
+      IProject project = (IProject) element;
+      if (!(project.isOpen())) {
+        return NO_CHILDREN;
+      }
+      //TODO (pquitslund): support dart projects
+      return NO_CHILDREN;
+//      if (project.hasNature(DartCore.DART_PROJECT_NATURE)) {
+//        DartProject dartProject = DartCore.create(project);
+//        return dartProject.getDartLibraries();
+//      }
+    }
+
+    try {
+
+      if (element instanceof IFile) {
+        return NO_CHILDREN;
+      }
+
+      if (element instanceof IFolder) {
+        return getFolderContent((IFolder) element);
+      }
+
+      if (element instanceof CompilationUnitElement) {
+        return getCompilationUnitMembers((CompilationUnitElement) element);
+      }
+      if (element instanceof ClassElement) {
+        return getClassMembers((ClassElement) element);
+      }
+
+      if (element instanceof FunctionElement) {
+        return NO_CHILDREN;
+      }
+
+    } catch (CoreException e) {
+      // Fall through
+    }
+
+    return NO_CHILDREN;
 
   }
 
   @Override
-  public Object[] getChildren(Object parentElement) {
-    // TODO Auto-generated method stub
-    return NO_CHILDREN;
-  }
-
-  @Override
-  public Object[] getElements(Object inputElement) {
-    // TODO Auto-generated method stub
-    return NO_CHILDREN;
+  public Object[] getElements(Object parent) {
+    return getChildren(parent);
   }
 
   @Override
   public Object getParent(Object element) {
-    // TODO Auto-generated method stub
-    return null;
+    if (!exists(element)) {
+      return null;
+    }
+    Object parent = internalGetParent(element);
+    if (parent instanceof DartProject) {
+      return ((DartProject) parent).getProject();
+    }
+    return parent;
   }
 
   @Override
   public boolean hasChildren(Object element) {
-    // TODO Auto-generated method stub
-    return false;
+
+    //TODO (pquitslund): support all cases
+
+    if (element instanceof CompilationUnitElement) {
+      if (!provideMembers()) {
+        return false;
+      }
+      return getChildren(element).length > 0;
+    }
+
+    if (element instanceof FunctionElement) {
+      return false;
+    }
+
+    return getChildren(element).length > 0;
   }
 
   @Override
   public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public boolean providesWorkingCopies() {
-    // TODO Auto-generated method stub
-    return false;
+    return true;
+  }
+
+  /**
+   * Note: This method is for internal use only. Clients should not call this method.
+   */
+  protected boolean exists(Object element) {
+    if (element == null) {
+      return false;
+    }
+    if (element instanceof IResource) {
+      return ((IResource) element).exists();
+    }
+    return true;
+  }
+
+  protected Object[] getFolderContent(IFolder folder) throws CoreException {
+
+    //TODO (pquitslund): implement
+
+    return NO_CHILDREN;
+  }
+
+  /**
+   * Note: This method is for internal use only. Clients should not call this method.
+   */
+  protected Object internalGetParent(Object element) {
+
+    //TODO (pquitslund): handle all cases
+
+    if (element instanceof Element) {
+      return ((Element) element).getEnclosingElement();
+    }
+
+    return null;
+  }
+
+  /**
+   * Returns whether members are provided when asking for a compilation units or class file for its
+   * children.
+   * 
+   * @return <code>true</code> if the content provider provides members; otherwise
+   *         <code>false</code> is returned
+   */
+  protected boolean provideMembers() {
+    return provideMembers;
+  }
+
+  private Object[] getClassMembers(ClassElement ce) {
+
+    //TODO (pquitslund): re-implement when elements support visitors or a getChildren() method
+
+    ArrayList<Element> members = new ArrayList<Element>();
+
+    for (Element field : ce.getFields()) {
+      members.add(field);
+    }
+
+    for (Element cons : ce.getConstructors()) {
+      members.add(cons);
+    }
+
+    for (Element method : ce.getMethods()) {
+      members.add(method);
+    }
+
+    return members.toArray(new Element[members.size()]);
+  }
+
+  private Object[] getCompilationUnitMembers(CompilationUnitElement cu) {
+
+    //TODO (pquitslund): re-implement when elements support visitors or a getChildren() method
+
+    ArrayList<Element> members = new ArrayList<Element>();
+
+    for (Element variable : cu.getVariables()) {
+      members.add(variable);
+    }
+
+    for (Element function : cu.getFunctions()) {
+      members.add(function);
+    }
+
+    for (Element type : cu.getTypes()) {
+      members.add(type);
+    }
+
+    return members.toArray(new Element[members.size()]);
   }
 
 }

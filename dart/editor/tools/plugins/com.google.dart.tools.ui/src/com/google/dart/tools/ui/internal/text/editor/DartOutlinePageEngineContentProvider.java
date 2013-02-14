@@ -14,14 +14,9 @@
 
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
 
 import org.eclipse.jface.viewers.Viewer;
-
-import java.util.ArrayList;
 
 /**
  * "New" outline content provider.
@@ -30,72 +25,10 @@ import java.util.ArrayList;
  */
 public class DartOutlinePageEngineContentProvider extends NewStandardDartElementContentProvider {
 
-//  private TreeViewer viewer;
-//
-//  private Object input;
-
   protected static final Object[] NO_CHILDREN = new Object[0];
 
-  @Override
-  public void dispose() {
-
-//    System.out.println("DartOutlinePageEngineContentProvider.dispose()");
-  }
-
-  @Override
-  public Object[] getChildren(Object parentElement) {
-    ArrayList<Element> childrenList = new ArrayList<Element>();
-    if (parentElement instanceof CompilationUnitElement) {
-      // CompilationUnitElement
-      CompilationUnitElement cu = (CompilationUnitElement) parentElement;
-      putCompUnitChildrenInList(cu, childrenList);
-    } else if (parentElement instanceof ClassElementImpl) {
-      // ClassElementImpl
-      ClassElementImpl ce = (ClassElementImpl) parentElement;
-      Element[] fields = ce.getFields();
-      Element[] constructors = ce.getConstructors();
-      Element[] methods = ce.getMethods();
-      for (int i = 0; i < fields.length; i++) {
-        childrenList.add(fields[i]);
-      }
-      for (int i = 0; i < constructors.length; i++) {
-        childrenList.add(constructors[i]);
-      }
-      for (int i = 0; i < methods.length; i++) {
-        childrenList.add(methods[i]);
-      }
-    } else {
-//      System.out.println("DartOutlinePageEngineContentProvider.getChildren() null ... "
-//          + parentElement.getClass());
-    }
-    return childrenList.toArray(new Element[childrenList.size()]);
-  }
-
-  @Override
-  public Object[] getElements(Object inputElement) {
-//    System.out.println("DartOutlinePageEngineContentProvider.getElements()");
-    ArrayList<Element> childrenList = new ArrayList<Element>();
-    if (inputElement instanceof CompilationUnitElement) {
-      CompilationUnitElement cu = (CompilationUnitElement) inputElement;
-      putCompUnitChildrenInList(cu, childrenList);
-    }
-    return childrenList.toArray(new Element[childrenList.size()]);
-  }
-
-  @Override
-  public Object getParent(Object element) {
-//    System.out.println("DartOutlinePageEngineContentProvider.getParent() " + element.getClass());
-    if (element instanceof Element) {
-      Element e = (Element) element;
-      // TODO (jwren) implement this
-      return e.getLibrary();
-    }
-    return null;
-  }
-
-  @Override
-  public boolean hasChildren(Object element) {
-    return true;
+  public DartOutlinePageEngineContentProvider() {
+    super(true);
   }
 
   @Override
@@ -109,19 +42,4 @@ public class DartOutlinePageEngineContentProvider extends NewStandardDartElement
     //input = newInput;
   }
 
-  private void putCompUnitChildrenInList(CompilationUnitElement compUnitElt,
-      ArrayList<Element> childrenList) {
-    Element[] variables = compUnitElt.getVariables();
-    Element[] functions = compUnitElt.getFunctions();
-    Element[] types = compUnitElt.getTypes();
-    for (int i = 0; i < variables.length; i++) {
-      childrenList.add(variables[i]);
-    }
-    for (int i = 0; i < functions.length; i++) {
-      childrenList.add(functions[i]);
-    }
-    for (int i = 0; i < types.length; i++) {
-      childrenList.add(types[i]);
-    }
-  }
 }
