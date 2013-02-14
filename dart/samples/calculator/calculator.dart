@@ -5,7 +5,6 @@
 import 'dart:html';
 import 'dart:math' as Math;
 import 'calcui.dart';
-import 'dart:async';
 
 Set numberKeyPresses;
 Set operatorKeyPresses;
@@ -325,9 +324,8 @@ void flickerKey(Element key, [String postfix = '-hover']) {
   }
   key.classes.add('${theClass}${postfix}');
   final String nextPostfix = (postfix == '-error') ? '-error' : '-press';
-  new Timer(const Duration(milliseconds: 80),
-      () => resetKey(key, '${theClass}${postfix}',
-      '${theClass}${nextPostfix}'));
+  window.setTimeout(() => resetKey(key, '${theClass}${postfix}',
+    '${theClass}${nextPostfix}'), 80);
 }
 
 void resetKey(Element key, String classToRemove, [String classToAdd = ""]) {
@@ -335,8 +333,7 @@ void resetKey(Element key, String classToRemove, [String classToAdd = ""]) {
     key.classes.remove(classToRemove);
     if (classToAdd.length > 0) {
       key.classes.add(classToAdd);
-      new Timer(const Duration(milliseconds: 80),
-          () => resetKey(key, classToAdd));
+      window.setTimeout(() => resetKey(key, classToAdd), 80);
     }
   }
 }
