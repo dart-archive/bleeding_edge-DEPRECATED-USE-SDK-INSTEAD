@@ -27,13 +27,15 @@ import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
 
+import org.eclipse.ltk.core.refactoring.TextChange;
+
 /**
  * In 1.0 M2 library many methods become getters; and some of them were renamed.
  * 
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
-  private static class MethodSpec {
+  static class MethodSpec {
     private final String libUri;
     private final String className;
     private final String methodName;
@@ -85,6 +87,26 @@ public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
   private static final MethodSpec[] GETTER_RENAME_LIST = new MethodSpec[] {
       new MethodSpec("dart://html/dartium/html_dartium.dart", "Element", "elements", "children"),
       new MethodSpec(null, "_JustForInternalTest", "foo"),};
+
+  static void convertMethodToGetter(TextChange change, DartMethodInvocation node, MethodSpec[] specs) {
+    DartIdentifier nameNode = node.getFunctionName();
+    if (node.getArguments().isEmpty()) {
+      for (MethodSpec spec : specs) {
+        if (Elements.isIdentifierName(nameNode, spec.methodName)) {
+          Type targetType = node.getTarget().getType();
+          if (targetType instanceof InterfaceType) {
+            if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
+              change.addEdit(createReplaceEdit(SourceRangeFactory.forEndEnd(nameNode, node), ""));
+              // may be also rename
+              if (spec.newName != null) {
+                change.addEdit(createReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName));
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
   /**
    * @return <code>true</code> if given {@link InterfaceType} is sub type of required type from
@@ -147,22 +169,7 @@ public class Migrate_1M2_methods_CleanUp extends AbstractMigrateCleanUp {
         DartIdentifier nameNode = node.getFunctionName();
         if (node.getTarget() != null) {
           // method => getter
-          if (node.getArguments().isEmpty()) {
-            for (MethodSpec spec : METHOD_TO_GETTER_LIST) {
-              if (Elements.isIdentifierName(nameNode, spec.methodName)) {
-                Type targetType = node.getTarget().getType();
-                if (targetType instanceof InterfaceType) {
-                  if (isSubType((InterfaceType) targetType, spec.className, spec.libUri)) {
-                    addReplaceEdit(SourceRangeFactory.forEndEnd(nameNode, node), "");
-                    // may be also rename
-                    if (spec.newName != null) {
-                      addReplaceEdit(SourceRangeFactory.create(nameNode), spec.newName);
-                    }
-                  }
-                }
-              }
-            }
-          }
+          convertMethodToGetter(change, node, METHOD_TO_GETTER_LIST);
           // rename method
           for (MethodSpec spec : METHOD_RENAME_LIST) {
             if (Elements.isIdentifierName(nameNode, spec.methodName) && spec.newName != null) {

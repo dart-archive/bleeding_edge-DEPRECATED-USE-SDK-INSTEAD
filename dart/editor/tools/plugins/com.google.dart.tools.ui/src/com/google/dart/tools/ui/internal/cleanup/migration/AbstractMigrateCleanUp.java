@@ -33,6 +33,8 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
+import java.util.List;
+
 /**
  * In specification 1.0 M1 getter should not have parameters.
  * 
@@ -78,6 +80,12 @@ public abstract class AbstractMigrateCleanUp extends AbstractCleanUp {
   @Override
   public CleanUpRequirements getRequirements() {
     return new CleanUpRequirements(true, false, false, null);
+  }
+
+  protected final void addEdits(List<TextEdit> edits) {
+    for (TextEdit edit : edits) {
+      change.addEdit(edit);
+    }
   }
 
   protected final void addReplaceEdit(SourceRange range, String text) {

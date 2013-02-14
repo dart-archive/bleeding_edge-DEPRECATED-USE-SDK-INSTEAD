@@ -43,11 +43,13 @@ import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.MethodSpec;
 
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_FOR_IN_STATEMENT_ITERABLE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_METHOD_INVOCATION_TARGET;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_VARIABLE_VALUE;
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.getLocationInParent;
+import static com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.convertMethodToGetter;
 import static com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_methods_CleanUp.isSubType;
 
 import java.math.BigInteger;
@@ -61,6 +63,10 @@ import java.util.List;
  * @coverage dart.editor.ui.cleanup
  */
 public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
+  private static final MethodSpec[] METHOD_TO_GETTER_LIST = new MethodSpec[] {
+      new MethodSpec("dart://uri/uri.dart", "Uri", "isAbsolute"),
+      new MethodSpec("dart://uri/uri.dart", "Uri", "hasAuthority")};
+
   /**
    * @return <code>E</code> for method <code>where(bool f(E element))</code>, may be
    *         <code>null</code> if other code structure given.
@@ -250,6 +256,9 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
             addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ".join(");
           }
         }
+        // uri.isAbsolute() becomes uri.isAbsolute, and uri.hasAuthority() becomes uri.hasAuthority
+        convertMethodToGetter(change, node, METHOD_TO_GETTER_LIST);
+        // done
         return super.visitMethodInvocation(node);
       }
 
@@ -261,10 +270,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         // Timer
         if (args.size() == 2
             && element != null
-            && Migrate_1M2_methods_CleanUp.isSubType(
-                element.getConstructorType().getType(),
-                "Timer",
-                "dart://async/async.dart")) {
+            && isSubType(element.getConstructorType().getType(), "Timer", "dart://async/async.dart")) {
           super.visitNewExpression(node);
           // new Timer(0, (){})  --->  Timer.run((){})
           if (args.get(0) instanceof DartIntegerLiteral) {
