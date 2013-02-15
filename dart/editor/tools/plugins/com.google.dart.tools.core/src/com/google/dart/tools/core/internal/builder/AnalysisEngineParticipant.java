@@ -15,7 +15,6 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -25,6 +24,7 @@ import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
 
@@ -199,6 +199,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @return the dart project
    */
   protected Project createProject(IProject resource) {
-    return new ProjectImpl(resource, DartSdk.getDefaultSdk());
+    return new ProjectImpl(resource, DartSdkManager.getManager().getNewSdk());
   }
 }
