@@ -203,7 +203,6 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param entryPoint the entry point for this library
    */
   public void setEntryPoint(FunctionElement entryPoint) {
-    ((FunctionElementImpl) entryPoint).setEnclosingElement(this);
     this.entryPoint = entryPoint;
   }
 

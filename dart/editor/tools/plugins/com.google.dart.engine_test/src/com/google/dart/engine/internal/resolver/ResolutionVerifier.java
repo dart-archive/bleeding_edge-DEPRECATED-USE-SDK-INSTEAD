@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.CommentReference;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
@@ -89,23 +90,22 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
    * Assert that all of the visited identifiers were resolved.
    */
   public void assertResolved() {
-    if (!unresolvedNodes.isEmpty()) {
+    if (!unresolvedNodes.isEmpty() || !wrongTypedNodes.isEmpty()) {
       PrintStringWriter writer = new PrintStringWriter();
-      writer.print("Failed to resolve ");
-      writer.print(unresolvedNodes.size());
-      writer.println(" nodes:");
-      for (ASTNode identifier : unresolvedNodes) {
-        writer.print("  ");
-        writer.print(identifier.toString());
-        writer.print(" (");
-        writer.print(getFileName(identifier));
-        writer.print(" : ");
-        writer.print(identifier.getOffset());
-        writer.println(")");
+      if (!unresolvedNodes.isEmpty()) {
+        writer.print("Failed to resolve ");
+        writer.print(unresolvedNodes.size());
+        writer.println(" nodes:");
+        printNodes(writer, unresolvedNodes);
+      }
+      if (!wrongTypedNodes.isEmpty()) {
+        writer.print("Resolved ");
+        writer.print(wrongTypedNodes.size());
+        writer.println(" to the wrong type of element:");
+        printNodes(writer, wrongTypedNodes);
       }
       Assert.fail(writer.toString());
     }
-    Assert.assertEquals(0, wrongTypedNodes.size());
   }
 
   @Override
@@ -127,6 +127,15 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   public Void visitExportDirective(ExportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
     return checkResolved(node, node.getElement(), ExportElement.class);
+  }
+
+  @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    node.visitChildren(this);
+    if (node.getElement() instanceof LibraryElement) {
+      wrongTypedNodes.add(node);
+    }
+    return null;
   }
 
   @Override
@@ -231,5 +240,17 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return "<unknown file- ASTNode is null>";
+  }
+
+  private void printNodes(PrintStringWriter writer, ArrayList<ASTNode> nodes) {
+    for (ASTNode identifier : nodes) {
+      writer.print("  ");
+      writer.print(identifier.toString());
+      writer.print(" (");
+      writer.print(getFileName(identifier));
+      writer.print(" : ");
+      writer.print(identifier.getOffset());
+      writer.println(")");
+    }
   }
 }
