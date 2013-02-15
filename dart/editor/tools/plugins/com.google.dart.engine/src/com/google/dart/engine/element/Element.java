@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 
+import java.util.Comparator;
+
 /**
  * The interface {@code Element} defines the behavior common to all of the elements in the element
  * model. Generally speaking, the element model is a semantic model of the program that represents
@@ -37,6 +39,17 @@ import com.google.dart.engine.source.Source;
  * program.
  */
 public interface Element {
+  /**
+   * A comparator that can be used to sort elements by their name offset. Elements with a smaller
+   * offset will be sorted to be before elements with a larger name offset.
+   */
+  public static final Comparator<Element> SORT_BY_OFFSET = new Comparator<Element>() {
+    @Override
+    public int compare(Element firstElement, Element secondElement) {
+      return secondElement.getNameOffset() - firstElement.getNameOffset();
+    }
+  };
+
   /**
    * Use the given visitor to visit this element.
    * 
