@@ -1,4 +1,5 @@
 library dromaeo;
+import 'dart:async';
 import 'dart:html';
 import '../common/common.dart';
 import 'dart:json' as json;
