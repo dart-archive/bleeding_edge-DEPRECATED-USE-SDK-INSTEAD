@@ -15,12 +15,26 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
+import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.library;
 
 public class ElementImplTest extends EngineTestCase {
+  public void test_equals() {
+    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    ClassElementImpl classElement = classElement("C");
+    ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
+    FieldElement field = fieldElement("next", false, false, false, classElement.getType());
+    classElement.setFields(new FieldElement[] {field});
+    assertTrue(field.equals(field));
+    assertFalse(field.equals(field.getGetter()));
+    assertFalse(field.equals(field.getSetter()));
+    assertFalse(field.getGetter().equals(field.getSetter()));
+  }
+
   public void test_isAccessibleIn_private_differentLibrary() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     LibraryElementImpl library1 = library(context, "lib1");

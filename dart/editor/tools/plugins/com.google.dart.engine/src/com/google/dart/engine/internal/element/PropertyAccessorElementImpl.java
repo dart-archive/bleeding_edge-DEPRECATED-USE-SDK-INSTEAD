@@ -62,6 +62,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
+  public boolean equals(Object object) {
+    return super.equals(object) && isGetter() == ((PropertyAccessorElement) object).isGetter();
+  }
+
+  @Override
   public FieldElement getField() {
     return field;
   }
