@@ -169,20 +169,20 @@ class FrontView extends CompositeView {
 
       // Create the new story view.
       storyView = new StoryContentView(swarm, item);
-      window.setTimeout(() {
+      Timer.run(() {
         _animateDataSourceToMinimized();
 
         sliderMenu.addClass('hidden');
         // Make the fancy sliding into the window animation.
-        window.setTimeout(() {
+        Timer.run(() {
           storyView.addClass('hidden-story');
           addChild(storyView);
-          window.setTimeout(() {
+          Timer.run(() {
             storyView.removeClass('hidden-story');
-          }, 0);
+          });
           headerView.endTransitionToStoryView();
-        }, 0);
-      }, 0);
+        });
+      });
     }
   }
 

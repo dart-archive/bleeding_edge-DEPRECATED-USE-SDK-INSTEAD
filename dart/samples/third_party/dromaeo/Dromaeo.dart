@@ -1,6 +1,7 @@
 library dromaeo_test;
 
 import 'dart:html';
+import 'dart:async';
 import 'dart:json' as json;
 import 'dart:math' as Math;
 import 'Suites.dart';

@@ -531,7 +531,7 @@ class GenericListView<D> extends View {
       FxUtil.setTranslate(view.node, currentPosition.x, currentPosition.y, 0);
       // The view's position is unchanged except now re-parented to
       // the list view.
-      window.setTimeout(() { _positionSubview(view.node, index); }, 0);
+      Timer.run(() { _positionSubview(view.node, index); });
     } else {
       _positionSubview(view.node, index);
     }
