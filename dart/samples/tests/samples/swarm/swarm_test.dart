@@ -5,7 +5,6 @@
 library swarm_tests;
 
 import 'dart:html';
-import 'dart:async';
 import '../../../swarm/swarmlib.dart';
 import '../../../swarm/swarm_ui_lib/base/base.dart';
 import '../../../swarm/swarm_ui_lib/view/view.dart';
@@ -150,9 +149,9 @@ void _serialInvokeAsync(List closures) {
       closures[i]();
       i++;
       if (i < length) {
-        Timer.run(expectAsync0(invokeNext));
+        window.setTimeout(expectAsync0(invokeNext), 0);
       }
     }
-    Timer.run(expectAsync0(invokeNext));
+    window.setTimeout(expectAsync0(invokeNext), 0);
   }
 }

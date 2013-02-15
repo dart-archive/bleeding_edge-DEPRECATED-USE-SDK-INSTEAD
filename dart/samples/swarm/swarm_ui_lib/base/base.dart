@@ -4,7 +4,6 @@
 
 library base;
 import 'dart:html';
-import 'dart:async';
 import 'dart:math';
 import '../observable/observable.dart';
 import '../util/utilslib.dart';

@@ -171,9 +171,9 @@ void _serialInvokeAsync(List closures) {
       closures[i]();
       i++;
       if (i < length) {
-        Timer.run(expectAsync0(invokeNext));
+        window.setTimeout(expectAsync0(invokeNext), 0);
       }
     }
-    Timer.run(expectAsync0(invokeNext));
+    window.setTimeout(expectAsync0(invokeNext), 0);
   }
 }

@@ -27,9 +27,9 @@ class App {
     if (document.readyState == "interactive" ||
         document.readyState == "complete" ||
         document.readyState == "loaded") {
-      // We use a timer to insure that onLoad is always called in an async
+      // We use setTimeout to insure that onLoad is always called in an async
       // manner even if the document is already loaded.
-      Timer.run(onLoad);
+      window.setTimeout(() => onLoad(), 0);
     } else {
       window.onContentLoaded.listen(
         // TODO(sigmund):  Consider eliminating the call to "wrap", for

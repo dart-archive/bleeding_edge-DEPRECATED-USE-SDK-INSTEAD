@@ -75,9 +75,11 @@ void isolateMain() {
     if (div.query('input.replyCheckbox').checked) {
       InputElement element = div.query('.delayTextbox');
       int millis = int.parse(element.value);
-      new Timer(new Duration(milliseconds: millis), () {
+      // TODO(justinfagnani): use Timer when it works in isolates in dart2js
+      // see: http://dartbug.com/4997
+      window.setTimeout(() {
         replyTo.send('this is a reply from isolate "${isolateName}"', null);
-      });
+      }, millis);
     }
   }
 
