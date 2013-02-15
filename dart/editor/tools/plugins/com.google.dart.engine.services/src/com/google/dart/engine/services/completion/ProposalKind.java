@@ -18,6 +18,7 @@ package com.google.dart.engine.services.completion;
  * corresponding to different syntactical elements.
  */
 public enum ProposalKind {
+  NONE,
   CLASS,
   CLASS_ALIAS,
   CONSTRUCTOR,

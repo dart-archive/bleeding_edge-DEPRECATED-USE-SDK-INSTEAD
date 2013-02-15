@@ -1,5 +1,19 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.core.internal.completion;
 
+import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.tools.core.completion.CompletionProposal;
 
 /**
@@ -19,6 +33,16 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public int getCompletionLocation() {
+    return proposal.getLocation() - 1;
+  }
+
+  @Override
+  public char[] getDeclarationSignature() {
+    return proposal.getDeclaringType().toCharArray();
+  }
+
+  @Override
   public int getKind() {
     switch (proposal.getKind()) {
       case CLASS:
@@ -26,7 +50,7 @@ public class ProxyProposal extends CompletionProposal {
       case CLASS_ALIAS:
         return CompletionProposal.TYPE_REF;
       case CONSTRUCTOR:
-        return CompletionProposal.CONSTRUCTOR_INVOCATION;
+        return CompletionProposal.METHOD_REF;
       case FIELD:
         return CompletionProposal.FIELD_REF;
       case FUNCTION:
@@ -55,8 +79,66 @@ public class ProxyProposal extends CompletionProposal {
   }
 
   @Override
+  public char[] getName() {
+    return proposal.getCompletion().toCharArray();
+  }
+
+  @Override
   public char[][] getParameterNames() {
     return copyStrings(proposal.getParameterNames());
+  }
+
+  @Override
+  public char[][] getParameterTypeNames() {
+    return copyStrings(proposal.getParameterTypes());
+  }
+
+  @Override
+  public int getPositionalParameterCount() {
+    return proposal.getPositionalParameterCount();
+  }
+
+  @Override
+  public int getReplaceEnd() {
+    return proposal.getLocation() + proposal.getReplacementLength();
+  }
+
+  @Override
+  public int getReplaceStart() {
+    return proposal.getLocation();
+  }
+
+  @Override
+  public char[] getReturnTypeName() {
+    return proposal.getReturnType().toCharArray();
+  }
+
+  @Override
+  public char[] getSignature() {
+    return proposal.getCompletion().toCharArray();
+  }
+
+  @Override
+  public boolean hasNamedParameters() {
+    return proposal.hasNamed();
+  }
+
+  @Override
+  public boolean hasOptionalParameters() {
+    return proposal.hasPositional() || proposal.hasNamed();
+  }
+
+  @Override
+  public boolean isConstructor() {
+    return proposal.getKind() == ProposalKind.CONSTRUCTOR;
+  }
+
+  public boolean isGetter() {
+    return proposal.getKind() == ProposalKind.GETTER;
+  }
+
+  public boolean isSetter() {
+    return proposal.getKind() == ProposalKind.SETTER;
   }
 
   com.google.dart.engine.services.completion.CompletionProposal getProposal() {

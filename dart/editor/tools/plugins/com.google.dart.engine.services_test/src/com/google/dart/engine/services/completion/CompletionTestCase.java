@@ -5,7 +5,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.services.internal.completion.CompletionProposalImpl;
 import com.google.dart.engine.services.util.LocationSpec;
 import com.google.dart.engine.services.util.MockCompletionRequestor;
 import com.google.dart.engine.source.Source;
@@ -41,14 +40,7 @@ public class CompletionTestCase extends ResolverTestCase {
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
     CompilationUnit compilationUnit = analyze(completionTests.iterator().next().source);
-    CompletionFactory factory = new CompletionFactory() {
-      @Override
-      public CompletionProposal createCompletionProposal(ProposalKind kind) {
-        CompletionProposalImpl prop = new CompletionProposalImpl();
-        prop.setKind(kind);
-        return prop;
-      }
-    };
+    CompletionFactory factory = new CompletionFactory();
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
       CompletionEngine engine = new CompletionEngine(requestor, factory);

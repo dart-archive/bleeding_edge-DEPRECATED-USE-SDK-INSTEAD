@@ -11,23 +11,15 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.completion;
+package com.google.dart.engine.services.internal.completion;
 
-import com.google.dart.engine.services.internal.completion.CompletionProposalImpl;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-/**
- * The factory class used to create completion proposals.
- */
-public class CompletionFactory {
-
-  /**
-   * Create a completion proposal of the given kind.
-   */
-  public CompletionProposal createCompletionProposal(ProposalKind kind, int insertionPoint) {
-    CompletionProposalImpl prop = new CompletionProposalImpl();
-    prop.setKind(kind);
-    prop.setLocation(insertionPoint);
-    return prop;
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(CompletionProposalImplTest.class);
+    return suite;
   }
-
 }

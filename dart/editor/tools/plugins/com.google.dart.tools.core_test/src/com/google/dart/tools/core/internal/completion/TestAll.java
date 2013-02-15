@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompletionEngineTest.class);
     //suite.addTestSuite(CompletionEngineTest2.class);
+    suite.addTestSuite(ProxyProposalTest.class);
     return suite;
   }
 }

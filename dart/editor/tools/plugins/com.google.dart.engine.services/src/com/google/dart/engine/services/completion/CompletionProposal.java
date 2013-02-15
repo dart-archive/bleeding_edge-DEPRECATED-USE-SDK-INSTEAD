@@ -17,25 +17,41 @@ public interface CompletionProposal {
 
   String getCompletion();
 
+  String getDeclaringType();
+
   ProposalKind getKind();
 
   int getLocation();
 
-  String getName();
-
   String[] getParameterNames();
+
+  String[] getParameterTypes();
+
+  int getPositionalParameterCount();
 
   int getReplacementLength();
 
+  String getReturnType();
+
+  boolean hasNamed();
+
+  boolean hasPositional();
+
   CompletionProposal setCompletion(String x);
+
+  CompletionProposal setDeclaringType(String name);
 
   CompletionProposal setKind(ProposalKind x);
 
   CompletionProposal setLocation(int x);
 
-  CompletionProposal setName(String x);
+  CompletionProposal setParameterNames(String[] paramNames);
 
-  CompletionProposal setParameterNames(String[] params);
+  CompletionProposal setParameterStyle(int count, boolean named, boolean positional);
+
+  CompletionProposal setParameterTypes(String[] paramTypes);
 
   CompletionProposal setReplacementLength(int x);
+
+  CompletionProposal setReturnType(String name);
 }

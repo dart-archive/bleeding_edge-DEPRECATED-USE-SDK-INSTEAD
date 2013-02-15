@@ -22,9 +22,11 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
@@ -33,7 +35,10 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import static com.google.dart.engine.services.completion.ProposalKind.METHOD;
+import static com.google.dart.engine.services.completion.ProposalKind.CONSTRUCTOR;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The analysis engine for code completion.
@@ -48,6 +53,23 @@ public class CompletionEngine {
 
     CompletionVisitor(ASTNode node) {
       completionNode = node;
+    }
+  }
+
+  private class Filter {
+    String prefix;
+
+    Filter(SimpleIdentifier ident) {
+      int len = context.getSelectionLength();
+      int loc = context.getSelectionOffset();
+      int pos = ident.getOffset();
+      prefix = ident.getName().substring(0, len + loc - pos);
+    }
+
+    boolean match(Element elem) {
+      // Return true if the filter passes. Return false for private elements that should not be visible
+      // in the current context, or for library elements that are not accessible in the context.
+      return elem.getName().startsWith(prefix);
     }
   }
 
@@ -132,6 +154,7 @@ public class CompletionEngine {
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
+  private Filter filter;
 
   public CompletionEngine(CompletionRequestor requestor, CompletionFactory factory) {
     this.requestor = requestor;
@@ -141,14 +164,16 @@ public class CompletionEngine {
   /**
    * Analyze the source unit in the given context to determine completion proposals at the selection
    * offset of the context.
+   * 
+   * @throws Exception
    */
   public void complete(AssistContext context) {
     this.context = context;
     requestor.beginReporting();
     // TODO: Temporary code for exercising test framework.
-    CompletionProposal prop = factory.createCompletionProposal(METHOD);
-    prop.setCompletion("toString");
-    requestor.accept(prop);
+//    CompletionProposal prop = createProposal(METHOD);
+//    prop.setCompletion("toString");
+//    requestor.accept(prop);
     // End temp
     ASTNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
@@ -163,12 +188,19 @@ public class CompletionEngine {
     return context;
   }
 
-  void constructorReference(ClassElement classElement, SimpleIdentifier completionNode) {
-    classElement.getConstructors(); // TODO: These become the completion proposals.
+  void constructorReference(ClassElement classElement, SimpleIdentifier identifier) {
+    // Complete identifier when it refers to a constructor defined in classElement.
+    filter = new Filter(identifier);
+    for (ConstructorElement cons : classElement.getConstructors()) { // TODO: These become the completion proposals.
+      if (filter(cons)) {
+        pConstructor(cons, identifier, classElement);
+      }
+    }
   }
 
   void prefixedAccess(ClassElement classElement, SimpleIdentifier identifier) {
-    // Complete identifier when it access field or method in classElement.
+    // Complete identifier when it refers to field or method in classElement.
+    filter = new Filter(identifier);
     InterfaceType[] allTypes = allTypes(classElement);
     for (InterfaceType type : allTypes) {
       type.getElement().getAccessors(); // TODO These become the completion proposals
@@ -178,7 +210,8 @@ public class CompletionEngine {
   }
 
   void prefixedAccess(LibraryElement libElement, SimpleIdentifier identifier) {
-    // Complete identifier when it access a member defined in the libraryElement.
+    // Complete identifier when it refers to a member defined in the libraryElement.
+    filter = new Filter(identifier);
   }
 
   private InterfaceType[] allTypes(ClassElement classElement) {
@@ -187,6 +220,59 @@ public class CompletionEngine {
     allTypes[0] = classElement.getType();
     System.arraycopy(supertypes, 0, allTypes, 1, supertypes.length);
     return allTypes;
+  }
+
+  private int completionLocation() {
+    return context.getSelectionOffset();
+  }
+
+  private CompletionProposal createProposal(ProposalKind kind) {
+    return factory.createCompletionProposal(kind, completionLocation());
+  }
+
+  private boolean filter(Element element) {
+    return filter.match(element);
+  }
+
+  private void pConstructor(ConstructorElement cons, SimpleIdentifier identifier,
+      ClassElement classElement) {
+    // Create a completion proposal for the element.
+    String name = cons.getName();
+    if (name.isEmpty()) {
+      return; // TODO: Check proposals for Cons() -- this handles Cons.fac() currently.
+    }
+    CompletionProposal prop = createProposal(CONSTRUCTOR);
+    setParameterInfo(cons, prop);
+    prop.setCompletion(name).setReturnType(cons.getType().getReturnType().getName()).setDeclaringType(
+        cons.getEnclosingElement().getName());
+    requestor.accept(prop);
+  }
+
+  private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {
+    List<String> params = new ArrayList<String>();
+    List<String> types = new ArrayList<String>();
+    boolean named = false, positional = false;
+    int posCount = 0;
+    for (ParameterElement param : cons.getParameters()) {
+      if (!param.isSynthetic()) {
+        switch (param.getParameterKind()) {
+          case REQUIRED:
+            posCount += 1;
+            break;
+          case NAMED:
+            named = true;
+            break;
+          case POSITIONAL:
+            positional = true;
+            break;
+        }
+        params.add(param.getName());
+        types.add(param.getType().getName());
+      }
+    }
+    prop.setParameterNames(params.toArray(new String[params.size()]));
+    prop.setParameterTypes(types.toArray(new String[types.size()]));
+    prop.setParameterStyle(posCount, named, positional);
   }
 
   private Type typeOf(Element receiver) {

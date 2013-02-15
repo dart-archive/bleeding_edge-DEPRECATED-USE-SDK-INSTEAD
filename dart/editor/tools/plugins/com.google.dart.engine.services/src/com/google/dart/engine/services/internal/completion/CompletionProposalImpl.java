@@ -15,21 +15,31 @@ package com.google.dart.engine.services.internal.completion;
 
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.ProposalKind;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 public class CompletionProposalImpl implements CompletionProposal {
 
-  private static final String[] EMPTY_STRINGS = new String[0];
-
-  private String completion;
-  private String name;
-  private String[] parameterNames = EMPTY_STRINGS;
-  private ProposalKind kind;
-  private int location;
-  private int replacementLength;
+  // All fields must be initialized to ensure getters never return null.
+  private String completion = "";
+  private String returnType = "";
+  private String declaringType = "";
+  private String[] parameterNames = StringUtilities.EMPTY_ARRAY;
+  private String[] parameterTypes = StringUtilities.EMPTY_ARRAY;
+  private ProposalKind kind = ProposalKind.NONE;
+  private int location = 0;
+  private int replacementLength = 0;
+  private int positionalParameterCount = 0;
+  private boolean named = false;
+  private boolean positional = false;
 
   @Override
   public String getCompletion() {
     return completion;
+  }
+
+  @Override
+  public String getDeclaringType() {
+    return declaringType;
   }
 
   @Override
@@ -43,13 +53,18 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
-  public String getName() {
-    return name;
+  public String[] getParameterNames() {
+    return parameterNames;
   }
 
   @Override
-  public String[] getParameterNames() {
-    return parameterNames;
+  public String[] getParameterTypes() {
+    return parameterTypes;
+  }
+
+  @Override
+  public int getPositionalParameterCount() {
+    return positionalParameterCount;
   }
 
   @Override
@@ -58,8 +73,32 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
+  public String getReturnType() {
+    return returnType;
+  }
+
+  @Override
+  public boolean hasNamed() {
+    return named;
+  }
+
+  @Override
+  public boolean hasPositional() {
+    return positional;
+  }
+
+  @Override
   public CompletionProposal setCompletion(String x) {
     completion = x;
+    if (replacementLength == 0) {
+      replacementLength = x.length();
+    }
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setDeclaringType(String name) {
+    declaringType = name;
     return this;
   }
 
@@ -76,20 +115,34 @@ public class CompletionProposalImpl implements CompletionProposal {
   }
 
   @Override
-  public CompletionProposal setName(String x) {
-    name = x;
+  public CompletionProposal setParameterNames(String[] paramNames) {
+    parameterNames = paramNames;
     return this;
   }
 
   @Override
-  public CompletionProposal setParameterNames(String[] params) {
-    parameterNames = params;
+  public CompletionProposal setParameterStyle(int count, boolean named, boolean positional) {
+    this.named = named;
+    this.positional = positional;
+    this.positionalParameterCount = count;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setParameterTypes(String[] paramTypes) {
+    parameterTypes = paramTypes;
     return this;
   }
 
   @Override
   public CompletionProposal setReplacementLength(int x) {
     replacementLength = x;
+    return this;
+  }
+
+  @Override
+  public CompletionProposal setReturnType(String name) {
+    returnType = name;
     return this;
   }
 
