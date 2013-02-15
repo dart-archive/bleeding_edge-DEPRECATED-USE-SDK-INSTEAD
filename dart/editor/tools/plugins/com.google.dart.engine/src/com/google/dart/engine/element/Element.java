@@ -46,7 +46,7 @@ public interface Element {
   public static final Comparator<Element> SORT_BY_OFFSET = new Comparator<Element>() {
     @Override
     public int compare(Element firstElement, Element secondElement) {
-      return secondElement.getNameOffset() - firstElement.getNameOffset();
+      return firstElement.getNameOffset() - secondElement.getNameOffset();
     }
   };
 
