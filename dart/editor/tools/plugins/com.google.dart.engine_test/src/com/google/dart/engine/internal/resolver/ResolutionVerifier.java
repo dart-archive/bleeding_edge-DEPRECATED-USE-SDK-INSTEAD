@@ -30,7 +30,9 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PrefixElement;
@@ -117,13 +119,14 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitCompilationUnit(CompilationUnit node) {
+    node.visitChildren(this);
     return checkResolved(node, node.getElement(), CompilationUnitElement.class);
   }
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    return checkResolved(node, node.getElement(), LibraryElement.class);
+    return checkResolved(node, node.getElement(), ExportElement.class);
   }
 
   @Override
@@ -135,7 +138,7 @@ public class ResolutionVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     // Not sure how to test the combinators given that it isn't an error if the names are not defined.
-    checkResolved(node, node.getElement(), LibraryElement.class);
+    checkResolved(node, node.getElement(), ImportElement.class);
     SimpleIdentifier prefix = node.getPrefix();
     if (prefix == null) {
       return null;

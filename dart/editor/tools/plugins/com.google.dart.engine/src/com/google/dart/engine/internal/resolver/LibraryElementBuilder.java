@@ -22,9 +22,7 @@ import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
-import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
@@ -89,8 +87,6 @@ public class LibraryElementBuilder {
     LibraryIdentifier libraryNameNode = null;
     boolean hasPartDirective = false;
     FunctionElement entryPoint = findEntryPoint(definingCompilationUnitElement);
-    ArrayList<ImportElement> imports = new ArrayList<ImportElement>();
-    ArrayList<ExportElement> exports = new ArrayList<ExportElement>();
     ArrayList<Directive> directivesToResolve = new ArrayList<Directive>();
     ArrayList<CompilationUnitElementImpl> sourcedCompilationUnits = new ArrayList<CompilationUnitElementImpl>();
     for (Directive directive : directives) {
@@ -156,8 +152,6 @@ public class LibraryElementBuilder {
     if (entryPoint != null) {
       libraryElement.setEntryPoint(entryPoint);
     }
-    libraryElement.setImports(imports.toArray(new ImportElement[imports.size()]));
-    libraryElement.setExports(exports.toArray(new ExportElement[exports.size()]));
     libraryElement.setParts(sourcedCompilationUnits.toArray(new CompilationUnitElementImpl[sourcedCompilationUnits.size()]));
     for (Directive directive : directivesToResolve) {
       directive.setElement(libraryElement);

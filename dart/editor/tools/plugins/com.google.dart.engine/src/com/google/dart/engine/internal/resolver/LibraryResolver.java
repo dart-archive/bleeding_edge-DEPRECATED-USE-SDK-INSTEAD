@@ -290,7 +290,6 @@ public class LibraryResolver {
           LibraryElement importedLibraryElement = importedLibrary.getLibraryElement();
           if (importedLibraryElement != null) {
             importElement.setImportedLibrary(importedLibraryElement);
-            directive.setElement(importedLibraryElement);
           }
           SimpleIdentifier prefixNode = ((ImportDirective) directive).getPrefix();
           if (prefixNode != null) {
@@ -302,6 +301,7 @@ public class LibraryResolver {
             }
             importElement.setPrefix(prefix);
           }
+          directive.setElement(importElement);
           imports.add(importElement);
         } else if (directive instanceof ExportDirective) {
           ExportDirective exportDirective = (ExportDirective) directive;
@@ -310,8 +310,8 @@ public class LibraryResolver {
           LibraryElement exportedLibrary = library.getExport(exportDirective).getLibraryElement();
           if (exportedLibrary != null) {
             exportElement.setExportedLibrary(exportedLibrary);
-            directive.setElement(exportedLibrary);
           }
+          directive.setElement(exportElement);
           exports.add(exportElement);
         }
       }

@@ -114,7 +114,7 @@ import java.util.HashSet;
  * the case of a part-of directive, the specified library does not exist.</li>
  * <li>Every {@link ImportDirective} and {@link ExportDirective} should resolve to the element
  * representing the library being specified by the directive unless the specified library does not
- * exist (a {@link LibraryElement}).</li>
+ * exist (an {@link ImportElement} or {@link ExportElement}).</li>
  * <li>The identifier representing the prefix in an {@link ImportDirective} should resolve to the
  * element representing the prefix (a {@link PrefixElement}).</li>
  * <li>The identifiers in the hide and show combinators in {@link ImportDirective}s and
