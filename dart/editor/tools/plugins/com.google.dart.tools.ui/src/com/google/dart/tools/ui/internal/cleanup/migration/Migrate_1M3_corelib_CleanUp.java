@@ -267,26 +267,41 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         ConstructorElement element = node.getElement();
         DartNode constructor = node.getConstructor();
         List<DartExpression> args = node.getArguments();
-        // Timer
-        if (args.size() == 2
-            && element != null
-            && isSubType(element.getConstructorType().getType(), "Timer", "dart://async/async.dart")) {
-          super.visitNewExpression(node);
-          // new Timer(0, (){})  --->  Timer.run((){})
-          if (args.get(0) instanceof DartIntegerLiteral) {
-            DartIntegerLiteral msLiteral = (DartIntegerLiteral) args.get(0);
-            if (msLiteral.getValue().equals(BigInteger.ZERO)) {
-              addReplaceEdit(SourceRangeFactory.forStartStart(node, constructor), "");
-              addReplaceEdit(SourceRangeFactory.forEndStart(constructor, args.get(1)), ".run(");
+        // new X(y[, ...])
+        if (args.size() >= 1 && element != null) {
+          InterfaceType createdType = element.getConstructorType().getType();
+          // Timer
+          if (isSubType(createdType, "Timer", "dart://async/async.dart")) {
+            super.visitNewExpression(node);
+            // new Timer(0, (){})  --->  Timer.run((){})
+            if (args.get(0) instanceof DartIntegerLiteral) {
+              DartIntegerLiteral msLiteral = (DartIntegerLiteral) args.get(0);
+              if (msLiteral.getValue().equals(BigInteger.ZERO)) {
+                addReplaceEdit(SourceRangeFactory.forStartStart(node, constructor), "");
+                addReplaceEdit(SourceRangeFactory.forEndStart(constructor, args.get(1)), ".run(");
+                return null;
+              }
+            }
+            // new Timer(ms, (){})  --->  new Timer(const Duration(milliseconds: ms), (){})
+            addReplaceEdit(
+                SourceRangeFactory.forStartLength(args.get(0), 0),
+                "const Duration(milliseconds: ");
+            addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ")");
+            return null;
+          }
+          // new Future.delayed(ms[, computation()])
+          if (isSubType(createdType, "Future", "dart://async/async.dart")
+              && constructor instanceof DartPropertyAccess) {
+            DartPropertyAccess prop = (DartPropertyAccess) constructor;
+            if (prop.getName().toString().equals("delayed")) {
+              super.visitNewExpression(node);
+              addReplaceEdit(
+                  SourceRangeFactory.forStartLength(args.get(0), 0),
+                  "const Duration(milliseconds: ");
+              addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ")");
               return null;
             }
           }
-          // new Timer(ms, (){})  --->  new Timer(const Duration(milliseconds: ms), (){})
-          addReplaceEdit(
-              SourceRangeFactory.forStartLength(args.get(0), 0),
-              "const Duration(milliseconds: ");
-          addReplaceEdit(SourceRangeFactory.forEndLength(args.get(0), 0), ")");
-          return null;
         }
         // new List(5)  --->  new List.fixedLength(5)
         if (element != null && element.getConstructorType().getName().equals("List")
