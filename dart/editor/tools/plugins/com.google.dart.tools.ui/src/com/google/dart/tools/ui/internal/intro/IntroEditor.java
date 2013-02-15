@@ -165,19 +165,16 @@ public class IntroEditor extends EditorPart {
 
     createExternalLink(links, "Visit dartlang.org", "http://www.dartlang.org/");
 
-    createExternalLink(links, "Explore the packages repository", "http://pub.dartlang.org/");
+    createExternalLink(links, "Explore the Pub repository", "http://pub.dartlang.org/");
+
+    createExternalLink(links, "View Editor documentation", "http://www.dartlang.org/editor/");
 
     createExternalLink(
         links,
         "Additional HTML5 samples",
         "https://github.com/dart-lang/dart-html5-samples/");
 
-    createExternalLink(links, "View Editor documentation", "http://www.dartlang.org/editor/");
-
-    createExternalLink(
-        links,
-        "Community packages and examples",
-        "http://blog.dartwatch.com/p/community-dart-packages-and-examples.html");
+    createExternalLink(links, "Try the Dart tutorial", "http://www.dartlang.org/docs/tutorials/");
 
     createExternalLink(
         links,

@@ -28,6 +28,7 @@ import com.google.dart.tools.ui.actions.OpenApiDocsAction;
 import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
+import com.google.dart.tools.ui.actions.OpenTutorialAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
@@ -237,6 +238,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private IWorkbenchAction newApplicationWizardAction;
   private OpenOnlineDocsAction openOnlineDocsAction;
+  private OpenTutorialAction openTutorialAction;
   private OpenApiDocsAction openApiDocsAction;
 
   private NewFileCommandAction newFileAction;
@@ -337,6 +339,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     prefListener = null;
     propPrefListener = null;
     openOnlineDocsAction = null;
+    openTutorialAction = null;
     openApiDocsAction = null;
     refreshAction = null;
     //minimizeItem = null;
@@ -636,6 +639,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     openOnlineDocsAction = new OpenOnlineDocsAction();
     register(openOnlineDocsAction);
+
+    openTutorialAction = new OpenTutorialAction();
+    register(openTutorialAction);
 
     openApiDocsAction = new OpenApiDocsAction();
     register(openApiDocsAction);
@@ -955,8 +961,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(new Separator("group.assist")); //$NON-NLS-1$
     menu.add(new Separator("group.main")); //$NON-NLS-1$
-    menu.add(openApiDocsAction);
     menu.add(openOnlineDocsAction);
+    menu.add(openTutorialAction);
+    menu.add(openApiDocsAction);
 
     // HELP_START should really be the first item, but it was after
     // quickStartAction and tipsAndTricksAction in 2.1.
