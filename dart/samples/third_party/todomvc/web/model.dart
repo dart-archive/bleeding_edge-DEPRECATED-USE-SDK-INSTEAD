@@ -4,21 +4,26 @@
 
 library model;
 
+import 'package:web_ui/observe.dart';
+import 'package:web_ui/observe/html.dart';
+
+@observable
 class ViewModel {
   bool isVisible(Todo todo) => todo != null &&
       ((showIncomplete && !todo.done) || (showDone && todo.done));
 
-  bool showIncomplete = true;
+  bool get showIncomplete => locationHash != '#/completed';
 
-  bool showDone = true;
+  bool get showDone => locationHash != '#/active';
 }
 
 final ViewModel viewModel = new ViewModel();
 
 // The real model:
 
+@observable
 class AppModel {
-  List<Todo> todos = <Todo>[];
+  ObservableList<Todo> todos = new ObservableList<Todo>();
 
   // TODO(jmesserly): remove this once List has a remove method.
   void removeTodo(Todo todo) {
@@ -41,12 +46,14 @@ class AppModel {
   int get remaining => todos.length - doneCount;
 
   void clearDone() {
-    todos = todos.where((t) => !t.done).toList();
+    // TODO(jmesserly): should methods on ObservableList return Observables?
+    todos = toObservable(todos.where((t) => !t.done));
   }
 }
 
 final AppModel app = new AppModel();
 
+@observable
 class Todo {
   String task;
   bool done = false;

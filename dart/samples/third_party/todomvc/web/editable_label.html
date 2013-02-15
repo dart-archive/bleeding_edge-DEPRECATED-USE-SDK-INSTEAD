@@ -31,6 +31,7 @@ BSD-style license that can be found in the LICENSE file.
    *     <x-editable-label bind-value="{{dartAsignableValue}}">
    *     </x-editable-label>
    */
+  @observable
   class EditableLabel extends WebComponent {
     bool editing;
     String value;
@@ -45,7 +46,9 @@ BSD-style license that can be found in the LICENSE file.
 
     void edit() {
       editing = true;
-      dispatch();
+
+      // This causes _editBox to be inserted.
+      deliverChangesSync();
 
       // For IE and Firefox: use .focus(), then reset the value to move the
       // cursor to the end.
