@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -31,6 +32,8 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementFactory;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.ElementBuilder;
@@ -134,6 +137,25 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = indexExpression(identifier, resolvedInteger(2));
     assignmentExpression(node, TokenType.EQ, resolvedInteger(0));
     assertSame(typeProvider.getIntType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void fail_visitIndexExpression_typeParameters() throws Exception {
+    // List<int> list = ...
+    // list[0]
+    InterfaceType intType = typeProvider.getIntType();
+    ClassElement classElement = classElement("List", "E");
+    Type eType = classElement.getTypeVariables()[0].getType();
+    // (int) -> E
+    MethodElement methodElement = ElementFactory.methodElement("[]", eType, intType);
+    // "list" has type List<int>
+    SimpleIdentifier identifier = identifier("list");
+    identifier.setStaticType(classElement.getType().substitute(new Type[] {intType}));
+    // list[0] has MethodElement element (int) -> E
+    IndexExpression indexExpression = indexExpression(identifier, integer(0));
+    indexExpression.setElement(methodElement);
+    // analyze and assert result of the index expression
+    assertSame(intType, analyze(indexExpression));
     listener.assertNoErrors();
   }
 
