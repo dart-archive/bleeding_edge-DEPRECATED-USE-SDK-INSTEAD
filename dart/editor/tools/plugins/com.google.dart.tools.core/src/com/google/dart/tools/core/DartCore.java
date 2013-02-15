@@ -266,9 +266,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * The unique project manager used for analysis of anything in the workspace
    */
-  private static ProjectManager projectManager = new ProjectManagerImpl(
-      ResourcesPlugin.getWorkspace().getRoot(),
-      DartSdkManager.getManager().getNewSdk());
+  private static ProjectManager projectManager;
 
   /**
    * Configures the given marker attribute map for the given Dart element. Used for markers, which
@@ -676,6 +674,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the manager (not {@code null})
    */
   public static ProjectManager getProjectManager() {
+    if (projectManager == null) {
+      projectManager = new ProjectManagerImpl(
+          ResourcesPlugin.getWorkspace().getRoot(),
+          DartSdkManager.getManager().getNewSdk());
+    }
     return projectManager;
   }
 
