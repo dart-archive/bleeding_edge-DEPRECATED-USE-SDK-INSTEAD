@@ -39,11 +39,10 @@ public interface SearchEngine {
    * 
    * @param name the name being declared by the found matches
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
-  public List<SearchMatch> searchDeclarations(String name, SearchScope scope, SearchFilter filter)
-      throws SearchException;
+  public List<SearchMatch> searchDeclarations(String name, SearchScope scope, SearchFilter filter);
 
   /**
    * Search for declarations of the given name within the given scope.
@@ -52,11 +51,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchDeclarations(String name, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for all functions matching the given pattern within the given scope.
@@ -66,11 +65,11 @@ public interface SearchEngine {
    *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which function declarations are to be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for all functions matching the given pattern within the given scope.
@@ -81,11 +80,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter, SearchListener listener) throws SearchException;
+      SearchFilter filter, SearchListener listener);
 
   /**
    * Synchronously search for references to the given type within the given scope. Return all
@@ -95,11 +94,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(ClassElement type, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given type within the given scope.
@@ -110,11 +109,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given {@link CompilationUnitElement} within the
@@ -124,11 +123,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(CompilationUnitElement unit, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given {@link CompilationUnitElement} within the given scope.
@@ -139,11 +138,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(CompilationUnitElement unit, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given {@link Element} within the given scope. This
@@ -154,11 +153,10 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
-  public List<SearchMatch> searchReferences(Element element, SearchScope scope, SearchFilter filter)
-      throws SearchException;
+  public List<SearchMatch> searchReferences(Element element, SearchScope scope, SearchFilter filter);
 
   /**
    * Search for references to the given type within the given scope. This method will call
@@ -171,11 +169,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(Element element, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given field within the given scope. Return all
@@ -185,11 +183,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(FieldElement field, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given field within the given scope.
@@ -200,11 +198,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given function within the given scope. Return all
@@ -214,11 +212,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(FunctionElement function, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given function within the given scope.
@@ -229,11 +227,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(FunctionElement function, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given import within the given scope. Return all
@@ -243,11 +241,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(ImportElement imp, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given type import the given scope.
@@ -258,11 +256,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(ImportElement imp, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given {@link LibraryElement} within the given scope.
@@ -272,11 +270,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(LibraryElement library, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given {@link LibraryElement} within the given scope.
@@ -287,11 +285,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(LibraryElement library, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given method within the given scope. Return all
@@ -301,11 +299,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(MethodElement method, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given method within the given scope.
@@ -316,11 +314,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(MethodElement method, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given parameter within the given scope. Return all
@@ -330,11 +328,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(ParameterElement parameter, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given parameter within the given scope.
@@ -345,11 +343,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(ParameterElement parameter, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given name within the given scope. Return all
@@ -359,11 +357,10 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
-  public List<SearchMatch> searchReferences(String name, SearchScope scope, SearchFilter filter)
-      throws SearchException;
+  public List<SearchMatch> searchReferences(String name, SearchScope scope, SearchFilter filter);
 
   /**
    * Search for references to the given name within the given scope.
@@ -374,11 +371,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(String name, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given function type alias within the given scope.
@@ -388,11 +385,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(TypeAliasElement alias, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given function type alias within the given scope.
@@ -403,11 +400,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for references to the given variable within the given scope. Return all
@@ -417,11 +414,11 @@ public interface SearchEngine {
    * @param scope the scope containing the references to be searched, may be <code>null</code> if
    *          all references should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchReferences(VariableElement variable, SearchScope scope,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for references to the given variable within the given scope.
@@ -432,11 +429,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for subtypes of the given type within the given scope. Return all matches
@@ -446,11 +443,10 @@ public interface SearchEngine {
    * @param scope the scope containing the subtypes to be searched, may be <code>null</code> if all
    *          subtypes should be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
-  public List<SearchMatch> searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter)
-      throws SearchException;
+  public List<SearchMatch> searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter);
 
   /**
    * Search for subtypes of the given type within the given scope.
@@ -461,11 +457,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for all of the type declarations that are defined in the given scope and
@@ -476,11 +472,10 @@ public interface SearchEngine {
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener, or
    *          <code>null</code> if all of the matches should be passed to the listener
-   * @return the matches that were found
-   * @throws SearchException if the results could not be computed
+   * @return the matches that were found @ if the results could not be computed
    */
   public List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for all of the type declarations that are defined in the given scope and match the given
@@ -492,11 +487,11 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
-      SearchListener listener) throws SearchException;
+      SearchListener listener);
 
   /**
    * Synchronously search for all variables matching the given pattern within the given scope.
@@ -506,11 +501,11 @@ public interface SearchEngine {
    *          <code>null</code> if all declarations should be returned
    * @param pattern the pattern used to determine which variable declarations are to be returned
    * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
-   * @throws SearchException if the results could not be computed
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
    */
   public List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter) throws SearchException;
+      SearchFilter filter);
 
   /**
    * Search for all variables matching the given pattern within the given scope.
@@ -521,9 +516,9 @@ public interface SearchEngine {
    * @param filter the filter used to determine which matches should be passed to the listener
    *          (those that pass the filter), or <code>null</code> if all of the matches should be
    *          passed to the listener
-   * @param listener the listener that will be notified when matches are found
-   * @throws SearchException if the results could not be computed
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
    */
   public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter, SearchListener listener) throws SearchException;
+      SearchFilter filter, SearchListener listener);
 }

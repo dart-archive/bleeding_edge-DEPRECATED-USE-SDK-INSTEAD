@@ -38,7 +38,6 @@ import com.google.dart.engine.internal.search.scope.LibrarySearchScope;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.MatchQuality;
 import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.search.SearchException;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
@@ -116,10 +115,10 @@ public class SearchEngineImpl implements SearchEngine {
     /**
      * Perform an asynchronous search, passing the results to the given listener.
      * 
-     * @param listener the listener to which search results should be passed
-     * @throws SearchException if the results could not be computed
+     * @param listener the listener to which search results should be passed @ if the results could
+     *          not be computed
      */
-    public void performSearch(SearchListener listener) throws SearchException;
+    public void performSearch(SearchListener listener);
   }
 
   /**
@@ -154,7 +153,7 @@ public class SearchEngineImpl implements SearchEngine {
     return new NameMatchingSearchListener(pattern, listener);
   }
 
-  private static Element[] createElements(SearchScope scope) throws SearchException {
+  private static Element[] createElements(SearchScope scope) {
     if (scope instanceof LibrarySearchScope) {
       return ((LibrarySearchScope) scope).getLibraries();
     }
@@ -182,10 +181,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchDeclarations(final String name, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchDeclarations(name, scope, filter, listener);
       }
     });
@@ -193,7 +192,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchDeclarations(String name, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -204,10 +203,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchFunctionDeclarations(final SearchScope scope,
-      final SearchPattern pattern, final SearchFilter filter) throws SearchException {
+      final SearchPattern pattern, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchFunctionDeclarations(scope, pattern, filter, listener);
       }
     });
@@ -215,7 +214,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter, SearchListener listener) throws SearchException {
+      SearchFilter filter, SearchListener listener) {
     assert listener != null;
     Element[] elements = createElements(scope);
     listener = applyPattern(pattern, listener);
@@ -231,10 +230,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final ClassElement type, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(type, scope, filter, listener);
       }
     });
@@ -242,7 +241,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(ClassElement type, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -253,10 +252,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final CompilationUnitElement unit,
-      final SearchScope scope, final SearchFilter filter) throws SearchException {
+      final SearchScope scope, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(unit, scope, filter, listener);
       }
     });
@@ -264,7 +263,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(CompilationUnitElement unit, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -275,10 +274,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final Element element, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(element, scope, filter, listener);
       }
     });
@@ -286,7 +285,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(Element element, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     if (element != null) {
       switch (element.getKind()) {
         case CLASS:
@@ -326,10 +325,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final FieldElement field, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(field, scope, filter, listener);
       }
     });
@@ -337,7 +336,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     // TODO(scheglov) use "6" when add matches by name
@@ -378,10 +377,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final FunctionElement function,
-      final SearchScope scope, final SearchFilter filter) throws SearchException {
+      final SearchScope scope, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(function, scope, filter, listener);
       }
     });
@@ -389,7 +388,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(FunctionElement function, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     listener = new CountingSearchListener(2, listener);
@@ -405,10 +404,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final ImportElement imp, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(imp, scope, filter, listener);
       }
     });
@@ -416,7 +415,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(ImportElement imp, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -427,10 +426,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final LibraryElement library, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(library, scope, filter, listener);
       }
     });
@@ -438,7 +437,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(LibraryElement library, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -449,10 +448,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final MethodElement method, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(method, scope, filter, listener);
       }
     });
@@ -460,7 +459,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(MethodElement method, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     // TODO(scheglov) use "5" when add named matches
@@ -492,10 +491,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final ParameterElement parameter,
-      final SearchScope scope, final SearchFilter filter) throws SearchException {
+      final SearchScope scope, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(parameter, scope, filter, listener);
       }
     });
@@ -503,7 +502,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(ParameterElement parameter, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     listener = new CountingSearchListener(2, listener);
@@ -519,10 +518,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final String name, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(name, scope, filter, listener);
       }
     });
@@ -530,7 +529,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(String name, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -541,10 +540,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final TypeAliasElement alias, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(alias, scope, filter, listener);
       }
     });
@@ -552,7 +551,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     index.getRelationships(
@@ -563,10 +562,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchReferences(final VariableElement variable,
-      final SearchScope scope, final SearchFilter filter) throws SearchException {
+      final SearchScope scope, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchReferences(variable, scope, filter, listener);
       }
     });
@@ -574,7 +573,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchReferences(VariableElement variable, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     listener = new CountingSearchListener(2, listener);
@@ -590,10 +589,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchSubtypes(final ClassElement type, final SearchScope scope,
-      final SearchFilter filter) throws SearchException {
+      final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchSubtypes(type, scope, filter, listener);
       }
     });
@@ -601,7 +600,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
     listener = new CountingSearchListener(3, listener);
@@ -621,10 +620,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchTypeDeclarations(final SearchScope scope,
-      final SearchPattern pattern, final SearchFilter filter) throws SearchException {
+      final SearchPattern pattern, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchTypeDeclarations(scope, pattern, filter, listener);
       }
     });
@@ -632,7 +631,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchTypeDeclarations(SearchScope scope, SearchPattern pattern, SearchFilter filter,
-      SearchListener listener) throws SearchException {
+      SearchListener listener) {
     assert listener != null;
     Element[] elements = createElements(scope);
     listener = applyPattern(pattern, listener);
@@ -656,10 +655,10 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public List<SearchMatch> searchVariableDeclarations(final SearchScope scope,
-      final SearchPattern pattern, final SearchFilter filter) throws SearchException {
+      final SearchPattern pattern, final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
-      public void performSearch(SearchListener listener) throws SearchException {
+      public void performSearch(SearchListener listener) {
         searchVariableDeclarations(scope, pattern, filter, listener);
       }
     });
@@ -667,7 +666,7 @@ public class SearchEngineImpl implements SearchEngine {
 
   @Override
   public void searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
-      SearchFilter filter, SearchListener listener) throws SearchException {
+      SearchFilter filter, SearchListener listener) {
     assert listener != null;
     Element[] elements = createElements(scope);
     listener = applyPattern(pattern, listener);
@@ -686,10 +685,10 @@ public class SearchEngineImpl implements SearchEngine {
    * search has completed and return the results that were produced.
    * 
    * @param runner the runner used to perform an asynchronous search
-   * @return the results that were produced
-   * @throws SearchException if the results of at least one of the searched could not be computed
+   * @return the results that were produced @ if the results of at least one of the searched could
+   *         not be computed
    */
-  private List<SearchMatch> gatherResults(SearchRunner runner) throws SearchException {
+  private List<SearchMatch> gatherResults(SearchRunner runner) {
     GatheringSearchListener listener = new GatheringSearchListener();
     runner.performSearch(listener);
     while (!listener.isComplete()) {

@@ -18,7 +18,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
-import com.google.dart.engine.search.SearchException;
 import com.google.dart.engine.search.SearchFilter;
 import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
@@ -138,7 +137,7 @@ public class ClassProvider extends OmniProposalProvider {
 
     try {
       return doSearch(searchPattern, pattern);
-    } catch (SearchException e) {
+    } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
     return new OmniElement[0];
@@ -162,7 +161,7 @@ public class ClassProvider extends OmniProposalProvider {
   }
 
   private OmniElement[] doSearch(com.google.dart.engine.search.SearchPattern searchPattern,
-      final String filterText) throws SearchException {
+      final String filterText) {
 
     if (!searchStarted) {
 
