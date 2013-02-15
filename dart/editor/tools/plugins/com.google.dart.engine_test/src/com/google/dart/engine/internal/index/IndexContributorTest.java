@@ -39,6 +39,7 @@ import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -316,151 +317,7 @@ public class IndexContributorTest extends EngineTestCase {
     assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isAccessedByQualified_FieldElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static myField;",
-        "}",
-        "main() {",
-        "  print(A.myField);",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField);").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
-  }
-
-  public void test_isAccessedByQualified_FunctionElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "main() {",
-        "  print(this.foo);",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main(");
-    FunctionElement referencedElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(referencedElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        referencedElement,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
-  }
-
-  public void test_isAccessedByQualified_MethodElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  foo() {}",
-        "  main() {",
-        "    print(this.foo);",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(fooElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fooElement,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
-    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
-  }
-
-  public void test_isAccessedByUnqualified_FieldElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var myField;",
-        "  main() {",
-        "    print(myField);",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    Element fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField);").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
-  }
-
-  public void test_isAccessedByUnqualified_FunctionElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "main() {",
-        "  print(foo);",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main(");
-    FunctionElement referencedElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(referencedElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        referencedElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
-  }
-
-  public void test_isAccessedByUnqualified_MethodElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  foo() {}",
-        "  main() {",
-        "    print(foo);",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(fooElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fooElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
-    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
-  }
-
-  public void test_isAccessedByUnqualified_ParameterElement() throws Exception {
+  public void test_isAccessedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main2(var p) {",
@@ -477,19 +334,20 @@ public class IndexContributorTest extends EngineTestCase {
     assertRecordedRelation(
         relations,
         parameterElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_ACCESSED_BY,
         new ExpectedLocation(mainElement, getOffset("p);"), "p"));
   }
 
-  public void test_isAccessedByUnqualified_VariableElement() throws Exception {
+  public void test_isAccessedBy_VariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
+        "  var v = 0;",
         "  print(v);",
         "}");
     // set elements
     Element mainElement = getElement("main(");
-    VariableElement variableElement = mock(VariableElement.class);
+    VariableElement variableElement = getElement("v = 0");
     findSimpleIdentifier("v);").setElement(variableElement);
     // index
     index.visitCompilationUnit(testUnit);
@@ -498,7 +356,7 @@ public class IndexContributorTest extends EngineTestCase {
     assertRecordedRelation(
         relations,
         variableElement,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_ACCESSED_BY,
         new ExpectedLocation(mainElement, getOffset("v);"), "v"));
   }
 
@@ -596,50 +454,28 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(classElementC, getOffset("B; // 3"), "B"));
   }
 
-  public void test_isInvokedByQualified_function() throws Exception {
+  // XXX
+  public void test_isInvokedBy_FunctionElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {}",
         "main() {",
-        "  pref.myFunction();",
-        "}");
-    // prepare elements
-    Element mainElement = getElement("main(");
-    LibraryElement libraryElement = mock(LibraryElement.class);
-    FunctionElement functionElement = mock(FunctionElement.class);
-    findSimpleIdentifier("myFunction();").setElement(functionElement);
-    findSimpleIdentifier("pref.myFunction").setElement(libraryElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        functionElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myFunction();"), "myFunction", "pref"));
-  }
-
-  public void test_isInvokedByQualified_FunctionElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  pref.foo();",
+        "  foo();",
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main() {");
-    FunctionElement fooElement = mock(FunctionElement.class);
-    findSimpleIdentifier("foo();").setElement(fooElement);
+    Element mainElement = getElement("main(");
+    FunctionElement referencedElement = getElement("foo() {}");
+    findSimpleIdentifier("foo();").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        fooElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        referencedElement,
+        IndexConstants.IS_INVOKED_BY,
         new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
-    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_isInvokedByQualified_MethodElement() throws Exception {
@@ -699,30 +535,6 @@ public class IndexContributorTest extends EngineTestCase {
         namedElement,
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
         new ExpectedLocation(mainElement, getOffset("A.foo();"), "A.foo"));
-  }
-
-  public void test_isInvokedByUnqualified_FunctionElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "foo() {}",
-        "main() {",
-        "  foo(); // 1",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main() {");
-    FunctionElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo();").setElement(fooElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fooElement,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
-    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_isInvokedByUnqualified_MethodElement() throws Exception {
@@ -794,78 +606,7 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(classElementC, getOffset("A; // 2"), "A"));
   }
 
-  public void test_isModifiedByQualified_FieldElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static myField;",
-        "}",
-        "main() {",
-        "  A.myField = 1;",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField = 1").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
-  }
-
-  public void test_isModifiedByQualified_VariableElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  pref.myTopLevelVar = 0;",
-        "}");
-    // prepare elements
-    Element mainElement = getElement("main(");
-    LibraryElement libraryElement = mock(LibraryElement.class);
-    VariableElement varElement = mock(VariableElement.class);
-    findSimpleIdentifier("myTopLevelVar = 0;").setElement(varElement);
-    findSimpleIdentifier("pref.myTopLevelVar").setElement(libraryElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        varElement,
-        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myTopLevelVar = 0;"), "myTopLevelVar", "pref"));
-  }
-
-  public void test_isModifiedByUnqualified_FieldElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var myField;",
-        "  main() {",
-        "    myField = 1;",
-        "  }",
-        "}");
-    // set elements
-    Element mainElement = getElement("main() {");
-    Element fieldElement = getElement("myField;");
-    findSimpleIdentifier("myField = 1").setElement(fieldElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        fieldElement,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
-  }
-
-  public void test_isModifiedByUnqualified_ParameterElement() throws Exception {
+  public void test_isModifiedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main2(var p) {",
@@ -882,20 +623,21 @@ public class IndexContributorTest extends EngineTestCase {
     assertRecordedRelation(
         relations,
         parameterElement,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+        IndexConstants.IS_MODIFIED_BY,
         new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
   }
 
-  public void test_isModifiedByUnqualified_VariableElement() throws Exception {
+  public void test_isModifiedBy_VariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
-        "  myTopLevelVar = 0;",
+        "  var v = 0;",
+        "  v = 1;",
         "}");
     // prepare elements
     Element mainElement = getElement("main(");
-    VariableElement varElement = mock(VariableElement.class);
-    findSimpleIdentifier("myTopLevelVar = 0;").setElement(varElement);
+    VariableElement varElement = getElement("v = 0");
+    findSimpleIdentifier("v = 1;").setElement(varElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -903,8 +645,8 @@ public class IndexContributorTest extends EngineTestCase {
     assertRecordedRelation(
         relations,
         varElement,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myTopLevelVar = 0;"), "myTopLevelVar"));
+        IndexConstants.IS_MODIFIED_BY,
+        new ExpectedLocation(mainElement, getOffset("v = 1;"), "v"));
   }
 
   public void test_isReferencedBy_ClassElement() throws Exception {
@@ -1027,6 +769,29 @@ public class IndexContributorTest extends EngineTestCase {
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, getOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
+  }
+
+  public void test_isReferencedBy_FunctionElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo() {}",
+        "main() {",
+        "  print(foo);",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main(");
+    FunctionElement referencedElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(referencedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        referencedElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
   }
 
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
@@ -1282,6 +1047,181 @@ public class IndexContributorTest extends EngineTestCase {
         typeVariableElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(classElementA, getOffset("T f"), "T"));
+  }
+
+  public void test_isReferencedByQualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static myField;",
+        "}",
+        "main() {",
+        "  A.myField = 1;",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FieldElement fieldElement = getElement("myField;");
+    PropertyAccessorElement accessorElement = fieldElement.getSetter();
+    findSimpleIdentifier("myField = 1").setElement(accessorElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        accessorElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
+  }
+
+  public void test_isReferencedByQualified_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    print(this.foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencedByQualified_PropertyAccessorElement_method_getter() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  get foo => 42;",
+        "  main() {",
+        "    print(this.foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    PropertyAccessorElement fooElement = getElement("foo => ");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencedByQualified_PropertyAccessorElement_method_setter() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set foo(x) {}",
+        "  main() {",
+        "    this.foo = 42;",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    PropertyAccessorElement fooElement = getElement("foo(x) {}");
+    findSimpleIdentifier("foo = 42").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo = 42"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencedByUnqualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  main() {",
+        "    print(myField);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FieldElement fieldElement = getElement("myField;");
+    PropertyAccessorElement accessorElement = fieldElement.getGetter();
+    findSimpleIdentifier("myField);").setElement(accessorElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        accessorElement,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+  }
+
+  public void test_isReferencedByUnqualified_MethodElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "  main() {",
+        "    print(foo);",
+        "  }",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    MethodElement fooElement = getElement("foo() {}");
+    findSimpleIdentifier("foo);").setElement(fooElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fooElement,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencesByQualified_FieldElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static myField;",
+        "}",
+        "main() {",
+        "  print(A.myField);",
+        "}");
+    // set elements
+    Element mainElement = getElement("main() {");
+    FieldElement fieldElement = getElement("myField;");
+    PropertyAccessorElement accessorElement = fieldElement.getGetter();
+    findSimpleIdentifier("myField);").setElement(accessorElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        accessorElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
   }
 
   public void test_unresolvedUnit() throws Exception {

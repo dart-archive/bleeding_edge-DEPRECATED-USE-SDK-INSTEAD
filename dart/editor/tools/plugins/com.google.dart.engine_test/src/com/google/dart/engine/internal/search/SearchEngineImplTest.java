@@ -25,6 +25,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
@@ -334,39 +335,43 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_FieldElement() throws Exception {
-    FieldElement referencedElement = mock(FieldElement.class);
-    when(referencedElement.getKind()).thenReturn(ElementKind.FIELD);
+    PropertyAccessorElement getterElement = mock(PropertyAccessorElement.class);
+    PropertyAccessorElement setterElement = mock(PropertyAccessorElement.class);
+    FieldElement fieldElement = mock(FieldElement.class);
+    when(fieldElement.getGetter()).thenReturn(getterElement);
+    when(fieldElement.getSetter()).thenReturn(setterElement);
+    when(fieldElement.getKind()).thenReturn(ElementKind.FIELD);
     {
       Location location = new Location(elementA, 1, 10, null);
       indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+          getterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
       Location location = new Location(elementB, 2, 20, null);
       indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+          getterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
     {
       Location location = new Location(elementC, 3, 30, null);
       indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
       Location location = new Location(elementD, 4, 40, null);
       indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(FieldElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(FieldElement.class, fieldElement);
+    assertEquals(matches, searchReferencesSync(Element.class, fieldElement));
     // verify
     assertMatches(
         matches,
@@ -381,31 +386,11 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.FUNCTION);
     {
       Location location = new Location(elementA, 1, 10, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_INVOKED_BY, location);
     }
     {
       Location location = new Location(elementB, 2, 20, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_INVOKED_BY_QUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementC, 3, 30, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementD, 4, 40, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(FunctionElement.class, referencedElement);
@@ -413,10 +398,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.FUNCTION_EXECUTION, 1, 10, false),
-        new ExpectedMatch(elementB, MatchKind.FUNCTION_EXECUTION, 2, 20, true),
-        new ExpectedMatch(elementC, MatchKind.FUNCTION_REFERENCE, 3, 30, false),
-        new ExpectedMatch(elementD, MatchKind.FUNCTION_REFERENCE, 4, 40, true));
+        new ExpectedMatch(elementA, MatchKind.FUNCTION_EXECUTION, 1, 10),
+        new ExpectedMatch(elementB, MatchKind.FUNCTION_REFERENCE, 2, 20));
   }
 
   public void test_searchReferences_ImportElement() throws Exception {
@@ -475,14 +458,14 @@ public class SearchEngineImplTest extends EngineTestCase {
       Location location = new Location(elementC, 3, 30, null);
       indexStore.recordRelationship(
           referencedElement,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           location);
     }
     {
       Location location = new Location(elementD, 4, 40, null);
       indexStore.recordRelationship(
           referencedElement,
-          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
     // search matches
@@ -502,17 +485,11 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.PARAMETER);
     {
       Location location = new Location(elementA, 1, 10, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);
     }
     {
       Location location = new Location(elementC, 2, 20, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_MODIFIED_BY, location);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(ParameterElement.class, referencedElement);
@@ -520,8 +497,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10, false),
-        new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 2, 20, false));
+        new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
+        new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 2, 20));
   }
 
   public void test_searchReferences_String() throws Exception {
@@ -569,31 +546,11 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.VARIABLE);
     {
       Location location = new Location(elementA, 1, 10, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);
     }
     {
       Location location = new Location(elementB, 2, 20, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementC, 3, 30, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementD, 4, 40, null);
-      indexStore.recordRelationship(
-          referencedElement,
-          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-          location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_MODIFIED_BY, location);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(VariableElement.class, referencedElement);
@@ -601,10 +558,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10, false),
-        new ExpectedMatch(elementB, MatchKind.VARIABLE_READ, 2, 20, true),
-        new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 3, 30, false),
-        new ExpectedMatch(elementD, MatchKind.VARIABLE_WRITE, 4, 40, true));
+        new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
+        new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20));
   }
 
   public void test_searchSubtypes() throws Exception {

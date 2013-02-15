@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
@@ -64,7 +63,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
    */
-  private Map<ElementLocation, Map<Relationship, List<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
+  private Map<Element, Map<Relationship, List<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
 
   /**
    * A set of all {@link Source}s with elements or relationships.
@@ -72,9 +71,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private Set<Source> sources = Sets.newHashSetWithExpectedSize(1024);
 
   /**
-   * {@link ElementLocation}s by {@link Source} where they are declared.
+   * {@link Element}s by {@link Source} where they are declared.
    */
-  private Map<Source, List<ElementLocation>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(1024);
+  private Map<Source, List<Element>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(1024);
 
   /**
    * {@link ContributedLocation}s by {@link Source} where they are contributed.
@@ -113,7 +112,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
-    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element.getLocation());
+    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
     if (elementRelationshipMap != null) {
       List<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
       if (contributedLocations != null) {
@@ -145,13 +144,12 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     // prepare information
-    ElementLocation elementLocation = element.getLocation();
     Source elementSource = findSource(element);
     Source locationSource = findSource(location.getElement());
     // remember sources
     sources.add(elementSource);
     sources.add(locationSource);
-    recordSourceToDeclarations(elementSource, elementLocation);
+    recordSourceToDeclarations(elementSource, element);
     //
     List<ContributedLocation> locationsOfLocationSource = sourceToLocations.get(locationSource);
     if (locationsOfLocationSource == null) {
@@ -160,10 +158,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     // add ContributedLocation for "element"
     {
-      Map<Relationship, List<ContributedLocation>> elementRelMap = relationshipMap.get(elementLocation);
+      Map<Relationship, List<ContributedLocation>> elementRelMap = relationshipMap.get(element);
       if (elementRelMap == null) {
         elementRelMap = Maps.newHashMap();
-        relationshipMap.put(elementLocation, elementRelMap);
+        relationshipMap.put(element, elementRelMap);
       }
       List<ContributedLocation> locations = elementRelMap.get(relationship);
       if (locations == null) {
@@ -178,10 +176,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public void removeSource(Source source) {
     sources.remove(source);
     // remove relationships with elements in removed source
-    List<ElementLocation> declaredElements = sourceToDeclarations.remove(source);
+    List<Element> declaredElements = sourceToDeclarations.remove(source);
     if (declaredElements != null) {
-      for (ElementLocation elementLocation : declaredElements) {
-        Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(elementLocation);
+      for (Element declaredElement : declaredElements) {
+        Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(declaredElement);
         if (elementRelationshipMap != null) {
           for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
             for (ContributedLocation contributedLocation : contributedLocations) {
@@ -221,13 +219,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     throw new UnsupportedOperationException();
   }
 
-  private void recordSourceToDeclarations(Source elementSource, ElementLocation elementLocation) {
-    List<ElementLocation> declaredElements = sourceToDeclarations.get(elementSource);
+  private void recordSourceToDeclarations(Source elementSource, Element declaredElement) {
+    List<Element> declaredElements = sourceToDeclarations.get(elementSource);
     if (declaredElements == null) {
       declaredElements = Lists.newArrayList();
       sourceToDeclarations.put(elementSource, declaredElements);
     }
-    declaredElements.add(elementLocation);
+    declaredElements.add(declaredElement);
   }
 
 //  /**

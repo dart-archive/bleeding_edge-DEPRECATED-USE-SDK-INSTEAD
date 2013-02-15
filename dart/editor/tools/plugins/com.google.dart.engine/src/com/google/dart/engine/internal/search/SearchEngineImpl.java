@@ -99,8 +99,7 @@ public class SearchEngineImpl implements SearchEngine {
 //          MatchQuality quality = element.getResource() != IndexConstants.DYNAMIC
 //              ? MatchQuality.EXACT : MatchQuality.NAME;
         SearchMatch match = new SearchMatch(quality, matchKind, targetElement, range);
-        match.setQualified(relationship == IndexConstants.IS_ACCESSED_BY_QUALIFIED
-            || relationship == IndexConstants.IS_MODIFIED_BY_QUALIFIED
+        match.setQualified(relationship == IndexConstants.IS_REFERENCED_BY_QUALIFIED
             || relationship == IndexConstants.IS_INVOKED_BY_QUALIFIED);
         match.setImportPrefix(location.getImportPrefix());
         listener.matchFound(match);
@@ -346,20 +345,20 @@ public class SearchEngineImpl implements SearchEngine {
     // exact matches
     {
       index.getRelationships(
-          field,
-          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+          field.getGetter(),
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           newCallback(MatchKind.FIELD_READ, scope, listener));
       index.getRelationships(
-          field,
-          IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+          field.getGetter(),
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           newCallback(MatchKind.FIELD_READ, scope, listener));
       index.getRelationships(
-          field,
-          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+          field.getSetter(),
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           newCallback(MatchKind.FIELD_WRITE, scope, listener));
       index.getRelationships(
-          field,
-          IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+          field.getSetter(),
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
           newCallback(MatchKind.FIELD_WRITE, scope, listener));
     }
     // TODO(scheglov)
@@ -393,23 +392,15 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) throws SearchException {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(4, listener);
+    listener = new CountingSearchListener(2, listener);
     index.getRelationships(
         function,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        newCallback(MatchKind.FUNCTION_EXECUTION, scope, listener));
-    index.getRelationships(
-        function,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        newCallback(MatchKind.FUNCTION_EXECUTION, scope, listener));
-    index.getRelationships(
-        function,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_REFERENCED_BY,
         newCallback(MatchKind.FUNCTION_REFERENCE, scope, listener));
     index.getRelationships(
         function,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        newCallback(MatchKind.FUNCTION_REFERENCE, scope, listener));
+        IndexConstants.IS_INVOKED_BY,
+        newCallback(MatchKind.FUNCTION_EXECUTION, scope, listener));
   }
 
   @Override
@@ -485,11 +476,11 @@ public class SearchEngineImpl implements SearchEngine {
         newCallback(MatchKind.METHOD_INVOCATION, scope, listener));
     index.getRelationships(
         method,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
         newCallback(MatchKind.METHOD_REFERENCE, scope, listener));
     index.getRelationships(
         method,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
         newCallback(MatchKind.METHOD_REFERENCE, scope, listener));
     // TODO(scheglov)
     // inexact matches
@@ -518,11 +509,11 @@ public class SearchEngineImpl implements SearchEngine {
     listener = new CountingSearchListener(2, listener);
     index.getRelationships(
         parameter,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_ACCESSED_BY,
         newCallback(MatchKind.VARIABLE_READ, scope, listener));
     index.getRelationships(
         parameter,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
+        IndexConstants.IS_MODIFIED_BY,
         newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
   }
 
@@ -586,22 +577,14 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) throws SearchException {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(4, listener);
+    listener = new CountingSearchListener(2, listener);
     index.getRelationships(
         variable,
-        IndexConstants.IS_ACCESSED_BY_UNQUALIFIED,
+        IndexConstants.IS_ACCESSED_BY,
         newCallback(MatchKind.VARIABLE_READ, scope, listener));
     index.getRelationships(
         variable,
-        IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-        newCallback(MatchKind.VARIABLE_READ, scope, listener));
-    index.getRelationships(
-        variable,
-        IndexConstants.IS_MODIFIED_BY_UNQUALIFIED,
-        newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
-    index.getRelationships(
-        variable,
-        IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+        IndexConstants.IS_MODIFIED_BY,
         newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
   }
 

@@ -87,15 +87,9 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * accessed at a specific location (the right operand). With some qualifier.
+   * accessed at a specific location (the right operand).
    */
-  Relationship IS_ACCESSED_BY_QUALIFIED = Relationship.getRelationship("is-accessed-by-qualified");
-
-  /**
-   * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * accessed at a specific location (the right operand). Without qualifier.
-   */
-  Relationship IS_ACCESSED_BY_UNQUALIFIED = Relationship.getRelationship("is-accessed-by-unqualified");
+  Relationship IS_ACCESSED_BY = Relationship.getRelationship("is-accessed-by");
 
   /**
    * The relationship used to indicate that a name (the left-operand) is defined at a specific
@@ -123,15 +117,9 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * modified (assigned to) at a specific location (the right operand). With some qualifier.
+   * modified (assigned to) at a specific location (the right operand).
    */
-  Relationship IS_MODIFIED_BY_QUALIFIED = Relationship.getRelationship("is-modified-by-qualified");
-
-  /**
-   * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * modified (assigned to) at a specific location (the right operand). Without qualifier.
-   */
-  Relationship IS_MODIFIED_BY_UNQUALIFIED = Relationship.getRelationship("is-modified-by-unqualified");
+  Relationship IS_MODIFIED_BY = Relationship.getRelationship("is-modified-by");
 
 //  /**
 //   * The relationship used to indicate that a method (the left-operand) is overridden by a method at
@@ -149,14 +137,32 @@ public interface IndexConstants {
   Relationship IS_REFERENCED_BY = Relationship.getRelationship("is-referenced-by");
 
   /**
+   * The relationship used to indicate that an element (the left-operand) is referenced at a
+   * specific location (the right operand). This is used for field accessors and methods.
+   */
+  Relationship IS_REFERENCED_BY_QUALIFIED = Relationship.getRelationship("is-referenced-by-qualified");
+
+  /**
+   * The relationship used to indicate that an element (the left-operand) is referenced at a
+   * specific location (the right operand). This is used for field accessors and methods.
+   */
+  Relationship IS_REFERENCED_BY_UNQUALIFIED = Relationship.getRelationship("is-referenced-by-unqualified");
+
+  /**
    * The relationship used to indicate that an element (the left-operand) is invoked at a specific
-   * location (the right operand). This is used for methods and functions.
+   * location (the right operand). This is used for functions.
+   */
+  Relationship IS_INVOKED_BY = Relationship.getRelationship("is-invoked-by");
+
+  /**
+   * The relationship used to indicate that an element (the left-operand) is invoked at a specific
+   * location (the right operand). This is used for methods.
    */
   Relationship IS_INVOKED_BY_QUALIFIED = Relationship.getRelationship("is-invoked-by-qualified");
 
   /**
    * The relationship used to indicate that an element (the left-operand) is invoked at a specific
-   * location (the right operand). This is used for methods and functions.
+   * location (the right operand). This is used for methods.
    */
   Relationship IS_INVOKED_BY_UNQUALIFIED = Relationship.getRelationship("is-invoked-by-unqualified");
 }

@@ -48,13 +48,13 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -91,16 +91,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   @VisibleForTesting
   static String getLibraryImportPrefix(ASTNode node) {
-    // "prefix.topLevelFunction()" looks as method invocation
-    if (node.getParent() instanceof MethodInvocation) {
-      MethodInvocation invocation = (MethodInvocation) node.getParent();
-      if (invocation.getRealTarget() instanceof SimpleIdentifier) {
-        SimpleIdentifier target = (SimpleIdentifier) invocation.getRealTarget();
-        if (target != null && target.getElement() instanceof LibraryElement) {
-          return target.getName();
-        }
-      }
-    }
     // "prefix.Type" or "prefix.topLevelVariable"
     if (node.getParent() instanceof PrefixedIdentifier) {
       PrefixedIdentifier propertyAccess = (PrefixedIdentifier) node.getParent();
@@ -340,14 +330,21 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.getMethodName();
-    Location location = createLocation(name);
-    Relationship relationship;
-    if (node.getTarget() != null) {
-      relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
-    } else {
-      relationship = IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
+    Element element = name.getElement();
+    if (element instanceof MethodElement) {
+      Location location = createLocation(name);
+      Relationship relationship;
+      if (node.getTarget() != null) {
+        relationship = IndexConstants.IS_INVOKED_BY_QUALIFIED;
+      } else {
+        relationship = IndexConstants.IS_INVOKED_BY_UNQUALIFIED;
+      }
+      recordRelationship(element, relationship, location);
     }
-    recordRelationship(name.getElement(), relationship, location);
+    if (element instanceof FunctionElement) {
+      Location location = createLocation(name);
+      recordRelationship(element, IndexConstants.IS_INVOKED_BY, location);
+    }
     return super.visitMethodInvocation(node);
   }
 
@@ -393,23 +390,19 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof TypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
-        || element instanceof ImportElement) {
+        || element instanceof ImportElement || element instanceof FunctionElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    } else if (element instanceof FieldElement || element instanceof ParameterElement
-        || element instanceof VariableElement || element instanceof FunctionElement
-        || element instanceof MethodElement) {
-      if (node.inGetterContext()) {
-        if (isQualified(node)) {
-          recordRelationship(element, IndexConstants.IS_ACCESSED_BY_QUALIFIED, location);
-        } else {
-          recordRelationship(element, IndexConstants.IS_ACCESSED_BY_UNQUALIFIED, location);
-        }
+    } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
+      if (isQualified(node)) {
+        recordRelationship(element, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
       } else {
-        if (isQualified(node)) {
-          recordRelationship(element, IndexConstants.IS_MODIFIED_BY_QUALIFIED, location);
-        } else {
-          recordRelationship(element, IndexConstants.IS_MODIFIED_BY_UNQUALIFIED, location);
-        }
+        recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
+      }
+    } else if (element instanceof ParameterElement || element instanceof VariableElement) {
+      if (node.inGetterContext()) {
+        recordRelationship(element, IndexConstants.IS_ACCESSED_BY, location);
+      } else {
+        recordRelationship(element, IndexConstants.IS_MODIFIED_BY, location);
       }
     }
     recordImportElementReferenceWithoutPrefix(node);
@@ -482,7 +475,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
-    if (parent instanceof MethodInvocation) {
+    if (parent instanceof MethodInvocation && node.getElement() instanceof MethodElement) {
       return ((MethodInvocation) parent).getMethodName() == node;
     }
     if (parent instanceof Label) {
