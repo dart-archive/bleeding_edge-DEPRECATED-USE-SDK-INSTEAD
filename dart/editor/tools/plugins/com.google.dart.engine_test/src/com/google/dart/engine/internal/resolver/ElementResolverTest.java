@@ -80,9 +80,9 @@ import static com.google.dart.engine.element.ElementFactory.exportFor;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.library;
+import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.prefix;
-import static com.google.dart.engine.element.ElementFactory.variableElement;
 
 import java.lang.reflect.Field;
 
@@ -351,7 +351,7 @@ public class ElementResolverTest extends EngineTestCase {
     PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
     classA.setAccessors(new PropertyAccessorElement[] {getter});
     SimpleIdentifier target = identifier("a");
-    VariableElementImpl variable = variableElement(target.getName());
+    VariableElementImpl variable = localVariableElement(target);
     variable.setType(classA.getType());
     target.setElement(variable);
     target.setStaticType(classA.getType());
@@ -395,8 +395,8 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void test_visitSimpleIdentifier_inLexicalScope() throws Exception {
-    VariableElementImpl element = new VariableElementImpl(identifier("i"));
     SimpleIdentifier node = identifier("i");
+    VariableElementImpl element = localVariableElement(node);
     assertSame(element, resolve(node, element));
     listener.assertNoErrors();
   }

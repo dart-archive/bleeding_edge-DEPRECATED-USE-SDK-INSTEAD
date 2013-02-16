@@ -14,46 +14,25 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.utilities.dart.ParameterKind;
-import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.element.TopLevelVariableElement;
 
 /**
- * Instances of the class {@code ParameterElementHandle} implement a handle to a
- * {@code ParameterElement}.
+ * Instances of the class {@code TopLevelVariableElementHandle} implement a handle to a
+ * {@code TopLevelVariableElement}.
  */
-public class ParameterElementHandle extends VariableElementHandle implements ParameterElement {
+public class TopLevelVariableElementHandle extends PropertyInducingElementHandle implements
+    TopLevelVariableElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
    * @param element the element being represented
    */
-  public ParameterElementHandle(ParameterElement element) {
+  public TopLevelVariableElementHandle(TopLevelVariableElement element) {
     super(element);
   }
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.PARAMETER;
-  }
-
-  @Override
-  public ParameterKind getParameterKind() {
-    return getActualElement().getParameterKind();
-  }
-
-  @Override
-  public SourceRange getVisibleRange() {
-    return getActualElement().getVisibleRange();
-  }
-
-  @Override
-  public boolean isInitializingFormal() {
-    return getActualElement().isInitializingFormal();
-  }
-
-  @Override
-  protected ParameterElement getActualElement() {
-    return (ParameterElement) super.getActualElement();
+    return ElementKind.TOP_LEVEL_VARIABLE;
   }
 }

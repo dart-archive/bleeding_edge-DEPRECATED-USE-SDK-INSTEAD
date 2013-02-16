@@ -280,7 +280,8 @@ public class CompletionEngine {
     switch (receiver.getKind()) {
       case FIELD:
       case PARAMETER:
-      case VARIABLE: {
+      case LOCAL_VARIABLE:
+      case TOP_LEVEL_VARIABLE: {
         VariableElement receiverElement = (VariableElement) receiver;
         receiverType = receiverElement.getType();
         break;

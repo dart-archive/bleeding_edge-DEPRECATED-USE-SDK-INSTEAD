@@ -96,7 +96,7 @@ import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
-import static com.google.dart.engine.element.ElementFactory.variableElement;
+import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -669,7 +669,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   public void test_visitPrefixedIdentifier_variable() throws Exception {
-    VariableElementImpl variable = variableElement("b");
+    VariableElementImpl variable = localVariableElement("b");
     variable.setType(typeProvider.getBoolType());
     PrefixedIdentifier node = identifier("a", "b");
     node.getIdentifier().setElement(variable);
@@ -977,7 +977,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private SimpleIdentifier resolvedVariable(InterfaceType type, String variableName) {
     SimpleIdentifier identifier = identifier(variableName);
-    VariableElementImpl element = new VariableElementImpl(identifier);
+    VariableElementImpl element = localVariableElement(identifier);
     element.setType(type);
     identifier.setElement(element);
     identifier.setStaticType(type);

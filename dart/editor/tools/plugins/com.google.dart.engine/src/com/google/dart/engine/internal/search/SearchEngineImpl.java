@@ -20,8 +20,10 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
@@ -306,17 +308,20 @@ public class SearchEngineImpl implements SearchEngine {
         case LIBRARY:
           searchReferences((LibraryElement) element, scope, filter, listener);
           return;
+        case LOCAL_VARIABLE:
+          searchReferences((LocalVariableElement) element, scope, filter, listener);
+          return;
         case METHOD:
           searchReferences((MethodElement) element, scope, filter, listener);
           return;
         case PARAMETER:
           searchReferences((ParameterElement) element, scope, filter, listener);
           return;
+        case TOP_LEVEL_VARIABLE:
+          searchReferences((TopLevelVariableElement) element, scope, filter, listener);
+          return;
         case TYPE_ALIAS:
           searchReferences((TypeAliasElement) element, scope, filter, listener);
-          return;
-        case VARIABLE:
-          searchReferences((VariableElement) element, scope, filter, listener);
           return;
       }
     }

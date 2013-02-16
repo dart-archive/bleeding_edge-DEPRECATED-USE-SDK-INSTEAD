@@ -26,11 +26,15 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -84,12 +88,12 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitFieldElement(FieldElement element) {
-    return visitVariableElement(element);
+    return visitPropertyInducingElement(element);
   }
 
   @Override
   public R visitFunctionElement(FunctionElement element) {
-    return visitExecutableElement(element);
+    return visitLocalElement(element);
   }
 
   @Override
@@ -112,6 +116,22 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return visitElement(element);
   }
 
+  public R visitLocalElement(LocalElement element) {
+    if (element instanceof LocalVariableElement) {
+      return visitVariableElement((LocalVariableElement) element);
+    } else if (element instanceof ParameterElement) {
+      return visitVariableElement((ParameterElement) element);
+    } else if (element instanceof FunctionElement) {
+      return visitExecutableElement((FunctionElement) element);
+    }
+    return null;
+  }
+
+  @Override
+  public R visitLocalVariableElement(LocalVariableElement element) {
+    return visitLocalElement(element);
+  }
+
   @Override
   public R visitMethodElement(MethodElement element) {
     return visitExecutableElement(element);
@@ -124,7 +144,7 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitParameterElement(ParameterElement element) {
-    return visitVariableElement(element);
+    return visitLocalElement(element);
   }
 
   @Override
@@ -137,6 +157,15 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return visitExecutableElement(element);
   }
 
+  public R visitPropertyInducingElement(PropertyInducingElement element) {
+    return visitVariableElement(element);
+  }
+
+  @Override
+  public R visitTopLevelVariableElement(TopLevelVariableElement element) {
+    return visitPropertyInducingElement(element);
+  }
+
   @Override
   public R visitTypeAliasElement(TypeAliasElement element) {
     return visitElement(element);
@@ -147,7 +176,6 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return visitElement(element);
   }
 
-  @Override
   public R visitVariableElement(VariableElement element) {
     return visitElement(element);
   }

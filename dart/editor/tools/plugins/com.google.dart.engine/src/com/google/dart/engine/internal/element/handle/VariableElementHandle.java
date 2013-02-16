@@ -13,17 +13,15 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
-import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
- * Instances of the class {@code VariableElementHandle} implement a handle to a
- * {@code VariableElement}.
+ * The abstract class {@code VariableElementHandle} implements the behavior common to objects that
+ * implement a handle to an {@code VariableElement}.
  */
-public class VariableElementHandle extends ElementHandle implements VariableElement {
+public abstract class VariableElementHandle extends ElementHandle implements VariableElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
@@ -39,18 +37,8 @@ public class VariableElementHandle extends ElementHandle implements VariableElem
   }
 
   @Override
-  public ElementKind getKind() {
-    return ElementKind.VARIABLE;
-  }
-
-  @Override
   public Type getType() {
     return getActualElement().getType();
-  }
-
-  @Override
-  public SourceRange getVisibleRange() {
-    return getActualElement().getVisibleRange();
   }
 
   @Override

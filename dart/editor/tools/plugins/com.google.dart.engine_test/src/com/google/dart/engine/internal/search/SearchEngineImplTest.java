@@ -23,6 +23,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -542,8 +543,8 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_VariableElement() throws Exception {
-    VariableElement referencedElement = mock(VariableElement.class);
-    when(referencedElement.getKind()).thenReturn(ElementKind.VARIABLE);
+    LocalVariableElement referencedElement = mock(LocalVariableElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.LOCAL_VARIABLE);
     {
       Location location = new Location(elementA, 1, 10, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);

@@ -21,17 +21,20 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
 
 import java.lang.ref.WeakReference;
@@ -60,16 +63,23 @@ public abstract class ElementHandle implements Element {
         return (E) new CompilationUnitElementHandle((CompilationUnitElement) element);
       case CONSTRUCTOR:
         return (E) new ConstructorElementHandle((ConstructorElement) element);
+      case EXPORT:
+        return (E) new ExportElementHandle((ExportElement) element);
       case FIELD:
         return (E) new FieldElementHandle((FieldElement) element);
       case FUNCTION:
         return (E) new FunctionElementHandle((FunctionElement) element);
       case GETTER:
         return (E) new PropertyAccessorElementHandle((PropertyAccessorElement) element);
+        //case HTML:
+      case IMPORT:
+        return (E) new ImportElementHandle((ImportElement) element);
       case LABEL:
         return (E) new LabelElementHandle((LabelElement) element);
       case LIBRARY:
         return (E) new LibraryElementHandle((LibraryElement) element);
+      case LOCAL_VARIABLE:
+        return (E) new LocalVariableElementHandle((LocalVariableElement) element);
       case METHOD:
         return (E) new MethodElementHandle((MethodElement) element);
       case PARAMETER:
@@ -78,12 +88,12 @@ public abstract class ElementHandle implements Element {
         return (E) new PrefixElementHandle((PrefixElement) element);
       case SETTER:
         return (E) new PropertyAccessorElementHandle((PropertyAccessorElement) element);
+      case TOP_LEVEL_VARIABLE:
+        return (E) new TopLevelVariableElementHandle((TopLevelVariableElement) element);
       case TYPE_ALIAS:
         return (E) new TypeAliasElementHandle((TypeAliasElement) element);
       case TYPE_VARIABLE:
         return (E) new TypeVariableElementHandle((TypeVariableElement) element);
-      case VARIABLE:
-        return (E) new VariableElementHandle((VariableElement) element);
       case ERROR:
       default:
         throw new UnsupportedOperationException();

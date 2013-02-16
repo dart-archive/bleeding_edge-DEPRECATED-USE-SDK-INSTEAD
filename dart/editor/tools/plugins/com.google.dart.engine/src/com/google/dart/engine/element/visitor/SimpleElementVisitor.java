@@ -24,14 +24,15 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.element.VariableElement;
 
 /**
  * Instances of the class {@code SimpleElementVisitor} implement an element visitor that will do
@@ -91,6 +92,11 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
+  public R visitLocalVariableElement(LocalVariableElement element) {
+    return null;
+  }
+
+  @Override
   public R visitMethodElement(MethodElement element) {
     return null;
   }
@@ -116,17 +122,17 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
+  public R visitTopLevelVariableElement(TopLevelVariableElement element) {
+    return null;
+  }
+
+  @Override
   public R visitTypeAliasElement(TypeAliasElement element) {
     return null;
   }
 
   @Override
   public R visitTypeVariableElement(TypeVariableElement element) {
-    return null;
-  }
-
-  @Override
-  public R visitVariableElement(VariableElement element) {
     return null;
   }
 }

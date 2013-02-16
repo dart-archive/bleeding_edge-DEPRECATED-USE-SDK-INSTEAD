@@ -14,32 +14,27 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
- * Instances of the class {@code ParameterElementHandle} implement a handle to a
- * {@code ParameterElement}.
+ * Instances of the class {@code LocalVariableElementHandle} implement a handle to a
+ * {@code LocalVariableElement}.
  */
-public class ParameterElementHandle extends VariableElementHandle implements ParameterElement {
+public class LocalVariableElementHandle extends VariableElementHandle implements
+    LocalVariableElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
    * @param element the element being represented
    */
-  public ParameterElementHandle(ParameterElement element) {
+  public LocalVariableElementHandle(LocalVariableElement element) {
     super(element);
   }
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.PARAMETER;
-  }
-
-  @Override
-  public ParameterKind getParameterKind() {
-    return getActualElement().getParameterKind();
+    return ElementKind.LOCAL_VARIABLE;
   }
 
   @Override
@@ -48,12 +43,7 @@ public class ParameterElementHandle extends VariableElementHandle implements Par
   }
 
   @Override
-  public boolean isInitializingFormal() {
-    return getActualElement().isInitializingFormal();
-  }
-
-  @Override
-  protected ParameterElement getActualElement() {
-    return (ParameterElement) super.getActualElement();
+  protected LocalVariableElement getActualElement() {
+    return (LocalVariableElement) super.getActualElement();
   }
 }

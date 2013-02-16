@@ -19,10 +19,10 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.resolver.ResolverTestCase;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
 public class EnclosedScopeTest extends ResolverTestCase {
   public void test_define_duplicate() {
@@ -45,8 +45,8 @@ public class EnclosedScopeTest extends ResolverTestCase {
       }
     };
     EnclosedScope scope = new EnclosedScope(rootScope);
-    VariableElement element1 = new VariableElementImpl(identifier("v1"));
-    VariableElement element2 = new VariableElementImpl(identifier("v1"));
+    VariableElement element1 = localVariableElement(identifier("v1"));
+    VariableElement element2 = localVariableElement(identifier("v1"));
     scope.define(element1);
     scope.define(element2);
     errorListener.assertErrors(ErrorSeverity.ERROR);
@@ -73,8 +73,8 @@ public class EnclosedScopeTest extends ResolverTestCase {
     };
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
-    VariableElement element1 = new VariableElementImpl(identifier("v1"));
-    VariableElement element2 = new VariableElementImpl(identifier("v1"));
+    VariableElement element1 = localVariableElement(identifier("v1"));
+    VariableElement element2 = localVariableElement(identifier("v1"));
     outerScope.define(element1);
     innerScope.define(element2);
     errorListener.assertErrors(ErrorSeverity.WARNING);
@@ -101,8 +101,8 @@ public class EnclosedScopeTest extends ResolverTestCase {
     };
     EnclosedScope outerScope = new EnclosedScope(rootScope);
     EnclosedScope innerScope = new EnclosedScope(outerScope);
-    VariableElement element1 = new VariableElementImpl(identifier("v1"));
-    VariableElement element2 = new VariableElementImpl(identifier("v2"));
+    VariableElement element1 = localVariableElement(identifier("v1"));
+    VariableElement element2 = localVariableElement(identifier("v2"));
     outerScope.define(element1);
     innerScope.define(element2);
     errorListener.assertNoErrors();

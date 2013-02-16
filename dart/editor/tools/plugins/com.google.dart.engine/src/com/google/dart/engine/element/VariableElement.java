@@ -14,7 +14,6 @@
 package com.google.dart.engine.element;
 
 import com.google.dart.engine.type.Type;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * The interface {@code VariableElement} defines the behavior common to elements that represent a
@@ -37,23 +36,6 @@ public interface VariableElement extends Element {
    * @return the declared type of this variable
    */
   public Type getType();
-
-  /**
-   * Return a source range that covers the approximate portion of the source in which the name of
-   * this variable is visible, or {@code null} if there is no single range of characters within
-   * which the variable's name is visible.
-   * <ul>
-   * <li>For a local variable, this includes everything from the end of the variable's initializer
-   * to the end of the block that encloses the variable declaration.</li>
-   * <li>For a parameter, this includes the body of the method or function that declares the
-   * parameter.</li>
-   * <li>For fields and top-level variables, {@code null} will be returned because they are
-   * potentially visible in multiple sources.</li>
-   * </ul>
-   * 
-   * @return the range of characters in which the name of this variable is visible
-   */
-  public SourceRange getVisibleRange();
 
   /**
    * Return {@code true} if this variable is a const variable. Variables are const if they have been

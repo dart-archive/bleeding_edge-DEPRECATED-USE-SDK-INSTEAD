@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,19 +16,13 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
- * Instances of the class {@code ParameterElementImpl} implement a {@code ParameterElement}.
+ * Instances of the class {@code LocalVariableElementImpl} implement a {@code LocalVariableElement}.
  */
-public class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
-  /**
-   * The kind of this parameter.
-   */
-  private ParameterKind parameterKind;
-
+public class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**
    * The offset to the beginning of the visible range for this element.
    */
@@ -43,30 +37,25 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   /**
    * An empty array of field elements.
    */
-  public static final ParameterElement[] EMPTY_ARRAY = new ParameterElement[0];
+  public static final LocalVariableElement[] EMPTY_ARRAY = new LocalVariableElement[0];
 
   /**
    * Initialize a newly created parameter element to have the given name.
    * 
    * @param name the name of this element
    */
-  public ParameterElementImpl(Identifier name) {
+  public LocalVariableElementImpl(Identifier name) {
     super(name);
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitParameterElement(this);
+    return visitor.visitLocalVariableElement(this);
   }
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.PARAMETER;
-  }
-
-  @Override
-  public ParameterKind getParameterKind() {
-    return parameterKind;
+    return ElementKind.LOCAL_VARIABLE;
   }
 
   @Override
@@ -75,29 +64,6 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
       return null;
     }
     return new SourceRange(visibleRangeOffset, visibleRangeLength);
-  }
-
-  @Override
-  public boolean isInitializingFormal() {
-    return hasModifier(Modifier.INITIALIZING_FORMAL);
-  }
-
-  /**
-   * Set whether this parameter is an initializing formal parameter to match the given value.
-   * 
-   * @param isInitializingFormal {@code true} if this parameter is an initializing formal parameter
-   */
-  public void setInitializingFormal(boolean isInitializingFormal) {
-    setModifier(Modifier.INITIALIZING_FORMAL, isInitializingFormal);
-  }
-
-  /**
-   * Set the kind of this parameter to the given kind.
-   * 
-   * @param parameterKind the new kind of this parameter
-   */
-  public void setParameterKind(ParameterKind parameterKind) {
-    this.parameterKind = parameterKind;
   }
 
   /**
@@ -118,8 +84,5 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
     builder.append(getType());
     builder.append(" ");
     builder.append(getName());
-    builder.append(" (");
-    builder.append(getKind());
-    builder.append(")");
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -16,56 +16,44 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 
 /**
- * Instances of the class {@code FieldElementImpl} implement a {@code FieldElement}.
+ * Instances of the class {@code TopLevelVariableElementImpl} implement a
+ * {@code TopLevelVariableElement}.
  */
-public class FieldElementImpl extends PropertyInducingElementImpl implements FieldElement {
+public class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
+    TopLevelVariableElement {
   /**
-   * An empty array of field elements.
+   * An empty array of top-level variable elements.
    */
-  public static final FieldElement[] EMPTY_ARRAY = new FieldElement[0];
+  public static final TopLevelVariableElement[] EMPTY_ARRAY = new TopLevelVariableElement[0];
 
   /**
-   * Initialize a newly created field element to have the given name.
+   * Initialize a newly created top-level variable element to have the given name.
    * 
    * @param name the name of this element
    */
-  public FieldElementImpl(Identifier name) {
+  public TopLevelVariableElementImpl(Identifier name) {
     super(name);
   }
 
   /**
-   * Initialize a newly created synthetic field element to have the given name.
+   * Initialize a newly created synthetic top-level variable element to have the given name.
    * 
    * @param name the name of this element
    */
-  public FieldElementImpl(String name) {
+  public TopLevelVariableElementImpl(String name) {
     super(name);
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitFieldElement(this);
+    return visitor.visitTopLevelVariableElement(this);
   }
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.FIELD;
-  }
-
-  @Override
-  public boolean isStatic() {
-    return hasModifier(Modifier.STATIC);
-  }
-
-  /**
-   * Set whether this field is static to correspond to the given value.
-   * 
-   * @param isStatic {@code true} if the field is static
-   */
-  public void setStatic(boolean isStatic) {
-    setModifier(Modifier.STATIC, isStatic);
+    return ElementKind.TOP_LEVEL_VARIABLE;
   }
 }

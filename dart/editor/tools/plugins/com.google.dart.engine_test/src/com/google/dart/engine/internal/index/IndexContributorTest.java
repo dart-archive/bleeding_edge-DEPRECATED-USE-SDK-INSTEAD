@@ -37,6 +37,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -808,7 +809,7 @@ public class IndexContributorTest extends EngineTestCase {
     when(libraryElement.getImports()).thenReturn(new ImportElement[] {importElement});
     Element mainElement = getElement("main(");
     {
-      VariableElement variableElement = mock(VariableElement.class);
+      LocalVariableElement variableElement = mock(LocalVariableElement.class);
       when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
       findSimpleIdentifier("myVar").setElement(variableElement);
     }
@@ -838,7 +839,7 @@ public class IndexContributorTest extends EngineTestCase {
     when(importElement.getImportedLibrary()).thenReturn(importedlibrary);
     findSimpleIdentifier("pref.myVar").setElement(importElement);
     {
-      VariableElement variableElement = mock(VariableElement.class);
+      LocalVariableElement variableElement = mock(LocalVariableElement.class);
       when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
       findSimpleIdentifier("myVar").setElement(variableElement);
     }

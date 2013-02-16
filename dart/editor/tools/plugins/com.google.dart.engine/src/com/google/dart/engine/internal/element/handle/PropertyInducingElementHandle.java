@@ -13,34 +13,36 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
-import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 
 /**
- * Instances of the class {@code FieldElementHandle} implement a handle to a {@code FieldElement}.
+ * The abstract class {@code PropertyInducingElementHandle} implements the behavior common to
+ * objects that implement a handle to an {@code PropertyInducingElement}.
  */
-public class FieldElementHandle extends PropertyInducingElementHandle implements FieldElement {
+public abstract class PropertyInducingElementHandle extends VariableElementHandle implements
+    PropertyInducingElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
    * @param element the element being represented
    */
-  public FieldElementHandle(FieldElement element) {
+  public PropertyInducingElementHandle(PropertyInducingElement element) {
     super(element);
   }
 
   @Override
-  public ElementKind getKind() {
-    return ElementKind.FIELD;
+  public PropertyAccessorElement getGetter() {
+    return getActualElement().getGetter();
   }
 
   @Override
-  public boolean isStatic() {
-    return getActualElement().isStatic();
+  public PropertyAccessorElement getSetter() {
+    return getActualElement().getSetter();
   }
 
   @Override
-  protected FieldElement getActualElement() {
-    return (FieldElement) super.getActualElement();
+  protected PropertyInducingElement getActualElement() {
+    return (PropertyInducingElement) super.getActualElement();
   }
 }

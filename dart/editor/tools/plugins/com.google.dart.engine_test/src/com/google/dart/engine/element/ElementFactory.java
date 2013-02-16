@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -22,12 +23,13 @@ import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
-import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
@@ -257,6 +259,14 @@ public final class ElementFactory {
     return library;
   }
 
+  public static LocalVariableElementImpl localVariableElement(Identifier name) {
+    return new LocalVariableElementImpl(name);
+  }
+
+  public static LocalVariableElementImpl localVariableElement(String name) {
+    return new LocalVariableElementImpl(identifier(name));
+  }
+
   public static MethodElementImpl methodElement(String methodName, Type returnType,
       Type... argumentTypes) {
     MethodElementImpl method = new MethodElementImpl(identifier(methodName));
@@ -308,8 +318,12 @@ public final class ElementFactory {
     return setter;
   }
 
-  public static VariableElementImpl variableElement(String name) {
-    return new VariableElementImpl(name, -1);
+  public static TopLevelVariableElementImpl topLevelVariableElement(Identifier name) {
+    return new TopLevelVariableElementImpl(name);
+  }
+
+  public static TopLevelVariableElementImpl topLevelVariableElement(String name) {
+    return new TopLevelVariableElementImpl(name);
   }
 
   /**

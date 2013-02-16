@@ -46,9 +46,11 @@ import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
@@ -77,6 +79,11 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private boolean inFieldContext = false;
 
   /**
+   * A flag indicating whether a variable declaration is within the body of a method or function.
+   */
+  private boolean inFunction = false;
+
+  /**
    * Initialize a newly created element builder to build the elements for a compilation unit.
    * 
    * @param initialHolder the element holder associated with the compilation unit being built
@@ -89,14 +96,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {
-      VariableElementImpl exception = new VariableElementImpl(exceptionParameter);
+      VariableElementImpl exception = new LocalVariableElementImpl(exceptionParameter);
 
       currentHolder.addVariable(exception);
       exceptionParameter.setElement(exception);
 
       SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
       if (stackTraceParameter != null) {
-        VariableElementImpl stackTrace = new VariableElementImpl(stackTraceParameter);
+        VariableElementImpl stackTrace = new LocalVariableElementImpl(stackTraceParameter);
 
         currentHolder.addVariable(stackTrace);
         stackTraceParameter.setElement(stackTrace);
@@ -218,6 +225,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setFinal(node.isFinal());
     parameter.setInitializer(initializer);
     parameter.setParameterKind(node.getKind());
+    // TODO(brianwilkerson) Set visible range
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
@@ -257,7 +265,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
+    boolean wasInFunction = inFunction;
+    inFunction = true;
+    try {
+      visitChildren(holder, node);
+    } finally {
+      inFunction = wasInFunction;
+    }
 
     SimpleIdentifier functionName = node.getName();
     FunctionElementImpl element = new FunctionElementImpl(functionName);
@@ -265,6 +279,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setLabels(holder.getLabels());
     element.setLocalVariables(holder.getVariables());
     element.setParameters(holder.getParameters());
+    // TODO(brianwilkerson) Set visible range
 
     currentHolder.addFunction(element);
     functionName.setElement(element);
@@ -274,7 +289,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
     ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
+    boolean wasInFunction = inFunction;
+    inFunction = true;
+    try {
+      visitChildren(holder, node);
+    } finally {
+      inFunction = wasInFunction;
+    }
 
     SimpleIdentifier functionName = null;
     FunctionElementImpl element = new FunctionElementImpl(functionName);
@@ -346,7 +367,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
+    boolean wasInFunction = inFunction;
+    inFunction = true;
+    try {
+      visitChildren(holder, node);
+    } finally {
+      inFunction = wasInFunction;
+    }
 
     Token property = node.getPropertyKeyword();
     if (property == null) {
@@ -475,9 +502,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
       currentHolder.addField(field);
       fieldName.setElement(field);
+    } else if (inFunction) {
+      SimpleIdentifier variableName = node.getName();
+      element = new LocalVariableElementImpl(variableName);
+      // TODO(brianwilkerson) Set visible range
+
+      currentHolder.addVariable(element);
+      variableName.setElement(element);
     } else {
       SimpleIdentifier variableName = node.getName();
-      element = new VariableElementImpl(variableName);
+      element = new TopLevelVariableElementImpl(variableName);
 
       currentHolder.addVariable(element);
       variableName.setElement(element);

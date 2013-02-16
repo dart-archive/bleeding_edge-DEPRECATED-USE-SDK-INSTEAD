@@ -38,6 +38,8 @@ public interface ElementVisitor<R> {
 
   public R visitLibraryElement(LibraryElement element);
 
+  public R visitLocalVariableElement(LocalVariableElement element);
+
   public R visitMethodElement(MethodElement element);
 
   public R visitMultiplyDefinedElement(MultiplyDefinedElement element);
@@ -48,9 +50,9 @@ public interface ElementVisitor<R> {
 
   public R visitPropertyAccessorElement(PropertyAccessorElement element);
 
+  public R visitTopLevelVariableElement(TopLevelVariableElement element);
+
   public R visitTypeAliasElement(TypeAliasElement element);
 
   public R visitTypeVariableElement(TypeVariableElement element);
-
-  public R visitVariableElement(VariableElement element);
 }
