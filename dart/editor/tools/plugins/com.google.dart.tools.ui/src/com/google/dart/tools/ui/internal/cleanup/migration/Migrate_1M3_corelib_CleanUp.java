@@ -258,6 +258,25 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         }
         // uri.isAbsolute() becomes uri.isAbsolute, and uri.hasAuthority() becomes uri.hasAuthority
         convertMethodToGetter(change, node, METHOD_TO_GETTER_LIST);
+        // element.on.click.add(listener)  --->  element.onClick.listen(listener)
+        if (nameNode.getName().equals("add") && node.getRealTarget() instanceof DartPropertyAccess) {
+          DartPropertyAccess elementOnEvent = (DartPropertyAccess) node.getRealTarget();
+          if (elementOnEvent.getQualifier() instanceof DartPropertyAccess) {
+            DartPropertyAccess elementOn = (DartPropertyAccess) elementOnEvent.getQualifier();
+            DartNode element = elementOn.getQualifier();
+            if (elementOn.getName().getName().equals("on")
+                && element.getType() instanceof InterfaceType) {
+              InterfaceType elementType = (InterfaceType) element.getType();
+              if (isSubType(elementType, "Element", "dart://html/dartium/html_dartium.dart")) {
+                String eventName = elementOnEvent.getName().getName();
+                String onEventName = "on" + StringUtils.capitalize(eventName) + ".listen";
+                addReplaceEdit(
+                    SourceRangeFactory.forStartEnd(elementOn.getName(), nameNode),
+                    onEventName);
+              }
+            }
+          }
+        }
         // done
         return super.visitMethodInvocation(node);
       }

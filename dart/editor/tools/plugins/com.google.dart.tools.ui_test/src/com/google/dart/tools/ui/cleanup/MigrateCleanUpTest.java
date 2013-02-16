@@ -1408,6 +1408,27 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M3_onEvent() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:html';",
+        "main() {",
+        "  ButtonElement button;",
+        "  button.on.click.add((e) {});",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:html';",
+        "main() {",
+        "  ButtonElement button;",
+        "  button.onClick.listen((e) {});",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
+  }
+
   public void test_1M3_renameExceptions() throws Exception {
     ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
     String initial = makeSource(
