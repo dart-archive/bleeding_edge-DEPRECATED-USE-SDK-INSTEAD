@@ -27,7 +27,10 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -371,7 +374,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(FieldElement.class, fieldElement);
+    List<SearchMatch> matches = searchReferencesSync(PropertyInducingElement.class, fieldElement);
     assertEquals(matches, searchReferencesSync(Element.class, fieldElement));
     // verify
     assertMatches(
@@ -521,6 +524,55 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementB, MatchKind.NAME_REFERENCE, 10, 20));
   }
 
+  public void test_searchReferences_TopLevelVariableElement() throws Exception {
+    PropertyAccessorElement getterElement = mock(PropertyAccessorElement.class);
+    PropertyAccessorElement setterElement = mock(PropertyAccessorElement.class);
+    TopLevelVariableElement topVariableElement = mock(TopLevelVariableElement.class);
+    when(topVariableElement.getGetter()).thenReturn(getterElement);
+    when(topVariableElement.getSetter()).thenReturn(setterElement);
+    when(topVariableElement.getKind()).thenReturn(ElementKind.FIELD);
+    {
+      Location location = new Location(elementA, 1, 10, null);
+      indexStore.recordRelationship(
+          getterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
+      indexStore.recordRelationship(
+          getterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementC, 3, 30, null);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementD, 4, 40, null);
+      indexStore.recordRelationship(
+          setterElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(
+        PropertyInducingElement.class,
+        topVariableElement);
+    assertEquals(matches, searchReferencesSync(Element.class, topVariableElement));
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.FIELD_READ, 1, 10, false),
+        new ExpectedMatch(elementB, MatchKind.FIELD_READ, 2, 20, true),
+        new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 3, 30, false),
+        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true));
+  }
+
   public void test_searchReferences_TypeAliasElement() throws Exception {
     TypeAliasElement referencedElement = mock(TypeAliasElement.class);
     when(referencedElement.getKind()).thenReturn(ElementKind.TYPE_ALIAS);
@@ -540,6 +592,27 @@ public class SearchEngineImplTest extends EngineTestCase {
         matches,
         new ExpectedMatch(elementA, MatchKind.FUNCTION_TYPE_REFERENCE, 1, 2),
         new ExpectedMatch(elementB, MatchKind.FUNCTION_TYPE_REFERENCE, 10, 20));
+  }
+
+  public void test_searchReferences_TypeVariableElement() throws Exception {
+    TypeVariableElement referencedElement = mock(TypeVariableElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.TYPE_VARIABLE);
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(TypeVariableElement.class, referencedElement);
+    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.TYPE_VARIABLE_REFERENCE, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.TYPE_VARIABLE_REFERENCE, 10, 20));
   }
 
   public void test_searchReferences_VariableElement() throws Exception {

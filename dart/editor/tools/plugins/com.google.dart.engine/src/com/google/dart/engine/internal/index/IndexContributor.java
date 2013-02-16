@@ -40,6 +40,7 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
@@ -52,6 +53,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -119,6 +121,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     if (node instanceof FunctionDeclaration) {
       return ((FunctionDeclaration) node).getName();
     }
+    if (node instanceof TypeParameter) {
+      return ((TypeParameter) node).getName();
+    }
     if (node instanceof MethodDeclaration) {
       return ((MethodDeclaration) node).getName();
     }
@@ -131,6 +136,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     return null;
   }
 
+  /**
+   * @return <code>true</code> if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
+   */
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
     return parent instanceof PrefixedIdentifier
@@ -398,7 +406,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       } else {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
       }
-    } else if (element instanceof ParameterElement || element instanceof VariableElement) {
+    } else if (element instanceof ParameterElement || element instanceof LocalVariableElement) {
       if (node.inGetterContext()) {
         recordRelationship(element, IndexConstants.IS_ACCESSED_BY, location);
       } else {
@@ -419,6 +427,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_VARIABLE, location);
     }
     return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @Override
+  public Void visitTypeParameter(TypeParameter node) {
+    TypeVariableElement element = node.getElement();
+    enterScope(element);
+    try {
+      return super.visitTypeParameter(node);
+    } finally {
+      exitScope();
+    }
   }
 
   @Override

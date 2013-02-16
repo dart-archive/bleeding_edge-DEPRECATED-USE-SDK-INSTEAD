@@ -106,6 +106,11 @@ public enum MatchKind {
   TYPE_REFERENCE,
 
   /**
+   * A reference to a type variable.
+   */
+  TYPE_VARIABLE_REFERENCE,
+
+  /**
    * A reference to a {@link CompilationUnitElement}.
    */
   UNIT_REFERENCE,

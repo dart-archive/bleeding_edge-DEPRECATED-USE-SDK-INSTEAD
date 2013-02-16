@@ -16,13 +16,14 @@ package com.google.dart.engine.search;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 
 import java.util.List;
@@ -176,35 +177,6 @@ public interface SearchEngine {
       SearchListener listener);
 
   /**
-   * Synchronously search for references to the given field within the given scope. Return all
-   * matches that pass the optional filter.
-   * 
-   * @param field the field being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned @ if the results could not
-   *          be computed
-   */
-  public List<SearchMatch> searchReferences(FieldElement field, SearchScope scope,
-      SearchFilter filter);
-
-  /**
-   * Search for references to the given field within the given scope.
-   * 
-   * @param field the field being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
-   * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
-   * @param listener the listener that will be notified when matches are found @ if the results
-   *          could not be computed
-   */
-  public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
-      SearchListener listener);
-
-  /**
    * Synchronously search for references to the given function within the given scope. Return all
    * matches that pass the optional filter.
    * 
@@ -350,6 +322,35 @@ public interface SearchEngine {
       SearchListener listener);
 
   /**
+   * Synchronously search for references to the given field within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param field the field being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
+   */
+  public List<SearchMatch> searchReferences(PropertyInducingElement field, SearchScope scope,
+      SearchFilter filter);
+
+  /**
+   * Search for references to the given field within the given scope.
+   * 
+   * @param field the field being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
+   */
+  public void searchReferences(PropertyInducingElement field, SearchScope scope,
+      SearchFilter filter, SearchListener listener);
+
+  /**
    * Synchronously search for references to the given name within the given scope. Return all
    * matches that pass the optional filter.
    * 
@@ -405,6 +406,35 @@ public interface SearchEngine {
    */
   public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
       SearchListener listener);
+
+  /**
+   * Synchronously search for references to the given type variable within the given scope. Return
+   * all matches that pass the optional filter.
+   * 
+   * @param typeVariable the type variable being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
+   */
+  public List<SearchMatch> searchReferences(TypeVariableElement typeVariable, SearchScope scope,
+      SearchFilter filter);
+
+  /**
+   * Search for references to the given type variable within the given scope.
+   * 
+   * @param typeVariable the type variable being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
+   */
+  public void searchReferences(TypeVariableElement typeVariable, SearchScope scope,
+      SearchFilter filter, SearchListener listener);
 
   /**
    * Synchronously search for references to the given variable within the given scope. Return all

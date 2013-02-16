@@ -16,15 +16,15 @@ package com.google.dart.engine.internal.search;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TopLevelVariableElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Location;
@@ -297,7 +297,8 @@ public class SearchEngineImpl implements SearchEngine {
           searchReferences((CompilationUnitElement) element, scope, filter, listener);
           return;
         case FIELD:
-          searchReferences((FieldElement) element, scope, filter, listener);
+        case TOP_LEVEL_VARIABLE:
+          searchReferences((PropertyInducingElement) element, scope, filter, listener);
           return;
         case FUNCTION:
           searchReferences((FunctionElement) element, scope, filter, listener);
@@ -317,67 +318,15 @@ public class SearchEngineImpl implements SearchEngine {
         case PARAMETER:
           searchReferences((ParameterElement) element, scope, filter, listener);
           return;
-        case TOP_LEVEL_VARIABLE:
-          searchReferences((TopLevelVariableElement) element, scope, filter, listener);
-          return;
         case TYPE_ALIAS:
           searchReferences((TypeAliasElement) element, scope, filter, listener);
+          return;
+        case TYPE_VARIABLE:
+          searchReferences((TypeVariableElement) element, scope, filter, listener);
           return;
       }
     }
     listener.searchComplete();
-  }
-
-  @Override
-  public List<SearchMatch> searchReferences(final FieldElement field, final SearchScope scope,
-      final SearchFilter filter) {
-    return gatherResults(new SearchRunner() {
-      @Override
-      public void performSearch(SearchListener listener) {
-        searchReferences(field, scope, filter, listener);
-      }
-    });
-  }
-
-  @Override
-  public void searchReferences(FieldElement field, SearchScope scope, SearchFilter filter,
-      SearchListener listener) {
-    assert listener != null;
-    listener = applyFilter(filter, listener);
-    // TODO(scheglov) use "6" when add matches by name
-    listener = new CountingSearchListener(4, listener);
-    // exact matches
-    {
-      index.getRelationships(
-          field.getGetter(),
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          newCallback(MatchKind.FIELD_READ, scope, listener));
-      index.getRelationships(
-          field.getGetter(),
-          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          newCallback(MatchKind.FIELD_READ, scope, listener));
-      index.getRelationships(
-          field.getSetter(),
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          newCallback(MatchKind.FIELD_WRITE, scope, listener));
-      index.getRelationships(
-          field.getSetter(),
-          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          newCallback(MatchKind.FIELD_WRITE, scope, listener));
-    }
-    // TODO(scheglov)
-    // inexact matches by name
-//    {
-//      Element inexactElement = new Element(IndexConstants.DYNAMIC, field.getElementName());
-//      index.getRelationships(
-//          inexactElement,
-//          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
-//          newCallback(MatchKind.FIELD_READ, listener));
-//      index.getRelationships(
-//          inexactElement,
-//          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
-//          newCallback(MatchKind.FIELD_WRITE, listener));
-//    }
   }
 
   @Override
@@ -522,6 +471,58 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final PropertyInducingElement field,
+      final SearchScope scope, final SearchFilter filter) {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) {
+        searchReferences(field, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(PropertyInducingElement field, SearchScope scope,
+      SearchFilter filter, SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    // TODO(scheglov) use "6" when add matches by name
+    listener = new CountingSearchListener(4, listener);
+    // exact matches
+    {
+      index.getRelationships(
+          field.getGetter(),
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          newCallback(MatchKind.FIELD_READ, scope, listener));
+      index.getRelationships(
+          field.getGetter(),
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          newCallback(MatchKind.FIELD_READ, scope, listener));
+      index.getRelationships(
+          field.getSetter(),
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          newCallback(MatchKind.FIELD_WRITE, scope, listener));
+      index.getRelationships(
+          field.getSetter(),
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          newCallback(MatchKind.FIELD_WRITE, scope, listener));
+    }
+    // TODO(scheglov)
+    // inexact matches by name
+//    {
+//      Element inexactElement = new Element(IndexConstants.DYNAMIC, field.getElementName());
+//      index.getRelationships(
+//          inexactElement,
+//          IndexConstants.IS_ACCESSED_BY_QUALIFIED,
+//          newCallback(MatchKind.FIELD_READ, listener));
+//      index.getRelationships(
+//          inexactElement,
+//          IndexConstants.IS_MODIFIED_BY_QUALIFIED,
+//          newCallback(MatchKind.FIELD_WRITE, listener));
+//    }
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final String name, final SearchScope scope,
       final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
@@ -563,6 +564,28 @@ public class SearchEngineImpl implements SearchEngine {
         alias,
         IndexConstants.IS_REFERENCED_BY,
         newCallback(MatchKind.FUNCTION_TYPE_REFERENCE, scope, listener));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final TypeVariableElement typeVariable,
+      final SearchScope scope, final SearchFilter filter) {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) {
+        searchReferences(typeVariable, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(TypeVariableElement typeVariable, SearchScope scope,
+      SearchFilter filter, SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    index.getRelationships(
+        typeVariable,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.TYPE_VARIABLE_REFERENCE, scope, listener));
   }
 
   @Override

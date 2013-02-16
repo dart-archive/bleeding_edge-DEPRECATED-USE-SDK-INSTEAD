@@ -41,6 +41,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -455,7 +456,6 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(classElementC, getOffset("B; // 3"), "B"));
   }
 
-  // XXX
   public void test_isInvokedBy_FunctionElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -980,6 +980,34 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
   }
 
+  public void test_isReferencedBy_NameElement_typeVariable() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A<T> {",
+        "  main() {",
+        "    T v = null;",
+        "  }",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    TypeVariableElement typeVariableElement = getElement("T>");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("T");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(typeVariableElement, getOffset("T>"), "T"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("T v = "), "T"));
+  }
+
   public void test_isReferencedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1200,29 +1228,28 @@ public class IndexContributorTest extends EngineTestCase {
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isReferencesByQualified_FieldElement() throws Exception {
+  public void test_isReferencedByUnqualified_TopLevelVariableElement_getter() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  static myField;",
-        "}",
+        "var myTopLevelVariable;",
         "main() {",
-        "  print(A.myField);",
+        "  print(myTopLevelVariable);",
         "}");
     // set elements
     Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
+    TopLevelVariableElement fieldElement = getElement("myTopLevelVariable;");
     PropertyAccessorElement accessorElement = fieldElement.getGetter();
-    findSimpleIdentifier("myField);").setElement(accessorElement);
+    findSimpleIdentifier("myTopLevelVariable);").setElement(accessorElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        accessorElement,
-        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+    // TODO(scheglov) restore after TopLevelVariableElement getter/setter
+//    assertRecordedRelation(
+//        relations,
+//        accessorElement,
+//        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+//        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable);"), "myTopLevelVariable"));
   }
 
   public void test_unresolvedUnit() throws Exception {

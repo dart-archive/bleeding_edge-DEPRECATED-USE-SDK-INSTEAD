@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -73,6 +74,16 @@ public class TypeParameter extends Declaration {
    */
   public TypeName getBound() {
     return bound;
+  }
+
+  /**
+   * Return the {@link TypeVariableElement} associated with this type parameter, or {@code null} if
+   * the AST structure has not been resolved.
+   * 
+   * @return the {@link TypeVariableElement} associated with this type parameter
+   */
+  public TypeVariableElement getElement() {
+    return name != null ? (TypeVariableElement) name.getElement() : null;
   }
 
   @Override
