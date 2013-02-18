@@ -14,11 +14,14 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -32,6 +35,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 
 import java.util.ArrayList;
@@ -137,19 +141,66 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   }
 
   /**
+   * Mock {@link ProjectManager} for testing {@link AnalysisEngineParticipant}
+   */
+  private final class MockProjectManager implements ProjectManager {
+    private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    private final DartIgnoreManager ignoreManager = new DartIgnoreManager();
+    private MockProjectImpl project;
+
+    @Override
+    public DartIgnoreManager getIgnoreManager() {
+      return ignoreManager;
+    }
+
+    @Override
+    public Index getIndex() {
+      return index;
+    }
+
+    @Override
+    public Project getProject(IProject resource) {
+      if (project == null) {
+        project = new MockProjectImpl(resource);
+      }
+      return project;
+    }
+
+    @Override
+    public Project[] getProjects() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IWorkspaceRoot getResource() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IResource getResourceFor(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SearchEngine newSearchEngine() {
+      throw new UnsupportedOperationException();
+    }
+  }
+
+  /**
    * Specialized {@link AnalysisEngineParticipant} that returns a mock context for recording what
    * analysis is requested rather than a context that would actually analyze the source.
    */
   private class Target extends AnalysisEngineParticipant {
-
-    private MockProjectImpl project;
     private MockDeltaProcessor processor;
 
     Target() {
-      super(
-          true,
-          new DartIgnoreManager(),
-          IndexFactory.newIndex(IndexFactory.newMemoryIndexStore()));
+      super(true, new MockProjectManager());
     }
 
     @Override
@@ -159,12 +210,6 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
         processor = new MockDeltaProcessor(project);
       }
       return processor;
-    }
-
-    @Override
-    protected Project createProject(IProject resource) {
-      project = new MockProjectImpl(resource);
-      return project;
     }
   }
 

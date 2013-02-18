@@ -21,6 +21,7 @@ import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -37,10 +38,17 @@ public class ProjectManagerImpl implements ProjectManager {
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartSdk sdk;
+  private final DartIgnoreManager ignoreManager;
 
-  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk) {
+  public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     this.resource = resource;
     this.sdk = sdk;
+    this.ignoreManager = ignoreManager;
+  }
+
+  @Override
+  public DartIgnoreManager getIgnoreManager() {
+    return ignoreManager;
   }
 
   @Override

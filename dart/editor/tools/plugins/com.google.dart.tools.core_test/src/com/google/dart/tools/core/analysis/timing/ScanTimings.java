@@ -21,10 +21,12 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
@@ -107,6 +109,61 @@ public class ScanTimings extends TestCase {
     @Override
     public void stop() {
       // ignored
+    }
+  }
+
+  private final class MockProjectManagerForScan implements ProjectManager {
+    private final MockIndexForScan index = new MockIndexForScan();
+    private final DartIgnoreManager ignoreManager = new DartIgnoreManager();
+    private ProjectImpl project;
+
+    @Override
+    public DartIgnoreManager getIgnoreManager() {
+      return ignoreManager;
+    }
+
+    @Override
+    public Index getIndex() {
+      return index;
+    }
+
+    @Override
+    public Project getProject(IProject resource) {
+      if (project == null) {
+        project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {
+          @Override
+          public AnalysisContext createContext() {
+            contextCount++;
+            return new MockContextForScan();
+          }
+        });
+      }
+      return project;
+    }
+
+    @Override
+    public Project[] getProjects() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IWorkspaceRoot getResource() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public IResource getResourceFor(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SearchEngine newSearchEngine() {
+      throw new UnsupportedOperationException();
     }
   }
 
@@ -306,9 +363,7 @@ public class ScanTimings extends TestCase {
     IProgressMonitor monitor = new NullProgressMonitor();
     final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
         true,
-        new DartIgnoreManager(),
-        new MockIndexForScan()) {
-      private ProjectImpl project;
+        new MockProjectManagerForScan()) {
 
       @Override
       protected DeltaProcessor createProcessor(Project project) {
@@ -325,18 +380,6 @@ public class ScanTimings extends TestCase {
             return super.visitProxy(proxy, name);
           }
         };
-      }
-
-      @Override
-      protected Project createProject(IProject resource) {
-        project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {
-          @Override
-          public AnalysisContext createContext() {
-            contextCount++;
-            return new MockContextForScan();
-          }
-        });
-        return project;
       }
     };
     participant.build(new BuildEvent(project, null, monitor), monitor);

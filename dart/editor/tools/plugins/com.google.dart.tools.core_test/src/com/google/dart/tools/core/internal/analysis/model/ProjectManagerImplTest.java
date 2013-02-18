@@ -19,6 +19,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.TestProjects;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
@@ -36,9 +37,15 @@ public class ProjectManagerImplTest extends TestCase {
   private MockProject projectContainer;
   private ProjectManager manager;
   private DartSdk expectedSdk;
+  private DartIgnoreManager ignoreManager = new DartIgnoreManager();
+
+  public void test_getIgnoreManager() throws Exception {
+    assertSame(ignoreManager, manager.getIgnoreManager());
+  }
 
   public void test_getIndex() throws Exception {
     Index index = manager.getIndex();
+    assertNotNull(index);
     assertSame(index, manager.getIndex());
   }
 
@@ -95,6 +102,6 @@ public class ProjectManagerImplTest extends TestCase {
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
     expectedSdk = mock(DartSdk.class);
-    manager = new ProjectManagerImpl(rootContainer, expectedSdk);
+    manager = new ProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
   }
 }

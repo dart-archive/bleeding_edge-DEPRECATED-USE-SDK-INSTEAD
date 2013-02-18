@@ -23,6 +23,7 @@ import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
@@ -677,7 +678,8 @@ public class DartCore extends Plugin implements DartSdkListener {
     if (projectManager == null) {
       projectManager = new ProjectManagerImpl(
           ResourcesPlugin.getWorkspace().getRoot(),
-          DartSdkManager.getManager().getNewSdk());
+          DartSdkManager.getManager().getNewSdk(),
+          DartIgnoreManager.getInstance());
     }
     return projectManager;
   }

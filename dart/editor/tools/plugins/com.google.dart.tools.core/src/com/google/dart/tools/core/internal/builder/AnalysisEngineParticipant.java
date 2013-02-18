@@ -14,17 +14,14 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.index.Index;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
 import com.google.dart.tools.core.builder.CleanEvent;
-import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
-import com.google.dart.tools.core.internal.model.DartIgnoreManager;
-import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.DART_PROBLEM_MARKER_TYPE;
 
@@ -47,35 +44,27 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private final boolean enabled;
 
   /**
+   * The project manager (not {@code null}) responsible for caching project information and from
+   * which the receiver obtains the project to be analyzed.
+   */
+  private final ProjectManager projectManager;
+
+  /**
    * The project being analyzed by this build participant or {@code null} if it has not been
    * initialized yet.
    */
   private Project project;
 
-  /**
-   * The object (not {@code null}) used to manage which resources should be not be analyzed.
-   */
-  private final DartIgnoreManager ignoreManager;
-
-  /**
-   * The index (not {@code null}) to be updated.
-   */
-  private final Index index;
-
   public AnalysisEngineParticipant() {
-    this(
-        DartCoreDebug.ENABLE_NEW_ANALYSIS,
-        DartIgnoreManager.getInstance(),
-        DartCore.getProjectManager().getIndex());
+    this(DartCoreDebug.ENABLE_NEW_ANALYSIS, DartCore.getProjectManager());
   }
 
-  public AnalysisEngineParticipant(boolean enabled, DartIgnoreManager ignoreManager, Index index) {
-    if (ignoreManager == null | index == null) {
+  public AnalysisEngineParticipant(boolean enabled, ProjectManager projectManager) {
+    if (projectManager == null) {
       throw new IllegalArgumentException();
     }
     this.enabled = enabled;
-    this.ignoreManager = ignoreManager;
-    this.index = index;
+    this.projectManager = projectManager;
   }
 
   /**
@@ -96,7 +85,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         IProject resource = (IProject) delta.getResource();
 
         if (project == null) {
-          project = createProject(resource);
+          project = projectManager.getProject(resource);
         }
 
         if (monitor.isCanceled()) {
@@ -113,7 +102,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager, index);
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(
+            projectManager.getIgnoreManager(),
+            projectManager.getIndex());
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(delta);
@@ -127,7 +118,7 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         IProject resource = (IProject) proxy.requestResource();
 
         if (project == null) {
-          project = createProject(resource);
+          project = projectManager.getProject(resource);
         }
 
         if (monitor.isCanceled()) {
@@ -144,7 +135,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         }
 
         // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(ignoreManager, index);
+        ProjectAnalyzer analyzer = new ProjectAnalyzer(
+            projectManager.getIgnoreManager(),
+            projectManager.getIndex());
         processor = createProcessor(project);
         processor.addDeltaListener(analyzer);
         processor.traverse(resource);
@@ -187,18 +180,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @return the delta processor (not {@code null})
    */
   protected DeltaProcessor createProcessor(Project project) {
-    DeltaProcessor processor = new DeltaProcessor(project);
-    return processor;
-  }
-
-  /**
-   * Initialize the Dart {@link Project} for the given {@link IProject} resource. Overridden when
-   * testing this class.
-   * 
-   * @param resource the project resource (not {@code null})
-   * @return the dart project
-   */
-  protected Project createProject(IProject resource) {
-    return new ProjectImpl(resource, DartSdkManager.getManager().getNewSdk());
+    return new DeltaProcessor(project);
   }
 }

@@ -17,12 +17,20 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
 public interface ProjectManager {
+
+  /**
+   * Answer the global ignore manager used for all Dart source
+   * 
+   * @return the ignore manager (not {@code null})
+   */
+  DartIgnoreManager getIgnoreManager();
 
   /**
    * Answer the global index used for all Dart source
