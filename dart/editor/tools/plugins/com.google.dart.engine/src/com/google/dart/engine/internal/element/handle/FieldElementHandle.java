@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 
@@ -27,6 +28,11 @@ public class FieldElementHandle extends PropertyInducingElementHandle implements
    */
   public FieldElementHandle(FieldElement element) {
     super(element);
+  }
+
+  @Override
+  public ClassElement getEnclosingElement() {
+    return getActualElement().getEnclosingElement();
   }
 
   @Override

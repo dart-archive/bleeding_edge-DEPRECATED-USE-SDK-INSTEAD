@@ -19,6 +19,14 @@ package com.google.dart.engine.element;
  */
 public interface FieldElement extends PropertyInducingElement {
   /**
+   * Return the type in which this field is defined.
+   * 
+   * @return the type in which this field is defined
+   */
+  @Override
+  public ClassElement getEnclosingElement();
+
+  /**
    * Return {@code true} if this field is a static field.
    * 
    * @return {@code true} if this field is a static field
