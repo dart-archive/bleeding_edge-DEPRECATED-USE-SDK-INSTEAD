@@ -383,6 +383,7 @@ public class ConstructorDeclaration extends ClassMember {
     safelyVisitChild(name, visitor);
     safelyVisitChild(parameters, visitor);
     initializers.accept(visitor);
+    safelyVisitChild(redirectedConstructor, visitor);
     safelyVisitChild(body, visitor);
   }
 
