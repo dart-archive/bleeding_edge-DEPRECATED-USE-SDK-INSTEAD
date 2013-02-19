@@ -26,5 +26,6 @@ public enum Modifier {
   INITIALIZING_FORMAL,
   SETTER,
   STATIC,
-  SYNTHETIC;
+  SYNTHETIC,
+  TYPEDEF;
 }

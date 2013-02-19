@@ -121,6 +121,13 @@ public interface ClassElement extends Element {
   public boolean isAbstract();
 
   /**
+   * Return {@code true} if this class is defined by a typedef construct.
+   * 
+   * @return {@code true} if this class is defined by a typedef construct
+   */
+  public boolean isTypedef();
+
+  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:

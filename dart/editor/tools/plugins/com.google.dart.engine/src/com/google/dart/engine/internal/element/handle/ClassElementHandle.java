@@ -111,6 +111,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean isTypedef() {
+    return getActualElement().isTypedef();
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     return getActualElement().lookUpGetter(getterName, library);
   }

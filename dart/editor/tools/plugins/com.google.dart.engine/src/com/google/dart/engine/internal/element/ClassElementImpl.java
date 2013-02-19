@@ -213,6 +213,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean isTypedef() {
+    return hasModifier(Modifier.TYPEDEF);
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     PropertyAccessorElement element = getGetter(getterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -385,6 +390,15 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   public void setType(InterfaceType type) {
     this.type = type;
+  }
+
+  /**
+   * Set whether this class is defined by a typedef construct to correspond to the given value.
+   * 
+   * @param isTypedef {@code true} if the class is defined by a typedef construct
+   */
+  public void setTypedef(boolean isTypedef) {
+    setModifier(Modifier.TYPEDEF, isTypedef);
   }
 
   /**

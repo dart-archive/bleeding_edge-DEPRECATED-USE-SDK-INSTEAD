@@ -165,6 +165,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
     element.setAbstract(node.getAbstractKeyword() != null);
+    element.setTypedef(true);
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
     element.setTypeVariables(typeVariables);
 
