@@ -40,11 +40,11 @@ import com.google.dart.engine.source.SourceKind;
 import java.io.File;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -449,8 +449,15 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
-    // TODO (danrubel): Replace this sub implementation
-    return Arrays.asList(changedSources);
+    // TODO(keertip): revisit to include dependent libraries that are not in changed sources but
+    // have to be re-resolved.
+    List<Source> librarySources = new ArrayList<Source>();
+    for (Source source : changedSources) {
+      if (getOrComputeKindOf(source) == SourceKind.LIBRARY) {
+        librarySources.add(source);
+      }
+    }
+    return librarySources;
   }
 
   /**
