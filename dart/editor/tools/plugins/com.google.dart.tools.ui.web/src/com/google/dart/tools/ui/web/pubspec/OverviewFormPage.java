@@ -381,6 +381,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     description = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
     toolkit.adapt(description, true, true);
     GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+    gd.widthHint = 200;
     gd.heightHint = 50;
     description.setLayoutData(gd);
     description.addModifyListener(new ModifyListener() {
