@@ -395,6 +395,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     try {
       source.getContents(receiver);
     } catch (Exception exception) {
+      throw new AnalysisException(exception);
     }
     return tokens[0];
   }
