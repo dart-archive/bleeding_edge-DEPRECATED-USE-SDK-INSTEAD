@@ -32,6 +32,7 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -42,6 +43,7 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
@@ -73,6 +75,7 @@ import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.showCombinator;
+import static com.google.dart.engine.ast.ASTFactory.superConstructorInvocation;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
@@ -148,11 +151,6 @@ public class ElementResolverTest extends EngineTestCase {
   }
 
   public void fail_visitRedirectingConstructorInvocation() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitSuperConstructorInvocation() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
   }
@@ -398,6 +396,21 @@ public class ElementResolverTest extends EngineTestCase {
     SimpleIdentifier node = identifier("i");
     VariableElementImpl element = localVariableElement(node);
     assertSame(element, resolve(node, element));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSuperConstructorInvocation() throws Exception {
+    ClassElementImpl superclass = classElement("A");
+    ConstructorElementImpl superConstructor = constructorElement(null);
+    superclass.setConstructors(new ConstructorElement[] {superConstructor});
+
+    ClassElementImpl subclass = classElement("B", superclass.getType());
+    ConstructorElementImpl subConstructor = constructorElement(null);
+    subclass.setConstructors(new ConstructorElement[] {subConstructor});
+
+    SuperConstructorInvocation invocation = superConstructorInvocation();
+    resolveInClass(invocation, subclass);
+    assertEquals(superConstructor, invocation.getElement());
     listener.assertNoErrors();
   }
 
