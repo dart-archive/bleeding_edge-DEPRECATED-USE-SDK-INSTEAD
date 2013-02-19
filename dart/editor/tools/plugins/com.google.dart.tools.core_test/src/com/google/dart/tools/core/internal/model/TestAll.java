@@ -25,11 +25,14 @@ public class TestAll {
 //    suite.addTestSuite(CompilationUnitImpl2Test.class);
     suite.addTestSuite(DartElementImplTest.class);
     suite.addTestSuite(DartFieldImplTest.class);
+    suite.addTestSuite(DartFunctionImplTest.class);
+    suite.addTestSuite(DartIgnoreFileTest.class);
+    suite.addTestSuite(DartIgnoreManagerTest.class);
+    suite.addTestSuite(DartImportImplTest.class);
     // TODO (danrubel): Don't run flaky test on bots and investigate locally
     if (!DartCoreTest.isRunningOnBuildBot()) {
       suite.addTestSuite(DartLibraryImplTest.class);
     }
-    suite.addTestSuite(DartImportImplTest.class);
     suite.addTestSuite(DartMethodImplTest.class);
     suite.addTestSuite(DartModelImplTest.class);
     suite.addTestSuite(DartModelManagerTest.class);
@@ -38,9 +41,7 @@ public class TestAll {
     suite.addTestSuite(DartTypeImplTest.class);
     suite.addTestSuite(DartTypeParameterImplTest.class);
     suite.addTestSuite(DartVariableImplTest.class);
-    suite.addTestSuite(DartFunctionImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
-    suite.addTestSuite(DartIgnoreFileTest.class);
     suite.addTestSuite(PackageLibraryManagerProviderAnyTest.class);
 
     suite.addTest(com.google.dart.tools.core.internal.model.info.TestAll.suite());

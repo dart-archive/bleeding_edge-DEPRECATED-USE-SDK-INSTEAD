@@ -31,7 +31,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 import java.util.ArrayList;
@@ -82,12 +81,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
         DartCore.logError("Failed to determine resource for: " + source);
         return null;
       }
-      IPath location = res.getLocation();
-      if (location == null) {
-        DartCore.logError("Failed to determine location for " + res);
-        return null;
-      }
-      if (ignoreManager.isIgnored(location.toPortableString())) {
+      if (ignoreManager.isIgnored(res)) {
         return null;
       }
       return res;

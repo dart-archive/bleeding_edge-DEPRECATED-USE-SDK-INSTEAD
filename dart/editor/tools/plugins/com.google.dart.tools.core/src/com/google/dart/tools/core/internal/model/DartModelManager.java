@@ -979,7 +979,7 @@ public class DartModelManager {
     if (!resource.exists()) {
       return false;
     }
-    return !DartIgnoreManager.getInstance().isIgnored(resource.getLocation().toPortableString());
+    return !DartIgnoreManager.getInstance().isIgnored(resource);
   }
 
   /**
