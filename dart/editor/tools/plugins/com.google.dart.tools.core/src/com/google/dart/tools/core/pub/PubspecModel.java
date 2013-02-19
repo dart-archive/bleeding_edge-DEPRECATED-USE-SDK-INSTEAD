@@ -118,7 +118,7 @@ public class PubspecModel {
     clearModelFields();
     if (yamlString != null) {
       comments = getComments(yamlString);
-      setValuesFromObject(PubYamlUtils.parsePubspecYamlToObject(yamlString));
+      setValuesFromMap(PubYamlUtils.parsePubspecYamlToMap(yamlString));
     }
   }
 
@@ -293,23 +293,34 @@ public class PubspecModel {
     return deps.toArray(new DependencyObject[deps.size()]);
   }
 
-  private void setValuesFromObject(PubYamlObject object) {
-    if (object != null) {
-      name = object.name;
-      version = (object.version != null) ? object.version : EMPTY_STRING;
-      author = (object.author != null) ? object.author : EMPTY_STRING;
-      if (object.authors != null) {
-        author = object.authors.get(0);
-        for (int i = 1; i < object.authors.size(); i++) {
-          author += "," + object.authors.get(i);
-        }
+  @SuppressWarnings("unchecked")
+  private void setValuesFromMap(Map<String, Object> pubspecMap) {
+    name = (String) pubspecMap.get("name");
+    version = (String) ((pubspecMap.get("version") != null) ? pubspecMap.get("version")
+        : EMPTY_STRING);
+    author = (String) ((pubspecMap.get("author") != null) ? pubspecMap.get("author") : EMPTY_STRING);
+    if (pubspecMap.get("authors") != null) {
+      List<String> authors = (List<String>) pubspecMap.get("authors");
+      author = authors.get(0);
+      for (int i = 1; i < authors.size(); i++) {
+        author += "," + authors.get(i);
       }
-      sdkVersion = (String) ((object.environment != null) ? object.environment.get(SDK_VERSION_KEY)
-          : EMPTY_STRING);
-      description = (object.description != null) ? object.description : EMPTY_STRING;
-      homepage = (object.homepage != null) ? object.homepage : EMPTY_STRING;
-      add(processDependencies(object.dependencies), IModelListener.REFRESH);
     }
+    if (pubspecMap.get("environment") != null) {
+      Map<String, Object> env = (Map<String, Object>) pubspecMap.get("environment");
+      sdkVersion = (String) env.get(SDK_VERSION_KEY);
+    } else {
+      sdkVersion = EMPTY_STRING;
+    }
+
+    description = (String) ((pubspecMap.get("description") != null) ? pubspecMap.get("description")
+        : EMPTY_STRING);
+    homepage = (String) ((pubspecMap.get("homepage") != null) ? pubspecMap.get("homepage")
+        : EMPTY_STRING);
+    add(
+        processDependencies((Map<String, Object>) pubspecMap.get("dependencies")),
+        IModelListener.REFRESH);
+
   }
 
 }
