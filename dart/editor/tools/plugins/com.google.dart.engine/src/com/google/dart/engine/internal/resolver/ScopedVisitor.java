@@ -43,6 +43,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
 import com.google.dart.engine.internal.scope.FunctionScope;
@@ -50,7 +51,6 @@ import com.google.dart.engine.internal.scope.FunctionTypeScope;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.internal.scope.Scope;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 
@@ -366,7 +366,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
    * @param node the node specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ResolverErrorCode errorCode, ASTNode node, Object... arguments) {
+  protected void reportError(ErrorCode errorCode, ASTNode node, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         node.getOffset(),
@@ -382,7 +382,7 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
    * @param token the token specifying the location of the error
    * @param arguments the arguments to the error, used to compose the error message
    */
-  protected void reportError(ResolverErrorCode errorCode, Token token, Object... arguments) {
+  protected void reportError(ErrorCode errorCode, Token token, Object... arguments) {
     errorListener.onError(new AnalysisError(
         source,
         token.getOffset(),

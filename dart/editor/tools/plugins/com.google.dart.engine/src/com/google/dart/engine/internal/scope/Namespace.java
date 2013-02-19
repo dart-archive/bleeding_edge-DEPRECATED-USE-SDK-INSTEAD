@@ -27,7 +27,12 @@ public class Namespace {
    * A table mapping names that are defined in this namespace to the element representing the thing
    * declared with that name.
    */
-  private HashMap<String, Element> definedNames = new HashMap<String, Element>();
+  private HashMap<String, Element> definedNames;
+
+  /**
+   * An empty namespace.
+   */
+  public static final Namespace EMPTY = new Namespace(new HashMap<String, Element>());
 
   /**
    * Initialize a newly created namespace to have the given defined names.

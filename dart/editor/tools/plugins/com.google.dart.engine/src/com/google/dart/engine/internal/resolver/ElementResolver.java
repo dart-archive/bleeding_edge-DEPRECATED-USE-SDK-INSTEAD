@@ -51,6 +51,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -159,7 +160,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             if (method != null) {
               node.setElement(method);
             } else {
-              // TODO(brianwilkerson) Report this error.
+              // TODO(brianwilkerson) Report this error. StaticTypeWarningCode.UNDEFINED_MEMBER
             }
           }
         }
@@ -207,6 +208,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Type type = node.getType().getType();
     if (!(type instanceof InterfaceType)) {
       // TODO(brianwilkerson) Report this error.
+      if (((InstanceCreationExpression) node.getParent()).isConst()) {
+        // CompileTimeErrorCode.CONST_WITH_NON_TYPE
+      } else {
+        // StaticWarningCode.NEW_WITH_NON_TYPE
+      }
       return null;
     }
     ClassElement classElement = ((InterfaceType) type).getElement();
@@ -234,10 +240,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    // TODO(scheglov) this causes CCE
-//    resolveCombinators(
-//        ((ExportElement) node.getElement()).getExportedLibrary(),
-//        node.getCombinators());
+    Element element = node.getElement();
+    if (element instanceof ExportElement) {
+      // The element is null when the URI is invalid
+      // TODO(brianwilkerson) Figure out when the element can ever be something other than an ExportElement
+      resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
+    }
     return null;
   }
 
@@ -259,10 +267,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     }
-    // TODO(scheglov) this causes CCE
-//    resolveCombinators(
-//        ((ImportElement) node.getElement()).getImportedLibrary(),
-//        node.getCombinators());
+    Element element = node.getElement();
+    if (element instanceof ImportElement) {
+      // The element is null when the URI is invalid
+      // TODO(brianwilkerson) Figure out when the element can ever be something other than an ImportElement
+      resolveCombinators(((ImportElement) element).getImportedLibrary(), node.getCombinators());
+    }
     return null;
   }
 
@@ -466,13 +476,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     Element variableType;
     if (prefixElement instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) prefixElement;
+      FunctionType type = accessor.getType();
+      if (type == null) {
+        // TODO(brianwilkerson) Figure out why this happens and either prevent it or report it (here
+        // or at the point of origin)
+        return null;
+      }
       if (accessor.isGetter()) {
-        variableType = accessor.getType().getReturnType().getElement();
+        variableType = type.getReturnType().getElement();
       } else {
-        variableType = accessor.getType().getNormalParameterTypes()[0].getElement();
+        variableType = type.getNormalParameterTypes()[0].getElement();
       }
     } else if (prefixElement instanceof VariableElement) {
-      variableType = ((VariableElement) prefixElement).getType().getElement();
+      Type prefixType = ((VariableElement) prefixElement).getType();
+      if (prefixType == null) {
+        // TODO(brianwilkerson) Figure out why this happens and either prevent it or report it (here
+        // or at the point of origin)
+        return null;
+      }
+      variableType = prefixType.getElement();
     } else {
       // reportError(ResolverErrorCode.UNDEFINED_PREFIX);
       return null;

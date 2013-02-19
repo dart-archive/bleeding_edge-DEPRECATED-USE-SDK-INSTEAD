@@ -94,6 +94,10 @@ public class LibraryImportScope extends Scope {
         }
       }
     }
+    if (foundElement instanceof MultiplyDefinedElementImpl) {
+      // TODO(brianwilkerson) Report this error.
+      // CompileTimeErrorCode.AMBIGUOUS_IMPORT
+    }
     if (foundElement != null) {
       defineWithoutChecking(foundElement);
     }
