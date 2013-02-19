@@ -76,6 +76,11 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  public boolean exists() {
+    return file.exists();
+  }
+
+  @Override
   public void getContents(ContentReceiver receiver) throws Exception {
     //
     // First check to see whether our factory has an override for our contents.

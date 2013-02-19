@@ -53,6 +53,13 @@ public interface Source {
   public boolean equals(Object object);
 
   /**
+   * Return {@code true} if this source exists.
+   * 
+   * @return {@code true} if this source exists
+   */
+  public boolean exists();
+
+  /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
    * defined on the receiver will be invoked unless an exception is thrown. The method that will be
    * invoked depends on which of the possible representations of the contents is the most efficient.
