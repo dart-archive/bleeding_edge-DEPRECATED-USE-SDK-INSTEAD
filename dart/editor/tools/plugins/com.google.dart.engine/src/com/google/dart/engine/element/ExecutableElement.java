@@ -39,7 +39,7 @@ public interface ExecutableElement extends Element {
    * 
    * @return the local variables defined within this executable element
    */
-  public VariableElement[] getLocalVariables();
+  public LocalVariableElement[] getLocalVariables();
 
   /**
    * Return an array containing all of the parameters defined by this executable element.

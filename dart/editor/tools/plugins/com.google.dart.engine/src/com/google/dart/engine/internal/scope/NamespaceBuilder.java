@@ -143,7 +143,7 @@ public class NamespaceBuilder {
     for (ClassElement element : compilationUnit.getTypes()) {
       addIfPublic(definedNames, element);
     }
-    for (VariableElement element : compilationUnit.getVariables()) {
+    for (VariableElement element : compilationUnit.getTopLevelVariables()) {
       addIfPublic(definedNames, element);
     }
   }

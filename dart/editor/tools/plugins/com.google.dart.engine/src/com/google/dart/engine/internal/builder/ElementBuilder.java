@@ -96,16 +96,16 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {
-      VariableElementImpl exception = new LocalVariableElementImpl(exceptionParameter);
+      LocalVariableElementImpl exception = new LocalVariableElementImpl(exceptionParameter);
 
-      currentHolder.addVariable(exception);
+      currentHolder.addLocalVariable(exception);
       exceptionParameter.setElement(exception);
 
       SimpleIdentifier stackTraceParameter = node.getStackTraceParameter();
       if (stackTraceParameter != null) {
-        VariableElementImpl stackTrace = new LocalVariableElementImpl(stackTraceParameter);
+        LocalVariableElementImpl stackTrace = new LocalVariableElementImpl(stackTraceParameter);
 
-        currentHolder.addVariable(stackTrace);
+        currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.setElement(stackTrace);
       }
     }
@@ -197,7 +197,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());
-    element.setLocalVariables(holder.getVariables());
+    element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
 
     currentHolder.addConstructor(element);
@@ -216,7 +216,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     FunctionElementImpl initializer = new FunctionElementImpl();
     initializer.setFunctions(holder.getFunctions());
     initializer.setLabels(holder.getLabels());
-    initializer.setLocalVariables(holder.getVariables());
+    initializer.setLocalVariables(holder.getLocalVariables());
     initializer.setParameters(holder.getParameters());
 
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
@@ -277,7 +277,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     FunctionElementImpl element = new FunctionElementImpl(functionName);
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());
-    element.setLocalVariables(holder.getVariables());
+    element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
     // TODO(brianwilkerson) Set visible range
 
@@ -301,7 +301,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     FunctionElementImpl element = new FunctionElementImpl(functionName);
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());
-    element.setLocalVariables(holder.getVariables());
+    element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
 
     FunctionTypeImpl type = new FunctionTypeImpl(element);
@@ -388,7 +388,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setAbstract(matches(keyword, Keyword.ABSTRACT));
       element.setFunctions(holder.getFunctions());
       element.setLabels(holder.getLabels());
-      element.setLocalVariables(holder.getVariables());
+      element.setLocalVariables(holder.getLocalVariables());
       element.setParameters(holder.getParameters());
       element.setStatic(matches(keyword, Keyword.STATIC));
 
@@ -409,7 +409,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
         getter.setFunctions(holder.getFunctions());
         getter.setLabels(holder.getLabels());
-        getter.setLocalVariables(holder.getVariables());
+        getter.setLocalVariables(holder.getLocalVariables());
 
         getter.setField(field);
         getter.setGetter(true);
@@ -421,7 +421,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
         setter.setFunctions(holder.getFunctions());
         setter.setLabels(holder.getLabels());
-        setter.setLocalVariables(holder.getVariables());
+        setter.setLocalVariables(holder.getLocalVariables());
         setter.setParameters(holder.getParameters());
 
         setter.setField(field);
@@ -507,13 +507,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element = new LocalVariableElementImpl(variableName);
       // TODO(brianwilkerson) Set visible range
 
-      currentHolder.addVariable(element);
+      currentHolder.addLocalVariable((LocalVariableElementImpl) element);
       variableName.setElement(element);
     } else {
       SimpleIdentifier variableName = node.getName();
       element = new TopLevelVariableElementImpl(variableName);
 
-      currentHolder.addVariable(element);
+      currentHolder.addTopLevelVariable((TopLevelVariableElementImpl) element);
       variableName.setElement(element);
     }
 
@@ -533,7 +533,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       FunctionElementImpl initializer = new FunctionElementImpl();
       initializer.setFunctions(holder.getFunctions());
       initializer.setLabels(holder.getLabels());
-      initializer.setLocalVariables(holder.getVariables());
+      initializer.setLocalVariables(holder.getLocalVariables());
       initializer.setSynthetic(true);
       element.setInitializer(initializer);
     }

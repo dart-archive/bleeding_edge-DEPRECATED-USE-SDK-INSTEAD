@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LabelElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
@@ -39,7 +40,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   /**
    * An array containing all of the local variables defined within this executable element.
    */
-  private VariableElement[] localVariables = VariableElementImpl.EMPTY_ARRAY;
+  private LocalVariableElement[] localVariables = LocalVariableElementImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the parameters defined by this executable element.
@@ -112,7 +113,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   @Override
-  public VariableElement[] getLocalVariables() {
+  public LocalVariableElement[] getLocalVariables() {
     return localVariables;
   }
 
@@ -155,9 +156,9 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    * 
    * @param localVariables the local variables defined within this executable element
    */
-  public void setLocalVariables(VariableElement[] localVariables) {
-    for (VariableElement variable : localVariables) {
-      ((VariableElementImpl) variable).setEnclosingElement(this);
+  public void setLocalVariables(LocalVariableElement[] localVariables) {
+    for (LocalVariableElement variable : localVariables) {
+      ((LocalVariableElementImpl) variable).setEnclosingElement(this);
     }
     this.localVariables = localVariables;
   }

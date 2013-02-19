@@ -59,7 +59,7 @@ public class LibraryScope extends EnclosedScope {
     for (ClassElement element : compilationUnit.getTypes()) {
       define(element);
     }
-    for (VariableElement element : compilationUnit.getVariables()) {
+    for (VariableElement element : compilationUnit.getTopLevelVariables()) {
       define(element);
     }
   }

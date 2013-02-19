@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
@@ -44,7 +45,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   /**
    * An array containing all of the variables contained in this compilation unit.
    */
-  private VariableElement[] variables = VariableElementImpl.EMPTY_ARRAY;
+  private TopLevelVariableElement[] variables = TopLevelVariableElementImpl.EMPTY_ARRAY;
 
   /**
    * The source that corresponds to this compilation unit.
@@ -148,6 +149,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
+  public TopLevelVariableElement[] getTopLevelVariables() {
+    return variables;
+  }
+
+  @Override
   public TypeAliasElement[] getTypeAliases() {
     return typeAliases;
   }
@@ -155,11 +161,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public ClassElement[] getTypes() {
     return types;
-  }
-
-  @Override
-  public VariableElement[] getVariables() {
-    return variables;
   }
 
   @Override
@@ -202,6 +203,18 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   /**
+   * Set the top-level variables contained in this compilation unit to the given variables.
+   * 
+   * @param variables the top-level variables contained in this compilation unit
+   */
+  public void setTopLevelVariables(TopLevelVariableElement[] variables) {
+    for (TopLevelVariableElement field : variables) {
+      ((TopLevelVariableElementImpl) field).setEnclosingElement(this);
+    }
+    this.variables = variables;
+  }
+
+  /**
    * Set the type aliases contained in this compilation unit to the given type aliases.
    * 
    * @param typeAliases the type aliases contained in this compilation unit
@@ -223,18 +236,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
       ((ClassElementImpl) type).setEnclosingElement(this);
     }
     this.types = types;
-  }
-
-  /**
-   * Set the variables contained in this compilation unit to the given variables.
-   * 
-   * @param variables the variables contained in this compilation unit
-   */
-  public void setVariables(VariableElement[] variables) {
-    for (VariableElement field : variables) {
-      ((VariableElementImpl) field).setEnclosingElement(this);
-    }
-    this.variables = variables;
   }
 
   @Override

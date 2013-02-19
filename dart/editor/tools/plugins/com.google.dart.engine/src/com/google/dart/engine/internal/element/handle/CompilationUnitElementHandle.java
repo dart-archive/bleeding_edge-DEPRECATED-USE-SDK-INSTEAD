@@ -19,8 +19,8 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -63,6 +63,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public TopLevelVariableElement[] getTopLevelVariables() {
+    return getActualElement().getTopLevelVariables();
+  }
+
+  @Override
   public TypeAliasElement[] getTypeAliases() {
     return getActualElement().getTypeAliases();
   }
@@ -70,11 +75,6 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   @Override
   public ClassElement[] getTypes() {
     return getActualElement().getTypes();
-  }
-
-  @Override
-  public VariableElement[] getVariables() {
-    return getActualElement().getVariables();
   }
 
   @Override

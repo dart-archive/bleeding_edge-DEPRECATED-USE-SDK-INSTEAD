@@ -31,6 +31,7 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.MethodElement;
@@ -38,6 +39,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -532,9 +534,10 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
   public void test_visitInstanceCreationExpression_typeParameters() throws Exception {
     // new C<I>()
-    ClassElement elementC = classElement("C", "E");
-    ClassElement elementI = classElement("I");
+    ClassElementImpl elementC = classElement("C", "E");
+    ClassElementImpl elementI = classElement("I");
     ConstructorElementImpl constructor = constructorElement(null);
+    elementC.setConstructors(new ConstructorElement[] {constructor});
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(elementC.getType());
     constructor.setType(constructorType);

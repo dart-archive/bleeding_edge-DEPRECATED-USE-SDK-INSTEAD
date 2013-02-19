@@ -78,7 +78,7 @@ public class CompilationUnitBuilder {
     element.setSource(source);
     element.setTypeAliases(holder.getTypeAliases());
     element.setTypes(holder.getTypes());
-    element.setVariables(holder.getVariables());
+    element.setTopLevelVariables(holder.getTopLevelVariables());
     unit.setElement(element);
     return element;
   }

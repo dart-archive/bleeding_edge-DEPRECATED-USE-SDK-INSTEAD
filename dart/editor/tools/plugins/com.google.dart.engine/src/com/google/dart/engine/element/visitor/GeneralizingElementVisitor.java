@@ -44,12 +44,49 @@ import com.google.dart.engine.element.VariableElement;
  * recursively visit all of the elements in an element model (like instances of the class
  * {@link RecursiveElementVisitor}). In addition, when an element of a specific type is visited not
  * only will the visit method for that specific type of element be invoked, but additional methods
- * for the superclasses of that element will also be invoked. For example, using an instance of this
- * class to visit a {@link FieldElement} will cause the method
- * {@link #visitFieldElement(FieldElement)} to be invoked but will also cause the methods
- * {@link #visitVariableElement(VariableElement)} and {@link #visitElement(Element)} to be
- * subsequently invoked. This allows visitors to be written that visit all variables without needing
- * to override the visit method for each of the specific subclasses of {@link VariableElement}.
+ * for the supertypes of that element will also be invoked. For example, using an instance of this
+ * class to visit a {@link MethodElement} will cause the method
+ * {@link #visitMethodElement(MethodElement)} to be invoked but will also cause the methods
+ * {@link #visitExecutableElement(ExecutableElement)} and {@link #visitElement(Element)} to be
+ * subsequently invoked. This allows visitors to be written that visit all executable elements
+ * without needing to override the visit method for each of the specific subclasses of
+ * {@link ExecutableElement}.
+ * <p>
+ * Note, however, that unlike many visitors, element visitors visit objects based on the interfaces
+ * implemented by those elements. Because interfaces form a graph structure rather than a tree
+ * structure the way classes do, and because it is generally undesirable for an object to be visited
+ * more than once, this class flattens the interface graph into a pseudo-tree. In particular, this
+ * class treats elements as if the element types were structured in the following way:
+ * <p>
+ * 
+ * <pre>
+ * Element
+ *   ClassElement
+ *   CompilationUnitElement
+ *   ExecutableElement
+ *      ConstructorElement
+ *      LocalElement
+ *         FunctionElement
+ *      MethodElement
+ *      PropertyAccessorElement
+ *   ExportElement
+ *   HtmlElement
+ *   ImportElement
+ *   LabelElement
+ *   LibraryElement
+ *   MultiplyDefinedElement
+ *   PrefixElement
+ *   TypeAliasElement
+ *   TypeVariableElement
+ *   UndefinedElement
+ *   VariableElement
+ *      PropertyInducingElement
+ *         FieldElement
+ *         TopLevelVariableElement
+ *      LocalElement
+ *         LocalVariableElement
+ *         ParameterElement
+ * </pre>
  * <p>
  * Subclasses that override a visit method must either invoke the overridden visit method or
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods

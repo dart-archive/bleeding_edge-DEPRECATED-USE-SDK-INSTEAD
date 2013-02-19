@@ -34,9 +34,11 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -79,7 +81,7 @@ public class ElementBuilderTest extends EngineTestCase {
     String stackParameterName = "s";
     CatchClause clause = catchClause(exceptionParameterName, stackParameterName);
     clause.accept(builder);
-    VariableElement[] variables = holder.getVariables();
+    LocalVariableElement[] variables = holder.getLocalVariables();
     assertLength(2, variables);
 
     VariableElement exceptionVariable = variables[0];
@@ -822,7 +824,7 @@ public class ElementBuilderTest extends EngineTestCase {
     VariableDeclaration variableDeclaration = variableDeclaration(variableName, null);
     variableDeclarationList(null, variableDeclaration);
     variableDeclaration.accept(builder);
-    VariableElement[] variables = holder.getVariables();
+    TopLevelVariableElement[] variables = holder.getTopLevelVariables();
     assertLength(1, variables);
 
     VariableElement variable = variables[0];

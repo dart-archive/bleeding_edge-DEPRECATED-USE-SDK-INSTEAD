@@ -238,7 +238,7 @@ public class NewStandardDartElementContentProvider implements ITreeContentProvid
 
     ArrayList<Element> members = new ArrayList<Element>();
 
-    for (Element variable : cu.getVariables()) {
+    for (Element variable : cu.getTopLevelVariables()) {
       members.add(variable);
     }
 

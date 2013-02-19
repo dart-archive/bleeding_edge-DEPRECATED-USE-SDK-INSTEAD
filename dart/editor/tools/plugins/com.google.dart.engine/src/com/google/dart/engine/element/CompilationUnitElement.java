@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.element;
 
-
 /**
  * The interface {@code CompilationUnitElement} defines the behavior of elements representing a
  * compilation unit.
@@ -57,9 +56,9 @@ public interface CompilationUnitElement extends Element {
   public ClassElement[] getTypes();
 
   /**
-   * Return an array containing all of the variables contained in this compilation unit.
+   * Return an array containing all of the top-level variables contained in this compilation unit.
    * 
-   * @return the variables contained in this compilation unit
+   * @return the top-level variables contained in this compilation unit
    */
-  public VariableElement[] getVariables();
+  public TopLevelVariableElement[] getTopLevelVariables();
 }
