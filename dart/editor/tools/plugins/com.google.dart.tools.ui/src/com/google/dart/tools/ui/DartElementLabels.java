@@ -24,7 +24,6 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.util.Strings;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementLabelComposer;
-import com.google.dart.tools.ui.internal.viewsupport.StorageLabelProvider;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -893,22 +892,13 @@ public class DartElementLabels {
    * @return Returns the label or the empty string if the object type is not supported.
    */
   public static String getTextLabel(Object obj, long flags) {
+
+    // Only handle DartElement labels and delegate to the new service for all else
     if (obj instanceof DartElement) {
       return getElementLabel((DartElement) obj, flags);
-    } else if (obj instanceof IResource) {
-      return ((IResource) obj).getName();
-    } else if (obj instanceof IStorage) {
-      StorageLabelProvider storageLabelProvider = new StorageLabelProvider();
-      String label = storageLabelProvider.getText(obj);
-      storageLabelProvider.dispose();
-      return label;
-    } else if (obj instanceof IAdaptable) {
-      IWorkbenchAdapter wbadapter = (IWorkbenchAdapter) ((IAdaptable) obj).getAdapter(IWorkbenchAdapter.class);
-      if (wbadapter != null) {
-        return wbadapter.getLabel(obj);
-      }
     }
-    return ""; //$NON-NLS-1$
+
+    return NewDartElementLabels.getTextLabel(obj, flags);
   }
 
   /**

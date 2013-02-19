@@ -17,6 +17,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.tools.core.model.DartProject;
 
 import org.eclipse.core.resources.IFile;
@@ -28,6 +29,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * "New" base content provider for Dart elements. It provides access to the Dart element hierarchy
@@ -212,43 +214,31 @@ public class NewStandardDartElementContentProvider implements ITreeContentProvid
   }
 
   private Object[] getClassMembers(ClassElement ce) {
-
-    //TODO (pquitslund): re-implement when elements support visitors or a getChildren() method
-
-    ArrayList<Element> members = new ArrayList<Element>();
-
-    for (Element field : ce.getFields()) {
-      members.add(field);
-    }
-
-    for (Element cons : ce.getConstructors()) {
-      members.add(cons);
-    }
-
-    for (Element method : ce.getMethods()) {
-      members.add(method);
-    }
-
-    return members.toArray(new Element[members.size()]);
+    return getSortedMembers(ce);
   }
 
   private Object[] getCompilationUnitMembers(CompilationUnitElement cu) {
+    return getSortedMembers(cu);
+  }
 
-    //TODO (pquitslund): re-implement when elements support visitors or a getChildren() method
+  /**
+   * Get members sorted by offset.
+   */
+  private Object[] getSortedMembers(Element element) {
 
-    ArrayList<Element> members = new ArrayList<Element>();
+    final ArrayList<Element> members = new ArrayList<Element>();
 
-    for (Element variable : cu.getTopLevelVariables()) {
-      members.add(variable);
-    }
+    element.visitChildren(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        if (!element.isSynthetic()) {
+          members.add(element);
+        }
+        return null;
+      }
+    });
 
-    for (Element function : cu.getFunctions()) {
-      members.add(function);
-    }
-
-    for (Element type : cu.getTypes()) {
-      members.add(type);
-    }
+    Collections.sort(members, Element.SORT_BY_OFFSET);
 
     return members.toArray(new Element[members.size()]);
   }

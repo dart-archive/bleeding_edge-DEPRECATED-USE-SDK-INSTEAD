@@ -918,10 +918,10 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     ColoredViewersManager.install(fOutlineViewer);
     initDragAndDrop();
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      fOutlineViewer.setContentProvider(new DartOutlinePageEngineContentProvider());
-      fOutlineViewer.setLabelProvider(new DartOutlineElementLabelProvider());
+      fOutlineViewer.setContentProvider(new NewDartOutlinePageContentProvider());
+      fOutlineViewer.setLabelProvider(new NewDartElementLabelProvider());
     } else {
-      fOutlineViewer.setContentProvider(new DartOutlinePageContentProvider(true));
+      fOutlineViewer.setContentProvider(new OldDartOutlinePageContentProvider(true));
       fOutlineViewer.setLabelProvider(new DartElementLabelProvider());
     }
     fOutlineViewer.updateTreeFont();

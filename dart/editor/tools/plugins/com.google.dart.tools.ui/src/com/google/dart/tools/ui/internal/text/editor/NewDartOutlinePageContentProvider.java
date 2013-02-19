@@ -21,13 +21,13 @@ import org.eclipse.jface.viewers.Viewer;
 /**
  * "New" outline content provider.
  * <p>
- * To replace {@link DartOutlinePageContentProvider}.
+ * To replace {@link OldDartOutlinePageContentProvider}.
  */
-public class DartOutlinePageEngineContentProvider extends NewStandardDartElementContentProvider {
+public class NewDartOutlinePageContentProvider extends NewStandardDartElementContentProvider {
 
   protected static final Object[] NO_CHILDREN = new Object[0];
 
-  public DartOutlinePageEngineContentProvider() {
+  public NewDartOutlinePageContentProvider() {
     super(true);
   }
 

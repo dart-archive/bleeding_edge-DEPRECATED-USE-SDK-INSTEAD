@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.viewsupport;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
@@ -47,12 +48,12 @@ import org.eclipse.ui.model.IWorkbenchAdapter;
 import java.io.File;
 
 /**
- * Default strategy of the Java plugin for the construction of Java element icons.
+ * Default strategy of the Dart plugin for the construction of Dart element icons.
  */
 public class DartElementImageProvider {
 
   /**
-   * Flags for the JavaImageLabelProvider: Generate images with overlays.
+   * Flags for the DartElementImageProvider: Generate images with overlays.
    */
   public final static int OVERLAY_ICONS = 0x1;
 
@@ -71,6 +72,8 @@ public class DartElementImageProvider {
 
   private static ImageDescriptor DESC_LAUNCHABLE;
   private static ImageDescriptor DESC_MAIN_TYPE;
+
+  private static final NewDartElementImageProvider newImageProvider = new NewDartElementImageProvider();
 
   public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
     return DartToolsPlugin.getImageDescriptorRegistry().get(
@@ -308,6 +311,11 @@ public class DartElementImageProvider {
    * @param flags Flags as defined by the JavaImageLabelProvider
    */
   public Image getImageLabel(Object element, int flags) {
+
+    if (element instanceof Element) {
+      return newImageProvider.getImageLabel(element, flags);
+    }
+
     return getImageLabel(computeDescriptor(element, flags));
   }
 

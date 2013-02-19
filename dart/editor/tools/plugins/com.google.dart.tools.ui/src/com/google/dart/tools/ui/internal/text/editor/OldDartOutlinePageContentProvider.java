@@ -53,7 +53,7 @@ import java.util.List;
  * 
  * @see DartOutlinePage
  */
-public class DartOutlinePageContentProvider extends OldStandardDartElementContentProvider implements
+public class OldDartOutlinePageContentProvider extends OldStandardDartElementContentProvider implements
     ElementChangedListener {
 
   protected static final int ORIGINAL = 0;
@@ -74,7 +74,7 @@ public class DartOutlinePageContentProvider extends OldStandardDartElementConten
    * 
    * @param provideMembers if <code>true</code>, members below compilation units files are provided
    */
-  public DartOutlinePageContentProvider(boolean provideMembers) {
+  public OldDartOutlinePageContentProvider(boolean provideMembers) {
     this(provideMembers, true);
   }
 
@@ -85,7 +85,7 @@ public class DartOutlinePageContentProvider extends OldStandardDartElementConten
    * @param libsTopLevel of <code>true</code>, then the children of a workspace will be the
    *          libraries in any contained project, not the set of projects
    */
-  public DartOutlinePageContentProvider(boolean provideMembers, boolean libsTopLevel) {
+  public OldDartOutlinePageContentProvider(boolean provideMembers, boolean libsTopLevel) {
     super(provideMembers, libsTopLevel);
     //DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(this);
     pendingUpdates = null;
@@ -318,7 +318,7 @@ public class DartOutlinePageContentProvider extends OldStandardDartElementConten
       ) {
         @Override
         public IStatus runInUIThread(IProgressMonitor monitor) {
-          TreeViewer viewer = DartOutlinePageContentProvider.this.viewer;
+          TreeViewer viewer = OldDartOutlinePageContentProvider.this.viewer;
           if (viewer != null && viewer.isBusy()) {
             schedule(100); // reschedule when viewer is busy: bug 184991
           } else {
