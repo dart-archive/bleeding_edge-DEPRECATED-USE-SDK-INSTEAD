@@ -57,6 +57,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
@@ -421,8 +422,10 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk())));
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk()));
+    context.setSourceFactory(sourceFactory);
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
+    definingCompilationUnit.setSource(sourceFactory.forFile(FileUtilities2.createFile("/test.dart")));
     definingLibrary = library(context, "test");
     definingLibrary.setDefiningCompilationUnit(definingCompilationUnit);
     Library library = new Library(context, listener, null);

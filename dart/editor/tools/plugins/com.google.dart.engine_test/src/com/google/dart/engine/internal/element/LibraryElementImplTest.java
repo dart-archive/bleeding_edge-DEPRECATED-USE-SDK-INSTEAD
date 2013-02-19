@@ -59,10 +59,10 @@ public class LibraryElementImplTest extends EngineTestCase {
     PrefixElement[] prefixes = library.getPrefixes();
     assertLength(2, prefixes);
     if (prefixA == prefixes[0]) {
-      assertEquals(prefixB, prefixes[1]);
+      assertSame(prefixB, prefixes[1]);
     } else {
-      assertEquals(prefixB, prefixes[0]);
-      assertEquals(prefixA, prefixes[1]);
+      assertSame(prefixB, prefixes[0]);
+      assertSame(prefixA, prefixes[1]);
     }
   }
 
@@ -75,7 +75,7 @@ public class LibraryElementImplTest extends EngineTestCase {
     ImportElement[] actualImports = library.getImports();
     assertLength(expectedImports.length, actualImports);
     for (int i = 0; i < actualImports.length; i++) {
-      assertEquals(expectedImports[i], actualImports[i]);
+      assertSame(expectedImports[i], actualImports[i]);
     }
   }
 }

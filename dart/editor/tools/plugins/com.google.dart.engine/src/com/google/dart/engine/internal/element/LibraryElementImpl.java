@@ -212,6 +212,9 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param exports the specifications of all of the exports defined in this library
    */
   public void setExports(ExportElement[] exports) {
+    for (ExportElement exportElement : exports) {
+      ((ExportElementImpl) exportElement).setEnclosingElement(this);
+    }
     this.exports = exports;
   }
 
@@ -221,6 +224,13 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * @param imports the specifications of all of the imports defined in this library
    */
   public void setImports(ImportElement[] imports) {
+    for (ImportElement importElement : imports) {
+      ((ImportElementImpl) importElement).setEnclosingElement(this);
+      PrefixElementImpl prefix = (PrefixElementImpl) importElement.getPrefix();
+      if (prefix != null) {
+        prefix.setEnclosingElement(this);
+      }
+    }
     this.imports = imports;
   }
 
