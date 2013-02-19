@@ -21,6 +21,15 @@ package com.google.dart.engine.utilities.instrumentation;
  */
 public interface InstrumentationLogger {
   /**
+   * Create a builder that can collect the data associated with an operation identified by the given
+   * name.
+   * 
+   * @param name the name used to uniquely identify the operation
+   * @return the builder that was created
+   */
+  public InstrumentationBuilder createBuilder(String name);
+
+  /**
    * Create an operation builder that can collect the data associated with an operation. The
    * operation is identified by the given name, is declared to contain only metrics data (data that
    * is not user identifiable and does not contain user intellectual property), and took the given
@@ -45,5 +54,4 @@ public interface InstrumentationLogger {
    * @return the operation builder that was created
    */
   public OperationBuilder createOperation(String name, long time);
-
 }

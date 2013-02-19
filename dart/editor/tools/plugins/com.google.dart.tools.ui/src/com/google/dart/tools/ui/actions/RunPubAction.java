@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartProject;
@@ -132,7 +133,8 @@ public class RunPubAction extends SelectionDispatchAction {
 
   @Override
   public void run(ISelection selection) {
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder(RunPubAction.class);
+    instrumentation.metric("command", command);
     if (selection instanceof ITextSelection) {
       IWorkbenchPage page = DartToolsPlugin.getActivePage();
       if (page != null) {
@@ -144,51 +146,35 @@ public class RunPubAction extends SelectionDispatchAction {
             IProject project = dartProject.getProject();
             runPubJob(project);
 
-            long elapsed = System.currentTimeMillis() - start;
-            Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-                "Success",
-                "true").log();
-            Instrumentation.operation("RunPubAction-run", elapsed).with("command", command).with(
-                "Success",
-                "true").with("Project", project.getName()).log();
+            instrumentation.metric("Success", "true");
+            instrumentation.data("Project", project.getName());
 
           } else {
             //dartProject == null
-            long elapsed = System.currentTimeMillis() - start;
-            Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-                "DartProject",
-                "null").log();
+            instrumentation.metric("DartProject", "null");
           }
 
         } else {
           //part == null
-          long elapsed = System.currentTimeMillis() - start;
-          Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-              "part",
-              "null").log();
+          instrumentation.metric("part", "null");
         }
 
       } else {
         //page == null
-        long elapsed = System.currentTimeMillis() - start;
-        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-            "page",
-            "null").log();
+        instrumentation.metric("page", "null");
       }
 
     } else {
       //selection != ITextSelection
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-          "ITextSelection",
-          "false").log();
+      instrumentation.metric("ITextSelection", "false");
     }
+    instrumentation.log();
   }
 
   @Override
   public void run(IStructuredSelection selection) {
-    long start = System.currentTimeMillis();
-
+    InstrumentationBuilder instrumentation = Instrumentation.builder(RunPubAction.class);
+    instrumentation.metric("command", command);
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
       if (object instanceof IFile) {
@@ -200,34 +186,22 @@ public class RunPubAction extends SelectionDispatchAction {
       if (object != null) {
         runPubJob((IContainer) object);
 
-        long elapsed = System.currentTimeMillis() - start;
-
-        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).log();
-
-        Instrumentation.operation("RunPubAction-run", elapsed).with("command", command).with(
-            "name",
-            ((IContainer) object).getName()).log();
+        instrumentation.data("name", ((IContainer) object).getName());
+        instrumentation.log();
         return;
       } else {
-        long elapsed = System.currentTimeMillis() - start;
-        Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-            "object",
-            "null").log();
+        instrumentation.metric("object", "null").log();
       }
-
     }
 
-    long beforeDialog = System.currentTimeMillis() - start;
+    instrumentation.metric("Error", "dialog opened");
 
     MessageDialog.openError(
         getShell(),
         ActionMessages.RunPubAction_fail,
         ActionMessages.RunPubAction_fileNotFound);
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("RunPubAction-run", elapsed).with("command", command).with(
-        "Error",
-        "After dialog").with("MessageShownFor", elapsed - beforeDialog).log();
+    instrumentation.log();
   }
 
   private List<String> buildPublishCommand(String arg) {

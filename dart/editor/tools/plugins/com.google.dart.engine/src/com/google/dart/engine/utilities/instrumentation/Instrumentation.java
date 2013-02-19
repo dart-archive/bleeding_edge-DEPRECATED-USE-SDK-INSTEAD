@@ -42,6 +42,57 @@ package com.google.dart.engine.utilities.instrumentation;
  * the resulting information should be logged.
  */
 public final class Instrumentation {
+
+  /**
+   * A builder that will silently ignore all data and logging requests.
+   */
+  private static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
+
+    @Override
+    public InstrumentationBuilder data(String name, AsyncValue valueGenerator) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder data(String name, long value) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder data(String name, String value) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder data(String name, String[] value) {
+      return this;
+    }
+
+    @Override
+    public void log() {
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, AsyncValue valueGenerator) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, long value) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, String value) {
+      return this;
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, String[] value) {
+      return this;
+    }
+  };
+
   /**
    * An instrumentation logger that can be used when no other instrumentation logger has been
    * configured. This logger will silently ignore all data and logging requests.
@@ -77,6 +128,11 @@ public final class Instrumentation {
     };
 
     @Override
+    public InstrumentationBuilder createBuilder(String name) {
+      return NULL_INSTRUMENTATION_BUILDER;
+    }
+
+    @Override
     public OperationBuilder createMetric(String name, long time) {
       return NULL_BUILDER;
     }
@@ -92,6 +148,35 @@ public final class Instrumentation {
    * The current instrumentation logger.
    */
   private static InstrumentationLogger CURRENT_LOGGER = NULL_LOGGER;
+
+  /**
+   * Create a builder that can collect the data associated with an operation.
+   * 
+   * @param clazz the class performing the operation (not {@code null})
+   * @return the builder that was created (not {@code null})
+   */
+  public static InstrumentationBuilder builder(Class<?> clazz) {
+    return CURRENT_LOGGER.createBuilder(clazz.getSimpleName());
+  }
+
+  /**
+   * Create a builder that can collect the data associated with an operation.
+   * 
+   * @param name the name used to uniquely identify the operation (not {@code null})
+   * @return the builder that was created (not {@code null})
+   */
+  public static InstrumentationBuilder builder(String name) {
+    return CURRENT_LOGGER.createBuilder(name);
+  }
+
+  /**
+   * Return a builder that will silently ignore all data and logging requests.
+   * 
+   * @return the builder (not {@code null})
+   */
+  public static InstrumentationBuilder getNullBuilder() {
+    return NULL_INSTRUMENTATION_BUILDER;
+  }
 
   /**
    * Create an operation builder that can collect the data associated with an operation. The
