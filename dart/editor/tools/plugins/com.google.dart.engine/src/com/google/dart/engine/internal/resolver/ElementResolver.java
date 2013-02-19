@@ -51,7 +51,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -235,9 +234,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitExportDirective(ExportDirective node) {
-    resolveCombinators(
-        ((ExportElement) node.getElement()).getExportedLibrary(),
-        node.getCombinators());
+    // TODO(scheglov) this causes CCE
+//    resolveCombinators(
+//        ((ExportElement) node.getElement()).getExportedLibrary(),
+//        node.getCombinators());
     return null;
   }
 
@@ -259,9 +259,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
     }
-    resolveCombinators(
-        ((ImportElement) node.getElement()).getImportedLibrary(),
-        node.getCombinators());
+    // TODO(scheglov) this causes CCE
+//    resolveCombinators(
+//        ((ImportElement) node.getElement()).getImportedLibrary(),
+//        node.getCombinators());
     return null;
   }
 

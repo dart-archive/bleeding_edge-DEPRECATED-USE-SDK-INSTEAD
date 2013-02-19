@@ -29,7 +29,7 @@ public class LocationTest extends EngineTestCase {
     assertEquals(1, location.getOffset());
     assertEquals(2, location.getLength());
     assertSame(null, location.getImportPrefix());
-    assertEquals("[1 - 2] in myElement", location.toString());
+    assertEquals("[1 - 3) in myElement", location.toString());
   }
 
   public void test_new_nullElement() throws Exception {
@@ -50,6 +50,6 @@ public class LocationTest extends EngineTestCase {
     assertEquals(1, location.getOffset());
     assertEquals(2, location.getLength());
     assertEquals("pref", location.getImportPrefix());
-    assertEquals("[1 - 2] in myElement with prefix 'pref'", location.toString());
+    assertEquals("[1 - 3) in myElement with prefix 'pref'", location.toString());
   }
 }

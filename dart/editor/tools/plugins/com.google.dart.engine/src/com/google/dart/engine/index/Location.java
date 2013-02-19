@@ -100,7 +100,7 @@ public class Location {
 
   @Override
   public String toString() {
-    String result = "[" + offset + " - " + (offset + length - 1) + "] in " + element;
+    String result = "[" + offset + " - " + (offset + length) + ") in " + element;
     if (importPrefix != null) {
       result += " with prefix '" + importPrefix + "'";
     }

@@ -14,6 +14,7 @@
 package com.google.dart.engine.utilities.source;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -23,6 +24,13 @@ import java.util.List;
  * values.
  */
 public class SourceRangeFactory {
+  /**
+   * @return the name {@link SourceRange} of the given {@link Element};
+   */
+  public static SourceRange rangeElementName(Element element) {
+    return rangeStartLength(element.getNameOffset(), element.getName().length());
+  }
+
   /**
    * @return the {@link SourceRange} which start at end of "a" and ends at end of "b".
    */

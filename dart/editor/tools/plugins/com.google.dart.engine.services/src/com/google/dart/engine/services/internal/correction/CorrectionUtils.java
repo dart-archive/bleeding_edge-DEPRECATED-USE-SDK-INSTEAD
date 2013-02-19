@@ -16,17 +16,23 @@ package com.google.dart.engine.services.internal.correction;
 import com.google.common.base.CharMatcher;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -40,6 +46,7 @@ import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utilities for analyzing {@link CompilationUnit}, its parts and source.
@@ -94,10 +101,79 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return all direct children of the given {@link Element}.
+   */
+  public static List<Element> getChildren(final Element parent) {
+    return getChildren(parent, null);
+  }
+
+  /**
+   * @param name the required name of children; may be <code>null</code> to get children with any
+   *          name.
+   * @return all direct children of the given {@link Element}, with given name.
+   */
+  public static List<Element> getChildren(final Element parent, final String name) {
+    final List<Element> children = Lists.newArrayList();
+    parent.accept(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        if (element == parent) {
+          super.visitElement(element);
+        } else if (name == null || element.getName().equals(name)) {
+          children.add(element);
+        }
+        return null;
+      }
+    });
+    return children;
+  }
+
+  /**
    * @return the number of characters this {@link Edit} will move offsets after its range.
    */
   public static int getDeltaOffset(Edit edit) {
     return edit.replacement.length() - edit.length;
+  }
+
+  /**
+   * @return the human name of the {@link Element} kind.
+   */
+  public static String getElementKindName(Element element) {
+    ElementKind kind = element.getKind();
+    switch (kind) {
+      case CLASS:
+        return "class";
+      case COMPILATION_UNIT:
+        return "compilation unit";
+      case FIELD:
+        return "field";
+      case FUNCTION:
+        return "function";
+      case LOCAL_VARIABLE:
+        return "local variable";
+      case METHOD:
+        return "method";
+      case TYPE_ALIAS:
+        return "function type alias";
+      case TYPE_VARIABLE:
+        return "type variable";
+      default:
+        throw new IllegalArgumentException(kind.name());
+    }
+  }
+
+  /**
+   * @return the human name of the {@link Element}.
+   */
+  public static String getElementQualifiedName(Element element) {
+    ElementKind kind = element.getKind();
+    switch (kind) {
+      case FIELD:
+      case METHOD:
+        return element.getEnclosingElement().getName() + "." + element.getName();
+      default:
+        return element.getName();
+    }
   }
 
   /**
@@ -124,17 +200,6 @@ public class CorrectionUtils {
       return ((Block) statement).getStatements();
     }
     return ImmutableList.of(statement);
-  }
-
-  /**
-   * @return the whitespace prefix of the given {@link String}.
-   */
-  public static String getStringPrefix(String s) {
-    int index = CharMatcher.WHITESPACE.negate().indexIn(s);
-    if (index == -1) {
-      return s;
-    }
-    return s.substring(0, index);
   }
 
 //  /**
@@ -232,6 +297,29 @@ public class CorrectionUtils {
 //    });
 //    return operands;
 //  }
+
+  /**
+   * @return the whitespace prefix of the given {@link String}.
+   */
+  public static String getStringPrefix(String s) {
+    int index = CharMatcher.WHITESPACE.negate().indexIn(s);
+    if (index == -1) {
+      return s;
+    }
+    return s.substring(0, index);
+  }
+
+  /**
+   * @return the {@link Set} with all direct and indirect super {@link ClassElement}s of the given.
+   */
+  public static Set<ClassElement> getSuperClassElements(ClassElement classElement) {
+    Set<ClassElement> classes = Sets.newHashSet();
+    for (InterfaceType superType : classElement.getAllSupertypes()) {
+      ClassElement superClass = superType.getElement();
+      classes.add(superClass);
+    }
+    return classes;
+  }
 
   /**
    * @return the actual type source of the given {@link Expression}, may be <code>null</code> if can
@@ -524,13 +612,6 @@ public class CorrectionUtils {
     return getText(node.getOffset(), node.getLength());
   }
 
-  /**
-   * @return the given range of text from unit.
-   */
-  public String getText(int offset, int length) {
-    return buffer.substring(offset, offset + length);
-  }
-
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -591,8 +672,8 @@ public class CorrectionUtils {
   /**
    * @return the given range of text from unit.
    */
-  public String getText(SourceRange range) {
-    return getText(range.getOffset(), range.getLength());
+  public String getText(int offset, int length) {
+    return buffer.substring(offset, offset + length);
   }
 
 //  /**
@@ -610,10 +691,10 @@ public class CorrectionUtils {
 //  }
 
   /**
-   * @return the underlying {@link CompilationUnit}.
+   * @return the given range of text from unit.
    */
-  public CompilationUnit getUnit() {
-    return unit;
+  public String getText(SourceRange range) {
+    return getText(range.getOffset(), range.getLength());
   }
 
 //  public boolean rangeIncludesNonWhitespaceOutsideNode(SourceRange range, ASTNode node) {
@@ -666,6 +747,13 @@ public class CorrectionUtils {
 //  }
 
   /**
+   * @return the underlying {@link CompilationUnit}.
+   */
+  public CompilationUnit getUnit() {
+    return unit;
+  }
+
+  /**
    * @return <code>true</code> if selection range contains only whitespace.
    */
   public boolean isJustWhitespace(SourceRange range) {
@@ -684,5 +772,4 @@ public class CorrectionUtils {
     // may be comment
     return TokenUtils.getTokens(trimmedText).isEmpty();
   }
-
 }

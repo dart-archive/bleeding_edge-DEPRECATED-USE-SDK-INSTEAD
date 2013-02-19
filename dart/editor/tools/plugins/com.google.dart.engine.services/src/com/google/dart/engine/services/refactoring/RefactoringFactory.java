@@ -15,10 +15,18 @@
 package com.google.dart.engine.services.refactoring;
 
 import com.google.common.base.Preconditions;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.services.internal.refactoring.RenameLocalVariableRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
 /**
  * Factory for creating {@link Refactoring} instances.
@@ -32,8 +40,20 @@ public class RefactoringFactory {
   public static RenameRefactoring createRenameRefactoring(SearchEngine searchEngine, Element element) {
     Preconditions.checkNotNull(searchEngine);
     Preconditions.checkNotNull(element);
-    if (element instanceof VariableElement) {
-      return new RenameLocalVariableRefactoringImpl(searchEngine, (VariableElement) element);
+    if (element instanceof ConstructorElement) {
+      return new RenameConstructorRefactoringImpl(searchEngine, (ConstructorElement) element);
+    }
+    if (element.getEnclosingElement() instanceof ExecutableElement) {
+      if (element instanceof LocalElement) {
+        return new RenameLocalRefactoringImpl(searchEngine, (LocalElement) element);
+      }
+    }
+    if (element.getEnclosingElement() instanceof LibraryElement
+        || element.getEnclosingElement() instanceof CompilationUnitElement) {
+      return new RenameUnitMemberRefactoringImpl(searchEngine, element);
+    }
+    if (element.getEnclosingElement() instanceof ClassElement) {
+      return new RenameClassMemberRefactoringImpl(searchEngine, element);
     }
     return null;
   }

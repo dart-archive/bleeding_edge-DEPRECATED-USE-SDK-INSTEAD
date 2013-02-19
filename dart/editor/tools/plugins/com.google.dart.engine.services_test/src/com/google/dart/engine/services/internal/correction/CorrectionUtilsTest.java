@@ -15,16 +15,29 @@
 package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.index.UniverseElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -43,6 +56,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.nio.CharBuffer;
+import java.util.List;
+import java.util.Set;
 
 public class CorrectionUtilsTest extends AbstractDartTest {
 
@@ -89,9 +104,124 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         CorrectionUtils.applyReplaceEdits(testCode, ImmutableList.of(edit)));
   }
 
+  public void test_getChildren() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var myField;",
+        "  myMethod() {}",
+        "}",
+        "var topField;",
+        "topFunction() {}",
+        "");
+    CompilationUnitElement unitElement = testUnit.getElement();
+    ClassElement classElement = ((ClassDeclaration) testUnit.getDeclarations().get(0)).getElement();
+    FunctionElement topFunctionElement = ((FunctionDeclaration) testUnit.getDeclarations().get(2)).getElement();
+    // not found
+    assertThat(CorrectionUtils.getChildren(unitElement, "noSuchElement")).isEmpty();
+    // find "A"
+    assertThat(CorrectionUtils.getChildren(unitElement, "A")).containsOnly(classElement);
+    // find "topFunction"
+    assertThat(CorrectionUtils.getChildren(unitElement, "topFunction")).containsOnly(
+        topFunctionElement);
+    // find all "A" members
+    {
+      List<Element> children = CorrectionUtils.getChildren(classElement);
+      // 1(field) + 2(getter + setter) + 1(default constructor) + 1(method)
+      assertThat(children).hasSize(5);
+    }
+    // find "A.myMethod"
+    {
+      List<Element> children = CorrectionUtils.getChildren(classElement, "myMethod");
+      assertThat(children).hasSize(1);
+      MethodElement child = (MethodElement) Iterables.get(children, 0);
+      assertEquals("myMethod", child.getName());
+    }
+  }
+
   public void test_getDeltaOffset() throws Exception {
     assertEquals(1, CorrectionUtils.getDeltaOffset(new Edit(0, 5, "123456")));
     assertEquals(-2, CorrectionUtils.getDeltaOffset(new Edit(0, 5, "123")));
+  }
+
+  public void test_getElementKindName_ClassElement() throws Exception {
+    ClassElement element = mock(ClassElement.class);
+    when(element.getKind()).thenReturn(ElementKind.CLASS);
+    assertEquals("class", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_CompilationUnitElement() throws Exception {
+    CompilationUnitElement element = mock(CompilationUnitElement.class);
+    when(element.getKind()).thenReturn(ElementKind.COMPILATION_UNIT);
+    assertEquals("compilation unit", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_FieldElement() throws Exception {
+    FieldElement element = mock(FieldElement.class);
+    when(element.getKind()).thenReturn(ElementKind.FIELD);
+    assertEquals("field", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_FunctionElement() throws Exception {
+    FunctionElement element = mock(FunctionElement.class);
+    when(element.getKind()).thenReturn(ElementKind.FUNCTION);
+    assertEquals("function", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_LocalVariableElement() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    when(element.getKind()).thenReturn(ElementKind.LOCAL_VARIABLE);
+    assertEquals("local variable", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_MethodElement() throws Exception {
+    MethodElement element = mock(MethodElement.class);
+    when(element.getKind()).thenReturn(ElementKind.METHOD);
+    assertEquals("method", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_TypeAliasElement() throws Exception {
+    TypeAliasElement element = mock(TypeAliasElement.class);
+    when(element.getKind()).thenReturn(ElementKind.TYPE_ALIAS);
+    assertEquals("function type alias", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_TypeVariableElement() throws Exception {
+    TypeVariableElement element = mock(TypeVariableElement.class);
+    when(element.getKind()).thenReturn(ElementKind.TYPE_VARIABLE);
+    assertEquals("type variable", CorrectionUtils.getElementKindName(element));
+  }
+
+  public void test_getElementKindName_universe() throws Exception {
+    try {
+      CorrectionUtils.getElementKindName(UniverseElement.INSTANCE);
+      fail();
+    } catch (IllegalArgumentException e) {
+    }
+  }
+
+  public void test_getElementQualifiedName() throws Exception {
+    ClassElement enclosingClass = mock(ClassElement.class);
+    when(enclosingClass.getKind()).thenReturn(ElementKind.CLASS);
+    when(enclosingClass.getName()).thenReturn("A");
+    // ClassElement
+    assertEquals("A", CorrectionUtils.getElementQualifiedName(enclosingClass));
+    // MethodElement
+    {
+      MethodElement method = mock(MethodElement.class);
+      when(method.getKind()).thenReturn(ElementKind.METHOD);
+      when(method.getEnclosingElement()).thenReturn(enclosingClass);
+      when(method.getName()).thenReturn("myMethod");
+      assertEquals("A.myMethod", CorrectionUtils.getElementQualifiedName(method));
+    }
+    // FieldElement
+    {
+      FieldElement field = mock(FieldElement.class);
+      when(field.getKind()).thenReturn(ElementKind.FIELD);
+      when(field.getEnclosingElement()).thenReturn(enclosingClass);
+      when(field.getName()).thenReturn("myField");
+      assertEquals("A.myField", CorrectionUtils.getElementQualifiedName(field));
+    }
   }
 
   /**
@@ -419,6 +549,52 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("", CorrectionUtils.getStringPrefix("0 1234"));
     assertEquals(" ", CorrectionUtils.getStringPrefix(" 01234"));
     assertEquals("  ", CorrectionUtils.getStringPrefix("  01234"));
+  }
+
+  // XXX
+  public void test_getSuperClassElements() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "class B extends A {}",
+        "class C extends B {}",
+        "class D extends B implements A {}",
+        "class M {}",
+        "class E extends A with M {}",
+        "");
+    CompilationUnitElement unitElement = testUnit.getElement();
+    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
+    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
+    ClassElement classC = (ClassElement) CorrectionUtils.getChildren(unitElement, "C").get(0);
+    ClassElement classD = (ClassElement) CorrectionUtils.getChildren(unitElement, "D").get(0);
+    ClassElement classE = (ClassElement) CorrectionUtils.getChildren(unitElement, "E").get(0);
+    ClassElement classM = (ClassElement) CorrectionUtils.getChildren(unitElement, "M").get(0);
+    ClassElement classObject = classA.getSupertype().getElement();
+    // A
+    {
+      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classA);
+      assertThat(supers).containsOnly(classObject);
+    }
+    // B
+    {
+      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classB);
+      assertThat(supers).containsOnly(classObject, classA);
+    }
+    // C
+    {
+      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classC);
+      assertThat(supers).containsOnly(classObject, classA, classB);
+    }
+    // D
+    {
+      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classD);
+      assertThat(supers).containsOnly(classObject, classA, classB);
+    }
+    // E
+    {
+      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classE);
+      assertThat(supers).containsOnly(classObject, classA, classM);
+    }
   }
 
   /**

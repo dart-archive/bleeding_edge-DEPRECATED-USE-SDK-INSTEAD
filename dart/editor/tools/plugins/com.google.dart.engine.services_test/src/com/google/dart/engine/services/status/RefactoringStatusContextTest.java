@@ -14,14 +14,20 @@
 
 package com.google.dart.engine.services.status;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RefactoringStatusContextTest extends AbstractDartTest {
 
-  public void test_access() throws Exception {
+  public void test_new_CompilationUnit_SourceRange() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {}",
@@ -38,5 +44,54 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
       assertThat(str).contains("range=" + range);
       assertThat(str).startsWith("RefactoringStatusContext{source=");
     }
+  }
+
+  public void test_new_Element() throws Exception {
+    AnalysisContext analysisContext = mock(AnalysisContext.class);
+    Source source = mock(Source.class);
+    Element element = mock(Element.class);
+    when(element.getContext()).thenReturn(analysisContext);
+    when(element.getSource()).thenReturn(source);
+    when(element.getNameOffset()).thenReturn(12);
+    when(element.getName()).thenReturn("test");
+    RefactoringStatusContext context = RefactoringStatusContext.create(element);
+    // access
+    assertSame(analysisContext, context.getContext());
+    assertSame(source, context.getSource());
+    assertEquals(new SourceRange(12, 4), context.getRange());
+  }
+
+  public void test_new_Element_SourceRange() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}",
+        "");
+    AnalysisContext analysisContext = mock(AnalysisContext.class);
+    Source source = mock(Source.class);
+    Element element = mock(Element.class);
+    when(element.getContext()).thenReturn(analysisContext);
+    when(element.getSource()).thenReturn(source);
+    SourceRange range = new SourceRange(10, 20);
+    RefactoringStatusContext context = RefactoringStatusContext.create(element, range);
+    // access
+    assertSame(analysisContext, context.getContext());
+    assertSame(source, context.getSource());
+    assertEquals(range, context.getRange());
+  }
+
+  public void test_new_SearchMatch() throws Exception {
+    AnalysisContext analysisContext = mock(AnalysisContext.class);
+    Source source = mock(Source.class);
+    Element element = mock(Element.class);
+    when(element.getContext()).thenReturn(analysisContext);
+    when(element.getSource()).thenReturn(source);
+    SearchMatch match = mock(SearchMatch.class);
+    when(match.getElement()).thenReturn(element);
+    when(match.getSourceRange()).thenReturn(new SourceRange(12, 4));
+    RefactoringStatusContext context = RefactoringStatusContext.create(match);
+    // access
+    assertSame(analysisContext, context.getContext());
+    assertSame(source, context.getSource());
+    assertEquals(new SourceRange(12, 4), context.getRange());
   }
 }

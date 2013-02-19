@@ -14,33 +14,102 @@
 
 package com.google.dart.engine.services.refactoring;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
-import com.google.dart.engine.services.internal.refactoring.RenameLocalVariableRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
-import static com.google.dart.engine.services.refactoring.RefactoringFactory.*;
+import static com.google.dart.engine.services.refactoring.RefactoringFactory.createRenameRefactoring;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RefactoringFactoryTest extends AbstractDartTest {
+  private final SearchEngine searchEngine = mock(SearchEngine.class);
+  private final CompilationUnitElement enclosingUnit = mock(CompilationUnitElement.class);
+  private final ClassElement enclosingClass = mock(ClassElement.class);
+  private final ExecutableElement enclosingMethod = mock(ExecutableElement.class);
+
+  public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {
+    FieldElement element = mock(FieldElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingClass);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameClassMemberRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_classMember_MethodElement() throws Exception {
+    MethodElement element = mock(MethodElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingClass);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameClassMemberRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_ConstructorElement() throws Exception {
+    ConstructorElement element = mock(ConstructorElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingClass);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameConstructorRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_local_FunctionElement() throws Exception {
+    FunctionElement element = mock(FunctionElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingMethod);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameLocalRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_local_LocalVariableElement() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingMethod);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameLocalRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_local_ParameterElement() throws Exception {
+    ParameterElement element = mock(ParameterElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingMethod);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameLocalRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_unitMember_ClassElement() throws Exception {
+    ClassElement element = mock(ClassElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingUnit);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameUnitMemberRefactoringImpl.class);
+  }
+
+  public void test_createRenameRefactoring_unitMember_FunctionElement() throws Exception {
+    FunctionElement element = mock(FunctionElement.class);
+    when(element.getEnclosingElement()).thenReturn(enclosingUnit);
+    // create refactoring
+    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
+    assertThat(refactoring).isInstanceOf(RenameUnitMemberRefactoringImpl.class);
+  }
+
   public void test_createRenameRefactoring_unknownElement() throws Exception {
-    SearchEngine searchEngine = mock(SearchEngine.class);
     Element element = mock(Element.class);
     Refactoring refactoring = createRenameRefactoring(searchEngine, element);
     assertNull(refactoring);
-  }
-
-  public void test_createRenameRefactoring_VariableElement() throws Exception {
-    SearchEngine searchEngine = mock(SearchEngine.class);
-    CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
-    VariableElement element = mock(VariableElement.class);
-    when(element.getAncestor(CompilationUnitElement.class)).thenReturn(unitElement);
-    Refactoring refactoring = createRenameRefactoring(searchEngine, element);
-    assertThat(refactoring).isInstanceOf(RenameLocalVariableRefactoringImpl.class);
   }
 }

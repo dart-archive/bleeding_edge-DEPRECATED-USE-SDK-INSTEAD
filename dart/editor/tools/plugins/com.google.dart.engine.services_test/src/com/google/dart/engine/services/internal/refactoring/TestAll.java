@@ -19,7 +19,11 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(RenameLocalVariableRefactoringImplTest.class);
+    suite.addTestSuite(NamingConventionsTest.class);
+    suite.addTestSuite(RenameUnitMemberRefactoringImplTest.class);
+    suite.addTestSuite(RenameConstructorRefactoringImplTest.class);
+    suite.addTestSuite(RenameClassMemberRefactoringImplTest.class);
+    suite.addTestSuite(RenameLocalRefactoringImplTest.class);
     return suite;
   }
 }

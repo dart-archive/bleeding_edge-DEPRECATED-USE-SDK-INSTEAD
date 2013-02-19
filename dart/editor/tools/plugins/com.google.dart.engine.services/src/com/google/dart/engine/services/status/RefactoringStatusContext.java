@@ -14,11 +14,15 @@
 package com.google.dart.engine.services.status;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 /**
  * {@link RefactoringStatusContext} can be used to annotate a {@link RefactoringStatusEntry} with
@@ -31,8 +35,38 @@ public class RefactoringStatusContext {
    */
   public static RefactoringStatusContext create(CompilationUnit unit, SourceRange range) {
     CompilationUnitElement unitElement = unit.getElement();
-    assert unitElement != null;
     return new RefactoringStatusContext(unitElement.getContext(), unitElement.getSource(), range);
+  }
+
+  /**
+   * @return the {@link RefactoringStatusContext} which corresponds to the declaration of the given
+   *         {@link Element}.
+   */
+  public static RefactoringStatusContext create(Element element) {
+    Preconditions.checkNotNull(element);
+    SourceRange range = SourceRangeFactory.rangeStartLength(
+        element.getNameOffset(),
+        element.getName().length());
+    return new RefactoringStatusContext(element.getContext(), element.getSource(), range);
+  }
+
+  /**
+   * @return the {@link RefactoringStatusContext} which corresponds to given location in the
+   *         {@link Source} of given {@link Element}.
+   */
+  public static RefactoringStatusContext create(Element element, SourceRange range) {
+    return new RefactoringStatusContext(element.getContext(), element.getSource(), range);
+  }
+
+  /**
+   * @return the {@link RefactoringStatusContext} that corresponds to the given {@link SearchMatch}.
+   */
+  public static RefactoringStatusContext create(SearchMatch match) {
+    Element enclosingElement = match.getElement();
+    return new RefactoringStatusContext(
+        enclosingElement.getContext(),
+        enclosingElement.getSource(),
+        match.getSourceRange());
   }
 
   private final AnalysisContext context;

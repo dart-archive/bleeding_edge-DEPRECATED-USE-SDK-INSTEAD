@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.ASTNode;
@@ -21,27 +22,24 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.status.RefactoringStatusEntry;
+import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import junit.framework.TestCase;
 
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
 import static org.fest.assertions.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 
-import java.lang.reflect.Method;
+import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AbstractDartTest extends TestCase {
@@ -69,64 +67,67 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
-   * @return the {@link CompilationUnit} with mocked {@link Source} which has given code.
+   * @return the resolved {@link CompilationUnit} for given Dart code.
    */
-  public static CompilationUnit parseUnit(final String code) throws Exception {
+  public static CompilationUnit parseUnit(String code) throws Exception {
     // initialize AnslysisContext
     if (ANALYSIS_CONTEXT == null) {
       DartSdk defaultSdk = DartSdk.getDefaultSdk();
+      SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(defaultSdk));
       ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
-      ANALYSIS_CONTEXT.setSourceFactory(new SourceFactory(new DartUriResolver(defaultSdk)));
+      ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
       // use single Source
-      SOURCE = mock(Source.class);
+      SOURCE = new FileBasedSource(sourceFactory, new File("/Test.dart"));
     }
+    // update source
     ANALYSIS_CONTEXT.sourceChanged(SOURCE);
-    // mock Source content
-    doAnswer(new Answer<Void>() {
-      @Override
-      public Void answer(InvocationOnMock invocation) throws Throwable {
-        ((Source.ContentReceiver) invocation.getArguments()[0]).accept(code);
-        return null;
-      }
-    }).when(SOURCE).getContents(any(Source.ContentReceiver.class));
-    //
+    ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
+    // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
-    //
     CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolve(SOURCE, library);
-    libraryUnit.setElement(library.getDefiningCompilationUnit());
-    fixEnclosingOfTopLevelElements(libraryUnit);
     return libraryUnit;
-    // parse
-//    CompilationUnit compilationUnit = ParserTestCase.parseCompilationUnit(code);
-//    // set CompilationUnitElement mock with Source mock
-//    {
-//      CompilationUnitElement element = mock(CompilationUnitElement.class);
-//      when(element.getSource()).thenReturn(source);
-//      compilationUnit.setElement(element);
-//    }
-//    new CompilationUnitBuilder(null, null).buildCompilationUnit(source, compilationUnit);
-    // done
-//    return compilationUnit;
+  }
+
+  /**
+   * Asserts that given {@link RefactoringStatus} has expected severity and message.
+   */
+  protected static void assertRefactoringStatus(RefactoringStatus status,
+      RefactoringStatusSeverity expectedSeverity, String expectedMessage) {
+    assertRefactoringStatus(status, expectedSeverity, expectedMessage, null);
+  }
+
+  /**
+   * Asserts that given {@link RefactoringStatus} has expected severity and message.
+   */
+  protected static void assertRefactoringStatus(RefactoringStatus status,
+      RefactoringStatusSeverity expectedSeverity, String expectedMessage,
+      SourceRange expectedContextRange) {
+    assertSame(expectedSeverity, status.getSeverity());
+    if (expectedSeverity != RefactoringStatusSeverity.OK) {
+      RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();
+      assertSame(expectedSeverity, entry.getSeverity());
+      assertEquals(expectedMessage, entry.getMessage());
+      if (expectedContextRange != null) {
+        assertEquals(expectedContextRange, entry.getContext().getRange());
+      }
+    }
+  }
+
+  /**
+   * Asserts that given {@link RefactoringStatus} is OK.
+   */
+  protected static void assertRefactoringStatusOK(RefactoringStatus status) {
+    assertRefactoringStatus(status, RefactoringStatusSeverity.OK, null);
   }
 
   protected static String makeSource(String... lines) {
     return Joiner.on("\n").join(lines);
   }
 
-  // TODO(scheglov) remove this after Resolver fix
-  private static void fixEnclosingOfTopLevelElements(CompilationUnit unit) throws Exception {
-    CompilationUnitElement unitElement = unit.getElement();
-    Method method = ElementImpl.class.getDeclaredMethod("setEnclosingElement", ElementImpl.class);
-    method.setAccessible(true);
-    FunctionElement[] functions = unitElement.getFunctions();
-    for (FunctionElement main : functions) {
-      method.invoke(main, unitElement);
-    }
-  }
-
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
+  protected boolean verifyNoTestUnitErrors = true;
 
   /**
    * @return the offset directly after given <code>search</code> string in {@link testUnit}. Fails
@@ -152,6 +153,22 @@ public class AbstractDartTest extends TestCase {
     int offset = testCode.indexOf(search);
     assertThat(offset).describedAs(testCode).isNotEqualTo(-1);
     return offset;
+  }
+
+  /**
+   * @return the {@link SourceRange} for given start/end search strings. Fails test if not found.
+   */
+  protected final SourceRange findRangeIdentifier(String search) {
+    int start = findOffset(search);
+    int end = CharMatcher.JAVA_LETTER_OR_DIGIT.negate().indexIn(testCode, start);
+    return SourceRangeFactory.rangeStartEnd(start, end);
+  }
+
+  /**
+   * @return the {@link SourceRange} for given start/end search strings. Fails test if not found.
+   */
+  protected final SourceRange findRangeStartEnd(String searchStart, String searchEnd) {
+    return SourceRangeFactory.rangeStartEnd(findOffset(searchStart), findOffset(searchEnd));
   }
 
   /**
@@ -183,6 +200,10 @@ public class AbstractDartTest extends TestCase {
     testCode = makeSource(lines);
     testUnit = parseUnit(testCode);
     testSource = testUnit.getElement().getSource();
+    if (verifyNoTestUnitErrors) {
+      assertThat(testUnit.getParsingErrors()).isEmpty();
+      assertThat(testUnit.getResolutionErrors()).isEmpty();
+    }
   }
 
 }

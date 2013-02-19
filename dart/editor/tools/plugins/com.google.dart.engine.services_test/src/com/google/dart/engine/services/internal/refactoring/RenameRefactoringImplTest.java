@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.index.Index;
@@ -29,6 +30,7 @@ import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
+import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
 import java.util.List;
 
@@ -38,7 +40,9 @@ import java.util.List;
 public abstract class RenameRefactoringImplTest extends AbstractDartTest {
   protected final ProgressMonitor pm = new NullProgressMonitor();
   protected Index index;
+
   private SearchEngine searchEngine;
+  protected RenameRefactoring refactoring;
 
   /**
    * Assert result of applying given {@link Change} to the {@link #testCode}.
@@ -51,12 +55,29 @@ public abstract class RenameRefactoringImplTest extends AbstractDartTest {
   }
 
   /**
+   * Checks that all conditions are <code>OK</code> and applying {@link Change} to the
+   * {@link #testUnit} is same source as given lines.
+   */
+  protected final void assertSuccessfulRename(String... lines) throws Exception {
+    assertRefactoringStatus(
+        refactoring.checkInitialConditions(pm),
+        RefactoringStatusSeverity.OK,
+        null);
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.OK,
+        null);
+    Change change = refactoring.createChange(pm);
+    assertChangeResult(change, makeSource(lines));
+  }
+
+  /**
    * @return the {@link RenameRefactoring} for {@link Element} of the {@link SimpleIdentifier} at
    *         the given search pattern.
    */
-  protected final RenameRefactoring createRenameRefactoring(String search) {
+  protected final void createRenameRefactoring(String search) {
     Element element = findIdentifierElement(search);
-    return RefactoringFactory.createRenameRefactoring(searchEngine, element);
+    refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
   }
 
   /**
@@ -79,6 +100,8 @@ public abstract class RenameRefactoringImplTest extends AbstractDartTest {
       }
     }.start();
     searchEngine = SearchEngineFactory.createSearchEngine(index);
+    // search for something, ensure that Index is running before we will try to stop it
+    searchEngine.searchReferences((ClassElement) null, null, null);
   }
 
   @Override

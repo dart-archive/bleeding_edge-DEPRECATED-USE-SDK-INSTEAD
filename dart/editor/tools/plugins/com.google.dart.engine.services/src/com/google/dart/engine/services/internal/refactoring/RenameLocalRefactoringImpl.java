@@ -1,0 +1,143 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package com.google.dart.engine.services.internal.refactoring;
+
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LocalElement;
+import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.refactoring.NamingConventions;
+import com.google.dart.engine.services.refactoring.ProgressMonitor;
+import com.google.dart.engine.services.refactoring.Refactoring;
+import com.google.dart.engine.services.refactoring.SubProgressMonitor;
+import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.utilities.source.SourceRange;
+
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
+
+import java.text.MessageFormat;
+import java.util.List;
+
+/**
+ * {@link Refactoring} for renaming {@link LocalElement}.
+ */
+public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
+  private final LocalElement element;
+
+  public RenameLocalRefactoringImpl(SearchEngine searchEngine, LocalElement element) {
+    super(searchEngine, element);
+    this.element = element;
+  }
+
+  @Override
+  public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
+    pm.beginTask("Checking final conditions", 1);
+    try {
+      RefactoringStatus result = new RefactoringStatus();
+      result.merge(analyzePossibleConflicts(new SubProgressMonitor(pm, 1)));
+      return result;
+    } finally {
+      pm.done();
+    }
+  }
+
+  @Override
+  public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    RefactoringStatus result = new RefactoringStatus();
+    result.merge(super.checkInitialConditions(pm));
+    if (element instanceof LocalVariableElement) {
+      result.merge(NamingConventions.validateVariableName(newName));
+    } else if (element instanceof ParameterElement) {
+      result.merge(NamingConventions.validateParameterName(newName));
+    } else if (element instanceof FunctionElement) {
+      result.merge(NamingConventions.validateFunctionName(newName));
+    }
+    return result;
+  }
+
+  @Override
+  public Change createChange(ProgressMonitor pm) throws Exception {
+    SourceChange change = new SourceChange(getRefactoringName(), elementSource);
+    // update declaration
+    change.addEdit(createDeclarationRenameEdit());
+    // update references
+    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+    for (SearchMatch reference : references) {
+      change.addEdit(createReferenceRenameEdit(reference));
+    }
+    return change;
+  }
+
+  @Override
+  public String getRefactoringName() {
+    if (element instanceof ParameterElement) {
+      return "Rename Parameter";
+    }
+    if (element instanceof FunctionElement) {
+      return "Rename Local Function";
+    }
+    return "Rename Local Variable";
+  }
+
+  private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {
+    SourceRange elementRange = element.getVisibleRange();
+    pm.beginTask("Analyze possible conflicts", 1);
+    try {
+      RefactoringStatus result = new RefactoringStatus();
+      Element elementParent = element.getEnclosingElement();
+      // find all references to the "newName"
+      List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
+      for (SearchMatch nameDeclaration : nameDeclarations) {
+        Element nameElement = nameDeclaration.getElement();
+        // duplicate declaration
+        if (nameElement.getEnclosingElement() == elementParent) {
+          String message = MessageFormat.format(
+              "Duplicate local {0} ''{1}''.",
+              getElementKindName(nameElement),
+              newName);
+          result.addError(message, RefactoringStatusContext.create(nameElement));
+          return result;
+        }
+        // shadowing referenced element
+        List<SearchMatch> nameReferences = searchEngine.searchReferences(nameElement, null, null);
+        for (SearchMatch nameReference : nameReferences) {
+          SourceRange referenceRange = nameReference.getSourceRange();
+          if (elementRange.intersects(referenceRange)) {
+            String nameElementSourceName = nameElement.getSource().getFullName();
+            String message = MessageFormat.format(
+                "Usage of {0} ''{1}'' declared in ''{2}'' will be shadowed by renamed {3}.",
+                getElementKindName(nameElement),
+                getElementQualifiedName(nameElement),
+                nameElementSourceName,
+                getElementKindName(element));
+            result.addError(message, RefactoringStatusContext.create(nameReference));
+          }
+        }
+      }
+      pm.worked(1);
+      // done
+      return result;
+    } finally {
+      pm.done();
+    }
+  }
+}

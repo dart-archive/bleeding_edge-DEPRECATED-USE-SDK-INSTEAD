@@ -479,6 +479,59 @@ public class IndexContributorTest extends EngineTestCase {
         new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
   }
 
+  // XXX
+  public void test_isInvokedByQualified_ConstructorElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.foo() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(); // marker-1",
+        "  B.foo() : super.foo(); // marker-2",
+        "}",
+        "main() {",
+        "  new A(); // marker-3",
+        "  new A.foo(); // marker-4",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main() {");
+    ConstructorElement unnamedElement = findNode(ConstructorDeclaration.class, "A()").getElement();
+    ConstructorElement namedElement = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
+    findNode(ConstructorName.class, "A();").setElement(unnamedElement);
+    findNode(ConstructorName.class, "A.foo();").setElement(namedElement);
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    // A()
+    // TODO(scheglov) resolve after SuperConstructorInvocation resolving
+//    assertRecordedRelation(
+//        relations,
+//        unnamedElement,
+//        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+//        new ExpectedLocation(mainElement, getOffset("(); // marker-1"), ""));
+    assertRecordedRelation(
+        relations,
+        unnamedElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("(); // marker-3"), ""));
+    // A.foo()
+    // TODO(scheglov) resolve after SuperConstructorInvocation resolving
+//    assertRecordedRelation(
+//        relations,
+//        unnamedElement,
+//        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+//        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-2"), ".foo"));
+    assertRecordedRelation(
+        relations,
+        namedElement,
+        IndexConstants.IS_INVOKED_BY_QUALIFIED,
+        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-4"), ".foo"));
+  }
+
   public void test_isInvokedByQualified_MethodElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -502,40 +555,6 @@ public class IndexContributorTest extends EngineTestCase {
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
         new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
-  }
-
-  public void test_isInvokedByUnqualified_ConstructorElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  A() {}",
-        "  A.foo() {}",
-        "}",
-        "main() {",
-        "  new A();",
-        "  new A.foo();",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main() {");
-    ConstructorElement unnamedElement = findNode(ConstructorDeclaration.class, "A()").getElement();
-    ConstructorElement namedElement = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
-    findNode(ConstructorName.class, "A();").setElement(unnamedElement);
-    findNode(ConstructorName.class, "A.foo();").setElement(namedElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        unnamedElement,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("A();"), "A"));
-    assertRecordedRelation(
-        relations,
-        namedElement,
-        IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("A.foo();"), "A.foo"));
   }
 
   public void test_isInvokedByUnqualified_MethodElement() throws Exception {
@@ -778,21 +797,37 @@ public class IndexContributorTest extends EngineTestCase {
         "foo() {}",
         "main() {",
         "  print(foo);",
+        "  print(foo());",
         "}",
         "");
     // set elements
     Element mainElement = getElement("main(");
     FunctionElement referencedElement = getElement("foo() {}");
     findSimpleIdentifier("foo);").setElement(referencedElement);
+    findSimpleIdentifier("foo());").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
+    // "referenced" here
     assertRecordedRelation(
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+    // only "invoked", but not "referenced"
+    {
+      assertRecordedRelation(
+          relations,
+          referencedElement,
+          IndexConstants.IS_INVOKED_BY,
+          new ExpectedLocation(mainElement, getOffset("foo());"), "foo"));
+      assertNoRecordedRelation(
+          relations,
+          referencedElement,
+          IndexConstants.IS_REFERENCED_BY,
+          new ExpectedLocation(mainElement, getOffset("foo());"), "foo"));
+    }
   }
 
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {

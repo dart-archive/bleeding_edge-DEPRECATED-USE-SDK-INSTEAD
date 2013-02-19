@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
@@ -47,6 +48,7 @@ import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -318,9 +320,35 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorName name = node.getConstructorName();
-    Location location = createLocation(name);
-    recordRelationship(name.getElement(), IndexConstants.IS_INVOKED_BY_UNQUALIFIED, location);
+    ConstructorElement element = node.getElement();
+    Location location;
+    {
+      ConstructorName constructorName = node.getConstructorName();
+      element = constructorName.getElement(); // TODO(scheglov) remove this after resolver fix
+      String nameStr = constructorName.toSource();
+      // TODO(scheglov) remove this code after parser fix
+      {
+        int periodIndex = nameStr.indexOf('.');
+        if (periodIndex != -1) {
+          int start = constructorName.getOffset() + periodIndex;
+          int end = constructorName.getEnd();
+          location = createLocation(start, end - start, null);
+        } else {
+          int start = constructorName.getType().getEnd();
+          location = createLocation(start, 0, null);
+        }
+      }
+      // TODO(scheglov) use this code after parser fix
+//      if (constructorName.getName() != null) {
+//        int start = constructorName.getPeriod().getOffset();
+//        int end = constructorName.getName().getEnd();
+//        location = createLocation(start, end - start, null);
+//      } else {
+//        int start = constructorName.getType().getEnd();
+//        location = createLocation(start, 0, null);
+//      }
+    }
+    recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
     return super.visitInstanceCreationExpression(node);
   }
 
@@ -418,6 +446,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+//    System.out.println(node + " " + node.getElement());
+    // TODO(scheglov) record relationships when resolver will be fixed
+    return super.visitSuperConstructorInvocation(node);
+  }
+
+  @Override
   public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     VariableDeclarationList variables = node.getVariables();
     for (VariableDeclaration variableDeclaration : variables.getVariables()) {
@@ -494,8 +529,11 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
-    if (parent instanceof MethodInvocation && node.getElement() instanceof MethodElement) {
-      return ((MethodInvocation) parent).getMethodName() == node;
+    if (parent instanceof MethodInvocation) {
+      Element element = node.getElement();
+      if (element instanceof MethodElement || element instanceof FunctionElement) {
+        return ((MethodInvocation) parent).getMethodName() == node;
+      }
     }
     if (parent instanceof Label) {
       Label label = (Label) parent;
