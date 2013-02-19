@@ -156,7 +156,10 @@ public class TestTypeProvider implements TypeProvider {
   @Override
   public InterfaceType getListType() {
     if (listType == null) {
-      listType = classElement("List", "E").getType();
+      ClassElementImpl listElement = classElement("List", "E");
+      listType = listElement.getType();
+      Type eType = listElement.getTypeVariables()[0].getType();
+      listElement.setMethods(new MethodElement[] {methodElement("[]", eType, intType)});
     }
     return listType;
   }

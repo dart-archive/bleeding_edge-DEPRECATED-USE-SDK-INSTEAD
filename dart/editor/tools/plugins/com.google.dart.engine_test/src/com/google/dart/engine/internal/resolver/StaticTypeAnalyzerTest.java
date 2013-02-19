@@ -33,7 +33,6 @@ import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
@@ -146,13 +145,12 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // List<int> list = ...
     // list[0]
     InterfaceType intType = typeProvider.getIntType();
-    ClassElement classElement = classElement("List", "E");
-    Type eType = classElement.getTypeVariables()[0].getType();
+    InterfaceType listType = typeProvider.getListType();
     // (int) -> E
-    MethodElement methodElement = ElementFactory.methodElement("[]", eType, intType);
+    MethodElement methodElement = getMethod(listType, "[]");
     // "list" has type List<int>
     SimpleIdentifier identifier = identifier("list");
-    identifier.setStaticType(classElement.getType().substitute(new Type[] {intType}));
+    identifier.setStaticType(listType.substitute(new Type[] {intType}));
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
     indexExpression.setElement(methodElement);
