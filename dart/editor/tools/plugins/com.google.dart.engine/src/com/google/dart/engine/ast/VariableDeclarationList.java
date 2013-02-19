@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -108,6 +110,28 @@ public class VariableDeclarationList extends ASTNode {
    */
   public NodeList<VariableDeclaration> getVariables() {
     return variables;
+  }
+
+  /**
+   * Return {@code true} if the variable declarations in this list are declared to be const
+   * variables.
+   * 
+   * @return {@code true} if the variables in this list are declared to be const variables
+   */
+  public boolean isConst() {
+    return keyword instanceof KeywordToken
+        && ((KeywordToken) keyword).getKeyword() == Keyword.CONST;
+  }
+
+  /**
+   * Return {@code true} if the variable declarations in this list are declared to be final
+   * variables.
+   * 
+   * @return {@code true} if the variables in this list are declared to be final variables
+   */
+  public boolean isFinal() {
+    return keyword instanceof KeywordToken
+        && ((KeywordToken) keyword).getKeyword() == Keyword.FINAL;
   }
 
   /**

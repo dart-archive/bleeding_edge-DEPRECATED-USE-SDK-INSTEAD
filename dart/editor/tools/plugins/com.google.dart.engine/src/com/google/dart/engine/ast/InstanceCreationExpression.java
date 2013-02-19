@@ -14,6 +14,8 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -111,6 +113,16 @@ public class InstanceCreationExpression extends Expression {
    */
   public Token getKeyword() {
     return keyword;
+  }
+
+  /**
+   * Return {@code true} if this creation expression is used to invoke a constant constructor.
+   * 
+   * @return {@code true} if this creation expression is used to invoke a constant constructor
+   */
+  public boolean isConst() {
+    return keyword instanceof KeywordToken
+        && ((KeywordToken) keyword).getKeyword() == Keyword.CONST;
   }
 
   /**

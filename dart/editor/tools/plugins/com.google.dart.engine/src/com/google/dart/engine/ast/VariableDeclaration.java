@@ -116,6 +116,28 @@ public class VariableDeclaration extends Declaration {
   }
 
   /**
+   * Return {@code true} if this variable declaration is declared to be a const variable.
+   * 
+   * @return {@code true} if this variable is declared to be a const variable
+   */
+  public boolean isConst() {
+    ASTNode parent = getParent();
+    return parent instanceof VariableDeclarationList
+        && ((VariableDeclarationList) parent).isConst();
+  }
+
+  /**
+   * Return {@code true} if this variable declaration is declared to be a final variable.
+   * 
+   * @return {@code true} if this variable is declared to be a final variable
+   */
+  public boolean isFinal() {
+    ASTNode parent = getParent();
+    return parent instanceof VariableDeclarationList
+        && ((VariableDeclarationList) parent).isFinal();
+  }
+
+  /**
    * Set the equal sign separating the variable name from the initial value to the given token.
    * 
    * @param equals the equal sign separating the variable name from the initial value
