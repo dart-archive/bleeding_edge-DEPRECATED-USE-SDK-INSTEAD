@@ -14,11 +14,13 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -32,6 +34,7 @@ import static com.google.dart.tools.core.internal.builder.TestProjects.MONITOR;
 import static com.google.dart.tools.core.internal.builder.TestProjects.newPubProject3;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
@@ -159,6 +162,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public LibraryElement getLibraryElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LibraryElement getLibraryElementOrNull(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project getProject(IProject resource) {
       if (project == null) {
         project = new MockProjectImpl(resource);
@@ -183,6 +196,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     @Override
     public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SourceKind getSourceKind(IFile file) {
       throw new UnsupportedOperationException();
     }
 

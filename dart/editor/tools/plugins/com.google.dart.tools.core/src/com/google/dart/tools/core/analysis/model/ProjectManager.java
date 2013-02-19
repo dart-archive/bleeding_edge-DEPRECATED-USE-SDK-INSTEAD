@@ -13,12 +13,15 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -38,6 +41,20 @@ public interface ProjectManager {
    * @return the index (not {@code null})
    */
   Index getIndex();
+
+  /**
+   * Answer the LibraryElement associated with the specified file
+   * 
+   * @return the {@link LibraryElement} associated with the file
+   */
+  LibraryElement getLibraryElement(IFile file);
+
+  /**
+   * Answer the LibraryElement associated with the specified file
+   * 
+   * @return the {@link LibraryElement} or {@code null} if file has not been resolved as yet
+   */
+  LibraryElement getLibraryElementOrNull(IFile file);
 
   /**
    * Answer the project for the specified Eclipse resource
@@ -75,6 +92,13 @@ public interface ProjectManager {
    * @return the sdk (not {@code null})
    */
   DartSdk getSdk();
+
+  /**
+   * Answer the source kind for the given file.
+   * 
+   * @return the {@link SourceKind} of the given file
+   */
+  SourceKind getSourceKind(IFile file);
 
   /**
    * Create and answer a new search engine backed by the global index

@@ -13,16 +13,21 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -54,6 +59,18 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public Index getIndex() {
     return index;
+  }
+
+  @Override
+  public LibraryElement getLibraryElement(IFile file) {
+    AnalysisContext context = getContext(file);
+    return context.getLibraryElement(getSource(file));
+  }
+
+  @Override
+  public LibraryElement getLibraryElementOrNull(IFile file) {
+    AnalysisContext context = getContext(file);
+    return context.getLibraryElementOrNull(getSource(file));
   }
 
   @Override
@@ -102,7 +119,27 @@ public class ProjectManagerImpl implements ProjectManager {
   }
 
   @Override
+  public SourceKind getSourceKind(IFile file) {
+    AnalysisContext context = getContext(file);
+    return context.getOrComputeKindOf(getSource(file));
+
+  }
+
+  @Override
   public SearchEngine newSearchEngine() {
     return SearchEngineFactory.createSearchEngine(getIndex());
+  }
+
+  private AnalysisContext getContext(IResource res) {
+    Project project = getProject(res.getProject());
+    return project.getContext(res instanceof IFile ? res.getParent() : ((IContainer) res));
+  }
+
+  private Source getSource(IFile file) {
+    AnalysisContext context = getContext(file);
+    if (file.getLocation() != null) {
+      return context.getSourceFactory().forFile(file.getLocation().toFile());
+    }
+    return null;
   }
 }

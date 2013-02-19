@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
@@ -24,6 +25,7 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -37,6 +39,7 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -128,6 +131,16 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public LibraryElement getLibraryElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LibraryElement getLibraryElementOrNull(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project getProject(IProject resource) {
       if (project == null) {
         project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {
@@ -158,6 +171,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SourceKind getSourceKind(IFile file) {
       throw new UnsupportedOperationException();
     }
 

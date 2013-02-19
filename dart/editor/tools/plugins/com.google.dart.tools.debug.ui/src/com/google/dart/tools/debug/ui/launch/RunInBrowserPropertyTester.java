@@ -13,7 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.CompilationUnitImpl;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartElement;
@@ -41,22 +45,32 @@ public class RunInBrowserPropertyTester extends PropertyTester {
       if (receiver instanceof IStructuredSelection) {
         Object o = ((IStructuredSelection) receiver).getFirstElement();
         if (o instanceof IFile) {
+          IFile file = (IFile) o;
           if (DartCore.isHTMLLikeFileName(((IFile) o).getName())) {
-            DartElement element = DartCore.create((IFile) o);
-            if (element != null) {
-              return true;
-            }
-            return false;
+            return true;
           }
 
-          DartElement element = DartCore.create((IFile) o);
-          if (element instanceof CompilationUnitImpl
-              && ((CompilationUnitImpl) element).definesLibrary()) {
-            DartLibrary library = ((CompilationUnitImpl) element).getLibrary();
-            if (library instanceof DartLibraryImpl) {
-              DartLibraryImpl impl = (DartLibraryImpl) library;
-              if (impl.isBrowserApplication()) {
-                return true;
+          if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+            ProjectManager manager = DartCore.getProjectManager();
+            if (manager.getSourceKind(file) == SourceKind.LIBRARY) {
+              LibraryElement element = manager.getLibraryElementOrNull(file);
+              if (element != null) {
+                if (element.isBrowserApplication()) {
+                  return true;
+                }
+              }
+            }
+            return false;
+          } else {
+            DartElement element = DartCore.create((IFile) o);
+            if (element instanceof CompilationUnitImpl
+                && ((CompilationUnitImpl) element).definesLibrary()) {
+              DartLibrary library = ((CompilationUnitImpl) element).getLibrary();
+              if (library instanceof DartLibraryImpl) {
+                DartLibraryImpl impl = (DartLibraryImpl) library;
+                if (impl.isBrowserApplication()) {
+                  return true;
+                }
               }
             }
           }
