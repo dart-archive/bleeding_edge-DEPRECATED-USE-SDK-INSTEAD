@@ -778,7 +778,7 @@ cleanUpLiteral(String text) {
     }
   }
 
-  return Strings.join(lines, '\n');
+  return lines.join('\n');
 }
 
 /// Does a loose comparison of the two strings of HTML. Ignores differences in
