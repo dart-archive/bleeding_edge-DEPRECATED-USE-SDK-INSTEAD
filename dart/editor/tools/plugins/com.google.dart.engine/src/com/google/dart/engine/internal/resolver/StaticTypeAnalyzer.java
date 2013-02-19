@@ -95,6 +95,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   private TypeProvider typeProvider;
 
   /**
+   * The type representing the type 'dynamic'.
+   */
+  private Type dynamicType;
+
+  /**
    * The type representing the class containing the nodes being analyzed, or {@code null} if the
    * nodes are not within a class.
    */
@@ -108,6 +113,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public StaticTypeAnalyzer(ResolverVisitor resolver) {
     this.resolver = resolver;
     typeProvider = resolver.getTypeProvider();
+    dynamicType = typeProvider.getDynamicType();
   }
 
   /**
@@ -293,7 +299,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Type elseType = getType(node.getElseExpression());
     if (thenType == null) {
       // TODO(brianwilkerson) Determine whether this can still happen.
-      return recordType(node, typeProvider.getDynamicType());
+      return recordType(node, dynamicType);
     }
     Type resultType = thenType.getLeastUpperBound(elseType);
     return recordType(node, resultType);
@@ -383,31 +389,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // TODO(jwren) Revisit general case of needing to make substitutions before recording the type.
-    // See StaticTypeAnalyzerTest#test_visitInstanceCreationExpression_typeParameters
-    Element element = node.getElement();
-    if (element != null) {
-      FunctionTypeImpl type = (FunctionTypeImpl) ((ExecutableElement) element).getType();
-      if (type != null) {
-        Type returnType = type.getReturnType();
-        if (returnType instanceof InterfaceType) {
-          InterfaceType interfaceReturnType = (InterfaceType) returnType;
-          // now that we have the return type that we can call substitute on, we need to get the Type[]
-          // to call substitute() with
-          TypeArgumentList constructorTypeArgumentList = node.getConstructorName().getType().getTypeArguments();
-          if (constructorTypeArgumentList != null) {
-            NodeList<TypeName> typeNameList = constructorTypeArgumentList.getArguments();
-            TypeName[] typeNames = typeNameList.toArray(new TypeName[typeNameList.size()]);
-            Type[] types = new Type[typeNames.length];
-            for (int i = 0; i < types.length; i++) {
-              types[i] = typeNames[i].getType();
-            }
-            return recordType(node, interfaceReturnType.substitute(types));
-          }
-        }
-      }
-    }
-    return recordReturnType(node, element);
+    return recordType(node, node.getConstructorName().getType().getType());
   }
 
   /**
@@ -453,9 +435,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
             typeProvider.getListType().substitute(new Type[] {getType(argumentType)}));
       }
     }
-    return recordType(
-        node,
-        typeProvider.getListType().substitute(new Type[] {typeProvider.getDynamicType()}));
+    return recordType(node, typeProvider.getListType().substitute(new Type[] {dynamicType}));
   }
 
   /**
@@ -492,8 +472,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     return recordType(
         node,
-        typeProvider.getMapType().substitute(
-            new Type[] {typeProvider.getStringType(), typeProvider.getDynamicType()}));
+        typeProvider.getMapType().substitute(new Type[] {typeProvider.getStringType(), dynamicType}));
   }
 
   /**
@@ -610,8 +589,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else {
       // TODO(jwren) Implement other cases.
     }
-    recordType(prefixedIdentifier, typeProvider.getDynamicType());
-    return recordType(node, typeProvider.getDynamicType());
+    recordType(prefixedIdentifier, dynamicType);
+    return recordType(node, dynamicType);
   }
 
   /**
@@ -686,8 +665,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         if (accessor.getType() == null) {
           // TODO(brianwilkerson) I think this can go away when everything is done because the type
           // of the accessor should never be null.
-          recordType(propertyName, typeProvider.getDynamicType());
-          return recordType(node, typeProvider.getDynamicType());
+          recordType(propertyName, dynamicType);
+          return recordType(node, dynamicType);
         }
         Type returnType = accessor.getType().getReturnType();
         recordType(propertyName, returnType);
@@ -699,8 +678,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
-    recordType(propertyName, typeProvider.getDynamicType());
-    return recordType(node, typeProvider.getDynamicType());
+    recordType(propertyName, dynamicType);
+    return recordType(node, dynamicType);
   }
 
   /**
@@ -750,7 +729,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Element element = node.getElement();
     if (element == null) {
       // The error should have been generated by the element resolver.
-      return recordType(node, typeProvider.getDynamicType());
+      return recordType(node, dynamicType);
     } else if (element instanceof ClassElement) {
       if (isTypeName(node)) {
         return recordType(node, ((ClassElement) element).getType());
@@ -779,7 +758,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else if (element instanceof PrefixElement) {
       return null;
     } else {
-      return recordType(node, typeProvider.getDynamicType());
+      return recordType(node, dynamicType);
     }
   }
 
@@ -803,9 +782,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitSuperExpression(SuperExpression node) {
-    return recordType(
-        node,
-        thisType == null ? typeProvider.getDynamicType() : thisType.getSuperclass());
+    return recordType(node, thisType == null ? dynamicType : thisType.getSuperclass());
   }
 
   /**
@@ -839,7 +816,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (body instanceof ExpressionFunctionBody) {
       return getType(((ExpressionFunctionBody) body).getExpression());
     }
-    return typeProvider.getDynamicType();
+    return dynamicType;
   }
 
   /**
@@ -852,7 +829,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Type type = expression.getStaticType();
     if (type == null) {
       //TODO(brianwilkerson) Determine the conditions for which the type is null.
-      return typeProvider.getDynamicType();
+      return dynamicType;
     }
     return type;
   }
@@ -867,7 +844,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     Type type = typeName.getType();
     if (type == null) {
       //TODO(brianwilkerson) Determine the conditions for which the type is null.
-      return typeProvider.getDynamicType();
+      return dynamicType;
     }
     return type;
   }
@@ -905,7 +882,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
         return recordType(expression, ((FunctionType) variableType).getReturnType());
       }
     }
-    return recordType(expression, typeProvider.getDynamicType());
+    return recordType(expression, dynamicType);
   }
 
   /**
@@ -916,7 +893,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   private Void recordType(Expression expression, Type type) {
     if (type == null) {
-      expression.setStaticType(typeProvider.getDynamicType());
+      expression.setStaticType(dynamicType);
     } else {
       expression.setStaticType(type);
     }

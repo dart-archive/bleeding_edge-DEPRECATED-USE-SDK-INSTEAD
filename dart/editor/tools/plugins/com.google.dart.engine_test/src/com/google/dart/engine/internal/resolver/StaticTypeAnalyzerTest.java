@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -539,9 +540,9 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(elementC.getType());
     constructor.setType(constructorType);
-    InstanceCreationExpression node = instanceCreationExpression(
-        null,
-        typeName(elementC, typeName(elementI)));
+    TypeName typeName = typeName(elementC, typeName(elementI));
+    typeName.setType(elementC.getType().substitute(new Type[] {elementI.getType()}));
+    InstanceCreationExpression node = instanceCreationExpression(null, typeName);
     node.setElement(constructor);
     InterfaceType interfaceType = (InterfaceType) analyze(node);
     Type[] typeArgs = interfaceType.getTypeArguments();
