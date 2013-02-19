@@ -28,8 +28,10 @@ import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
+import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.HideCombinatorImpl;
 import com.google.dart.engine.internal.element.ImportElementImpl;
@@ -54,9 +56,19 @@ public class LibraryResolver {
   private AnalysisContextImpl analysisContext;
 
   /**
-   * The listener to which analysis errors will be reported.
+   * The listener to which analysis errors will be reported, this error listener is either
+   * references {@link #recordingErrorListener}, or it unions the passed
+   * {@link AnalysisErrorListener} with the {@link #recordingErrorListener}.
    */
   private AnalysisErrorListener errorListener;
+
+  /**
+   * This error listener is used by the resolver to be able to call the listener and get back the
+   * set of errors for each {@link Source}.
+   * 
+   * @see #recordErrors()
+   */
+  private RecordingErrorListener recordingErrorListener;
 
   /**
    * A source object representing the core library (dart:core).
@@ -87,11 +99,32 @@ public class LibraryResolver {
    * Initialize a newly created library resolver to resolve libraries within the given context.
    * 
    * @param analysisContext the analysis context in which the library is being analyzed
+   */
+  public LibraryResolver(AnalysisContextImpl analysisContext) {
+    this(analysisContext, null);
+  }
+
+  /**
+   * Initialize a newly created library resolver to resolve libraries within the given context.
+   * 
+   * @param analysisContext the analysis context in which the library is being analyzed
    * @param errorListener the listener to which analysis errors will be reported
    */
-  public LibraryResolver(AnalysisContextImpl analysisContext, AnalysisErrorListener errorListener) {
+  public LibraryResolver(AnalysisContextImpl analysisContext,
+      final AnalysisErrorListener additionalAnalysisErrorListener) {
     this.analysisContext = analysisContext;
-    this.errorListener = errorListener;
+    this.recordingErrorListener = new RecordingErrorListener();
+    if (additionalAnalysisErrorListener == null) {
+      this.errorListener = recordingErrorListener;
+    } else {
+      this.errorListener = new AnalysisErrorListener() {
+        @Override
+        public void onError(AnalysisError error) {
+          additionalAnalysisErrorListener.onError(error);
+          recordingErrorListener.onError(error);
+        }
+      };
+    }
     coreLibrarySource = analysisContext.getSourceFactory().forUri(
         LibraryElementBuilder.CORE_LIBRARY_URI);
   }
@@ -181,6 +214,7 @@ public class LibraryResolver {
       //
     }
     recordLibraryElements();
+    recordErrors();
     return targetLibrary.getLibraryElement();
   }
 
@@ -459,6 +493,30 @@ public class LibraryResolver {
       identifiers[i] = names.get(i).getName();
     }
     return identifiers;
+  }
+
+  /**
+   * For each library, loop through the set of all {@link CompilationUnit}s recording the set of
+   * resolution errors on each unit.
+   */
+  private void recordErrors() throws AnalysisException {
+    for (Library library : librariesInCycles) {
+      try {
+        CompilationUnit definingUnit = library.getDefiningCompilationUnit();
+        definingUnit.setResolutionErrors(recordingErrorListener.getErrors(library.getLibrarySource()));
+      } catch (AnalysisException e) {
+        throw new AnalysisException();
+      }
+      Set<Source> sources = library.getCompilationUnitSources();
+      for (Source source : sources) {
+        try {
+          CompilationUnit unit = library.getAST(source);
+          unit.setResolutionErrors(recordingErrorListener.getErrors(source));
+        } catch (Exception e) {
+          throw new AnalysisException();
+        }
+      }
+    }
   }
 
   /**

@@ -15,11 +15,16 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.error.AnalysisError.NO_ERRORS;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Instances of the class {@code RecordingErrorListener} implement an error listener that will
@@ -29,9 +34,9 @@ import java.util.List;
 public class RecordingErrorListener implements AnalysisErrorListener {
 
   /**
-   * A list containing the errors that were collected.
+   * A HashMap of lists containing the errors that were collected, keyed by each {@link Source}.
    */
-  private List<AnalysisError> errors = null;
+  private Map<Source, List<AnalysisError>> errors = new HashMap<Source, List<AnalysisError>>();
 
   /**
    * Answer the errors collected by the listener.
@@ -39,14 +44,41 @@ public class RecordingErrorListener implements AnalysisErrorListener {
    * @return an array of errors (not {@code null}, contains no {@code null}s)
    */
   public AnalysisError[] getErrors() {
-    return errors != null ? errors.toArray(new AnalysisError[errors.size()]) : NO_ERRORS;
+    Set<Entry<Source, List<AnalysisError>>> entrySet = errors.entrySet();
+    if (entrySet.size() == 0) {
+      return NO_ERRORS;
+    }
+    ArrayList<AnalysisError> resultList = new ArrayList<AnalysisError>(entrySet.size());
+    for (Entry<Source, List<AnalysisError>> entry : entrySet) {
+      resultList.addAll(entry.getValue());
+    }
+    return resultList.toArray(new AnalysisError[resultList.size()]);
+  }
+
+  /**
+   * Answer the errors collected by the listener for some passed {@link Source}.
+   * 
+   * @param source some {@link Source} for which the caller wants the set of {@link AnalysisError}s
+   *          collected by this listener
+   * @return the errors collected by the listener for the passed {@link Source}
+   */
+  public AnalysisError[] getErrors(Source source) {
+    List<AnalysisError> errorsForSource = errors.get(source);
+    if (errorsForSource == null) {
+      return NO_ERRORS;
+    } else {
+      return errorsForSource.toArray(new AnalysisError[errorsForSource.size()]);
+    }
   }
 
   @Override
   public void onError(AnalysisError event) {
-    if (errors == null) {
-      errors = new ArrayList<AnalysisError>();
+    Source source = event.getSource();
+    List<AnalysisError> errorsForSource = errors.get(source);
+    if (errors.get(source) == null) {
+      errorsForSource = new ArrayList<AnalysisError>();
+      errors.put(source, errorsForSource);
     }
-    errors.add(event);
+    errorsForSource.add(event);
   }
 }

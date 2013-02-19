@@ -208,8 +208,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     synchronized (cacheLock) {
       LibraryElement element = libraryElementCache.get(source);
       if (element == null) {
-        RecordingErrorListener listener = new RecordingErrorListener();
-        LibraryResolver resolver = new LibraryResolver(this, listener);
+        LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
           // TODO(brianwilkerson) Cache the errors that were recorded by the listener.
