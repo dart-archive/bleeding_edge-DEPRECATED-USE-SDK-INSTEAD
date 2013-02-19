@@ -982,6 +982,21 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M3_corelib_iteratorAccess_alreadyMigrated() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  Iterator get iterator => null;",
+        "}",
+        "main() {",
+        "  var a = new A();",
+        "  var it = a.iterator;",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
   public void test_1M3_corelib_iteratorDeclaration() throws Exception {
     ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
     String initial = makeSource(
@@ -1009,6 +1024,20 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_corelib_iteratorDeclaration_alreadyMigrated() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class MyIterator<E> implements Iterator<E> {",
+        "  bool moveNext() {",
+        "    return false;",
+        "  }",
+        "  E current => null;",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
   }
 
   public void test_1M3_corelib_iteratorUsage_notGeneric() throws Exception {

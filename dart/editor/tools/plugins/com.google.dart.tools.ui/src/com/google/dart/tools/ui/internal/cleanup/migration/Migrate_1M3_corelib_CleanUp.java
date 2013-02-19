@@ -175,7 +175,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       public Void visitMethodDefinition(DartMethodDefinition node) {
         DartExpression nameNode = node.getName();
         // iterator()  --->  get iterator()
-        if (Elements.isIdentifierName(nameNode, "iterator")) {
+        if (Elements.isIdentifierName(nameNode, "iterator") && !node.getModifiers().isGetter()) {
           addReplaceEdit(SourceRangeFactory.forStartLength(nameNode, 0), "get ");
           addReplaceEdit(SourceRangeFactory.forEndEnd(
               nameNode,
@@ -235,10 +235,10 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
             }
             if (!isUsedAsIterable(node)) {
               String sourceTypeName = findSourceTypeName(node);
-              if (sourceTypeName.equals("List")) {
+              if ("List".equals(sourceTypeName)) {
                 addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toList()");
               }
-              if (sourceTypeName.equals("Set")) {
+              if ("Set".equals(sourceTypeName)) {
                 addReplaceEdit(SourceRangeFactory.forEndLength(node, 0), ".toSet()");
               }
             }
@@ -386,6 +386,16 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       }
 
       private void convertIteratorImplementation(DartClass node, Type intType) {
+        // may be already migrated
+        for (DartNode member : node.getMembers()) {
+          if (member instanceof DartMethodDefinition) {
+            DartMethodDefinition method = (DartMethodDefinition) member;
+            DartExpression nameNode = method.getName();
+            if (nameNode.toString().equals("moveNext")) {
+              return;
+            }
+          }
+        }
         // prepare element type
         String elementTypeSource = null;
         {
