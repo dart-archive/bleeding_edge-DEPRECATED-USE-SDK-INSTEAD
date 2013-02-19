@@ -185,9 +185,8 @@ class Solar3DApplication {
     if (event is WheelEvent) {
       WheelEvent e = event;
       controller.mouseSensitivity = 720.0;
-      controller.accumDX -= e.$dom_wheelDeltaX;
-      controller.accumDY += e.$dom_wheelDeltaY;
-      //controller.accumScroll += e.$dom_wheelDeltaY;
+      controller.accumDX -= e.deltaX;
+      controller.accumDY += e.deltaY;
     }
     event.preventDefault();
   }
