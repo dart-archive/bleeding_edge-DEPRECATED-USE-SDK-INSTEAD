@@ -59,7 +59,7 @@ public final class AnalysisContextFactory {
     library.setDefiningCompilationUnit(unit);
 
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
-    Source coreSource = sourceFactory.forUri("dart:core");
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
     elementMap.put(coreSource, library);
     context.recordLibraryElements(elementMap);
 
