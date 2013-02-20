@@ -49,7 +49,7 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   }
 
   @Override
-  public void messageAdded(final String message, final String url) {
+  public void messageAdded(final String message, final String url, int line) {
     String text = message;
 
     // If we get a failed to load message, also include the url that didn't load.
@@ -89,7 +89,7 @@ class DartiumStreamMonitor implements IStreamMonitor, WebkitConsole.ConsoleListe
   }
 
   void messageAdded(String message) {
-    messageAdded(message, null);
+    messageAdded(message, null, -1);
   }
 
   boolean shouldIgnoreMessage(String message, String url) {

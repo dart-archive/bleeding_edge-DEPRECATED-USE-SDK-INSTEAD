@@ -26,6 +26,10 @@ import org.json.JSONObject;
 public class WebkitScope {
 
   static WebkitScope[] createFrom(JSONArray arr) throws JSONException {
+    if (arr == null) {
+      return null;
+    }
+
     WebkitScope[] scopes = new WebkitScope[arr.length()];
 
     for (int i = 0; i < scopes.length; i++) {

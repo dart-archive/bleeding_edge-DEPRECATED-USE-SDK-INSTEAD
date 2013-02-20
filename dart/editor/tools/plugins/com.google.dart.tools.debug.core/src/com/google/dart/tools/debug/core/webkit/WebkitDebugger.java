@@ -31,8 +31,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+// TODO(devoncarew): use setVariableValue for 'local', 'closure' and 'catch' scopes
+
 /**
  * A WIP debugger domain object.
+ * <p>
+ * Debugger domain exposes JavaScript debugging capabilities. It allows setting and removing
+ * breakpoints, stepping through execution, exploring stack traces, etc.
  */
 public class WebkitDebugger extends WebkitDomain {
 
@@ -100,6 +105,39 @@ public class WebkitDebugger extends WebkitDomain {
     public void debuggerScriptParsed(WebkitScript script) {
 
     }
+  }
+
+  /**
+   * Information about the function.
+   */
+  @WebkitUnsupported
+  public static class FunctionDetails {
+    public static FunctionDetails createFrom(JSONObject obj) throws JSONException {
+      FunctionDetails details = new FunctionDetails();
+
+      details.location = WebkitLocation.createFrom(obj.getJSONObject("location"));
+      details.displayName = obj.optString("displayName");
+      details.name = obj.optString("name");
+      details.inferredName = obj.optString("inferredName");
+      details.scopeChain = WebkitScope.createFrom(obj.optJSONArray("scopeChain"));
+
+      return details;
+    }
+
+    /** Location of the function. */
+    public WebkitLocation location;
+
+    /** Display name of the function (specified in 'displayName' property on the function object). */
+    public String displayName;
+
+    /** Name of the function. Not present for anonymous functions. */
+    public String name;
+
+    /** Name of the function inferred from its initial assignment. */
+    public String inferredName;
+
+    /** Scope chain for this closure. */
+    public WebkitScope[] scopeChain;
   }
 
   public static enum PausedReasonType {
@@ -257,6 +295,33 @@ public class WebkitDebugger extends WebkitDomain {
       return classInfoMap.get(classInfo);
     } else {
       return value.getClassName();
+    }
+  }
+
+  /**
+   * Returns detailed information on the given function.
+   * 
+   * @param functionId id of the function to get location for
+   * @param callback
+   * @throws IOException
+   */
+  @WebkitUnsupported
+  public void getFunctionDetails(String functionId, final WebkitCallback<FunctionDetails> callback)
+      throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.getFunctionDetails");
+      request.put("params", new JSONObject().put("functionId", functionId));
+
+      connection.sendRequest(request, new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          callback.handleResult(convertGetFunctionDetailsResult(result));
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
     }
   }
 
@@ -492,6 +557,26 @@ public class WebkitDebugger extends WebkitDomain {
     }
   }
 
+  /**
+   * Sets overlay message.
+   * 
+   * @param message overlay message to display when paused in debugger
+   * @throws IOException
+   */
+  @WebkitUnsupported
+  public void setOverlayMessage(String message) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Debugger.setOverlayMessage");
+      request.put("params", new JSONObject().put("message", message));
+
+      connection.sendRequest(request);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
   public void setPauseOnExceptions(PauseOnExceptionsType state) throws IOException {
     setPauseOnExceptions(state, null);
   }
@@ -669,6 +754,21 @@ public class WebkitDebugger extends WebkitDomain {
       } else {
         result.setResult(remoteObject);
       }
+    }
+
+    return result;
+  }
+
+  private WebkitResult<FunctionDetails> convertGetFunctionDetailsResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<FunctionDetails> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      object = object.getJSONObject("result");
+
+      FunctionDetails details = FunctionDetails.createFrom(object.getJSONObject("details"));
+
+      result.setResult(details);
     }
 
     return result;

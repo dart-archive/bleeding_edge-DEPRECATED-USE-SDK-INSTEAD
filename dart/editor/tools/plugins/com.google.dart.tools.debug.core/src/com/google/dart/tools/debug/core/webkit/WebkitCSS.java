@@ -26,22 +26,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-// virtual void getAllStyleSheets(ErrorString*, RefPtr<InspectorArray>& styleSheetInfos);
-// virtual void getStyleSheet(ErrorString*, const String& styleSheetId, RefPtr<InspectorObject>&
-// result);
-// virtual void getStyleSheetText(ErrorString*, const String& styleSheetId, String* result);
-// virtual void setStyleSheetText(ErrorString*, const String& styleSheetId, const String& text);
-// virtual void setPropertyText(ErrorString*, const RefPtr<InspectorObject>& styleId, int
-// propertyIndex, const String& text, bool overwrite, RefPtr<InspectorObject>& result);
-// virtual void toggleProperty(ErrorString*, const RefPtr<InspectorObject>& styleId, int
-// propertyIndex, bool disable, RefPtr<InspectorObject>& result);
-// virtual void setRuleSelector(ErrorString*, const RefPtr<InspectorObject>& ruleId, const String&
-// selector, RefPtr<InspectorObject>& result);
-// virtual void getSupportedCSSProperties(ErrorString*, RefPtr<InspectorArray>& result);
+// TODO(devoncarew): review and add new css methods to this file
 
 /**
- * A WIP css domain object. This class is not officially supported via the webkit protocol yet.
+ * A WIP css domain object.
+ * <p>
+ * This domain exposes CSS read/write operations. All CSS objects (stylesheets, rules, and styles)
+ * have an associated <code>id</code> used in subsequent operations on the related object. Each
+ * object type has a specific <code>id</code> structure, and those are not interchangeable between
+ * objects of different kinds. CSS objects can be loaded using the <code>get*ForNode()</code> calls
+ * (which accept a DOM node id). A client can also discover all the existing stylesheets with the
+ * <code>getAllStyleSheets()</code> method (or keeping track of the <code>styleSheetAdded</code>/
+ * <code>styleSheetRemoved</code> events) and subsequently load the required stylesheet contents
+ * using the <code>getStyleSheet[Text]()</code> methods.
  */
+@WebkitUnsupported
 public class WebkitCSS extends WebkitDomain {
   public static interface CSSListener {
     /**

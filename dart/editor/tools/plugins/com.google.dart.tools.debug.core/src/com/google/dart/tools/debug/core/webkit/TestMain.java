@@ -62,7 +62,7 @@ class TestMain {
     // add a console listener
     connection.getConsole().addConsoleListener(new ConsoleListener() {
       @Override
-      public void messageAdded(String message, String url) {
+      public void messageAdded(String message, String url, int line) {
         System.out.println("message added: " + message);
       }
 

@@ -43,6 +43,7 @@ public class WebkitResult<T> {
 
   private Object error;
   private T result;
+  private boolean wasThrown;
 
   WebkitResult() {
 
@@ -68,6 +69,10 @@ public class WebkitResult<T> {
     return result;
   }
 
+  public boolean getWasThrown() {
+    return wasThrown;
+  }
+
   public boolean isError() {
     return error != null;
   }
@@ -89,5 +94,9 @@ public class WebkitResult<T> {
 
   void setResult(T result) {
     this.result = result;
+  }
+
+  void setWasThrown(boolean value) {
+    this.wasThrown = value;
   }
 }

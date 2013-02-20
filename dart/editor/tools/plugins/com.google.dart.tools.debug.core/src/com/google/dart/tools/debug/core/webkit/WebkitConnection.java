@@ -67,6 +67,7 @@ import java.util.Map;
 </pre>
  * 
  * @see http://code.google.com/chrome/devtools/docs/protocol/tot/index.html
+ * @see http://trac.webkit.org/browser/trunk/Source/WebCore/inspector/Inspector.json
  */
 public class WebkitConnection {
 
@@ -93,6 +94,9 @@ public class WebkitConnection {
   private WebkitRuntime runtime;
   private WebkitCSS css;
   private WebkitDom dom;
+  private WebkitDomDebugger domDebugger;
+  private WebkitWorker worker;
+  private WebkitNetwork network;
 
   private int requestId = 0;
 
@@ -202,6 +206,22 @@ public class WebkitConnection {
     return dom;
   }
 
+  public WebkitDomDebugger getDomDebugger() {
+    if (domDebugger == null) {
+      domDebugger = new WebkitDomDebugger(this);
+    }
+
+    return domDebugger;
+  }
+
+  public WebkitNetwork getNetwork() {
+    if (network == null) {
+      network = new WebkitNetwork(this);
+    }
+
+    return network;
+  }
+
   public WebkitPage getPage() {
     if (page == null) {
       page = new WebkitPage(this);
@@ -216,6 +236,14 @@ public class WebkitConnection {
     }
 
     return runtime;
+  }
+
+  public WebkitWorker getWorker() {
+    if (worker == null) {
+      worker = new WebkitWorker(this);
+    }
+
+    return worker;
   }
 
   public boolean isConnected() {
@@ -250,8 +278,11 @@ public class WebkitConnection {
       JSONObject object = new JSONObject(message.getText());
 
       if (DartDebugCorePlugin.LOGGING) {
-        // Print the event / response from the VM.
-        System.out.println("<== " + object);
+        // These messages are too versbose.
+        if (!message.getText().contains("\"method\":\"Debugger.scriptParsed\"")) {
+          // Print the event / response from the VM.
+          System.out.println("<== " + object);
+        }
       }
 
       if (object.has("id")) {

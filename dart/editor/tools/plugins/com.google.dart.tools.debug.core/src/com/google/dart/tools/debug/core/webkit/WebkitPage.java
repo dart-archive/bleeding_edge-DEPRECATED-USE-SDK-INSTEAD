@@ -15,6 +15,7 @@
 package com.google.dart.tools.debug.core.webkit;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.webkit.WebkitConnection.Callback;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection.NotificationHandler;
 
 import org.json.JSONException;
@@ -24,8 +25,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.DatatypeConverter;
+
 /**
  * A WIP page domain object.
+ * <p>
+ * Actions and events related to the inspected page belong to the page domain.
  * 
  * @see http://code.google.com/chrome/devtools/docs/protocol/tot/page.html
  */
@@ -37,6 +42,8 @@ public class WebkitPage extends WebkitDomain {
     public void frameDetached(String frameId);
 
     public void frameNavigated(String frameId, String url);
+
+    public void frameStartedLoading(String frameId);
 
     public void frameStoppedLoading(String frameId);
 
@@ -60,6 +67,11 @@ public class WebkitPage extends WebkitDomain {
     }
 
     @Override
+    public void frameStartedLoading(String frameId) {
+
+    }
+
+    @Override
     public void frameStoppedLoading(String frameId) {
 
     }
@@ -75,6 +87,18 @@ public class WebkitPage extends WebkitDomain {
   private static final String PAGE_FRAMENAVIGATED = "Page.frameNavigated";
   private static final String PAGE_FRAMEDETACHED = "Page.frameDetached";
   private static final String PAGE_FRAMESTOPPEDLOADING = "Page.frameStoppedLoading";
+  private static final String PAGE_FRAMESTARTEDLOADING = "Page.frameStartedLoading";
+
+  /**
+   * Convert base 64 data into a byte array. This method is provided for use with the
+   * {@link #captureScreenshot(WebkitCallback)} method.
+   * 
+   * @param data base64 encoded data
+   * @return
+   */
+  public static byte[] convertBase64ToBinary(String data) {
+    return DatatypeConverter.parseBase64Binary(data);
+  }
 
   private List<PageListener> listeners = new ArrayList<PageListener>();
 
@@ -91,6 +115,38 @@ public class WebkitPage extends WebkitDomain {
 
   public void addPageListener(PageListener listener) {
     listeners.add(listener);
+  }
+
+  /**
+   * Tells if backend supports a FPS counter display. Returns true if the FPS count can be shown.
+   * 
+   * @param callback
+   * @throws IOException
+   */
+  @WebkitUnsupported
+  public void canShowFPSCounter(final WebkitCallback<Boolean> callback) throws IOException {
+    sendSimpleCommand("Page.canShowFPSCounter", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertCanShowFPSCounterResult(result));
+      }
+    });
+  }
+
+  /**
+   * Capture page screenshot. Returns base64-encoded image data (PNG).
+   * 
+   * @throws IOException
+   * @see {@link #convertBase64ToBinary(String)}
+   */
+  @WebkitUnsupported
+  public void captureScreenshot(final WebkitCallback<String> callback) throws IOException {
+    sendSimpleCommand("Page.captureScreenshot", new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertCaptureScreenshotResult(result));
+      }
+    });
   }
 
   public void disable() throws IOException {
@@ -120,6 +176,52 @@ public class WebkitPage extends WebkitDomain {
 
   public void removePageListener(PageListener listener) {
     listeners.remove(listener);
+  }
+
+  /**
+   * Requests that backend shows the FPS counter
+   * 
+   * @param show True for showing the FPS counter
+   * @throws IOException
+   */
+  @WebkitUnsupported
+  public void setShowFPSCounter(boolean show) throws IOException {
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("method", "Page.setShowFPSCounter");
+      request.put("params", new JSONObject().put("show", show));
+
+      connection.sendRequest(request);
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  protected WebkitResult<Boolean> convertCanShowFPSCounterResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<Boolean> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      boolean showResult = object.getJSONObject("result").getBoolean("show");
+
+      result.setResult(showResult);
+    }
+
+    return result;
+  }
+
+  protected WebkitResult<String> convertCaptureScreenshotResult(JSONObject object)
+      throws JSONException {
+    WebkitResult<String> result = WebkitResult.createFrom(object);
+
+    if (object.has("result")) {
+      String data = object.getJSONObject("result").getString("data");
+
+      result.setResult(data);
+    }
+
+    return result;
   }
 
   protected void handlePageNotification(String method, JSONObject params) throws JSONException {
@@ -166,6 +268,14 @@ public class WebkitPage extends WebkitDomain {
 
       for (PageListener listener : listeners) {
         listener.frameStoppedLoading(frameId);
+      }
+    } else if (method.equals(PAGE_FRAMESTARTEDLOADING)) {
+      // {"method":"Page.frameStartedLoading","params":{"frameId":"48490.1"}}
+
+      String frameId = params.getString("frameId");
+
+      for (PageListener listener : listeners) {
+        listener.frameStartedLoading(frameId);
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);
