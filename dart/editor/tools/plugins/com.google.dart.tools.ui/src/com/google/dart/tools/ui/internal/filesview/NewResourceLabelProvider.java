@@ -17,10 +17,8 @@ import com.google.dart.compiler.util.apache.FilenameUtils;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
-import com.google.dart.tools.core.internal.builder.SourceContainerDeltaEvent;
-import com.google.dart.tools.core.internal.builder.SourceDeltaEvent;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -31,6 +29,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import java.util.ArrayList;
@@ -57,10 +56,7 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
     listeners.add(listener);
 
     if (listeners.size() == 1) {
-
-      //TODO (pquitslund): add a listener to the delta processor
-      //DartCore.getProjectManager().addDeltaListener(this);
-
+      DartCore.getProjectManager().addProjectListener(this);
     }
   }
 
@@ -183,8 +179,7 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
     if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
       StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
-      string.append(
-          " [" + ((DartLibraryNode) element).getCategory() + "]", //$NON-NLS-1$ //$NON-NLS-2$
+      string.append(" [" + ((DartLibraryNode) element).getCategory() + "]", //$NON-NLS-1$ //$NON-NLS-2$
           StyledString.QUALIFIER_STYLER);
 
       return string;
@@ -204,31 +199,8 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
   }
 
   @Override
-  public void packageSourceAdded(SourceDeltaEvent event) {
-  }
-
-  @Override
-  public void packageSourceChanged(SourceDeltaEvent event) {
-  }
-
-  @Override
-  public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
-  }
-
-  @Override
-  public void packageSourceRemoved(SourceDeltaEvent event) {
-  }
-
-  @Override
-  public void pubspecAdded(ResourceDeltaEvent event) {
-  }
-
-  @Override
-  public void pubspecChanged(ResourceDeltaEvent event) {
-  }
-
-  @Override
-  public void pubspecRemoved(ResourceDeltaEvent event) {
+  public void projectAnalyzed(ProjectEvent event) {
+    notifyListeners();
   }
 
   @Override
@@ -236,38 +208,29 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
     listeners.remove(listener);
 
     if (listeners.isEmpty()) {
-      //TODO (pquitslund): remove delta listener
-      //DartCore.getProjectManager().removeDeltaListener(this);
+      DartCore.getProjectManager().removeProjectListener(this);
     }
 
-  }
-
-  @Override
-  public void sourceAdded(SourceDeltaEvent event) {
-  }
-
-  @Override
-  public void sourceChanged(SourceDeltaEvent event) {
-    //TODO (pquitslund): migrate to an elementChanged() callback when there is one
-    notifyListeners();
-  }
-
-  @Override
-  public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
-  }
-
-  @Override
-  public void sourceRemoved(SourceDeltaEvent event) {
   }
 
   private void notifyListeners() {
     try {
-      for (ILabelProviderListener listener : listeners) {
-        listener.labelProviderChanged(new LabelProviderChangedEvent(this));
+      for (final ILabelProviderListener listener : listeners) {
+        uiExec(new Runnable() {
+          @Override
+          public void run() {
+            listener.labelProviderChanged(new LabelProviderChangedEvent(
+                NewResourceLabelProvider.this));
+          }
+        });
       }
     } catch (Throwable t) {
       DartToolsPlugin.log(t);
     }
+  }
+
+  private void uiExec(Runnable runnable) {
+    Display.getDefault().asyncExec(runnable);
   }
 
 }

@@ -14,9 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
-import com.google.dart.tools.core.internal.builder.SourceContainerDeltaEvent;
-import com.google.dart.tools.core.internal.builder.SourceDeltaEvent;
+import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -44,15 +42,12 @@ import java.util.List;
  * To be removed.
  */
 public class OldResourceLabelProvider extends ResourceLabelProvider {
+
   private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png";
   private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
-
   private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png";
-
   private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
-
   private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png";
-
   private static final String PACKAGE_ICON = "icons/full/obj16/package_obj.gif";
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
@@ -210,43 +205,7 @@ public class OldResourceLabelProvider extends ResourceLabelProvider {
   }
 
   @Override
-  public void packageSourceAdded(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void packageSourceChanged(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void packageSourceRemoved(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void pubspecAdded(ResourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void pubspecChanged(ResourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void pubspecRemoved(ResourceDeltaEvent event) {
+  public void projectAnalyzed(ProjectEvent event) {
     //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
     throw new IllegalStateException();
   }
@@ -258,31 +217,6 @@ public class OldResourceLabelProvider extends ResourceLabelProvider {
     if (listeners.isEmpty()) {
       DartCore.removeElementChangedListener(this);
     }
-
-  }
-
-  @Override
-  public void sourceAdded(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void sourceChanged(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
-  }
-
-  @Override
-  public void sourceRemoved(SourceDeltaEvent event) {
-    //TODO (pquitslund): remove once the old model is gone (here only for compatibility)
-    throw new IllegalStateException();
   }
 
   private void notifyListeners() {

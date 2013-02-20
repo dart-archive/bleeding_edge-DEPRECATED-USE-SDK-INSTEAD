@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.builder.DeltaListener;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.model.ElementChangedEvent;
 import com.google.dart.tools.core.model.ElementChangedListener;
 
@@ -25,7 +25,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
  * Label provider for resources in the {@link FilesView}.
  */
 public abstract class ResourceLabelProvider implements IStyledLabelProvider, ILabelProvider,
-    ElementChangedListener, DeltaListener {
+    ElementChangedListener, ProjectListener {
 
   /**
    * Get a resource label provider instance.
