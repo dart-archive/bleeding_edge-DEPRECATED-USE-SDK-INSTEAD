@@ -807,6 +807,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // TODO(brianwilkerson) Do we need to report this error, or is this condition always caught in the parser?
           // reportError(ResolverErrorCode.BREAK_OUTSIDE_LOOP);
         }
+        //
+        // The label element that was returned was a marker for look-up and isn't stored in the
+        // element model.
+        //
+        labelElement = null;
       }
     } else {
       if (labelScope == null) {

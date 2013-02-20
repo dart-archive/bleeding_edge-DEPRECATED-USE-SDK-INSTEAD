@@ -16,6 +16,21 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
+  public void test_breakWithoutLabelInSwitch() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  void m(int i) {",
+        "    switch (i) {",
+        "      case 0:",
+        "        break;",
+        "    }",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_class_extends_implements() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends B implements C {}",
