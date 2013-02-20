@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -22,11 +23,14 @@ import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartX;
+import com.google.dart.tools.ui.IWorkingCopyProvider;
+import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
+import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
-import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
+import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
 import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
@@ -39,6 +43,9 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
+import org.eclipse.jface.viewers.ILabelDecorator;
+import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -109,27 +116,40 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       }
     }
   }
-  /**
-   * String matcher that can match two patterns.
-   */
-  private static class OrStringMatcher extends StringMatcher {
 
-    private StringMatcher fMatcher1;
-    private StringMatcher fMatcher2;
+  private class NewOutlineContentProvider extends NewStandardDartElementContentProvider implements
+      OutlineContentProvider {
 
-    private OrStringMatcher(String pattern1, String pattern2, boolean ignoreCase, boolean foo) {
-      super("", false, false); //$NON-NLS-1$
-      fMatcher1 = new StringMatcher(pattern1, ignoreCase, false);
-      fMatcher2 = new StringMatcher(pattern2, ignoreCase, false);
+    private boolean showInheritedMembers;
+
+    /**
+     * Creates a new Outline content provider.
+     * 
+     * @param showInheritedMembers <code>true</code> iff inherited members are shown
+     */
+    private NewOutlineContentProvider(boolean showInheritedMembers) {
+      super(true);
+      this.showInheritedMembers = showInheritedMembers;
     }
 
     @Override
-    public boolean match(String text) {
-      return fMatcher2.match(text) || fMatcher1.match(text);
+    public boolean showInheritedMembers() {
+      return showInheritedMembers;
+    }
+  }
+
+  private class NewOutlineLabelProvider extends NewDartElementLabelProvider implements
+      OutlineLabelProvider {
+
+    @Override
+    public void setShowDefiningType(boolean state) {
+      //TODO (pquitslund): support (or remove)
     }
 
   }
-  private class OutlineContentProvider extends OldStandardDartElementContentProvider {
+
+  private class OldOutlineContentProvider extends OldStandardDartElementContentProvider implements
+      OutlineContentProvider {
 
     private boolean fShowInheritedMembers;
 
@@ -138,14 +158,11 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
      * 
      * @param showInheritedMembers <code>true</code> iff inherited members are shown
      */
-    private OutlineContentProvider(boolean showInheritedMembers) {
+    private OldOutlineContentProvider(boolean showInheritedMembers) {
       super(true);
       fShowInheritedMembers = showInheritedMembers;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void dispose() {
       super.dispose();
@@ -157,9 +174,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 //      fTypeHierarchies.clear();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Object[] getChildren(Object element) {
 //      if (fShowOnlyMainType) {
@@ -188,16 +202,14 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       return super.getChildren(element);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
       super.inputChanged(viewer, oldInput, newInput);
 //      fTypeHierarchies.clear();
     }
 
-    public boolean isShowingInheritedMembers() {
+    @Override
+    public boolean showInheritedMembers() {
       return fShowInheritedMembers;
     }
 
@@ -219,22 +231,19 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 //    }
   }
 
-  private class OutlineLabelProvider extends AppearanceAwareLabelProvider {
+  private class OldOutlineLabelProvider extends AppearanceAwareLabelProvider implements
+      OutlineLabelProvider {
 
     private boolean fShowDefiningType;
 
-    private OutlineLabelProvider() {
+    private OldOutlineLabelProvider() {
       super(AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | DartElementLabels.F_APP_TYPE_SIGNATURE
           | DartElementLabels.ALL_CATEGORY, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
     }
 
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.viewsupport.JavaUILabelProvider#
-     * getForeground(java.lang.Object)
-     */
     @Override
     public Color getForeground(Object element) {
-      if (fOutlineContentProvider.isShowingInheritedMembers()) {
+      if (outlineContentProvider.showInheritedMembers()) {
         if (element instanceof DartElement) {
           DartElement je = (DartElement) element;
           je = je.getAncestor(CompilationUnit.class);
@@ -247,9 +256,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       return null;
     }
 
-    /*
-     * @see ILabelProvider#getText
-     */
     @Override
     public String getText(Object element) {
       String text = super.getText(element);
@@ -272,6 +278,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 //      return fShowDefiningType;
 //    }
 
+    @Override
     public void setShowDefiningType(boolean showDefiningType) {
       fShowDefiningType = showDefiningType;
     }
@@ -304,6 +311,39 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 //      }
 //      return res.getDeclaringType();
     }
+  }
+
+  /**
+   * String matcher that can match two patterns.
+   */
+  private static class OrStringMatcher extends StringMatcher {
+
+    private StringMatcher fMatcher1;
+    private StringMatcher fMatcher2;
+
+    private OrStringMatcher(String pattern1, String pattern2, boolean ignoreCase, boolean foo) {
+      super("", false, false); //$NON-NLS-1$
+      fMatcher1 = new StringMatcher(pattern1, ignoreCase, false);
+      fMatcher2 = new StringMatcher(pattern2, ignoreCase, false);
+    }
+
+    @Override
+    public boolean match(String text) {
+      return fMatcher2.match(text) || fMatcher1.match(text);
+    }
+
+  }
+
+  private interface OutlineContentProvider extends ITreeContentProvider, IWorkingCopyProvider {
+    abstract boolean showInheritedMembers();
+  }
+
+  private interface OutlineLabelProvider extends ILabelProvider {
+
+    void addLabelDecorator(ILabelDecorator problemsLabelDecorator);
+
+    void setShowDefiningType(boolean state);
+
   }
 
   private class OutlineSorter extends DartElementComparator /* AbstractHierarchyViewerSorter */{
@@ -342,9 +382,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected Object[] getFilteredChildren(Object parent) {
       Object[] result = getRawChildren(parent);
@@ -359,9 +396,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
       return result;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected void internalExpandToLevel(Widget node, int level) {
       if (!fIsFiltering && node instanceof TreeItem && getMatcher() == null) {
@@ -476,18 +510,15 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
       boolean state = getDialogSettings().getBoolean(STORE_SORT_BY_DEFINING_TYPE_CHECKED);
       setChecked(state);
-      fInnerLabelProvider.setShowDefiningType(state);
+      innerLabelProvider.setShowDefiningType(state);
     }
 
-    /*
-     * @see Action#actionPerformed
-     */
     @Override
     public void run() {
       BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
         @Override
         public void run() {
-          fInnerLabelProvider.setShowDefiningType(isChecked());
+          innerLabelProvider.setShowDefiningType(isChecked());
           getDialogSettings().put(STORE_SORT_BY_DEFINING_TYPE_CHECKED, isChecked());
 
           setMatcherString(fPattern, false);
@@ -504,13 +535,13 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
   }
 
   private KeyAdapter fKeyAdapter;
-  private OutlineContentProvider fOutlineContentProvider;
+  private OutlineContentProvider outlineContentProvider;
 
   private DartElement fInput = null;
 
   private OutlineSorter fOutlineSorter;
 
-  private OutlineLabelProvider fInnerLabelProvider;
+  private OutlineLabelProvider innerLabelProvider;
 
 //  private boolean fShowOnlyMainType;
 
@@ -540,9 +571,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     super(parent, shellStyle, treeStyle, commandId, true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public void setInput(Object information) {
     if (information == null || information instanceof String) {
@@ -558,9 +586,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     // fCategoryFilterActionGroup.setInput(getInputForCategories());
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected Text createFilterText(Composite parent) {
     Text text = super.createFilterText(parent);
@@ -568,9 +593,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     return text;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected TreeViewer createTreeViewer(Composite parent, int style) {
     Tree tree = new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
@@ -585,14 +607,15 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     treeViewer.addFilter(new NamePatternFilter());
     treeViewer.addFilter(new MemberFilter());
 
-    fInnerLabelProvider = new OutlineLabelProvider();
-    fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(null));
+    innerLabelProvider = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewOutlineLabelProvider()
+        : new OldOutlineLabelProvider();
+    innerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(null));
     IDecoratorManager decoratorMgr = PlatformUI.getWorkbench().getDecoratorManager();
     if (decoratorMgr.getEnabled("com.google.dart.tools.ui.override.decorator")) {
-      fInnerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));
+      innerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));
     }
 
-    treeViewer.setLabelProvider(fInnerLabelProvider);
+    treeViewer.setLabelProvider(innerLabelProvider);
 
     fLexicalSortingAction = new LexicalSortingAction(treeViewer);
     fSortByDefiningTypeAction = new SortByDefiningTypeAction(treeViewer);
@@ -601,8 +624,9 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     // fCategoryFilterActionGroup= new CategoryFilterActionGroup(treeViewer,
     // getId(), getInputForCategories());
 
-    fOutlineContentProvider = new OutlineContentProvider(false);
-    treeViewer.setContentProvider(fOutlineContentProvider);
+    outlineContentProvider = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewOutlineContentProvider(
+        false) : new OldOutlineContentProvider(false);
+    treeViewer.setContentProvider(outlineContentProvider);
     fOutlineSorter = new OutlineSorter();
     treeViewer.setComparator(fOutlineSorter);
     treeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
@@ -617,10 +641,6 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     return treeViewer;
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractInformationControl#fillViewMenu
-   * (org.eclipse.jface.action.IMenuManager)
-   */
   @Override
   protected void fillViewMenu(IMenuManager viewMenu) {
     super.fillViewMenu(viewMenu);
@@ -635,17 +655,11 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     // fCategoryFilterActionGroup.contributeToViewMenu(viewMenu);
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractInformationControl#getId()
-   */
   @Override
   protected String getId() {
     return "com.google.dart.tools.ui.functions.QuickOutline"; //$NON-NLS-1$
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected String getStatusFieldText() {
 //TODO re-enable when we have support for showing inherited members
@@ -666,18 +680,11 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     return "";
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   protected void handleStatusFieldClicked() {
     toggleShowInheritedMembers();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.functions.AbstractInformationControl#setMatcherString
-   * (java.lang.String, boolean)
-   */
   @Override
   protected void setMatcherString(String pattern, boolean update) {
     fPattern = pattern;

@@ -22,9 +22,12 @@ import com.google.dart.tools.ui.internal.viewsupport.StorageLabelProvider;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
+import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
+
+import java.util.ArrayList;
 
 /**
  * Standard label provider for Dart elements. Use this class when you want to present Dart elements
@@ -99,6 +102,8 @@ public class NewDartElementLabelProvider extends LabelProvider implements IStyle
   private StorageLabelProvider storageLabelProvider;
   private NewDartElementImageProvider imageLabelProvider;
 
+  private ArrayList<ILabelDecorator> labelDecorators;
+
   /**
    * Creates a new label provider with <code>SHOW_DEFAULT</code> flag.
    * 
@@ -121,9 +126,30 @@ public class NewDartElementLabelProvider extends LabelProvider implements IStyle
     initTextProviderFlags();
   }
 
+  /**
+   * Adds a decorator to the label provider
+   * 
+   * @param decorator the decorator to add
+   */
+  public void addLabelDecorator(ILabelDecorator decorator) {
+    if (labelDecorators == null) {
+      labelDecorators = new ArrayList<ILabelDecorator>(2);
+    }
+    labelDecorators.add(decorator);
+  }
+
   @Override
   public void dispose() {
+
     super.dispose();
+
+    if (labelDecorators != null) {
+      for (ILabelDecorator decorator : labelDecorators) {
+        decorator.dispose();
+      }
+      labelDecorators = null;
+    }
+
     imageLabelProvider.dispose();
     storageLabelProvider.dispose();
   }
@@ -132,15 +158,11 @@ public class NewDartElementLabelProvider extends LabelProvider implements IStyle
   public Image getImage(Object element) {
 
     Image result = imageLabelProvider.getImageLabel(element, imageFlags);
-    if (result != null) {
-      return result;
+    if (result == null && element instanceof IStorage) {
+      result = storageLabelProvider.getImage(element);
     }
 
-    if (element instanceof IStorage) {
-      return storageLabelProvider.getImage(element);
-    }
-
-    return null;
+    return decorateImage(result, element);
   }
 
   @Override
@@ -150,7 +172,29 @@ public class NewDartElementLabelProvider extends LabelProvider implements IStyle
 
   @Override
   public String getText(Object element) {
-    return DartElementLabels.getTextLabel(element, textFlags);
+    String result = DartElementLabels.getTextLabel(element, textFlags);
+    return decorateText(result, element);
+  }
+
+  protected Image decorateImage(Image image, Object element) {
+    if (labelDecorators != null && image != null) {
+      for (ILabelDecorator decorator : labelDecorators) {
+        image = decorator.decorateImage(image, element);
+      }
+    }
+    return image;
+  }
+
+  protected String decorateText(String text, Object element) {
+    if (labelDecorators != null && text != null && text.length() > 0) {
+      for (ILabelDecorator decorator : labelDecorators) {
+        String decorated = decorator.decorateText(text, element);
+        if (decorated != null) {
+          text = decorated;
+        }
+      }
+    }
+    return text;
   }
 
   private boolean getFlag(int flag) {
