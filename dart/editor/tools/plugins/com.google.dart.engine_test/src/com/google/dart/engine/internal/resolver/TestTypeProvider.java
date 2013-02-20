@@ -25,6 +25,7 @@ import com.google.dart.engine.type.Type;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getObject;
+import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 
 /**
@@ -182,7 +183,15 @@ public class TestTypeProvider implements TypeProvider {
   @Override
   public InterfaceType getObjectType() {
     if (objectType == null) {
-      objectType = getObject().getType();
+      ClassElementImpl objectElement = getObject();
+      objectType = objectElement.getType();
+      if (objectElement.getMethods().length == 0) {
+        objectElement.setMethods(new MethodElement[] {methodElement("toString", getStringType())});
+        objectElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+            "hashCode",
+            false,
+            getIntType())});
+      }
     }
     return objectType;
   }
