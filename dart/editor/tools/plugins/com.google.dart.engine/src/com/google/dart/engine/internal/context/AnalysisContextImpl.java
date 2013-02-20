@@ -231,6 +231,9 @@ public class AnalysisContextImpl implements AnalysisContext {
     synchronized (cacheLock) {
       LibraryElement element = libraryElementCache.get(source);
       if (element == null) {
+        if (getOrComputeKindOf(source) != SourceKind.LIBRARY) {
+          return null;
+        }
         LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
