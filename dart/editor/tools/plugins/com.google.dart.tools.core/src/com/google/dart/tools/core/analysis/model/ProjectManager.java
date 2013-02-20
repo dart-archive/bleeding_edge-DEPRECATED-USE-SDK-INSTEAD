@@ -29,6 +29,13 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 public interface ProjectManager {
 
   /**
+   * Notify the specified object when a project has been analyzed.
+   * 
+   * @param listener the object to be notified (not {@code null})
+   */
+  void addProjectListener(ProjectListener listener);
+
+  /**
    * Answer the global ignore manager used for all Dart source
    * 
    * @return the ignore manager (not {@code null})
@@ -106,4 +113,18 @@ public interface ProjectManager {
    * @return a search engine (not {@code null})
    */
   SearchEngine newSearchEngine();
+
+  /**
+   * Called by the builder when a project has been analyzed.
+   * 
+   * @param project the project that was analyzed (not {@code null})
+   */
+  void projectAnalyzed(Project project);
+
+  /**
+   * Stop notifying the specified object when a project has been analyzed.
+   * 
+   * @param listener the object that should not be notified (not {@code null})
+   */
+  void removeProjectListener(ProjectListener listener);
 }

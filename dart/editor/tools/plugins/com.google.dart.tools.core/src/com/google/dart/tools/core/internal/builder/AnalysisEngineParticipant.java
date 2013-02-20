@@ -110,6 +110,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         processor.traverse(delta);
         analyzer.analyze(monitor);
 
+        // Notify others
+        projectManager.projectAnalyzed(project);
+
         return false;
       }
 
@@ -142,6 +145,9 @@ public class AnalysisEngineParticipant implements BuildParticipant {
         processor.addDeltaListener(analyzer);
         processor.traverse(resource);
         analyzer.analyze(monitor);
+
+        // Notify others
+        projectManager.projectAnalyzed(project);
 
         return false;
       }

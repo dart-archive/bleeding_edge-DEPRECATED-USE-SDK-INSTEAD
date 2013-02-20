@@ -17,6 +17,8 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectEvent;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -30,8 +32,27 @@ import org.eclipse.core.resources.IResource;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class ProjectManagerImplTest extends TestCase {
+
+  private final class MockProjectListener implements ProjectListener {
+    private final ArrayList<Project> analyzed = new ArrayList<Project>();
+
+    public void assertNoProjectsAnalyzed() {
+      assertEquals(0, analyzed.size());
+    }
+
+    public void assertProjectAnalyzed(Project project) {
+      assertEquals(1, analyzed.size());
+      assertSame(project, analyzed.get(0));
+    }
+
+    @Override
+    public void projectAnalyzed(ProjectEvent event) {
+      analyzed.add(event.getProject());
+    }
+  }
 
   private MockWorkspaceRoot rootContainer;
   private MockProject projectContainer;
@@ -90,6 +111,15 @@ public class ProjectManagerImplTest extends TestCase {
     final DartSdk sdk = manager.getSdk();
     assertNotNull(sdk);
     assertSame(expectedSdk, sdk);
+  }
+
+  public void test_listener() throws Exception {
+    Project project = manager.getProject(projectContainer);
+    MockProjectListener listener = new MockProjectListener();
+    manager.addProjectListener(listener);
+    listener.assertNoProjectsAnalyzed();
+    manager.projectAnalyzed(project);
+    listener.assertProjectAnalyzed(project);
   }
 
   public void test_newSearchEngine() throws Exception {

@@ -23,6 +23,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
@@ -149,7 +150,19 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   private final class MockProjectManager implements ProjectManager {
     private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
     private final DartIgnoreManager ignoreManager = new DartIgnoreManager();
+    private final ArrayList<Project> analyzed = new ArrayList<Project>();
     private MockProjectImpl project;
+
+    @Override
+    public void addProjectListener(ProjectListener listener) {
+      throw new UnsupportedOperationException();
+    }
+
+    public void assertProjectAnalyzed(Project expected) {
+      assertEquals(1, analyzed.size());
+      assertSame(expected, analyzed.get(0));
+      analyzed.clear();
+    }
 
     @Override
     public DartIgnoreManager getIgnoreManager() {
@@ -208,6 +221,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     public SearchEngine newSearchEngine() {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public void projectAnalyzed(Project project) {
+      analyzed.add(project);
+    }
+
+    @Override
+    public void removeProjectListener(ProjectListener listener) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   /**
@@ -218,7 +241,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     private MockDeltaProcessor processor;
 
     Target() {
-      super(true, new MockProjectManager());
+      super(true, manager);
     }
 
     @Override
@@ -232,6 +255,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
   }
 
   private MockProject projectContainer;
+  private MockProjectManager manager = new MockProjectManager();
   private Target participant;
 
   public void test_build_delta() throws Exception {
@@ -240,11 +264,13 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     participant.processor.assertTraversed(delta);
     participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
+    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
 
     participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
     participant.processor.assertTraversed(delta);
     participant.processor.assertTraversed(delta);
     participant.processor.assertNoCalls();
+    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
   }
 
   public void test_build_noDelta() throws Exception {
@@ -252,11 +278,13 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
+    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
 
     participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertTraversed(projectContainer);
     participant.processor.assertNoCalls();
+    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
   }
 
   @Override

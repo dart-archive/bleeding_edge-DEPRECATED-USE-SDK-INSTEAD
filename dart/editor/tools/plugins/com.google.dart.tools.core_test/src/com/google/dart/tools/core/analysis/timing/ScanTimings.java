@@ -28,6 +28,7 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
@@ -121,6 +122,11 @@ public class ScanTimings extends TestCase {
     private ProjectImpl project;
 
     @Override
+    public void addProjectListener(ProjectListener listener) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }
@@ -181,6 +187,16 @@ public class ScanTimings extends TestCase {
 
     @Override
     public SearchEngine newSearchEngine() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void projectAnalyzed(Project project) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeProjectListener(ProjectListener listener) {
       throw new UnsupportedOperationException();
     }
   }

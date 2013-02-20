@@ -22,7 +22,10 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectEvent;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
@@ -32,6 +35,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -44,11 +48,19 @@ public class ProjectManagerImpl implements ProjectManager {
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartSdk sdk;
   private final DartIgnoreManager ignoreManager;
+  private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     this.resource = resource;
     this.sdk = sdk;
     this.ignoreManager = ignoreManager;
+  }
+
+  @Override
+  public void addProjectListener(ProjectListener listener) {
+    if (listener != null && !listeners.contains(listener)) {
+      listeners.add(listener);
+    }
   }
 
   @Override
@@ -128,6 +140,23 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public SearchEngine newSearchEngine() {
     return SearchEngineFactory.createSearchEngine(getIndex());
+  }
+
+  @Override
+  public void projectAnalyzed(Project project) {
+    final ProjectEvent event = new ProjectEvent(project);
+    for (ProjectListener listener : listeners) {
+      try {
+        listener.projectAnalyzed(event);
+      } catch (Exception e) {
+        DartCore.logError("Exception while notifying listeners project was analyzed", e);
+      }
+    }
+  }
+
+  @Override
+  public void removeProjectListener(ProjectListener listener) {
+    listeners.remove(listener);
   }
 
   private AnalysisContext getContext(IResource res) {
