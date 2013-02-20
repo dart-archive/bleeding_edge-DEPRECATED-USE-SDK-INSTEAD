@@ -90,7 +90,6 @@ public class RunPubAction extends SelectionDispatchAction {
 
   }
 
-  public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
   private static final String WARNINGS_REGEX = "Package has [0-9]+ warning(s)?."; //$NON-NLS-1$
 
   private static final String ERRORS_STRING = "Missing requirements:"; //$NON-NLS-1$
@@ -107,9 +106,11 @@ public class RunPubAction extends SelectionDispatchAction {
   }
 
   public static RunPubAction createPubPublishAction(IWorkbenchWindow window) {
-    RunPubAction action = new RunPubAction(window, PUBLISH_COMMAND);
+    RunPubAction action = new RunPubAction(window, RunPubJob.PUBLISH_COMMAND);
     action.setText(NLS.bind(ActionMessages.RunPubAction_commandText, "Publish"));
-    action.setDescription(NLS.bind(ActionMessages.RunPubAction_commandDesc, PUBLISH_COMMAND));
+    action.setDescription(NLS.bind(
+        ActionMessages.RunPubAction_commandDesc,
+        RunPubJob.PUBLISH_COMMAND));
     return action;
   }
 
@@ -210,7 +211,7 @@ public class RunPubAction extends SelectionDispatchAction {
     List<String> args = new ArrayList<String>();
     args.add(sdk.getVmExecutable().getPath());
     args.add(pubFile.getAbsolutePath());
-    args.add(PUBLISH_COMMAND);
+    args.add(RunPubJob.PUBLISH_COMMAND);
     args.add(arg);
     return args;
   }
@@ -288,7 +289,7 @@ public class RunPubAction extends SelectionDispatchAction {
 
   private void runPubJob(IContainer container) {
     if (container.findMember(DartCore.PUBSPEC_FILE_NAME) != null) {
-      if (command.equals(PUBLISH_COMMAND)) {
+      if (command.equals(RunPubJob.PUBLISH_COMMAND)) {
         runPubPublish(container);
       } else {
         RunPubJob runPubJob = new RunPubJob(container, command);
@@ -305,7 +306,7 @@ public class RunPubAction extends SelectionDispatchAction {
   private void runPubPublish(IContainer container) {
     stringBuilder = new StringBuilder();
     MessageConsole console = DartCore.getConsole();
-    console.println(NLS.bind(PubMessages.RunPubJob_running, PUBLISH_COMMAND));
+    console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, RunPubJob.PUBLISH_COMMAND));
 
     // use publish --dry-run to do just validation on the package and do not upload.
     List<String> args = buildPublishCommand("--dry-run"); //$NON-NLS-1$

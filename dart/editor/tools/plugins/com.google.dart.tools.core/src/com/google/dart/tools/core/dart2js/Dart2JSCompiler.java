@@ -112,8 +112,7 @@ public class Dart2JSCompiler {
 
     Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-    console.clear();
-    console.println("Running dart2js...");
+    console.printSeparator("Running dart2js...");
 
     try {
       CompilationResult result = compiler.compile(inputPath, outputPath, monitor, console);

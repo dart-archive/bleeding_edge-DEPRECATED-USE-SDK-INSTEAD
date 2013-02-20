@@ -91,8 +91,8 @@ public class CompilationServer {
 
       Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-      console.println("Compiling " + compilationUnit.getCorrespondingResource().getFullPath()
-          + "...");
+      console.printSeparator("Compiling "
+          + compilationUnit.getCorrespondingResource().getFullPath() + "...");
 
       CompilationResult result = compiler.compile(
           inputPath,

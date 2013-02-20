@@ -86,6 +86,14 @@ public interface MessageConsole {
   void println(String s);
 
   /**
+   * A convenience method that prints a separator, the current date/time, and the specified section
+   * title using the {@link #println(String)} method.
+   * 
+   * @param sectionTitle text describing the information to follow
+   */
+  void printSeparator(String sectionTitle);
+
+  /**
    * Remove this stream.
    * 
    * @param stream

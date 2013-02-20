@@ -293,7 +293,7 @@ public class BuildDartParticipant implements BuildParticipant {
     log(builderFile, output.trim());
 
     if (result != 0) {
-      DartCore.getConsole().println("build.dart " + commandSummary);
+      DartCore.getConsole().printSeparator("build.dart " + commandSummary);
       if (builderFile.getLocationURI() != null) {
         DartCore.getConsole().println(builderFile.getLocationURI().toString());
       }

@@ -31,6 +31,7 @@ public class RunPubJob extends Job {
 
   public static final String UPDATE_COMMAND = "update"; //$NON-NLS-1$
   public static final String INSTALL_COMMAND = "install"; //$NON-NLS-1$
+  public static final String PUBLISH_COMMAND = "publish"; //$NON-NLS-1$
 
   public static final String PUB_PATH = "util/pub/pub.dart"; //$NON-NLS-1$
 
@@ -70,7 +71,7 @@ public class RunPubJob extends Job {
 
     if (!status.isOK()) {
       MessageConsole console = DartCore.getConsole();
-      console.println(NLS.bind(PubMessages.RunPubJob_running, command));
+      console.printSeparator(NLS.bind(PubMessages.RunPubJob_running, command));
       console.println(status.getMessage());
     }
 
@@ -129,7 +130,8 @@ public class RunPubJob extends Job {
         // Refresh the Eclipse resources
         container.refreshLocal(IResource.DEPTH_INFINITE, monitor);
       } catch (CoreException e) {
-        // do nothing  - exception on project refresh
+        // Log the exception and move on
+        DartCore.logError("Exception refreshing " + container, e);
       }
 
       return new Status(IStatus.OK, DartCore.PLUGIN_ID, stringBuilder.toString());

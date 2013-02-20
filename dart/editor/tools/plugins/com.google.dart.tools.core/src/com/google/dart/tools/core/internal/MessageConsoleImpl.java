@@ -16,7 +16,9 @@ package com.google.dart.tools.core.internal;
 
 import com.google.dart.tools.core.MessageConsole;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 /**
@@ -62,8 +64,15 @@ public class MessageConsoleImpl implements MessageConsole {
   }
 
   @Override
+  public void printSeparator(String sectionTitle) {
+    println();
+    println("==================================================================================");
+    println(DateFormat.getDateTimeInstance().format(new GregorianCalendar().getTime()) + " "
+        + sectionTitle);
+  }
+
+  @Override
   public void removeStream(MessageStream stream) {
     streams.remove(stream);
   }
-
 }
