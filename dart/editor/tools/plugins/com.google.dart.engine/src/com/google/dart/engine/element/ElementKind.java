@@ -17,27 +17,40 @@ package com.google.dart.engine.element;
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
  */
 public enum ElementKind {
-  CLASS,
-  COMPILATION_UNIT,
-  CONSTRUCTOR,
-  DYNAMIC,
-  ERROR,
-  EXPORT,
-  FIELD,
-  FUNCTION,
-  GETTER,
-  HTML,
-  IMPORT,
-  LABEL,
-  LIBRARY,
-  LOCAL_VARIABLE,
-  METHOD,
-  NAME,
-  PARAMETER,
-  PREFIX,
-  SETTER,
-  TOP_LEVEL_VARIABLE,
-  TYPE_ALIAS,
-  TYPE_VARIABLE,
-  UNIVERSE;
+  CLASS("class"),
+  COMPILATION_UNIT("compilation unit"),
+  CONSTRUCTOR("constructor"),
+  DYNAMIC("<dynamic>"),
+  ERROR("<error>"),
+  EXPORT("export directive"),
+  FIELD("field"),
+  FUNCTION("function"),
+  GETTER("getter"),
+  HTML("html"),
+  IMPORT("import directive"),
+  LABEL("label"),
+  LIBRARY("library"),
+  LOCAL_VARIABLE("local variable"),
+  METHOD("method"),
+  NAME("<name>"),
+  PARAMETER("parameter"),
+  PREFIX("import prefix"),
+  SETTER("setter"),
+  TOP_LEVEL_VARIABLE("top level variable"),
+  TYPE_ALIAS("function type alias"),
+  TYPE_VARIABLE("type variable"),
+  UNIVERSE("<universe>");
+
+  private final String displayName;
+
+  private ElementKind(String displayName) {
+    this.displayName = displayName;
+  }
+
+  /**
+   * @return the name of this {@link ElementKind} to display in UI.
+   */
+  public String getDisplayName() {
+    return displayName;
+  }
 }
