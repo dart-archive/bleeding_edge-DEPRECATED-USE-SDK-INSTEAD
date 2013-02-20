@@ -36,6 +36,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.nio.CharBuffer;
@@ -52,6 +53,28 @@ import java.util.Map;
  * context}.
  */
 public class AnalysisContextImpl implements AnalysisContext {
+  /**
+   * Instances of the class {@code ScanResult} represent the results of scanning a source.
+   */
+  private static class ScanResult {
+    /**
+     * The first token in the token stream.
+     */
+    private Token token;
+
+    /**
+     * The line start information that was produced.
+     */
+    private int[] lineStarts;
+
+    /**
+     * Initialize a newly created result object to be empty.
+     */
+    private ScanResult() {
+      super();
+    }
+  }
+
   /**
    * The source factory used to create the sources that can be analyzed in this context.
    */
@@ -327,10 +350,11 @@ public class AnalysisContextImpl implements AnalysisContext {
       CompilationUnit unit = parseCache.get(source);
       if (unit == null) {
         RecordingErrorListener errorListener = new RecordingErrorListener();
-        Token token = scan(source, errorListener);
+        ScanResult scanResult = internalScan(source, errorListener);
         Parser parser = new Parser(source, errorListener);
-        unit = parser.parseCompilationUnit(token);
-        unit.setParsingErrors(errorListener.getErrors());
+        unit = parser.parseCompilationUnit(scanResult.token);
+        unit.setParsingErrors(errorListener.getErrors(source));
+        unit.setLineInfo(new LineInfo(scanResult.lineStarts));
         parseCache.put(source, unit);
       }
       return unit;
@@ -344,9 +368,10 @@ public class AnalysisContextImpl implements AnalysisContext {
     synchronized (cacheLock) {
       CompilationUnit unit = parseCache.get(source);
       if (unit == null) {
-        Token token = scan(source, errorListener);
+        ScanResult scanResult = internalScan(source, errorListener);
         Parser parser = new Parser(source, errorListener);
-        unit = parser.parseCompilationUnit(token);
+        unit = parser.parseCompilationUnit(scanResult.token);
+        unit.setLineInfo(new LineInfo(scanResult.lineStarts));
         parseCache.put(source, unit);
       }
       return unit;
@@ -377,26 +402,8 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public Token scan(final Source source, final AnalysisErrorListener errorListener)
       throws AnalysisException {
-    final Token[] tokens = new Token[1];
-    Source.ContentReceiver receiver = new Source.ContentReceiver() {
-      @Override
-      public void accept(CharBuffer contents) {
-        CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
-        tokens[0] = scanner.tokenize();
-      }
-
-      @Override
-      public void accept(String contents) {
-        StringScanner scanner = new StringScanner(source, contents, errorListener);
-        tokens[0] = scanner.tokenize();
-      }
-    };
-    try {
-      source.getContents(receiver);
-    } catch (Exception exception) {
-      throw new AnalysisException(exception);
-    }
-    return tokens[0];
+    ScanResult result = internalScan(source, errorListener);
+    return result.token;
   }
 
   @Override
@@ -472,5 +479,31 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
     }
     return false;
+  }
+
+  private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)
+      throws AnalysisException {
+    final ScanResult result = new ScanResult();
+    Source.ContentReceiver receiver = new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents) {
+        CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+        result.token = scanner.tokenize();
+        result.lineStarts = scanner.getLineStarts();
+      }
+
+      @Override
+      public void accept(String contents) {
+        StringScanner scanner = new StringScanner(source, contents, errorListener);
+        result.token = scanner.tokenize();
+        result.lineStarts = scanner.getLineStarts();
+      }
+    };
+    try {
+      source.getContents(receiver);
+    } catch (Exception exception) {
+      throw new AnalysisException(exception);
+    }
+    return result;
   }
 }
