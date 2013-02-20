@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -62,6 +63,11 @@ public class FieldDeclaration extends ClassMember {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitFieldDeclaration(this);
+  }
+
+  @Override
+  public Element getElement() {
+    return null;
   }
 
   @Override

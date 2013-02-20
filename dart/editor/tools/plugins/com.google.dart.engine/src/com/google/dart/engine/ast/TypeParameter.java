@@ -76,12 +76,7 @@ public class TypeParameter extends Declaration {
     return bound;
   }
 
-  /**
-   * Return the {@link TypeVariableElement} associated with this type parameter, or {@code null} if
-   * the AST structure has not been resolved.
-   * 
-   * @return the {@link TypeVariableElement} associated with this type parameter
-   */
+  @Override
   public TypeVariableElement getElement() {
     return name != null ? (TypeVariableElement) name.getElement() : null;
   }

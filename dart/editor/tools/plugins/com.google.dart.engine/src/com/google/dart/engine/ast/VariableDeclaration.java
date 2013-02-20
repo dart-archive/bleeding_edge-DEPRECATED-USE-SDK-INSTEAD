@@ -68,12 +68,7 @@ public class VariableDeclaration extends Declaration {
     return visitor.visitVariableDeclaration(this);
   }
 
-  /**
-   * Return the {@link VariableElement} associated with this variable, or {@code null} if the AST
-   * structure has not been resolved.
-   * 
-   * @return the {@link VariableElement} associated with this variable
-   */
+  @Override
   public VariableElement getElement() {
     return name != null ? (VariableElement) name.getElement() : null;
   }

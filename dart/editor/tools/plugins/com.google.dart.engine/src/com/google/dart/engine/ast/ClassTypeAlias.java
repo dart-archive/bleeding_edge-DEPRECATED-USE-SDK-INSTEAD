@@ -110,12 +110,7 @@ public class ClassTypeAlias extends TypeAlias {
     return abstractKeyword;
   }
 
-  /**
-   * Return the {@link ClassElement} associated with this type alias, or {@code null} if the AST
-   * structure has not been resolved.
-   * 
-   * @return the {@link ClassElement} associated with this type alias
-   */
+  @Override
   public ClassElement getElement() {
     return name != null ? (ClassElement) name.getElement() : null;
   }

@@ -138,10 +138,7 @@ public class ClassDeclaration extends CompilationUnitMember {
     return classKeyword;
   }
 
-  /**
-   * @return the {@link ClassElement} associated with this identifier, or {@code null} if the AST
-   *         structure has not been resolved or if this identifier could not be resolved.
-   */
+  @Override
   public ClassElement getElement() {
     return name != null ? (ClassElement) name.getElement() : null;
   }

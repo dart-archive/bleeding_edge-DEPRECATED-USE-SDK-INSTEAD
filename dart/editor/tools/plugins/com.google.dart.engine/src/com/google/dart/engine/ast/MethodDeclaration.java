@@ -133,6 +133,7 @@ public class MethodDeclaration extends ClassMember {
    * 
    * @return the element associated with this method
    */
+  @Override
   public ExecutableElement getElement() {
     return name != null ? (ExecutableElement) name.getElement() : null;
   }

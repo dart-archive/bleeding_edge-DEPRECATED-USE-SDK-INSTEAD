@@ -79,12 +79,7 @@ public class FunctionTypeAlias extends TypeAlias {
     return visitor.visitFunctionTypeAlias(this);
   }
 
-  /**
-   * Return the {@link TypeAliasElement} associated with this type alias, or {@code null} if the AST
-   * structure has not been resolved.
-   * 
-   * @return the {@link TypeAliasElement} associated with this type alias
-   */
+  @Override
   public TypeAliasElement getElement() {
     return name != null ? (TypeAliasElement) name.getElement() : null;
   }

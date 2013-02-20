@@ -167,12 +167,7 @@ public class ConstructorDeclaration extends ClassMember {
     return constKeyword;
   }
 
-  /**
-   * Return the element associated with this constructor , or {@code null} if the AST structure has
-   * not been resolved or if this constructor could not be resolved.
-   * 
-   * @return the element associated with this constructor
-   */
+  @Override
   public ConstructorElement getElement() {
     return element;
   }

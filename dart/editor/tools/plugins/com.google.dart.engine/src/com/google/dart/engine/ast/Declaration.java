@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+
 import java.util.List;
 
 /**
@@ -29,4 +31,12 @@ public abstract class Declaration extends AnnotatedNode {
   public Declaration(Comment comment, List<Annotation> metadata) {
     super(comment, metadata);
   }
+
+  /**
+   * Return the element associated with this declaration, or {@code null} if either this node
+   * corresponds to a list of declarations or if the AST structure has not been resolved.
+   * 
+   * @return the element associated with this declaration
+   */
+  public abstract Element getElement();
 }

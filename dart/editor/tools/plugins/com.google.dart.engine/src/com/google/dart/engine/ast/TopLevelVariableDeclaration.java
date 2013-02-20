@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -56,6 +57,11 @@ public class TopLevelVariableDeclaration extends CompilationUnitMember {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitTopLevelVariableDeclaration(this);
+  }
+
+  @Override
+  public Element getElement() {
+    return null;
   }
 
   @Override

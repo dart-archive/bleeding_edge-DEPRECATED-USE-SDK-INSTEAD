@@ -86,12 +86,7 @@ public class FunctionDeclaration extends CompilationUnitMember {
     return visitor.visitFunctionDeclaration(this);
   }
 
-  /**
-   * Return the {@link FunctionElement} associated with this function, or {@code null} if the AST
-   * structure has not been resolved.
-   * 
-   * @return the {@link FunctionElement} associated with this function
-   */
+  @Override
   public FunctionElement getElement() {
     return name != null ? (FunctionElement) name.getElement() : null;
   }
