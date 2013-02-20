@@ -19,7 +19,10 @@ import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 import com.google.dart.tools.ui.web.yaml.YamlEditor;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -38,12 +41,25 @@ public class PubspecEditor extends FormEditor {
 
   public static String ID = "com.google.dart.tools.ui.editor.pubspec";
 
+  private QualifiedName PROPERTY_EDITOR_PAGE_KEY = new QualifiedName(
+      DartWebPlugin.PLUGIN_ID,
+      "editor-page-index"); //$NON-NLS-1$
+
   private PubspecModel model;
   private YamlEditor yamlEditor;
   private OverviewFormPage formPage;
 
   public PubspecEditor() {
 
+  }
+
+  @Override
+  public void dispose() {
+    IEditorInput input = getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      setPropertyEditorPageKey((IFileEditorInput) input);
+    }
+    super.dispose();
   }
 
   @Override
@@ -97,6 +113,21 @@ public class PubspecEditor extends FormEditor {
     } catch (PartInitException e) {
 
     }
+    IEditorInput input = getEditorInput();
+    if (input instanceof IFileEditorInput) {
+      String pageIndex = getPropertyEditorPageKey((IFileEditorInput) input);
+      if (pageIndex != null) {
+        try {
+          int i = Integer.parseInt(pageIndex);
+          if (i == 0 || i == 1) { // editor has only 2 pages
+            setActivePage(i);
+          }
+        } catch (Exception e) {
+          // do nothing
+        }
+      }
+    }
+
   }
 
   @Override
@@ -138,6 +169,28 @@ public class PubspecEditor extends FormEditor {
       model = new PubspecModel(contents);
     }
 
+  }
+
+  private String getPropertyEditorPageKey(IFileEditorInput input) {
+    IFile file = input.getFile();
+    // Get the persistent editor page key from the file
+    try {
+      return file.getPersistentProperty(PROPERTY_EDITOR_PAGE_KEY);
+    } catch (CoreException e) {
+      return null;
+    }
+  }
+
+  private void setPropertyEditorPageKey(IFileEditorInput input) {
+    // We are using the file itself to persist the editor page key property
+    // The value persists even after the editor is closed
+    IFile file = input.getFile();
+    try {
+      // Set the editor page index as a persistent property on the file
+      file.setPersistentProperty(PROPERTY_EDITOR_PAGE_KEY, Integer.toString(getCurrentPage()));
+    } catch (CoreException e) {
+      // Ignore
+    }
   }
 
   private void updateDocumentContents() {

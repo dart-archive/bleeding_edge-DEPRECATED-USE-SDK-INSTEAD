@@ -133,12 +133,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       ignoreModify = true;
     }
     updateInfoSection();
-    ignoreModify = false;
   }
 
-  /**
-   * @param control
-   */
   public void setLastFocusControl(Control control) {
     lastFocusControl = control;
   }
@@ -391,7 +387,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
         setTextDirty();
       }
     });
-
+    ignoreModify = true;
     updateInfoSection();
 
   }
@@ -411,6 +407,9 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       homepageText.setText(model.getHomepage());
       authorText.setText(model.getAuthor());
       sdkVersionText.setText(model.getSdkVersion());
+    }
+    if (ignoreModify) {
+      ignoreModify = false;
     }
   }
 
