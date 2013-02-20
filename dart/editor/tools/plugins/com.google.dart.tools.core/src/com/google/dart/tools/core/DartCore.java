@@ -64,6 +64,7 @@ import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.QualifiedName;
@@ -777,6 +778,28 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static boolean isApplicationDirectory(File directory) {
     return containsPubspecFile(directory) && containsPackagesDirectory(directory);
+  }
+
+  /**
+   * Answer {@code true} if the specified resource is a build.dart file and exists either in a
+   * project or in a folder containing a pubspec file.
+   * 
+   * @param file the file
+   * @return {@code true} if the file is a build.dart file that will be run by the builder
+   */
+  public static boolean isBuildDart(IFile file) {
+    if (file == null || !file.getName().equals(BUILD_DART_FILE_NAME) || !file.exists()) {
+      return false;
+    }
+
+    IContainer container = file.getParent();
+
+    // Always run build.dart in a project's root.
+    if (container.getType() == IResource.PROJECT) {
+      return true;
+    }
+
+    return container.getFile(new Path(PUBSPEC_FILE_NAME)).exists();
   }
 
   /**

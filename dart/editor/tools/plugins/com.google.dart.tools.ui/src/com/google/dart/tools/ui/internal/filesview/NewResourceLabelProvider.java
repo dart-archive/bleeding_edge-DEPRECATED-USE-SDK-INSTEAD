@@ -23,7 +23,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
@@ -86,12 +85,13 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
       if (resource instanceof IFile) {
 
-        if (resource.getParent() instanceof IProject
-            && resource.getName().equals(DartCore.BUILD_DART_FILE_NAME)) {
+        IFile file = (IFile) resource;
+
+        if (DartCore.isBuildDart(file)) {
           return DartToolsPlugin.getImage(BUILD_FILE_ICON);
         }
 
-        SourceKind kind = DartCore.getProjectManager().getSourceKind((IFile) resource);
+        SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
         if (kind == SourceKind.LIBRARY) {
           return DartToolsPlugin.getImage(LIBRARY_ICON);
         }

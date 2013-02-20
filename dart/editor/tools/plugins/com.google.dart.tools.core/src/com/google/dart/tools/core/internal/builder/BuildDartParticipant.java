@@ -118,7 +118,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
             IFile builderFile = container.getFile(new Path(BUILD_DART_FILE_NAME));
 
-            if (shouldRunBuildDart(builderFile)) {
+            if (DartCore.isBuildDart(builderFile)) {
               // Perform a full build.
               runBuildDart(builderFile, Arrays.asList(FULL_BUILD), monitor);
 
@@ -139,7 +139,7 @@ public class BuildDartParticipant implements BuildParticipant {
           if (resource.getType() == IResource.FOLDER || resource.getType() == IResource.PROJECT) {
             IFile builderFile = ((IContainer) resource).getFile(new Path(BUILD_DART_FILE_NAME));
 
-            if (shouldRunBuildDart(builderFile)) {
+            if (DartCore.isBuildDart(builderFile)) {
               processDelta(builderFile, 0, delta, monitor);
               return false;
             }
@@ -166,7 +166,7 @@ public class BuildDartParticipant implements BuildParticipant {
         if (proxy.getType() == IResource.FILE) {
           if (proxy.getName().equals(BUILD_DART_FILE_NAME)) {
             IFile builderFile = (IFile) proxy.requestResource();
-            if (shouldRunBuildDart(builderFile)) {
+            if (DartCore.isBuildDart(builderFile)) {
               runBuildDart(builderFile, Arrays.asList(new String[] {CLEAN}), monitor);
             }
           }
@@ -515,24 +515,6 @@ public class BuildDartParticipant implements BuildParticipant {
     boolean disableBuilder = DartCore.getPlugin().getDisableDartBasedBuilder(project);
 
     return !disableBuilder;
-  }
-
-  /**
-   * @return whether we should invoke the specified build.dart file
-   */
-  private boolean shouldRunBuildDart(IFile builderFile) {
-    if (!builderFile.exists()) {
-      return false;
-    }
-
-    IContainer container = builderFile.getParent();
-
-    // Always run build.dart in a project's root.
-    if (container.getType() == IResource.PROJECT) {
-      return true;
-    }
-
-    return container.getFile(new Path(DartCore.PUBSPEC_FILE_NAME)).exists();
   }
 
 }
