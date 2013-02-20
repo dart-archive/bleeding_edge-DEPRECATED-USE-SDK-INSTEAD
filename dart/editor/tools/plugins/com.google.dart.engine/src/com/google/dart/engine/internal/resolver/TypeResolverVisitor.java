@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -44,11 +45,15 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
@@ -60,7 +65,6 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -77,6 +81,11 @@ import java.util.LinkedHashMap;
  */
 public class TypeResolverVisitor extends ScopedVisitor {
   /**
+   * The type representing the type 'dynamic'.
+   */
+  private Type dynamicType;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
    * 
    * @param library the library containing the compilation unit being resolved
@@ -85,6 +94,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    */
   public TypeResolverVisitor(Library library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
+    dynamicType = typeProvider.getDynamicType();
   }
 
   @Override
@@ -123,8 +133,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
     InterfaceType superclassType = null;
     ExtendsClause extendsClause = node.getExtendsClause();
     if (extendsClause != null) {
-      // TODO(brianwilkerson) Report these errors.
-      superclassType = resolveType(extendsClause.getSuperclass(), null, null, null);
+      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
+      superclassType = resolveType(
+          extendsClause.getSuperclass(),
+          CompileTimeErrorCode.EXTENDS_NON_CLASS,
+          CompileTimeErrorCode.EXTENDS_NON_CLASS,
+          null);
     }
     if (classElement != null) {
       if (superclassType == null) {
@@ -203,7 +217,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       TypeName typeName = node.getType();
       if (typeName == null) {
         // TODO(brianwilkerson) Find the field's declaration and use it's type.
-        type = getTypeProvider().getDynamicType();
+        type = dynamicType;
       } else {
         type = getType(typeName);
       }
@@ -259,7 +273,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Type declaredType;
     TypeName typeName = node.getType();
     if (typeName == null) {
-      declaredType = getTypeProvider().getDynamicType();
+      declaredType = dynamicType;
     } else {
       declaredType = getType(typeName);
     }
@@ -276,48 +290,71 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitTypeName(TypeName node) {
     super.visitTypeName(node);
     Identifier typeName = node.getName();
+    TypeArgumentList argumentList = node.getTypeArguments();
+
     Element element = getNameScope().lookup(typeName, getDefiningLibrary());
-    Type type = null;
     if (element == null) {
+      //
+      // Check to see whether the type name is either 'dynamic' or 'void', neither of which are in
+      // the name scope and hence will not be found by normal means.
+      //
       DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
       VoidTypeImpl voidType = VoidTypeImpl.getInstance();
       if (typeName.getName().equals(dynamicType.getName())) {
-        element = dynamicType.getElement();
-        type = dynamicType;
-        setElement(typeName, element);
+        setElement(typeName, dynamicType.getElement());
+        if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+          // reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, dynamicType.getName(), 0, argumentList.getArguments().size());
+        }
+        typeName.setStaticType(dynamicType);
+        node.setType(dynamicType);
+        return null;
       } else if (typeName.getName().equals(voidType.getName())) {
         // There is no element for 'void'.
-        type = voidType;
-      } else {
-        ASTNode parent = node.getParent();
-        if (typeName instanceof PrefixedIdentifier && parent instanceof ConstructorName) {
-          ConstructorName name = (ConstructorName) parent;
-          if (name.getName() == null) {
-            SimpleIdentifier prefix = ((PrefixedIdentifier) typeName).getPrefix();
-            element = getNameScope().lookup(prefix, getDefiningLibrary());
-            if (element instanceof PrefixElement) {
-              // TODO(brianwilkerson) Report this error.
+        if (argumentList != null) {
+          // TODO(brianwilkerson) Report this error
+          // reporter.reportError(StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, node, voidType.getName(), 0, argumentList.getArguments().size());
+        }
+        typeName.setStaticType(voidType);
+        node.setType(voidType);
+        return null;
+      }
+      //
+      // If not, the look to see whether we might have created the wrong AST structure for a
+      // constructor name. If so, fix the AST structure and then proceed.
+      //
+      ASTNode parent = node.getParent();
+      if (typeName instanceof PrefixedIdentifier && parent instanceof ConstructorName
+          && argumentList == null) {
+        ConstructorName name = (ConstructorName) parent;
+        if (name.getName() == null) {
+          SimpleIdentifier prefix = ((PrefixedIdentifier) typeName).getPrefix();
+          element = getNameScope().lookup(prefix, getDefiningLibrary());
+          if (element instanceof PrefixElement) {
+            // TODO(brianwilkerson) Report this error.
 //            resolver.reportError(ResolverErrorCode.UNDECLARED, ((PrefixedIdentifier) typeName).getIdentifier());
-              return null;
-            } else if (element != null) {
-              //
-              // Rewrite the constructor name. The parser, when it sees a constructor named "a.b",
-              // cannot tell whether "a" is a prefix and "b" is a class name, or whether "a" is a
-              // class name and "b" is a constructor name. It arbitrarily chooses the former, but
-              // in this case was wrong.
-              //
-              name.setName(((PrefixedIdentifier) typeName).getIdentifier());
-              node.setName(prefix);
-              typeName = prefix;
-            }
+            return null;
+          } else if (element != null) {
+            //
+            // Rewrite the constructor name. The parser, when it sees a constructor named "a.b",
+            // cannot tell whether "a" is a prefix and "b" is a class name, or whether "a" is a
+            // class name and "b" is a constructor name. It arbitrarily chooses the former, but
+            // in this case was wrong.
+            //
+            name.setName(((PrefixedIdentifier) typeName).getIdentifier());
+            node.setName(prefix);
+            typeName = prefix;
           }
         }
       }
     }
-    if (element == null && type == null) {
+    if (element == null) {
+      // We couldn't resolve the type name.
       // TODO(brianwilkerson) Report this error
       return null;
-    } else if (element instanceof ClassElement) {
+    }
+    Type type = null;
+    if (element instanceof ClassElement) {
       setElement(typeName, element);
       type = ((ClassElement) element).getType();
     } else if (element instanceof TypeAliasElement) {
@@ -326,49 +363,49 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else if (element instanceof TypeVariableElement) {
       setElement(typeName, element);
       type = ((TypeVariableElement) element).getType();
-    } else if (type == null) {
+    } else {
+      // The name does not represent a type.
       // TODO(brianwilkerson) Report this error
       return null;
     }
-    if (type == null) {
-      // TODO(brianwilkerson) Determine the circumstances under which this happens.
-      return null;
-    }
-    TypeArgumentList argumentList = node.getTypeArguments();
     if (argumentList != null) {
       NodeList<TypeName> arguments = argumentList.getArguments();
       int argumentCount = arguments.size();
       Type[] parameters = getTypeArguments(type);
       int parameterCount = parameters.length;
-      if (argumentCount != parameterCount) {
-        // TODO(brianwilkerson) Report this error and fix the code below to deal with the error.
-//      resolver.reportError(ResolverErrorCode.?, keyType);
-      }
-      ArrayList<Type> typeArguments = new ArrayList<Type>(argumentCount);
-      for (int i = 0; i < argumentCount; i++) {
+      int count = Math.min(argumentCount, parameterCount);
+      ArrayList<Type> typeArguments = new ArrayList<Type>(count);
+      for (int i = 0; i < count; i++) {
         Type argumentType = getType(arguments.get(i));
         if (argumentType != null) {
           typeArguments.add(argumentType);
         }
       }
+      if (argumentCount != parameterCount) {
+        reportError(
+            getInvalidTypeParametersErrorCode(node),
+            node,
+            typeName.getName(),
+            argumentCount,
+            parameterCount);
+      }
+      argumentCount = typeArguments.size();
+      if (argumentCount < parameterCount) {
+        //
+        // If there were too many arguments, we already handled it by not adding the values of the
+        // extra arguments to the list. If there are too few, we handle it by adding 'dynamic'
+        // enough times to make the count equal.
+        //
+        for (int i = argumentCount; i < parameterCount; i++) {
+          typeArguments.add(dynamicType);
+        }
+      }
       if (type instanceof InterfaceTypeImpl) {
         InterfaceTypeImpl interfaceType = (InterfaceTypeImpl) type;
-        argumentCount = typeArguments.size(); // Recomputed in case any argument type was null
-        if (interfaceType.getTypeArguments().length == argumentCount) {
-          type = interfaceType.substitute(typeArguments.toArray(new Type[argumentCount]));
-        } else {
-          // TODO(brianwilkerson) Report this error (unless it already was).
-//        resolver.reportError(ResolverErrorCode.?, keyType);
-        }
+        type = interfaceType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
       } else if (type instanceof FunctionTypeImpl) {
         FunctionTypeImpl functionType = (FunctionTypeImpl) type;
-        argumentCount = typeArguments.size(); // Recomputed in case any argument type was null
-        if (functionType.getTypeArguments().length == argumentCount) {
-          type = functionType.substitute(typeArguments.toArray(new Type[argumentCount]));
-        } else {
-          // TODO(brianwilkerson) Report this error (unless it already was).
-//          resolver.reportError(ResolverErrorCode.?, keyType);
-        }
+        type = functionType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
       } else {
         // TODO(brianwilkerson) Report this error.
 //      resolver.reportError(ResolverErrorCode.?, keyType);
@@ -399,7 +436,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Type declaredType;
     TypeName typeName = ((VariableDeclarationList) node.getParent()).getType();
     if (typeName == null) {
-      declaredType = getTypeProvider().getDynamicType();
+      declaredType = dynamicType;
     } else {
       declaredType = getType(typeName);
     }
@@ -468,6 +505,50 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
+   * The number of type arguments in the given type name does not match the number of parameters in
+   * the corresponding class element. Return the error code that should be used to report this
+   * error.
+   * 
+   * @param node the type name with the wrong number of type arguments
+   * @return the error code that should be used to report that the wrong number of type arguments
+   *         were provided
+   */
+  private ErrorCode getInvalidTypeParametersErrorCode(TypeName node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof ConstructorName) {
+      parent = parent.getParent();
+      if (parent instanceof InstanceCreationExpression) {
+        if (((InstanceCreationExpression) parent).isConst()) {
+          return CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS;
+        } else {
+          return CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS;
+        }
+      }
+    }
+    return StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS;
+  }
+
+  /**
+   * Given the multiple elements to which a single name could potentially be resolved, return the
+   * single interface type that should be used, or {@code null} if there is no clear choice.
+   * 
+   * @param elements the elements to which a single name could potentially be resolved
+   * @return the single interface type that should be used for the type name
+   */
+  private InterfaceType getType(Element[] elements) {
+    InterfaceType type = null;
+    for (Element element : elements) {
+      if (element instanceof ClassElement) {
+        if (type != null) {
+          return null;
+        }
+        type = ((ClassElement) element).getType();
+      }
+    }
+    return type;
+  }
+
+  /**
    * Return the type represented by the given type name.
    * 
    * @param typeName the type name representing the type to be returned
@@ -500,7 +581,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
    */
   private Void recordType(Expression expression, Type type) {
     if (type == null) {
-      expression.setStaticType(getTypeProvider().getDynamicType());
+      expression.setStaticType(dynamicType);
     } else {
       expression.setStaticType(type);
     }
@@ -519,18 +600,22 @@ public class TypeResolverVisitor extends ScopedVisitor {
   private void resolve(ClassElementImpl classElement, WithClause withClause,
       ImplementsClause implementsClause) {
     if (withClause != null) {
-      // TODO(brianwilkerson) Report these errors.
-      InterfaceType[] mixinTypes = resolveTypes(withClause.getMixinTypes(), null, null, null);
+      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
+      InterfaceType[] mixinTypes = resolveTypes(
+          withClause.getMixinTypes(),
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
+          null);
       if (classElement != null) {
         classElement.setMixins(mixinTypes);
       }
     }
     if (implementsClause != null) {
-      // TODO(brianwilkerson) Report these errors.
+      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
       InterfaceType[] interfaceTypes = resolveTypes(
           implementsClause.getInterfaces(),
-          null,
-          null,
+          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
+          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
           null);
       if (classElement != null) {
         classElement.setInterfaces(interfaceTypes);
@@ -548,8 +633,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param nonInterfaceType the error to produce if the type is not an interface type
    * @return the type specified by the type name
    */
-  private InterfaceType resolveType(TypeName typeName, ResolverErrorCode undefinedError,
-      ResolverErrorCode nonTypeError, ResolverErrorCode nonInterfaceType) {
+  private InterfaceType resolveType(TypeName typeName, ErrorCode undefinedError,
+      ErrorCode nonTypeError, ErrorCode nonInterfaceType) {
     // TODO(brianwilkerson) Share code with StaticTypeAnalyzer
     Identifier name = typeName.getName();
     Element element = getNameScope().lookup(name, getDefiningLibrary());
@@ -564,6 +649,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
         return (InterfaceType) classType;
       }
       reportError(nonInterfaceType, name);
+    } else if (element instanceof MultiplyDefinedElement) {
+      Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
+      InterfaceType type = getType(elements);
+      if (type != null) {
+        typeName.setType(type);
+      }
     } else {
       reportError(nonTypeError, name);
     }
@@ -580,9 +671,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @param nonInterfaceType the error to produce if the type is not an interface type
    * @return an array containing all of the types that were resolved.
    */
-  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames,
-      ResolverErrorCode undefinedError, ResolverErrorCode nonTypeError,
-      ResolverErrorCode nonInterfaceType) {
+  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode undefinedError,
+      ErrorCode nonTypeError, ErrorCode nonInterfaceType) {
     ArrayList<InterfaceType> types = new ArrayList<InterfaceType>();
     for (TypeName typeName : typeNames) {
       InterfaceType type = resolveType(typeName, undefinedError, nonTypeError, nonInterfaceType);
@@ -638,7 +728,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
     functionType.setNamedParameterTypes(namedParameterTypes);
     if (returnType == null) {
-      functionType.setReturnType(getTypeProvider().getDynamicType());
+      functionType.setReturnType(dynamicType);
     } else {
       functionType.setReturnType(returnType.getType());
     }
