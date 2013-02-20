@@ -33,6 +33,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
+import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -614,9 +615,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       super(ST.DELETE_WORD_NEXT);
     }
 
-    /*
-     * @see org.eclipse.ui.texteditor.IUpdate#update()
-     */
     @Override
     public void update() {
       setEnabled(isEditorInputModifiable());
@@ -673,9 +671,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       super(ST.DELETE_WORD_PREVIOUS);
     }
 
-    /*
-     * @see org.eclipse.ui.texteditor.IUpdate#update()
-     */
     @Override
     public void update() {
       setEnabled(isEditorInputModifiable());
@@ -741,9 +736,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       setEnabled(isEditorInputModifiable());
     }
 
-    /*
-     * @see org.eclipse.jface.action.IAction#run()
-     */
     @Override
     public void run() {
 
@@ -794,9 +786,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    /*
-     * @see org.eclipse.ui.texteditor.IUpdate#update()
-     */
     @Override
     public void update() {
       setEnabled(isEditorInputModifiable());
@@ -856,9 +845,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       super(getSourceViewer().getTextWidget(), code);
     }
 
-    /*
-     * @see org.eclipse.jface.action.IAction#run()
-     */
     @Override
     public void run() {
       // Check whether we are in a Dart code partition and the preference is enabled
@@ -959,9 +945,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       super(getSourceViewer().getTextWidget(), code);
     }
 
-    /*
-     * @see org.eclipse.jface.action.IAction#run()
-     */
     @Override
     public void run() {
       // Check whether we are in a Dart code partition and the preference is enabled
@@ -1132,10 +1115,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       super(textWidget, doSelect);
     }
 
-    /*
-     * @see org.eclipse.ui.texteditor.AbstractTextEditor.LineStartAction#
-     * getLineStartPosition(java.lang.String, int, java.lang.String)
-     */
     @Override
     protected int getLineStartPosition(final IDocument document, final String line,
         final int length, final int offset) {
@@ -1198,9 +1177,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    /*
-     * @see Job#run(org.eclipse.core.runtime.IProgressMonitor)
-     */
     @Override
     public IStatus run(IProgressMonitor progressMonitor) {
 
@@ -1297,10 +1273,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   class OccurrencesFinderJobCanceler implements IDocumentListener, ITextInputListener {
 
-    /*
-     * @see org.eclipse.jface.text.IDocumentListener#documentAboutToBeChanged(org
-     * .eclipse.jface.text.DocumentEvent)
-     */
     @Override
     public void documentAboutToBeChanged(DocumentEvent event) {
       if (fOccurrencesFinderJob != null) {
@@ -1308,18 +1280,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    /*
-     * @see org.eclipse.jface.text.IDocumentListener#documentChanged(org.eclipse.
-     * jface.text.DocumentEvent)
-     */
     @Override
     public void documentChanged(DocumentEvent event) {
     }
 
-    /*
-     * @see org.eclipse.jface.text.ITextInputListener#inputDocumentAboutToBeChanged
-     * (org.eclipse.jface.text.IDocument, org.eclipse.jface.text.IDocument)
-     */
     @Override
     public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
       if (oldInput == null) {
@@ -1329,10 +1293,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       oldInput.removeDocumentListener(this);
     }
 
-    /*
-     * @see org.eclipse.jface.text.ITextInputListener#inputDocumentChanged(org.eclipse
-     * .jface.text.IDocument, org.eclipse.jface.text.IDocument)
-     */
     @Override
     public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
       if (newInput == null) {
@@ -1381,9 +1341,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private class ActivationListener implements IWindowListener {
 
-    /*
-     * @see org.eclipse.ui.IWindowListener#windowActivated(org.eclipse.ui. IWorkbenchWindow)
-     */
     @Override
     public void windowActivated(IWorkbenchWindow window) {
       if (window == getEditorSite().getWorkbenchWindow() && fMarkOccurrenceAnnotations
@@ -1405,16 +1362,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    /*
-     * @see org.eclipse.ui.IWindowListener#windowClosed(org.eclipse.ui.IWorkbenchWindow )
-     */
     @Override
     public void windowClosed(IWorkbenchWindow window) {
     }
 
-    /*
-     * @see org.eclipse.ui.IWindowListener#windowDeactivated(org.eclipse.ui. IWorkbenchWindow)
-     */
     @Override
     public void windowDeactivated(IWorkbenchWindow window) {
       if (window == getEditorSite().getWorkbenchWindow() && fMarkOccurrenceAnnotations
@@ -1423,9 +1374,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
 
-    /*
-     * @see org.eclipse.ui.IWindowListener#windowOpened(org.eclipse.ui.IWorkbenchWindow )
-     */
     @Override
     public void windowOpened(IWorkbenchWindow window) {
     }
@@ -1501,15 +1449,47 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private class EditorSelectionChangedListener extends AbstractSelectionChangedListener {
 
-    /*
-     * @see org.eclipse.jface.viewers.ISelectionChangedListener#selectionChanged(
-     * org.eclipse.jface.viewers.SelectionChangedEvent)
-     */
     @Override
     public void selectionChanged(SelectionChangedEvent event) {
       // XXX: see https://bugs.eclipse.org/bugs/show_bug.cgi?id=56161
       DartEditor.this.selectionChanged();
     }
+  }
+
+  /**
+   * An adapter from new to old source reference abstractions.
+   */
+  private static final class SourceReferenceAdapter implements SourceReference {
+
+    private final SourceRangeImpl sourceRange;
+
+    private SourceReferenceAdapter(com.google.dart.engine.element.Element element) {
+      sourceRange = new SourceRangeImpl(element.getNameOffset(), element.getName().length());
+    }
+
+    @Override
+    public boolean exists() {
+      // Unused in this context
+      return true;
+    }
+
+    @Override
+    public SourceRange getNameRange() throws DartModelException {
+      return sourceRange;
+    }
+
+    @Override
+    public String getSource() throws DartModelException {
+      // Unused in this context
+      return "";
+    }
+
+    @Override
+    public SourceRange getSourceRange() throws DartModelException {
+      // Unused in this context
+      return sourceRange;
+    }
+
   }
 
   /**
@@ -1535,9 +1515,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     public void partBroughtToTop(IWorkbenchPartReference partRef) {
     }
 
-    /*
-     * @see org.eclipse.ui.IPartListener2#partClosed(org.eclipse.ui. IWorkbenchPartReference)
-     */
     @Override
     public void partClosed(IWorkbenchPartReference partRef) {
       if (DartEditor.this.equals(partRef.getPart(false))) {
@@ -1561,9 +1538,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     public void partOpened(IWorkbenchPartReference partRef) {
     }
 
-    /*
-     * @see org.eclipse.ui.IPartListener2#partVisible(org.eclipse.ui. IWorkbenchPartReference)
-     */
     @Override
     public void partVisible(IWorkbenchPartReference partRef) {
       if (DartEditor.this.equals(partRef.getPart(false))) {
@@ -1661,19 +1635,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /** The outline page */
   protected DartOutlinePage fOutlinePage;
-
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
    * The editor selection changed listener.
    */
   private EditorSelectionChangedListener fEditorSelectionChangedListener;
+
   /** The editor's bracket matcher */
   protected DartPairMatcher fBracketMatcher = new DartPairMatcher(BRACKETS);
 
   /** This editor's encoding support */
   private DefaultEncodingSupport fEncodingSupport;
-
   /** History for structure select action */
   private SelectionHistory fSelectionHistory;
   protected CompositeActionGroup fActionGroups;
@@ -1681,13 +1654,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The action group for folding.
    */
   private FoldingActionGroup fFoldingGroup;
+
   private CompositeActionGroup fOpenEditorActionGroup;
 
   /**
    * Removes trailing whitespace on editor saves.
    */
   private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
-
   /**
    * Holds the current occurrence annotations.
    */
@@ -1718,6 +1691,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkConstantOccurrences;
+
   /**
    * Tells whether to mark field occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1729,7 +1703,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkLocalVariableypeOccurrences;
-
   /**
    * Tells whether to mark exception occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1745,12 +1718,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * this editor. Only valid if {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkBreakContinueTargets;
+
   /**
    * Tells whether to mark implementors in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkImplementors;
-
   /**
    * The selection used when forcing occurrence marking through code.
    */
@@ -1775,15 +1748,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * This editor's projection support
    */
   private ProjectionSupport fProjectionSupport;
+
   /**
    * This editor's projection model updater
    */
   private IDartFoldingStructureProvider fProjectionModelUpdater;
-
   /**
    * The override and implements indicator manager for this editor.
    */
   protected OverrideIndicatorManager fOverrideIndicatorManager;
+
   /**
    * Semantic highlighting manager
    */
@@ -1827,9 +1801,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private final ASTCache astCache = new ASTCache();
 
   private boolean isEditableStateKnown;
-
   private boolean isEditable;
   private OpenCallHierarchyAction openCallHierarchy;
+
   private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
 
   /**
@@ -1872,9 +1846,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return selection;
   }
 
-  /*
-   * @see org.eclipse.ui.IWorkbenchPart#createPartControl(org.eclipse.swt.widgets .Composite)
-   */
   @Override
   public void createPartControl(Composite parent) {
     super.createPartControl(parent);
@@ -1889,9 +1860,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     PlatformUI.getWorkbench().addWindowListener(fActivationListener);
   }
 
-  /*
-   * @see IWorkbenchPart#dispose()
-   */
   @Override
   public void dispose() {
 
@@ -1947,9 +1915,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     super.dispose();
   }
 
-  /*
-   * @see AbstractTextEditor#editorContextMenuAboutToShow
-   */
   @Override
   public void editorContextMenuAboutToShow(IMenuManager menu) {
     menu.add(new Separator(ITextEditorActionConstants.GROUP_OPEN));
@@ -2009,9 +1974,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  /*
-   * @see AbstractTextEditor#getAdapter(Class)
-   */
   @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Class required) {
@@ -2049,9 +2011,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         @Override
         public ShowInContext getShowInContext() {
           return new ShowInContext(getEditorInput(), null) {
-            /*
-             * @see org.eclipse.ui.part.ShowInContext#getSelection()
-             */
             @Override
             public ISelection getSelection() {
               DartElement je = null;
@@ -2197,9 +2156,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return unit;
   }
 
-  /*
-   * @see org.eclipse.ui.part.WorkbenchPart#getOrientation()
-   */
   @Override
   public int getOrientation() {
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
@@ -2235,17 +2191,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return getSourceViewer();
   }
 
-  /*
-   * @see com.google.dart.tools.ui.internal.viewsupport.IViewPartInputProvider# getViewPartInput ()
-   */
   @Override
   public Object getViewPartInput() {
     return getEditorInput().getAdapter(DartElement.class);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#gotoAnnotation(boolean )
-   */
   @Override
   public Annotation gotoAnnotation(boolean forward) {
     fSelectionChangedViaGotoAnnotation = true;
@@ -2409,9 +2359,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setTitleImage(image);
   }
 
-  /*
-   * @see AbstractTextEditor#adjustHighlightRange(int, int)
-   */
   @Override
   protected void adjustHighlightRange(int offset, int length) {
 
@@ -2474,9 +2421,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         || key.equals(preference.getTextPreferenceKey());
   }
 
-  /*
-   * @see AbstractTextEditor#affectsTextPresentation(PropertyChangeEvent)
-   */
   @Override
   protected boolean affectsTextPresentation(PropertyChangeEvent event) {
     return ((DartSourceViewerConfiguration) getSourceViewerConfiguration()).affectsTextPresentation(event)
@@ -2487,9 +2431,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     isEditableStateKnown = false;
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor# collectContextMenuPreferencePages()
-   */
   @Override
   protected String[] collectContextMenuPreferencePages() {
     String[] inheritedPages = super.collectContextMenuPreferencePages();
@@ -2683,10 +2624,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     removeTrailingWhitespaceAction = new RemoveTrailingWhitespaceAction(getSourceViewer());
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#
-   * createAnnotationRulerColumn(org.eclipse.jface.text.source.CompositeRuler)
-   */
   @Override
   protected IVerticalRulerColumn createAnnotationRulerColumn(CompositeRuler ruler) {
     DartX.todo();
@@ -2724,17 +2661,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     // return column;
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#createChangeHover()
-   */
   @Override
   protected LineChangeHover createChangeHover() {
     return new DartChangeHover(DartPartitions.DART_PARTITIONING, getOrientation());
   }
 
-  /*
-   * @see AbstractTextEditor#createSourceViewer(Composite, IVerticalRuler, int)
-   */
   protected ISourceViewer createDartSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       IOverviewRuler overviewRuler, boolean isOverviewRulerVisible, int styles,
       IPreferenceStore store) {
@@ -2761,9 +2692,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         DartPartitions.DART_PARTITIONING);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#createNavigationActions()
-   */
   @Override
   protected void createNavigationActions() {
     super.createNavigationActions();
@@ -2810,9 +2738,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return page;
   }
 
-  /*
-   * @see AbstractTextEditor#createSourceViewer(Composite, IVerticalRuler, int)
-   */
   @Override
   protected final ISourceViewer createSourceViewer(Composite parent, IVerticalRuler verticalRuler,
       int styles) {
@@ -2924,12 +2849,23 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     Iterator<?> iter = ((IStructuredSelection) selection).iterator();
     while (iter.hasNext()) {
+
       Object o = iter.next();
+
       if (o instanceof SourceReference) {
         reference = (SourceReference) o;
         break;
       }
+
+      // Adapt new elements to old
+      //TODO (pquitslund): flip this around, adapting old to new
+      if (o instanceof com.google.dart.engine.element.Element) {
+        reference = new SourceReferenceAdapter((com.google.dart.engine.element.Element) o);
+        break;
+      }
+
     }
+
     if (!isActivePart() && DartToolsPlugin.getActivePage() != null) {
       DartToolsPlugin.getActivePage().bringToTop(this);
     }
@@ -2962,9 +2898,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   }
 
-  /*
-   * @see AbstractTextEditor#doSetInput
-   */
   @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
     ISourceViewer sourceViewer = getSourceViewer();
@@ -2987,9 +2920,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     internalDoSetInput(input);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#doSetSelection(ISelection)
-   */
   @Override
   protected void doSetSelection(ISelection selection) {
     super.doSetSelection(selection);
@@ -3169,9 +3099,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return new Region(selection.x, selection.y);
   }
 
-  /*
-   * @see StatusTextEditor#getStatusBanner(IStatus)
-   */
   @Override
   protected String getStatusBanner(IStatus status) {
     if (fEncodingSupport != null) {
@@ -3183,9 +3110,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return super.getStatusBanner(status);
   }
 
-  /*
-   * @see StatusTextEditor#getStatusHeader(IStatus)
-   */
   @Override
   protected String getStatusHeader(IStatus status) {
     if (fEncodingSupport != null) {
@@ -3197,9 +3121,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return super.getStatusHeader(status);
   }
 
-  /*
-   * @see StatusTextEditor#getStatusMessage(IStatus)
-   */
   @Override
   protected String getStatusMessage(IStatus status) {
     if (fEncodingSupport != null) {
@@ -3211,9 +3132,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return super.getStatusMessage(status);
   }
 
-  /*
-   * @see AbstractTextEditor#getUndoRedoOperationApprover(IUndoContext)
-   */
   @Override
   protected IOperationApprover getUndoRedoOperationApprover(IUndoContext undoContext) {
     // since IResource is a more general way to compare dart elements, we
@@ -3225,18 +3143,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         IResource.class);
   }
 
-  /*
-   * @see org.eclipse.ui.texteditor.AbstractTextEditor#handleCursorPositionChanged()
-   */
   @Override
   protected void handleCursorPositionChanged() {
     super.handleCursorPositionChanged();
     fCachedSelectedRange = getViewer().getSelectedRange();
   }
 
-  /*
-   * @see AbstractTextEditor#handlePreferenceStoreChanged(PropertyChangeEvent)
-   */
   @Override
   protected void handlePreferenceStoreChanged(PropertyChangeEvent event) {
 
