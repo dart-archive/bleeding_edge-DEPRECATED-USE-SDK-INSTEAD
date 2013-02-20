@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 /**
  * Represents an Eclipse project that has a Dart nature
  */
-public class ProjectImpl implements Project {
+public class ProjectImpl extends ContextManagerImpl implements Project {
 
   public static class AnalysisContextFactory {
     public AnalysisContext createContext() {
@@ -46,14 +46,14 @@ public class ProjectImpl implements Project {
   /**
    * The Eclipse project associated with this Dart project (not {@code null})
    */
-  private final IProject resource;
+  private final IProject projectResource;
 
   /**
    * The project resource location on disk or {@code null} if it has not yet been initialized.
    * 
    * @see #getResourceLocation()
    */
-  private IPath resourceLocation;
+  private IPath projectResourceLocation;
 
   /**
    * The factory used to create new {@link AnalysisContext} (not {@code null})
@@ -108,15 +108,9 @@ public class ProjectImpl implements Project {
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
-   * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource, DartSdk sdk, AnalysisContextFactory factory) {
-    if (resource == null | factory == null | sdk == null) {
-      throw new IllegalArgumentException();
-    }
-    this.resource = resource;
-    this.factory = factory;
-    this.sdk = sdk;
+  public ProjectImpl(IProject resource, DartSdk sdk) {
+    this(resource, sdk, new AnalysisContextFactory());
   }
 
   /**
@@ -124,9 +118,15 @@ public class ProjectImpl implements Project {
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
+   * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource, DartSdk sdk) {
-    this(resource, sdk, new AnalysisContextFactory());
+  public ProjectImpl(IProject resource, DartSdk sdk, AnalysisContextFactory factory) {
+    if (resource == null | factory == null | sdk == null) {
+      throw new IllegalArgumentException();
+    }
+    this.projectResource = resource;
+    this.factory = factory;
+    this.sdk = sdk;
   }
 
   @Override
@@ -149,8 +149,8 @@ public class ProjectImpl implements Project {
   }
 
   @Override
-  public AnalysisContext getContext(IContainer container) {
-    PubFolder pubFolder = getPubFolder(container);
+  public AnalysisContext getContext(IResource resource) {
+    PubFolder pubFolder = getPubFolder(resource);
     return pubFolder != null ? pubFolder.getContext() : defaultContext;
   }
 
@@ -161,12 +161,12 @@ public class ProjectImpl implements Project {
   }
 
   @Override
-  public PubFolder getPubFolder(IContainer container) {
-    if (!container.getProject().equals(resource)) {
+  public PubFolder getPubFolder(IResource resource) {
+    if (!resource.getProject().equals(projectResource)) {
       throw new IllegalArgumentException();
     }
     initialize();
-    return getPubFolder(container.getFullPath());
+    return getPubFolder(resource.getFullPath());
   }
 
   @Override
@@ -178,11 +178,11 @@ public class ProjectImpl implements Project {
 
   @Override
   public IProject getResource() {
-    return resource;
+    return projectResource;
   }
 
   @Override
-  public IResource getResourceFor(Source source) {
+  public IResource getResource(Source source) {
     // TODO (danrubel): revisit and optimize performance
     if (source == null) {
       return null;
@@ -191,7 +191,7 @@ public class ProjectImpl implements Project {
     IPath projPath = getResourceLocation();
     if (projPath.isPrefixOf(path)) {
       IPath relPath = path.removeFirstSegments(projPath.segmentCount());
-      return resource.getFile(relPath);
+      return projectResource.getFile(relPath);
     }
     // TODO (danrubel): Handle mapped subfolders
     return null;
@@ -260,7 +260,7 @@ public class ProjectImpl implements Project {
    * @return the context (not {@code null})
    */
   private AnalysisContext createContext(IContainer container, DartSdk sdk) {
-    if (container.equals(resource)) {
+    if (container.equals(projectResource)) {
       return defaultContext;
     }
     AnalysisContext context;
@@ -346,10 +346,10 @@ public class ProjectImpl implements Project {
    * Answer the Eclipse project's resource location or {@code null} if it could not be determined.
    */
   private IPath getResourceLocation() {
-    if (resourceLocation == null) {
-      resourceLocation = resource.getLocation();
+    if (projectResourceLocation == null) {
+      projectResourceLocation = projectResource.getLocation();
     }
-    return resourceLocation;
+    return projectResourceLocation;
   }
 
   /**
@@ -388,8 +388,8 @@ public class ProjectImpl implements Project {
       return;
     }
     pubFolders = new HashMap<IPath, PubFolder>();
-    defaultContext = initContext(factory.createContext(), resource, sdk);
-    createPubFolders(resource);
+    defaultContext = initContext(factory.createContext(), projectResource, sdk);
+    createPubFolders(projectResource);
   }
 
   private void logNoLocation(IContainer container) {

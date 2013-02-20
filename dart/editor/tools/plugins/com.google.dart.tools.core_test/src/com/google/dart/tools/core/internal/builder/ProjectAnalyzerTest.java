@@ -155,7 +155,7 @@ public class ProjectAnalyzerTest extends TestCase {
     when(context.resolve(source, library)).thenReturn(unit);
 
     project = mock(Project.class);
-    when(project.getResourceFor(source)).thenReturn(resource);
+    when(project.getResource(source)).thenReturn(resource);
 
     index = mock(Index.class);
 

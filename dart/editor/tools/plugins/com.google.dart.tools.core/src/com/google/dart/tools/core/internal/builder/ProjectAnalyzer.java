@@ -76,7 +76,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
      * ignored or cannot be determined
      */
     IResource getResourceFor(Source source) {
-      IResource res = project.getResourceFor(source);
+      IResource res = project.getResource(source);
       if (res == null) {
         DartCore.logError("Failed to determine resource for: " + source);
         return null;

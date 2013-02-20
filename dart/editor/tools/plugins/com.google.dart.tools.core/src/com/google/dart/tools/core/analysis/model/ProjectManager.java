@@ -13,20 +13,18 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
-public interface ProjectManager {
+/**
+ * Instances of {@code ProjectManager} manage Eclipse projects that have the Dart nature.
+ */
+public interface ProjectManager extends ContextManager {
 
   /**
    * Notify the specified object when a project has been analyzed.
@@ -48,20 +46,6 @@ public interface ProjectManager {
    * @return the index (not {@code null})
    */
   Index getIndex();
-
-  /**
-   * Answer the LibraryElement associated with the specified file
-   * 
-   * @return the {@link LibraryElement} associated with the file
-   */
-  LibraryElement getLibraryElement(IFile file);
-
-  /**
-   * Answer the LibraryElement associated with the specified file
-   * 
-   * @return the {@link LibraryElement} or {@code null} if file has not been resolved as yet
-   */
-  LibraryElement getLibraryElementOrNull(IFile file);
 
   /**
    * Answer the project for the specified Eclipse resource
@@ -86,26 +70,11 @@ public interface ProjectManager {
   IWorkspaceRoot getResource();
 
   /**
-   * Answer the resource associated with the specified source.
-   * 
-   * @param source the source
-   * @return the resource or {@code null} if it could not be determined
-   */
-  IResource getResourceFor(Source source);
-
-  /**
    * Answer the {@link DartSdk} default Dart SDK
    * 
    * @return the sdk (not {@code null})
    */
   DartSdk getSdk();
-
-  /**
-   * Answer the source kind for the given file.
-   * 
-   * @return the {@link SourceKind} of the given file
-   */
-  SourceKind getSourceKind(IFile file);
 
   /**
    * Create and answer a new search engine backed by the global index

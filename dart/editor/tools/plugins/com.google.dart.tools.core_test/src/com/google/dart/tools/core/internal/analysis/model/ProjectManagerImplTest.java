@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
@@ -20,6 +21,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockProject;
@@ -60,6 +62,15 @@ public class ProjectManagerImplTest extends TestCase {
   private DartSdk expectedSdk;
   private DartIgnoreManager ignoreManager = new DartIgnoreManager();
 
+  public void test_getContext() {
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    Project project = manager.getProject(projectContainer);
+    AnalysisContext expected = project.getContext(resource);
+    AnalysisContext actual = manager.getContext(resource);
+    assertNotNull(actual);
+    assertSame(expected, actual);
+  }
+
   public void test_getIgnoreManager() throws Exception {
     assertSame(ignoreManager, manager.getIgnoreManager());
   }
@@ -84,27 +95,45 @@ public class ProjectManagerImplTest extends TestCase {
     assertSame(manager.getProject(projectContainer), actual[0]);
   }
 
+  public void test_getPubFolder() {
+    IResource resource = projectContainer.getFolder("web").getFile("other.dart");
+    Project project = manager.getProject(projectContainer);
+    PubFolder expected = project.getPubFolder(resource);
+    PubFolder actual = manager.getPubFolder(resource);
+    assertNotNull(actual);
+    assertSame(expected, actual);
+  }
+
+  public void test_getPubFolder_project() {
+    IResource resource = projectContainer;
+    Project project = manager.getProject(projectContainer);
+    PubFolder expected = project.getPubFolder(resource);
+    PubFolder actual = manager.getPubFolder(resource);
+    assertNotNull(actual);
+    assertSame(expected, actual);
+  }
+
   public void test_getResource() {
     assertSame(rootContainer, manager.getResource());
   }
 
-  public void test_getResourceFor() {
+  public void test_getResource_Source() {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Project project = manager.getProject(projectContainer);
     Source source = project.getDefaultContext().getSourceFactory().forFile(file);
-    assertSame(resource, manager.getResourceFor(source));
+    assertSame(resource, manager.getResource(source));
   }
 
-  public void test_getResourceFor_null() {
-    assertNull(manager.getResourceFor(null));
+  public void test_getResource_Source_null() {
+    assertNull(manager.getResource(null));
   }
 
-  public void test_getResourceFor_outside_resource() {
+  public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
     Project project = manager.getProject(projectContainer);
     Source source = project.getDefaultContext().getSourceFactory().forFile(file);
-    assertNull(manager.getResourceFor(source));
+    assertNull(manager.getResource(source));
   }
 
   public void test_getSdk() throws Exception {

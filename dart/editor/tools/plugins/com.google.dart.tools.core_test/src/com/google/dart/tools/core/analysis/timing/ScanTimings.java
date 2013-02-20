@@ -30,6 +30,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
@@ -127,6 +128,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public AnalysisContext getContext(IResource resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }
@@ -166,17 +172,27 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public PubFolder getPubFolder(IResource resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public IWorkspaceRoot getResource() {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public IResource getResourceFor(Source source) {
+    public IResource getResource(Source source) {
       throw new UnsupportedOperationException();
     }
 
     @Override
     public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source getSource(IFile file) {
       throw new UnsupportedOperationException();
     }
 

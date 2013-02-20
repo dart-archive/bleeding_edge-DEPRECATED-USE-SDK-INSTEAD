@@ -2,16 +2,14 @@ package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.source.Source;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 
 /**
- * Represents an Eclipse project that has a Dart nature
+ * Instances of {@code Project} represents an Eclipse project that has a Dart nature.
  */
-public interface Project {
+public interface Project extends ContextManager {
 
   /**
    * Discard all analysis contexts in the specified container
@@ -21,17 +19,6 @@ public interface Project {
   void discardContextsIn(IContainer container);
 
   /**
-   * Answer the {@link AnalysisContext} used to analyze Dart source in the specified folder,
-   * creating a new context or retrieving the parent context if one is not already associated with
-   * this container.
-   * 
-   * @param container a container (not {@code null}) in this project
-   * @return the context used for analysis or {@code null} if the context was not cached and could
-   *         not be created because the container's location could not be determined
-   */
-  AnalysisContext getContext(IContainer container);
-
-  /**
    * Answer the default analysis context. If the receiver contains a {@link PubFolder} which
    * contains all of the resources contained in the receiver, then the analysis context for that
    * {@link PubFolder} will be the same the receiver's default analysis context.
@@ -39,14 +26,6 @@ public interface Project {
    * @return the analysis context (not {@code null})
    */
   AnalysisContext getDefaultContext();
-
-  /**
-   * Answer the {@link PubFolder} containing the specified resource.
-   * 
-   * @param container the container (not {@code null}) in this project
-   * @return the pub folder or {@code null} if no pub folder contains this resource
-   */
-  PubFolder getPubFolder(IContainer container);
 
   /**
    * Answer the {@link PubFolder}s contained in the receiver.
@@ -61,14 +40,6 @@ public interface Project {
    * @return the Eclipse project (not {@code null})
    */
   IProject getResource();
-
-  /**
-   * Answer the resource associated with the specified source.
-   * 
-   * @param source the source
-   * @return the resource or {@code null} if it could not be determined
-   */
-  IResource getResourceFor(Source source);
 
   /**
    * Answer the {@link DartSdk} used when constructing the default analysis context.

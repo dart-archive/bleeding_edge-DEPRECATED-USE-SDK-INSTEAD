@@ -14,23 +14,20 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
-import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -41,7 +38,7 @@ import java.util.HashMap;
 /**
  * Concrete implementation of {@link ProjectManager}
  */
-public class ProjectManagerImpl implements ProjectManager {
+public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
 
   private final IWorkspaceRoot resource;
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
@@ -64,6 +61,11 @@ public class ProjectManagerImpl implements ProjectManager {
   }
 
   @Override
+  public AnalysisContext getContext(IResource resource) {
+    return getProject(resource.getProject()).getContext(resource);
+  }
+
+  @Override
   public DartIgnoreManager getIgnoreManager() {
     return ignoreManager;
   }
@@ -71,18 +73,6 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public Index getIndex() {
     return index;
-  }
-
-  @Override
-  public LibraryElement getLibraryElement(IFile file) {
-    AnalysisContext context = getContext(file);
-    return context.getLibraryElement(getSource(file));
-  }
-
-  @Override
-  public LibraryElement getLibraryElementOrNull(IFile file) {
-    AnalysisContext context = getContext(file);
-    return context.getLibraryElementOrNull(getSource(file));
   }
 
   @Override
@@ -106,18 +96,23 @@ public class ProjectManagerImpl implements ProjectManager {
   }
 
   @Override
+  public PubFolder getPubFolder(IResource resource) {
+    return getProject(resource.getProject()).getPubFolder(resource);
+  }
+
+  @Override
   public IWorkspaceRoot getResource() {
     return resource;
   }
 
   @Override
-  public IResource getResourceFor(Source source) {
+  public IResource getResource(Source source) {
     // TODO (danrubel): revisit and optimize performance
     if (source == null) {
       return null;
     }
     for (Project project : getProjects()) {
-      IResource res = project.getResourceFor(source);
+      IResource res = project.getResource(source);
       if (res != null) {
         return res;
       }
@@ -128,13 +123,6 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public DartSdk getSdk() {
     return sdk;
-  }
-
-  @Override
-  public SourceKind getSourceKind(IFile file) {
-    AnalysisContext context = getContext(file);
-    return context.getOrComputeKindOf(getSource(file));
-
   }
 
   @Override
@@ -157,18 +145,5 @@ public class ProjectManagerImpl implements ProjectManager {
   @Override
   public void removeProjectListener(ProjectListener listener) {
     listeners.remove(listener);
-  }
-
-  private AnalysisContext getContext(IResource res) {
-    Project project = getProject(res.getProject());
-    return project.getContext(res instanceof IFile ? res.getParent() : ((IContainer) res));
-  }
-
-  private Source getSource(IFile file) {
-    AnalysisContext context = getContext(file);
-    if (file.getLocation() != null) {
-      return context.getSourceFactory().forFile(file.getLocation().toFile());
-    }
-    return null;
   }
 }

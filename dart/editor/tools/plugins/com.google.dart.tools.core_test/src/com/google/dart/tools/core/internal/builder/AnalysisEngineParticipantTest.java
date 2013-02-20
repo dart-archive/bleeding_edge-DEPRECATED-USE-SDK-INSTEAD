@@ -99,7 +99,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public AnalysisContext getContext(IContainer container) {
+    public AnalysisContext getContext(IResource resource) {
       throw new RuntimeException("Unexpected call");
     }
 
@@ -109,7 +109,17 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public PubFolder getPubFolder(IContainer container) {
+    public LibraryElement getLibraryElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LibraryElement getLibraryElementOrNull(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public PubFolder getPubFolder(IResource resource) {
       throw new UnsupportedOperationException();
     }
 
@@ -124,12 +134,22 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
-    public IResource getResourceFor(Source source) {
+    public IResource getResource(Source source) {
       throw new UnsupportedOperationException();
     }
 
     @Override
     public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source getSource(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public SourceKind getSourceKind(IFile file) {
       throw new UnsupportedOperationException();
     }
 
@@ -162,6 +182,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
       assertEquals(1, analyzed.size());
       assertSame(expected, analyzed.get(0));
       analyzed.clear();
+    }
+
+    @Override
+    public AnalysisContext getContext(IResource resource) {
+      throw new UnsupportedOperationException();
     }
 
     @Override
@@ -198,17 +223,27 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public PubFolder getPubFolder(IResource resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public IWorkspaceRoot getResource() {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public IResource getResourceFor(Source source) {
+    public IResource getResource(Source source) {
       throw new UnsupportedOperationException();
     }
 
     @Override
     public DartSdk getSdk() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source getSource(IFile file) {
       throw new UnsupportedOperationException();
     }
 

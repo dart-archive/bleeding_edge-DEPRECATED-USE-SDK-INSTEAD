@@ -113,21 +113,21 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(projectContainer, project.getResource());
   }
 
-  public void test_getResourceFor() {
+  public void test_getResource_Source() {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Source source = project.getDefaultContext().getSourceFactory().forFile(file);
-    assertSame(resource, project.getResourceFor(source));
+    assertSame(resource, project.getResource(source));
   }
 
-  public void test_getResourceFor_null() {
-    assertNull(project.getResourceFor(null));
+  public void test_getResource_Source_null() {
+    assertNull(project.getResource(null));
   }
 
-  public void test_getResourceFor_outside_resource() {
+  public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
     Source source = project.getDefaultContext().getSourceFactory().forFile(file);
-    assertNull(project.getResourceFor(source));
+    assertNull(project.getResource(source));
   }
 
   public void test_getSdk() throws Exception {
