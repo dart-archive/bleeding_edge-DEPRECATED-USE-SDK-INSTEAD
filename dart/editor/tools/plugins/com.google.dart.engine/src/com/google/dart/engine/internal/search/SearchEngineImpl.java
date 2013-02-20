@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.search;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -275,6 +276,29 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchReferences(final ConstructorElement constructor,
+      final SearchScope scope, final SearchFilter filter) {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) {
+        searchReferences(constructor, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(ConstructorElement constructor, SearchScope scope,
+      SearchFilter filter, SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(1, listener);
+    index.getRelationships(
+        constructor,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.CONSTRUCTOR_REFERENCE, scope, listener));
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final Element element, final SearchScope scope,
       final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
@@ -295,6 +319,9 @@ public class SearchEngineImpl implements SearchEngine {
           return;
         case COMPILATION_UNIT:
           searchReferences((CompilationUnitElement) element, scope, filter, listener);
+          return;
+        case CONSTRUCTOR:
+          searchReferences((ConstructorElement) element, scope, filter, listener);
           return;
         case FIELD:
         case TOP_LEVEL_VARIABLE:

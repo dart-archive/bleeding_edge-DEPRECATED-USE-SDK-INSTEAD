@@ -19,6 +19,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
@@ -77,7 +78,7 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     // update references
     List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     for (SearchMatch reference : references) {
-      change.addEdit(createReferenceRenameEdit(reference));
+      change.addEdit(new Edit(reference.getSourceRange(), "." + newName));
     }
     return change;
   }

@@ -62,6 +62,8 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
   }
 
   public void test_createChange_changeName() throws Exception {
+    // TODO(scheglov) remove this
+    verifyNoTestUnitErrors = false;
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -79,18 +81,17 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
     assertEquals("Rename Constructor", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
-    // TODO(scheglov) restore after resolver fix
-//    assertSuccessfulRename(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class A {",
-//        "  A.newName() {} // marker",
-//        "}",
-//        "class B extends A {",
-//        "  B() : super.newName() {}",
-//        "  factory B.named() = A.newName;",
-//        "}",
-//        "main() {",
-//        "  new A.newName();",
-//        "}");
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.newName() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super.newName() {}",
+        "  factory B.named() = A.newName;",
+        "}",
+        "main() {",
+        "  new A.newName();",
+        "}");
   }
 }

@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
@@ -331,6 +332,27 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
     // verify
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.UNIT_REFERENCE, 1, 2));
+  }
+
+  public void test_searchReferences_ConstructorElement() throws Exception {
+    ConstructorElement referencedElement = mock(ConstructorElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.CONSTRUCTOR);
+    {
+      Location location = new Location(elementA, 10, 1, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
+    }
+    {
+      Location location = new Location(elementB, 20, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(ConstructorElement.class, referencedElement);
+    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.CONSTRUCTOR_REFERENCE, 10, 1),
+        new ExpectedMatch(elementB, MatchKind.CONSTRUCTOR_REFERENCE, 20, 2));
   }
 
   public void test_searchReferences_Element_unknown() throws Exception {

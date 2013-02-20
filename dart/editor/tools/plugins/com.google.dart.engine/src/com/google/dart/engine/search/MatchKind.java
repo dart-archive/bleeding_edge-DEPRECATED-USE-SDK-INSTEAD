@@ -23,6 +23,11 @@ import com.google.dart.engine.element.LibraryElement;
  */
 public enum MatchKind {
   /**
+   * A reference to a constructor in which the constructor is being referenced.
+   */
+  CONSTRUCTOR_REFERENCE,
+
+  /**
    * A reference to a type in which the type was extended.
    */
   EXTENDS_REFERENCE,

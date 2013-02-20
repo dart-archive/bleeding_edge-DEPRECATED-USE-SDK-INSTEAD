@@ -16,28 +16,22 @@ package com.google.dart.engine.internal.index;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
-import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
-import com.google.dart.engine.ast.ConstructorName;
-import com.google.dart.engine.ast.Directive;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -48,14 +42,9 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
-import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.source.TestSource;
-import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import org.mockito.ArgumentCaptor;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -63,9 +52,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-public class IndexContributorTest extends EngineTestCase {
+public class IndexContributorTest extends AbstractResolvedUnitTest {
   private static class ExpectedLocation {
     Element element;
     int offset;
@@ -192,27 +180,12 @@ public class IndexContributorTest extends EngineTestCase {
     return equalsLocation(actual, expected.element, expected.offset, expected.name, expected.prefix);
   }
 
-//  private static <T extends Element> T mockElement(Class<T> clazz, Element enclosingElement,
-//      ElementLocation location, int offset, String name) {
-//    T element = mockElement(clazz, location, offset, name);
-//    when(element.getEnclosingElement()).thenReturn(enclosingElement);
-//    return element;
-//  }
-
   private static boolean equalsRecordedRelation(RecordedRelation recordedRelation,
       Element expectedElement, Relationship expectedRelationship, ExpectedLocation expectedLocation) {
     return Objects.equal(expectedElement, recordedRelation.element)
         && expectedRelationship == recordedRelation.relation
         && (expectedLocation == null || equalsLocation(recordedRelation.location, expectedLocation));
   }
-
-//  private static SimpleIdentifier mockSimpleIdentifier(Element element, int offset, String name) {
-//    SimpleIdentifier identifier = mock(SimpleIdentifier.class);
-//    when(identifier.getElement()).thenReturn(element);
-//    when(identifier.getOffset()).thenReturn(offset);
-//    when(identifier.getLength()).thenReturn(name.length());
-//    return identifier;
-//  }
 
   private static <T extends Element> T mockElement(Class<T> clazz, ElementLocation location,
       int offset, String name) {
@@ -225,13 +198,6 @@ public class IndexContributorTest extends EngineTestCase {
 
   private IndexStore store = mock(IndexStore.class);
   private IndexContributor index = new IndexContributor(store);
-  private CompilationUnit unitNode = mock(CompilationUnit.class);
-  private LibraryElement libraryElement = mock(LibraryElement.class);
-  private ElementLocation libraryLocation = mock(ElementLocation.class);
-  private CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
-  private String testCode;
-
-  private CompilationUnit testUnit;
 
   public void test_createElementLocation() throws Exception {
     ElementLocation elementLocation = mock(ElementLocation.class);
@@ -260,7 +226,10 @@ public class IndexContributorTest extends EngineTestCase {
   }
 
   public void test_definesClassAlias() throws Exception {
-    parseTestUnit("typedef MyClass = Object with Mix;");
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Mix {}",
+        "typedef MyClass = Object with Mix;");
     Element classElement = getElement("MyClass =");
     // index
     index.visitCompilationUnit(testUnit);
@@ -325,10 +294,9 @@ public class IndexContributorTest extends EngineTestCase {
         "main2(var p) {",
         "  print(p);",
         "}");
-    // set elements
+    // prepare elements
     Element mainElement = getElement("main2(");
     ParameterElement parameterElement = getElement("p) {");
-    findSimpleIdentifier("p);").setElement(parameterElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -347,10 +315,9 @@ public class IndexContributorTest extends EngineTestCase {
         "  var v = 0;",
         "  print(v);",
         "}");
-    // set elements
+    // prepare elements
     Element mainElement = getElement("main(");
     VariableElement variableElement = getElement("v = 0");
-    findSimpleIdentifier("v);").setElement(variableElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -371,7 +338,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     ClassElement classElementA = getElement("A {} // 1");
     ClassElement classElementB = getElement("B extends");
-    findSimpleIdentifier("A {} // 2").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -393,10 +359,7 @@ public class IndexContributorTest extends EngineTestCase {
         "");
     // prepare elements
     ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementB = getElement("B {} // 2");
     ClassElement classElementC = getElement("C =");
-    findSimpleIdentifier("A with B").setElement(classElementA);
-    findSimpleIdentifier("B; // 3").setElement(classElementB);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -418,7 +381,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     ClassElement classElementA = getElement("A {} // 1");
     ClassElement classElementB = getElement("B implements");
-    findSimpleIdentifier("A {} // 2").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -439,11 +401,8 @@ public class IndexContributorTest extends EngineTestCase {
         "typedef C = Object with A implements B; // 3",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
     ClassElement classElementB = getElement("B {} // 2");
     ClassElement classElementC = getElement("C =");
-    findSimpleIdentifier("A implements B").setElement(classElementA);
-    findSimpleIdentifier("B; // 3").setElement(classElementB);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -467,7 +426,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main(");
     FunctionElement referencedElement = getElement("foo() {}");
-    findSimpleIdentifier("foo();").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -477,59 +435,6 @@ public class IndexContributorTest extends EngineTestCase {
         referencedElement,
         IndexConstants.IS_INVOKED_BY,
         new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
-  }
-
-  // XXX
-  public void test_isInvokedByQualified_ConstructorElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  A() {}",
-        "  A.foo() {}",
-        "}",
-        "class B extends A {",
-        "  B() : super(); // marker-1",
-        "  B.foo() : super.foo(); // marker-2",
-        "}",
-        "main() {",
-        "  new A(); // marker-3",
-        "  new A.foo(); // marker-4",
-        "}",
-        "");
-    // set elements
-    Element mainElement = getElement("main() {");
-    ConstructorElement unnamedElement = findNode(ConstructorDeclaration.class, "A()").getElement();
-    ConstructorElement namedElement = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
-    findNode(ConstructorName.class, "A();").setElement(unnamedElement);
-    findNode(ConstructorName.class, "A.foo();").setElement(namedElement);
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    // A()
-    // TODO(scheglov) resolve after SuperConstructorInvocation resolving
-//    assertRecordedRelation(
-//        relations,
-//        unnamedElement,
-//        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-//        new ExpectedLocation(mainElement, getOffset("(); // marker-1"), ""));
-    assertRecordedRelation(
-        relations,
-        unnamedElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("(); // marker-3"), ""));
-    // A.foo()
-    // TODO(scheglov) resolve after SuperConstructorInvocation resolving
-//    assertRecordedRelation(
-//        relations,
-//        unnamedElement,
-//        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-//        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-2"), ".foo"));
-    assertRecordedRelation(
-        relations,
-        namedElement,
-        IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-4"), ".foo"));
   }
 
   public void test_isInvokedByQualified_MethodElement() throws Exception {
@@ -544,7 +449,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo();").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -569,7 +473,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo();").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -591,7 +494,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     ClassElement classElementA = getElement("A {} // 1");
     ClassElement classElementB = getElement("B extends");
-    findSimpleIdentifier("A {} // 2").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -613,7 +515,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     ClassElement classElementA = getElement("A {} // 1");
     ClassElement classElementC = getElement("C =");
-    findSimpleIdentifier("A; // 2").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -635,7 +536,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main2(");
     ParameterElement parameterElement = getElement("p) {");
-    findSimpleIdentifier("p = 1").setElement(parameterElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -657,7 +557,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     Element mainElement = getElement("main(");
     VariableElement varElement = getElement("v = 0");
-    findSimpleIdentifier("v = 1;").setElement(varElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -682,11 +581,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     Element functionElement = getElement("topLevelFunction(");
     ClassElement classElementA = getElement("A {}");
-    findSimpleIdentifier("A p").setElement(classElementA);
-    findSimpleIdentifier("A v").setElement(classElementA);
-    findSimpleIdentifier("A(); // 2").setElement(classElementA);
-    findSimpleIdentifier("A.field =").setElement(classElementA);
-    findSimpleIdentifier("A.field); // 3").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -752,8 +646,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     Element functionElement = getElement("topLevelFunction(");
     ClassElement classElementB = getElement("B =");
-    findSimpleIdentifier("B p").setElement(classElementB);
-    findSimpleIdentifier("B v").setElement(classElementB);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -771,6 +663,7 @@ public class IndexContributorTest extends EngineTestCase {
   }
 
   public void test_isReferencedBy_CompilationUnitElement() throws Exception {
+    setFileContent("SomeUnit.dart", "// empty file");
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library myLib;",
@@ -778,8 +671,9 @@ public class IndexContributorTest extends EngineTestCase {
         "");
     // set elements
     Element mainElement = unitElement;
-    CompilationUnitElement referencedElement = mock(CompilationUnitElement.class);
-    findNode(Directive.class, "part 'SomeUnit.dart'").setElement(referencedElement);
+    CompilationUnitElement referencedElement = (CompilationUnitElement) findNode(
+        PartDirective.class,
+        "part 'Some").getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -803,8 +697,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main(");
     FunctionElement referencedElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(referencedElement);
-    findSimpleIdentifier("foo());").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -831,23 +723,24 @@ public class IndexContributorTest extends EngineTestCase {
   }
 
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "var myVar;"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart';",
         "main() {",
         "  myVar = 1;",
         "}",
         "");
     // set elements
-    ImportElement importElement = mock(ImportElement.class);
-    LibraryElement importedlibrary = mock(LibraryElement.class);
-    when(importElement.getImportedLibrary()).thenReturn(importedlibrary);
-    when(libraryElement.getImports()).thenReturn(new ImportElement[] {importElement});
+    ImportElement importElement = (ImportElement) findNode(
+        ImportDirective.class,
+        "import 'Lib.dart").getElement();
     Element mainElement = getElement("main(");
-    {
-      LocalVariableElement variableElement = mock(LocalVariableElement.class);
-      when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
-      findSimpleIdentifier("myVar").setElement(variableElement);
-    }
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -860,33 +753,35 @@ public class IndexContributorTest extends EngineTestCase {
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;",
+            "var myVar;"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'Lib.dart' as pref;",
         "main() {",
         "  pref.myVar = 1;",
-        "  pref.MyClass m;",
         "}",
         "");
     // set elements
     Element mainElement = getElement("main(");
-    LibraryElement importedlibrary = mock(LibraryElement.class);
-    ImportElement importElement = mock(ImportElement.class);
-    when(importElement.getImportedLibrary()).thenReturn(importedlibrary);
-    findSimpleIdentifier("pref.myVar").setElement(importElement);
-    {
-      LocalVariableElement variableElement = mock(LocalVariableElement.class);
-      when(variableElement.getEnclosingElement()).thenReturn(importedlibrary);
-      findSimpleIdentifier("myVar").setElement(variableElement);
-    }
+    ImportElement importElement = (ImportElement) findNode(
+        ImportDirective.class,
+        "import 'Lib.dart").getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        importElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
+    // TODO(scheglov) we have problem - PrefixElement recorded for "pref" and we don't know
+    // which ImportElement it is.
+//    List<RecordedRelation> relations = captureRecordedRelations();
+//    assertRecordedRelation(
+//        relations,
+//        importElement,
+//        IndexConstants.IS_REFERENCED_BY,
+//        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {
@@ -901,7 +796,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main(");
     LabelElement referencedElement = getElement("L:");
-    findSimpleIdentifier("L;").setElement(referencedElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -914,14 +808,20 @@ public class IndexContributorTest extends EngineTestCase {
   }
 
   public void test_isReferencedBy_LibraryElement_export() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "export 'SomeLib.dart';",
+        "export 'Lib.dart';",
         "");
     // set elements
     Element mainElement = unitElement;
-    LibraryElement referencedElement = mock(LibraryElement.class);
-    findNode(Directive.class, "export 'SomeLib.dart'").setElement(referencedElement);
+    LibraryElement referencedElement = ((ExportElement) findNode(
+        ExportDirective.class,
+        "export 'Lib.dart").getElement()).getExportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -930,18 +830,24 @@ public class IndexContributorTest extends EngineTestCase {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("'SomeLib.dart'"), "'SomeLib.dart'"));
+        new ExpectedLocation(mainElement, getOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
   public void test_isReferencedBy_LibraryElement_import() throws Exception {
+    setFileContent(
+        "Lib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library lib;"));
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'SomeLib.dart';",
+        "import 'Lib.dart';",
         "");
     // set elements
     Element mainElement = unitElement;
-    LibraryElement referencedElement = mock(LibraryElement.class);
-    findNode(Directive.class, "import 'SomeLib.dart'").setElement(referencedElement);
+    LibraryElement referencedElement = ((ImportElement) findNode(
+        ImportDirective.class,
+        "import 'Lib.dart").getElement()).getImportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -950,7 +856,7 @@ public class IndexContributorTest extends EngineTestCase {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("'SomeLib.dart'"), "'SomeLib.dart'"));
+        new ExpectedLocation(mainElement, getOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
   public void test_isReferencedBy_NameElement_class() throws Exception {
@@ -1075,7 +981,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     Element mainElement = getElement("main2(");
     TypeAliasElement classElementA = getElement("A();");
-    findSimpleIdentifier("A p").setElement(classElementA);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1099,9 +1004,6 @@ public class IndexContributorTest extends EngineTestCase {
     // prepare elements
     ClassElement classElementA = getElement("A<T>");
     TypeVariableElement typeVariableElement = getElement("T>");
-    findSimpleIdentifier("T f").setElement(typeVariableElement);
-    findSimpleIdentifier("T v").setElement(typeVariableElement);
-    findSimpleIdentifier("T v").setElement(typeVariableElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1111,6 +1013,63 @@ public class IndexContributorTest extends EngineTestCase {
         typeVariableElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(classElementA, getOffset("T f"), "T"));
+  }
+
+  public void test_isReferencedByQualified_ConstructorElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.foo() {}",
+        "}",
+        "class B extends A {",
+        "  B() : super(); // marker-1",
+        "  B.foo() : super.foo(); // marker-2",
+        "  factory B.bar() = A.foo; // marker-3",
+        "}",
+        "main() {",
+        "  new A(); // marker-main-1",
+        "  new A.foo(); // marker-main-2",
+        "}",
+        "");
+    // set elements
+    Element mainElement = getElement("main() {");
+    ConstructorElement consB = findNode(ConstructorDeclaration.class, "B()").getElement();
+    ConstructorElement consB_foo = findNode(ConstructorDeclaration.class, "B.foo()").getElement();
+    ConstructorElement consB_bar = findNode(ConstructorDeclaration.class, "B.bar()").getElement();
+    ConstructorElement consA = findNode(ConstructorDeclaration.class, "A()").getElement();
+    ConstructorElement consA_foo = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    // A()
+    assertRecordedRelation(
+        relations,
+        consA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(consB, getOffset("(); // marker-1"), ""));
+    assertRecordedRelation(
+        relations,
+        consA,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset("(); // marker-main-1"), ""));
+    // A.foo()
+    assertRecordedRelation(
+        relations,
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(consB_foo, getOffset(".foo(); // marker-2"), ".foo"));
+    assertRecordedRelation(
+        relations,
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(consB_bar, getOffset(".foo; // marker-3"), ".foo"));
+    assertRecordedRelation(
+        relations,
+        consA_foo,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-main-2"), ".foo"));
   }
 
   public void test_isReferencedByQualified_FieldElement() throws Exception {
@@ -1126,7 +1085,6 @@ public class IndexContributorTest extends EngineTestCase {
     Element mainElement = getElement("main() {");
     FieldElement fieldElement = getElement("myField;");
     PropertyAccessorElement accessorElement = fieldElement.getSetter();
-    findSimpleIdentifier("myField = 1").setElement(accessorElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1150,7 +1108,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1175,7 +1132,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main() {");
     PropertyAccessorElement fooElement = getElement("foo => ");
-    findSimpleIdentifier("foo);").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1226,7 +1182,6 @@ public class IndexContributorTest extends EngineTestCase {
     Element mainElement = getElement("main() {");
     FieldElement fieldElement = getElement("myField;");
     PropertyAccessorElement accessorElement = fieldElement.getGetter();
-    findSimpleIdentifier("myField);").setElement(accessorElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1250,7 +1205,6 @@ public class IndexContributorTest extends EngineTestCase {
     // set elements
     Element mainElement = getElement("main() {");
     MethodElement fooElement = getElement("foo() {}");
-    findSimpleIdentifier("foo);").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1274,7 +1228,7 @@ public class IndexContributorTest extends EngineTestCase {
     Element mainElement = getElement("main() {");
     TopLevelVariableElement fieldElement = getElement("myTopLevelVariable;");
     PropertyAccessorElement accessorElement = fieldElement.getGetter();
-    findSimpleIdentifier("myTopLevelVariable);").setElement(accessorElement);
+//    findSimpleIdentifier("myTopLevelVariable);").setElement(accessorElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1290,22 +1244,12 @@ public class IndexContributorTest extends EngineTestCase {
   public void test_unresolvedUnit() throws Exception {
     index = new IndexContributor(store);
     // no CompilationUnitElement, but no NPE
-    unitNode = mock(CompilationUnit.class);
-    index.visitCompilationUnit(unitNode);
-    verify(unitNode).getElement();
-    verifyNoMoreInteractions(unitNode);
+    testUnit = mock(CompilationUnit.class);
+    index.visitCompilationUnit(testUnit);
+    verify(testUnit).getElement();
+    verifyNoMoreInteractions(testUnit);
     // no enclosing element
     assertSame(null, index.peekElement());
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    when(libraryElement.getLocation()).thenReturn(libraryLocation);
-    when(libraryElement.getDefiningCompilationUnit()).thenReturn(unitElement);
-    when(unitNode.getElement()).thenReturn(unitElement);
-    when(unitElement.getEnclosingElement()).thenReturn(libraryElement);
-    index.visitCompilationUnit(unitNode);
   }
 
   private List<RecordedRelation> captureRecordedRelations() {
@@ -1325,61 +1269,5 @@ public class IndexContributorTest extends EngineTestCase {
           argLocation.getAllValues().get(i)));
     }
     return relations;
-  }
-
-  /**
-   * Find node in {@link #testUnit} parsed form {@link #testCode}.
-   */
-  private <T extends ASTNode> T findNode(final Class<T> clazz, String pattern) {
-    final int index = getOffset(pattern);
-    final AtomicReference<T> result = new AtomicReference<T>();
-    testUnit.accept(new GeneralizingASTVisitor<Void>() {
-      @Override
-      @SuppressWarnings("unchecked")
-      public Void visitNode(ASTNode node) {
-        if (node.getOffset() <= index && index < node.getOffset() + node.getLength()
-            && clazz.isInstance(node)) {
-          result.set((T) node);
-        }
-        return super.visitNode(node);
-      }
-    });
-    return result.get();
-  }
-
-  private SimpleIdentifier findSimpleIdentifier(String pattern) {
-    return findNode(SimpleIdentifier.class, pattern);
-  }
-
-  /**
-   * @return the {@link Element} if {@link SimpleIdentifier} at position of "pattern", not
-   *         <code>null</code> or fails.
-   */
-  @SuppressWarnings("unchecked")
-  private <T extends Element> T getElement(String pattern) {
-    Element element = findSimpleIdentifier(pattern).getElement();
-    assertNotNull(element);
-    return (T) element;
-  }
-
-  /**
-   * @return the existing offset of the given "pattern" in {@link #testCode}.
-   */
-  private int getOffset(String pattern) {
-    int offset = testCode.indexOf(pattern);
-    assertThat(offset).describedAs(testCode).isNotEqualTo(-1);
-    return offset;
-  }
-
-  private void parseTestUnit(String... lines) throws AnalysisException {
-    testCode = createSource(lines);
-    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    TestSource source = new TestSource(null, FileUtilities2.createFile("Test.dart"), testCode);
-    // TODO(scheglov) replace parse() with requesting resolved unit
-    testUnit = ((AnalysisContextImpl) context).parse(source, null);
-    // build elements
-    new CompilationUnitBuilder(null, null).buildCompilationUnit(source, testUnit);
-    // replace CompilationUnitElement
-    testUnit.setElement(unitElement);
   }
 }

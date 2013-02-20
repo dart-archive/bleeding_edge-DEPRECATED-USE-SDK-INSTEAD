@@ -21,18 +21,19 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
-import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
-import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -51,6 +52,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
@@ -58,7 +60,9 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -125,6 +129,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     }
     if (node instanceof TypeParameter) {
       return ((TypeParameter) node).getName();
+    }
+    if (node instanceof ConstructorDeclaration) {
+      return ((ConstructorDeclaration) node).getName();
     }
     if (node instanceof MethodDeclaration) {
       return ((MethodDeclaration) node).getName();
@@ -296,6 +303,57 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    ConstructorElement element = node.getElement();
+    enterScope(element);
+    try {
+      return super.visitConstructorDeclaration(node);
+    } finally {
+      exitScope();
+    }
+  }
+
+  @Override
+  public Void visitConstructorName(ConstructorName node) {
+    ConstructorElement element = node.getElement();
+    Location location;
+    {
+      String nameStr = node.toSource();
+      // TODO(scheglov) remove this code after parser fix
+      {
+        int periodIndex = nameStr.indexOf('.');
+        if (periodIndex != -1) {
+          int start = node.getOffset() + periodIndex;
+          int end = node.getEnd();
+          location = createLocation(start, end - start, null);
+        } else {
+          int start = node.getType().getEnd();
+          location = createLocation(start, 0, null);
+        }
+      }
+      // TODO(scheglov) use this code after parser fix
+//      if (constructorName.getName() != null) {
+//        int start = constructorName.getPeriod().getOffset();
+//        int end = constructorName.getName().getEnd();
+//        location = createLocation(start, end - start, null);
+//      } else {
+//        int start = constructorName.getType().getEnd();
+//        location = createLocation(start, 0, null);
+//      }
+    }
+    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitConstructorName(node);
+  }
+
+  @Override
+  public Void visitExportDirective(ExportDirective node) {
+    ExportElement element = (ExportElement) node.getElement();
+    Location location = createLocation(node.getUri());
+    recordRelationship(element.getExportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitExportDirective(node);
+  }
+
+  @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.getElement();
     enterScope(element);
@@ -319,37 +377,11 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    ConstructorElement element = node.getElement();
-    Location location;
-    {
-      ConstructorName constructorName = node.getConstructorName();
-      element = constructorName.getElement(); // TODO(scheglov) remove this after resolver fix
-      String nameStr = constructorName.toSource();
-      // TODO(scheglov) remove this code after parser fix
-      {
-        int periodIndex = nameStr.indexOf('.');
-        if (periodIndex != -1) {
-          int start = constructorName.getOffset() + periodIndex;
-          int end = constructorName.getEnd();
-          location = createLocation(start, end - start, null);
-        } else {
-          int start = constructorName.getType().getEnd();
-          location = createLocation(start, 0, null);
-        }
-      }
-      // TODO(scheglov) use this code after parser fix
-//      if (constructorName.getName() != null) {
-//        int start = constructorName.getPeriod().getOffset();
-//        int end = constructorName.getName().getEnd();
-//        location = createLocation(start, end - start, null);
-//      } else {
-//        int start = constructorName.getType().getEnd();
-//        location = createLocation(start, 0, null);
-//      }
-    }
-    recordRelationship(element, IndexConstants.IS_INVOKED_BY_QUALIFIED, location);
-    return super.visitInstanceCreationExpression(node);
+  public Void visitImportDirective(ImportDirective node) {
+    ImportElement element = (ImportElement) node.getElement();
+    Location location = createLocation(node.getUri());
+    recordRelationship(element.getImportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    return super.visitImportDirective(node);
   }
 
   @Override
@@ -393,14 +425,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNamespaceDirective(NamespaceDirective node) {
-    Element element = node.getElement();
-    Location location = createLocation(node.getUri());
-    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitNamespaceDirective(node);
-  }
-
-  @Override
   public Void visitPartDirective(PartDirective node) {
     Element element = node.getElement();
     Location location = createLocation(node.getUri());
@@ -426,15 +450,19 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof TypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
-        || element instanceof ImportElement || element instanceof FunctionElement) {
+        || element instanceof FunctionElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    } else if (element instanceof PrefixElement) {
+      // TODO(scheglov) record ImportElement
+//      recordRelationship(element.get, IndexConstants.IS_REFERENCED_BY, location);
     } else if (element instanceof PropertyAccessorElement || element instanceof MethodElement) {
       if (isQualified(node)) {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
       } else {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
       }
-    } else if (element instanceof ParameterElement || element instanceof LocalVariableElement) {
+    } else if (element instanceof ParameterElement || element instanceof LocalVariableElement
+        || element instanceof TopLevelVariableElement) {
       if (node.inGetterContext()) {
         recordRelationship(element, IndexConstants.IS_ACCESSED_BY, location);
       } else {
@@ -447,8 +475,17 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-//    System.out.println(node + " " + node.getElement());
-    // TODO(scheglov) record relationships when resolver will be fixed
+    ConstructorElement element = node.getElement();
+    Location location;
+    if (node.getConstructorName() != null) {
+      int start = node.getPeriod().getOffset();
+      int end = node.getConstructorName().getEnd();
+      location = createLocation(start, end - start, null);
+    } else {
+      int start = node.getKeyword().getEnd();
+      location = createLocation(start, 0, null);
+    }
+    recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitSuperConstructorInvocation(node);
   }
 
@@ -550,9 +587,9 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    */
   private void recordImportElementReferenceWithoutPrefix(SimpleIdentifier node) {
     Element element = node.getElement();
-    if (element != null && element.getEnclosingElement() instanceof LibraryElement
+    if (element != null && element.getEnclosingElement() instanceof CompilationUnitElement
         && !isIdentifierInPrefixedIdentifier(node)) {
-      LibraryElement importLibraryElement = (LibraryElement) element.getEnclosingElement();
+      LibraryElement importLibraryElement = element.getLibrary();
       for (ImportElement importElement : libraryElement.getImports()) {
         if (importElement.getPrefix() == null
             && Objects.equal(importElement.getImportedLibrary(), importLibraryElement)) {

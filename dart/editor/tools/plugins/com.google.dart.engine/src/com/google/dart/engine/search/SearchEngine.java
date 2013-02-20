@@ -15,6 +15,7 @@ package com.google.dart.engine.search;
 
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
@@ -144,6 +145,35 @@ public interface SearchEngine {
    */
   public void searchReferences(CompilationUnitElement unit, SearchScope scope, SearchFilter filter,
       SearchListener listener);
+
+  /**
+   * Synchronously search for references to the given constructor within the given scope. Return all
+   * matches that pass the optional filter.
+   * 
+   * @param constructor the constructor being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
+   */
+  public List<SearchMatch> searchReferences(ConstructorElement constructor, SearchScope scope,
+      SearchFilter filter);
+
+  /**
+   * Search for references to the given constructor within the given scope.
+   * 
+   * @param constructor the constructor being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
+   */
+  public void searchReferences(ConstructorElement constructor, SearchScope scope,
+      SearchFilter filter, SearchListener listener);
 
   /**
    * Synchronously search for references to the given {@link Element} within the given scope. This
