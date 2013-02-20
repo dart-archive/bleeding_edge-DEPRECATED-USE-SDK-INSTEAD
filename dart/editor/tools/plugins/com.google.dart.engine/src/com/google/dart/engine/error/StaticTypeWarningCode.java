@@ -103,7 +103,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <p>
    * 13.8 Do: It is a static type warning if the type of <i>e</i> cannot be assigned to bool.
    */
-  NON_BOOL_CONDITION(""),
+  NON_BOOL_CONDITION("Conditions must have a static type of 'bool'"),
 
   /**
    * 13.15 Assert: It is a static type warning if the type of <i>e</i> may not be assigned to either

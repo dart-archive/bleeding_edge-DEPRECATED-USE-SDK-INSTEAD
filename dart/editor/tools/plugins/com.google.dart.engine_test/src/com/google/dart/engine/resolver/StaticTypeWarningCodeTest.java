@@ -84,44 +84,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonBoolCondition_conditional() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() { return 3 ? 2 : 1; }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
-    verify(source);
-  }
-
-  public void fail_nonBoolCondition_do() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        " do {} while (3);",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
-    verify(source);
-  }
-
-  public void fail_nonBoolCondition_if() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        " if (3) return 2; else return 1;",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
-    verify(source);
-  }
-
-  public void fail_nonBoolCondition_while() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        " while (3) {}",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
-    verify(source);
-  }
-
   public void fail_nonBoolExpression() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -218,6 +180,44 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_MEMBER);
+    verify(source);
+  }
+
+  public void test_nonBoolCondition_conditional() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() { return 3 ? 2 : 1; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    verify(source);
+  }
+
+  public void test_nonBoolCondition_do() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        " do {} while (3);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    verify(source);
+  }
+
+  public void test_nonBoolCondition_if() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        " if (3) return 2; else return 1;",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    verify(source);
+  }
+
+  public void test_nonBoolCondition_while() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        " while (3) {}",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
     verify(source);
   }
 

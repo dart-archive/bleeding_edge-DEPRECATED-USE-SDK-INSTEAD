@@ -18,7 +18,6 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.ErrorType;
 
 import static com.google.dart.engine.error.ErrorType.COMPILE_TIME_ERROR;
-import static com.google.dart.engine.error.ErrorType.STATIC_TYPE_WARNING;
 import static com.google.dart.engine.error.ErrorType.STATIC_WARNING;
 
 /**
@@ -51,8 +50,6 @@ public enum ResolverErrorCode implements ErrorCode {
   MISSING_LIBRARY_DIRECTIVE_WITH_PART(COMPILE_TIME_ERROR,
       "Libraries that have parts must have a library directive"),
   MISSING_PART_OF_DIRECTIVE(COMPILE_TIME_ERROR, "The included part must have a part-of directive"),
-
-  NON_BOOLEAN_CONDITION(STATIC_TYPE_WARNING, "Conditions must have a static type of 'bool'"),
 
   PART_WITH_WRONG_LIBRARY_NAME(STATIC_WARNING,
       "The included part appears to be part of the library '%s'"),

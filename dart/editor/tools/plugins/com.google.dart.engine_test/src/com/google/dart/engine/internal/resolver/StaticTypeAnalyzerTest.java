@@ -37,6 +37,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
@@ -49,7 +50,6 @@ import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
@@ -311,7 +311,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         resolvedInteger(1),
         resolvedInteger(0));
     assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertErrors(ResolverErrorCode.NON_BOOLEAN_CONDITION);
+    listener.assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
   }
 
   public void test_visitConditionalExpression_sameTypes() throws Exception {
