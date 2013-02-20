@@ -20,7 +20,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.resolver.ResolverErrorCode;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
 
 import java.util.HashMap;
@@ -83,13 +83,6 @@ public abstract class Scope {
     if (definedNames.containsKey(name)) {
       getErrorListener().onError(getErrorForDuplicate(definedNames.get(name), element));
     } else {
-      Element overriddenElement = lookup(name, getDefiningLibrary());
-      if (overriddenElement != null) {
-        AnalysisError error = getErrorForHiding(overriddenElement, element);
-        if (error != null) {
-          getErrorListener().onError(error);
-        }
-      }
       definedNames.put(name, element);
     }
   }
@@ -134,27 +127,13 @@ public abstract class Scope {
   protected AnalysisError getErrorForDuplicate(Element existing, Element duplicate) {
     // TODO(brianwilkerson) Customize the error message based on the types of elements that share
     // the same name.
+    // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being generated.
     return new AnalysisError(
         getSource(),
-        ResolverErrorCode.DUPLICATE_MEMBER_ERROR,
+        duplicate.getNameOffset(),
+        duplicate.getName().length(),
+        CompileTimeErrorCode.DUPLICATE_DEFINITION,
         existing.getName());
-  }
-
-  /**
-   * Return the error code to be used when reporting that a name being defined locally hides a name
-   * defined in an outer scope.
-   * 
-   * @param hidden the element whose visibility is being hidden
-   * @param hiding the element that is hiding the visibility of another declaration
-   * @return the error code used to report name hiding
-   */
-  protected AnalysisError getErrorForHiding(Element hidden, Element hiding) {
-    // TODO(brianwilkerson) Customize the warning message based on the types of elements that are
-    // hiding and being hidden.
-    return new AnalysisError(
-        getSource(),
-        ResolverErrorCode.DUPLICATE_MEMBER_WARNING,
-        hidden.getName());
   }
 
   /**

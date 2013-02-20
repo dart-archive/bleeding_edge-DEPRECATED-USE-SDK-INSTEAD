@@ -158,8 +158,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name
    * declared in the same scope.
+   * 
+   * @param duplicateName the name of the duplicate entity
    */
-  DUPLICATE_DEFINITION(""),
+  DUPLICATE_DEFINITION("The name '%s' is already defined"),
 
   /**
    * 7 Classes: It is a compile-time error if a class declares two members of the same name.

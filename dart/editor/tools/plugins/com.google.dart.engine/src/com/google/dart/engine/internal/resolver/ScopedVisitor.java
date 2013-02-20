@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -322,7 +323,8 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
-    if (!(node.getParent().getParent() instanceof TopLevelVariableDeclaration)) {
+    if (!(node.getParent().getParent() instanceof TopLevelVariableDeclaration)
+        && !(node.getParent().getParent() instanceof FieldDeclaration)) {
       VariableElement element = node.getElement();
       if (element != null) {
         nameScope.define(element);

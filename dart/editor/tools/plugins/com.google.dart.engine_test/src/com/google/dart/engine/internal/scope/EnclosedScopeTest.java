@@ -52,34 +52,6 @@ public class EnclosedScopeTest extends ResolverTestCase {
     errorListener.assertErrors(ErrorSeverity.ERROR);
   }
 
-  public void test_define_hiding() {
-    final LibraryElement definingLibrary = createTestLibrary();
-    final GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope rootScope = new Scope() {
-      @Override
-      public LibraryElement getDefiningLibrary() {
-        return definingLibrary;
-      }
-
-      @Override
-      public AnalysisErrorListener getErrorListener() {
-        return errorListener;
-      }
-
-      @Override
-      protected Element lookup(String name, LibraryElement referencingLibrary) {
-        return null;
-      }
-    };
-    EnclosedScope outerScope = new EnclosedScope(rootScope);
-    EnclosedScope innerScope = new EnclosedScope(outerScope);
-    VariableElement element1 = localVariableElement(identifier("v1"));
-    VariableElement element2 = localVariableElement(identifier("v1"));
-    outerScope.define(element1);
-    innerScope.define(element2);
-    errorListener.assertErrors(ErrorSeverity.WARNING);
-  }
-
   public void test_define_normal() {
     final LibraryElement definingLibrary = createTestLibrary();
     final GatheringErrorListener errorListener = new GatheringErrorListener();

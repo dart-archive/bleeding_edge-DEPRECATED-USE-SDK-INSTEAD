@@ -53,12 +53,7 @@ public enum ResolverErrorCode implements ErrorCode {
 
   PART_WITH_WRONG_LIBRARY_NAME(STATIC_WARNING,
       "The included part appears to be part of the library '%s'"),
-  UNDEFINED_LABEL(COMPILE_TIME_ERROR, "The label '%s' is not defined"),
-  //
-  // The following codes are temporary and should be deleted when more accurate reporting is implemented.
-  //
-  DUPLICATE_MEMBER_ERROR(COMPILE_TIME_ERROR, "Duplicate member '%s'"),
-  DUPLICATE_MEMBER_WARNING(STATIC_WARNING, "Duplicate member '%s'");
+  UNDEFINED_LABEL(COMPILE_TIME_ERROR, "The label '%s' is not defined");
 
   /**
    * The type of this error.

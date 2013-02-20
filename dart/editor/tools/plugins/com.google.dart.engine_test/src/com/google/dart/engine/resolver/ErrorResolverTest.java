@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class ErrorResolverTest extends ResolverTestCase {
@@ -91,7 +92,7 @@ public class ErrorResolverTest extends ResolverTestCase {
         "",
         "class A {}"));
     resolve(librarySource, sourceA, sourceB);
-    assertErrors(ResolverErrorCode.DUPLICATE_MEMBER_ERROR);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
     verify(librarySource, sourceA, sourceB);
   }
 

@@ -87,17 +87,6 @@ public class ScopeTest extends ResolverTestCase {
     errorListener.assertErrors(ErrorSeverity.ERROR);
   }
 
-  public void test_define_hiding() {
-    LibraryElement definingLibrary = createTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    TestScope scope = new TestScope(definingLibrary, errorListener);
-    VariableElement element1 = localVariableElement(identifier("v1"));
-    VariableElement element2 = localVariableElement(identifier("v1"));
-    scope.setLookupResult(element1);
-    scope.define(element2);
-    errorListener.assertErrors(ErrorSeverity.WARNING);
-  }
-
   public void test_define_normal() {
     LibraryElement definingLibrary = createTestLibrary();
     GatheringErrorListener errorListener = new GatheringErrorListener();
