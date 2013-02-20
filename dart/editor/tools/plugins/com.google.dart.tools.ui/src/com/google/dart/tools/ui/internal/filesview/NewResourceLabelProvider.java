@@ -13,7 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.compiler.util.apache.FilenameUtils;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
 import com.google.dart.tools.core.internal.builder.SourceContainerDeltaEvent;
 import com.google.dart.tools.core.internal.builder.SourceDeltaEvent;
@@ -36,17 +40,13 @@ import java.util.List;
  * Label provider for resources in the {@link FilesView}.
  */
 public class NewResourceLabelProvider extends ResourceLabelProvider {
-  private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png";
-  private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png";
 
-  private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png";
-
-  @SuppressWarnings("unused")
-  private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png";
-
-  private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png";
-
-  private static final String PACKAGE_ICON = "icons/full/obj16/package_obj.gif";
+  private static final String IGNORE_FILE_ICON = "icons/full/dart16/dart_excl.png"; //$NON-NLS-1$
+  private static final String IGNORE_FOLDER_ICON = "icons/full/dart16/flder_obj_excl.png"; //$NON-NLS-1$
+  private static final String PACKAGES_FOLDER_ICON = "icons/full/dart16/fldr_obj_pkg.png"; //$NON-NLS-1$
+  private static final String LIBRARY_ICON = "icons/full/dart16/dart_library.png"; //$NON-NLS-1$
+  private static final String BUILD_FILE_ICON = "icons/full/dart16/build_dart.png"; //$NON-NLS-1$
+  private static final String PACKAGE_ICON = "icons/full/obj16/package_obj.gif"; //$NON-NLS-1$
 
   private final WorkbenchLabelProvider workbenchLabelProvider = new WorkbenchLabelProvider();
 
@@ -71,10 +71,13 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
   @Override
   public Image getImage(Object element) {
+
     if (element instanceof IResource) {
+
       IResource resource = (IResource) element;
 
       if (!DartCore.isAnalyzed(resource)) {
+
         if (resource instanceof IFile) {
           return DartToolsPlugin.getImage(IGNORE_FILE_ICON);
         }
@@ -82,31 +85,25 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
         if (resource instanceof IFolder) {
           return DartToolsPlugin.getImage(IGNORE_FOLDER_ICON);
         }
+
       }
 
-      if (resource instanceof IFile && resource.getParent() instanceof IProject
-          && resource.getName().equals(DartCore.BUILD_DART_FILE_NAME)) {
-        return DartToolsPlugin.getImage(BUILD_FILE_ICON);
-      }
+      if (resource instanceof IFile) {
 
-      try {
+        if (resource.getParent() instanceof IProject
+            && resource.getName().equals(DartCore.BUILD_DART_FILE_NAME)) {
+          return DartToolsPlugin.getImage(BUILD_FILE_ICON);
+        }
 
-//TODO (pquitslund): add support for library icons
+        SourceKind kind = DartCore.getProjectManager().getSourceKind((IFile) resource);
+        if (kind == SourceKind.LIBRARY) {
+          return DartToolsPlugin.getImage(LIBRARY_ICON);
+        }
 
-//        DartElement dartElement = DartCore.create(resource);
-//
-//        // Return a different icon for library units.
-//        if (dartElement instanceof CompilationUnit) {
-//          if (((CompilationUnit) dartElement).definesLibrary()) {
-//            return DartToolsPlugin.getImage(LIBRARY_ICON);
-//          }
-//        }
-
-      } catch (Throwable th) {
-        DartToolsPlugin.log(th);
       }
 
       if (element instanceof IFolder) {
+
         IFolder folder = (IFolder) element;
 
         if (DartCore.isPackagesDirectory(folder)) {
@@ -115,6 +112,7 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
         if (DartCore.isPackagesResource(folder)) {
           return DartToolsPlugin.getImage(PACKAGE_ICON);
         }
+
       }
 
     }
@@ -138,28 +136,44 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
         if (resource instanceof IFolder) {
           if (DartCore.isPackagesDirectory((IFolder) resource)) {
-            string.append(" [package:]", StyledString.QUALIFIER_STYLER);
+            string.append(" [package:]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$
           }
           String version = resource.getPersistentProperty(DartCore.PUB_PACKAGE_VERSION);
           if (version != null) {
-            string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER);
+            string.append(" [" + version + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
             return string;
           }
         }
 
-        //TODO (pquitslund): append library name details
+        if (resource instanceof IFile) {
 
-//        DartElement dartElement = DartCore.create(resource);
-//
-//        // Append the library name to library units.
-//        if (dartElement instanceof CompilationUnit) {
-//          if (((CompilationUnit) dartElement).definesLibrary()) {
-//            DartLibrary library = ((CompilationUnit) dartElement).getLibrary();
-//
-//            string.append(" [" + library.getDisplayName() + "]", StyledString.QUALIFIER_STYLER);
-//          }
-//        }
+          // Append the library name to library units.
 
+          ProjectManager projectManager = DartCore.getProjectManager();
+          SourceKind kind = projectManager.getSourceKind((IFile) resource);
+
+          if (kind == SourceKind.LIBRARY) {
+
+            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
+
+            if (libraryElement != null) {
+
+              String name = libraryElement.getName();
+
+              if (name == null || name.length() == 0) {
+
+                if (libraryElement.getEntryPoint() != null) {
+                  name = FilenameUtils.removeExtension(resource.getName());
+                }
+
+              }
+
+              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
+            }
+
+          }
+
+        }
       } catch (Throwable th) {
         DartToolsPlugin.log(th);
       }
@@ -167,16 +181,14 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
       return string;
     }
 
-    //TODO (pquitslund): append library name details
+    if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
+      StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
+      string.append(
+          " [" + ((DartLibraryNode) element).getCategory() + "]", //$NON-NLS-1$ //$NON-NLS-2$
+          StyledString.QUALIFIER_STYLER);
 
-//    if (element instanceof DartLibraryNode && ((DartLibraryNode) element).getCategory() != null) {
-//      StyledString string = new StyledString(((DartLibraryNode) element).getLabel());
-//      string.append(
-//          " [" + ((DartLibraryNode) element).getCategory() + "]",
-//          StyledString.QUALIFIER_STYLER);
-//
-//      return string;
-//    }
+      return string;
+    }
 
     return workbenchLabelProvider.getStyledText(element);
   }
