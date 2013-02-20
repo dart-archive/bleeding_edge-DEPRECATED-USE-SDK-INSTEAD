@@ -2,16 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-markdown_test: Fail # TODO(erikcorry) : Erik has a CL to fix this.
-
 [ $browser ]
 chat/chat_server_test: Skip # Uses dart:io
 
 [ $runtime == drt ]
 lib/touch/touch_test: Skip # Issue 157
-markdown_test: Fail # markdown_test uses dart:io, it should only run in the vm
-                    # this is marked as failed purposely, as a regression test
-                    # for bug 7036
 
 [ $compiler == none && $runtime == drt ]
 dartcombat/dartcombat_test: Skip # Issue 2790

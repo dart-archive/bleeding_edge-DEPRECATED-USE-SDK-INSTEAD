@@ -23,7 +23,6 @@ class SamplesDartcTestSuite extends DartcCompilationTestSuite {
                 'isolate_html',
                 'leap',
                 'logo',
-                'markdown',
                 'matrix',
                 'pond',
                 'sample_extension',
