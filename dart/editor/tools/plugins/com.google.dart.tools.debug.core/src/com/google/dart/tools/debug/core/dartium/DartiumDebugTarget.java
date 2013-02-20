@@ -383,14 +383,15 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
     if (breakpoint instanceof DartBreakpoint) {
       DartBreakpoint bp = (DartBreakpoint) breakpoint;
-
       DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launchConfig);
       IProject project = wrapper.getProject();
 
-      return project.equals(bp.getFile().getProject());
-    } else {
-      return false;
+      if (project != null && bp.getFile() != null) {
+        return project.equals(bp.getFile().getProject());
+      }
     }
+
+    return false;
   }
 
   public boolean supportsSetScriptSource() {

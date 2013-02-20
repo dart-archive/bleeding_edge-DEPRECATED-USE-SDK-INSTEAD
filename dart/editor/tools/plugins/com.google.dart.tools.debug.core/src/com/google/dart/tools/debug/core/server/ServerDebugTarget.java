@@ -26,12 +26,12 @@ import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IMemoryBlock;
@@ -360,13 +360,17 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
     if (breakpoint instanceof DartBreakpoint) {
       DartBreakpoint bp = (DartBreakpoint) breakpoint;
-      ILaunchConfiguration config = getLaunch().getLaunchConfiguration();
-      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(config);
+      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+          getLaunch().getLaunchConfiguration());
 
-      return wrapper.getProject().equals(bp.getFile().getProject());
-    } else {
-      return false;
+      IProject project = wrapper.getProject();
+
+      if (project != null && bp.getFile() != null) {
+        return project.equals(bp.getFile().getProject());
+      }
     }
+
+    return false;
   }
 
   @Override
