@@ -120,25 +120,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier className = node.getName();
     ClassElementImpl element = new ClassElementImpl(className);
-    ConstructorElement[] constructors = holder.getConstructors();
-    if (constructors.length == 0) {
-      //
-      // Create the default constructor.
-      //
-      ConstructorElementImpl constructor = new ConstructorElementImpl(null);
-      constructor.setSynthetic(true);
-      FunctionTypeImpl type = new FunctionTypeImpl(constructor);
-      type.setReturnType(element.getType());
-      constructor.setType(type);
-      constructors = new ConstructorElement[] {constructor};
-    }
-    element.setAbstract(node.getAbstractKeyword() != null);
-    element.setAccessors(holder.getAccessors());
-    element.setConstructors(constructors);
-    element.setFields(holder.getFields());
-    element.setMethods(holder.getMethods());
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
-    element.setTypeVariables(typeVariables);
 
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
     int typeVariableCount = typeVariables.length;
@@ -151,6 +133,25 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     interfaceType.setTypeArguments(typeArguments);
     element.setType(interfaceType);
+
+    ConstructorElement[] constructors = holder.getConstructors();
+    if (constructors.length == 0) {
+      //
+      // Create the default constructor.
+      //
+      ConstructorElementImpl constructor = new ConstructorElementImpl(null);
+      constructor.setSynthetic(true);
+      FunctionTypeImpl type = new FunctionTypeImpl(constructor);
+      type.setReturnType(interfaceType);
+      constructor.setType(type);
+      constructors = new ConstructorElement[] {constructor};
+    }
+    element.setAbstract(node.getAbstractKeyword() != null);
+    element.setAccessors(holder.getAccessors());
+    element.setConstructors(constructors);
+    element.setFields(holder.getFields());
+    element.setMethods(holder.getMethods());
+    element.setTypeVariables(typeVariables);
 
     currentHolder.addType(element);
     className.setElement(element);
