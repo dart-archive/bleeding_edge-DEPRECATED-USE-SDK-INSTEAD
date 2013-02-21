@@ -4,6 +4,10 @@
 
 [ $browser ]
 chat/chat_server_test: Skip # Uses dart:io
+time/time_test: Skip
+clock/clock_test: Skip
+solar/solar_test: Skip
+swipe/swipe_test: Skip
 
 [ $runtime == drt ]
 lib/touch/touch_test: Skip # Issue 157
@@ -39,7 +43,6 @@ swipe/swipe_test: Skip
 
 [ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip
-time/time_test: Skip
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
