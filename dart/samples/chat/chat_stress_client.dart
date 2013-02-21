@@ -44,25 +44,23 @@ class ChatStressClient {
 
     void leave() {
       void leaveResponseHandler(HttpClientResponse response, String data) {
-        httpClient.shutdown();
+        httpClient.close();
       }
 
       Map leaveRequest = new Map();
       leaveRequest["request"] = "leave";
       leaveRequest["sessionId"] = sessionId;
-      HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
-      conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(json.stringify(leaveRequest));
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          leaveResponseHandler(response, body.toString());
-        };
-      };
+      httpClient.post("127.0.0.1", port, "/leave")
+        .then((HttpClientRequest request) {
+          request.addString(json.stringify(leaveRequest));
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          StringBuffer body = new StringBuffer();
+          response.listen(
+            (data) => body.add(new String.fromCharCodes(data)),
+            onDone: () => leaveResponseHandler(response, body.toString()));
+        });
     }
 
     var sendMessage;
@@ -80,20 +78,17 @@ class ChatStressClient {
       messageRequest["sessionId"] = sessionId;
       messageRequest["nextMessage"] = receiveMessageCount;
       messageRequest["maxMessages"] = 100;
-      HttpClientConnection conn =
-          httpClient.post("127.0.0.1", port, "/receive");
-      conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(json.stringify(messageRequest));
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          receiveResponseHandler(response, body.toString());
-        };
-      };
+      httpClient.post("127.0.0.1", port, "/receive")
+        .then((HttpClientRequest request) {
+          request.addString(json.stringify(messageRequest));
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          StringBuffer body = new StringBuffer();
+          response.listen(
+            (data) => body.add(new String.fromCharCodes(data)),
+            onDone: () => receiveResponseHandler(response, body.toString()));
+        });
     }
 
     sendMessage = () {
@@ -118,20 +113,17 @@ class ChatStressClient {
       messageRequest["request"] = "message";
       messageRequest["sessionId"] = sessionId;
       messageRequest["message"] = "message $sendMessageCount";
-      HttpClientConnection conn =
-      httpClient.post("127.0.0.1", port, "/message");
-      conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(json.stringify(messageRequest));
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          sendResponseHandler(response, body.toString());
-        };
-      };
+      httpClient.post("127.0.0.1", port, "/message")
+        .then((HttpClientRequest request) {
+          request.addString(json.stringify(messageRequest));
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          StringBuffer body = new StringBuffer();
+          response.listen(
+            (data) => body.add(new String.fromCharCodes(data)),
+            onDone: () => sendResponseHandler(response, body.toString()));
+        });
     };
 
     void join() {
@@ -149,19 +141,17 @@ class ChatStressClient {
       Map joinRequest = new Map();
       joinRequest["request"] = "join";
       joinRequest["handle"] = "test1";
-      HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
-      conn.onRequest = (HttpClientRequest request) {
-        request.outputStream.writeString(json.stringify(joinRequest));
-        request.outputStream.close();
-      };
-      conn.onResponse = (HttpClientResponse response) {
-        StringInputStream stream = new StringInputStream(response.inputStream);
-        StringBuffer body = new StringBuffer();
-        stream.onData = () => body.add(stream.read());
-        stream.onClosed = () {
-          joinResponseHandler(response, body.toString());
-        };
-      };
+      httpClient.post("127.0.0.1", port, "/join")
+        .then((HttpClientRequest request) {
+          request.addString(json.stringify(joinRequest));
+          return request.close();
+        })
+        .then((HttpClientResponse response) {
+          StringBuffer body = new StringBuffer();
+          response.listen(
+            (data) => body.add(new String.fromCharCodes(data)),
+            onDone: () => joinResponseHandler(response, body.toString()));
+        });
     }
 
     // Create a HTTP client factory.

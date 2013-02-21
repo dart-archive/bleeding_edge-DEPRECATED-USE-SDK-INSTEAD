@@ -70,7 +70,9 @@ void processArgs() {
  */
 void handleCleanCommand() {
   Directory current = new Directory.current();
-  current.list(recursive: true).onFile = _maybeClean;
+  current.list(recursive: true).listen((entity) {
+    if (entity.isFile) _maybeClean(entity.path)
+  });
 }
 
 /**
@@ -78,10 +80,11 @@ void handleCleanCommand() {
  */
 void handleFullBuild() {
   var files = <String>[];
-  var lister = new Directory.current().list(recursive: true);
-
-  lister.onFile = (file) => files.add(file);
-  lister.onDone = (_) => handleChangedFiles(files);
+  new Directory.current().list(recursive: true).listen(
+      (entity) {
+        if (entity.isFile) files.add(entity.path);
+      },
+      onDone: () => handleChangedFiles(files));
 }
 
 /**
@@ -111,10 +114,10 @@ void _processFile(String arg) {
 
     File outFile = new File("${arg}bar");
 
-    OutputStream out = outFile.openOutputStream();
-    out.writeString("// processed from ${file.name}:\n");
+    var out = outFile.openWrite();
+    out.addString("// processed from ${file.name}:\n");
     if (contents != null) {
-      out.writeString(contents);
+      out.addString(contents);
     }
     out.close();
 

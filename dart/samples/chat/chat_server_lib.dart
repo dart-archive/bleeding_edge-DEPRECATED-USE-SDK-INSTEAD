@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,17 +21,16 @@ class ChatServer extends IsolatedServer {
 class ServerMain {
   ServerMain.start(SendPort serverPort,
                    String hostAddress,
-                   int tcpPort,
-                   [int listenBacklog = 5])
+                   int tcpPort)
       : _statusPort = new ReceivePort(),
         _serverPort = serverPort {
     // We can only guess this is the right URL. At least it gives a
     // hint to the user.
     print('Server starting http://${hostAddress}:${tcpPort}/');
-    _start(hostAddress, tcpPort, listenBacklog);
+    _start(hostAddress, tcpPort);
   }
 
-    void _start(String hostAddress, int tcpPort, int listenBacklog) {
+    void _start(String hostAddress, int tcpPort) {
     // Handle status messages from the server.
     _statusPort.receive((var message, SendPort replyTo) {
       String status = message.message;
@@ -39,9 +38,7 @@ class ServerMain {
     });
 
     // Send server start message to the server.
-    var command = new ChatServerCommand.start(hostAddress,
-                                              tcpPort,
-                                              backlog: listenBacklog);
+    var command = new ChatServerCommand.start(hostAddress, tcpPort);
     _serverPort.send(command, _statusPort.toSendPort());
   }
 
@@ -225,9 +222,8 @@ class ChatServerCommand {
 
   ChatServerCommand.start(String this._host,
                           int this._port,
-                          {int backlog: 5,
-                           bool logging: false})
-      : _command = START, _backlog = backlog, _logging = logging;
+                          {bool logging: false})
+      : _command = START, _logging = logging;
   ChatServerCommand.stop() : _command = STOP;
 
   bool get isStart => _command == START;
@@ -236,12 +232,10 @@ class ChatServerCommand {
   String get host => _host;
   int get port => _port;
   bool get logging => _logging;
-  int get backlog => _backlog;
 
   int _command;
   String _host;
   int _port;
-  int _backlog;
   bool _logging;
 }
 
@@ -309,8 +303,8 @@ class IsolatedServer {
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.headers.set("Content-Type", "application/json; charset=UTF-8");
-    response.outputStream.writeString(json.stringify(responseData));
-    response.outputStream.close();
+    response.addString(json.stringify(responseData));
+    response.close();
   }
 
   void redirectPageHandler(HttpRequest request,
@@ -323,8 +317,8 @@ class IsolatedServer {
     response.headers.set(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
-    response.outputStream.write(_redirectPage);
-    response.outputStream.close();
+    response.add(_redirectPage);
+    response.close();
   }
 
   // Serve the content of a file.
@@ -332,7 +326,7 @@ class IsolatedServer {
       HttpRequest request, HttpResponse response, [String fileName = null]) {
     final int BUFFER_SIZE = 4096;
     if (fileName == null) {
-      fileName = request.path.substring(1);
+      fileName = request.uri.path.substring(1);
     }
     File file = new File(fileName);
     if (file.existsSync()) {
@@ -351,7 +345,7 @@ class IsolatedServer {
       response.contentLength = openedFile.lengthSync();
       openedFile.closeSync();
       // Pipe the file content into the response.
-      file.openInputStream().pipe(response.outputStream);
+      file.openRead().pipe(response);
     } else {
       print("File not found: $fileName");
       _notFoundHandler(request, response);
@@ -366,15 +360,15 @@ class IsolatedServer {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
-    response.outputStream.write(_notFoundPage);
-    response.outputStream.close();
+    response.add(_notFoundPage);
+    response.close();
   }
 
   // Unexpected protocol data.
   void _protocolError(HttpRequest request, HttpResponse response) {
     response.statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
     response.contentLength = 0;
-    response.outputStream.close();
+    response.close();
   }
 
   // Join request:
@@ -382,33 +376,33 @@ class IsolatedServer {
   //   "handle": <handle> }
   void _joinHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
-    StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
-      String data = body.toString();
-      if (data != null) {
-        var requestData = json.parse(data);
-        if (requestData["request"] == "join") {
-          String handle = requestData["handle"];
-          if (handle != null) {
-            // New user joining.
-            User user = _topic._userJoined(handle);
+    request.listen(
+      (data) => body.add(new String.fromCharCodes(data)),
+      onDone: () {
+        String data = body.toString();
+        if (data != null) {
+          var requestData = json.parse(data);
+          if (requestData["request"] == "join") {
+            String handle = requestData["handle"];
+            if (handle != null) {
+              // New user joining.
+              User user = _topic._userJoined(handle);
 
-            // Send response.
-            Map responseData = new Map();
-            responseData["response"] = "join";
-            responseData["sessionId"] = user.sessionId;
-            _sendJSONResponse(response, responseData);
+              // Send response.
+              Map responseData = new Map();
+              responseData["response"] = "join";
+              responseData["sessionId"] = user.sessionId;
+              _sendJSONResponse(response, responseData);
+            } else {
+              _protocolError(request, response);
+            }
           } else {
             _protocolError(request, response);
           }
         } else {
           _protocolError(request, response);
         }
-      } else {
-        _protocolError(request, response);
-      }
-    };
+      });
   }
 
   // Leave request:
@@ -416,28 +410,28 @@ class IsolatedServer {
   //   "sessionId": <sessionId> }
   void _leaveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
-    StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
-      String data = body.toString();
-      var requestData = json.parse(data);
-      if (requestData["request"] == "leave") {
-        String sessionId = requestData["sessionId"];
-        if (sessionId != null) {
-          // User leaving.
-          _topic._userLeft(sessionId);
+    request.listen(
+      (data) => body.add(new String.fromCharCodes(data)),
+      onDone: () {
+        String data = body.toString();
+        var requestData = json.parse(data);
+        if (requestData["request"] == "leave") {
+          String sessionId = requestData["sessionId"];
+          if (sessionId != null) {
+            // User leaving.
+            _topic._userLeft(sessionId);
 
-          // Send response.
-          Map responseData = new Map();
-          responseData["response"] = "leave";
-          _sendJSONResponse(response, responseData);
+            // Send response.
+            Map responseData = new Map();
+            responseData["response"] = "leave";
+            _sendJSONResponse(response, responseData);
+          } else {
+            _protocolError(request, response);
+          }
         } else {
           _protocolError(request, response);
         }
-      } else {
-        _protocolError(request, response);
-      }
-    };
+      });
   }
 
   // Message request:
@@ -446,34 +440,34 @@ class IsolatedServer {
   //   "message": <message> }
   void _messageHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
-    StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
-      String data = body.toString();
-      _messageCount++;
-      _messageRate.record(1);
-      var requestData = json.parse(data);
-      if (requestData["request"] == "message") {
-        String sessionId = requestData["sessionId"];
-        if (sessionId != null) {
-          // New message from user.
-          bool success = _topic._userMessage(requestData);
+    request.listen(
+      (data) => body.add(new String.fromCharCodes(data)),
+      onDone: () {
+        String data = body.toString();
+        _messageCount++;
+        _messageRate.record(1);
+        var requestData = json.parse(data);
+        if (requestData["request"] == "message") {
+          String sessionId = requestData["sessionId"];
+          if (sessionId != null) {
+            // New message from user.
+            bool success = _topic._userMessage(requestData);
 
-          // Send response.
-          if (success) {
-            Map responseData = new Map();
-            responseData["response"] = "message";
-            _sendJSONResponse(response, responseData);
+            // Send response.
+            if (success) {
+              Map responseData = new Map();
+              responseData["response"] = "message";
+              _sendJSONResponse(response, responseData);
+            } else {
+              _protocolError(request, response);
+            }
           } else {
             _protocolError(request, response);
           }
         } else {
           _protocolError(request, response);
         }
-      } else {
-        _protocolError(request, response);
-      }
-    };
+      });
   }
 
   // Receive request:
@@ -483,47 +477,47 @@ class IsolatedServer {
   //   "maxMessages": <maxMesssages> }
   void _receiveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
-    StringInputStream input = new StringInputStream(request.inputStream);
-    input.onData = () => body.add(input.read());
-    input.onClosed = () {
-      String data = body.toString();
-      var requestData = json.parse(data);
-      if (requestData["request"] == "receive") {
-        String sessionId = requestData["sessionId"];
-        int nextMessage = requestData["nextMessage"];
-        int maxMessages = requestData["maxMessages"];
-        if (sessionId != null && nextMessage != null) {
+    request.listen(
+      (data) => body.add(new String.fromCharCodes(data)),
+      onDone: () {
+        String data = body.toString();
+        var requestData = json.parse(data);
+        if (requestData["request"] == "receive") {
+          String sessionId = requestData["sessionId"];
+          int nextMessage = requestData["nextMessage"];
+          int maxMessages = requestData["maxMessages"];
+          if (sessionId != null && nextMessage != null) {
 
-          void sendResponse(messages) {
-            // Send response.
-            Map responseData = new Map();
-            responseData["response"] = "receive";
-            if (messages != null) {
-              responseData["messages"] = messages;
-              responseData["activeUsers"] = _topic.activeUsers;
-              responseData["upTime"] =
-                  new DateTime.now().difference(_serverStart).inMilliseconds;
-            } else {
-              responseData["disconnect"] = true;
+            void sendResponse(messages) {
+              // Send response.
+              Map responseData = new Map();
+              responseData["response"] = "receive";
+              if (messages != null) {
+                responseData["messages"] = messages;
+                responseData["activeUsers"] = _topic.activeUsers;
+                responseData["upTime"] =
+                    new DateTime.now().difference(_serverStart).inMilliseconds;
+              } else {
+                responseData["disconnect"] = true;
+              }
+              _sendJSONResponse(response, responseData);
             }
-            _sendJSONResponse(response, responseData);
-          }
 
-          // Receive request from user.
-          List messages = _topic.messagesFrom(nextMessage, maxMessages);
-          if (messages == null) {
-            _topic.registerChangeCallback(sessionId, sendResponse);
+            // Receive request from user.
+            List messages = _topic.messagesFrom(nextMessage, maxMessages);
+            if (messages == null) {
+              _topic.registerChangeCallback(sessionId, sendResponse);
+            } else {
+              sendResponse(messages);
+            }
+
           } else {
-            sendResponse(messages);
+            _protocolError(request, response);
           }
-
         } else {
           _protocolError(request, response);
         }
-      } else {
-        _protocolError(request, response);
-      }
-    };
+      });
   }
 
   void init() {
@@ -552,50 +546,41 @@ class IsolatedServer {
       _port = message.port;
       _logging = message.logging;
       replyTo.send(new ChatServerStatus.starting(), null);
-      _server = new HttpServer();
-      _server.defaultRequestHandler = _notFoundHandler;
-      _server.addRequestHandler(
-          (request) => request.path == "/",
-          (HttpRequest request, HttpResponse response) =>
-              redirectPageHandler(
-                  request, response, "dart_client/index.html"));
-      _server.addRequestHandler(
-          (request) => request.path == "/js_client/index.html",
-          (HttpRequest request, HttpResponse response) =>
-              fileHandler(request, response));
-      _server.addRequestHandler(
-          (request) => request.path == "/js_client/code.js",
-          (HttpRequest request, HttpResponse response) =>
-              fileHandler(request, response));
-      _server.addRequestHandler(
-          (request) => request.path == "/dart_client/index.html",
-          (HttpRequest request, HttpResponse response) =>
-              fileHandler(request, response));
-      _server.addRequestHandler(
-          (request) => request.path == "/out.js",
-          (HttpRequest request, HttpResponse response) =>
-              fileHandler(request, response));
-      _server.addRequestHandler(
-          (request) => request.path == "/favicon.ico",
-          (HttpRequest request, HttpResponse response) =>
-              fileHandler(request, response, "static/favicon.ico"));
-
-      _server.addRequestHandler(
-          (request) => request.path == "/join", _joinHandler);
-      _server.addRequestHandler(
-          (request) => request.path == "/leave", _leaveHandler);
-      _server.addRequestHandler(
-          (request) => request.path == "/message", _messageHandler);
-      _server.addRequestHandler(
-          (request) => request.path == "/receive", _receiveHandler);
-      try {
-        _server.listen(_host, _port, backlog: message.backlog);
-        replyTo.send(new ChatServerStatus.started(_server.port), null);
-        _loggingTimer =
-            new Timer.repeating(const Duration(seconds: 1), _handleLogging);
-      } catch (e) {
-        replyTo.send(new ChatServerStatus.error2(e.toString()), null);
+      var handlers = {};
+      void addRequestHandler(String path, Function handler) {
+        handlers[path] = handler;
       }
+      addRequestHandler("/", (request, response) {
+        redirectPageHandler(request, response, "dart_client/index.html");
+      });
+      addRequestHandler("/js_client/index.html", fileHandler);
+      addRequestHandler("/js_client/code.js", fileHandler);
+      addRequestHandler("/dart_client/index.html", fileHandler);
+      addRequestHandler("/out.js", fileHandler);
+      addRequestHandler("/favicon.ico", (request, response) {
+        fileHandler(request, response, "static/favicon.ico");
+      });
+      addRequestHandler("/join", _joinHandler);
+      addRequestHandler("/leave", _leaveHandler);
+      addRequestHandler("/message", _messageHandler);
+      addRequestHandler("/receive", _receiveHandler);
+      HttpServer.bind(_host, _port)
+          .then((s) {
+            _server = s;
+            _server.listen((request) {
+              if (handlers.containsKey(request.uri.path)) {
+                handlers[request.uri.path](request, request.response);
+              } else {
+                _notFoundHandler(request, request.response);
+              }
+            });
+            replyTo.send(new ChatServerStatus.started(_server.port), null);
+            _loggingTimer =
+                new Timer.repeating(const Duration(seconds: 1), _handleLogging);
+          })
+          .catchError((e) {
+            replyTo.send(new ChatServerStatus.error2(e.toString()), null);
+          });
     } else if (message.isStop) {
       replyTo.send(new ChatServerStatus.stopping(), null);
       stop();

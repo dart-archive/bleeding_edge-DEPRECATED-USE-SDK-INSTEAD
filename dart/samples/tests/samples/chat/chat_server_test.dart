@@ -52,10 +52,7 @@ class ChatTestClient {
   int receiveMessageNumber;  // Number of messages received.
 
   void leave() {
-    HttpClientRequest request;
-    HttpClientResponse response;
-
-    void leaveResponseHandler(String data) {
+    void leaveResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
       var responseData = json.parse(data);
       Expect.equals("leave", responseData["response"]);
@@ -67,25 +64,21 @@ class ChatTestClient {
     Map leaveRequest = new Map();
     leaveRequest["request"] = "leave";
     leaveRequest["sessionId"] = sessionId;
-    HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/leave");
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(json.stringify(leaveRequest));
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse r) {
-      response = r;
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () => leaveResponseHandler(body.toString());
-    };
+    httpClient.post("127.0.0.1", port, "/leave")
+      .then((HttpClientRequest request) {
+        request.addString(json.stringify(leaveRequest));
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        StringBuffer body = new StringBuffer();
+        response.listen(
+          (data) => body.add(new String.fromCharCodes(data)),
+          onDone: () => leaveResponseHandler(response, body.toString()));
+      });
   }
 
   void receive() {
-    HttpClientRequest request;
-    HttpClientResponse response;
-
-    void receiveResponseHandler(String data) {
+    void receiveResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
       var responseData = json.parse(data);
       Expect.equals("receive", responseData["response"]);
@@ -127,26 +120,21 @@ class ChatTestClient {
     receiveRequest["request"] = "receive";
     receiveRequest["sessionId"] = sessionId;
     receiveRequest["nextMessage"] = receiveMessageNumber;
-    HttpClientConnection conn =
-        httpClient.post("127.0.0.1", port, "/receive");
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(json.stringify(receiveRequest));
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse r) {
-      response = r;
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () => receiveResponseHandler(body.toString());
-    };
+    httpClient.post("127.0.0.1", port, "/receive")
+      .then((HttpClientRequest request) {
+        request.addString(json.stringify(receiveRequest));
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        StringBuffer body = new StringBuffer();
+        response.listen(
+          (data) => body.add(new String.fromCharCodes(data)),
+          onDone: () => receiveResponseHandler(response, body.toString()));
+      });
   }
 
   void sendMessage() {
-    HttpClientRequest request;
-    HttpClientResponse response;
-
-    void sendResponseHandler(String data) {
+    void sendResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
       var responseData = json.parse(data);
       Expect.equals("message", responseData["response"]);
@@ -162,26 +150,21 @@ class ChatTestClient {
     messageRequest["request"] = "message";
     messageRequest["sessionId"] = sessionId;
     messageRequest["message"] = "message $sendMessageNumber";
-    HttpClientConnection conn =
-        httpClient.post("127.0.0.1", port, "/message");
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(json.stringify(messageRequest));
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse r) {
-      response = r;
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () => sendResponseHandler(body.toString());
-    };
+    httpClient.post("127.0.0.1", port, "/message")
+      .then((HttpClientRequest request) {
+        request.addString(json.stringify(messageRequest));
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        StringBuffer body = new StringBuffer();
+        response.listen(
+          (data) => body.add(new String.fromCharCodes(data)),
+          onDone: () => sendResponseHandler(response, body.toString()));
+      });
   }
 
   void join() {
-    HttpClientRequest request;
-    HttpClientResponse response;
-
-    void joinResponseHandler(String data) {
+    void joinResponseHandler(response, String data) {
       Expect.equals(HttpStatus.OK, response.statusCode);
       var responseData = json.parse(data);
       Expect.equals("join", responseData["response"]);
@@ -198,18 +181,17 @@ class ChatTestClient {
     Map joinRequest = new Map();
     joinRequest["request"] = "join";
     joinRequest["handle"] = "test1";
-    HttpClientConnection conn = httpClient.post("127.0.0.1", port, "/join");
-    conn.onRequest = (HttpClientRequest request) {
-      request.outputStream.writeString(json.stringify(joinRequest));
-      request.outputStream.close();
-    };
-    conn.onResponse = (HttpClientResponse r) {
-      response = r;
-      StringInputStream stream = new StringInputStream(response.inputStream);
-      StringBuffer body = new StringBuffer();
-      stream.onData = () => body.add(stream.read());
-      stream.onClosed = () => joinResponseHandler(body.toString());
-    };
+    httpClient.post("127.0.0.1", port, "/join")
+      .then((HttpClientRequest request) {
+        request.addString(json.stringify(joinRequest));
+        return request.close();
+      })
+      .then((HttpClientResponse response) {
+        StringBuffer body = new StringBuffer();
+        response.listen(
+          (data) => body.add(new String.fromCharCodes(data)),
+          onDone: () => joinResponseHandler(response, body.toString()));
+      });
   }
 
   void dispatch(message, replyTo) {
@@ -290,9 +272,7 @@ class TestMain {
         // port will be returned with the server started
         // message. Use a backlog equal to the client count to avoid
         // connection issues.
-        serverPort.send(new ChatServerCommand.start("127.0.0.1",
-                                                    0,
-                                                    backlog: clientCount),
+        serverPort.send(new ChatServerCommand.start("127.0.0.1", 0),
                         serverStatusPort.toSendPort());
       }
     }
