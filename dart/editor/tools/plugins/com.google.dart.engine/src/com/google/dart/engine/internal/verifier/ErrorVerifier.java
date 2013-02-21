@@ -13,12 +13,19 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.DoStatement;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.type.InterfaceType;
@@ -34,8 +41,38 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private ErrorReporter errorReporter;
 
-  public ErrorVerifier(ErrorReporter errorReporter) {
+  /**
+   * The type representing the type 'dynamic'.
+   */
+  private Type dynamicType;
+
+  /**
+   * The object providing access to the types defined by the language.
+   */
+  private TypeProvider typeProvider;
+
+  public ErrorVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
+    this.typeProvider = typeProvider;
+    dynamicType = typeProvider.getDynamicType();
+  }
+
+  @Override
+  public Void visitConditionalExpression(ConditionalExpression node) {
+    checkForNonBoolCondition(node.getCondition());
+    return super.visitConditionalExpression(node);
+  }
+
+  @Override
+  public Void visitDoStatement(DoStatement node) {
+    checkForNonBoolCondition(node.getCondition());
+    return super.visitDoStatement(node);
+  }
+
+  @Override
+  public Void visitIfStatement(IfStatement node) {
+    checkForNonBoolCondition(node.getCondition());
+    return super.visitIfStatement(node);
   }
 
   @Override
@@ -55,4 +92,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     return null;
   }
+
+  @Override
+  public Void visitWhileStatement(WhileStatement node) {
+    checkForNonBoolCondition(node.getCondition());
+    return super.visitWhileStatement(node);
+  }
+
+  /**
+   * Checks to ensure that the expressions that need to be of type bool, are. Otherwise an error is
+   * reported on the expression.
+   * 
+   * @see StaticTypeWarningCode#NON_BOOL_CONDITION
+   * @param condition the conditional expression to test
+   */
+  private void checkForNonBoolCondition(Expression condition) {
+    Type conditionType = getType(condition);
+    if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
+      errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
+    }
+  }
+
+  /**
+   * Return the type of the given expression that is to be used for type analysis.
+   * 
+   * @param expression the expression whose type is to be returned
+   * @return the type of the given expression
+   */
+  private Type getType(Expression expression) {
+    Type type = expression.getStaticType();
+    return type == null ? dynamicType : type;
+  }
+
 }

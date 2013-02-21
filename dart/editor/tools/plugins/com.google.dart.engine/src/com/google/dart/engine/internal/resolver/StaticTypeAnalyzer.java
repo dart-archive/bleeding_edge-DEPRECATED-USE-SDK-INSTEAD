@@ -22,7 +22,6 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.CascadeExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
-import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
@@ -30,7 +29,6 @@ import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
-import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -54,7 +52,6 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
-import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -66,7 +63,6 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
@@ -293,9 +289,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
-    // TODO [jwren] Once the last phase of resolution has been plumbed in, move the NON_BOOL_CONDITION
-    // logic into that phase
-    checkForNonBoolCondition(node.getCondition());
     // Return the least-upper-bound of the then and else expressions.
     Type thenType = getType(node.getThenExpression());
     Type elseType = getType(node.getElseExpression());
@@ -305,14 +298,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     Type resultType = thenType.getLeastUpperBound(elseType);
     return recordType(node, resultType);
-  }
-
-  // TODO [jwren] Once the last phase of resolution has been plumbed in, move the NON_BOOL_CONDITION
-  // logic into that phase
-  @Override
-  public Void visitDoStatement(DoStatement node) {
-    checkForNonBoolCondition(node.getCondition());
-    return super.visitDoStatement(node);
   }
 
   /**
@@ -376,14 +361,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     return recordReturnType(node, node.getElement());
-  }
-
-  // TODO [jwren] Once the last phase of resolution has been plumbed in, move the NON_BOOL_CONDITION
-  // logic into that phase
-  @Override
-  public Void visitIfStatement(IfStatement node) {
-    checkForNonBoolCondition(node.getCondition());
-    return super.visitIfStatement(node);
   }
 
   /**
@@ -825,23 +802,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   @Override
   public Void visitThrowExpression(ThrowExpression node) {
     return recordType(node, typeProvider.getBottomType());
-  }
-
-  // TODO [jwren] Once the last phase of resolution has been plumbed in, move the NON_BOOL_CONDITION
-  // logic into that phase
-  @Override
-  public Void visitWhileStatement(WhileStatement node) {
-    checkForNonBoolCondition(node.getCondition());
-    return super.visitWhileStatement(node);
-  }
-
-  // TODO [jwren] Once the last phase of resolution has been plumbed in, move the NON_BOOL_CONDITION
-  // logic into that phase
-  private void checkForNonBoolCondition(Expression condition) {
-    Type conditionType = getType(condition);
-    if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
-      resolver.reportError(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
-    }
   }
 
   /**

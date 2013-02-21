@@ -154,17 +154,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithAbstractClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "abstract class A {}",
-        "void f() {",
-        "  A a = const A();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS);
-    verify(source);
-  }
-
   public void fail_equalKeysInMap() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "var m = {'a' : 0, 'b' : 1, 'a' : 2};"));
@@ -284,17 +273,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES);
-    verify(source);
-  }
-
-  public void fail_newWithAbstractClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "abstract class A {}",
-        "void f() {",
-        "  A a = new A();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS);
     verify(source);
   }
 
@@ -540,6 +518,28 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_STATIC_METHOD_OR_GETTER);
+    verify(source);
+  }
+
+  public void test_constWithAbstractClass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "abstract class A {}",
+        "void f() {",
+        "  A a = const A();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS);
+    verify(source);
+  }
+
+  public void test_newWithAbstractClass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "abstract class A {}",
+        "void f() {",
+        "  A a = new A();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS);
     verify(source);
   }
 }

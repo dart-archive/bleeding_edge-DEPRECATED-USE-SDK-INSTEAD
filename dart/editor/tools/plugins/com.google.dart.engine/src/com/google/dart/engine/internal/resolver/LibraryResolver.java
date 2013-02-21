@@ -38,6 +38,9 @@ import com.google.dart.engine.internal.element.ImportElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.PrefixElementImpl;
 import com.google.dart.engine.internal.element.ShowCombinatorImpl;
+import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.verifier.ConstantVerifier;
+import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -210,8 +213,9 @@ public class LibraryResolver {
     //}
     if (fullAnalysis) {
       //
-      // TODO(brianwilkerson) Run additional analyses, such as constant expression analysis.
+      // Run additional analyses, such as constant expression analysis.
       //
+      runAdditionalAnalyses();
     }
     recordLibraryElements();
     recordErrors();
@@ -599,4 +603,39 @@ public class LibraryResolver {
       library.getAST(source).accept(visitor);
     }
   }
+
+  /**
+   * Run additional analyses, such as the {@link ConstantVerifier} and {@link ErrorVerifier}
+   * analysis in the current cycle.
+   * 
+   * @throws AnalysisException if any of the identifiers could not be resolved or if the types in
+   *           the library cannot be analyzed
+   */
+  private void runAdditionalAnalyses() throws AnalysisException {
+    for (Library library : librariesInCycles) {
+      runAdditionalAnalyses(library);
+    }
+  }
+
+  /**
+   * Run additional analyses, such as the {@link ConstantVerifier} and {@link ErrorVerifier}
+   * analysis in the given library.
+   * 
+   * @param library the library to have the extra analyses processes run
+   * @throws AnalysisException if any of the identifiers could not be resolved or if the types in
+   *           the library cannot be analyzed
+   */
+  private void runAdditionalAnalyses(Library library) throws AnalysisException {
+    for (Source source : library.getCompilationUnitSources()) {
+      ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
+      CompilationUnit unit = library.getAST(source);
+      // ErrorVerifier
+      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, typeProvider);
+      unit.accept(errorVerifier);
+      // ConstantVerifier
+//      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
+//      unit.accept(constantVerifier);
+    }
+  }
+
 }
