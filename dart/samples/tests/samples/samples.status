@@ -33,6 +33,9 @@ lib/touch/touch_test: Skip
 lib/observable/observable_test: Skip
 lib/util/util_test: Skip
 lib/view/view_test: Skip
+clock/clock_test: Skip
+solar/solar_test: Skip
+swipe/swipe_test: Skip
 
 [ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip
