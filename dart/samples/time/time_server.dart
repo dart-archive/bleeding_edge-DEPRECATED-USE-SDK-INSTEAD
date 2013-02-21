@@ -5,7 +5,6 @@
 library time_server;
 
 import "dart:io";
-import "dart:utf";
 
 const HOST = "127.0.0.1";
 const PORT = 8080;
@@ -13,27 +12,24 @@ const PORT = 8080;
 const LOG_REQUESTS = true;
 
 void main() {
-  HttpServer server = new HttpServer();
-
-  server.addRequestHandler((HttpRequest request) => true, requestReceivedHandler);
-
-  server.listen(HOST, PORT);
+  HttpServer.bind(HOST, PORT).then((HttpServer server) {
+    server.listen(requestReceivedHandler);
+  });
 
   print("Serving the current time on http://${HOST}:${PORT}.");
 }
 
-void requestReceivedHandler(HttpRequest request, HttpResponse response) {
+void requestReceivedHandler(HttpRequest request) {
   if (LOG_REQUESTS) {
     print("Request: ${request.method} ${request.uri}");
   }
 
-  String htmlResponse = createHtmlResponse();
-  List<int> encodedHtmlResponse = encodeUtf8(htmlResponse);
+  String text = createHtmlResponse();
 
-  response.headers.set(HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
-  response.contentLength = encodedHtmlResponse.length;
-  response.outputStream.write(encodedHtmlResponse);
-  response.outputStream.close();
+  request.response.headers.set(
+      HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
+  request.response.addString(text);
+  request.response.close();
 }
 
 String createHtmlResponse() {
@@ -42,7 +38,8 @@ String createHtmlResponse() {
 <html>
   <style>
     body { background-color: teal; }
-    p { background-color: white; border-radius: 8px; border:solid 1px #555; text-align: center; padding: 0.5em;
+    p { background-color: white; border-radius: 8px;
+        border:solid 1px #555; text-align: center; padding: 0.5em;
         font-family: "Lucida Grande", Tahoma; font-size: 18px; color: #555; }
   </style>
   <body>
