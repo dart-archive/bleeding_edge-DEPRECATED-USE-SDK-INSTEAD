@@ -39,6 +39,7 @@ swipe/swipe_test: Skip
 
 [ $compiler == dart2js && $browser ]
 dartcombat/dartcombat_test: Skip
+time/time_test: Skip
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
