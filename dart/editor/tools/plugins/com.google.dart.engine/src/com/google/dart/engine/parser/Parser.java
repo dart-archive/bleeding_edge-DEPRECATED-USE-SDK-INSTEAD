@@ -2371,6 +2371,14 @@ public class Parser {
    * @return the formal parameters that were parsed
    */
   private FormalParameterList parseFormalParameterList() {
+    if (matches(TokenType.EQ) && matches(peek(), TokenType.OPEN_PAREN)) {
+      Token previous = currentToken.getPrevious();
+      if ((matches(previous, TokenType.EQ_EQ) || matches(previous, TokenType.BANG_EQ))
+          && currentToken.getOffset() == previous.getOffset() + 2) {
+        // TODO(brianwilkerson) Report this error
+        advance();
+      }
+    }
     Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     if (matches(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList(leftParenthesis, null, null, null, getAndAdvance());
