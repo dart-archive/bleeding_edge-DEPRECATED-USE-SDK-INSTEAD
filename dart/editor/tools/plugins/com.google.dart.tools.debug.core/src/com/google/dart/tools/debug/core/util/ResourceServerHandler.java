@@ -66,6 +66,10 @@ import java.util.Map;
 // Connection: close
 // Content-Type: text/html; charset=UTF-8
 
+// TODO(devoncarew): the log back data may not be coming in utf8
+
+// TODO(devoncarew): the log back data is coming out-of-order (due to the http post)
+
 /**
  * Handles an incoming http request, serving files from the workspace (or error pages) as necessary.
  */
@@ -173,6 +177,13 @@ class ResourceServerHandler implements Runnable {
     }
   }
 
+  private static final String CONTENT_TYPE = "Content-Type";
+  private static final String CACHE_CONTROL = "Cache-Control";
+  private static final String USER_AGENT = "User-Agent";
+  private static final String ACCEPT_RANGES = "Accept-Ranges";
+  private static final String CONTENT_RANGE = "Content-Range";
+  private static final String LAST_MODIFIED = "Last-Modified";
+
   private static final String ISO_8859_1 = "ISO-8859-1";
   private static final String US_ASCII = "US-ASCII";
 
@@ -222,7 +233,9 @@ class ResourceServerHandler implements Runnable {
   private static final String[][] embeddedResources = new String[][] {
       {"/favicon.ico", TYPE_GIF, "/resources/dart_16_16.gif"},
       {"/dart_32_32.gif", TYPE_GIF, "/resources/dart_32_32.gif"},
-      {"/agent.html", TYPE_HTML, "agent.html"}, {"/agent.js", TYPE_JS, "agent.js"}};
+      {"/agent.html", TYPE_HTML, "agent.html"},
+      {"/agent.js", TYPE_JS, "agent.js"},
+      {"/apple-touch-icon-precomposed.png", TYPE_PNG, "/resources/apple-touch-icon-precomposed.png"}};
 
   private static byte[] getJSAgentContent() {
     if (AGENT_CONTENT == null) {
@@ -349,7 +362,7 @@ class ResourceServerHandler implements Runnable {
     response.responseCode = HttpResponse.NOT_FOUND;
     response.responseText = "Not Found";
 
-    response.headers.put("Content-Type", "text/html");
+    response.headers.put(CONTENT_TYPE, "text/html");
     response.responseBodyText = "<html><head><title>404 Not Found</title></head><body>" + message
         + "</body></html>";
     response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
@@ -424,7 +437,7 @@ class ResourceServerHandler implements Runnable {
     try {
       // Last-Modified: Wed, 08 Jan 2003 23:11:55 GMT
       Date date = new Date(javaFile.lastModified());
-      response.headers.put("Last-Modified", HttpResponse.RFC_1123_DATE_FORMAT.format(date));
+      response.headers.put(LAST_MODIFIED, HttpResponse.RFC_1123_DATE_FORMAT.format(date));
     } catch (ArrayIndexOutOfBoundsException ex) {
       // This happens occasionally on Windows. 
 
@@ -434,10 +447,10 @@ class ResourceServerHandler implements Runnable {
 
     // Content-Type: text/html[; charset=UTF-8]
     String contentType = getContentType(getFileExtension(javaFile.getName()));
-    response.headers.put("Content-Type", contentType);
+    response.headers.put(CONTENT_TYPE, contentType);
 
     // Cache-control: no-cache
-    response.headers.put("Cache-control", "no-cache");
+    response.headers.put(CACHE_CONTROL, "no-cache");
 
     // Content-Length: 438
     if (javaFile != null) {
@@ -467,14 +480,14 @@ class ResourceServerHandler implements Runnable {
           response.headers.put(CONTENT_LENGTH, Long.toString(rangeData.length));
           // Content-Range: bytes X-Y/Z
           int[] range = ranges.get(0);
-          response.headers.put("Content-Range", "bytes " + range[0] + "-" + range[1] + "/"
+          response.headers.put(CONTENT_RANGE, "bytes " + range[0] + "-" + range[1] + "/"
               + rangeData.length);
         } else {
           response.responseBodyStream = new FileInputStream(javaFile);
         }
 
         // Indicate that we support requesting a subset of the document.
-        response.headers.put("Accept-Ranges", "bytes");
+        response.headers.put(ACCEPT_RANGES, "bytes");
       }
     }
 
@@ -489,7 +502,7 @@ class ResourceServerHandler implements Runnable {
     response.responseCode = HttpResponse.UNAUTHORIZED;
     response.responseText = "Unauthorized";
 
-    response.headers.put("Content-Type", "text/html");
+    response.headers.put(CONTENT_TYPE, "text/html");
     response.responseBodyText = "<html><head><title>401 Unauthorized</title></head><body>User agent not allowed.</body></html>";
     response.headers.put(CONTENT_LENGTH, Integer.toString(response.responseBodyText.length()));
 
@@ -671,7 +684,7 @@ class ResourceServerHandler implements Runnable {
 
     // User-Agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/536.8 (KHTML, like Gecko) Chrome/20.0.1110.0 (Dart) Safari/536.8
     if (DartDebugCorePlugin.getPlugin().getUserAgentManager() != null) {
-      String userAgent = header.headers.get("User-Agent");
+      String userAgent = header.headers.get(USER_AGENT);
 
       boolean allowed = DartDebugCorePlugin.getPlugin().getUserAgentManager().allowUserAgent(
           remoteAddress,
@@ -901,8 +914,8 @@ class ResourceServerHandler implements Runnable {
     byte[] bytes = content.getBytes("UTF-8");
 
     response.headers.put(CONTENT_LENGTH, Integer.toString(bytes.length));
-    response.headers.put("Content-Type", "text/html; charset=UTF-8");
-    response.headers.put("Cache-control", "no-cache");
+    response.headers.put(CONTENT_TYPE, "text/html; charset=UTF-8");
+    response.headers.put(CACHE_CONTROL, "no-cache");
     response.responseBodyStream = new ByteArrayInputStream(bytes);
 
     addStandardResponseHeaders(response);
@@ -920,8 +933,7 @@ class ResourceServerHandler implements Runnable {
         URLConnection conn = url.openConnection();
 
         response.headers.put(CONTENT_LENGTH, Integer.toString(conn.getContentLength()));
-        response.headers.put("Content-Type", resourceInfo[1]);
-        response.headers.put("Cache-control", "no-cache");
+        response.headers.put(CONTENT_TYPE, resourceInfo[1]);
 
         if (!headOnly) {
           response.responseBodyStream = conn.getInputStream();

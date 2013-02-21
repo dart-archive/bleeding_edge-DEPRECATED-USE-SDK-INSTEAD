@@ -48,6 +48,7 @@ import java.util.concurrent.Executors;
  */
 public class ResourceServer implements IResourceResolver {
   private ServerSocket serverSocket;
+
   private ExecutorService threadPool;
 
   private Set<String> previousAgents = new HashSet<String>();
@@ -222,11 +223,10 @@ public class ResourceServer implements IResourceResolver {
     try {
       String pathSegment = fileUri.getPath();
 
-      // localhost? 127.0.0.1? serverSocket.getInetAddress().getHostAddress()?
       URI uri = new URI(
           "http",
           null,
-          "127.0.0.1",
+          NetUtils.getLoopbackAddress(),
           serverSocket.getLocalPort(),
           pathSegment,
           null,

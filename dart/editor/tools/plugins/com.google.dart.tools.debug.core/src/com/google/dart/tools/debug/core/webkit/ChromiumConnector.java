@@ -14,6 +14,8 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
+import com.google.dart.tools.debug.core.util.NetUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,7 +34,6 @@ import java.util.List;
  * Retrieve Webkit inspection protocol debugging information from a Chromium instance.
  */
 public class ChromiumConnector {
-  public static final String LOCALHOST_ADDRESS = "127.0.0.1";
 
   /**
    * Return the list of open tabs for this browser.
@@ -84,7 +85,7 @@ public class ChromiumConnector {
 //  } ]
 
     if (host == null) {
-      host = LOCALHOST_ADDRESS;
+      host = NetUtils.getLoopbackAddress();
     }
 
     URL chromiumUrl = new URL("http", host, port, "/json");
@@ -140,7 +141,7 @@ public class ChromiumConnector {
    */
   public static String getWebSocketURLFor(String host, int port, int tab) {
     if (host == null) {
-      host = LOCALHOST_ADDRESS;
+      host = NetUtils.getLoopbackAddress();
     }
 
     return "ws://" + host + ":" + port + "/devtools/page/" + tab;

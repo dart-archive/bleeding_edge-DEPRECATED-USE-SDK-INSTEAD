@@ -142,7 +142,12 @@ public class DebuggerUtils {
       str = str.replace("\t", "\\t");
     }
 
-    return "\"" + str + "\"";
+    // Don't re-quote already quoted strings.
+    if (str.length() > 1 && str.startsWith("\"") && str.endsWith("\"")) {
+      return str;
+    } else {
+      return "\"" + str + "\"";
+    }
   }
 
   private static boolean needsDisambiguating(IExceptionStackFrame frame1,

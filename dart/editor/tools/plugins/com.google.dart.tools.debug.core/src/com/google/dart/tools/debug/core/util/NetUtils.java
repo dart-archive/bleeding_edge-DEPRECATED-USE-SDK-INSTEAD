@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -23,6 +25,7 @@ import java.net.UnknownHostException;
  * A collection of static networking utilities.
  */
 public class NetUtils {
+  private static String loopbackAddress;
 
   /**
    * Compares whether two uris are equal. This handles the case where file urls are specified
@@ -76,6 +79,32 @@ public class NetUtils {
     } catch (UnknownHostException e) {
       return null;
     }
+  }
+
+  /**
+   * Return the localhost address (127.0.0.1/localhost/::1).
+   * 
+   * @return
+   */
+  public static String getLoopbackAddress() {
+    if (loopbackAddress == null) {
+      // Initialize the loopback address.
+
+      try {
+        // localhost? 127.0.0.1? InetAddress.getByName("localhost")?
+        // InetAddress.getLocalHost().getHostAddress?
+        InetAddress address = InetAddress.getByName("localhost");
+
+        loopbackAddress = address.getHostAddress();
+      } catch (UnknownHostException e) {
+        DartDebugCorePlugin.logError(e);
+
+        // Fallback to the "localhost" address.
+        return "localhost";
+      }
+    }
+
+    return loopbackAddress;
   }
 
   private NetUtils() {

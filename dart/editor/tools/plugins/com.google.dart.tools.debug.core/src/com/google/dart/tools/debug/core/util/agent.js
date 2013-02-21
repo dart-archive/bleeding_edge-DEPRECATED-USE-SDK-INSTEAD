@@ -15,25 +15,28 @@ document.documentElement.appendChild(_d_remoteFrame);
 
 _d_remoteFrame.onload = function () {
   _d_remoteWindow = _d_remoteFrame.contentWindow;
-//  _d_remoteWindow.postMessage(
-//    JSON.stringify({ message: 'Connection from ' + window.location.toString() }),
-//    _d_origin);
 };
 
 // replace the dartPrint function with our own definition
-dartPrint = function(string) {
+dartPrint = function(str) {
   var MAX = 200000;
   
+  if (typeof window == "object" && typeof console == "object") {
+    console.log(str);
+  } else if (typeof print == "function") {
+    print(str);
+  }
+  
   if (_d_remoteWindow) {
-    if (string.length > MAX) {
-      string = string.substring(0, MAX - 20) + '\n\nOUTPUT TRUNCATED';
+    if (str.length > MAX) {
+      str = str.substring(0, MAX - 20) + '\n\nOUTPUT TRUNCATED';
       
       if (window.console) {
         console.log('Dart print() output has been truncated (' + MAX + ' chars max).');
       }
     }
 
-    _d_remoteWindow.postMessage(JSON.stringify({ message: string }), _d_origin);
+    _d_remoteWindow.postMessage(JSON.stringify({ message: str }), _d_origin);
   }
 };
 
