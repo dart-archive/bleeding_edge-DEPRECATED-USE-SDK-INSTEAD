@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Relationship;
@@ -41,6 +42,7 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -133,6 +135,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public HtmlElement getHtmlElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }
@@ -140,6 +147,11 @@ public class ScanTimings extends TestCase {
     @Override
     public Index getIndex() {
       return index;
+    }
+
+    @Override
+    public LibraryElement[] getLibraries(IContainer container) {
+      throw new UnsupportedOperationException();
     }
 
     @Override

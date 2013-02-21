@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -109,6 +110,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public HtmlElement getHtmlElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public LibraryElement[] getLibraries(IContainer container) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public LibraryElement getLibraryElement(IFile file) {
       throw new UnsupportedOperationException();
     }
@@ -190,6 +201,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public HtmlElement getHtmlElement(IFile file) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }
@@ -197,6 +213,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     @Override
     public Index getIndex() {
       return index;
+    }
+
+    @Override
+    public LibraryElement[] getLibraries(IContainer container) {
+      throw new UnsupportedOperationException();
     }
 
     @Override

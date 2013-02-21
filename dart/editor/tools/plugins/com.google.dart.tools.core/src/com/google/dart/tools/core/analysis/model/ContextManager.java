@@ -14,10 +14,12 @@
 package com.google.dart.tools.core.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 
@@ -35,6 +37,23 @@ public interface ContextManager {
    *         not be created because the container's location could not be determined
    */
   AnalysisContext getContext(IResource resource);
+
+  /**
+   * Answer the HtmlElement associated with the specified file
+   * 
+   * @param file the file (not {@code null})
+   * @return the {@link HtmlElement} associated with the file or {@code null} if it could not be
+   *         determined because the location is {@code null} or file is not a HTML file
+   */
+  HtmlElement getHtmlElement(IFile file);
+
+  /**
+   * Answer all the libraries in the container
+   * 
+   * @param container the container
+   * @return an array of LibraryElement all the libraries defined in the container
+   */
+  LibraryElement[] getLibraries(IContainer container);
 
   /**
    * Answer the LibraryElement associated with the specified file
