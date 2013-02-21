@@ -37,6 +37,7 @@ import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
@@ -287,8 +288,26 @@ public final class ElementFactory {
     return method;
   }
 
+  public static ParameterElementImpl namedParameter(String name) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.NAMED);
+    return parameter;
+  }
+
+  public static ParameterElementImpl positionalParameter(String name) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.POSITIONAL);
+    return parameter;
+  }
+
   public static PrefixElementImpl prefix(String name) {
     return new PrefixElementImpl(identifier(name));
+  }
+
+  public static ParameterElementImpl requiredParameter(String name) {
+    ParameterElementImpl parameter = new ParameterElementImpl(identifier(name));
+    parameter.setParameterKind(ParameterKind.REQUIRED);
+    return parameter;
   }
 
   public static PropertyAccessorElementImpl setterElement(String name, boolean isStatic, Type type) {

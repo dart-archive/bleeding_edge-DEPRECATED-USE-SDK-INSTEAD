@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -38,6 +39,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -46,6 +48,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.scope.ClassScope;
 import com.google.dart.engine.internal.scope.EnclosedScope;
@@ -73,6 +76,7 @@ import static com.google.dart.engine.ast.ASTFactory.indexExpression;
 import static com.google.dart.engine.ast.ASTFactory.instanceCreationExpression;
 import static com.google.dart.engine.ast.ASTFactory.integer;
 import static com.google.dart.engine.ast.ASTFactory.methodInvocation;
+import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
@@ -87,6 +91,7 @@ import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 import static com.google.dart.engine.element.ElementFactory.methodElement;
+import static com.google.dart.engine.element.ElementFactory.namedParameter;
 import static com.google.dart.engine.element.ElementFactory.prefix;
 
 import java.lang.reflect.Field;
@@ -316,11 +321,35 @@ public class ElementResolverTest extends EngineTestCase {
     String constructorName = null;
     ConstructorElement constructor = constructorElement(constructorName);
     classA.setConstructors(new ConstructorElement[] {constructor});
+
     ConstructorName name = constructorName(typeName(classA), constructorName);
     name.setElement(constructor);
     InstanceCreationExpression creation = instanceCreationExpression(Keyword.NEW, name);
     resolveNode(creation);
     assertSame(constructor, creation.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitInstanceCreationExpression_unnamed_namedParameter() {
+    ClassElementImpl classA = classElement("A");
+    String constructorName = null;
+    ConstructorElementImpl constructor = constructorElement(constructorName);
+    String parameterName = "a";
+    ParameterElement parameter = namedParameter(parameterName);
+    constructor.setParameters(new ParameterElement[] {parameter});
+    classA.setConstructors(new ConstructorElement[] {constructor});
+
+    ConstructorName name = constructorName(typeName(classA), constructorName);
+    name.setElement(constructor);
+    InstanceCreationExpression creation = instanceCreationExpression(
+        Keyword.NEW,
+        name,
+        namedExpression(parameterName, integer(0)));
+    resolveNode(creation);
+    assertSame(constructor, creation.getElement());
+    assertSame(
+        parameter,
+        ((NamedExpression) creation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
     listener.assertNoErrors();
   }
 
@@ -332,6 +361,29 @@ public class ElementResolverTest extends EngineTestCase {
     MethodInvocation invocation = methodInvocation(left, methodName);
     resolveNode(invocation);
     assertSame(getMethod(numType, methodName), invocation.getMethodName().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitMethodInvocation_namedParameter() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String methodName = "m";
+    String parameterName = "p";
+    MethodElementImpl method = methodElement(methodName, null);
+    ParameterElement parameter = namedParameter(parameterName);
+    method.setParameters(new ParameterElement[] {parameter});
+    classA.setMethods(new MethodElement[] {method});
+
+    SimpleIdentifier left = identifier("i");
+    left.setStaticType(classA.getType());
+    MethodInvocation invocation = methodInvocation(
+        left,
+        methodName,
+        namedExpression(parameterName, integer(0)));
+    resolveNode(invocation);
+    assertSame(method, invocation.getMethodName().getElement());
+    assertSame(
+        parameter,
+        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
     listener.assertNoErrors();
   }
 
@@ -413,6 +465,29 @@ public class ElementResolverTest extends EngineTestCase {
     SuperConstructorInvocation invocation = superConstructorInvocation();
     resolveInClass(invocation, subclass);
     assertEquals(superConstructor, invocation.getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSuperConstructorInvocation_namedParameter() throws Exception {
+    ClassElementImpl superclass = classElement("A");
+    ConstructorElementImpl superConstructor = constructorElement(null);
+    String parameterName = "p";
+    ParameterElement parameter = namedParameter(parameterName);
+    superConstructor.setParameters(new ParameterElement[] {parameter});
+    superclass.setConstructors(new ConstructorElement[] {superConstructor});
+
+    ClassElementImpl subclass = classElement("B", superclass.getType());
+    ConstructorElementImpl subConstructor = constructorElement(null);
+    subclass.setConstructors(new ConstructorElement[] {subConstructor});
+
+    SuperConstructorInvocation invocation = superConstructorInvocation(namedExpression(
+        parameterName,
+        integer(0)));
+    resolveInClass(invocation, subclass);
+    assertEquals(superConstructor, invocation.getElement());
+    assertSame(
+        parameter,
+        ((NamedExpression) invocation.getArgumentList().getArguments().get(0)).getName().getLabel().getElement());
     listener.assertNoErrors();
   }
 

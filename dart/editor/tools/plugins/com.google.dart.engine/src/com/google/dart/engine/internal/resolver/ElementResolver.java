@@ -74,6 +74,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.dart.ParameterKind;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -259,6 +260,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     // TODO(brianwilkerson) Resolve the function being invoked?
+    //resolveNamedArguments(node.getArgumentList(), invokedFunction);
     return null;
   }
 
@@ -307,7 +309,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    node.setElement(node.getConstructorName().getElement());
+    ConstructorElement invokedConstructor = node.getConstructorName().getElement();
+    node.setElement(invokedConstructor);
+    resolveNamedArguments(node.getArgumentList(), invokedConstructor);
     return null;
   }
 
@@ -395,6 +399,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     recordResolution(methodName, invokedMethod);
+    resolveNamedArguments(node.getArgumentList(), invokedMethod);
     //TODO(brianwilkerson) Validate the method invocation (number of arguments, etc.).
     return null;
   }
@@ -621,6 +626,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       recordResolution(name, element);
     }
     node.setElement(element);
+    resolveNamedArguments(node.getArgumentList(), element);
     return null;
   }
 
@@ -681,6 +687,27 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       recordResolution(name, element);
     }
     node.setElement(element);
+    resolveNamedArguments(node.getArgumentList(), element);
+    return null;
+  }
+
+  /**
+   * Search through the array of parameters for a parameter whose name matches the given name.
+   * Return the parameter with the given name, or {@code null} if there is no such parameter.
+   * 
+   * @param parameters the parameters being searched
+   * @param name the name being searched for
+   * @return the parameter with the given name
+   */
+  private ParameterElement findNamedParameter(ParameterElement[] parameters, String name) {
+    for (ParameterElement parameter : parameters) {
+      if (parameter.getParameterKind() == ParameterKind.NAMED) {
+        String parameteName = parameter.getName();
+        if (parameteName != null && parameteName.equals(name)) {
+          return parameter;
+        }
+      }
+    }
     return null;
   }
 
@@ -1096,6 +1123,30 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         Element element = namespace.get(name.getName());
         if (element != null) {
           name.setElement(element);
+        }
+      }
+    }
+  }
+
+  /**
+   * Resolve the names associated with any named arguments to the parameter elements named by the
+   * argument.
+   * 
+   * @param argumentList the arguments to be resolved
+   * @param invokedMethod the method or function defining the parameters to which the named
+   *          arguments are to be resolved
+   */
+  private void resolveNamedArguments(ArgumentList argumentList, ExecutableElement invokedMethod) {
+    if (invokedMethod == null) {
+      return;
+    }
+    ParameterElement[] parameters = invokedMethod.getParameters();
+    for (Expression argument : argumentList.getArguments()) {
+      if (argument instanceof NamedExpression) {
+        SimpleIdentifier name = ((NamedExpression) argument).getName().getLabel();
+        ParameterElement parameter = findNamedParameter(parameters, name.getName());
+        if (parameter != null) {
+          recordResolution(name, parameter);
         }
       }
     }

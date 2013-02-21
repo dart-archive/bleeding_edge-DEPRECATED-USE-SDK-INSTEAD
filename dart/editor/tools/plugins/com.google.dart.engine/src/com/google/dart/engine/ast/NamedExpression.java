@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -54,6 +56,21 @@ public class NamedExpression extends Expression {
   @Override
   public Token getBeginToken() {
     return name.getBeginToken();
+  }
+
+  /**
+   * Return the element representing the parameter being named by this expression, or {@code null}
+   * if the AST structure has not been resolved or if there is no parameter with the same name as
+   * this expression.
+   * 
+   * @return the element representing the parameter being named by this expression
+   */
+  public ParameterElement getElement() {
+    Element element = name.getLabel().getElement();
+    if (element instanceof ParameterElement) {
+      return (ParameterElement) element;
+    }
+    return null;
   }
 
   @Override
