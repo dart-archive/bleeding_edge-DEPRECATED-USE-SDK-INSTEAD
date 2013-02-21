@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 /**
  * A job that checks for updates.
@@ -65,10 +66,14 @@ public class CheckForUpdatesJob extends Job {
   protected IStatus run(IProgressMonitor monitor) {
     try {
       latest = downloadManager.getLatestRevision();
+    } catch (UnknownHostException e) {
+      // These exceptions are expected when the user is off-line; we don't need to log them.
+
     } catch (IOException e) {
       message = "Unable to get latest revision"; //$NON-NLS-1$
       UpdateCore.logError(message + " : " + e.toString()); //$NON-NLS-1$
     }
+
     return Status.OK_STATUS;
   }
 }
