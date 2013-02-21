@@ -25,7 +25,7 @@ public interface ExecutableElement extends Element {
    * 
    * @return the functions defined within this executable element
    */
-  public ExecutableElement[] getFunctions();
+  public FunctionElement[] getFunctions();
 
   /**
    * Return an array containing all of the labels defined within this executable element.

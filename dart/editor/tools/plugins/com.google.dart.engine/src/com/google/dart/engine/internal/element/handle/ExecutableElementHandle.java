@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -34,7 +35,7 @@ public abstract class ExecutableElementHandle extends ElementHandle implements E
   }
 
   @Override
-  public ExecutableElement[] getFunctions() {
+  public FunctionElement[] getFunctions() {
     return getActualElement().getFunctions();
   }
 

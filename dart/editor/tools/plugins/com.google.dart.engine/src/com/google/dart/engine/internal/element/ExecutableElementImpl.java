@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -30,7 +31,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   /**
    * An array containing all of the functions defined within this executable element.
    */
-  private ExecutableElement[] functions = EMPTY_ARRAY;
+  private FunctionElement[] functions = FunctionElementImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the labels defined within this executable element.
@@ -103,7 +104,7 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
   }
 
   @Override
-  public ExecutableElement[] getFunctions() {
+  public FunctionElement[] getFunctions() {
     return functions;
   }
 
@@ -132,9 +133,9 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
    * 
    * @param functions the functions defined within this executable element
    */
-  public void setFunctions(ExecutableElement[] functions) {
-    for (ExecutableElement function : functions) {
-      ((ExecutableElementImpl) function).setEnclosingElement(this);
+  public void setFunctions(FunctionElement[] functions) {
+    for (FunctionElement function : functions) {
+      ((FunctionElementImpl) function).setEnclosingElement(this);
     }
     this.functions = functions;
   }
