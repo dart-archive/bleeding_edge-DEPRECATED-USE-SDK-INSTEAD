@@ -68,7 +68,7 @@ class SuiteController {
     div.nodes.add(_element);
     final description = _suiteDescription.description;
     final originUrl = _suiteDescription.origin.url;
-    final testUrl = 'tests/${_suiteDescription.file}';
+    final testUrl = '${_suiteDescription.file}';
     div.innerHtml =
         '${div.innerHtml}<p>${description}<br/><a href="${originUrl}">Origin</a'
         '>, <a href="${testUrl}">Source</a>'
@@ -138,7 +138,7 @@ class Dromaeo {
       final iframe = new IFrameElement();
       _css(iframe, 'height', '1px');
       _css(iframe, 'width', '1px');
-      iframe.src = 'tests/${suite.file}';
+      iframe.src = '${suite.file}';
       document.body.nodes.add(iframe);
 
       _suiteControllers.add(new SuiteController(suite, iframe));

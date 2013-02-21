@@ -44,35 +44,35 @@ class Suites {
 
   static const _CORE_SUITE_DESCRIPTIONS = const [
       const SuiteDescription(
-          'dom-attr.html',
+          'tests/dom-attr.html',
           'DOM Attributes',
           JOHN_RESIG,
           'Setting and getting DOM node attributes',
           const ['attributes'],
           _CORE_TEST_OPTIONS),
       const SuiteDescription(
-          'dom-modify.html',
+          'tests/dom-modify.html',
           'DOM Modification',
           JOHN_RESIG,
           'Creating and injecting DOM nodes into a document',
           const ['modify'],
           _CORE_TEST_OPTIONS),
       const SuiteDescription(
-          'dom-query.html',
+          'tests/dom-query.html',
           'DOM Query',
           JOHN_RESIG,
           'Querying DOM elements in a document',
           const ['query'],
           _CORE_TEST_OPTIONS),
       const SuiteDescription(
-          'dom-traverse.html',
+          'tests/dom-traverse.html',
           'DOM Traversal',
           JOHN_RESIG,
           'Traversing a DOM structure',
           const ['traverse'],
           _CORE_TEST_OPTIONS),
       const SuiteDescription(
-          '../../../../../tests/html/dromaeo_smoke.html',
+          '/root_dart/tests/html/dromaeo_smoke.html',
           'Smoke test',
           const Origin('', ''),
           'Dromaeo no-op smoke test',
