@@ -15,6 +15,8 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -116,7 +118,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   public void test_getResource_Source() {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
-    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
     assertSame(resource, project.getResource(source));
   }
 
@@ -126,7 +128,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
   public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
-    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
     assertNull(project.getResource(source));
   }
 
@@ -312,8 +314,8 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertEquals(1, project.getPubFolders().length);
     assertSame(appContainer, project.getPubFolder(appContainer).getResource());
-    SourceFactory sourceFactory = project.getDefaultContext().getSourceFactory();
-    SourceContainer directory = sourceFactory.forDirectory(appContainer.getLocation().toFile());
+    SourceContainer directory = new DirectoryBasedSourceContainer(
+        appContainer.getLocation().toFile());
     ((MockContext) project.getDefaultContext()).extractAnalysisContext(directory);
   }
 
@@ -352,7 +354,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {
     SourceFactory factory = context.getSourceFactory();
     File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
-    Source source1 = factory.forFile(file1);
+    Source source1 = new FileBasedSource(factory, file1);
 
     Source source2 = factory.resolveUri(source1, "doesNotExist2.dart");
     File file2 = new File(source2.getFullName());

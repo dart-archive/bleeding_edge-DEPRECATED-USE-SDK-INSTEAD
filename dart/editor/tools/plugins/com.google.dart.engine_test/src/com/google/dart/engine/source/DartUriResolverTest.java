@@ -34,7 +34,7 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolve(factory, null, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(factory, new URI("dart:core"));
     assertNotNull(result);
   }
 
@@ -44,7 +44,7 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolve(factory, null, new URI("package:some/file.dart"));
+    Source result = resolver.resolveAbsolute(factory, new URI("package:some/file.dart"));
     assertNull(result);
   }
 }

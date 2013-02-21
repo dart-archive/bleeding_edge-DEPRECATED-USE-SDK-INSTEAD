@@ -53,7 +53,7 @@ public class DartUriResolver extends UriResolver {
   }
 
   @Override
-  protected Source resolveAbsolute(SourceFactory factory, URI uri) {
+  public Source resolveAbsolute(SourceFactory factory, URI uri) {
     if (!isDartUri(uri)) {
       return null;
     }

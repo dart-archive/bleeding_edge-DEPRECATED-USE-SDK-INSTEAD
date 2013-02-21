@@ -35,6 +35,7 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -134,7 +135,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     SourceFactory factory = new SourceFactory(new FileUriResolver());
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.setSourceFactory(factory);
-    Source librarySource = factory.forFile(createFile("/lib.dart"));
+    Source librarySource = new FileBasedSource(factory, createFile("/lib.dart"));
     library = new Library(context, listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl(context, libraryIdentifier("lib"));
     element.setDefiningCompilationUnit(new CompilationUnitElementImpl("lib.dart"));

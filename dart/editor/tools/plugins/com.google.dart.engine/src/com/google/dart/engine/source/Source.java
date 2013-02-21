@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.source;
 
+import java.net.URI;
 import java.nio.CharBuffer;
 
 /**
@@ -110,4 +111,20 @@ public interface Source {
    * @return a source representing the resolved URI
    */
   public Source resolve(String uri);
+
+  /**
+   * Resolve the relative URI against the URI associated with this source object. Return a
+   * {@link Source source} representing the URI to which it was resolved, or {@code null} if it
+   * could not be resolved.
+   * <p>
+   * Note: This method is not intended for public use, it is only visible out of necessity. It is
+   * only intended to be invoked by a {@link SourceFactory source factory}. Source factories will
+   * only invoke this method if the URI is relative, so implementations of this method are not
+   * required to, and generally do not, verify the argument. The result of invoking this method with
+   * an absolute URI is intentionally left unspecified.
+   * 
+   * @param relativeUri the relative URI to be resolved against the containing source
+   * @return a {@link Source source} representing the URI to which given URI was resolved
+   */
+  public Source resolveRelative(URI relativeUri);
 }

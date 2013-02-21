@@ -20,6 +20,7 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -144,9 +145,8 @@ public class LibraryTest extends EngineTestCase {
   }
 
   private Library library(String definingCompilationUnitPath) {
-    return new Library(
-        analysisContext,
-        errorListener,
-        sourceFactory.forFile(createFile(definingCompilationUnitPath)));
+    return new Library(analysisContext, errorListener, new FileBasedSource(
+        sourceFactory,
+        createFile(definingCompilationUnitPath)));
   }
 }

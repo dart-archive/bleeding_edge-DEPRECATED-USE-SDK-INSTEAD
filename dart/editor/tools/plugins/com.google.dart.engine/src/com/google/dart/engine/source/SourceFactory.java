@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.source;
 
-import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -22,7 +21,6 @@ import java.net.URISyntaxException;
  * {@link Source source}.
  */
 public class SourceFactory {
-
   /**
    * The resolvers used to resolve absolute URI's.
    */
@@ -51,26 +49,6 @@ public class SourceFactory {
    */
   public SourceFactory(UriResolver... resolvers) {
     this(new ContentCache(), resolvers);
-  }
-
-  /**
-   * Return a source container representing the given directory
-   * 
-   * @param directory the directory (not {@code null})
-   * @return the source container representing the directory (not {@code null})
-   */
-  public SourceContainer forDirectory(File directory) {
-    return new DirectoryBasedSourceContainer(directory);
-  }
-
-  /**
-   * Return a source object representing the given file.
-   * 
-   * @param file the file to be represented by the returned source object
-   * @return a source object representing the given file
-   */
-  public Source forFile(File file) {
-    return new FileBasedSource(this, file);
   }
 
   /**
@@ -148,12 +126,16 @@ public class SourceFactory {
    * @return the source representing the contained URI
    */
   private Source resolveUri(Source containingSource, URI containedUri) {
-    for (UriResolver resolver : resolvers) {
-      Source result = resolver.resolve(this, containingSource, containedUri);
-      if (result != null) {
-        return result;
+    if (containedUri.isAbsolute()) {
+      for (UriResolver resolver : resolvers) {
+        Source result = resolver.resolveAbsolute(this, containedUri);
+        if (result != null) {
+          return result;
+        }
       }
+      return null;
+    } else {
+      return containingSource.resolveRelative(containedUri);
     }
-    return null;
   }
 }

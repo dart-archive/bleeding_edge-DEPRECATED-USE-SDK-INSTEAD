@@ -26,6 +26,7 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -2129,7 +2130,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     };
 
     // Scanner
-    Source source = new SourceFactory().forFile(file);
+    Source source = new FileBasedSource(new SourceFactory(), file);
     StringScanner scanner = null;
     try {
       scanner = new StringScanner(source, FileUtilities.getContents(file), ael);

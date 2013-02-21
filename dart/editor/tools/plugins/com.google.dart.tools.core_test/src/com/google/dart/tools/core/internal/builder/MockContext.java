@@ -10,6 +10,8 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -57,10 +59,8 @@ public class MockContext implements AnalysisContext {
 
   public void assertExtracted(IContainer expectedContainer) {
     if (expectedContainer != null) {
-      calls.assertCall(
-          this,
-          EXTRACT_ANALYSIS_CONTEXT,
-          factory.forDirectory(expectedContainer.getLocation().toFile()));
+      calls.assertCall(this, EXTRACT_ANALYSIS_CONTEXT, new DirectoryBasedSourceContainer(
+          expectedContainer.getLocation().toFile()));
     } else {
       calls.assertNoCall(new Call(this, EXTRACT_ANALYSIS_CONTEXT) {
         @Override
@@ -90,7 +90,7 @@ public class MockContext implements AnalysisContext {
 
   public void assertSourcesChanged(IResource... expected) {
     for (IResource resource : expected) {
-      Source source = factory.forFile(resource.getLocation().toFile());
+      Source source = new FileBasedSource(factory, resource.getLocation().toFile());
       calls.assertCall(this, SOURCE_CHANGED, source);
     }
   }
@@ -99,10 +99,10 @@ public class MockContext implements AnalysisContext {
     for (IResource resource : expected) {
       File file = resource.getLocation().toFile();
       if (resource.getType() == IResource.FILE) {
-        Source source = factory.forFile(file);
+        Source source = new FileBasedSource(factory, file);
         calls.assertCall(this, SOURCE_DELETED, source);
       } else {
-        SourceContainer sourceContainer = factory.forDirectory(file);
+        SourceContainer sourceContainer = new DirectoryBasedSourceContainer(file);
         calls.assertCall(this, SOURCE_DELETED, sourceContainer);
       }
     }
@@ -234,8 +234,8 @@ public class MockContext implements AnalysisContext {
       boolean success = true;
       for (IResource res : resources) {
         File file = res.getLocation().toFile();
-        Object expected = res.getType() == FILE ? factory.forFile(file)
-            : factory.forDirectory(file);
+        Object expected = res.getType() == FILE ? new FileBasedSource(factory, file)
+            : new DirectoryBasedSourceContainer(file);
         if (!sources.contains(expected)) {
           success = false;
           break;

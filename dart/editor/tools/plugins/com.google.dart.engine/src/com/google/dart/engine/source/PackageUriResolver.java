@@ -56,7 +56,7 @@ public class PackageUriResolver extends UriResolver {
   }
 
   @Override
-  protected Source resolveAbsolute(SourceFactory factory, URI uri) {
+  public Source resolveAbsolute(SourceFactory factory, URI uri) {
     if (!isPackageUri(uri)) {
       return null;
     }

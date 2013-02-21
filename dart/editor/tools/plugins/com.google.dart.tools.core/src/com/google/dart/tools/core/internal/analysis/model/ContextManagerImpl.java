@@ -90,7 +90,7 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        Source source = context.getSourceFactory().forFile(location.toFile());
+        Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
         return context.getLibraryElement(source);
       }
     }
@@ -135,5 +135,4 @@ public abstract class ContextManagerImpl implements ContextManager {
     }
     return null;
   }
-
 }

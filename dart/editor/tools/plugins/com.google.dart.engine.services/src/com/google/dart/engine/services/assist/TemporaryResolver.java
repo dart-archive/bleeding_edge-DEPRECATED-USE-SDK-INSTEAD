@@ -37,6 +37,7 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -421,7 +422,7 @@ public class TemporaryResolver {
   private AnalysisContextImpl analysisContext = AnalysisContextFactory.contextWithCore();
 
   public Source addSource(String filePath, String contents) {
-    Source source = analysisContext.getSourceFactory().forFile(createFile(filePath));
+    Source source = new FileBasedSource(analysisContext.getSourceFactory(), createFile(filePath));
     analysisContext.getSourceFactory().setContents(source, contents);
     return source;
   }
@@ -439,13 +440,17 @@ public class TemporaryResolver {
       ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.setSource(analysisContext.getSourceFactory().forFile(createFile(fileName)));
+      compilationUnit.setSource(new FileBasedSource(
+          analysisContext.getSourceFactory(),
+          createFile(fileName)));
       compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.setSource(analysisContext.getSourceFactory().forFile(createFile(fileName)));
+    compilationUnit.setSource(new FileBasedSource(
+        analysisContext.getSourceFactory(),
+        createFile(fileName)));
 
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);

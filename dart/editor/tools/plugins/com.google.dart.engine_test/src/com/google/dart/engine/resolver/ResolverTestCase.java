@@ -26,6 +26,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 
@@ -79,7 +80,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = sourceFactory.forFile(createFile(filePath));
+    Source source = new FileBasedSource(sourceFactory, createFile(filePath));
     sourceFactory.setContents(source, contents);
     return source;
   }
@@ -119,13 +120,13 @@ public class ResolverTestCase extends EngineTestCase {
       ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.setSource(sourceFactory.forFile(createFile(fileName)));
+      compilationUnit.setSource(new FileBasedSource(sourceFactory, createFile(fileName)));
       compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.setSource(sourceFactory.forFile(createFile(fileName)));
+    compilationUnit.setSource(new FileBasedSource(sourceFactory, createFile(fileName)));
 
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);

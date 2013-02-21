@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
@@ -121,7 +122,7 @@ public class ProjectManagerImplTest extends TestCase {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Project project = manager.getProject(projectContainer);
-    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
     assertSame(resource, manager.getResource(source));
   }
 
@@ -132,7 +133,7 @@ public class ProjectManagerImplTest extends TestCase {
   public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
     Project project = manager.getProject(projectContainer);
-    Source source = project.getDefaultContext().getSourceFactory().forFile(file);
+    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
     assertNull(manager.getResource(source));
   }
 

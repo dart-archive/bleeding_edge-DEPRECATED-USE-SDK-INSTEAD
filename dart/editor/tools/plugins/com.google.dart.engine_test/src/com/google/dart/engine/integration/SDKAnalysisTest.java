@@ -23,6 +23,7 @@ import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.general.MemoryUtilities;
@@ -43,7 +44,9 @@ public class SDKAnalysisTest extends TestCase {
     ArrayList<LibraryElement> libraries = new ArrayList<LibraryElement>();
     for (String dartUri : sdk.getUris()) {
       long startTime = System.currentTimeMillis();
-      libraries.add(context.getLibraryElement(sourceFactory.forFile(sdk.mapDartUri(dartUri))));
+      libraries.add(context.getLibraryElement(new FileBasedSource(
+          sourceFactory,
+          sdk.mapDartUri(dartUri))));
       long endTime = System.currentTimeMillis();
       totalTime += endTime - startTime;
     }

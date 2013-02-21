@@ -23,6 +23,7 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -166,7 +167,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = sourceFactory.forFile(createFile(filePath));
+    Source source = new FileBasedSource(sourceFactory, createFile(filePath));
     sourceFactory.setContents(source, contents);
     return source;
   }

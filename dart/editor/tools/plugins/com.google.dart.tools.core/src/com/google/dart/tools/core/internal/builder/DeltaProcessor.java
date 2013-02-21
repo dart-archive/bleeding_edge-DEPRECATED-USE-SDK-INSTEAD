@@ -14,6 +14,8 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.tools.core.DartCore;
@@ -80,7 +82,7 @@ public class DeltaProcessor {
       if (source == null) {
         IPath location = getResource().getLocation();
         if (location != null) {
-          source = context.getSourceFactory().forFile(location.toFile());
+          source = new FileBasedSource(context.getSourceFactory(), location.toFile());
         } else {
           logNoLocation(getResource());
         }
@@ -93,7 +95,7 @@ public class DeltaProcessor {
       if (sourceContainer == null) {
         IPath location = getResource().getLocation();
         if (location != null) {
-          sourceContainer = context.getSourceFactory().forDirectory(location.toFile());
+          sourceContainer = new DirectoryBasedSourceContainer(location.toFile());
         } else {
           logNoLocation(getResource());
         }

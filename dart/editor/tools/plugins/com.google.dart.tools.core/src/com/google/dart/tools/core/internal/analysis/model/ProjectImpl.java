@@ -4,6 +4,7 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
@@ -266,8 +267,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     AnalysisContext context;
     IPath location = container.getLocation();
     if (location != null) {
-      SourceFactory defaultFactory = defaultContext.getSourceFactory();
-      SourceContainer sourceContainer = defaultFactory.forDirectory(location.toFile());
+      SourceContainer sourceContainer = new DirectoryBasedSourceContainer(location.toFile());
       context = defaultContext.extractAnalysisContext(sourceContainer);
     } else {
       logNoLocation(container);

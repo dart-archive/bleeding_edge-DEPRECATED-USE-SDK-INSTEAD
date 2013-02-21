@@ -69,7 +69,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
     context.setSourceFactory(sourceFactory);
-    Source source = sourceFactory.forFile(new File("/does/not/exist.dart"));
+    Source source = new FileBasedSource(sourceFactory, new File("/does/not/exist.dart"));
     CompilationUnit unit = context.parse(source);
     assertNotNull(unit);
   }
@@ -130,7 +130,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   public void test_resolve() throws Exception {
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
     SourceFactory sourceFactory = context.getSourceFactory();
-    Source source = sourceFactory.forFile(createFile("/lib.dart"));
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
     sourceFactory.setContents(source, "library lib;");
     CompilationUnit compilationUnit = context.resolve(source, null);
     assertNotNull(compilationUnit);
@@ -161,7 +161,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
-    Source source = sourceFactory.forFile(createFile("/lib.dart"));
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
 
     sourceFactory.setContents(source, "class A {}");
     CompilationUnit unit = context.parse(source, new GatheringErrorListener());

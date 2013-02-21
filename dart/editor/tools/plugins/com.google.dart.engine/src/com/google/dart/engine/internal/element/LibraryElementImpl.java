@@ -23,7 +23,6 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -263,7 +262,8 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    */
   private boolean isOrImportsBrowserLibrary() {
     List<LibraryElement> visited = new ArrayList<LibraryElement>(10);
-    Source htmlLibSource = getDefiningCompilationUnit().getSource().resolve(DartSdk.DART_HTML);
+    // TODO(brianwilkerson) Restore the line below once DartSdk has been made independent of java.io.
+    Source htmlLibSource = getDefiningCompilationUnit().getSource().resolve("dart:html"); // DartSdk.DART_HTML
     visited.add(this);
     for (int index = 0; index < visited.size(); index++) {
       LibraryElement library = visited.get(index);

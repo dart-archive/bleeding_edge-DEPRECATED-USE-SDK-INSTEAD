@@ -17,13 +17,12 @@ import com.google.dart.command.metrics.AnalysisMetrics;
 import com.google.dart.command.metrics.DartEventType;
 import com.google.dart.command.metrics.Tracer;
 import com.google.dart.command.metrics.Tracer.TraceEvent;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.CharBufferScanner;
-import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,21 +106,15 @@ public class Analyzer {
         "src",
         sourceFile.toString()) : null;
     try {
-      // TODO(zundel): Start scanning, parsing, and analyzing
-      CharBuffer buffer = getBufferFromFile(sourceFile);
-      Source source = new SourceFactory().forFile(sourceFile);
-      CharBufferScanner scanner = new CharBufferScanner(source, buffer, listener);
-      Token token = scanner.tokenize();
-      ((CommandLineErrorListener) listener).setLineInfo(
-          source,
-          new LineInfo(scanner.getLineStarts()));
-      Parser parser = new Parser(source, listener);
-      parser.parseCompilationUnit(token);
+      AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
+      SourceFactory sourceFactory = new SourceFactory();
+      context.setSourceFactory(sourceFactory);
+      Source source = new FileBasedSource(sourceFactory, sourceFile);
+      context.getLibraryElement(source);
       System.err.println("Not Implemented");
     } finally {
       Tracer.end(logEvent);
     }
-
     logEvent = Tracer.canTrace() ? Tracer.start(DartEventType.WRITE_METRICS) : null;
     try {
       maybeShowMetrics(config);

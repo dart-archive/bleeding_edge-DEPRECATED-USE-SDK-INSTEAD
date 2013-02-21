@@ -23,6 +23,7 @@ import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenStreamValidator;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -109,7 +110,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Scan the file.
     //
-    Source source = new SourceFactory().forFile(sourceFile);
+    Source source = new FileBasedSource(new SourceFactory(), sourceFile);
     GatheringErrorListener listener = new GatheringErrorListener();
     StringScanner scanner = new StringScanner(source, contents, listener);
     long scannerStartTime = System.currentTimeMillis();

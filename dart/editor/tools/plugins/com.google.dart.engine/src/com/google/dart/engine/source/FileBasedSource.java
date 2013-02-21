@@ -16,6 +16,7 @@ package com.google.dart.engine.source;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
@@ -144,6 +145,17 @@ public class FileBasedSource implements Source {
   @Override
   public Source resolve(String uri) {
     return factory.resolveUri(this, uri);
+  }
+
+  @Override
+  public Source resolveRelative(URI containedUri) {
+    try {
+      URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
+      return new FileBasedSource(factory, new File(resolvedUri));
+    } catch (Exception exception) {
+      // Fall through to return null
+    }
+    return null;
   }
 
   @Override

@@ -30,7 +30,7 @@ public class PackageUriResolverTest extends TestCase {
     SourceFactory factory = new SourceFactory();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolve(factory, null, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(factory, new URI("dart:core"));
     assertNull(result);
   }
 
@@ -38,7 +38,7 @@ public class PackageUriResolverTest extends TestCase {
     SourceFactory factory = new SourceFactory();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolve(factory, null, new URI("package:third/party/library.dart"));
+    Source result = resolver.resolveAbsolute(factory, new URI("package:third/party/library.dart"));
     assertNotNull(result);
     assertEquals(
         createFile("/does/not/exist/packages/third/party/library.dart").getAbsolutePath(),

@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.source;
 
-import java.io.File;
 import java.net.URI;
 
 /**
@@ -30,50 +29,11 @@ public abstract class UriResolver {
   }
 
   /**
-   * Working on behalf of the given source factory, resolve the (possibly relative) contained URI
-   * against the URI associated with the containing source object. Return a {@link Source source}
-   * representing the file to which it was resolved, or {@code null} if it could not be resolved.
-   * 
-   * @param factory the source factory requesting the resolution of the URI
-   * @param containingSource the source containing the given URI
-   * @param containedUri the (possibly relative) URI to be resolved against the containing source
-   * @return a {@link Source source} representing the URI to which given URI was resolved
-   */
-  public Source resolve(SourceFactory factory, Source containingSource, URI containedUri) {
-    if (containedUri.isAbsolute()) {
-      return resolveAbsolute(factory, containedUri);
-    } else {
-      return resolveRelative(factory, containingSource, containedUri);
-    }
-  }
-
-  /**
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
    * it was resolved, or {@code null} if it could not be resolved.
    * 
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the URI to which given URI was resolved
    */
-  protected abstract Source resolveAbsolute(SourceFactory factory, URI uri);
-
-  /**
-   * Resolve the relative (contained) URI against the URI associated with the containing source
-   * object. Return a {@link Source source} representing the file to which it was resolved, or
-   * {@code null} if it could not be resolved.
-   * 
-   * @param containingSource the source containing the given URI
-   * @param containedUri the (possibly relative) URI to be resolved against the containing source
-   * @return a {@link Source source} representing the URI to which given URI was resolved
-   */
-  protected Source resolveRelative(SourceFactory factory, Source containingSource, URI containedUri) {
-    if (containingSource instanceof FileBasedSource) {
-      try {
-        URI resolvedUri = ((FileBasedSource) containingSource).getFile().toURI().resolve(containedUri).normalize();
-        return new FileBasedSource(factory, new File(resolvedUri));
-      } catch (Exception exception) {
-        // Fall through to return null
-      }
-    }
-    return null;
-  }
+  public abstract Source resolveAbsolute(SourceFactory factory, URI uri);
 }
