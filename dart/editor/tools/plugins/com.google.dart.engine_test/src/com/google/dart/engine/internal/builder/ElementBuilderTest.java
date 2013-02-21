@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -398,7 +399,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertEquals(secondParameterName, parameters[1].getName());
   }
 
-  public void test_visitFunctionExpression() {
+  public void test_visitFunctionDeclaration() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     String functionName = "f";
@@ -414,6 +415,22 @@ public class ElementBuilderTest extends EngineTestCase {
 
     assertNotNull(function);
     assertEquals(functionName, function.getName());
+    assertSame(function, declaration.getElement());
+    assertSame(function, declaration.getFunctionExpression().getElement());
+    assertFalse(function.isSynthetic());
+  }
+
+  public void test_visitFunctionExpression() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    FunctionExpression expression = functionExpression(formalParameterList(), blockFunctionBody());
+    expression.accept(builder);
+    FunctionElement[] functions = holder.getFunctions();
+    assertLength(1, functions);
+    FunctionElement function = functions[0];
+
+    assertNotNull(function);
+    assertSame(function, expression.getElement());
     assertFalse(function.isSynthetic());
   }
 

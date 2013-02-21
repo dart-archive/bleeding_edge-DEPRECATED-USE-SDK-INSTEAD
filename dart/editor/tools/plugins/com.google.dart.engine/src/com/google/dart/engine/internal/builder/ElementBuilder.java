@@ -266,25 +266,29 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
-    ElementHolder holder = new ElementHolder();
-    boolean wasInFunction = inFunction;
-    inFunction = true;
-    try {
-      visitChildren(holder, node);
-    } finally {
-      inFunction = wasInFunction;
+    FunctionExpression expression = node.getFunctionExpression();
+    if (expression != null) {
+      ElementHolder holder = new ElementHolder();
+      boolean wasInFunction = inFunction;
+      inFunction = true;
+      try {
+        visitChildren(holder, expression);
+      } finally {
+        inFunction = wasInFunction;
+      }
+
+      SimpleIdentifier functionName = node.getName();
+      FunctionElementImpl element = new FunctionElementImpl(functionName);
+      element.setFunctions(holder.getFunctions());
+      element.setLabels(holder.getLabels());
+      element.setLocalVariables(holder.getLocalVariables());
+      element.setParameters(holder.getParameters());
+      // TODO(brianwilkerson) Set visible range
+
+      currentHolder.addFunction(element);
+      expression.setElement(element);
+      functionName.setElement(element);
     }
-
-    SimpleIdentifier functionName = node.getName();
-    FunctionElementImpl element = new FunctionElementImpl(functionName);
-    element.setFunctions(holder.getFunctions());
-    element.setLabels(holder.getLabels());
-    element.setLocalVariables(holder.getLocalVariables());
-    element.setParameters(holder.getParameters());
-    // TODO(brianwilkerson) Set visible range
-
-    currentHolder.addFunction(element);
-    functionName.setElement(element);
     return null;
   }
 
