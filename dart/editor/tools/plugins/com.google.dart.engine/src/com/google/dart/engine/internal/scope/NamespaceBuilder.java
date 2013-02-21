@@ -63,8 +63,15 @@ public class NamespaceBuilder {
    * @return the import namespace that was created
    */
   public Namespace createImportNamespace(ImportElement element) {
+    LibraryElement importedLibrary = element.getImportedLibrary();
+    if (importedLibrary == null) {
+      //
+      // The imported library will be null if the URI does not reference a valid library.
+      //
+      return Namespace.EMPTY;
+    }
     HashMap<String, Element> definedNames = createExportMapping(
-        element.getImportedLibrary(),
+        importedLibrary,
         new HashSet<LibraryElement>());
     definedNames = apply(definedNames, element.getCombinators());
     definedNames = apply(definedNames, element.getPrefix());
@@ -206,7 +213,10 @@ public class NamespaceBuilder {
       HashMap<String, Element> definedNames = new HashMap<String, Element>();
       for (ExportElement element : library.getExports()) {
         LibraryElement exportedLibrary = element.getExportedLibrary();
-        if (!visitedElements.contains(exportedLibrary)) {
+        if (exportedLibrary != null && !visitedElements.contains(exportedLibrary)) {
+          //
+          // The exported library will be null if the URI does not reference a valid library.
+          //
           HashMap<String, Element> exportedNames = createExportMapping(
               exportedLibrary,
               visitedElements);

@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -230,7 +231,12 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   public Void visitFunctionExpression(FunctionExpression node) {
     Scope outerScope = nameScope;
     try {
-      nameScope = new FunctionScope(nameScope, node.getElement());
+      ExecutableElement functionElement = node.getElement();
+      if (functionElement == null) {
+        // TODO(brianwilkerson) Report this internal error
+      } else {
+        nameScope = new FunctionScope(nameScope, functionElement);
+      }
       super.visitFunctionExpression(node);
     } finally {
       nameScope = outerScope;

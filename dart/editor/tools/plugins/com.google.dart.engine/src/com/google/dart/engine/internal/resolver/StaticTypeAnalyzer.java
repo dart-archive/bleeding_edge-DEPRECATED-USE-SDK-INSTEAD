@@ -769,7 +769,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       if (accessor.isGetter()) {
         return recordType(node, accessor.getType().getReturnType());
       } else {
-        return recordType(node, accessor.getType().getNormalParameterTypes()[0]);
+        Type[] parameterTypes = accessor.getType().getNormalParameterTypes();
+        if (parameterTypes.length > 0) {
+          return recordType(node, parameterTypes[0]);
+        } else {
+          // TODO(brianwilkerson) Report this internal error
+          return null;
+        }
       }
     } else if (element instanceof ExecutableElement) {
       return recordType(node, ((ExecutableElement) element).getType());

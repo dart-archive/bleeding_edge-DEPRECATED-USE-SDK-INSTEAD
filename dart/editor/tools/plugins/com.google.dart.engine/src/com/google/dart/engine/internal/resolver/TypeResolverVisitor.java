@@ -56,6 +56,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
+import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
@@ -264,6 +265,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     setTypeInformation(type, node.getReturnType(), element.getParameters());
     element.setType(type);
+    if (element instanceof PropertyAccessorElementImpl) {
+      PropertyAccessorElementImpl accessor = (PropertyAccessorElementImpl) element;
+      FieldElementImpl field = (FieldElementImpl) accessor.getField();
+      if (accessor.isGetter()) {
+        field.setType(type.getReturnType());
+      } else if (field.getType() == null) {
+        Type[] parameterTypes = type.getNormalParameterTypes();
+        if (parameterTypes != null && parameterTypes.length > 0) {
+          field.setType(parameterTypes[0]);
+        }
+      }
+    }
     return null;
   }
 
@@ -298,8 +311,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // Check to see whether the type name is either 'dynamic' or 'void', neither of which are in
       // the name scope and hence will not be found by normal means.
       //
-      DynamicTypeImpl dynamicType = DynamicTypeImpl.getInstance();
-      VoidTypeImpl voidType = VoidTypeImpl.getInstance();
       if (typeName.getName().equals(dynamicType.getName())) {
         setElement(typeName, dynamicType.getElement());
         if (argumentList != null) {
@@ -309,7 +320,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
         typeName.setStaticType(dynamicType);
         node.setType(dynamicType);
         return null;
-      } else if (typeName.getName().equals(voidType.getName())) {
+      }
+      VoidTypeImpl voidType = VoidTypeImpl.getInstance();
+      if (typeName.getName().equals(voidType.getName())) {
         // There is no element for 'void'.
         if (argumentList != null) {
           // TODO(brianwilkerson) Report this error
@@ -351,6 +364,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (element == null) {
       // We couldn't resolve the type name.
       // TODO(brianwilkerson) Report this error
+      setElement(typeName, dynamicType.getElement());
+      typeName.setStaticType(dynamicType);
+      node.setType(dynamicType);
       return null;
     }
     Type type = null;
@@ -363,9 +379,17 @@ public class TypeResolverVisitor extends ScopedVisitor {
     } else if (element instanceof TypeVariableElement) {
       setElement(typeName, element);
       type = ((TypeVariableElement) element).getType();
+      if (argumentList != null) {
+        // Type variables cannot have type arguments.
+        // TODO(brianwilkerson) Report this error.
+//      resolver.reportError(ResolverErrorCode.?, keyType);
+      }
     } else {
       // The name does not represent a type.
       // TODO(brianwilkerson) Report this error
+      setElement(typeName, dynamicType.getElement());
+      typeName.setStaticType(dynamicType);
+      node.setType(dynamicType);
       return null;
     }
     if (argumentList != null) {
@@ -407,8 +431,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         FunctionTypeImpl functionType = (FunctionTypeImpl) type;
         type = functionType.substitute(typeArguments.toArray(new Type[typeArguments.size()]));
       } else {
-        // TODO(brianwilkerson) Report this error.
-//      resolver.reportError(ResolverErrorCode.?, keyType);
+        // TODO(brianwilkerson) Report this internal error.
       }
     } else {
       //
@@ -555,7 +578,11 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * @return the type represented by the type name
    */
   private Type getType(TypeName typeName) {
-    return typeName.getType();
+    Type type = typeName.getType();
+    if (type == null) {
+      return dynamicType;
+    }
+    return type;
   }
 
   /**

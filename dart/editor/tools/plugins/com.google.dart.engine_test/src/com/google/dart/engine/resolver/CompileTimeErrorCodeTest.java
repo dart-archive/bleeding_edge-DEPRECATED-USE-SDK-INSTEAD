@@ -160,17 +160,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithInvalidTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  const A() {}",
-        "}",
-        "f() { return const A<A>(); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
-    verify(source);
-  }
-
   public void fail_constWithNonConst() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {",
@@ -283,15 +272,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "part of lib;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
-    verify(source);
-  }
-
-  public void fail_extendsNonClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int A;",
-        "class B extends A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
     verify(source);
   }
 
@@ -513,15 +493,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A implements dynamic {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
-    verify(source);
-  }
-
-  public void fail_implementsNonClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int A;",
-        "class B implements A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
   }
 
@@ -825,15 +796,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS);
-    verify(source);
-  }
-
-  public void fail_newWithInvalidTypeParameters() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "f() { return new A<A>(); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 
@@ -1380,6 +1342,44 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_constWithInvalidTypeParameters() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  const A() {}",
+        "}",
+        "f() { return const A<A>(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_extendsNonClass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "int A;",
+        "class B extends A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsNonClass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "int A;",
+        "class B implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_newWithInvalidTypeParameters() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "f() { return new A<A>(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
     verify(source);
   }
 }

@@ -371,6 +371,10 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
       needsComma = true;
     }
     builder.append(") -> ");
-    ((TypeImpl) returnType).appendTo(builder);
+    if (returnType == null) {
+      builder.append("null");
+    } else {
+      ((TypeImpl) returnType).appendTo(builder);
+    }
   }
 }

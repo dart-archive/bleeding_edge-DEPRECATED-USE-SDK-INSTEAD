@@ -237,6 +237,11 @@ public class TestTypeProvider implements TypeProvider {
     ClassElementImpl doubleElement = classElement("double", numType);
     doubleType = doubleElement.getType();
     //
+    // Force the referenced types to be cached.
+    //
+    getBoolType();
+    getStringType();
+    //
     // Add the methods.
     //
     numElement.setMethods(new MethodElement[] {

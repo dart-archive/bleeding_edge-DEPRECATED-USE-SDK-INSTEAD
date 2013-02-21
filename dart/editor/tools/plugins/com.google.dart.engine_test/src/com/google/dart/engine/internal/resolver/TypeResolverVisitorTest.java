@@ -162,7 +162,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement exceptionElement = classElement("E");
     TypeName exceptionType = typeName(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e");
-    resolve(clause, exceptionElement.getType(), null);
+    resolve(clause, exceptionElement.getType(), null, exceptionElement);
     listener.assertNoErrors();
   }
 
@@ -172,7 +172,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     TypeName exceptionType = typeName(exceptionElement);
     exceptionType.getName().setElement(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e", "s");
-    resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType());
+    resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
     listener.assertNoErrors();
   }
 
@@ -244,11 +244,12 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   public void test_visitSimpleFormalParameter_type() throws Exception {
     // int p
     InterfaceType intType = typeProvider.getIntType();
-    FormalParameter node = simpleFormalParameter(typeName(intType.getElement()), "p");
+    ClassElement intElement = intType.getElement();
+    FormalParameter node = simpleFormalParameter(typeName(intElement), "p");
     SimpleIdentifier identifier = node.getIdentifier();
     ParameterElementImpl element = new ParameterElementImpl(identifier);
     identifier.setElement(element);
-    assertSame(intType, resolve(node));
+    assertSame(intType, resolve(node, intElement));
     listener.assertNoErrors();
   }
 
@@ -296,9 +297,12 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    * @param node the catch clause to be analyzed
    * @param exceptionType the expected type of the exception parameter
    * @param stackTraceType the expected type of the stack trace parameter
+   * @param definedElements the elements that are to be defined in the scope in which the element is
+   *          being resolved
    */
-  private void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType) {
-    node.accept(visitor);
+  private void resolve(CatchClause node, InterfaceType exceptionType, InterfaceType stackTraceType,
+      Element... definedElements) {
+    resolveNode(node, definedElements);
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {
       assertSame(exceptionType, exceptionParameter.getStaticType());
@@ -314,10 +318,12 @@ public class TypeResolverVisitorTest extends EngineTestCase {
    * a type for it.
    * 
    * @param node the parameter with which the type is associated
+   * @param definedElements the elements that are to be defined in the scope in which the element is
+   *          being resolved
    * @return the type associated with the parameter
    */
-  private Type resolve(FormalParameter node) {
-    node.accept(visitor);
+  private Type resolve(FormalParameter node, Element... definedElements) {
+    resolveNode(node, definedElements);
     return ((ParameterElement) node.getIdentifier().getElement()).getType();
   }
 

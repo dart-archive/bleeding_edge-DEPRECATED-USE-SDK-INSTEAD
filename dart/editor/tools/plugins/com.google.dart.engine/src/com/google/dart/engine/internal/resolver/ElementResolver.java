@@ -206,12 +206,19 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitConstructorName(ConstructorName node) {
     Type type = node.getType().getType();
-    if (!(type instanceof InterfaceType)) {
-      // TODO(brianwilkerson) Report this error.
-      if (((InstanceCreationExpression) node.getParent()).isConst()) {
-        // CompileTimeErrorCode.CONST_WITH_NON_TYPE
+    if (type instanceof DynamicTypeImpl) {
+      return null;
+    } else if (!(type instanceof InterfaceType)) {
+      // TODO(brianwilkerson) Report these errors.
+      ASTNode parent = node.getParent();
+      if (parent instanceof InstanceCreationExpression) {
+        if (((InstanceCreationExpression) parent).isConst()) {
+          // CompileTimeErrorCode.CONST_WITH_NON_TYPE
+        } else {
+          // StaticWarningCode.NEW_WITH_NON_TYPE
+        }
       } else {
-        // StaticWarningCode.NEW_WITH_NON_TYPE
+        // This is part of a redirecting factory constructor; not sure which error code to use
       }
       return null;
     }
@@ -278,7 +285,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitIndexExpression(IndexExpression node) {
-    Type arrayType = getType(node.getArray());
+    Type arrayType = getType(node.getRealTarget());
     if (arrayType == null) {
       return null;
     }
@@ -1070,6 +1077,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param combinators the combinators containing the names to be resolved
    */
   private void resolveCombinators(LibraryElement library, NodeList<Combinator> combinators) {
+    if (library == null) {
+      //
+      // The library will be null if the directive containing the combinators has a URI that is not
+      // valid.
+      //
+      return;
+    }
     Namespace namespace = new NamespaceBuilder().createExportNamespace(library);
     for (Combinator combinator : combinators) {
       NodeList<SimpleIdentifier> names;
