@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dartdoc.DartdocGenerator;
 import com.google.dart.tools.core.model.DartElement;
@@ -28,7 +29,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -52,7 +52,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 public class GenerateDartdocAction extends AbstractInstrumentedAction implements IWorkbenchAction,
     ISelectionListener, IPartListener {
 
-  class DeployOptimizedJob extends Job {
+  class DeployOptimizedJob extends InstrumentedJob {
     private DartLibrary library;
 
     public DeployOptimizedJob(IWorkbenchPage page, DartLibrary library) {
@@ -68,7 +68,7 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
+    protected IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation) {
       try {
         monitor.beginTask(
             ActionMessages.GenerateDartdocAction_Compiling + library.getElementName(),
