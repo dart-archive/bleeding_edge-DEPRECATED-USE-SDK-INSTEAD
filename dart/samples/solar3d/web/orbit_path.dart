@@ -51,7 +51,8 @@ class OrbitPath {
   }
 
   set cameraTransform(mat4 m) {
-    Float32Array v = m.copyAsArray();
+    Float32Array v = new Float32Array(16);
+    m.copyIntoArray(v);
     _gl.useProgram(shader.program);
     _gl.uniformMatrix4fv(_cameraLocation, false, v);
   }

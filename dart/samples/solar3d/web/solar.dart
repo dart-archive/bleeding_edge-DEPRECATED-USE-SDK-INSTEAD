@@ -13,7 +13,7 @@ import 'dart:html';
 import 'dart:json' as json;
 import 'dart:math' as Math;
 
-import 'package:vector_math/vector_math_browser.dart';
+import 'package:vector_math/vector_math.dart';
 
 part 'sphere_model_data.dart';
 part 'sphere_model.dart';
