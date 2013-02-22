@@ -15,7 +15,6 @@
 package com.google.dart.java2dart;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -114,7 +113,7 @@ public class Context {
   private final Map<File, List<CompilationUnitMember>> fileToMembers = Maps.newHashMap();
   private final Map<CompilationUnitMember, File> memberToFile = Maps.newHashMap();
   // information about names
-  private static final Set<String> forbiddenNames = ImmutableSet.of("const", "final", "with");
+  private static final Set<String> forbiddenNames = Sets.newHashSet();
   private final Set<String> usedNames = Sets.newHashSet();
   private final Set<ClassMember> privateClassMembers = Sets.newHashSet();
   private final Map<SimpleIdentifier, String> identifierToName = Maps.newHashMap();
@@ -131,6 +130,14 @@ public class Context {
   // information about inner classes
   private int technicalInnerClassIndex;
   private int technicalAnonymousClassIndex;
+
+  static {
+    for (Keyword keyword : Keyword.values()) {
+      if (!keyword.isPseudoKeyword()) {
+        forbiddenNames.add(keyword.getSyntax());
+      }
+    }
+  }
 
   /**
    * Specifies that given {@link File} should be added to Java classpath.

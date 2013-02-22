@@ -849,6 +849,70 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_forbiddenNames_methods() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  void in() {}",
+            "  void with() {}",
+            "  void with(int p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void in2() {",
+            "  }",
+            "  void with2() {",
+            "  }",
+            "  void with3(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_forbiddenNames_variable() throws Exception {
+    File file = setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  static void main() {",
+            "    int in = 1;",
+            "    int with = 2;",
+            "    print(in);",
+            "    print(with);",
+            "  }",
+            "  static void print(int p) {}",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFile(file);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  static void main() {",
+            "    int in2 = 1;",
+            "    int with2 = 2;",
+            "    print(in2);",
+            "    print(with2);",
+            "  }",
+            "  static void print(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_giveUniqueName_methodField() throws Exception {
     setFileLines(
         "test/Test.java",
@@ -1045,61 +1109,6 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void foo2(int p) {",
             "  }",
             "  void foo3(double p) {",
-            "  }",
-            "}"),
-        getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_methods_with() throws Exception {
-    setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  void with() {}",
-            "  void with(int p) {}",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFiles(tmpFolder);
-    CompilationUnit unit = context.translate();
-    assertEquals(toString(//
-        "class Test {",
-        "  void with2() {",
-        "  }",
-        "  void with3(int p) {",
-        "  }",
-        "}"), getFormattedSource(unit));
-  }
-
-  public void test_giveUniqueName_variable_with() throws Exception {
-    File file = setFileLines(
-        "test/Test.java",
-        toString(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "package test;",
-            "public class Test {",
-            "  static void foo() {",
-            "    int with = 42;",
-            "    bar(with);",
-            "  }",
-            "  static void bar(int p) {}",
-            "}",
-            ""));
-    Context context = new Context();
-    context.addSourceFolder(tmpFolder);
-    context.addSourceFile(file);
-    CompilationUnit unit = context.translate();
-    assertEquals(
-        toString(
-            "class Test {",
-            "  static void foo() {",
-            "    int with2 = 42;",
-            "    bar(with2);",
-            "  }",
-            "  static void bar(int p) {",
             "  }",
             "}"),
         getFormattedSource(unit));
