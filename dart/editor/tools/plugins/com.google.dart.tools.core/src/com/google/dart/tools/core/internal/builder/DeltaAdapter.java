@@ -59,4 +59,9 @@ public class DeltaAdapter implements DeltaListener {
   public void sourceRemoved(SourceDeltaEvent event) {
     // ignored
   }
+
+  @Override
+  public void visitContext(ResourceDeltaEvent event) {
+    // ignored
+  }
 }

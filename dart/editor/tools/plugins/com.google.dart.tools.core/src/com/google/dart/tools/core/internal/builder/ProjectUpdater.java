@@ -14,36 +14,61 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.context.ChangeResult;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import org.eclipse.core.resources.IContainer;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
- * {@link DeltaProcessor} listener for updating a {@link Project} and its contained
- * {@link AnalysisContext}s.
+ * Instances of {@code ProjectUpdater} are used to update instances of {@link Project}. To update a
+ * project, add an instance of {@code ProjectUpdater} as a listener via
+ * {@link DeltaProcessor#addDeltaListener(DeltaListener)}, use
+ * {@link DeltaProcessor#traverse(IContainer)} or
+ * {@link DeltaProcessor#traverse(org.eclipse.core.resources.IResourceDelta)} to traverse the
+ * changes, then call {@link #applyChanges()}.
  */
 public class ProjectUpdater implements DeltaListener {
+  private HashMap<AnalysisContext, ChangeSet> contextChangeMap = new HashMap<AnalysisContext, ChangeSet>();
+  private ChangeSet currentChanges;
+
+  /**
+   * Apply change sets to the associated contexts, and return the results.
+   */
+  public Map<AnalysisContext, ChangeResult> applyChanges() {
+    HashMap<AnalysisContext, ChangeResult> results = new HashMap<AnalysisContext, ChangeResult>();
+    for (Entry<AnalysisContext, ChangeSet> entry : contextChangeMap.entrySet()) {
+      AnalysisContext context = entry.getKey();
+      ChangeSet changeSet = entry.getValue();
+      if (!changeSet.isEmpty()) {
+        results.put(context, context.changed(changeSet));
+      }
+    }
+    return results;
+  }
 
   @Override
   public void packageSourceAdded(SourceDeltaEvent event) {
-    packageSourceChanged(event);
+    currentChanges.added(event.getSource());
   }
 
   @Override
   public void packageSourceChanged(SourceDeltaEvent event) {
-    sourceChanged(event);
+    currentChanges.changed(event.getSource());
   }
 
   @Override
   public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
-    sourcesDeleted(event);
+    currentChanges.removedContainer(event.getSourceContainer());
   }
 
   @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
-    sourceRemoved(event);
+    currentChanges.removed(event.getSource());
   }
 
   @Override
@@ -66,15 +91,12 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void sourceAdded(SourceDeltaEvent event) {
-    sourceChanged(event);
+    currentChanges.added(event.getSource());
   }
 
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
-    Source source = event.getSource();
-    if (source != null) {
-      event.getContext().sourceChanged(source);
-    }
+    currentChanges.changed(event.getSource());
   }
 
   @Override
@@ -82,23 +104,23 @@ public class ProjectUpdater implements DeltaListener {
     // If the container is part of a larger context (context == parentContext)
     // then remove the contained sources from the larger context
     if (!event.isTopContainerInContext()) {
-      sourcesDeleted(event);
+      currentChanges.removedContainer(event.getSourceContainer());
     }
     event.getProject().discardContextsIn((IContainer) event.getResource());
   }
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    Source source = event.getSource();
-    if (source != null) {
-      event.getContext().sourceDeleted(source);
-    }
+    currentChanges.removed(event.getSource());
   }
 
-  private void sourcesDeleted(SourceContainerDeltaEvent event) {
-    SourceContainer container = event.getSourceContainer();
-    if (container != null) {
-      event.getContext().sourcesDeleted(container);
+  @Override
+  public void visitContext(ResourceDeltaEvent event) {
+    AnalysisContext context = event.getContext();
+    currentChanges = contextChangeMap.get(context);
+    if (currentChanges == null) {
+      currentChanges = new ChangeSet();
+      contextChangeMap.put(context, currentChanges);
     }
   }
 }

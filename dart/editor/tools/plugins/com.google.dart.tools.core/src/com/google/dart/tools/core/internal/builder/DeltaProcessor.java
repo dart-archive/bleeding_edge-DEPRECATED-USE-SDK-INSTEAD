@@ -452,8 +452,18 @@ public class DeltaProcessor {
    * @return {@code true} if the context was set, or {@code false} if not
    */
   private boolean setContextFor(IContainer container) {
-    pubFolder = project.getPubFolder(container);
-    context = pubFolder != null ? pubFolder.getContext() : project.getDefaultContext();
+    PubFolder newPubFolder = project.getPubFolder(container);
+    if (container.getType() == PROJECT || pubFolder != newPubFolder) {
+      pubFolder = newPubFolder;
+      if (pubFolder != null) {
+        context = pubFolder.getContext();
+        event.setResource(pubFolder.getResource());
+      } else {
+        context = project.getDefaultContext();
+        event.setResource(project.getResource());
+      }
+      listener.visitContext(event);
+    }
     return true;
   }
 }

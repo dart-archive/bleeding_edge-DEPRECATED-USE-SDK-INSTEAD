@@ -41,6 +41,16 @@ import java.util.Collection;
  */
 public interface AnalysisContext {
   /**
+   * Respond to the given set of changes by removing any cached information that might now be
+   * out-of-date. The result indicates what operations need to be performed as a result of this
+   * change without actually performing those operations.
+   * 
+   * @param changes An object (not {@code null}) describing the changes
+   * @return a result (not {@code null}) indicating operations to be performed
+   */
+  public ChangeResult changed(ChangeSet changes);
+
+  /**
    * Clear any cached information that is dependent on resolution. This method should be invoked if
    * the assumptions used by resolution have changed but the contents of the file have not changed.
    * Use {@link #sourceChanged(Source)} and {@link #sourcesDeleted(SourceContainer)} to indicate

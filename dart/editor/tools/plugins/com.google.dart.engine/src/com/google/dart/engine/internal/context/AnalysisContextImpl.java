@@ -19,6 +19,8 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeResult;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -128,6 +130,24 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
+  }
+
+  @Override
+  public ChangeResult changed(ChangeSet changes) {
+    // TODO (danrubel): Replace this with a real implementation
+    for (Source source : changes.getAdded()) {
+      sourceAvailable(source);
+    }
+    for (Source source : changes.getChanged()) {
+      sourceChanged(source);
+    }
+    for (Source source : changes.getRemoved()) {
+      sourceDeleted(source);
+    }
+    for (SourceContainer container : changes.getRemovedContainers()) {
+      sourcesDeleted(container);
+    }
+    return new ChangeResult();
   }
 
   @Override

@@ -94,18 +94,31 @@ public class CallList {
       return target.equals(otherTarget);
     }
 
-    void print(PrintStringWriter writer, String indent) {
+    protected void print(PrintStringWriter writer, String indent) {
+      printTarget(writer, indent, target);
+      printMethodName(writer, indent + "    ");
+      printArguments(writer, indent + "    ", args);
+    }
+
+    protected void printArgument(PrintStringWriter writer, String indent, Object arg) {
+      writer.print(indent);
+      writer.println(arg != null ? arg.toString() : "null");
+    }
+
+    protected void printArguments(PrintStringWriter writer, String indent, Object[] args) {
+      for (Object arg : args) {
+        printArgument(writer, indent, arg);
+      }
+    }
+
+    protected void printMethodName(PrintStringWriter writer, String indent) {
+      writer.print(indent);
+      writer.println(methodName);
+    }
+
+    protected void printTarget(PrintStringWriter writer, String indent, Object target) {
       writer.print(indent);
       writer.println(target != null ? target.toString() : "null");
-      writer.print(indent);
-      writer.print("    ");
-      writer.print(methodName);
-      for (Object arg : args) {
-        writer.println();
-        writer.print(indent);
-        writer.print("    ");
-        writer.print(arg != null ? arg.toString() : "null");
-      }
     }
   }
 
@@ -192,7 +205,7 @@ public class CallList {
       PrintStringWriter writer = new PrintStringWriter();
       writer.println("Did NOT expect:");
       call.print(writer, "  ");
-      TestCase.fail(writer.toString());
+      TestCase.fail(writer.toString().trim());
     }
   }
 
@@ -221,15 +234,13 @@ public class CallList {
     writer.println("Expected:");
     if (expected instanceof Call) {
       ((Call) expected).print(writer, "    ");
-      writer.println();
     } else {
       writer.println(expected != null ? expected.toString() : "null");
     }
-    writer.print("Actual:");
+    writer.println("Actual:");
     for (Call call : calls) {
-      writer.println();
       call.print(writer, "    ");
     }
-    TestCase.fail(writer.toString());
+    TestCase.fail(writer.toString().trim());
   }
 }

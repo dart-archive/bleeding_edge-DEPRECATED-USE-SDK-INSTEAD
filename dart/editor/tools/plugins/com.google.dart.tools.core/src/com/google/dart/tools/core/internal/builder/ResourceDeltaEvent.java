@@ -43,7 +43,7 @@ public interface ResourceDeltaEvent {
   PubFolder getPubFolder();
 
   /**
-   * Answer the resource that was added, changed, or removed
+   * Answer the resource that was added, changed, removed, or visited
    * 
    * @return the resource (not {@code null})
    */

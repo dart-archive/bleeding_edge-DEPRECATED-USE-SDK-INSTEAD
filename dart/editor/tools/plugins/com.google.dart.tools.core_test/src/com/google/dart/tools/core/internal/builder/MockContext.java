@@ -3,6 +3,8 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeResult;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -20,18 +22,13 @@ import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
 
-import static junit.framework.Assert.fail;
-
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-
-import static org.eclipse.core.resources.IResource.FILE;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -39,6 +36,60 @@ import java.util.HashSet;
  */
 public class MockContext implements AnalysisContext {
 
+  private final class ChangedCall extends Call {
+    private ChangedCall(AnalysisContext target, ChangeSet expected) {
+      super(target, CHANGED, expected);
+    }
+
+    protected boolean equalArgument(ArrayList<?> list1, ArrayList<?> list2) {
+      ArrayList<Object> copy = new ArrayList<Object>(list2);
+      for (Object object : list1) {
+        if (!copy.remove(object)) {
+          return false;
+        }
+      }
+      return copy.isEmpty();
+    }
+
+    @Override
+    protected boolean equalArguments(Object[] otherArgs) {
+      if (otherArgs.length != 1 || !(otherArgs[0] instanceof ChangeSet)) {
+        return false;
+      }
+      ChangeSet changes = (ChangeSet) args[0];
+      ChangeSet otherChanges = (ChangeSet) otherArgs[0];
+      return equalArgument(changes.getAdded(), otherChanges.getAdded())
+          && equalArgument(changes.getChanged(), otherChanges.getChanged())
+          && equalArgument(changes.getRemoved(), otherChanges.getRemoved())
+          && equalArgument(changes.getRemovedContainers(), otherChanges.getRemovedContainers());
+    }
+
+    @Override
+    protected void printArguments(PrintStringWriter writer, String indent, Object[] args) {
+      ChangeSet changes = (ChangeSet) args[0];
+      writer.print(indent);
+      writer.println("ChangeSet");
+      printCollection(writer, indent, "added", changes.getAdded());
+      printCollection(writer, indent, "changed", changes.getChanged());
+      printCollection(writer, indent, "removed", changes.getRemoved());
+      printCollection(writer, indent, "removedContainers", changes.getRemovedContainers());
+    }
+
+    protected void printCollection(PrintStringWriter writer, String indent, String name,
+        ArrayList<?> collection) {
+      writer.print(indent);
+      writer.print("    ");
+      writer.print(name);
+      writer.println(": ");
+      for (Object object : collection) {
+        writer.print(indent);
+        writer.print("        ");
+        writer.println(object != null ? object.toString() : "null");
+      }
+    }
+  }
+
+  private static final String CHANGED = "changed";
   private static final String CLEAR_RESOLUTION = "clearResolution";
   private static final String DISCARDED = "discarded";
   private static final String EXTRACT_ANALYSIS_CONTEXT = "extractAnalysisContext";
@@ -48,6 +99,31 @@ public class MockContext implements AnalysisContext {
 
   private final CallList calls = new CallList();
   private SourceFactory factory;
+
+  public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {
+    final ChangeSet expected = new ChangeSet();
+    if (added != null) {
+      for (IResource file : added) {
+        expected.added(new FileBasedSource(factory, file.getLocation().toFile()));
+      }
+    }
+    if (changed != null) {
+      for (IResource file : changed) {
+        expected.changed(new FileBasedSource(factory, file.getLocation().toFile()));
+      }
+    }
+    if (removed != null) {
+      for (IResource resource : removed) {
+        if (resource instanceof IFolder) {
+          expected.removedContainer(new DirectoryBasedSourceContainer(
+              resource.getLocation().toFile()));
+        } else {
+          expected.removed(new FileBasedSource(factory, resource.getLocation().toFile()));
+        }
+      }
+    }
+    calls.assertCall(new ChangedCall(this, expected));
+  }
 
   public void assertClearResolution(boolean expected) {
     calls.assertExpectedCall(expected, this, CLEAR_RESOLUTION);
@@ -106,6 +182,12 @@ public class MockContext implements AnalysisContext {
         calls.assertCall(this, SOURCE_DELETED, sourceContainer);
       }
     }
+  }
+
+  @Override
+  public ChangeResult changed(ChangeSet changes) {
+    calls.add(new ChangedCall(this, changes));
+    return new ChangeResult();
   }
 
   @Override
@@ -227,62 +309,5 @@ public class MockContext implements AnalysisContext {
   @Override
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
     throw new UnsupportedOperationException();
-  }
-
-  private void assertEqualContents(HashSet<Object> sources, IResource[] resources) {
-    if (sources.size() == resources.length) {
-      boolean success = true;
-      for (IResource res : resources) {
-        File file = res.getLocation().toFile();
-        Object expected = res.getType() == FILE ? new FileBasedSource(factory, file)
-            : new DirectoryBasedSourceContainer(file);
-        if (!sources.contains(expected)) {
-          success = false;
-          break;
-        }
-      }
-      if (success) {
-        return;
-      }
-    }
-    PrintStringWriter msg = new PrintStringWriter();
-    msg.println("Expected:");
-    for (String string : sort(getPaths(resources))) {
-      msg.println(string);
-    }
-    msg.println("Actual:");
-    for (String string : sort(getPaths(sources))) {
-      msg.println(string);
-    }
-    fail(msg.toString().trim());
-  }
-
-  private ArrayList<String> getPaths(HashSet<Object> sources) {
-    ArrayList<String> result = new ArrayList<String>();
-    for (Object object : sources) {
-      if (object instanceof Source) {
-        Source source = (Source) object;
-        result.add(source.getFullName());
-      } else if (object instanceof SourceContainer) {
-        SourceContainer container = (SourceContainer) object;
-        result.add(container.toString());
-      } else {
-        throw new RuntimeException("Unexpected: " + object);
-      }
-    }
-    return result;
-  }
-
-  private ArrayList<String> getPaths(IResource[] resources) {
-    ArrayList<String> result = new ArrayList<String>();
-    for (IResource resource : resources) {
-      result.add(resource.getLocation().toOSString());
-    }
-    return result;
-  }
-
-  private ArrayList<String> sort(ArrayList<String> paths) {
-    Collections.sort(paths);
-    return paths;
   }
 }

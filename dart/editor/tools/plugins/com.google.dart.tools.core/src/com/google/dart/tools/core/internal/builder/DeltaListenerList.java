@@ -127,4 +127,11 @@ public class DeltaListenerList implements DeltaListener {
       listener.sourceRemoved(event);
     }
   }
+
+  @Override
+  public void visitContext(ResourceDeltaEvent event) {
+    for (DeltaListener listener : children) {
+      listener.visitContext(event);
+    }
+  }
 }

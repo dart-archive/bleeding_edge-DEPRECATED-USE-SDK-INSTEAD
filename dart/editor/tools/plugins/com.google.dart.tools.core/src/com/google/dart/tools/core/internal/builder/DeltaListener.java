@@ -73,4 +73,9 @@ public interface DeltaListener {
    * Called when a source file has been removed
    */
   void sourceRemoved(SourceDeltaEvent event);
+
+  /**
+   * Called before traversing resources in a context
+   */
+  void visitContext(ResourceDeltaEvent event);
 }

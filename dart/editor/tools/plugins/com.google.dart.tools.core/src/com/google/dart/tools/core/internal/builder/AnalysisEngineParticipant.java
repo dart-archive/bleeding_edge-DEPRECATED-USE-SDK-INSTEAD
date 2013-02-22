@@ -94,8 +94,10 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
         // Update the project
         DeltaProcessor processor = createProcessor(project);
-        processor.addDeltaListener(new ProjectUpdater());
+        ProjectUpdater updater = new ProjectUpdater();
+        processor.addDeltaListener(updater);
         processor.traverse(delta);
+        updater.applyChanges();
 
         if (monitor.isCanceled()) {
           return false;
@@ -130,8 +132,10 @@ public class AnalysisEngineParticipant implements BuildParticipant {
 
         // Update the project
         DeltaProcessor processor = createProcessor(project);
-        processor.addDeltaListener(new ProjectUpdater());
+        ProjectUpdater updater = new ProjectUpdater();
+        processor.addDeltaListener(updater);
         processor.traverse(resource);
+        updater.applyChanges();
 
         if (monitor.isCanceled()) {
           return false;
