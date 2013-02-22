@@ -355,6 +355,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
             // in this case was wrong.
             //
             name.setName(((PrefixedIdentifier) typeName).getIdentifier());
+            name.setPeriod(((PrefixedIdentifier) typeName).getPeriod());
             node.setName(prefix);
             typeName = prefix;
           }
