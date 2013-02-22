@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.cleanup.migration;
 
+import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
@@ -101,6 +102,18 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
       }
     }
     return "";
+  }
+
+  private static boolean isArgInterfaceType(List<DartExpression> args, int index, String typeName) {
+    if (index < args.size()) {
+      DartExpression arg = args.get(index);
+      Type type = arg.getType();
+      if (type instanceof InterfaceType) {
+        InterfaceType interfaceType = (InterfaceType) type;
+        return Objects.equal(interfaceType.getElement().getName(), typeName);
+      }
+    }
+    return false;
   }
 
   /**
@@ -290,7 +303,8 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
         if (args.size() >= 1 && element != null) {
           InterfaceType createdType = element.getConstructorType().getType();
           // Timer
-          if (isSubType(createdType, "Timer", "dart://async/async.dart")) {
+          if (isSubType(createdType, "Timer", "dart://async/async.dart")
+              && isArgInterfaceType(args, 0, "int")) {
             super.visitNewExpression(node);
             // new Timer(0, (){})  --->  Timer.run((){})
             if (args.get(0) instanceof DartIntegerLiteral) {
@@ -312,7 +326,7 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
           if (isSubType(createdType, "Future", "dart://async/async.dart")
               && constructor instanceof DartPropertyAccess) {
             DartPropertyAccess prop = (DartPropertyAccess) constructor;
-            if (prop.getName().toString().equals("delayed")) {
+            if (prop.getName().toString().equals("delayed") && isArgInterfaceType(args, 0, "int")) {
               super.visitNewExpression(node);
               addReplaceEdit(
                   SourceRangeFactory.forStartLength(args.get(0), 0),

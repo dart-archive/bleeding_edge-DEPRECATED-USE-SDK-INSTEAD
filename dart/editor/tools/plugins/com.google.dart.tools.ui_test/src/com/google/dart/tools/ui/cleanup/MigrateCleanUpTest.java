@@ -1413,6 +1413,19 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
     assertCleanUp(cleanUp, initial, expected);
   }
 
+  public void test_1M3_Future_useDuration_already() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "foo(int delay) {",
+        "  new Future.delayed(const Duration(milliseconds: 100));",
+        "  new Future.delayed(const Duration(milliseconds: delay));",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
+  }
+
   /**
    * Class <code>Futures</code> was removed, its methods are moved into <code>Future</code>.
    */
@@ -1494,6 +1507,19 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertCleanUp(cleanUp, initial, expected);
+  }
+
+  public void test_1M3_Timer_useDuration_already() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M3_corelib_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main() {",
+        "  Timer.run((t) {});",
+        "  new Timer(const Duration(milliseconds: 100), (t) {});",
+        "}",
+        "");
+    assertNoFix(cleanUp, initial);
   }
 
 }
