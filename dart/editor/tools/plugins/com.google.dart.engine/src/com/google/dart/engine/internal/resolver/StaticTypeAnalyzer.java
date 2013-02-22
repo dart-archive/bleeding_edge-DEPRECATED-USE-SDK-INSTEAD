@@ -84,11 +84,6 @@ import java.util.LinkedHashMap;
  */
 public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   /**
-   * The resolver driving this participant.
-   */
-  private ResolverVisitor resolver;
-
-  /**
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
@@ -110,7 +105,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param resolver the resolver driving this participant
    */
   public StaticTypeAnalyzer(ResolverVisitor resolver) {
-    this.resolver = resolver;
     typeProvider = resolver.getTypeProvider();
     dynamicType = typeProvider.getDynamicType();
   }
@@ -783,7 +777,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 
   @Override
   public Void visitSuperExpression(SuperExpression node) {
-    return recordType(node, thisType == null ? dynamicType : thisType.getSuperclass());
+    if (thisType == null) {
+      // TODO(brianwilkerson) Report this error if it hasn't already been reported
+      return recordType(node, dynamicType);
+    } else {
+      return recordType(node, thisType.getSuperclass());
+    }
   }
 
   /**
@@ -792,7 +791,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitThisExpression(ThisExpression node) {
-    return recordType(node, thisType);
+    if (thisType == null) {
+      // TODO(brianwilkerson) Report this error if it hasn't already been reported
+      return recordType(node, dynamicType);
+    } else {
+      return recordType(node, thisType);
+    }
   }
 
   /**
