@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -107,6 +108,16 @@ public class ResolverVisitor extends ScopedVisitor {
     } finally {
       enclosingFunction = outerFunction;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitLabel(Label node) {
+    //
+    // We don't visit labels or their children because they don't have a type. Instead, the element
+    // resolver is responsible for resolving the labels in the context of their parent (either a
+    // BreakStatement, ContinueStatement, or NamedExpression).
+    //
     return null;
   }
 
