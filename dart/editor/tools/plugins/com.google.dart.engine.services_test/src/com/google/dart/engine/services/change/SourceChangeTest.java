@@ -15,13 +15,15 @@
 package com.google.dart.engine.services.change;
 
 import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.source.Source;
 
 import junit.framework.TestCase;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+
+import java.util.List;
+import java.util.Map;
 
 public class SourceChangeTest extends TestCase {
   private final Source source = mock(Source.class);
@@ -39,8 +41,31 @@ public class SourceChangeTest extends TestCase {
     SourceChange change = new SourceChange("test", source);
     assertThat(change.getEdits()).isEmpty();
     // add edits
+    change.addEdit("desc A", editA);
+    change.addEdit("desc B", editB);
+    assertThat(change.getEdits()).containsExactly(editA, editB);
+    {
+      Map<String, List<Edit>> editGroups = change.getEditGroups();
+      assertThat(editGroups).hasSize(2);
+      assertThat(editGroups.get("desc A")).containsExactly(editA);
+      assertThat(editGroups.get("desc B")).containsExactly(editB);
+    }
+  }
+
+  public void test_edits_noDEscription() throws Exception {
+    Edit editA = mock(Edit.class);
+    Edit editB = mock(Edit.class);
+    // empty
+    SourceChange change = new SourceChange("test", source);
+    assertThat(change.getEdits()).isEmpty();
+    // add edits
     change.addEdit(editA);
     change.addEdit(editB);
     assertThat(change.getEdits()).containsExactly(editA, editB);
+    {
+      Map<String, List<Edit>> editGroups = change.getEditGroups();
+      assertThat(editGroups).hasSize(1);
+      assertThat(editGroups.get(null)).containsExactly(editA, editB);
+    }
   }
 }

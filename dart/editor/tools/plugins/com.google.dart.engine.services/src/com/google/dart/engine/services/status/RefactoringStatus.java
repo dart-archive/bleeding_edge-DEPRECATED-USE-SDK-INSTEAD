@@ -31,6 +31,15 @@ public class RefactoringStatus {
   }
 
   /**
+   * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#FATAL}.
+   */
+  public static RefactoringStatus createFatalErrorStatus(String msg) {
+    RefactoringStatus status = new RefactoringStatus();
+    status.addFatalError(msg);
+    return status;
+  }
+
+  /**
    * @return the new {@link RefactoringStatus} with {@link RefactoringStatusSeverity#WARNING}.
    */
   public static RefactoringStatus createWarningStatus(String msg) {

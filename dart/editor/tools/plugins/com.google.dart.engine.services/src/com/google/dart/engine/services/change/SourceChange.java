@@ -14,11 +14,14 @@
 
 package com.google.dart.engine.services.change;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * {@link Change} to apply to single {@link Source}.
@@ -26,7 +29,12 @@ import java.util.List;
 public class SourceChange extends Change {
   private final Source source;
   private final List<Edit> edits = Lists.newArrayList();
+  private final Map<String, List<Edit>> editGroups = Maps.newHashMap();
 
+  /**
+   * @param name the name of this change to display in UI
+   * @param source the {@link Source} to change
+   */
   public SourceChange(String name, Source source) {
     super(name);
     this.source = source;
@@ -36,7 +44,32 @@ public class SourceChange extends Change {
    * Adds the {@link Edit} to apply.
    */
   public void addEdit(Edit edit) {
+    addEdit(null, edit);
+  }
+
+  /**
+   * Adds the {@link Edit} to apply.
+   */
+  public void addEdit(String description, Edit edit) {
+    Preconditions.checkNotNull(edit);
+    // add to all edits
     edits.add(edit);
+    // add to group
+    {
+      List<Edit> group = editGroups.get(description);
+      if (group == null) {
+        group = Lists.newArrayList();
+        editGroups.put(description, group);
+      }
+      group.add(edit);
+    }
+  }
+
+  /**
+   * @return the {@link Edit}s grouped by their descriptions.
+   */
+  public Map<String, List<Edit>> getEditGroups() {
+    return editGroups;
   }
 
   /**

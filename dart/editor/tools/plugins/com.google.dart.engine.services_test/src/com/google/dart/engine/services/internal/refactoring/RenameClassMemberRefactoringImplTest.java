@@ -335,7 +335,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  get test() {} // marker",
+        "  get test {} // marker",
         "  set test(x) {}",
         "  main() {",
         "    print(test);",
@@ -343,7 +343,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  }",
         "}",
         "class B extends A {",
-        "  get test() {}",
+        "  get test {}",
         "  set test(x) {}",
         "}",
         "main() {",
@@ -356,14 +356,14 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  b.test = 2;",
         "}");
     // configure refactoring
-    createRenameRefactoring("test() {} // marker");
+    createRenameRefactoring("test {} // marker");
     assertEquals("Rename Method", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  get newName() {} // marker",
+        "  get newName {} // marker",
         "  set newName(x) {}",
         "  main() {",
         "    print(newName);",
@@ -371,7 +371,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  }",
         "}",
         "class B extends A {",
-        "  get newName() {}",
+        "  get newName {}",
         "  set newName(x) {}",
         "}",
         "main() {",
@@ -389,7 +389,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  get test() {}",
+        "  get test {}",
         "  set test(x) {}",
         "  main() {",
         "    print(test);",
@@ -409,7 +409,7 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  get newName() {}",
+        "  get newName {}",
         "  set newName(x) {}",
         "  main() {",
         "    print(newName);",

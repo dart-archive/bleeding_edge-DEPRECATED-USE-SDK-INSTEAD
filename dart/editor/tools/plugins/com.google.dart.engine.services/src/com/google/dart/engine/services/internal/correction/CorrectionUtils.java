@@ -18,16 +18,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
@@ -36,15 +42,19 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNodes;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.CharBuffer;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -66,6 +76,19 @@ public class CorrectionUtils {
    * The default end-of-line marker for the current platform.
    */
   public static final String DEFAULT_END_OF_LINE = System.getProperty("line.separator", "\n");
+
+  /**
+   * @return <code>true</code> if given {@link List}s are equals at given position.
+   */
+  public static <T> boolean allListsEqual(List<List<T>> lists, int position) {
+    T element = lists.get(0).get(position);
+    for (List<T> list : lists) {
+      if (list.get(position) != element) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
    * @return the updated {@link String} with applied {@link Edit}s.
@@ -177,6 +200,66 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the {@link ExecutableElement} of the enclosing executable {@link ASTNode}.
+   */
+  public static ExecutableElement getEnclosingExecutableElement(ASTNode node) {
+    while (node != null) {
+      if (node instanceof FunctionExpression) {
+        return ((FunctionExpression) node).getElement();
+      }
+      if (node instanceof ConstructorDeclaration) {
+        return ((ConstructorDeclaration) node).getElement();
+      }
+      if (node instanceof MethodDeclaration) {
+        return ((MethodDeclaration) node).getElement();
+      }
+      node = node.getParent();
+    }
+    return null;
+  }
+
+  /**
+   * @return the nearest common ancestor {@link ASTNode} of the given {@link ASTNode}s.
+   */
+  public static ASTNode getNearestCommonAncestor(List<ASTNode> nodes) {
+    // may be no nodes
+    if (nodes.isEmpty()) {
+      return null;
+    }
+    // prepare parents
+    List<List<ASTNode>> parents = Lists.newArrayList();
+    for (ASTNode node : nodes) {
+      parents.add(getParents(node));
+    }
+    // find min length
+    int minLength = Integer.MAX_VALUE;
+    for (List<ASTNode> parentList : parents) {
+      minLength = Math.min(minLength, parentList.size());
+    }
+    // find deepest parent
+    int i = 0;
+    for (; i < minLength; i++) {
+      if (!allListsEqual(parents, i)) {
+        break;
+      }
+    }
+    return parents.get(0).get(i - 1);
+  }
+
+  /**
+   * @return parent {@link ASTNode}s from {@link CompilationUnit} (at index "0") to the given one.
+   */
+  public static List<ASTNode> getParents(ASTNode node) {
+    LinkedList<ASTNode> parents = Lists.newLinkedList();
+    ASTNode current = node;
+    do {
+      parents.addFirst(current.getParent());
+      current = current.getParent();
+    } while (current.getParent() != null);
+    return parents;
+  }
+
+  /**
    * @return given {@link Statement} if not {@link Block}, first child {@link Statement} if
    *         {@link Block}, or <code>null</code> if more than one child.
    */
@@ -201,102 +284,6 @@ public class CorrectionUtils {
     }
     return ImmutableList.of(statement);
   }
-
-//  /**
-//   * @return <code>true</code> if given {@link BinaryExpression} uses associative operator and its
-//   *         arguments are not {@link BinaryExpression} or are also associative.
-//   */
-//  public static boolean isAssociative(BinaryExpression expression) {
-//    if (expression.getOperator().getType().isAssociativeOperator()) {
-//      Expression left = expression.getLeftOperand();
-//      Expression right = expression.getRightOperand();
-//      if (left instanceof BinaryExpression && !isAssociative((BinaryExpression) left)) {
-//        return false;
-//      }
-//      if (right instanceof BinaryExpression && !isAssociative((BinaryExpression) right)) {
-//        return false;
-//      }
-//      return true;
-//    }
-//    return false;
-//  }
-//
-//  public static boolean rangeEndsBetween(SourceRange range, ASTNode first, ASTNode next) {
-//    int pos = range.getEnd();
-//    return first.getEnd() <= pos && pos <= next.getOffset();
-//  }
-//
-//  public static boolean rangeStartsBetween(SourceRange range, ASTNode first, ASTNode next) {
-//    int pos = range.getOffset();
-//    return first.getEnd() <= pos && pos <= next.getOffset();
-//  }
-//
-//  /**
-//   * @return {@link Expression}s from <code>operands</code> which are completely covered by given
-//   *         {@link SourceRange}. Range should start and end between given {@link Expression}s.
-//   */
-//  private static List<Expression> getOperandsForSourceRange(List<Expression> operands,
-//      SourceRange range) {
-//    assert !operands.isEmpty();
-//    List<Expression> subOperands = Lists.newArrayList();
-//    // track range enter/exit
-//    boolean entered = false;
-//    boolean exited = false;
-//    // may be range starts exactly on first operand
-//    if (range.getOffset() == operands.get(0).getOffset()) {
-//      entered = true;
-//    }
-//    // iterate over gaps between operands
-//    for (int i = 0; i < operands.size() - 1; i++) {
-//      Expression operand = operands.get(i);
-//      Expression nextOperand = operands.get(i + 1);
-//      // add operand, if already entered range
-//      if (entered) {
-//        subOperands.add(operand);
-//        // may be last operand in range
-//        if (CorrectionUtils.rangeEndsBetween(range, operand, nextOperand)) {
-//          exited = true;
-//        }
-//      } else {
-//        // may be first operand in range
-//        if (CorrectionUtils.rangeStartsBetween(range, operand, nextOperand)) {
-//          entered = true;
-//        }
-//      }
-//    }
-//    // check if last operand is in range
-//    Expression lastGroupMember = operands.get(operands.size() - 1);
-//    if (range.getEnd() == lastGroupMember.getEnd()) {
-//      subOperands.add(lastGroupMember);
-//      exited = true;
-//    }
-//    // we expect that range covers only given operands
-//    if (!exited) {
-//      return Lists.newArrayList();
-//    }
-//    // done
-//    return subOperands;
-//  }
-//
-//  /**
-//   * @return all operands of the given {@link BinaryExpression} and its children with the same
-//   *         operator.
-//   */
-//  private static List<Expression> getOperandsInOrderFor(final BinaryExpression groupRoot) {
-//    final List<Expression> operands = Lists.newArrayList();
-//    groupRoot.accept(new GeneralizingASTVisitor<Void>() {
-//      @Override
-//      public Void visitExpression(Expression node) {
-//        if (node instanceof BinaryExpression
-//            && ((BinaryExpression) node).getOperator() == groupRoot.getOperator()) {
-//          return super.visitNode(node);
-//        }
-//        operands.add(node);
-//        return null;
-//      }
-//    });
-//    return operands;
-//  }
 
   /**
    * @return the whitespace prefix of the given {@link String}.
@@ -346,10 +333,77 @@ public class CorrectionUtils {
     return typeSource;
   }
 
+  /**
+   * @return {@link Expression}s from <code>operands</code> which are completely covered by given
+   *         {@link SourceRange}. Range should start and end between given {@link Expression}s.
+   */
+  private static List<Expression> getOperandsForSourceRange(List<Expression> operands,
+      SourceRange range) {
+    assert !operands.isEmpty();
+    List<Expression> subOperands = Lists.newArrayList();
+    // track range enter/exit
+    boolean entered = false;
+    boolean exited = false;
+    // may be range starts before or on first operand
+    if (range.getOffset() <= operands.get(0).getOffset()) {
+      entered = true;
+    }
+    // iterate over gaps between operands
+    for (int i = 0; i < operands.size() - 1; i++) {
+      Expression operand = operands.get(i);
+      Expression nextOperand = operands.get(i + 1);
+      SourceRange inclusiveGap = rangeEndStart(operand, nextOperand).getMoveEnd(1);
+      // add operand, if already entered range
+      if (entered) {
+        subOperands.add(operand);
+        // may be last operand in range
+        if (range.endsIn(inclusiveGap)) {
+          exited = true;
+        }
+      } else {
+        // may be first operand in range
+        if (range.startsIn(inclusiveGap)) {
+          entered = true;
+        }
+      }
+    }
+    // check if last operand is in range
+    Expression lastGroupMember = operands.get(operands.size() - 1);
+    if (range.getEnd() == lastGroupMember.getEnd()) {
+      subOperands.add(lastGroupMember);
+      exited = true;
+    }
+    // we expect that range covers only given operands
+    if (!exited) {
+      return Lists.newArrayList();
+    }
+    // done
+    return subOperands;
+  }
+
+  /**
+   * @return all operands of the given {@link BinaryExpression} and its children with the same
+   *         operator.
+   */
+  private static List<Expression> getOperandsInOrderFor(BinaryExpression groupRoot) {
+    final List<Expression> operands = Lists.newArrayList();
+    final TokenType groupOperatorType = groupRoot.getOperator().getType();
+    groupRoot.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitExpression(Expression node) {
+        if (node instanceof BinaryExpression
+            && ((BinaryExpression) node).getOperator().getType() == groupOperatorType) {
+          return super.visitNode(node);
+        }
+        operands.add(node);
+        return null;
+      }
+    });
+    return operands;
+  }
+
   private final CompilationUnit unit;
-
   private String buffer;
-
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
@@ -573,45 +627,6 @@ public class CorrectionUtils {
     return getPrefix(offset);
   }
 
-  /**
-   * @return the index of the first non-whitespace character after given index.
-   */
-  public int getNonWhitespaceForward(int index) {
-    int length = buffer.length();
-    // skip whitespace characters
-    while (index < length) {
-      char c = buffer.charAt(index);
-      if (!Character.isWhitespace(c)) {
-        break;
-      }
-      index++;
-    }
-    // done
-    return index;
-  }
-
-  /**
-   * @return the line prefix consisting of spaces and tabs on the left from the given offset.
-   */
-  public String getPrefix(int endIndex) {
-    int startIndex = getLineContentStart(endIndex);
-    return buffer.substring(startIndex, endIndex);
-  }
-
-  /**
-   * @return the full text of unit.
-   */
-  public String getText() {
-    return buffer;
-  }
-
-  /**
-   * @return the given range of text from unit.
-   */
-  public String getText(ASTNode node) {
-    return getText(node.getOffset(), node.getLength());
-  }
-
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -670,10 +685,20 @@ public class CorrectionUtils {
 //  }
 
   /**
-   * @return the given range of text from unit.
+   * @return the index of the first non-whitespace character after given index.
    */
-  public String getText(int offset, int length) {
-    return buffer.substring(offset, offset + length);
+  public int getNonWhitespaceForward(int index) {
+    int length = buffer.length();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.charAt(index);
+      if (!Character.isWhitespace(c)) {
+        break;
+      }
+      index++;
+    }
+    // done
+    return index;
   }
 
 //  /**
@@ -691,60 +716,40 @@ public class CorrectionUtils {
 //  }
 
   /**
+   * @return the line prefix consisting of spaces and tabs on the left from the given offset.
+   */
+  public String getPrefix(int endIndex) {
+    int startIndex = getLineContentStart(endIndex);
+    return buffer.substring(startIndex, endIndex);
+  }
+
+  /**
+   * @return the full text of unit.
+   */
+  public String getText() {
+    return buffer;
+  }
+
+  /**
+   * @return the given range of text from unit.
+   */
+  public String getText(ASTNode node) {
+    return getText(node.getOffset(), node.getLength());
+  }
+
+  /**
+   * @return the given range of text from unit.
+   */
+  public String getText(int offset, int length) {
+    return buffer.substring(offset, offset + length);
+  }
+
+  /**
    * @return the given range of text from unit.
    */
   public String getText(SourceRange range) {
     return getText(range.getOffset(), range.getLength());
   }
-
-//  public boolean rangeIncludesNonWhitespaceOutsideNode(SourceRange range, ASTNode node) {
-//    return rangeIncludesNonWhitespaceOutsideRange(range, rangeNode(node));
-//  }
-//
-//  public boolean rangeIncludesNonWhitespaceOutsideRange(SourceRange selection, SourceRange node) {
-//    // selection should cover node
-//    if (!selection.covers(node)) {
-//      return false;
-//    }
-//    // non-whitespace between selection start and node start
-//    if (!isJustWhitespace(rangeStartStart(selection, node))) {
-//      return true;
-//    }
-//    // non-whitespace after node
-//    if (!isJustWhitespaceOrComment(rangeEndEnd(node, selection))) {
-//      return true;
-//    }
-//    // only whitespace in selection around node
-//    return false;
-//  }
-//
-//  /**
-//   * @return <code>true</code> if given range of {@link BinaryExpression} can be extracted.
-//   */
-//  public boolean validateBinaryExpressionRange(BinaryExpression binaryExpression, SourceRange range) {
-//    // only parts of associative expression are safe to extract
-//    if (!isAssociative(binaryExpression)) {
-//      return false;
-//    }
-//    // prepare selected operands
-//    List<Expression> operands = getOperandsInOrderFor(binaryExpression);
-//    List<Expression> subOperands = getOperandsForSourceRange(operands, range);
-//    // if empty, then something wrong with selection
-//    if (subOperands.isEmpty()) {
-//      return false;
-//    }
-//    // may be some punctuation included into selection - operators, braces, etc
-//    if (selectionIncludesNonWhitespaceOutsideOperands(subOperands, range)) {
-//      return false;
-//    }
-//    // OK
-//    return true;
-//  }
-//
-//  private boolean selectionIncludesNonWhitespaceOutsideOperands(List<Expression> operands,
-//      SourceRange selectionRange) {
-//    return rangeIncludesNonWhitespaceOutsideRange(selectionRange, rangeNodes(operands));
-//  }
 
   /**
    * @return the underlying {@link CompilationUnit}.
@@ -764,12 +769,70 @@ public class CorrectionUtils {
    * @return <code>true</code> if selection range contains only whitespace or comments
    */
   public boolean isJustWhitespaceOrComment(SourceRange range) {
-    final String trimmedText = getText(range).trim();
+    String trimmedText = getText(range).trim();
     // may be whitespace
     if (trimmedText.isEmpty()) {
       return true;
     }
     // may be comment
     return TokenUtils.getTokens(trimmedText).isEmpty();
+  }
+
+  /**
+   * @return <code>true</code> if "selection" covers "node" and there are any non-whitespace tokens
+   *         between "selection" and "node" start/end.
+   */
+  public boolean selectionIncludesNonWhitespaceOutsideNode(SourceRange selection, ASTNode node) {
+    return selectionIncludesNonWhitespaceOutsideRange(selection, rangeNode(node));
+  }
+
+  /**
+   * @return <code>true</code> if given range of {@link BinaryExpression} can be extracted.
+   */
+  public boolean validateBinaryExpressionRange(BinaryExpression binaryExpression, SourceRange range) {
+    // only parts of associative expression are safe to extract
+    if (!binaryExpression.getOperator().getType().isAssociativeOperator()) {
+      return false;
+    }
+    // prepare selected operands
+    List<Expression> operands = getOperandsInOrderFor(binaryExpression);
+    List<Expression> subOperands = getOperandsForSourceRange(operands, range);
+    // if empty, then something wrong with selection
+    if (subOperands.isEmpty()) {
+      return false;
+    }
+    // may be some punctuation included into selection - operators, braces, etc
+    if (selectionIncludesNonWhitespaceOutsideOperands(range, subOperands)) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
+  private boolean selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,
+      List<Expression> operands) {
+    return selectionIncludesNonWhitespaceOutsideRange(selection, rangeNodes(operands));
+  }
+
+  /**
+   * @return <code>true</code> if "selection" covers "range" and there are any non-whitespace tokens
+   *         between "selection" and "range" start/end.
+   */
+  private boolean selectionIncludesNonWhitespaceOutsideRange(SourceRange selection,
+      SourceRange range) {
+    // selection should cover range
+    if (!selection.covers(range)) {
+      return false;
+    }
+    // non-whitespace between selection start and range start
+    if (!isJustWhitespaceOrComment(rangeStartStart(selection, range))) {
+      return true;
+    }
+    // non-whitespace after range
+    if (!isJustWhitespaceOrComment(rangeEndEnd(range, selection))) {
+      return true;
+    }
+    // only whitespace in selection around range
+    return false;
   }
 }

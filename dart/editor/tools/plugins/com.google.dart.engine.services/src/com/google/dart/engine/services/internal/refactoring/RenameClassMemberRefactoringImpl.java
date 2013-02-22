@@ -16,7 +16,6 @@ package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
@@ -89,12 +88,12 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     for (Element renameElement : renameElements) {
       // update declaration
       if (!renameElement.isSynthetic()) {
-        change.addEdit(createDeclarationRenameEdit(renameElement));
+        change.addEdit("Update declaration", createDeclarationRenameEdit(renameElement));
       }
       // update references
       List<SearchMatch> references = searchEngine.searchReferences(renameElement, null, null);
       for (SearchMatch reference : references) {
-        change.addEdit(createReferenceRenameEdit(reference));
+        change.addEdit("Update reference", createReferenceRenameEdit(reference));
       }
     }
     return change;

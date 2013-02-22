@@ -73,12 +73,12 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     SourceChange change = new SourceChange(getRefactoringName(), elementSource);
     // update declaration
     if (!element.isSynthetic()) {
-      change.addEdit(createDeclarationRenameEdit(element));
+      change.addEdit("Update declaration", createDeclarationRenameEdit(element));
     }
     // update references
     List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     for (SearchMatch reference : references) {
-      change.addEdit(new Edit(reference.getSourceRange(), "." + newName));
+      change.addEdit("Update refernece", new Edit(reference.getSourceRange(), "." + newName));
     }
     return change;
   }

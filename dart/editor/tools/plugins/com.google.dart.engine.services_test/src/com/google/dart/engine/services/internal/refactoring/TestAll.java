@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(RenameConstructorRefactoringImplTest.class);
     suite.addTestSuite(RenameClassMemberRefactoringImplTest.class);
     suite.addTestSuite(RenameLocalRefactoringImplTest.class);
+    suite.addTestSuite(ExtractLocalRefactoringImplTest.class);
     return suite;
   }
 }

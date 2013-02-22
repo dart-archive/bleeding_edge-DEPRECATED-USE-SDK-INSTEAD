@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Context for which assistance should be provided.
@@ -33,6 +34,10 @@ public class AssistContext {
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
+  }
+
+  public AssistContext(CompilationUnit compilationUnit, SourceRange selectionRange) {
+    this(compilationUnit, selectionRange.getOffset(), selectionRange.getLength());
   }
 
   /**
@@ -76,6 +81,13 @@ public class AssistContext {
    */
   public int getSelectionOffset() {
     return selectionOffset;
+  }
+
+  /**
+   * @return the {@link SourceRange} of the selection.
+   */
+  public SourceRange getSelectionRange() {
+    return new SourceRange(selectionOffset, selectionLength);
   }
 
   /**

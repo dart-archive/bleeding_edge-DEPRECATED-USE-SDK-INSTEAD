@@ -25,12 +25,15 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
+import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractLocalRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createRenameRefactoring;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -42,6 +45,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
   private final CompilationUnitElement enclosingUnit = mock(CompilationUnitElement.class);
   private final ClassElement enclosingClass = mock(ClassElement.class);
   private final ExecutableElement enclosingMethod = mock(ExecutableElement.class);
+
+  public void test_createExtractLocalRefactoring() throws Exception {
+    parseTestUnit("");
+    AssistContext context = new AssistContext(testUnit, 0, 0);
+    ExtractLocalRefactoring refactoring = createExtractLocalRefactoring(context);
+    assertThat(refactoring).isInstanceOf(ExtractLocalRefactoringImpl.class);
+  }
 
   public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {
     FieldElement element = mock(FieldElement.class);

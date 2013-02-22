@@ -15,44 +15,17 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.index.Index;
-import com.google.dart.engine.index.IndexFactory;
-import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
-import com.google.dart.engine.services.change.SourceChange;
-import com.google.dart.engine.services.internal.correction.AbstractDartTest;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
-import com.google.dart.engine.services.refactoring.NullProgressMonitor;
-import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
-import java.util.List;
-
 /**
  * Abstract test for testing {@link RenameRefactoring}s.
  */
-public abstract class RenameRefactoringImplTest extends AbstractDartTest {
-  protected final ProgressMonitor pm = new NullProgressMonitor();
-  protected Index index;
-
-  private SearchEngine searchEngine;
+public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
   protected RenameRefactoring refactoring;
-
-  /**
-   * Assert result of applying given {@link Change} to the {@link #testCode}.
-   */
-  protected final void assertChangeResult(Change change, String expected) {
-    SourceChange sourceChange = (SourceChange) change;
-    List<Edit> sourceEdits = sourceChange.getEdits();
-    String changedCode = CorrectionUtils.applyReplaceEdits(testCode, sourceEdits);
-    assertEquals(expected, changedCode);
-  }
 
   /**
    * Checks that all conditions are <code>OK</code> and applying {@link Change} to the
@@ -78,35 +51,5 @@ public abstract class RenameRefactoringImplTest extends AbstractDartTest {
   protected final void createRenameRefactoring(String search) {
     Element element = findIdentifierElement(search);
     refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
-  }
-
-  /**
-   * Parses and index given source lines.
-   */
-  protected final void indexTestUnit(String... lines) throws Exception {
-    parseTestUnit(lines);
-    index.indexUnit(testUnit);
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    // run Index
-    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
-    new Thread() {
-      @Override
-      public void run() {
-        index.run();
-      }
-    }.start();
-    searchEngine = SearchEngineFactory.createSearchEngine(index);
-    // search for something, ensure that Index is running before we will try to stop it
-    searchEngine.searchReferences((ClassElement) null, null, null);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    index.stop();
-    super.tearDown();
   }
 }

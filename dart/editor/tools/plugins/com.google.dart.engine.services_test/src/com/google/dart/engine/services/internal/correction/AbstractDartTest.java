@@ -37,6 +37,8 @@ import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.lang3.StringUtils;
+
 import static org.fest.assertions.Assertions.assertThat;
 
 import java.io.File;
@@ -102,7 +104,7 @@ public class AbstractDartTest extends TestCase {
   protected static void assertRefactoringStatus(RefactoringStatus status,
       RefactoringStatusSeverity expectedSeverity, String expectedMessage,
       SourceRange expectedContextRange) {
-    assertSame(expectedSeverity, status.getSeverity());
+    assertSame(status.getMessage(), expectedSeverity, status.getSeverity());
     if (expectedSeverity != RefactoringStatusSeverity.OK) {
       RefactoringStatusEntry entry = status.getEntryWithHighestSeverity();
       assertSame(expectedSeverity, entry.getSeverity());
@@ -124,9 +126,28 @@ public class AbstractDartTest extends TestCase {
     return Joiner.on("\n").join(lines);
   }
 
+  /**
+   * Prints given multi-line source in the way ready to paste back into Java test source.
+   */
+  protected static void printSourceLines(String source) {
+    String[] lines = StringUtils.split(source, '\n');
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      line = StringUtils.replace(line, "\"", "\\\"");
+      System.out.print("\"");
+      System.out.print(line);
+      if (i != lines.length - 1) {
+        System.out.println("\",");
+      } else {
+        System.out.println("\"");
+      }
+    }
+  }
+
   protected String testCode;
   protected Source testSource;
   protected CompilationUnit testUnit;
+
   protected boolean verifyNoTestUnitErrors = true;
 
   /**
@@ -138,11 +159,18 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
+   * @return the {@link SimpleIdentifier} at the given search pattern.
+   */
+  protected final SimpleIdentifier findIdentifier(String search) {
+    return findTestNode(search, SimpleIdentifier.class);
+  }
+
+  /**
    * @return the {@link Element} of the {@link SimpleIdentifier} at the given search pattern.
    */
   @SuppressWarnings("unchecked")
   protected final <T extends Element> T findIdentifierElement(String search) {
-    return (T) findTestNode(search, SimpleIdentifier.class).getElement();
+    return (T) findIdentifier(search).getElement();
   }
 
   /**
@@ -205,5 +233,4 @@ public class AbstractDartTest extends TestCase {
       assertThat(testUnit.getResolutionErrors()).isEmpty();
     }
   }
-
 }

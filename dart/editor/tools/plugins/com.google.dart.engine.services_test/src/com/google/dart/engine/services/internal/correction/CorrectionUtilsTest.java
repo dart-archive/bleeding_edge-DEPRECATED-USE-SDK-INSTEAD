@@ -16,20 +16,32 @@ package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BlockFunctionBody;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.IntegerLiteral;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -60,6 +72,23 @@ import java.util.List;
 import java.util.Set;
 
 public class CorrectionUtilsTest extends AbstractDartTest {
+
+  public void test_allListsEqual_0() throws Exception {
+    List<List<Integer>> lists = ImmutableList.<List<Integer>> of(
+        Lists.newArrayList(0, 1, 2),
+        Lists.newArrayList(0, -1, -2));
+    assertTrue(CorrectionUtils.allListsEqual(lists, 0));
+    assertFalse(CorrectionUtils.allListsEqual(lists, 1));
+  }
+
+  public void test_allListsEqual_1() throws Exception {
+    List<List<Integer>> lists = ImmutableList.<List<Integer>> of(
+        Lists.newArrayList(-1, 0, 1, 2),
+        Lists.newArrayList(1, 0, -1, -2),
+        Lists.newArrayList(-10, 0, 10, 20));
+    assertFalse(CorrectionUtils.allListsEqual(lists, 0));
+    assertTrue(CorrectionUtils.allListsEqual(lists, 1));
+  }
 
   public void test_applyReplaceEdits() throws Exception {
     String s = "0123456789";
@@ -102,6 +131,20 @@ public class CorrectionUtilsTest extends AbstractDartTest {
             "}",
             "} // marker"),
         CorrectionUtils.applyReplaceEdits(testCode, ImmutableList.of(edit)));
+  }
+
+  public void test_findEnclosingExecutableElement_constructor() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+    ConstructorElement constructorElement = findTestNode("A()", ConstructorDeclaration.class).getElement();
+    SimpleIdentifier node = findIdentifier("print(0)");
+    assertSame(constructorElement, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
   public void test_getChildren() throws Exception {
@@ -222,6 +265,48 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       when(field.getName()).thenReturn("myField");
       assertEquals("A.myField", CorrectionUtils.getElementQualifiedName(field));
     }
+  }
+
+  public void test_getEnclosingExecutableElement_function() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "fff(p) {",
+        "  var v;",
+        "  zzz(p) {}",
+        "  print(0);",
+        "}",
+        "");
+    // function
+    {
+      FunctionElement mainElement = findIdentifierElement("fff(");
+      SimpleIdentifier node = findIdentifier("print(0)");
+      ExecutableElement actual = CorrectionUtils.getEnclosingExecutableElement(node);
+      assertSame(mainElement, actual);
+    }
+  }
+
+  public void test_getEnclosingExecutableElement_method() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  method() {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+    MethodDeclaration methodNode = findTestNode("method()", MethodDeclaration.class);
+    MethodElement methodElement = (MethodElement) methodNode.getElement();
+    SimpleIdentifier node = findIdentifier("print(0)");
+    assertSame(methodElement, CorrectionUtils.getEnclosingExecutableElement(node));
+  }
+
+  public void test_getEnclosingExecutableElement_null() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 42;",
+        "");
+    SimpleIdentifier node = findIdentifier("v = 42");
+    assertSame(null, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
   /**
@@ -418,6 +503,57 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals(15, utils.getLineThis(19));
   }
 
+  public void test_getNearestCommonAncestor_innerBlock() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1);",
+        "  {",
+        "    print(2);",
+        "  }",
+        "}",
+        "");
+    SimpleIdentifier node1 = findIdentifier("print(2)");
+    SimpleIdentifier node2 = findIdentifier("print(1)");
+    List<ASTNode> nodes = ImmutableList.<ASTNode> of(node1, node2);
+    ASTNode result = CorrectionUtils.getNearestCommonAncestor(nodes);
+    assertEquals("{print(1); {print(2);}}", result.toSource());
+  }
+
+  public void test_getNearestCommonAncestor_noNodes() throws Exception {
+    ImmutableList<ASTNode> nodes = ImmutableList.<ASTNode> of();
+    ASTNode result = CorrectionUtils.getNearestCommonAncestor(nodes);
+    assertNull(result);
+  }
+
+  public void test_getNearestCommonAncestor_sameBlock() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1);",
+        "  print(2);",
+        "}",
+        "");
+    SimpleIdentifier node1 = findIdentifier("print(1)");
+    SimpleIdentifier node2 = findIdentifier("print(2)");
+    List<ASTNode> nodes = ImmutableList.<ASTNode> of(node1, node2);
+    ASTNode result = CorrectionUtils.getNearestCommonAncestor(nodes);
+    assertEquals("{print(1); print(2);}", result.toSource());
+  }
+
+  public void test_getNearestCommonAncestor_singleNode() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1);",
+        "}",
+        "");
+    SimpleIdentifier node1 = findIdentifier("print(1)");
+    List<ASTNode> nodes = ImmutableList.<ASTNode> of(node1);
+    ASTNode result = CorrectionUtils.getNearestCommonAncestor(nodes);
+    assertSame(node1.getParent(), result);
+  }
+
   /**
    * Test for {@link CorrectionUtils#getNodePrefix(DartNode)}.
    */
@@ -485,6 +621,29 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals(code.length(), utils.getNonWhitespaceForward(code.indexOf("9") + 1));
   }
 
+  public void test_getParents() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(0);",
+        "}",
+        "");
+    SimpleIdentifier node = findIdentifier("print(0)");
+    // prepare parents
+    List<ASTNode> parents = CorrectionUtils.getParents(node);
+    // check first/last nodes
+    assertThat(parents).hasSize(7);
+    assertSame(testUnit, parents.get(0));
+    assertSame(node.getParent(), parents.get(6));
+    // check expected path
+    assertThat(parents.get(1)).isInstanceOf(FunctionDeclaration.class);
+    assertThat(parents.get(2)).isInstanceOf(FunctionExpression.class);
+    assertThat(parents.get(3)).isInstanceOf(BlockFunctionBody.class);
+    assertThat(parents.get(4)).isInstanceOf(Block.class);
+    assertThat(parents.get(5)).isInstanceOf(ExpressionStatement.class);
+    assertThat(parents.get(6)).isInstanceOf(MethodInvocation.class);
+  }
+
   public void test_getSingleStatement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -497,7 +656,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "    var blockWith;",
         "    var severalStatements;",
         "  }",
-        "");
+        "}");
     {
       Statement statement = findTestNode("var singleStatement", Statement.class);
       assertSame(statement, CorrectionUtils.getSingleStatement(statement));
@@ -525,7 +684,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "    var statementA;",
         "    var statementB;",
         "  }",
-        "");
+        "}");
     {
       Statement statement = findTestNode("var singleStatement", Statement.class);
       assertThat(CorrectionUtils.getStatements(statement)).containsExactly(statement);
@@ -551,7 +710,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("  ", CorrectionUtils.getStringPrefix("  01234"));
   }
 
-  // XXX
   public void test_getSuperClassElements() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -723,6 +881,153 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("// 0123", utils.getText());
   }
 
+  public void test_selectionIncludesNonWhitespaceOutsideNode() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222 + 333;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    ASTNode node = findTestNode("222", IntegerLiteral.class);
+    // "selection" does not cover node
+    {
+      SourceRange selection = rangeStartEnd(findOffset("22 "), findEnd("22 "));
+      assertFalse(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+    // same range
+    {
+      SourceRange selection = rangeStartEnd(findOffset("222"), findEnd("222"));
+      assertFalse(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+    // leading whitespace
+    {
+      SourceRange selection = rangeStartEnd(findOffset(" 222"), findEnd("222"));
+      assertFalse(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+    // trailing whitespace
+    {
+      SourceRange selection = rangeStartEnd(findOffset("222"), findEnd("222 "));
+      assertFalse(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+    // non-whitespace leading token
+    {
+      SourceRange selection = rangeStartEnd(findOffset("+ 222"), findEnd("222"));
+      assertTrue(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+    // non-whitespace trailing token
+    {
+      SourceRange selection = rangeStartEnd(findOffset("222"), findEnd("222 +"));
+      assertTrue(utils.selectionIncludesNonWhitespaceOutsideNode(selection, node));
+    }
+  }
+
+  public void test_validateBinaryExpressionRange_OK_leadingComment() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = /* foo */ 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("/* foo */ 111"), findEnd("111"));
+    assertTrue(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_OK_leadingWhitespace() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset(" 111"), findEnd(" 111"));
+    assertTrue(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_OK_startOnFirst_endOnLast() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 1 + 2 + 3;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("1"), findEnd("3"));
+    assertTrue(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_OK_trailingComment() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 /* foo */+ 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("111 /* foo */"), findEnd("111 /* foo */"));
+    assertTrue(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_OK_trailingWhitespace() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("111"), findEnd("111 "));
+    assertTrue(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_wrong_leadingToken() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("+ 222"), findEnd("+ 222"));
+    assertFalse(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_wrong_notAssociative() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 1 - 2;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("1"), findEnd("2"));
+    assertFalse(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_wrong_startInOperandMiddle() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("11 +"), findEnd("= 111"));
+    assertFalse(utils.validateBinaryExpressionRange(node, selection));
+  }
+
+  public void test_validateBinaryExpressionRange_wrong_trailingToken() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v = 111 + 222;",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    BinaryExpression node = findVariableInitializer("v = ");
+    // validate
+    SourceRange selection = rangeStartEnd(findOffset("111 +"), findEnd("111 +"));
+    assertFalse(utils.validateBinaryExpressionRange(node, selection));
+  }
+
   /**
    * Asserts that {@link ExtractUtils#getNodePrefix(DartNode)} in {@link #testUnit} has expected
    * prefix.
@@ -735,5 +1040,10 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(expectedPrefix, utils.getNodePrefix(node));
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T extends ASTNode> T findVariableInitializer(String pattern) {
+    return (T) findTestNode(pattern, VariableDeclaration.class).getInitializer();
   }
 }

@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import junit.framework.TestCase;
 
@@ -43,6 +44,7 @@ public class AssistContextTest extends TestCase {
     assertSame(compilationUnit, context.getCompilationUnit());
     assertEquals(10, context.getSelectionOffset());
     assertEquals(2, context.getSelectionLength());
+    assertEquals(new SourceRange(10, 2), context.getSelectionRange());
   }
 
   public void test_access_noElement() throws Exception {
@@ -83,5 +85,14 @@ public class AssistContextTest extends TestCase {
       assertEquals(selectionOffset, context.getSelectionOffset());
       assertEquals(selectionLength, context.getSelectionLength());
     }
+  }
+
+  public void test_new_SourceRange() throws Exception {
+    CompilationUnit compilationUnit = mock(CompilationUnit.class);
+    AssistContext context = new AssistContext(compilationUnit, new SourceRange(10, 2));
+    assertSame(compilationUnit, context.getCompilationUnit());
+    assertEquals(10, context.getSelectionOffset());
+    assertEquals(2, context.getSelectionLength());
+    assertEquals(new SourceRange(10, 2), context.getSelectionRange());
   }
 }

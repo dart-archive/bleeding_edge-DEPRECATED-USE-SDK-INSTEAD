@@ -35,8 +35,8 @@ import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 
-import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
+import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
 
 import java.text.MessageFormat;
 import java.util.List;
@@ -88,11 +88,11 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   public Change createChange(ProgressMonitor pm) throws Exception {
     SourceChange change = new SourceChange(getRefactoringName(), elementSource);
     // update declaration
-    change.addEdit(createDeclarationRenameEdit());
+    change.addEdit("Update declaration", createDeclarationRenameEdit());
     // update references
     List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     for (SearchMatch reference : references) {
-      change.addEdit(createReferenceRenameEdit(reference));
+      change.addEdit("Update reference", createReferenceRenameEdit(reference));
     }
     return change;
   }

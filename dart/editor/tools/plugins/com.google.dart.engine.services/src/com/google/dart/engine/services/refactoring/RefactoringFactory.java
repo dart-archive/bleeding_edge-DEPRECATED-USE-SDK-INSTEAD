@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.refactoring;
 
 import com.google.common.base.Preconditions;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -23,6 +24,8 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
@@ -32,6 +35,15 @@ import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefa
  * Factory for creating {@link Refactoring} instances.
  */
 public class RefactoringFactory {
+  /**
+   * @return the {@link ExtractLocalRefactoring} to extract {@link Expression} selected in given
+   *         {@link AssistContext}.
+   */
+  public static ExtractLocalRefactoring createExtractLocalRefactoring(AssistContext context)
+      throws Exception {
+    return new ExtractLocalRefactoringImpl(context);
+  }
+
   /**
    * @return the {@link RenameRefactoring} instance to perform {@link Element} rename to the given
    *         name, may be <code>null</code> if there are no support for renaming given
