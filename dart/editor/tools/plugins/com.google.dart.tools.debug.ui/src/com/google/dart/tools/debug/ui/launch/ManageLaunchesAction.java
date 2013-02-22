@@ -14,16 +14,18 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.dialogs.ManageLaunchesDialog;
-import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
 
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * An action to open the manage launch configurations dialog.
  */
-public class ManageLaunchesAction extends AbstractInstrumentedAction {
+public class ManageLaunchesAction extends InstrumentedAction {
   private IWorkbenchWindow window;
 
   public ManageLaunchesAction(IWorkbenchWindow window) {
@@ -36,10 +38,10 @@ public class ManageLaunchesAction extends AbstractInstrumentedAction {
   }
 
   @Override
-  public void run() {
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+
     ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
-
     dialog.open();
-  }
 
+  }
 }

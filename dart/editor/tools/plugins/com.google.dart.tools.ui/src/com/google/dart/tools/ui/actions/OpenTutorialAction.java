@@ -14,16 +14,18 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
  * Opens the tutorial.
  */
-public class OpenTutorialAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+public class OpenTutorialAction extends InstrumentedAction implements IWorkbenchAction,
     ISelectionChangedListener {
 
   public OpenTutorialAction() {
@@ -39,15 +41,14 @@ public class OpenTutorialAction extends AbstractInstrumentedAction implements IW
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
 
     ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenTutorialAction_href);
+    instrumentation.metric("OpenTutorialAction", "Executed");
   }
 
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
 
   }
-
 }

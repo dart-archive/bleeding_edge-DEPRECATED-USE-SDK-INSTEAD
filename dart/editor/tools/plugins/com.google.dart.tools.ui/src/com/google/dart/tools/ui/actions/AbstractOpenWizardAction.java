@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
@@ -24,6 +25,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -32,7 +34,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Abstract base classed used for the open wizard actions.
  */
-public abstract class AbstractOpenWizardAction extends AbstractInstrumentedAction {
+public abstract class AbstractOpenWizardAction extends InstrumentedAction {
 
   private Shell shell;
   private IStructuredSelection selection;
@@ -46,12 +48,13 @@ public abstract class AbstractOpenWizardAction extends AbstractInstrumentedActio
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
     Shell shell = getShell();
     try {
       INewWizard wizard = createWizard();
-      wizard.init(PlatformUI.getWorkbench(), getSelection());
+      instrumentation.metric("Wizard Class", wizard.getClass().toString());
+
+      wizard.init(PlatformUI.getWorkbench(), selection);
 
       WizardDialog dialog = new WizardDialog(shell, wizard);
       PixelConverter converter = new PixelConverter(JFaceResources.getDialogFont());
@@ -60,10 +63,18 @@ public abstract class AbstractOpenWizardAction extends AbstractInstrumentedActio
           converter.convertHeightInCharsToPixels(20));
       dialog.create();
       int res = dialog.open();
+
+      instrumentation.metric("Wizard-Result", String.valueOf(res));
       notifyResult(res == Window.OK);
     } catch (CoreException e) {
       String title = ActionMessages.AbstractOpenWizardAction_createerror_title;
       String message = ActionMessages.AbstractOpenWizardAction_createerror_message;
+
+      instrumentation.metric("Error Title", title);
+      //Conservative in case the message gets changed to include user content
+      instrumentation.data("Error Message", message);
+      instrumentation.data("Wizard-Exception", e.toString());
+
       ExceptionHandler.handle(e, shell, title, message);
     }
   }
@@ -103,6 +114,7 @@ public abstract class AbstractOpenWizardAction extends AbstractInstrumentedActio
    * 
    * @return the configured selection
    */
+  @Override
   protected IStructuredSelection getSelection() {
     if (selection == null) {
       return evaluateCurrentSelection();

@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.dialogs.AboutDartDialog;
 
 import org.eclipse.swt.widgets.Event;
@@ -23,7 +24,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 /**
  * Triggers the About Dart Dialog
  */
-public class AboutDartAction extends AbstractInstrumentedAction implements IWorkbenchAction {
+public class AboutDartAction extends InstrumentedAction implements IWorkbenchAction {
   private IWorkbenchWindow window;
 
   /**
@@ -45,14 +46,8 @@ public class AboutDartAction extends AbstractInstrumentedAction implements IWork
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
-    openDialog();
-  }
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
 
-  @Override
-  public void runWithEvent(Event event) {
-    emitInstrumentationCommand();
     openDialog();
   }
 
