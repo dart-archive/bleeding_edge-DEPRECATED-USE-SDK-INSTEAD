@@ -35,13 +35,6 @@ public enum ResolverErrorCode implements ErrorCode {
   CONTINUE_LABEL_ON_SWITCH(COMPILE_TIME_ERROR,
       "A continue label resolves to switch, must be loop or switch member"),
 
-  /**
-   * It is a compile-time error if [the URI] is not a compile-time constant, or if [the URI]
-   * involves string interpolation.
-   */
-  INVALID_URI(COMPILE_TIME_ERROR,
-      "URI's used in directives must be compile time constants without interpolation expressions"),
-
   LABEL_IN_OUTER_SCOPE(COMPILE_TIME_ERROR,
       "Cannot reference label '%s' declared in an outer method or function"),
 

@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -73,7 +74,9 @@ public class LibraryElementBuilderTest extends EngineTestCase {
         "",
         "part '${'a'}.dart';"));
 
-    LibraryElement element = buildLibrary(librarySource, ResolverErrorCode.INVALID_URI);
+    LibraryElement element = buildLibrary(
+        librarySource,
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION);
     assertNotNull(element);
   }
 

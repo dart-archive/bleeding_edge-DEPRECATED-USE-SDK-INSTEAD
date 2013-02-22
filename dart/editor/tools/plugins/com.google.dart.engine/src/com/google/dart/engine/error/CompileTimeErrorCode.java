@@ -659,19 +659,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
    * not a compile-time constant, or if <i>x</i> involves string interpolation.
    */
-  URI_NOT_CONSTANT(""),
-
-  /**
-   * 14.1 Imports: It is a compile-time error if <i>x</i> is not a compile-time constant, or if
-   * <i>x</i> involves string interpolation.
-   * <p>
-   * 14.3 Parts: It is a compile-time error if <i>s</i> is not a compile-time constant, or if
-   * <i>s</i> involves string interpolation.
-   * <p>
-   * 14.5 URIs: It is a compile-time error if the string literal <i>x</i> that describes a URI is
-   * not a compile-time constant, or if <i>x</i> involves string interpolation.
-   */
-  URI_WITH_INTERPOLATION(""),
+  URI_WITH_INTERPOLATION("URIs cannot use string interpolation"),
 
   /**
    * 7.1.1 Operators: It is a compile-time error if the arity of the user-declared operator []= is

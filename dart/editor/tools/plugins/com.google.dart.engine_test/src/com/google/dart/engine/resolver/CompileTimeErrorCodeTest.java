@@ -1200,22 +1200,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_uriNotConstant() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "import ['f.dart'][0];"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_NOT_CONSTANT);
-    verify(source);
-  }
-
-  public void fail_uriWithInterpolation() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "import 'stuff_$platform.dart';"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-    verify(source);
-  }
-
   public void fail_wrongNumberOfParametersForOperator() throws Exception {
     // Do we need _tooMany and _tooFew variants for every operator?
     Source source = addSource("/test.dart", createSource(//
@@ -1381,5 +1365,22 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
     verify(source);
+  }
+
+  public void test_uriWithInterpolation_constant() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "import 'stuff_$platform.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
+    // a call to verify would fail as there is no 'stuff_$platform.dart';
+  }
+
+  public void test_uriWithInterpolation_nonConstant() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library lib;",
+        "part '${'a'}.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
+    // a call to verify would fail as there is no '${'a'}.dart'
   }
 }

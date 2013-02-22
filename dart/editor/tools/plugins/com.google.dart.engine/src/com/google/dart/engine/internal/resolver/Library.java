@@ -18,14 +18,15 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.SimpleStringLiteral;
+import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.LibraryScope;
-import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.source.Source;
 
 import java.util.HashMap;
@@ -259,7 +260,15 @@ public class Library {
    * @return the result of resolving the given URI against the URI of the library
    */
   public Source getSource(StringLiteral uriLiteral) {
-    return getSource(getStringValue(uriLiteral), uriLiteral.getOffset(), uriLiteral.getLength());
+    if (uriLiteral instanceof StringInterpolation) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.URI_WITH_INTERPOLATION));
+      return null;
+    }
+    return getSource(getStringValue(uriLiteral));
   }
 
   /**
@@ -308,20 +317,13 @@ public class Library {
 
   /**
    * Return the result of resolving the given URI against the URI of the library, or {@code null} if
-   * the URI is not valid. If the URI is not valid, report the error.
+   * the URI is not valid.
    * 
    * @param uri the URI to be resolved
-   * @param uriOffset the offset of the string literal representing the URI
-   * @param uriLength the length of the string literal representing the URI
    * @return the result of resolving the given URI against the URI of the library
    */
-  private Source getSource(String uri, int uriOffset, int uriLength) {
+  private Source getSource(String uri) {
     if (uri == null) {
-      errorListener.onError(new AnalysisError(
-          librarySource,
-          uriOffset,
-          uriLength,
-          ResolverErrorCode.INVALID_URI));
       return null;
     }
     return librarySource.resolve(uri);
