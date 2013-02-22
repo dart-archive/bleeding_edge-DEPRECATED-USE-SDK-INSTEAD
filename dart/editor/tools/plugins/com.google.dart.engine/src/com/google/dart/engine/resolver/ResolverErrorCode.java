@@ -35,9 +35,6 @@ public enum ResolverErrorCode implements ErrorCode {
   CONTINUE_LABEL_ON_SWITCH(COMPILE_TIME_ERROR,
       "A continue label resolves to switch, must be loop or switch member"),
 
-  LABEL_IN_OUTER_SCOPE(COMPILE_TIME_ERROR,
-      "Cannot reference label '%s' declared in an outer method or function"),
-
   MISSING_LIBRARY_DIRECTIVE_IMPORTED(COMPILE_TIME_ERROR,
       "Libraries that are imported by other libraries must have a library directive"),
   MISSING_LIBRARY_DIRECTIVE_WITH_PART(COMPILE_TIME_ERROR,
@@ -45,8 +42,7 @@ public enum ResolverErrorCode implements ErrorCode {
   MISSING_PART_OF_DIRECTIVE(COMPILE_TIME_ERROR, "The included part must have a part-of directive"),
 
   PART_WITH_WRONG_LIBRARY_NAME(STATIC_WARNING,
-      "The included part appears to be part of the library '%s'"),
-  UNDEFINED_LABEL(COMPILE_TIME_ERROR, "The label '%s' is not defined");
+      "The included part appears to be part of the library '%s'");
 
   /**
    * The type of this error.

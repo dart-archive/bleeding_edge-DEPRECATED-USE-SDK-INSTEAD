@@ -63,6 +63,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -849,11 +850,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     } else {
       if (labelScope == null) {
-        resolver.reportError(ResolverErrorCode.UNDEFINED_LABEL, labelNode, labelNode.getName());
+        resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
       } else {
         labelElement = (LabelElementImpl) labelScope.lookup(labelNode);
         if (labelElement == null) {
-          resolver.reportError(ResolverErrorCode.UNDEFINED_LABEL, labelNode, labelNode.getName());
+          resolver.reportError(CompileTimeErrorCode.LABEL_UNDEFINED, labelNode, labelNode.getName());
         } else {
           recordResolution(labelNode, labelElement);
         }
@@ -862,15 +863,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (labelElement != null) {
       ExecutableElement labelContainer = labelElement.getAncestor(ExecutableElement.class);
       if (labelContainer != resolver.getEnclosingFunction()) {
-        if (labelNode == null) {
-          // TODO(brianwilkerson) Create a new error for cases where there is no label.
-          resolver.reportError(ResolverErrorCode.LABEL_IN_OUTER_SCOPE, parentNode, "");
-        } else {
-          resolver.reportError(
-              ResolverErrorCode.LABEL_IN_OUTER_SCOPE,
-              labelNode,
-              labelNode.getName());
-        }
+        resolver.reportError(
+            CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE,
+            labelNode,
+            labelNode.getName());
         labelElement = null;
       }
     }

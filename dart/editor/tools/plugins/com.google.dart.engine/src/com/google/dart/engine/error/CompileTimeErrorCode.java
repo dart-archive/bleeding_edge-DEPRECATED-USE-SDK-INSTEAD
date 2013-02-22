@@ -382,6 +382,28 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INVALID_VARIABLE_IN_INITIALIZER(""), // TODO(brianwilkerson) This might want to be multiple errors (static, non-field).
 
   /**
+   * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
+   * the innermost function in which <i>s<sub>b</sub></i> occurs.
+   * <p>
+   * 13.14 Continue: It is a compile-time error if no such statement or case clause
+   * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
+   * 
+   * @param labelName the name of the unresolvable label
+   */
+  LABEL_IN_OUTER_SCOPE("Cannot reference label '%s' declared in an outer method or function"),
+
+  /**
+   * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
+   * the innermost function in which <i>s<sub>b</sub></i> occurs.
+   * <p>
+   * 13.14 Continue: It is a compile-time error if no such statement or case clause
+   * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
+   * 
+   * @param labelName the name of the unresolvable label
+   */
+  LABEL_UNDEFINED("Cannot reference undefined label '%s'"),
+
+  /**
    * 7 Classes: It is a compile time error if a class <i>C</i> declares a member with the same name
    * as <i>C</i>.
    */
@@ -626,15 +648,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * (respectively <i>S.id</i>)
    */
   UNDEFINED_CONSTRUCTOR_IN_INITIALIZER(""),
-
-  /**
-   * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
-   * the innermost function in which <i>s<sub>b</sub></i> occurs.
-   * <p>
-   * 13.14 Continue: It is a compile-time error if no such statement or case clause
-   * <i>s<sub>E</sub></i> exists within the innermost function in which <i>s<sub>c</sub></i> occurs.
-   */
-  UNDEFINED_LABEL(""),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. Each final instance

@@ -17,24 +17,6 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class ErrorResolverTest extends ResolverTestCase {
-  public void fail_labelInOuterScope() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class int {}",
-        "",
-        "class A {",
-        "  void m(int i) {",
-        "    l: while (i > 0) {",
-        "      void f() {",
-        "        break l;",
-        "      };",
-        "    }",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(ResolverErrorCode.LABEL_IN_OUTER_SCOPE);
-    verify(source);
-  }
-
   public void test_breakLabelOnSwitchMember() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -96,17 +78,4 @@ public class ErrorResolverTest extends ResolverTestCase {
     verify(librarySource, sourceA, sourceB);
   }
 
-  public void test_undefinedLabel() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  void m(int i) {",
-        "    while (i > 0) {",
-        "      break l;",
-        "    }",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(ResolverErrorCode.UNDEFINED_LABEL);
-    // We cannot verify resolution with undefined labels
-  }
 }

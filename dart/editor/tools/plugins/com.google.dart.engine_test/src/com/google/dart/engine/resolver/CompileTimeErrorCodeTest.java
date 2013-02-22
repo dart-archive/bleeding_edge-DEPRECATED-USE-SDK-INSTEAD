@@ -1166,30 +1166,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedLabel_break() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  x: while (true) {",
-        "    break y;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_LABEL);
-    verify(source);
-  }
-
-  public void fail_undefinedLabel_continue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  x: while (true) {",
-        "    continue y;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.UNDEFINED_LABEL);
-    verify(source);
-  }
-
   public void fail_uninitializedFinalField() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1338,6 +1314,51 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_labelInOuterScope() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class int {}",
+        "",
+        "class A {",
+        "  void m(int i) {",
+        "    l: while (i > 0) {",
+        "      void f() {",
+        "        break l;",
+        "      };",
+        "    }",
+        "  }",
+        "}"));
+    resolve(source);
+    // TODO (jwren) situations where a LABEL_IN_OUTER_SCOPE is generated, a CANNOT_BE_RESOLVED will
+    // also always be generated, we should revisit this situation so that there is only the more
+    // accurate error code generated.
+    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, ResolverErrorCode.CANNOT_BE_RESOLVED);
+    // We cannot verify resolution with unresolvable labels
+  }
+
+  public void test_labelUndefined_break() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  x: while (true) {",
+        "    break y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
+    // We cannot verify resolution with undefined labels
+  }
+
+  public void test_labelUndefined_continue() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  x: while (true) {",
+        "    continue y;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
+    // We cannot verify resolution with undefined labels
+  }
+
   public void test_newWithInvalidTypeParameters() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
@@ -1372,7 +1393,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "import 'stuff_$platform.dart';"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-    // a call to verify would fail as there is no 'stuff_$platform.dart';
+    // We cannot verify resolution with an unresolvable URI: 'stuff_$platform.dart'
   }
 
   public void test_uriWithInterpolation_nonConstant() throws Exception {
@@ -1381,6 +1402,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "part '${'a'}.dart';"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
-    // a call to verify would fail as there is no '${'a'}.dart'
+    // We cannot verify resolution with an unresolvable URI: '${'a'}.dart'
   }
 }
