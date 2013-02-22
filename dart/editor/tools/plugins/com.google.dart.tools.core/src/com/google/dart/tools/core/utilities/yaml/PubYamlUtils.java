@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.utilities.yaml;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.pub.PubspecConstants;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 
 import org.eclipse.core.resources.IFile;
@@ -131,7 +132,7 @@ public class PubYamlUtils {
   public static List<String> getNamesOfDependencies(String contents) {
     Map<String, Object> map = parsePubspecYamlToMap(contents);
     if (map != null) {
-      Map<String, Object> dependecies = (Map<String, Object>) map.get("dependencies");
+      Map<String, Object> dependecies = (Map<String, Object>) map.get(PubspecConstants.DEPENDENCIES);
       if (dependecies != null && !dependecies.isEmpty()) {
         return new ArrayList<String>(dependecies.keySet());
       }
@@ -170,7 +171,7 @@ public class PubYamlUtils {
       Map<String, Object> packagesMap = (Map<String, Object>) map.get("packages");
       for (String key : packagesMap.keySet()) {
         Map<String, Object> attrMap = (Map<String, Object>) packagesMap.get(key);
-        String version = (String) attrMap.get("version");
+        String version = (String) attrMap.get(PubspecConstants.VERSION);
         if (version != null) {
           versionMap.put(key, version);
         }
@@ -200,7 +201,7 @@ public class PubYamlUtils {
    * Checks if the string has a valid version constraint format ">=1.2.3 <2.0.0", "1.0.0", "<1.5.0"
    */
   public static boolean isValidVersionConstraintString(String version) {
-    if (!version.equals("any") && !version.isEmpty()) {
+    if (!version.equals(PubspecConstants.ANY) && !version.isEmpty()) {
       String[] versions = version.split(" ");
       if (versions.length > 2) {
         return false;

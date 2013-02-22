@@ -27,7 +27,7 @@ public class DependencyObject {
   private PubspecModel model;
 
   private String name;
-  private String version = "any";
+  private String version = PubspecConstants.ANY;
   private String path;
   private String ref;
   private Type type = Type.HOSTED;

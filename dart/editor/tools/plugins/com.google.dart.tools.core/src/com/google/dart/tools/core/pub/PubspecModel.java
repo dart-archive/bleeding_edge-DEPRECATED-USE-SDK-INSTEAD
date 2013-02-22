@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 public class PubspecModel {
 
   private static String EMPTY_STRING = "";
-  private static String SDK_VERSION_KEY = "sdk";
 
   private ArrayList<IModelListener> modelListeners;
 
@@ -199,14 +198,14 @@ public class PubspecModel {
     }
     if (!sdkVersion.isEmpty()) {
       Map<String, Object> map = new HashMap<String, Object>();
-      map.put(SDK_VERSION_KEY, sdkVersion);
+      map.put(PubspecConstants.SDK_VERSION, sdkVersion);
       pubYamlObject.environment = map;
     }
     Map<String, Object> dependenciesMap = new HashMap<String, Object>();
     for (DependencyObject dep : dependencies) {
       if (dep.getType().equals(Type.HOSTED)) {
         if (dep.getVersion().isEmpty()) {
-          dependenciesMap.put(dep.getName(), "any");
+          dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
         } else {
           dependenciesMap.put(dep.getName(), dep.getVersion());
         }
@@ -214,19 +213,19 @@ public class PubspecModel {
         Map<String, Object> gitMap = new HashMap<String, Object>();
         if (dep.getGitRef() != null && !dep.getGitRef().isEmpty()) {
           Map<String, String> map = new HashMap<String, String>();
-          map.put("ref", dep.getGitRef());
-          map.put("url", dep.getPath());
-          gitMap.put("git", map);
+          map.put(PubspecConstants.REF, dep.getGitRef());
+          map.put(PubspecConstants.URL, dep.getPath());
+          gitMap.put(PubspecConstants.GIT, map);
         } else {
-          gitMap.put("git", dep.getPath());
+          gitMap.put(PubspecConstants.GIT, dep.getPath());
         }
-        if (!dep.getVersion().equals("any") && !dep.getVersion().isEmpty()) {
-          gitMap.put("version", dep.getVersion());
+        if (!dep.getVersion().equals(PubspecConstants.ANY) && !dep.getVersion().isEmpty()) {
+          gitMap.put(PubspecConstants.VERSION, dep.getVersion());
         }
         dependenciesMap.put(dep.getName(), gitMap);
       } else {
         Map<String, Object> pathMap = new HashMap<String, Object>();
-        pathMap.put("path", dep.getPath());
+        pathMap.put(PubspecConstants.PATH, dep.getPath());
         dependenciesMap.put(dep.getName(), pathMap);
       }
     }
@@ -260,14 +259,14 @@ public class PubspecModel {
         } else if (value instanceof Map) {
           Map<String, Object> values = (Map<String, Object>) value;
           for (String key : values.keySet()) {
-            if (key.equals("version")) {
+            if (key.equals(PubspecConstants.VERSION)) {
               d.setVersion((String) values.get(key));
             }
-            if (key.equals("path")) {
+            if (key.equals(PubspecConstants.PATH)) {
               d.setPath((String) values.get(key));
               d.setType(Type.LOCAL);
             }
-            if (key.equals("git")) {
+            if (key.equals(PubspecConstants.GIT)) {
               d.setType(Type.GIT);
               Object fields = values.get(key);
               if (fields instanceof String) {
@@ -276,10 +275,10 @@ public class PubspecModel {
               if (fields instanceof Map) {
                 Map<String, Object> map = (Map<String, Object>) fields;
                 for (String mapKey : map.keySet()) {
-                  if (mapKey.equals("url")) {
+                  if (mapKey.equals(PubspecConstants.URL)) {
                     d.setPath((String) map.get(mapKey));
                   }
-                  if (mapKey.equals("ref")) {
+                  if (mapKey.equals(PubspecConstants.REF)) {
                     d.setGitRef((String) map.get(mapKey));
                   }
                 }
@@ -295,32 +294,32 @@ public class PubspecModel {
 
   @SuppressWarnings("unchecked")
   private void setValuesFromMap(Map<String, Object> pubspecMap) {
-    name = (String) pubspecMap.get("name");
-    version = (String) ((pubspecMap.get("version") != null) ? pubspecMap.get("version")
-        : EMPTY_STRING);
-    author = (String) ((pubspecMap.get("author") != null) ? pubspecMap.get("author") : EMPTY_STRING);
-    if (pubspecMap.get("authors") != null) {
-      List<String> authors = (List<String>) pubspecMap.get("authors");
+    name = (String) pubspecMap.get(PubspecConstants.NAME);
+    version = (String) ((pubspecMap.get(PubspecConstants.VERSION) != null)
+        ? pubspecMap.get(PubspecConstants.VERSION) : EMPTY_STRING);
+    author = (String) ((pubspecMap.get(PubspecConstants.AUTHOR) != null)
+        ? pubspecMap.get(PubspecConstants.AUTHOR) : EMPTY_STRING);
+    if (pubspecMap.get(PubspecConstants.AUTHORS) != null) {
+      List<String> authors = (List<String>) pubspecMap.get(PubspecConstants.AUTHORS);
       author = authors.get(0);
       for (int i = 1; i < authors.size(); i++) {
         author += "," + authors.get(i);
       }
     }
-    if (pubspecMap.get("environment") != null) {
-      Map<String, Object> env = (Map<String, Object>) pubspecMap.get("environment");
-      sdkVersion = (String) env.get(SDK_VERSION_KEY);
+    if (pubspecMap.get(PubspecConstants.ENVIRONMENT) != null) {
+      Map<String, Object> env = (Map<String, Object>) pubspecMap.get(PubspecConstants.ENVIRONMENT);
+      sdkVersion = (String) env.get(PubspecConstants.SDK_VERSION);
     } else {
       sdkVersion = EMPTY_STRING;
     }
 
-    description = (String) ((pubspecMap.get("description") != null) ? pubspecMap.get("description")
-        : EMPTY_STRING);
-    homepage = (String) ((pubspecMap.get("homepage") != null) ? pubspecMap.get("homepage")
-        : EMPTY_STRING);
+    description = (String) ((pubspecMap.get(PubspecConstants.DESCRIPTION) != null)
+        ? pubspecMap.get(PubspecConstants.DESCRIPTION) : EMPTY_STRING);
+    homepage = (String) ((pubspecMap.get(PubspecConstants.HOMEPAGE) != null)
+        ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
     add(
-        processDependencies((Map<String, Object>) pubspecMap.get("dependencies")),
+        processDependencies((Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES)),
         IModelListener.REFRESH);
 
   }
-
 }
