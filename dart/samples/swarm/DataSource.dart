@@ -62,11 +62,12 @@ class Sections extends Collection<Section> {
       initializeFromData(CannedData.data['user.data'], callback);
     } else {
       // TODO(jmesserly): display an error if we fail here! Silent failure bad.
-      new HttpRequest.get('data/user.data',
-          EventBatch.wrap((request) {
-        // TODO(jimhug): Nice response if get error back from server.
-        // TODO(jimhug): Might be more efficient to parse request in sections.
-        initializeFromData(request.responseText, callback);
+      HttpRequest.getString('data/user.data').then(
+          EventBatch.wrap((responseText) {
+            // TODO(jimhug): Nice response if get error back from server.
+            // TODO(jimhug): Might be more efficient to parse request
+            // in sections.
+            initializeFromData(responseText, callback);
       }));
     }
   }
