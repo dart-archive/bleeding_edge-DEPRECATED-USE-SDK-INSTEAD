@@ -21,135 +21,130 @@ import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
+import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 
 public class SimpleIdentifierTest extends ParserTestCase {
-  public void test_inGetterContext_assignmentParent_notPure() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field +=
-    assignmentExpression(identifier, TokenType.PLUS_EQ, null);
-    assertTrue(identifier.inGetterContext());
+  private enum AssignmentKind {
+    BINARY,
+    COMPOUND_LEFT,
+    COMPOUND_RIGHT,
+    POSTFIX_INC,
+    PREFIX_DEC,
+    PREFIX_INC,
+    PREFIX_NOT,
+    SIMPLE_LEFT,
+    SIMPLE_RIGHT,
+    NONE;
   }
 
-  public void test_inGetterContext_assignmentParent_pure() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field =
-    assignmentExpression(identifier, TokenType.EQ, null);
-    assertFalse(identifier.inGetterContext());
+  private enum WrapperKind {
+    PREFIXED_LEFT,
+    PREFIXED_RIGHT,
+    PROPERTY_LEFT,
+    PROPERTY_RIGHT,
+    NONE;
   }
 
-  public void test_inGetterContext_notAssignmentParent() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field +
-    binaryExpression(identifier, TokenType.PLUS, null);
-    assertTrue(identifier.inGetterContext());
+  public void test_inGetterContext() throws Exception {
+    for (WrapperKind wrapper : WrapperKind.values()) {
+      for (AssignmentKind assignment : AssignmentKind.values()) {
+        SimpleIdentifier identifier = createIdentifier(wrapper, assignment);
+        if (assignment == AssignmentKind.SIMPLE_LEFT && wrapper != WrapperKind.PREFIXED_LEFT
+            && wrapper != WrapperKind.PROPERTY_LEFT) {
+          if (identifier.inGetterContext()) {
+            fail("Expected " + topMostNode(identifier).toSource() + " to be false");
+          }
+        } else {
+          if (!identifier.inGetterContext()) {
+            fail("Expected " + topMostNode(identifier).toSource() + " to be true");
+          }
+        }
+      }
+    }
   }
 
-  public void test_inGetterContext_qualifier() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field.
-    identifier(identifier, null);
-    assertTrue(identifier.inGetterContext());
+  public void test_inSetterContext() throws Exception {
+    for (WrapperKind wrapper : WrapperKind.values()) {
+      for (AssignmentKind assignment : AssignmentKind.values()) {
+        SimpleIdentifier identifier = createIdentifier(wrapper, assignment);
+        if (wrapper == WrapperKind.PREFIXED_LEFT || wrapper == WrapperKind.PROPERTY_LEFT
+            || assignment == AssignmentKind.BINARY || assignment == AssignmentKind.COMPOUND_RIGHT
+            || assignment == AssignmentKind.PREFIX_NOT || assignment == AssignmentKind.SIMPLE_RIGHT
+            || assignment == AssignmentKind.NONE) {
+          if (identifier.inSetterContext()) {
+            fail("Expected " + topMostNode(identifier).toSource() + " to be false");
+          }
+        } else {
+          if (!identifier.inSetterContext()) {
+            fail("Expected " + topMostNode(identifier).toSource() + " to be true");
+          }
+        }
+      }
+    }
   }
 
-  public void test_inGetterContext_whenQualified_false() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    PrefixedIdentifier prefixedIdentifier = identifier("myPrefix", identifier);
-    // myPrefix.field +=
-    assignmentExpression(prefixedIdentifier, TokenType.PLUS_EQ, null);
-    assertTrue(identifier.inGetterContext());
+  private SimpleIdentifier createIdentifier(WrapperKind wrapper, AssignmentKind assignment) {
+    SimpleIdentifier identifier = identifier("a");
+    Expression expression = identifier;
+    switch (wrapper) {
+      case PREFIXED_LEFT:
+        expression = identifier(identifier, identifier("_"));
+        break;
+      case PREFIXED_RIGHT:
+        expression = identifier(identifier("_"), identifier);
+        break;
+      case PROPERTY_LEFT:
+        expression = propertyAccess(expression, "_");
+        break;
+      case PROPERTY_RIGHT:
+        expression = propertyAccess(identifier("_"), identifier);
+        break;
+    }
+    switch (assignment) {
+      case BINARY:
+        binaryExpression(expression, TokenType.PLUS, identifier("_"));
+        break;
+      case COMPOUND_LEFT:
+        assignmentExpression(expression, TokenType.PLUS_EQ, identifier("_"));
+        break;
+      case COMPOUND_RIGHT:
+        assignmentExpression(identifier("_"), TokenType.PLUS_EQ, expression);
+        break;
+      case POSTFIX_INC:
+        postfixExpression(expression, TokenType.PLUS_PLUS);
+        break;
+      case PREFIX_DEC:
+        prefixExpression(TokenType.MINUS_MINUS, expression);
+        break;
+      case PREFIX_INC:
+        prefixExpression(TokenType.PLUS_PLUS, expression);
+        break;
+      case PREFIX_NOT:
+        prefixExpression(TokenType.BANG, expression);
+        break;
+      case SIMPLE_LEFT:
+        assignmentExpression(expression, TokenType.EQ, identifier("_"));
+        break;
+      case SIMPLE_RIGHT:
+        assignmentExpression(identifier("_"), TokenType.EQ, expression);
+        break;
+    }
+    return identifier;
   }
 
-  public void test_inGetterContext_whenQualified_true() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    PrefixedIdentifier prefixedIdentifier = identifier("myPrefix", identifier);
-    // myPrefix.field =
-    assignmentExpression(prefixedIdentifier, TokenType.EQ, null);
-    assertFalse(identifier.inGetterContext());
-  }
-
-  public void test_inSetterContext_assignmentParent_leftEq() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field =
-    assignmentExpression(identifier, TokenType.EQ, null);
-    assertTrue(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_assignmentParent_leftPlusEq() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field +=
-    assignmentExpression(identifier, TokenType.PLUS_EQ, null);
-    assertTrue(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_assignmentParent_rightEq() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // = field
-    assignmentExpression(null, TokenType.EQ, identifier);
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_assignmentParent_rightPlusEq() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // += field
-    assignmentExpression(null, TokenType.PLUS_EQ, identifier);
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_notInterestingParent() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    binaryExpression(identifier, null, null);
-    // verify
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_postfixParent() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    postfixExpression(identifier, null);
-    // always
-    assertTrue(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_prefixParent_bang() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // !field
-    prefixExpression(TokenType.BANG, identifier);
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_prefixParent_minusMinus() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // --field
-    prefixExpression(TokenType.MINUS_MINUS, identifier);
-    assertTrue(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_prefixParent_plusPlus() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // ++field
-    prefixExpression(TokenType.PLUS_PLUS, identifier);
-    assertTrue(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_qualifier() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    // field.
-    identifier(identifier, null);
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_whenQualified_prefixParent_bang() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    PrefixedIdentifier prefixedIdentifier = identifier("myPrefix", identifier);
-    // !myPrefix.field
-    prefixExpression(TokenType.BANG, prefixedIdentifier);
-    assertFalse(identifier.inSetterContext());
-  }
-
-  public void test_inSetterContext_whenQualified_prefixParent_plusPlus() throws Exception {
-    SimpleIdentifier identifier = identifier("field");
-    PrefixedIdentifier prefixedIdentifier = identifier("myPrefix", identifier);
-    // ++myPrefix.field
-    prefixExpression(TokenType.PLUS_PLUS, prefixedIdentifier);
-    assertTrue(identifier.inSetterContext());
+  /**
+   * Return the top-most node in the AST structure containing the given identifier.
+   * 
+   * @param identifier the identifier in the AST structure being traversed
+   * @return the root of the AST structure containing the identifier
+   */
+  private ASTNode topMostNode(SimpleIdentifier identifier) {
+    ASTNode child = identifier;
+    ASTNode parent = identifier.getParent();
+    while (parent != null) {
+      child = parent;
+      parent = parent.getParent();
+    }
+    return child;
   }
 }

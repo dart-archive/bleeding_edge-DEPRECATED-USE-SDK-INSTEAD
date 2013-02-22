@@ -794,6 +794,10 @@ public final class ASTFactory {
     return new PrefixExpression(token(operator), expression);
   }
 
+  public static PropertyAccess propertyAccess(Expression target, SimpleIdentifier propertyName) {
+    return new PropertyAccess(target, token(TokenType.PERIOD), propertyName);
+  }
+
   public static PropertyAccess propertyAccess(Expression target, String propertyName) {
     return new PropertyAccess(target, token(TokenType.PERIOD), identifier(propertyName));
   }

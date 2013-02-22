@@ -34,6 +34,8 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
+import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -82,6 +84,8 @@ import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
 import static com.google.dart.engine.ast.ASTFactory.showCombinator;
 import static com.google.dart.engine.ast.ASTFactory.superConstructorInvocation;
+import static com.google.dart.engine.ast.ASTFactory.superExpression;
+import static com.google.dart.engine.ast.ASTFactory.thisExpression;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
@@ -93,6 +97,7 @@ import static com.google.dart.engine.element.ElementFactory.localVariableElement
 import static com.google.dart.engine.element.ElementFactory.methodElement;
 import static com.google.dart.engine.element.ElementFactory.namedParameter;
 import static com.google.dart.engine.element.ElementFactory.prefix;
+import static com.google.dart.engine.element.ElementFactory.setterElement;
 
 import java.lang.reflect.Field;
 
@@ -424,7 +429,7 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitPropertyAccess() throws Exception {
+  public void test_visitPropertyAccess_getter_identifier() throws Exception {
     ClassElementImpl classA = classElement("A");
     String getterName = "b";
     PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
@@ -434,6 +439,33 @@ public class ElementResolverTest extends EngineTestCase {
     PropertyAccess access = propertyAccess(target, getterName);
     resolveNode(access);
     assertSame(getter, access.getPropertyName().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_getter_super() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String getterName = "b";
+    PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {getter});
+    SuperExpression target = superExpression();
+    target.setStaticType(classA.getType());
+    PropertyAccess access = propertyAccess(target, getterName);
+    resolveNode(access);
+    assertSame(getter, access.getPropertyName().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_setter_this() throws Exception {
+    ClassElementImpl classA = classElement("A");
+    String setterName = "b";
+    PropertyAccessorElement setter = setterElement(setterName, false, typeProvider.getIntType());
+    classA.setAccessors(new PropertyAccessorElement[] {setter});
+    ThisExpression target = thisExpression();
+    target.setStaticType(classA.getType());
+    PropertyAccess access = propertyAccess(target, setterName);
+    assignmentExpression(access, TokenType.EQ, integer(0));
+    resolveNode(access);
+    assertSame(setter, access.getPropertyName().getElement());
     listener.assertNoErrors();
   }
 

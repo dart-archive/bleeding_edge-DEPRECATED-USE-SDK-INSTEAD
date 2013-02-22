@@ -87,12 +87,18 @@ public class SimpleIdentifier extends Identifier {
     // skip prefix
     if (parent instanceof PrefixedIdentifier) {
       PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
-      // if this is the prefix, then return true
       if (prefixed.getPrefix() == this) {
         return true;
       }
       parent = prefixed.getParent();
       target = prefixed;
+    } else if (parent instanceof PropertyAccess) {
+      PropertyAccess access = (PropertyAccess) parent;
+      if (access.getTarget() == this) {
+        return true;
+      }
+      parent = access.getParent();
+      target = access;
     }
     // analyze usage
     if (parent instanceof AssignmentExpression) {
@@ -125,6 +131,13 @@ public class SimpleIdentifier extends Identifier {
       }
       parent = prefixed.getParent();
       target = prefixed;
+    } else if (parent instanceof PropertyAccess) {
+      PropertyAccess access = (PropertyAccess) parent;
+      if (access.getTarget() == this) {
+        return false;
+      }
+      parent = access.getParent();
+      target = access;
     }
     // analyze usage
     if (parent instanceof PrefixExpression) {

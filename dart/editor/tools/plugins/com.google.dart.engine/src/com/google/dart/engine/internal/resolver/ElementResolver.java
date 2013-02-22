@@ -515,11 +515,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Then find the property being accessed.
     //
-    PropertyAccessorElement memberElement;
-    if (node.getIdentifier().inGetterContext()) {
-      memberElement = lookUpGetter(variableType, identifier.getName());
-    } else {
+    PropertyAccessorElement memberElement = null;
+    if (node.getIdentifier().inSetterContext()) {
       memberElement = lookUpSetter(variableType, identifier.getName());
+    }
+    if (memberElement == null && node.getIdentifier().inGetterContext()) {
+      memberElement = lookUpGetter(variableType, identifier.getName());
     }
     if (memberElement == null) {
       MethodElement methodElement = lookUpMethod(variableType, identifier.getName(), -1);
@@ -580,10 +581,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     ClassElement targetElement = ((InterfaceType) targetType).getElement();
     SimpleIdentifier identifier = node.getPropertyName();
-    PropertyAccessorElement memberElement;
+    PropertyAccessorElement memberElement = null;
     if (identifier.inSetterContext()) {
       memberElement = lookUpSetter(targetElement, identifier.getName());
-    } else {
+    }
+    if (memberElement == null && identifier.inGetterContext()) {
       memberElement = lookUpGetter(targetElement, identifier.getName());
     }
     if (memberElement == null) {
@@ -644,12 +646,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Otherwise, the node should be resolved.
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
-    if (element == null) {
-      if (node.inGetterContext()) {
-        element = lookUpGetter(resolver.getEnclosingClass(), node.getName());
-      } else {
-        element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
-      }
+    if (element == null && node.inSetterContext()) {
+      element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
+    }
+    if (element == null && node.inGetterContext()) {
+      element = lookUpGetter(resolver.getEnclosingClass(), node.getName());
     }
     if (element == null) {
       element = lookUpMethod(resolver.getEnclosingClass(), node.getName(), -1);
