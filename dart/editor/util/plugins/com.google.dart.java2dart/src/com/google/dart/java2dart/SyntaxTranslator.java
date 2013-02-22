@@ -67,6 +67,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
@@ -161,6 +162,55 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   /**
+   * Replaces "node" with "replacement" in parent of "node".
+   */
+  public static void replaceNode(ASTNode parent, ASTNode node, ASTNode replacement) {
+    Class<? extends ASTNode> parentClass = parent.getClass();
+    // try get/set methods
+    try {
+      for (Method getMethod : parentClass.getMethods()) {
+        String getName = getMethod.getName();
+        if (getName.startsWith("get") && getMethod.getParameterTypes().length == 0
+            && getMethod.invoke(parent) == node) {
+          String setName = "set" + getName.substring(3);
+          Method setMethod = parentClass.getMethod(setName, getMethod.getReturnType());
+          setMethod.invoke(parent, replacement);
+          return;
+        }
+      }
+    } catch (Throwable e) {
+      ExecutionUtils.propagate(e);
+    }
+    // special cases
+    if (parent instanceof ListLiteral) {
+      List<Expression> elements = ((ListLiteral) parent).getElements();
+      int index = elements.indexOf(node);
+      if (index != -1) {
+        elements.set(index, (Expression) replacement);
+        return;
+      }
+    }
+    if (parent instanceof ArgumentList) {
+      List<Expression> arguments = ((ArgumentList) parent).getArguments();
+      int index = arguments.indexOf(node);
+      if (index != -1) {
+        arguments.set(index, (Expression) replacement);
+        return;
+      }
+    }
+    if (parent instanceof TypeArgumentList) {
+      List<TypeName> arguments = ((TypeArgumentList) parent).getArguments();
+      int index = arguments.indexOf(node);
+      if (index != -1) {
+        arguments.set(index, (TypeName) replacement);
+        return;
+      }
+    }
+    // not found
+    throw new UnsupportedOperationException("" + parentClass);
+  }
+
+  /**
    * Translates given Java AST into Dart AST.
    */
   public static CompilationUnit translate(Context context,
@@ -186,6 +236,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     while (node != null) {
       if (node instanceof org.eclipse.jdt.core.dom.TypeDeclaration) {
         return ((org.eclipse.jdt.core.dom.TypeDeclaration) node).resolveBinding();
+      }
+      if (node instanceof org.eclipse.jdt.core.dom.AnonymousClassDeclaration) {
+        return ((org.eclipse.jdt.core.dom.AnonymousClassDeclaration) node).resolveBinding();
       }
       if (node instanceof org.eclipse.jdt.core.dom.EnumDeclaration) {
         return ((org.eclipse.jdt.core.dom.EnumDeclaration) node).resolveBinding();
@@ -436,7 +489,49 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         name = name + "_" + context.generateTechnicalAnonymousClassIndex();
         innerClass = declareInnerClass(binding, anoDeclaration, name, ArrayUtils.EMPTY_STRING_ARRAY);
         typeNameNode = typeName(name);
-        // declare referenced final variables
+        // prepare enclosing type
+        final ITypeBinding enclosingTypeBinding = getEnclosingTypeBinding(node);
+        final SimpleIdentifier enclosingTypeRef;
+        final AtomicBoolean addEnclosingTypeRef = new AtomicBoolean();
+        {
+          if (enclosingTypeBinding != null) {
+            enclosingTypeRef = identifier(enclosingTypeBinding.getName() + "_this");
+            // add enclosing class references
+            innerClass.accept(new RecursiveASTVisitor<Void>() {
+              @Override
+              public Void visitMethodInvocation(MethodInvocation node) {
+                if (node.getTarget() == null) {
+                  IMethodBinding methodBinding = (IMethodBinding) context.getNodeBinding(node);
+                  if (methodBinding.getDeclaringClass() == enclosingTypeBinding) {
+                    addEnclosingTypeRef.set(true);
+                    node.setTarget(enclosingTypeRef);
+                  }
+                }
+                return super.visitMethodInvocation(node);
+              }
+
+              @Override
+              public Void visitSimpleIdentifier(SimpleIdentifier node) {
+                if (!(node.getParent() instanceof PropertyAccess)
+                    && !(node.getParent() instanceof PrefixedIdentifier)) {
+                  Object binding = context.getNodeBinding(node);
+                  if (binding instanceof IVariableBinding) {
+                    IVariableBinding variableBinding = (IVariableBinding) binding;
+                    if (variableBinding.isField()
+                        && variableBinding.getDeclaringClass() == enclosingTypeBinding) {
+                      addEnclosingTypeRef.set(true);
+                      replaceNode(node.getParent(), node, propertyAccess(enclosingTypeRef, node));
+                    }
+                  }
+                }
+                return super.visitSimpleIdentifier(node);
+              }
+            });
+          } else {
+            enclosingTypeRef = null;
+          }
+        }
+        // declare referenced final variables XXX
         final String finalName = name;
         anoDeclaration.accept(new ASTVisitor() {
           final Set<org.eclipse.jdt.core.dom.IVariableBinding> addedParameters = Sets.newHashSet();
@@ -446,7 +541,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           @Override
           public void endVisit(AnonymousClassDeclaration node) {
             if (!constructorParameters.isEmpty()) {
-              // add parameters to the existing "inner" constructor
+              // add parameters to the existing "inner" constructor XXX
               for (ClassMember classMember : innerClass.getMembers()) {
                 if (classMember instanceof ConstructorDeclaration) {
                   ConstructorDeclaration innerConstructor = (ConstructorDeclaration) classMember;
@@ -487,6 +582,23 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               }
             }
             super.endVisit(node);
+          }
+
+          @Override
+          public boolean visit(AnonymousClassDeclaration node) {
+            if (addEnclosingTypeRef.get()) {
+              TypeName parameterTypeName = translateTypeName(enclosingTypeBinding);
+              innerClass.getMembers().add(
+                  index++,
+                  fieldDeclaration(
+                      false,
+                      Keyword.FINAL,
+                      parameterTypeName,
+                      variableDeclaration(enclosingTypeRef)));
+              constructorParameters.add(fieldFormalParameter(null, null, enclosingTypeRef));
+              arguments.add(thisExpression());
+            }
+            return super.visit(node);
           }
         });
       } else {
@@ -1138,7 +1250,8 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
             || locationInParent == org.eclipse.jdt.core.dom.Assignment.RIGHT_HAND_SIDE_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.SwitchCase.EXPRESSION_PROPERTY
             || parent instanceof org.eclipse.jdt.core.dom.InfixExpression
-            || parent instanceof org.eclipse.jdt.core.dom.ConditionalExpression) {
+            || parent instanceof org.eclipse.jdt.core.dom.ConditionalExpression
+            || parent instanceof org.eclipse.jdt.core.dom.ReturnStatement) {
           ITypeBinding declaringBinding = variableBinding.getDeclaringClass();
           ITypeBinding enclosingBinding = getEnclosingTypeBinding(node);
           if (declaringBinding != null && enclosingBinding != declaringBinding
@@ -1670,6 +1783,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       TypeName result = typeName(name);
       context.putNodeTypeBinding(result, binding);
       context.putNodeTypeBinding(result.getName(), binding);
+      putReference(binding, (SimpleIdentifier) result.getName());
       return result;
     }
     throw new IllegalArgumentException("" + binding);

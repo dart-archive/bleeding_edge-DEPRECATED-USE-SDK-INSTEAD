@@ -30,7 +30,6 @@ import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -52,7 +51,8 @@ public class LibraryElementBuilder {
   /**
    * The name of the core library.
    */
-  public static final String CORE_LIBRARY_URI = DartSdk.DART_CORE;
+  // TODO(brianwilkerson) Restore the line below once DartSdk has been made independent of java.io.
+  public static final String CORE_LIBRARY_URI = "dart:core"; // DartSdk.DART_CORE;
 
   /**
    * The name of the function used as an entry point.

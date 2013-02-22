@@ -13,10 +13,14 @@ class TestSource implements Source {
   String get shortName {
     throw new UnsupportedOperationException();
   }
+  bool exists() => true;
   bool isInSystemLibrary() {
     throw new UnsupportedOperationException();
   }
   Source resolve(String uri) {
+    throw new UnsupportedOperationException();
+  }
+  Source resolveRelative(Uri uri) {
     throw new UnsupportedOperationException();
   }
 }

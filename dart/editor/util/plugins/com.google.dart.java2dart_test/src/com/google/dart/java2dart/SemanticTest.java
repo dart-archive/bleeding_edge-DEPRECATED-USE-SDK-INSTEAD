@@ -151,6 +151,60 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_anonymousClass_referenceEnclosingClassField() throws Exception {
+    setFileLines(
+        "test/ErrorListener.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public interface ErrorListener {",
+            "  void onError();",
+            "}"));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  boolean hasErrors;",
+            "  void foo() {};",
+            "  void main() {",
+            "    ErrorListener v = new ErrorListener() {",
+            "      void onError() {",
+            "        foo();",
+            "        hasErrors = true;",
+            "      }",
+            "    };",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "abstract class ErrorListener {",
+            "  void onError();",
+            "}",
+            "class Test {",
+            "  bool hasErrors = false;",
+            "  void foo() {",
+            "  }",
+            "  void main() {",
+            "    ErrorListener v = new ErrorListener_0(this);",
+            "  }",
+            "}",
+            "class ErrorListener_0 implements ErrorListener {",
+            "  final Test Test_this;",
+            "  ErrorListener_0(this.Test_this);",
+            "  void onError() {",
+            "    Test_this.foo();",
+            "    Test_this.hasErrors = true;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_buildSingleDartUnit() throws Exception {
     setFileLines(
         "test/Main.java",
@@ -225,6 +279,47 @@ public class SemanticTest extends AbstractSemanticTest {
             "}",
             "class A_B {",
             "  A_B() {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_classInner_referenceFromAnonymous() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  public class B {",
+            "    void foo() {}",
+            "  }",
+            "  void test(final B p) {",
+            "    return new Object() {",
+            "      void main() {",
+            "        p.foo();",
+            "      }",
+            "    };",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test(A_B p) => new Object_0(p);",
+            "}",
+            "class A_B {",
+            "  void foo() {",
+            "  }",
+            "}",
+            "class Object_0 extends Object {",
+            "  A_B p;",
+            "  Object_0(this.p) : super();",
+            "  void main() {",
+            "    p.foo();",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -1115,6 +1210,9 @@ public class SemanticTest extends AbstractSemanticTest {
             "    myInstanceField = 1 + 2 + 3 + ZERO;",
             "    myStaticField = 3;",
             "  }",
+            "  int main2() {",
+            "    return ZERO;",
+            "  }",
             "}",
             ""));
     Context context = new Context();
@@ -1140,6 +1238,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "    myInstanceField = 1 + 2 + 3 + A.ZERO;",
             "    myStaticField = 3;",
             "  }",
+            "  int main2() => A.ZERO;",
             "}"),
         getFormattedSource(unit));
   }

@@ -180,6 +180,18 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         SimpleIdentifier nameNode = node.getMethodName();
         String name = nameNode.getName();
         NodeList<Expression> args = node.getArgumentList().getArguments();
+        // System -> JavaSystem
+        if (node.getTarget() instanceof SimpleIdentifier) {
+          SimpleIdentifier targetIdentifier = (SimpleIdentifier) node.getTarget();
+          if (targetIdentifier.getName().equals("System")) {
+            targetIdentifier.setToken(token("JavaSystem"));
+          }
+          if (isMethodInClass(node, "getProperty", "java.lang.System")
+              || isMethodInClass(node, "getenv", "java.lang.System")) {
+            targetIdentifier.setToken(token("JavaSystemIO"));
+          }
+        }
+        //
         if (args.isEmpty()) {
           if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
               || isMethodInClass(node, "isEmpty", "java.lang.String")
@@ -330,10 +342,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (isMethodInClass2(node, "append(char)", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, simpleIdentifier("addCharCode"));
+          replaceNode(nameNode, simpleIdentifier("writeCharCode"));
           return null;
         } else if (isMethodInClass(node, "append", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, simpleIdentifier("add"));
+          replaceNode(nameNode, simpleIdentifier("write"));
           return null;
         }
         if (isMethodInClass(node, "length", "java.lang.AbstractStringBuilder")) {

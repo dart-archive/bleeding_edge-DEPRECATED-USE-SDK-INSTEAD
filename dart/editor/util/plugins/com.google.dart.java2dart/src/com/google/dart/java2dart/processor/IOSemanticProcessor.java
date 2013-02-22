@@ -97,6 +97,10 @@ public class IOSemanticProcessor extends SemanticProcessor {
           replaceNode(node, propertyAccess(node.getTarget(), identifier("path")));
           return null;
         }
+        if (isMethodInClass2(node, "isAbsolute()", "java.net.URI")) {
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          return null;
+        }
         if (isMethodInClass2(node, "resolve(java.net.URI)", "java.net.URI")) {
           nameNode.setToken(token("resolveUri"));
           return null;
@@ -137,11 +141,11 @@ public class IOSemanticProcessor extends SemanticProcessor {
         String name = node.getPropertyName().getName();
         if (JavaUtils.isTypeNamed(typeBinding, "java.io.File")) {
           if (name.equals("separator")) {
-            replaceNode(node, propertyAccess(identifier("System"), "pathSeparator"));
+            replaceNode(node, propertyAccess(identifier("JavaSystemIO"), "pathSeparator"));
             return null;
           }
           if (name.equals("separatorChar")) {
-            replaceNode(node, propertyAccess(identifier("System"), "pathSeparatorChar"));
+            replaceNode(node, propertyAccess(identifier("JavaSystemIO"), "pathSeparatorChar"));
             return null;
           }
         }
