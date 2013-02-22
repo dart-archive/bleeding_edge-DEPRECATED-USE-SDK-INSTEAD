@@ -335,6 +335,7 @@
     attribute WebKitCSSTransformValueConstructor WebKitCSSTransformValue;
 
 #if defined(ENABLE_CSS_SHADERS) && ENABLE_CSS_SHADERS
+    attribute WebKitCSSFilterRuleConstructor WebKitCSSFilterRule;
     attribute WebKitCSSMixFunctionValueConstructor WebKitCSSMixFunctionValue;
 #endif
 
@@ -486,6 +487,10 @@
 
     [Conditional=ENCRYPTED_MEDIA, V8EnabledAtRuntime=encryptedMedia] attribute MediaKeyErrorConstructor MediaKeyError;
     [Conditional=ENCRYPTED_MEDIA, V8EnabledAtRuntime=encryptedMedia] attribute MediaKeyEventConstructor MediaKeyEvent;
+    attribute [Conditional=ENCRYPTED_MEDIA_V2, V8EnabledAtRuntime=encryptedMedia] MediaKeysConstructor MediaKeys;
+    attribute [Conditional=ENCRYPTED_MEDIA_V2, V8EnabledAtRuntime=encryptedMedia] MediaKeyErrorConstructor MediaKeyError;
+    attribute [Conditional=ENCRYPTED_MEDIA_V2, V8EnabledAtRuntime=encryptedMedia] MediaKeyMessageEventConstructor MediaKeyMessageEvent;
+    attribute [Conditional=ENCRYPTED_MEDIA_V2, V8EnabledAtRuntime=encryptedMedia] MediaKeyNeededEventConstructor MediaKeyNeededEvent;
 
     [Conditional=VIDEO_TRACK, V8EnabledAtRuntime=webkitVideoTrack] attribute HTMLTrackElementConstructor HTMLTrackElement;
     [Conditional=VIDEO_TRACK, V8EnabledAtRuntime=webkitVideoTrack] attribute TextTrackConstructor TextTrack;
@@ -544,6 +549,7 @@
     attribute CompositionEventConstructor CompositionEvent;
     attribute CustomEventConstructor CustomEvent;
     attribute ErrorEventConstructor ErrorEvent;
+    attribute FocusEventConstructor FocusEvent;
     attribute HashChangeEventConstructor HashChangeEvent;
     attribute KeyboardEventConstructor KeyboardEvent;
     attribute MessageEventConstructor MessageEvent;
