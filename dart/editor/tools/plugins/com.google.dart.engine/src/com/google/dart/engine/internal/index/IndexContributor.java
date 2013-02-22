@@ -305,6 +305,20 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorElement element = node.getElement();
+    // define
+    {
+      Location location;
+      if (node.getName() != null) {
+        int start = node.getPeriod().getOffset();
+        int end = node.getName().getEnd();
+        location = createLocation(start, end - start, null);
+      } else {
+        int start = node.getReturnType().getEnd();
+        location = createLocation(start, 0, null);
+      }
+      recordRelationship(element, IndexConstants.IS_DEFINED_BY, location);
+    }
+    // visit children
     enterScope(element);
     try {
       return super.visitConstructorDeclaration(node);
@@ -332,12 +346,12 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         }
       }
       // TODO(scheglov) use this code after parser fix
-//      if (constructorName.getName() != null) {
-//        int start = constructorName.getPeriod().getOffset();
-//        int end = constructorName.getName().getEnd();
+//      if (node.getName() != null) {
+//        int start = node.getPeriod().getOffset();
+//        int end = node.getName().getEnd();
 //        location = createLocation(start, end - start, null);
 //      } else {
-//        int start = constructorName.getType().getEnd();
+//        int start = node.getType().getEnd();
 //        location = createLocation(start, 0, null);
 //      }
     }

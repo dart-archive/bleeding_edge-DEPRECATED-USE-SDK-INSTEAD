@@ -329,6 +329,33 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         new ExpectedLocation(mainElement, getOffset("v);"), "v"));
   }
 
+  public void test_isDefinedBy_ConstructorElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {}",
+        "  A.foo() {} ",
+        "}",
+        "");
+    // set elements
+    ClassElement classA = getElement("A {");
+    ConstructorElement consA = findNode(ConstructorDeclaration.class, "A()").getElement();
+    ConstructorElement consA_foo = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(relations, consA, IndexConstants.IS_DEFINED_BY, new ExpectedLocation(
+        classA,
+        getOffset("() {}"),
+        ""));
+    assertRecordedRelation(
+        relations,
+        consA_foo,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(classA, getOffset(".foo() {}"), ".foo"));
+  }
+
   public void test_isExtendedBy_ClassDeclaration() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -960,7 +987,6 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     // set elements
     Element mainElement = getElement("main(");
     ParameterElement parameterElement = getElement("p}) {");
-    findSimpleIdentifier("p: 1").setElement(parameterElement);
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1044,16 +1070,14 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     // A()
-    assertRecordedRelation(
-        relations,
-        consA,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(consB, getOffset("(); // marker-1"), ""));
-    assertRecordedRelation(
-        relations,
-        consA,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("(); // marker-main-1"), ""));
+    assertRecordedRelation(relations, consA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
+        consB,
+        getOffset("(); // marker-1"),
+        ""));
+    assertRecordedRelation(relations, consA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
+        mainElement,
+        getOffset("(); // marker-main-1"),
+        ""));
     // A.foo()
     assertRecordedRelation(
         relations,
@@ -1226,8 +1250,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}");
     // set elements
     Element mainElement = getElement("main() {");
-    TopLevelVariableElement fieldElement = getElement("myTopLevelVariable;");
-    PropertyAccessorElement accessorElement = fieldElement.getGetter();
+    TopLevelVariableElement topVarElement = getElement("myTopLevelVariable;");
+    PropertyAccessorElement accessorElement = topVarElement.getGetter();
 //    findSimpleIdentifier("myTopLevelVariable);").setElement(accessorElement);
     // index
     index.visitCompilationUnit(testUnit);

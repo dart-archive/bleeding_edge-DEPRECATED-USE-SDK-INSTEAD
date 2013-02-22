@@ -26,6 +26,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
+import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 
 import java.util.List;
@@ -61,6 +62,15 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   protected final void indexTestUnit(String... lines) throws Exception {
     parseTestUnit(lines);
     index.indexUnit(testUnit);
+  }
+
+  /**
+   * Prints given multi-line source of the result of applying of {@link SourceChange} (casted) to
+   * the {@link #testCode}.
+   */
+  protected final void printRefactoringTestSourceResult(Refactoring refactoring) throws Exception {
+    Change change = refactoring.createChange(pm);
+    printSourceLines(getTestSourceChangeResult(change));
   }
 
   @Override

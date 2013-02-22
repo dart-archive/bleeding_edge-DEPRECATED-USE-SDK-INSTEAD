@@ -49,7 +49,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
-import com.google.dart.engine.index.UniverseElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -199,6 +198,12 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("compilation unit", CorrectionUtils.getElementKindName(element));
   }
 
+  public void test_getElementKindName_ConstructorElement() throws Exception {
+    ConstructorElement element = mock(ConstructorElement.class);
+    when(element.getKind()).thenReturn(ElementKind.CONSTRUCTOR);
+    assertEquals("constructor", CorrectionUtils.getElementKindName(element));
+  }
+
   public void test_getElementKindName_FieldElement() throws Exception {
     FieldElement element = mock(FieldElement.class);
     when(element.getKind()).thenReturn(ElementKind.FIELD);
@@ -233,14 +238,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     TypeVariableElement element = mock(TypeVariableElement.class);
     when(element.getKind()).thenReturn(ElementKind.TYPE_VARIABLE);
     assertEquals("type variable", CorrectionUtils.getElementKindName(element));
-  }
-
-  public void test_getElementKindName_universe() throws Exception {
-    try {
-      CorrectionUtils.getElementKindName(UniverseElement.INSTANCE);
-      fail();
-    } catch (IllegalArgumentException e) {
-    }
   }
 
   public void test_getElementQualifiedName() throws Exception {

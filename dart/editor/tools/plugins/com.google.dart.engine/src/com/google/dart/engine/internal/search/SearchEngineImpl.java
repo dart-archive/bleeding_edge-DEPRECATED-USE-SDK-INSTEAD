@@ -291,7 +291,11 @@ public class SearchEngineImpl implements SearchEngine {
       SearchFilter filter, SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(1, listener);
+    listener = new CountingSearchListener(2, listener);
+    index.getRelationships(
+        constructor,
+        IndexConstants.IS_DEFINED_BY,
+        newCallback(MatchKind.CONSTRUCTOR_DECLARATION, scope, listener));
     index.getRelationships(
         constructor,
         IndexConstants.IS_REFERENCED_BY,
@@ -495,6 +499,10 @@ public class SearchEngineImpl implements SearchEngine {
         parameter,
         IndexConstants.IS_MODIFIED_BY,
         newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
+    index.getRelationships(
+        parameter,
+        IndexConstants.IS_REFERENCED_BY,
+        newCallback(MatchKind.NAMED_PARAMETER_REFERENCE, scope, listener));
   }
 
   @Override

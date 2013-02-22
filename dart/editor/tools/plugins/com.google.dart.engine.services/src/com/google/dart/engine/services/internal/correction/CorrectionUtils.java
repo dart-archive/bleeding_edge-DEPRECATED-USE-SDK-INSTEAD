@@ -159,30 +159,11 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the human name of the {@link Element} kind.
+   * @return the name of the {@link Element} kind.
    */
   public static String getElementKindName(Element element) {
     ElementKind kind = element.getKind();
-    switch (kind) {
-      case CLASS:
-        return "class";
-      case COMPILATION_UNIT:
-        return "compilation unit";
-      case FIELD:
-        return "field";
-      case FUNCTION:
-        return "function";
-      case LOCAL_VARIABLE:
-        return "local variable";
-      case METHOD:
-        return "method";
-      case TYPE_ALIAS:
-        return "function type alias";
-      case TYPE_VARIABLE:
-        return "type variable";
-      default:
-        throw new IllegalArgumentException(kind.name());
-    }
+    return kind.getDisplayName();
   }
 
   /**

@@ -14,12 +14,31 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
 /**
  * Test for {@link RenameConstructorRefactoringImpl}.
  */
 public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplTest {
+  public void test_checkFinalConditions_hasMember_ClassElement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.test() {}",
+        "  A.newName() {} // existing",
+        "}");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.ERROR,
+        "Class 'A' already declares constructor with name 'newName'.",
+        findRangeIdentifier("newName() {} // existing"));
+  }
+
   public void test_checkFinalConditions_hasMember_MethodElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -62,8 +81,6 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
   }
 
   public void test_createChange_changeName() throws Exception {
-    // TODO(scheglov) remove this
-    verifyNoTestUnitErrors = false;
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -78,6 +95,73 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}");
     // configure refactoring
     createRenameRefactoring("test() {} // marker");
+    assertEquals("Rename Constructor", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.newName() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super.newName() {}",
+        "  factory B.named() = A.newName;",
+        "}",
+        "main() {",
+        "  new A.newName();",
+        "}");
+  }
+
+  public void test_createChange_remove() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A.test() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super.test() {}",
+        "  factory B.named() = A.test;",
+        "}",
+        "main() {",
+        "  new A.test();",
+        "}");
+    // configure refactoring
+    createRenameRefactoring("test() {} // marker");
+    assertEquals("Rename Constructor", refactoring.getRefactoringName());
+    refactoring.setNewName("");
+    // validate change
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "  factory B.named() = A;",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+  }
+
+  public void test_createChange_setName() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {} // marker",
+        "}",
+        "class B extends A {",
+        "  B() : super() {}",
+        "  factory B.named() = A;",
+        "}",
+        "main() {",
+        "  new A();",
+        "}");
+    // configure refactoring
+    {
+      ConstructorElement constructor = findTestNode("A() {}", ConstructorDeclaration.class).getElement();
+      createRenameRefactoring(constructor);
+    }
     assertEquals("Rename Constructor", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change

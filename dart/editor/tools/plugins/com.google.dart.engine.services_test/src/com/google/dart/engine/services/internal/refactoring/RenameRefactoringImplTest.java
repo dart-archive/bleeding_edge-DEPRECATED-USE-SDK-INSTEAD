@@ -45,11 +45,18 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
   }
 
   /**
+   * @return the {@link RenameRefactoring} for given {@link Element}.
+   */
+  protected final void createRenameRefactoring(Element element) {
+    refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
+  }
+
+  /**
    * @return the {@link RenameRefactoring} for {@link Element} of the {@link SimpleIdentifier} at
    *         the given search pattern.
    */
   protected final void createRenameRefactoring(String search) {
     Element element = findIdentifierElement(search);
-    refactoring = RefactoringFactory.createRenameRefactoring(searchEngine, element);
+    createRenameRefactoring(element);
   }
 }

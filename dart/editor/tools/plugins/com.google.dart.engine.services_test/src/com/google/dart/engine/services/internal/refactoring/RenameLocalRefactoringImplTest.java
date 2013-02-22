@@ -305,22 +305,28 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
   public void test_createChange_parameter() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main2(int test) {",
+        "myFunction({int test}) {",
         "  test = 1;",
         "  test += 2;",
         "  print(test);",
+        "}",
+        "main() {",
+        "  myFunction(test: 2);",
         "}");
     // configure refactoring
-    createRenameRefactoring("test) {");
+    createRenameRefactoring("test}) {");
     assertEquals("Rename Parameter", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
     assertSuccessfulRename(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main2(int newName) {",
+        "myFunction({int newName}) {",
         "  newName = 1;",
         "  newName += 2;",
         "  print(newName);",
+        "}",
+        "main() {",
+        "  myFunction(newName: 2);",
         "}");
   }
 }

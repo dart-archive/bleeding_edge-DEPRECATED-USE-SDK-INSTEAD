@@ -538,8 +538,8 @@ public interface SearchEngine {
       SearchFilter filter);
 
   /**
-   * Search for all of the type declarations that are defined in the given scope and match the given
-   * pattern.
+   * Search for all of the type declarations (classes, class type aliases and function type aliases)
+   * that are defined in the given scope and match the given pattern.
    * 
    * @param scope the scope containing the type declarations to be searched, may be
    *          <code>null</code> if all declarations should be returned

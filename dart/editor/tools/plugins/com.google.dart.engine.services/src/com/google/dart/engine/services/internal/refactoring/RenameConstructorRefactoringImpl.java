@@ -20,6 +20,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
@@ -71,14 +72,23 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     SourceChange change = new SourceChange(getRefactoringName(), elementSource);
+    String replacement = newName.isEmpty() ? "" : "." + newName;
+    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     // update declaration
     if (!element.isSynthetic()) {
-      change.addEdit("Update declaration", createDeclarationRenameEdit(element));
+      for (SearchMatch reference : references) {
+        if (reference.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
+          Edit edit = new Edit(reference.getSourceRange(), replacement);
+          change.addEdit("Update declaration", edit);
+        }
+      }
     }
     // update references
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
     for (SearchMatch reference : references) {
-      change.addEdit("Update refernece", new Edit(reference.getSourceRange(), "." + newName));
+      if (reference.getKind() == MatchKind.CONSTRUCTOR_REFERENCE) {
+        Edit edit = new Edit(reference.getSourceRange(), replacement);
+        change.addEdit("Update reference", edit);
+      }
     }
     return change;
   }

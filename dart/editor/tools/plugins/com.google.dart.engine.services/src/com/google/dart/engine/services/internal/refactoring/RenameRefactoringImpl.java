@@ -27,6 +27,8 @@ import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.Source;
 
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -95,7 +97,7 @@ public abstract class RenameRefactoringImpl extends RenameRefactoring {
    * @return the {@link Edit} to rename declaration if the given {@link Element}.
    */
   protected Edit createDeclarationRenameEdit(Element element) {
-    return new Edit(element.getNameOffset(), element.getName().length(), newName);
+    return new Edit(rangeElementName(element), newName);
   }
 
   /**

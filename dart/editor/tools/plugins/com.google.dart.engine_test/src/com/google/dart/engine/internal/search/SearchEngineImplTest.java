@@ -339,10 +339,14 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.CONSTRUCTOR);
     {
       Location location = new Location(elementA, 10, 1, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_DEFINED_BY, location);
     }
     {
       Location location = new Location(elementB, 20, 2, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
+    }
+    {
+      Location location = new Location(elementC, 30, 3, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -351,8 +355,9 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.CONSTRUCTOR_REFERENCE, 10, 1),
-        new ExpectedMatch(elementB, MatchKind.CONSTRUCTOR_REFERENCE, 20, 2));
+        new ExpectedMatch(elementA, MatchKind.CONSTRUCTOR_DECLARATION, 10, 1),
+        new ExpectedMatch(elementB, MatchKind.CONSTRUCTOR_REFERENCE, 20, 2),
+        new ExpectedMatch(elementC, MatchKind.CONSTRUCTOR_REFERENCE, 30, 3));
   }
 
   public void test_searchReferences_Element_unknown() throws Exception {
@@ -514,8 +519,12 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);
     }
     {
-      Location location = new Location(elementC, 2, 20, null);
+      Location location = new Location(elementB, 2, 20, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_MODIFIED_BY, location);
+    }
+    {
+      Location location = new Location(elementC, 3, 30, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(ParameterElement.class, referencedElement);
@@ -524,7 +533,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertMatches(
         matches,
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
-        new ExpectedMatch(elementC, MatchKind.VARIABLE_WRITE, 2, 20));
+        new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20),
+        new ExpectedMatch(elementC, MatchKind.NAMED_PARAMETER_REFERENCE, 3, 30));
   }
 
   public void test_searchReferences_String() throws Exception {
