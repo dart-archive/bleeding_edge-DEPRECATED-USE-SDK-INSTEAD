@@ -629,12 +629,12 @@ public class LibraryResolver {
     for (Source source : library.getCompilationUnitSources()) {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       CompilationUnit unit = library.getAST(source);
-      // ErrorVerifier
+
       ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, typeProvider);
       unit.accept(errorVerifier);
-      // ConstantVerifier
-//      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
-//      unit.accept(constantVerifier);
+
+      ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
+      unit.accept(constantVerifier);
     }
   }
 

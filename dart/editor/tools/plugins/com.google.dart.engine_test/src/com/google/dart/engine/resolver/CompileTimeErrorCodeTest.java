@@ -150,16 +150,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constInitializedWithNonConstValue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(p) {",
-        "  const C = p;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
-    verify(source);
-  }
-
   public void fail_constWithNonConst() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {",
@@ -828,16 +818,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstListElement() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(a) {",
-        "  return const [a];",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
-    verify(source);
-  }
-
   public void fail_nonConstMapAsExpressionStatement() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -855,16 +835,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-    verify(source);
-  }
-
-  public void fail_nonConstMapValue() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(a) {",
-        "  return const {'a' : a};",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
     verify(source);
   }
 
@@ -1345,6 +1315,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constInitializedWithNonConstValue() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(p) {",
+        "  const C = p;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+    verify(source);
+  }
+
   public void test_constWithInvalidTypeParameters() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1380,6 +1360,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return new A<A>(); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_nonConstListElement() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(a) {",
+        "  return const [a];",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    verify(source);
+  }
+
+  public void test_nonConstMapValue() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(a) {",
+        "  return const {'a' : a};",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
     verify(source);
   }
 }

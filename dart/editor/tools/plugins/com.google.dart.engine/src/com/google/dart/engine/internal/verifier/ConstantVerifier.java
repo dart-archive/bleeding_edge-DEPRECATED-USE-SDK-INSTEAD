@@ -159,11 +159,15 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    * @param parameters the list of parameters to be validated
    */
   private void validateDefaultValues(FormalParameterList parameters) {
+    if (parameters == null) {
+      return;
+    }
     for (FormalParameter parameter : parameters.getParameters()) {
       if (parameter instanceof DefaultFormalParameter) {
-        validate(
-            ((DefaultFormalParameter) parameter).getDefaultValue(),
-            CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+        Expression defaultValue = ((DefaultFormalParameter) parameter).getDefaultValue();
+        if (defaultValue != null) {
+          validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+        }
       }
     }
   }

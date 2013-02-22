@@ -154,14 +154,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_equalKeysInMap() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "var m = {'a' : 0, 'b' : 1, 'a' : 2};"));
-    resolve(source);
-    assertErrors(StaticWarningCode.EQUAL_KEYS_IN_MAP);
-    verify(source);
-  }
-
   public void fail_fieldInitializerWithInvalidType() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -529,6 +521,14 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS);
+    verify(source);
+  }
+
+  public void test_equalKeysInMap() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "var m = {'a' : 0, 'b' : 1, 'a' : 2};"));
+    resolve(source);
+    assertErrors(StaticWarningCode.EQUAL_KEYS_IN_MAP);
     verify(source);
   }
 
