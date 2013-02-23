@@ -230,27 +230,24 @@ def _PromoteBuild(revision, from_bucket, to_bucket):
   # print the gsutil version
   _Gsutil(['version'])
   
-  src = '%s/%s' % (from_bucket, revision)
-  dest = '%s/%s' % (to_bucket, revision)
-
-  # We make these copies explicit instead of using a -R copy because of
-  # multiple failures when promoting with the -R flag.
+  src = '%s/%s/' % (from_bucket, revision)
+  srcVersion = src + 'VERSION'
   
-  # copy from trunk/REVISION to integration/REVISION
-  print '\n--- copying: %s -> %s ---' % (src, dest)
-  _Gsutil(['cp', '-a', 'public-read', src + '/*', dest])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/*', dest + '/eclipse-update'])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/plugins/*', dest + '/eclipse-update/plugins'])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/features/*', dest +  '/eclipse-update/features'])
+  # copy from continuous/1234 to trunk/1234
+  dest = '%s/%s/' % (to_bucket, revision)  
+  destUpdate = dest + 'eclipse-update/'
+  print 'copying: %s -> %s' % (src, dest)
+  _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'features/'])
+  _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'plugins/'])
+  _Gsutil(['cp', '-r', '-a', 'public-read', src + '*', dest])
 
+  # copy from continuous/1234 to trunk/latest
   dest = '%s/%s/' % (to_bucket, 'latest')
-  
-  # copy from trunk/REVISION to integration/latest
-  print '\n--- copying: %s -> %s ---' % (src, dest)
-  _Gsutil(['cp', '-a', 'public-read', src + '/*', dest])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/*', dest + '/eclipse-update'])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/plugins/*', dest + '/eclipse-update/plugins'])
-  _Gsutil(['cp', '-a', 'public-read', src + '/eclipse-update/features/*', dest +  '/eclipse-update/features'])
+  destUpdate = dest + 'eclipse-update/'
+  print 'copying: %s -> %s' % (src, dest)
+  _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'features/'])
+  _Gsutil(['cp', '-a', 'public-read', srcVersion, destUpdate + 'plugins/'])
+  _Gsutil(['cp', '-r', '-a', 'public-read', src + '*', dest])
 
 
 def _PrintSeparator(text):
