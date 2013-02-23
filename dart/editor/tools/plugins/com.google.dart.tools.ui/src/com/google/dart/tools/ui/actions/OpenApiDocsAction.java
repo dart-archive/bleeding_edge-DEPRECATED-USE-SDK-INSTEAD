@@ -14,16 +14,18 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
  * Opens the API reference.
  */
-public class OpenApiDocsAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+public class OpenApiDocsAction extends InstrumentedAction implements IWorkbenchAction,
     ISelectionChangedListener {
 
   public OpenApiDocsAction() {
@@ -39,14 +41,13 @@ public class OpenApiDocsAction extends AbstractInstrumentedAction implements IWo
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  public void selectionChanged(SelectionChangedEvent event) {
 
-    ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenApiDocsAction_href);
   }
 
   @Override
-  public void selectionChanged(SelectionChangedEvent event) {
+  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
+    ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenApiDocsAction_href);
 
   }
 

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -24,6 +25,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -44,7 +46,7 @@ import java.util.List;
  * default editor to suit our needs.
  */
 @SuppressWarnings("restriction")
-public class OpenResourceAction extends AbstractInstrumentedAction implements IWorkbenchAction {
+public class OpenResourceAction extends InstrumentedAction implements IWorkbenchAction {
 
   public static final String ID = DartToolsPlugin.PLUGIN_ID + ".openResourceAction"; //$NON-NLS-1$
   public static final String ID_ORG_ECLIPSE_UI_OPEN_RESOURCE_ACTION = "org.eclipse.ui.navigate.openResource"; //$NON-NLS-1$
@@ -74,28 +76,43 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
     final List<IFile> files = new ArrayList<IFile>();
 
     // Prompt the user for the resource to open.
     Object[] result = queryFileResource();
 
     if (result != null) {
+      instrumentation.metric("NumberOfResultsFromFileRequest", result.length);
+
       for (int i = 0; i < result.length; i++) {
         if (result[i] instanceof IFile) {
           files.add((IFile) result[i]);
         }
       }
+    } else {
+      instrumentation.metric("NumberOfResultsFromFileRequest", 0);
     }
 
+    instrumentation.metric("NumberOfFiles", files.size());
+
     if (files.size() > 0) {
+      //Log the selected files
+      for (IFile f : files) {
+        instrumentation.data("FileShown", f.getFullPath().toString());
+      }
+
       final IWorkbenchPage page = window.getActivePage();
       if (page == null) {
         MessageDialog.openError(
             window.getShell(),
             ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
+
+        instrumentation.metric(
+            "OpenResourceActionError",
+            ActionMessages.OpenResourceAction_error_title);
+        instrumentation.metric("OpenResourceActionError-Dialog", "Dismissed");
         return;
       }
 
@@ -109,6 +126,7 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
             window.getShell(),
             ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
+        instrumentation.metric("OpenResourceActionError-Dialog", "Dismissed");
         return;
       } catch (final DartModelException e) {
         DartToolsPlugin.log(e);
@@ -116,6 +134,7 @@ public class OpenResourceAction extends AbstractInstrumentedAction implements IW
             window.getShell(),
             ActionMessages.OpenResourceAction_error_title,
             ActionMessages.OpenResourceAction_error_message);
+        instrumentation.metric("OpenResourceActionError-Dialog", "Dismissed");
         return;
       }
     }

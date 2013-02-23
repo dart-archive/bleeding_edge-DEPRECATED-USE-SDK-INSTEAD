@@ -13,16 +13,18 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 
 /**
  * Opens the online guide.
  */
-public class OpenOnlineDocsAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+public class OpenOnlineDocsAction extends InstrumentedAction implements IWorkbenchAction,
     ISelectionChangedListener {
 
   public OpenOnlineDocsAction() {
@@ -38,8 +40,7 @@ public class OpenOnlineDocsAction extends AbstractInstrumentedAction implements 
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
     ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenOnlineDocsAction_href);
   }
 

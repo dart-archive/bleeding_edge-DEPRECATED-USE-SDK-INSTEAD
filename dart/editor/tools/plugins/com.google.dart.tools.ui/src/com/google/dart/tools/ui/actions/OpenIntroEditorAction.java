@@ -13,16 +13,18 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.intro.IntroEditor;
 
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.IDE;
 
 /**
  * Opens {@link IntroEditor}.
  */
-public class OpenIntroEditorAction extends AbstractInstrumentedAction {
+public class OpenIntroEditorAction extends InstrumentedAction {
 
   public OpenIntroEditorAction() {
     super("&Welcome Page");
@@ -31,12 +33,12 @@ public class OpenIntroEditorAction extends AbstractInstrumentedAction {
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
+  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
     try {
       IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.INPUT, IntroEditor.ID);
     } catch (PartInitException e) {
       DartToolsPlugin.log(e);
     }
+
   }
 }
