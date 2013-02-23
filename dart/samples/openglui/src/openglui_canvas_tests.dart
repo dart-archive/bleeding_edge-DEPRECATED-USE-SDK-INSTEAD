@@ -23,8 +23,10 @@ void resize(int w, int h) {
 
 void setup(canvasp, int w, int h) {
   if (canvasp == null) {
+    log("Allocating canvas");
     canvas = new CanvasElement(width: w, height: h);
   } else {
+    log("Using parent canvas");
     canvas = canvasp;
     // called from gl_driver.dart.
     // This is a kludge; we need a clean way of handling events.
@@ -494,9 +496,9 @@ void loadImage() {
   initTest("Image loading");
   var imageObj = new ImageElement();
   imageObj.on.load.add((e) {
-    ctx.drawImage(imageObj, 69, 50);
+    ctx.drawImage(e, 69, 50);
   });
-  imageObj.src = 'http://www.html5canvastutorials.com/demos/assets/darth-vader.bmp';
+  imageObj.src = 'chrome.png';
 }
 
 void clip() {
@@ -605,16 +607,59 @@ void composite() {
   }
 }
 
+class Rectangle {
+  num x, y, width, height, borderWidth;
+}
+
+var startTime = 0;
+var myRectangle = null;
+
+void anim() {
+  if (myRectangle == null) {
+    myRectangle = new Rectangle();
+    myRectangle.x = 250;
+    myRectangle.y = 70;
+    myRectangle.width = 100;
+    myRectangle.height = 50;
+    myRectangle.borderWidth = 5;
+    startTime = (new DateTime.now()).millisecondsSinceEpoch;
+  }
+
+  var now = (new DateTime.now()).millisecondsSinceEpoch;
+  var time = now - startTime;
+  var amplitude = 150;
+
+  // in ms
+  var period = 2000;
+  var centerX = width / 2 - myRectangle.width / 2;
+  var nextX = amplitude * Math.sin(time * 2 * Math.PI / period) + centerX;
+  myRectangle.x = nextX;
+
+  // clear
+  ctx.clearRect(0, 0, width, height);
+
+  // draw
+
+  ctx.beginPath();
+  ctx.rect(myRectangle.x, myRectangle.y, myRectangle.width, myRectangle.height);
+  ctx.fillStyle = '#8ED6FF';
+  ctx.fill();
+  ctx.lineWidth = myRectangle.borderWidth;
+  ctx.strokeStyle = 'black';
+  ctx.stroke();
+}
+
 int testnum = -1; // Start with latest.
 
 void update() {
+  if (testnum == 0) {
+    anim();
+    return;
+  }
   if (!isDirty) return;
   switch(testnum) {
-    case 0:
-      helloWorld();
-      break;
     case 1:
-      smiley();
+      helloWorld();
       break;
     case 2:
       blocks();
@@ -676,9 +721,12 @@ void update() {
     case 21:
       composite();
       break;
+    case 22:
+      smiley();
+      break;
     default:
       if (testnum < 0) {
-        testnum = 21;
+        testnum = 22;
       } else {
         testnum = 0;
       }
@@ -711,9 +759,11 @@ onMotionPointerDown(num when, num x, num y) {
 onMotionPointerUp(num when, num x, num y) {}
 
 onKeyDown(num when, int flags, int keycode, int metastate, int repeat) {
-  ++testnum;
-  isDirty = true;
-  log("Marking dirty");
+  if (keycode == 32) {
+    ++testnum;
+    isDirty = true;
+    log("Marking dirty");
+  }
 }
 
 onKeyUp(num when, int flags, int keycode, int metastate, int repeat) {}

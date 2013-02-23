@@ -16,7 +16,8 @@
             'dependencies': [
               '../../../runtime/dart-runtime.gyp:emulator_embedder',
               'mobile_emulator',
-              'copy_dart_files'
+              'copy_dart_files',
+              'decode_png'
             ]
           }
         ]
@@ -33,6 +34,23 @@
            '../src/openglui_canvas_tests.dart'
         ],
       }],
+    },
+    {
+      'target_name': 'decode_png',
+      'type': 'none',
+      'actions': [
+        {
+          'action_name': 'decode',
+          'inputs': [
+            '../src/chrome.hex'
+          ],
+          'outputs': [
+            '<(PRODUCT_DIR)/chrome.png',
+          ],
+          'action': [ 'xxd', '-r', '../src/chrome.hex',
+                      '<(PRODUCT_DIR)/chrome.png' ]
+        }
+      ]
     },
     {
       'target_name': 'mobile_emulator',
@@ -53,21 +71,22 @@
              'link_settings': {
                'libraries': [
                  '-Wl,--start-group',
-                 '-lskia_effects',
-                 '-lskia_images',
                  '-lskia_core',
+                 '-lskia_effects',
+                 '-lskia_gr',
+                 '-lskia_images',
                  '-lskia_opts',
                  '-lskia_opts_ssse3',
                  '-lskia_ports',
                  '-lskia_sfnt',
-                 '-lskia_utils',
-                 '-lskia_gr',
                  '-lskia_skgr',
+                 '-lskia_utils',
                  '-Wl,--end-group',
                  '-lfreetype',
                  '-lGL',
                  '-lglut',
                  '-lGLU',
+                 '-lpng',
                  '-lm',
                  '-lc' ],
               'ldflags': [

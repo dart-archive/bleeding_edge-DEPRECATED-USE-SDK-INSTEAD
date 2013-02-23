@@ -32,6 +32,11 @@
       </exec>
       <exec executable="xxd">
         <arg value="-r"/>
+        <arg value="../src/chrome.hex"/>
+        <arg value="assets/dart/chrome.png"/>
+      </exec>
+      <exec executable="xxd">
+        <arg value="-r"/>
         <arg value="la_ere_gymnopedie.mp3.hex"/>
         <arg value="assets/music/la_ere_gymnopedie.mp3"/>
       </exec>
