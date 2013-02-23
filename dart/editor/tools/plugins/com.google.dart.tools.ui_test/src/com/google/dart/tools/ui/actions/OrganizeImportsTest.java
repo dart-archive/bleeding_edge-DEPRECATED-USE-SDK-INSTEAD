@@ -15,16 +15,11 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.codemanipulation.OrganizeImportsOperation;
-import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.refactoring.RefactoringTest;
 
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.ui.IWorkbenchSite;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 
 /**
  * Test for {@link OrganizeImportsAction} and {@link OrganizeImportsOperation}.
@@ -36,7 +31,7 @@ public final class OrganizeImportsTest extends RefactoringTest {
     setTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "");
-    doOrganize();
+    doOrganize(testUnit);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "");
@@ -112,23 +107,8 @@ public final class OrganizeImportsTest extends RefactoringTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "");
     // Test.dart is not library, it is part of library, so we ignore request
-    doOrganize();
+    doOrganize(testUnit);
     assertUnitContent(libUnit, libLines);
-  }
-
-  public void test_selectionChanged_empty() throws Exception {
-    action.selectionChanged(new StructuredSelection());
-    assertEquals(false, action.isEnabled());
-  }
-
-  public void test_selectionChanged_single() throws Exception {
-    setTestUnitContent(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "import 'dart:io';",
-        "import 'dart:isolate';",
-        "");
-    action.selectionChanged(new StructuredSelection(testUnit));
-    assertEquals(true, action.isEnabled());
   }
 
   public void test_single() throws Exception {
@@ -141,7 +121,7 @@ public final class OrganizeImportsTest extends RefactoringTest {
         "import 'package:aaa';",
         "import 'dart:isolate';",
         "");
-    doOrganize();
+    doOrganize(testUnit);
     assertTestUnitContent(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:io';",
@@ -156,28 +136,8 @@ public final class OrganizeImportsTest extends RefactoringTest {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    action = new OrganizeImportsAction((IWorkbenchSite) Proxy.newProxyInstance(
-        getClass().getClassLoader(),
-        new Class[] {IWorkbenchSite.class},
-        new InvocationHandler() {
-          @Override
-          public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("getWorkbenchWindow")) {
-              return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            }
-            if (method.getName().equals("getShell")) {
-              return PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-            }
-            return null;
-          }
-        }));
-  }
-
-  private void doOrganize() {
-    ReflectionUtils.invokeMethod(
-        action,
-        "run(com.google.dart.tools.core.model.CompilationUnit)",
-        testUnit);
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    action = new OrganizeImportsAction(window);
   }
 
   private void doOrganize(CompilationUnit... units) {

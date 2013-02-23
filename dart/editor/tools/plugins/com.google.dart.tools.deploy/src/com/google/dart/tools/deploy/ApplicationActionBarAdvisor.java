@@ -29,6 +29,7 @@ import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.OpenTutorialAction;
+import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
@@ -188,6 +189,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private RunPubAction pubInstallAction;
 
   private RunPubAction pubUpdateAction;
+
+  private OrganizeImportsAction organizeImportsAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -503,6 +506,8 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     pubUpdateAction = RunPubAction.createPubUpdateAction(window);
 
     pubPublishAction = RunPubAction.createPubPublishAction(window);
+
+    organizeImportsAction = new OrganizeImportsAction(window);
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 
@@ -865,6 +870,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FIND_EXT));
     menu.add(new Separator());
 
+    menu.add(organizeImportsAction);
     //menu.add(actionFactory.getBookmarkItem());
     //menu.add(actionFactory.getTaskItem());
     //menu.add(new GroupMarker(IWorkbenchActionConstants.ADD_EXT));

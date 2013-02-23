@@ -14,24 +14,16 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.internal.corext.codemanipulation.OrganizeImportsOperation;
-import com.google.dart.tools.internal.corext.refactoring.Checks;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
-import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.actions.MultiOrganizeImportAction;
-import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
-import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
-import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.IWorkbenchWindow;
 
 /**
  * Organizes the import directives in a library compilation unit.
@@ -39,85 +31,27 @@ import org.eclipse.ui.PlatformUI;
  * @coverage dart.editor.ui.code_manipulation
  */
 public class OrganizeImportsAction extends SelectionDispatchAction {
-  private static CompilationUnit getCompilationUnit(CompilationUnitEditor editor) {
-    if (editor != null) {
-      DartElement element = DartUI.getEditorInputDartElement(editor.getEditorInput());
-      if (!(element instanceof CompilationUnit)) {
-        return null;
-      }
-      return (CompilationUnit) element;
-    }
+  public static final String ID = DartToolsPlugin.PLUGIN_ID + ".OrganizeImportsAction"; //$NON-NLS-1$
 
-    return null;
-  }
-
-  private final CompilationUnitEditor editor;
-  private final MultiOrganizeImportAction fCleanUpDelegate;
-
-  public OrganizeImportsAction(CompilationUnitEditor editor) {
-    super(editor.getEditorSite());
+  public OrganizeImportsAction(IWorkbenchWindow window) {
+    super(window);
     setText(ActionMessages.OrganizeImportsAction_label);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
-    this.editor = editor;
-    this.fCleanUpDelegate = null;
-  }
-
-  public OrganizeImportsAction(IWorkbenchSite site) {
-    super(site);
-    setText(ActionMessages.OrganizeImportsAction_label);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(
-        this,
-        DartHelpContextIds.ORGANIZE_IMPORTS_ACTION);
-    this.editor = null;
-    this.fCleanUpDelegate = new MultiOrganizeImportAction(site);
+    setActionDefinitionId("com.google.dart.tools.ui.edit.text.organize.imports");
   }
 
   @Override
   public void run(IStructuredSelection selection) {
-    CompilationUnit[] cus = fCleanUpDelegate.getCompilationUnits(selection);
-    if (cus.length == 0) {
-      MessageDialog.openInformation(
-          getShell(),
-          ActionMessages.OrganizeImportsAction_EmptySelection_title,
-          ActionMessages.OrganizeImportsAction_EmptySelection_description);
-    } else if (cus.length == 1) {
-      run(cus[0]);
-    } else {
-      fCleanUpDelegate.run(selection);
-    }
+    IWorkbenchSite site = getSite();
+    new MultiOrganizeImportAction(site).run(selection);
   }
 
   @Override
   public void run(ITextSelection selection) {
-    CompilationUnit cu = getCompilationUnit(editor);
-    if (cu != null) {
-      run(cu);
+    IWorkbenchSite site = getSite();
+    IEditorPart activeEditor = site.getPage().getActiveEditor();
+    if (activeEditor != null && activeEditor.getEditorInput() instanceof IFileEditorInput) {
+      IFileEditorInput fileInput = (IFileEditorInput) activeEditor.getEditorInput();
+      run(new StructuredSelection(new Object[] {fileInput.getFile()}));
     }
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    fCleanUpDelegate.selectionChanged(selection);
-    setEnabled(fCleanUpDelegate.isEnabled());
-  }
-
-  private void run(final CompilationUnit unit) {
-    ExecutionUtils.runLog(new RunnableEx() {
-      @Override
-      public void run() throws Exception {
-        runEx(unit);
-      }
-    });
-  }
-
-  private void runEx(CompilationUnit unit) throws Exception {
-    if (!Checks.isAvailable(unit)) {
-      return;
-    }
-    OrganizeImportsOperation op = new OrganizeImportsOperation(unit);
-    IRunnableContext context = getSite().getWorkbenchWindow();
-    context.run(false, false, new WorkbenchRunnableAdapter(op, op.getScheduleRule()));
   }
 }

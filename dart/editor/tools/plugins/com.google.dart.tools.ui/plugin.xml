@@ -817,13 +817,6 @@
                 menubarPath="edit/endEdit"
                 id="com.google.dart.tools.ui.actions.Rename">
             </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.organize.imports"
-                label="%OrganizeImportsAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.OrganizeImports">
-            </action>
         </actionSet>
     </extension>
 
@@ -1488,6 +1481,7 @@
             id="org.eclipse.wst.jsdt.ui.edit.text.java.add.import">
       </command-->
       <command
+            defaultHandler="com.google.dart.tools.ui.internal.handlers.OrganizeImportsHandler"
             name="%ActionDefinition.organizeImports.name"
             description="%ActionDefinition.organizeImports.description"
             categoryId="org.eclipse.wst.jsdt.ui.category.source"
@@ -1794,12 +1788,6 @@
             description="%ActionDefinition.refactorQuickMenu.description"
             categoryId="com.google.dart.tools.ui.category.refactoring"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.refactor.quickMenu">
-      </command>
-      <command
-            name="%ActionDefinition.organizeImports.name"
-            description="%ActionDefinition.organizeImports.description"
-            categoryId="com.google.dart.tools.ui.category.refactoring"
-            id="com.google.dart.tools.ui.edit.text.organize.imports">
       </command>
       <command
             name="%ActionDefinition.renameElement.name"
@@ -2705,10 +2693,6 @@
             commandId="org.eclipse.ui.edit.findReplace"
             sequence="M1+F"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration" />
-       <!--key
-            commandId="com.google.dart.tools.ui.edit.text.organize.imports"
-            sequence="M1+M2+O"
-            schemeId="com.google.dart.tools.dartAcceleratorConfiguration" /-->     
       <key
             commandId="org.eclipse.ui.navigate.next"
             sequence="M1+."
