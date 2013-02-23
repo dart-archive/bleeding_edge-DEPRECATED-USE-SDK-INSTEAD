@@ -46,7 +46,7 @@ public final class Instrumentation {
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  private static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
+  public static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
 
     @Override
     public InstrumentationBuilder data(String name, AsyncValue valueGenerator) {
