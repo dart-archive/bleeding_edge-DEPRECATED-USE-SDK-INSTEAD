@@ -11,6 +11,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -279,6 +280,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException {
     return null;
+  }
+
+  @Override
+  public HtmlScanResult scanHtml(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -27,6 +27,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -427,6 +428,43 @@ public class AnalysisContextImpl implements AnalysisContext {
       throws AnalysisException {
     ScanResult result = internalScan(source, errorListener);
     return result.token;
+  }
+
+  @Override
+  public HtmlScanResult scanHtml(final Source source) throws AnalysisException {
+    final HtmlScanResult[] result = new HtmlScanResult[1];
+
+    // TODO (danrubel): Move this in with other HTML constants
+    final String[] SCRIPT_TAG = new String[] {"script"};
+
+    Source.ContentReceiver receiver = new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents) {
+        com.google.dart.engine.html.scanner.CharBufferScanner scanner = new com.google.dart.engine.html.scanner.CharBufferScanner(
+            source,
+            contents);
+        scanner.setPassThroughElements(SCRIPT_TAG);
+        com.google.dart.engine.html.scanner.Token token = scanner.tokenize();
+        result[0] = new HtmlScanResult(token, scanner.getLineStarts());
+      }
+
+      @Override
+      public void accept(String contents) {
+        com.google.dart.engine.html.scanner.StringScanner scanner = new com.google.dart.engine.html.scanner.StringScanner(
+            source,
+            contents);
+        scanner.setPassThroughElements(SCRIPT_TAG);
+        com.google.dart.engine.html.scanner.Token token = scanner.tokenize();
+        result[0] = new HtmlScanResult(token, scanner.getLineStarts());
+      }
+    };
+
+    try {
+      source.getContents(receiver);
+    } catch (Exception exception) {
+      throw new AnalysisException(exception);
+    }
+    return result[0];
   }
 
   @Override

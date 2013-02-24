@@ -20,6 +20,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -232,6 +233,15 @@ public interface AnalysisContext {
    * @throws AnalysisException if the analysis could not be performed
    */
   public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException;
+
+  /**
+   * Scan a single source to produce an HTML token stream.
+   * 
+   * @param source the source to be scanned
+   * @return the scan result (not {@code null})
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public HtmlScanResult scanHtml(Source source) throws AnalysisException;
 
   /**
    * Set the source factory used to create the sources that can be analyzed in this context to the

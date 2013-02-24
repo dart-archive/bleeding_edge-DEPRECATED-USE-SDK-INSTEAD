@@ -23,6 +23,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.FileBasedSource;
@@ -208,6 +209,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     Token token = context.scan(source, listener);
     assertNotNull(token);
+  }
+
+  public void test_scanHtml() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));;
+    sourceFactory.setContents(source, "<!DOCTYPE html><html><body>foo</body></html>");
+    HtmlScanResult result = context.scanHtml(source);
+    assertNotNull(result.getToken());
+    assertNotNull(result.getLineStarts());
   }
 
   public void test_setSourceFactory() {
