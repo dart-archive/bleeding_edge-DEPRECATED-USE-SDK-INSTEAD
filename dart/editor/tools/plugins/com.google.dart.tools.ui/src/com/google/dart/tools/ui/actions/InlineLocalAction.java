@@ -1,6 +1,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
@@ -14,6 +15,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
@@ -21,7 +23,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Inlines the value of a local variable at all places where a read reference is used.
  */
-public class InlineLocalAction extends SelectionDispatchAction {
+public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
 
@@ -38,14 +40,17 @@ public class InlineLocalAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+    instrumentation.metric("Problem", "InlineLocal called on StructuredSelection");
     //do nothing
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(fEditor);
     if (!ActionUtil.isEditable(fEditor)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
     RefactoringExecutionStarter.startInlineTempRefactoring(input, null, selection, getShell());

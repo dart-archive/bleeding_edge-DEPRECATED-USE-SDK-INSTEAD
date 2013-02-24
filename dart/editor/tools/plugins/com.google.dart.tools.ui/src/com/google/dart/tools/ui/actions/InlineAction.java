@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -20,18 +21,17 @@ import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Inlines a method, local variable or a static final field.
  */
-public class InlineAction extends SelectionDispatchAction {
+public class InlineAction extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
   private final InlineLocalAction fInlineTemp;
@@ -61,27 +61,27 @@ public class InlineAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(ISelection selection, Event event, InstrumentationBuilder instrumentation) {
 //    if (fInlineConstant.isEnabled()) {
 //      fInlineConstant.run(selection);
 //    } else
     if (fInlineMethod.isEnabled()) {
-      fInlineMethod.run(selection);
+      fInlineMethod.doRun(selection, event, instrumentation);
     } else {
-      //inline temp will never be enabled on IStructuredSelection
-      //don't bother running it
-      Assert.isTrue(!fInlineTemp.isEnabled());
+      instrumentation.metric("Problem", "InlineMethodAction not enabled");
     }
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     if (!ActionUtil.isEditable(fEditor)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
 
     // TODO(scheglov)
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
+    ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
     if (fInlineTemp.isEnabled() && fInlineTemp.tryInlineTemp(cu, null, selection, getShell())) {
       return;
     }
@@ -114,6 +114,7 @@ public class InlineAction extends SelectionDispatchAction {
 //      return;
 //    }
 
+    instrumentation.metric("Problem", "No valid selection, showing dialog");
     MessageDialog.openInformation(
         getShell(),
         RefactoringMessages.InlineAction_dialog_title,

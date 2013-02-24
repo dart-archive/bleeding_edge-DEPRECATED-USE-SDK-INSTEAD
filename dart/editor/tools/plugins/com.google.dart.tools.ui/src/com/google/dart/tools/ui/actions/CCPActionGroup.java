@@ -47,9 +47,9 @@ import org.eclipse.ui.part.Page;
  */
 public final class CCPActionGroup extends ActionGroup {
 
-  private final SelectionDispatchAction[] actions;
+  private final InstrumentedSelectionDispatchAction[] actions;
 
-  private final SelectionDispatchAction deleteAction;
+  private final InstrumentedSelectionDispatchAction deleteAction;
 //  private final SelectionDispatchAction copyAction;
 //  private final SelectionDispatchAction pasteAction;
 //  private final SelectionDispatchAction cutAction;
@@ -94,7 +94,7 @@ public final class CCPActionGroup extends ActionGroup {
     deleteAction.setActionDefinitionId(IWorkbenchCommandConstants.EDIT_DELETE);
 //    cutAction = new CutAction(site);
 //    cutAction.setActionDefinitionId(IWorkbenchCommandConstants.EDIT_CUT);
-    actions = new SelectionDispatchAction[] {/* cutAction,copyAction, pasteAction, */deleteAction};
+    actions = new InstrumentedSelectionDispatchAction[] {/* cutAction,copyAction, pasteAction, */deleteAction};
 
     registerActionsAsSelectionChangeListeners();
   }
@@ -118,7 +118,7 @@ public final class CCPActionGroup extends ActionGroup {
   public void fillContextMenu(IMenuManager menu) {
     super.fillContextMenu(menu);
     for (int i = 0; i < actions.length; i++) {
-      SelectionDispatchAction action = actions[i];
+      InstrumentedSelectionDispatchAction action = actions[i];
 //      if (action == cutAction && !cutAction.isEnabled()) {
 //        continue;
 //      }
@@ -143,7 +143,7 @@ public final class CCPActionGroup extends ActionGroup {
    */
   private void deregisterActionsAsSelectionChangeListeners() {
     ISelectionProvider provider = selectionProvider;
-    for (SelectionDispatchAction action : actions) {
+    for (InstrumentedSelectionDispatchAction action : actions) {
       provider.removeSelectionChangedListener(action);
     }
   }
@@ -156,7 +156,7 @@ public final class CCPActionGroup extends ActionGroup {
   private void registerActionsAsSelectionChangeListeners() {
     ISelectionProvider provider = selectionProvider;
     ISelection selection = provider.getSelection();
-    for (SelectionDispatchAction action : actions) {
+    for (InstrumentedSelectionDispatchAction action : actions) {
       action.update(selection);
       provider.addSelectionChangedListener(action);
     }

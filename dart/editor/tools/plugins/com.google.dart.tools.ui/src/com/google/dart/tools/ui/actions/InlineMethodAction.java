@@ -1,5 +1,6 @@
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -22,6 +23,7 @@ import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
@@ -29,7 +31,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Inlines a method.
  */
-public class InlineMethodAction extends SelectionDispatchAction {
+public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
 
@@ -46,11 +48,18 @@ public class InlineMethodAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
     try {
       Assert.isTrue(RefactoringAvailabilityTester.isInlineMethodAvailable(selection));
       Method method = (Method) selection.getFirstElement();
       SourceRange nameRange = method.getNameRange();
+      instrumentation.data("MethodsName", method.getElementName());
+      ActionInstrumentationUtilities.recordCompilationUnit(
+          method.getCompilationUnit(),
+          instrumentation);
+
       run(nameRange.getOffset(), nameRange.getLength(), method.getCompilationUnit());
     } catch (DartModelException e) {
       ExceptionHandler.handle(
@@ -62,18 +71,23 @@ public class InlineMethodAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     DartElement element = SelectionConverter.getInput(fEditor);
     if (element == null) {
+      instrumentation.metric("Problem", "Element was null");
       return;
     }
     CompilationUnit unit = element.getAncestor(CompilationUnit.class);
     if (unit == null) {
+      instrumentation.metric("Problem", "CompilationUnit was null");
       return;
     }
     if (!DartElementUtil.isSourceAvailable(unit)) {
+      instrumentation.metric("Problem", "SourceNotAvailable");
       return;
     }
+
+    ActionInstrumentationUtilities.recordCompilationUnit(unit, instrumentation);
     run(selection.getOffset(), selection.getLength(), unit);
   }
 

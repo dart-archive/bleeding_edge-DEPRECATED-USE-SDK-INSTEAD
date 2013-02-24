@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
@@ -31,13 +31,14 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Converts getter into method.
  */
-public class ConvertGetterToMethodAction extends SelectionDispatchAction {
+public class ConvertGetterToMethodAction extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
 
@@ -60,27 +61,29 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
-
-    long start = System.currentTimeMillis();
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
 
     try {
       Object element = selection.getFirstElement();
       if (element instanceof DartFunction) {
         DartFunction function = (DartFunction) element;
-        if (RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(function)) {
-          boolean success = RefactoringExecutionStarter.startConvertGetterToMethodRefactoring(
-              function,
-              getShell());
-          if (success) {
-            long elapsed = System.currentTimeMillis() - start;
-            Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "true").log();
-            Instrumentation.operation("ConvertGetterToMethod", elapsed).with(
-                "function",
-                function.getSource()).log();
-            return;
-          }
+        instrumentation.data("function", function.getSource());
+
+        if (!RefactoringAvailabilityTester.isConvertGetterToMethodAvailable(function)) {
+          instrumentation.metric("Problem", "RefactoringAvailabilityTester Returned false");
         }
+
+        boolean success = RefactoringExecutionStarter.startConvertGetterToMethodRefactoring(
+            function,
+            getShell());
+        if (success) {
+          return;
+        }
+
+        instrumentation.metric(
+            "Problem",
+            "RefactoringExecutionStarter.startConvertGetterToMethodRefactoring returned False");
       }
     } catch (DartModelException e) {
       ExceptionHandler.handle(
@@ -89,44 +92,39 @@ public class ConvertGetterToMethodAction extends SelectionDispatchAction {
           RefactoringMessages.ConvertGetterToMethodAction_dialog_title,
           RefactoringMessages.InlineMethodAction_unexpected_exception);
     }
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "false").log();
-
   }
 
   @Override
-  public void run(ITextSelection selection) {
-
-    long start = System.currentTimeMillis();
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(fEditor)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
 
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
+    ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+
     try {
       DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
+      instrumentation.data("function", function.getSource());
+
       boolean success = RefactoringExecutionStarter.startConvertGetterToMethodRefactoring(
           function,
           getShell());
+
       if (success) {
-
-        long elapsed = System.currentTimeMillis() - start;
-        Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "true").log();
-        Instrumentation.operation("ConvertGetterToMethod", elapsed).with(
-            "function",
-            function.getSource()).log();
-
         return;
       }
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("ConvertGetterToMethod", elapsed).with("Success", "false").log();
+      instrumentation.metric(
+          "Problem",
+          "RefactoringExecutionStarter.startConvertGetterToMethodRefactoring False");
 
     } catch (Throwable e) {
+      ActionInstrumentationUtilities.recordException(e, instrumentation);
     }
 
+    instrumentation.metric("Problem", "No valid selection, showing dialog");
     MessageDialog.openInformation(
         getShell(),
         RefactoringMessages.ConvertGetterToMethodAction_dialog_title,

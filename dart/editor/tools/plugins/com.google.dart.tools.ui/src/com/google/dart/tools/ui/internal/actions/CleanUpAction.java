@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.common.collect.Sets;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -22,8 +23,9 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionSta
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.ActionMessages;
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -43,6 +45,7 @@ import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 
 import java.lang.reflect.InvocationTargetException;
@@ -50,7 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
-public class CleanUpAction extends SelectionDispatchAction {
+public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 
   private static CompilationUnit getCompilationUnit(DartEditor editor) {
     DartElement element = DartUI.getEditorInputDartElement(editor.getEditorInput());
@@ -86,29 +89,6 @@ public class CleanUpAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
-    CompilationUnit[] cus = getCompilationUnits(selection);
-    if (cus.length == 0) {
-      MessageDialog.openInformation(
-          getShell(),
-          getActionName(),
-          ActionMessages.CleanUpAction_EmptySelection_description);
-    } else if (cus.length == 1) {
-      run(cus[0]);
-    } else {
-      runOnMultiple(cus);
-    }
-  }
-
-  @Override
-  public void run(ITextSelection selection) {
-    CompilationUnit cu = getCompilationUnit(editor);
-    if (cu != null) {
-      run(cu);
-    }
-  }
-
-  @Override
   public void selectionChanged(IStructuredSelection selection) {
     setEnabled(isEnabled(selection));
   }
@@ -116,6 +96,50 @@ public class CleanUpAction extends SelectionDispatchAction {
   @Override
   public void selectionChanged(ITextSelection selection) {
     setEnabled(getCompilationUnit(editor) != null);
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+    CompilationUnit[] cus = getCompilationUnits(selection);
+
+    instrumentation.metric("CompilationUnits-Count", cus.length);
+    //before
+    for (CompilationUnit cu : cus) {
+      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    }
+
+    if (cus.length == 0) {
+      instrumentation.metric("Problem", "No compilation Units");
+      MessageDialog.openInformation(
+          getShell(),
+          getActionName(),
+          ActionMessages.CleanUpAction_EmptySelection_description);
+    } else if (cus.length == 1) {
+      run(cus[0], instrumentation);
+    } else {
+      runOnMultiple(cus, instrumentation);
+    }
+
+    //Add marker to make back-end processing of before and after easier
+    instrumentation.metric("CleanUp", "Complete");
+    for (CompilationUnit cu : cus) {
+      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    }
+
+  }
+
+  @Override
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+    CompilationUnit cu = getCompilationUnit(editor);
+    if (cu != null) {
+      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+      run(cu, instrumentation);
+      instrumentation.metric("CleanUp", "Complete");
+      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    } else {
+      instrumentation.metric("Problem", "CompilationUnit was null");
+    }
   }
 
   /**
@@ -248,17 +272,21 @@ public class CleanUpAction extends SelectionDispatchAction {
 //    return false;
   }
 
-  private void run(CompilationUnit cu) {
+  private void run(CompilationUnit cu, InstrumentationBuilder instrumentation) {
+
     if (!ActionUtil.isEditable(editor, getShell(), cu)) {
+      instrumentation.metric("Problem", "CompilationUnit was not editable");
       return;
     }
 
     ICleanUp[] cleanUps = getCleanUps(new CompilationUnit[] {cu});
     if (cleanUps == null) {
+      instrumentation.metric("Problem", "CleanUps was null");
       return;
     }
 
     if (!ElementValidator.check(cu, getShell(), getActionName(), editor != null)) {
+      instrumentation.metric("Problem", "ElementValidator failed");
       return;
     }
 
@@ -272,9 +300,11 @@ public class CleanUpAction extends SelectionDispatchAction {
     }
   }
 
-  private void runOnMultiple(CompilationUnit[] cus) {
+  private void runOnMultiple(CompilationUnit[] cus, InstrumentationBuilder instrumentation) {
+
     ICleanUp[] cleanUps = getCleanUps(cus);
     if (cleanUps == null) {
+      instrumentation.metric("Problem", "CleanUps was null");
       return;
     }
 
@@ -287,14 +317,19 @@ public class CleanUpAction extends SelectionDispatchAction {
       CompilationUnit cu = cus[i];
 
       if (!ActionUtil.isOnBuildPath(cu)) {
+
         String cuLocation = BasicElementLabels.getPathLabel(cu.getPath(), false);
         String message = Messages.format(
             ActionMessages.CleanUpAction_CUNotOnBuildpathMessage,
             cuLocation);
         status.add(new Status(IStatus.INFO, DartUI.ID_PLUGIN, IStatus.ERROR, message, null));
+
+        instrumentation.metric("Problem", "CompilationUnit Not on BuildPath");
+        instrumentation.data("CU-Name", cu.getElementName()).data("CU-Location", cuLocation);
       }
     }
     if (!status.isOK()) {
+      instrumentation.metric("Problem", "Status not OK");
       ErrorDialog.openError(getShell(), getActionName(), null, status);
       return;
     }

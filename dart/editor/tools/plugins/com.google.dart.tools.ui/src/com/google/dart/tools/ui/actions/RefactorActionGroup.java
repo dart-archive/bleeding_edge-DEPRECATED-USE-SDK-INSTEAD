@@ -118,7 +118,7 @@ public class RefactorActionGroup extends ActionGroup {
   private String fGroupName = IContextMenuConstants.GROUP_REORGANIZE;
 
 //  private SelectionDispatchAction fMoveAction;
-  private final SelectionDispatchAction fRenameAction;
+  private final InstrumentedSelectionDispatchAction fRenameAction;
 //  private SelectionDispatchAction fModifyParametersAction;
 //  private SelectionDispatchAction fConvertAnonymousToNestedAction;
 //
@@ -131,13 +131,13 @@ public class RefactorActionGroup extends ActionGroup {
 //  private SelectionDispatchAction fUseSupertypeAction;
 //
 //  private SelectionDispatchAction fInferTypeArgumentsAction;
-  private SelectionDispatchAction fInlineAction;
-  private SelectionDispatchAction fConvertMethodToGetterAction;
-  private SelectionDispatchAction fConvertGetterToMethodAction;
+  private InstrumentedSelectionDispatchAction fInlineAction;
+  private InstrumentedSelectionDispatchAction fConvertMethodToGetterAction;
+  private InstrumentedSelectionDispatchAction fConvertGetterToMethodAction;
 //  //private SelectionDispatchAction fReplaceInvocationsAction;
 //  private SelectionDispatchAction fIntroduceIndirectionAction;
-  private SelectionDispatchAction fExtractMethodAction;
-  private SelectionDispatchAction fExtractLocalAction;
+  private InstrumentedSelectionDispatchAction fExtractMethodAction;
+  private InstrumentedSelectionDispatchAction fExtractLocalAction;
 //  private SelectionDispatchAction fExtractConstantAction;
 //  private SelectionDispatchAction fExtractClassAction;
 //  private SelectionDispatchAction fIntroduceParameterAction;
@@ -149,7 +149,7 @@ public class RefactorActionGroup extends ActionGroup {
 
   private UndoRedoActionGroup fUndoRedoActionGroup;
 
-  private final List<SelectionDispatchAction> fActions = new ArrayList<SelectionDispatchAction>();
+  private final List<InstrumentedSelectionDispatchAction> fActions = new ArrayList<InstrumentedSelectionDispatchAction>();
 
   private static final String QUICK_MENU_ID = "com.google.dart.tools.ui.edit.text.java.refactor.quickMenu"; //$NON-NLS-1$
   private IHandlerActivation fQuickAccessHandlerActivation;
@@ -593,17 +593,17 @@ public class RefactorActionGroup extends ActionGroup {
           textSelection.getOffset(),
           textSelection.getLength());
 
-      for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
+      for (Iterator<InstrumentedSelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
         iter.next().update(dartSelection);
       }
       fillRefactorMenu(menu);
-      for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
+      for (Iterator<InstrumentedSelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
         iter.next().update(textSelection);
       }
 
     } else {
       ISelection selection = fSelectionProvider.getSelection();
-      for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
+      for (Iterator<InstrumentedSelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
         iter.next().update(selection);
       }
       fillRefactorMenu(menu);
@@ -671,7 +671,7 @@ public class RefactorActionGroup extends ActionGroup {
     return DartUI.getEditorInputDartElement(fEditor.getEditorInput());
   }
 
-  private void initAction(SelectionDispatchAction action, ISelection selection,
+  private void initAction(InstrumentedSelectionDispatchAction action, ISelection selection,
       String actionDefinitionId) {
     initUpdatingAction(action, null, null, selection, actionDefinitionId);
   }
@@ -686,8 +686,9 @@ public class RefactorActionGroup extends ActionGroup {
    * @param selection the selection
    * @param actionDefinitionId the action definition id
    */
-  private void initUpdatingAction(SelectionDispatchAction action, ISelectionProvider provider,
-      ISelectionProvider specialProvider, ISelection selection, String actionDefinitionId) {
+  private void initUpdatingAction(InstrumentedSelectionDispatchAction action,
+      ISelectionProvider provider, ISelectionProvider specialProvider, ISelection selection,
+      String actionDefinitionId) {
     action.setActionDefinitionId(actionDefinitionId);
     action.update(selection);
     if (provider != null) {
@@ -731,8 +732,8 @@ public class RefactorActionGroup extends ActionGroup {
 //      }
 //    });
 
-    for (Iterator<SelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
-      SelectionDispatchAction action = iter.next();
+    for (Iterator<InstrumentedSelectionDispatchAction> iter = fActions.iterator(); iter.hasNext();) {
+      InstrumentedSelectionDispatchAction action = iter.next();
       action.update(selection);
     }
 //    refactorSubmenu.removeAll();

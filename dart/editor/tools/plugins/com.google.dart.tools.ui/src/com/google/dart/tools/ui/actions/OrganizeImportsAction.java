@@ -14,12 +14,14 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.actions.MultiOrganizeImportAction;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchSite;
@@ -30,7 +32,7 @@ import org.eclipse.ui.IWorkbenchWindow;
  * 
  * @coverage dart.editor.ui.code_manipulation
  */
-public class OrganizeImportsAction extends SelectionDispatchAction {
+public class OrganizeImportsAction extends InstrumentedSelectionDispatchAction {
   public static final String ID = DartToolsPlugin.PLUGIN_ID + ".OrganizeImportsAction"; //$NON-NLS-1$
 
   public OrganizeImportsAction(IWorkbenchWindow window) {
@@ -40,18 +42,19 @@ public class OrganizeImportsAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
-    new MultiOrganizeImportAction(site).run(selection);
+    new MultiOrganizeImportAction(site).doRun(selection, event, instrumentation);
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
     IEditorPart activeEditor = site.getPage().getActiveEditor();
     if (activeEditor != null && activeEditor.getEditorInput() instanceof IFileEditorInput) {
       IFileEditorInput fileInput = (IFileEditorInput) activeEditor.getEditorInput();
-      run(new StructuredSelection(new Object[] {fileInput.getFile()}));
+      doRun(new StructuredSelection(new Object[] {fileInput.getFile()}), event, instrumentation);
     }
   }
 }

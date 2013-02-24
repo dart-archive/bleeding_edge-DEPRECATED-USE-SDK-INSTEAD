@@ -1,6 +1,6 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -14,13 +14,14 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * Extracts an expression into a new local variable and replaces all occurrences of the expression
  * with the local variable.
  */
-public class ExtractLocalAction extends SelectionDispatchAction {
+public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
 
   private final DartEditor editor;
 
@@ -33,24 +34,25 @@ public class ExtractLocalAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  public void selectionChanged(DartTextSelection selection) {
+    setEnabled(editor != null && editor.isEditable()
+        && RefactoringAvailabilityTester.isExtractLocalAvailable(selection));
+  }
 
-    long start = System.currentTimeMillis();
+  @Override
+  public void selectionChanged(ITextSelection selection) {
+    setEnabled(editor != null && editor.isEditable()
+        && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+  }
+
+  @Override
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(editor)) {
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("ExtractLocal", elapsed).with("Success", "false").with(
-          "Editor-Editable",
-          "false").log();
-      Instrumentation.operation("ExtractLocal", elapsed).with("text", selection.getText()).with(
-          "StartLine",
-          selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
-          "Offset",
-          selection.getOffset()).with("Length", selection.getLength()).log();
-
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
+
     ExtractLocalRefactoring refactoring = new ExtractLocalRefactoring(
         SelectionConverter.getInputAsCompilationUnit(editor),
         selection.getOffset(),
@@ -61,26 +63,5 @@ public class ExtractLocalAction extends SelectionDispatchAction {
         RefactoringMessages.ExtractLocalAction_dialog_title,
         RefactoringSaveHelper.SAVE_ALL);
     // TODO(scheglov) replace with SAVE_NOTHING, when parsing working copy will be fixed by Dan
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("ExtractLocal", elapsed).with("Success", "true").log();
-    Instrumentation.operation("ExtractLocal", elapsed).with("text", selection.getText()).with(
-        "StartLine",
-        selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
-        "Offset",
-        selection.getOffset()).with("Length", selection.getLength()).log();
-
-  }
-
-  @Override
-  public void selectionChanged(DartTextSelection selection) {
-    setEnabled(editor != null && editor.isEditable()
-        && RefactoringAvailabilityTester.isExtractLocalAvailable(selection));
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
-    setEnabled(editor != null && editor.isEditable()
-        && SelectionConverter.getInputAsCompilationUnit(editor) != null);
   }
 }

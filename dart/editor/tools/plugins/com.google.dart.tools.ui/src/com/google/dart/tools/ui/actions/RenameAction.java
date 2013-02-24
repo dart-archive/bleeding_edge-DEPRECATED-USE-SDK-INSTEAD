@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameResourceAction;
@@ -24,6 +24,7 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
@@ -38,7 +39,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class RenameAction extends SelectionDispatchAction {
+public class RenameAction extends InstrumentedSelectionDispatchAction {
 
   private RenameDartElementAction fRenameDartElement;
   private final RenameResourceAction fRenameResource;
@@ -72,47 +73,35 @@ public class RenameAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
-    long start = System.currentTimeMillis();
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
     Boolean renameRan = false;
     if (fRenameDartElement.isEnabled()) {
-      fRenameDartElement.run(selection);
+      fRenameDartElement.doRun(selection, event, instrumentation);
 
       renameRan = true;
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Element").log();
-      Instrumentation.operation("RenameAction", elapsed).with(
-          "element",
-          fRenameDartElement.getText()).log();
+      instrumentation.metric("Rename Ran", "DartElement");
     }
+
     if (fRenameResource != null && fRenameResource.isEnabled()) {
-      fRenameResource.run(selection);
+      fRenameResource.doRun(selection, event, instrumentation);
 
       renameRan = true;
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Resource").log();
-      Instrumentation.operation("RenameAction", elapsed).with("Resource", fRenameResource.getText()).log();
+      instrumentation.metric("Rename Ran", "Resource");
     }
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("RenameAction", elapsed).with("renameRan", String.valueOf(renameRan)).log();
+    if (!renameRan) {
+      instrumentation.metric("Problem", "Rename didn't run");
+    }
   }
 
   @Override
-  public void run(ITextSelection selection) {
-    long start = System.currentTimeMillis();
-
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     if (fRenameDartElement.isEnabled()) {
-      fRenameDartElement.run(selection);
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("RenameAction", elapsed).with("RenameTarget", "Element").log();
-      Instrumentation.operation("RenameAction", elapsed).with(
-          "element",
-          fRenameDartElement.getText()).log();
+      fRenameDartElement.doRun(selection, event, instrumentation);
     } else {
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("RenameAction", elapsed).with("renameRan", "false").log();
+      instrumentation.metric("Problem", "RenameDartElement not enabled");
     }
 
   }

@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -27,6 +27,7 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -34,7 +35,7 @@ import org.eclipse.ui.PlatformUI;
  * arguments, exceptions and returns values are computed and an appropriate method signature is
  * generated.
  */
-public class ExtractMethodAction extends SelectionDispatchAction {
+public class ExtractMethodAction extends InstrumentedSelectionDispatchAction {
 
   private final DartEditor editor;
 
@@ -49,22 +50,10 @@ public class ExtractMethodAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(ITextSelection selection) {
-
-    long start = System.currentTimeMillis();
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(editor)) {
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("ExtractMethod", elapsed).with("Success", "false").with(
-          "Editor-Editable",
-          "false").log();
-      Instrumentation.operation("ExtractMethod", elapsed).with("text", selection.getText()).with(
-          "StartLine",
-          selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
-          "Offset",
-          selection.getOffset()).with("Length", selection.getLength()).log();
-
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
     ExtractMethodRefactoring refactoring = new ExtractMethodRefactoring(
@@ -76,15 +65,6 @@ public class ExtractMethodAction extends SelectionDispatchAction {
         getShell(),
         RefactoringMessages.ExtractMethodAction_dialog_title,
         RefactoringSaveHelper.SAVE_NOTHING);
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("ExtractMethod", elapsed).with("Success", "true").log();
-    Instrumentation.operation("ExtractMethod", elapsed).with("text", selection.getText()).with(
-        "StartLine",
-        selection.getStartLine()).with("EndLine", selection.getEndLine()).with(
-        "Offset",
-        selection.getOffset()).with("Length", selection.getLength()).log();
-
   }
 
   @Override

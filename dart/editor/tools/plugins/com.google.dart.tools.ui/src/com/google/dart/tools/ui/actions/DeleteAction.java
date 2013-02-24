@@ -13,17 +13,18 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 
 /**
  * Standard action for deleting the currently selected resources.
  */
-public final class DeleteAction extends SelectionDispatchAction {
+public final class DeleteAction extends InstrumentedSelectionDispatchAction {
 
   /**
    * The id of this action.
@@ -38,25 +39,15 @@ public final class DeleteAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
-    long start = System.currentTimeMillis();
-
-    createWorkbenchAction(selection).run();
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("Delete", elapsed).log();
-    try {
-      Instrumentation.operation("Delete", elapsed).with(
-          "selection-firstelement",
-          selection.getFirstElement().toString()).log();
-    } catch (Exception e) {
-    }
+  public void selectionChanged(IStructuredSelection selection) {
+    setEnabled(createWorkbenchAction(selection).isEnabled());
     return;
   }
 
   @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(createWorkbenchAction(selection).isEnabled());
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+    createWorkbenchAction(selection).run();
     return;
   }
 

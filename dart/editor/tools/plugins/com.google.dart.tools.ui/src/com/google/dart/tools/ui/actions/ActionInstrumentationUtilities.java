@@ -2,6 +2,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
@@ -37,6 +38,33 @@ public class ActionInstrumentationUtilities {
       instrumentation.metric("CompilationUnit-SourceLength", source.length());
       instrumentation.data("CompilationUnit-Source", source);
     }*/
+  }
+
+  public static void recordElement(DartElement element, InstrumentationBuilder instrumentation) {
+
+    if (element == null) {
+      instrumentation.metric("Element", "null");
+    }
+
+    instrumentation.metric("Element-Class", element.getClass().toString());
+
+    instrumentation.data("Element-Name", element.getElementName());
+
+  }
+
+  /**
+   * Appropriately record the information in an exception Use this method for exceptions that aren't
+   * passed to the Eclipse Exception Handler
+   * 
+   * @param e
+   * @param instrumentation
+   */
+  public static void recordException(Throwable e, InstrumentationBuilder instrumentation) {
+    instrumentation.metric("Problem-Exception Thrown", e.getClass().toString());
+
+    instrumentation.data("Problem-Exception Message", e.getMessage());
+    instrumentation.data("Problem-Exception StackTrace", e.getStackTrace().toString());
+
   }
 
   public static void RecordSelection(DartTextSelection selection,
