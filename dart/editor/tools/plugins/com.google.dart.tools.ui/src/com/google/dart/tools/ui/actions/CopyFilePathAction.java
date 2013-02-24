@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.filesview.FilesView;
 
@@ -27,6 +27,7 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchSite;
 
@@ -36,7 +37,7 @@ import org.eclipse.ui.IWorkbenchSite;
  * 
  * @see FilesView
  */
-public class CopyFilePathAction extends SelectionDispatchAction {
+public class CopyFilePathAction extends InstrumentedSelectionDispatchAction {
 
   private static final String ACTION_ID = "com.google.dart.tools.ui.copyFilePath";
 
@@ -51,26 +52,6 @@ public class CopyFilePathAction extends SelectionDispatchAction {
     setImageDescriptor(DartToolsPlugin.getImageDescriptor("icons/full/elcl16/cpyqual_menu.gif"));
     setId(ACTION_ID);
     setEnabled(false);
-  }
-
-  @Override
-  public void run(IStructuredSelection selection) {
-
-    long start = System.currentTimeMillis();
-
-    if (isEnabled()) {
-      IResource selectedResource = (IResource) (selection.toArray()[0]);
-      String path = selectedResource.getLocation().toOSString();
-      copyToClipboard(path, getSite().getShell());
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("CopyFilePath", elapsed).with("Enabled", "true").log();
-      Instrumentation.operation("CopyFilePath", elapsed).with("text", path).log();
-    } else {
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("CopyFilePath", elapsed).with("Enabled", "false").log();
-    }
   }
 
   /**
@@ -93,6 +74,21 @@ public class CopyFilePathAction extends SelectionDispatchAction {
       }
     }
     setEnabled(false);
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
+    if (!isEnabled()) {
+      instrumentation.metric("Problem", "Not Enabled");
+    }
+
+    IResource selectedResource = (IResource) (selection.toArray()[0]);
+    String path = selectedResource.getLocation().toOSString();
+    copyToClipboard(path, getSite().getShell());
+
+    instrumentation.data("FilePath", path);
   }
 
   private void copyToClipboard(Clipboard clipboard, String str, Shell shell) {
