@@ -13,46 +13,54 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameResourceAction extends SelectionDispatchAction {
+public class RenameResourceAction extends InstrumentedSelectionDispatchAction {
+
+  private static IResource getResource(IStructuredSelection selection) {
+    if (selection.size() != 1) {
+      return null;
+    }
+    Object first = selection.getFirstElement();
+    if (!(first instanceof IResource)) {
+      return null;
+    }
+    return (IResource) first;
+  }
 
   public RenameResourceAction(IWorkbenchSite site) {
     super(site);
   }
 
   @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    IResource element = getResource(selection);
-    if (element == null)
-      setEnabled(false);
-    else
-      setEnabled(RefactoringAvailabilityTester.isRenameAvailable(element));
-  }
-
-  @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
     IResource resource = getResource(selection);
-    if (!RefactoringAvailabilityTester.isRenameAvailable(resource))
+    if (!RefactoringAvailabilityTester.isRenameAvailable(resource)) {
+      instrumentation.metric("Problem", "Rename not available");
       return;
+    }
     RefactoringExecutionStarter.startRenameResourceRefactoring(resource, getShell());
   }
 
-  private static IResource getResource(IStructuredSelection selection) {
-    if (selection.size() != 1)
-      return null;
-    Object first = selection.getFirstElement();
-    if (!(first instanceof IResource))
-      return null;
-    return (IResource) first;
+  @Override
+  public void selectionChanged(IStructuredSelection selection) {
+    IResource element = getResource(selection);
+    if (element == null) {
+      setEnabled(false);
+    } else {
+      setEnabled(RefactoringAvailabilityTester.isRenameAvailable(element));
+    }
   }
 }

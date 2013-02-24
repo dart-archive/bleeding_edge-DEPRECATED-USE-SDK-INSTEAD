@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
@@ -37,14 +39,14 @@ import org.eclipse.swt.graphics.Point;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class RenameRefactoringProposal implements IDartCompletionProposal,
+public class InstrumentedRenameRefactoringProposal implements IDartCompletionProposal,
     ICompletionProposalExtension6, ICommandAccess {
 
   private final String fLabel;
   private final int fRelevance;
   private final DartEditor fEditor;
 
-  public RenameRefactoringProposal(DartEditor editor) {
+  public InstrumentedRenameRefactoringProposal(DartEditor editor) {
     Assert.isNotNull(editor);
     fEditor = editor;
     fLabel = CorrectionMessages.RenameRefactoringProposal_name;
@@ -53,8 +55,24 @@ public class RenameRefactoringProposal implements IDartCompletionProposal,
 
   @Override
   public void apply(IDocument document) {
-    RenameDartElementAction renameAction = new RenameDartElementAction(fEditor);
-    renameAction.doRun();
+    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+
+      RenameDartElementAction renameAction = new RenameDartElementAction(fEditor);
+      renameAction.doRun(null, instrumentation);
+
+      instrumentation.metric("Apply", "Completed");
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    }
+
+    finally {
+      instrumentation.log();
+    }
+
   }
 
   @Override

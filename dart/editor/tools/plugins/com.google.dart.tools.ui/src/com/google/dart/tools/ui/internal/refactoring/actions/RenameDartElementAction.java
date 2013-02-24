@@ -15,13 +15,15 @@ package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
+import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -37,12 +39,13 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction extends SelectionDispatchAction {
+public class RenameDartElementAction extends InstrumentedSelectionDispatchAction {
 
   private static boolean canEnable(IStructuredSelection selection) throws CoreException {
     DartElement element = getDartElement(selection);
@@ -97,10 +100,12 @@ public class RenameDartElementAction extends SelectionDispatchAction {
     return false;
   }
 
-  public void doRun() {
+  @Override
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
     RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
     if (activeLinkedMode != null) {
       if (activeLinkedMode.isCaretInLinkedPosition()) {
+        instrumentation.metric("ActiveLinkedMode", "CaretInLinkedPosition");
         activeLinkedMode.startFullDialog();
         return;
       } else {
@@ -110,6 +115,7 @@ public class RenameDartElementAction extends SelectionDispatchAction {
 
     try {
       DartElement element = getDartElementFromEditor();
+      ActionInstrumentationUtilities.recordElement(element, instrumentation);
       IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
       boolean lightweight = store.getBoolean(PreferenceConstants.REFACTOR_LIGHTWEIGHT);
       if (element != null && RefactoringAvailabilityTester.isRenameElementAvailable(element)) {
@@ -122,6 +128,7 @@ public class RenameDartElementAction extends SelectionDispatchAction {
           RefactoringMessages.RenameDartElementAction_name,
           RefactoringMessages.RenameDartElementAction_exception);
     }
+    instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
     MessageDialog.openInformation(
         getShell(),
         RefactoringMessages.RenameDartElementAction_name,
@@ -129,12 +136,17 @@ public class RenameDartElementAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
     DartElement element = getDartElement(selection);
     if (element == null) {
+      instrumentation.metric("Problem", "Element was null");
       return;
     }
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+
     if (!ActionUtil.isEditable(getShell(), element)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
     try {
@@ -148,13 +160,15 @@ public class RenameDartElementAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     if (!ActionUtil.isEditable(fEditor)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
     if (canRunInEditor()) {
-      doRun();
+      doRun(event, instrumentation);
     } else {
+      instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
       MessageDialog.openInformation(
           getShell(),
           RefactoringMessages.RenameAction_rename,
