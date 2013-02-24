@@ -202,10 +202,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   }
 
   @Override
-  /**
-   * If overriding this method is desired, the class should subclass @see InstrumentedAction instead
-   */
-  protected final void doRun(Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
 
     if (selection instanceof DartTextSelection) {
