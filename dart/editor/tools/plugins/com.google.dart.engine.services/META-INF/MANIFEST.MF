@@ -5,7 +5,8 @@ Bundle-SymbolicName: com.google.dart.engine.services;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Require-Bundle: com.google.dart.engine
+Require-Bundle: com.google.dart.engine,
+ com.google.dart.thirdparty
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Export-Package: com.google.dart.engine.services.assist,
@@ -18,6 +19,4 @@ Export-Package: com.google.dart.engine.services.assist,
  com.google.dart.engine.services.internal.util;x-friends:="com.google.dart.engine.services_test",
  com.google.dart.engine.services.refactoring,
  com.google.dart.engine.services.status
-Bundle-ClassPath: .,
- third_party/guava/r13/guava-13.0.1.jar,
- third_party/commons-lang/3.1/commons-lang3-3.1.jar
+Bundle-ClassPath: .

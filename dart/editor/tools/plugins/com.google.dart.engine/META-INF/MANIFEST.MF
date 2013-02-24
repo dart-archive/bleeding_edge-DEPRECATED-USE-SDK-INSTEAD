@@ -49,6 +49,5 @@ Export-Package: com.google.dart.engine,
  com.google.dart.engine.utilities.logging,
  com.google.dart.engine.utilities.os,
  com.google.dart.engine.utilities.source
-Bundle-ClassPath: .,
- third_party/guava/r13/guava-13.0.1.jar,
- third_party/commons-lang/3.1/commons-lang3-3.1.jar
+Bundle-ClassPath: .
+Require-Bundle: com.google.dart.thirdparty

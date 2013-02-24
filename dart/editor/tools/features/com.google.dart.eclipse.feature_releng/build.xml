@@ -64,6 +64,7 @@
           <fileset dir="${source.dir}/plugins">
               <exclude name="*_test/**" />
               <exclude name="**/bin/**" />
+              <exclude name="com.google.dart.tools.designer/**" />
           </fileset>
     	</copy>
     	
@@ -76,54 +77,27 @@
     	
     	<!-- extra dependencies... -->
     	
-      <property name="source.root" 
-                location="${source.dir}/../.." /> 	
-      <property name="third_party.dir" 
-                location="${source.root}/third_party" />
+      <property name="source.root" location="${source.dir}/../.." /> 	
     	
     	<!-- compiler.js dependencies-->
     	
+      <!-- com.google.dart.compiler.js -->
     	<property name="dart.compiler.js.dir" 
     	          location="${build.dir}/plugins/com.google.dart.compiler.js" />
-    	      
     	<mkdir dir="${dart.compiler.js.dir}/src-compiler" />
     	<copy todir="${dart.compiler.js.dir}/src-compiler">
     	    <fileset dir="${source.root}/compiler/java" />
     	</copy>
     	
-      <mkdir dir="${dart.compiler.js.dir}/third_party" />
-      <copy todir="${dart.compiler.js.dir}/third_party">
-          <fileset dir="${third_party.dir}">
+      <!-- com.google.dart.thirdparty -->
+      <property name="dart.compiler.thirdparty.dir" 
+                location="${build.dir}/plugins/com.google.dart.thirdparty" />        
+      <copy todir="${dart.compiler.thirdparty.dir}/lib">
+          <fileset dir="${source.root}/third_party">
               <include name="args4j/**" />
               <include name="commons-lang/**" />
               <include name="guava/**" />
-              <include name="hamcrest/**" />
               <include name="json/**" />
-          </fileset>
-      </copy>
-    	
-      <!-- dart.engine dependencies -->
-      <property name="dart.engine.dir" 
-                location="${build.dir}/plugins/com.google.dart.engine" />
-      <mkdir dir="${dart.engine.dir}/third_party" />
-      <copy todir="${dart.engine.dir}/third_party">
-          <fileset dir="${third_party.dir}">
-              <include name="args4j/**" />
-              <include name="commons-lang/**" />
-              <include name="guava/**" />
-              <include name="hamcrest/**" />
-              <include name="json/**" />
-          </fileset>
-      </copy>
-
-      <!-- dart.engine.services dependencies -->
-      <property name="dart.engine.services.dir" 
-                location="${build.dir}/plugins/com.google.dart.engine.services" />
-      <mkdir dir="${dart.engine.services.dir}/third_party" />
-      <copy todir="${dart.engine.services.dir}/third_party">
-          <fileset dir="${third_party.dir}">
-              <include name="commons-lang/**" />
-              <include name="guava/**" />
           </fileset>
       </copy>
 

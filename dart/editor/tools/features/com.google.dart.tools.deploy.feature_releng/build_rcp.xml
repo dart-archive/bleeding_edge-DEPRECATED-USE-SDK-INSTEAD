@@ -333,17 +333,30 @@ build system.  The PDE build system has to run under Eclipse.
 
         <copy todir="${build.stage.plugins}">
             <fileset dir="${build.source}/tools/plugins">
-                <exclude name="*_test/**" />
+                <!-- these are for the plugins distribution -->
+                <exclude name="com.google.dart.eclipse.core/**" />
+                <exclude name="com.google.dart.eclipse.ui/**" />
+
+                <!-- excluded to avoid a dependency on org.eclipse.wb -->
+                <exclude name="com.google.dart.tools.designer/**" />
+
+                <!-- no longer used -->
+                <exclude name="com.google.dart.indexer/**" />
+                <exclude name="com.google.dart.indexer_test/**" />
+                
+                <!-- exclude swtbot for now -->
+                <exclude name="com.google.dart.tools.ui.swtbot_test/**" />
+
                 <exclude name="**/bin/**" />
             </fileset>
         </copy>
+
         <copy todir="${build.stage.features}">
             <fileset dir="${build.source}/tools/features">
-                <exclude name="*.debug.*/**" />
                 <exclude name="*.tests.*/**" />
             </fileset>
         </copy>
-        
+
         <replace dir="${build.stage.features}/com.google.dart.tools.deploy.feature">
             <include name="*.html" />
             <include name="*.mappings" />
@@ -380,7 +393,32 @@ build system.  The PDE build system has to run under Eclipse.
             <replacefilter token="0.0.0.qualifier" value="${dart.version}.qualifier" />
         </replace>
 
-        <!-- copy bundled Dart libraries -->
+        <!-- remove Eclipse symlinks -->
+        
+        <!-- com.google.dart.thirdparty -->
+        <property name="dart.thirdparty.dir" 
+                  value="${build.stage.plugins}/com.google.dart.thirdparty" />
+        <copy todir="${dart.thirdparty.dir}/lib">
+            <fileset dir="${build.source.root}/third_party">
+                <include name="args4j/**" />
+                <include name="commons-lang/**" />
+                <include name="guava/**" />
+                <include name="json/**" />
+            </fileset>
+        </copy>
+        
+        <!-- com.google.dart.thirdparty_test -->
+        <property name="dart.thirdparty_test.dir" 
+                  value="${build.stage.plugins}/com.google.dart.thirdparty_test" />
+        <copy todir="${dart.thirdparty_test.dir}/lib">
+            <fileset dir="${build.source.root}/third_party">
+                <include name="fest/**" />
+                <include name="hamcrest/**" />
+                <include name="mockito/**" />
+            </fileset>
+        </copy>
+        
+        <!-- com.google.dart.compiler.js -->
         <property name="dart.compiler.js.dir" 
                   value="${build.stage.plugins}/com.google.dart.compiler.js" />
         <mkdir dir="${dart.compiler.js.dir}/src-compiler" />
@@ -388,40 +426,12 @@ build system.  The PDE build system has to run under Eclipse.
              <fileset dir="${build.source.root}/compiler/java" />
         </copy>
 
-        <mkdir dir="${dart.compiler.js.dir}/third_party" />
-        <copy todir="${dart.compiler.js.dir}/third_party">
-            <fileset dir="${build.source.root}/third_party">
-                <include name="args4j/**" />
-                <include name="commons-lang/**" />
-                <include name="guava/**" />
-                <include name="hamcrest/**" />
-                <include name="json/**" />
-            </fileset>
-        </copy>
-
-        <property name="dart.engine.dir" 
-                  value="${build.stage.plugins}/com.google.dart.engine" />
-
-        <mkdir dir="${dart.engine.dir}/third_party" />
-        <copy todir="${dart.engine.dir}/third_party">
-            <fileset dir="${build.source.root}/third_party">
-                <include name="args4j/**" />
-                <include name="commons-lang/**" />
-                <include name="guava/**" />
-                <include name="hamcrest/**" />
-                <include name="json/**" />
-            </fileset>
-        </copy>
-
-        <!-- dart.engine.services dependencies -->
-        <property name="dart.engine.services.dir" 
-                  location="${build.dir}/plugins/com.google.dart.engine.services" />
-        <mkdir dir="${dart.engine.services.dir}/third_party" />
-        <copy todir="${dart.engine.services.dir}/third_party">
-            <fileset dir="${build.source.root}/third_party">
-                <include name="commons-lang/**" />
-                <include name="guava/**" />
-            </fileset>
+        <!-- com.google.dart.compiler.js_test -->
+        <property name="dart.compiler.js_test.dir" 
+                  value="${build.stage.plugins}/com.google.dart.compiler.js_test" />
+        <mkdir dir="${dart.compiler.js_test.dir}/javatests" />
+        <copy todir="${dart.compiler.js_test.dir}/javatests">
+             <fileset dir="${build.source.root}/compiler/javatests" />
         </copy>
     </target>
 

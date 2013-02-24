@@ -500,7 +500,7 @@ public class DartCompilerUtilities {
    */
   private static final Object compilerLock = new Object();
 
-  private static Map<LibrarySource, LibraryUnit> cachedLibraries = new MapMaker().maximumSize(10).softValues().makeMap();
+  private static Map<LibrarySource, LibraryUnit> cachedLibraries = new MapMaker().softValues().makeMap();
 
   public static DartNode analyzeDelta(LibrarySource library, String sourceString,
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,

@@ -6,30 +6,16 @@ Bundle-SymbolicName: com.google.dart.compiler.js;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Export-Package: com.google.common.base,
- com.google.common.collect,
- com.google.common.io,
- com.google.common.net,
- com.google.common.primitives,
- com.google.common.util.concurrent,
- com.google.dart.compiler,
+Export-Package: com.google.dart.compiler,
  com.google.dart.compiler.ast,
  com.google.dart.compiler.common,
  com.google.dart.compiler.metrics,
  com.google.dart.compiler.parser,
  com.google.dart.compiler.resolver,
+ com.google.dart.compiler.testing,
  com.google.dart.compiler.type,
  com.google.dart.compiler.util,
- com.google.dart.compiler.util.apache,
- org.json,
- org.kohsuke.args4j
+ com.google.dart.compiler.util.apache
 Bundle-ActivationPolicy: lazy
-Bundle-ClassPath: .,
- third_party/args4j/2.0.12/args4j-2.0.12.jar,
- third_party/guava/r09/guava-r09.jar,
- third_party/hamcrest/v1_3/hamcrest-core-1.3.0RC2.jar,
- third_party/hamcrest/v1_3/hamcrest-generator-1.3.0RC2.jar,
- third_party/hamcrest/v1_3/hamcrest-integration-1.3.0RC2.jar,
- third_party/hamcrest/v1_3/hamcrest-library-1.3.0RC2.jar,
- third_party/json/r2_20080312/json.jar,
- third_party/junit/v4_8_2/junit.jar
+Bundle-ClassPath: .
+Require-Bundle: com.google.dart.thirdparty

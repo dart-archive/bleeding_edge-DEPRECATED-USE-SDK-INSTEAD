@@ -8,12 +8,10 @@ Bundle-SymbolicName: com.google.dart.engine_test;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: %providerName
 Require-Bundle: com.google.dart.engine,
+ com.google.dart.thirdparty,
+ com.google.dart.thirdparty_test,
  org.junit
-Bundle-ClassPath: .,
- third_party/guava/r13/guava-13.0.1.jar,
- third_party/mockito/1.9.0/mockito-all-1.9.0.jar,
- third_party/fest/fest-util-1.1.6.jar,
- third_party/fest/fest-assert-1.4.jar
+Bundle-ClassPath: .
 Export-Package: com.google.dart.engine,
  com.google.dart.engine.ast,
  com.google.dart.engine.error,

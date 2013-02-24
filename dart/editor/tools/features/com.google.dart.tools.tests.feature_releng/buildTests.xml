@@ -258,6 +258,12 @@
         <setupDeltaPack location="${build.target}" eclipse="${build.target.eclipse.version}" />
         <copy todir="${build.stage.plugins}">
             <fileset dir="${build.source}/tools/plugins">
+                <!-- the indexer plugin is deprecated -->
+                <exclude name="com.google.dart.indexer_test/**"/>
+
+                <!-- for now, don't copy this over; several of its plugin dependencies are not satisfied -->
+                <exclude name="com.google.dart.tools.ui.swtbot_test/**"/>
+
                 <include name="*_test/**" />
             </fileset>
         </copy>
@@ -266,33 +272,31 @@
                 <include name="com.google.dart.tools.tests.feature*/**" />
             </fileset>
         </copy>
+        
         <property name="com.google.dart.core.tests" 
                   value="${build.stage.plugins}/com.google.dart.tools.core_test" />
 
         <mkdir dir="${com.google.dart.core.tests}/src-compiler-javatests" />
 
-        <!-- get rid of the linked resources -->
-        <mkdir dir="${com.google.dart.core.tests}/third_party" />
-        <copy todir="${com.google.dart.core.tests}/third_party">
+        <!-- com.google.dart.thirdparty_test -->
+        <property name="dart.thirdparty_test.dir" 
+                  value="${build.stage.plugins}/com.google.dart.thirdparty_test" />
+        <copy todir="${dart.thirdparty_test.dir}/lib">
             <fileset dir="${build.source.root}/third_party">
-                <include name="guava/**" />
                 <include name="fest/**" />
+                <include name="hamcrest/**" />
                 <include name="mockito/**" />
             </fileset>
         </copy>
-
-        <!-- get rid of the linked resources -->
-        <property name="com.google.dart.core.tests2"
-            value="${build.stage.plugins}/com.google.dart.engine_test" />
-        <mkdir dir="${com.google.dart.core.tests2}/third_party" />
-        <copy todir="${com.google.dart.core.tests2}/third_party">
-            <fileset dir="${build.source.root}/third_party">
-                <include name="guava/**" />
-                <include name="fest/**" />
-                <include name="mockito/**" />
-            </fileset>
+        
+        <!-- com.google.dart.compiler.js_test -->
+        <property name="dart.compiler.js_test.dir" 
+                  value="${build.stage.plugins}/com.google.dart.compiler.js_test" />
+        <mkdir dir="${dart.compiler.js_test.dir}/javatests" />
+        <copy todir="${dart.compiler.js_test.dir}/javatests">
+             <fileset dir="${build.source.root}/compiler/javatests" />
         </copy>
-
+        
         <!-- deploy the plugins and features to the dropins directory -->
         <unzip dest="${build.target.dropins}" src="${build.out}/dart-editor-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>
