@@ -13,72 +13,84 @@
  */
 package com.google.dart.engine.html.scanner;
 
+import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
+import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
+import static com.google.dart.engine.html.scanner.TokenType.EOF;
+import static com.google.dart.engine.html.scanner.TokenType.EQ;
+import static com.google.dart.engine.html.scanner.TokenType.GT;
+import static com.google.dart.engine.html.scanner.TokenType.LT;
+import static com.google.dart.engine.html.scanner.TokenType.LT_SLASH;
+import static com.google.dart.engine.html.scanner.TokenType.SLASH_GT;
+import static com.google.dart.engine.html.scanner.TokenType.STRING;
+import static com.google.dart.engine.html.scanner.TokenType.TAG;
+import static com.google.dart.engine.html.scanner.TokenType.TEXT;
+
 import junit.framework.TestCase;
 
 public abstract class AbstractScannerTest extends TestCase {
 
   public void test_tokenize_attribute() {
-    tokenize("<html bob=\"one two\">", new String[] {"<", "html", "bob", "=", "\"one two\"", ">"});
+    tokenize("<html bob=\"one two\">", new Object[] {LT, "html", "bob", EQ, "\"one two\"", GT});
   }
 
   public void test_tokenize_comment() {
-    tokenize("<!-- foo -->", new String[] {"<!-- foo -->"});
+    tokenize("<!-- foo -->", new Object[] {"<!-- foo -->"});
   }
 
   public void test_tokenize_comment_incomplete() {
-    tokenize("<!-- foo", new String[] {"<!-- foo"});
+    tokenize("<!-- foo", new Object[] {"<!-- foo"});
   }
 
   public void test_tokenize_comment_with_gt() {
-    tokenize("<!-- foo > -> -->", new String[] {"<!-- foo > -> -->"});
+    tokenize("<!-- foo > -> -->", new Object[] {"<!-- foo > -> -->"});
   }
 
   public void test_tokenize_directive() {
-    tokenize("<! foo >", new String[] {"<! foo >"});
+    tokenize("<! foo >", new Object[] {"<! foo >"});
   }
 
   public void test_tokenize_directive_incomplete() {
-    tokenize("<? \nfoo", new String[] {"<? \nfoo"}, new int[] {0, 4});
+    tokenize("<? \nfoo", new Object[] {"<? \nfoo"}, new int[] {0, 4});
   }
 
   public void test_tokenize_directive_xml() {
     tokenize(
         "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>",
-        new String[] {"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"});
+        new Object[] {"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>"});
   }
 
   public void test_tokenize_directives_incomplete_with_newline() {
-    tokenize("<! \nfoo", new String[] {"<! \nfoo"}, new int[] {0, 4});
+    tokenize("<! \nfoo", new Object[] {"<! \nfoo"}, new int[] {0, 4});
   }
 
   public void test_tokenize_empty() {
-    tokenize("", new String[] {});
+    tokenize("", new Object[] {});
   }
 
   public void test_tokenize_lt() {
-    tokenize("<", new String[] {"<"});
+    tokenize("<", new Object[] {LT});
   }
 
   public void test_tokenize_script_partial() throws Exception {
-    tokenize("<script> <p> ", new String[] {"<", "script", ">", " <p> "});
+    tokenize("<script> <p> ", new Object[] {LT, "script", GT, " <p> "});
   }
 
   public void test_tokenize_script_ref() throws Exception {
-    tokenize("<script source='some.dart'/> <p>", new String[] {
-        "<", "script", "source", "=", "'some.dart'", "/>", " ", "<", "p", ">"});
+    tokenize("<script source='some.dart'/> <p>", new Object[] {
+        LT, "script", "source", EQ, "'some.dart'", SLASH_GT, " ", LT, "p", GT});
   }
 
   public void test_tokenize_script_with_newline() throws Exception {
-    tokenize("<script> <p>\n </script>", new String[] {
-        "<", "script", ">", " <p>\n ", "</", "script", ">"}, new int[] {0, 13});
+    tokenize("<script> <p>\n </script>", new Object[] {
+        LT, "script", GT, " <p>\n ", LT_SLASH, "script", GT}, new int[] {0, 13});
   }
 
   public void test_tokenize_spaces_and_newlines() {
     Token token = tokenize(
         " < html \n bob = 'joe\n' >\n <\np > one \r\n two <!-- \rfoo --> </ p > </ html > ",
-        new String[] {
-            " ", "<", "html", "bob", "=", "'joe\n'", ">", "\n ", "<", "p", ">", " one \r\n two ",
-            "<!-- \rfoo -->", " ", "</", "p", ">", " ", "</", "html", ">", " "},
+        new Object[] {
+            " ", LT, "html", "bob", EQ, "'joe\n'", GT, "\n ", LT, "p", GT, " one \r\n two ",
+            "<!-- \rfoo -->", " ", LT_SLASH, "p", GT, " ", LT_SLASH, "html", GT, " "},
         new int[] {0, 9, 21, 25, 28, 38, 49});
     token = token.getNext();
     assertEquals(1, token.getOffset());
@@ -89,51 +101,96 @@ public abstract class AbstractScannerTest extends TestCase {
   }
 
   public void test_tokenize_string() {
-    tokenize("<p bob=\"foo\">", new String[] {"<", "p", "bob", "=", "\"foo\"", ">"});
+    tokenize("<p bob=\"foo\">", new Object[] {LT, "p", "bob", EQ, "\"foo\"", GT});
   }
 
   public void test_tokenize_string_partial() {
-    tokenize("<p bob=\"foo", new String[] {"<", "p", "bob", "=", "\"foo"});
+    tokenize("<p bob=\"foo", new Object[] {LT, "p", "bob", EQ, "\"foo"});
   }
 
   public void test_tokenize_string_single_quote() {
-    tokenize("<p bob='foo'>", new String[] {"<", "p", "bob", "=", "'foo'", ">"});
+    tokenize("<p bob='foo'>", new Object[] {LT, "p", "bob", EQ, "'foo'", GT});
   }
 
   public void test_tokenize_string_single_quote_partial() {
-    tokenize("<p bob='foo", new String[] {"<", "p", "bob", "=", "'foo"});
+    tokenize("<p bob='foo", new Object[] {LT, "p", "bob", EQ, "'foo"});
   }
 
   public void test_tokenize_tag_begin_end() {
-    tokenize("<html></html>", new String[] {"<", "html", ">", "</", "html", ">"});
+    tokenize("<html></html>", new Object[] {LT, "html", GT, LT_SLASH, "html", GT});
   }
 
   public void test_tokenize_tag_begin_only() {
-    Token token = tokenize("<html>", new String[] {"<", "html", ">"});
+    Token token = tokenize("<html>", new Object[] {LT, "html", GT});
     token = token.getNext();
     assertEquals(1, token.getOffset());
   }
 
   public void test_tokenize_tag_incomplete_with_special_characters() {
-    tokenize("<br-a_b", new String[] {"<", "br-a_b"});
+    tokenize("<br-a_b", new Object[] {LT, "br-a_b"});
   }
 
   public void test_tokenize_tag_self_contained() {
-    tokenize("<br/>", new String[] {"<", "br", "/>"});
+    tokenize("<br/>", new Object[] {LT, "br", SLASH_GT});
   }
 
   public void test_tokenize_tags_wellformed() {
-    tokenize("<html><p>one two</p></html>", new String[] {
-        "<", "html", ">", "<", "p", ">", "one two", "</", "p", ">", "</", "html", ">"});
+    tokenize("<html><p>one two</p></html>", new Object[] {
+        LT, "html", GT, LT, "p", GT, "one two", LT_SLASH, "p", GT, LT_SLASH, "html", GT});
   }
 
   protected abstract AbstractScanner newScanner(String input);
 
-  private Token tokenize(String input, String[] expectedTokens) {
+  /**
+   * Given an object representing an expected token, answer the expected token type.
+   * 
+   * @param count the token count for error reporting
+   * @param expected the object representing an expected token
+   * @return the expected token type
+   */
+  private TokenType getExpectedTokenType(int count, Object expected) {
+    if (expected instanceof TokenType) {
+      return (TokenType) expected;
+    }
+    if (expected instanceof String) {
+      String lexeme = (String) expected;
+      if (lexeme.startsWith("\"") || lexeme.startsWith("'")) {
+        return STRING;
+      }
+      if (lexeme.startsWith("<!--")) {
+        return COMMENT;
+      }
+      if (lexeme.startsWith("<!") || lexeme.startsWith("<?")) {
+        return DIRECTIVE;
+      }
+      if (isTag(lexeme)) {
+        return TAG;
+      }
+      return TEXT;
+    }
+    fail("Unknown expected token " + count + ": "
+        + (expected != null ? expected.getClass() : "null"));
+    return null;
+  }
+
+  private boolean isTag(String lexeme) {
+    if (lexeme.length() == 0 || !Character.isLetter(lexeme.charAt(0))) {
+      return false;
+    }
+    for (int index = 1; index < lexeme.length(); index++) {
+      char ch = lexeme.charAt(index);
+      if (!Character.isLetterOrDigit(ch) && ch != '-' && ch != '_') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private Token tokenize(String input, Object[] expectedTokens) {
     return tokenize(input, expectedTokens, new int[] {0});
   }
 
-  private Token tokenize(String input, String[] expectedTokens, int[] expectedLineStarts) {
+  private Token tokenize(String input, Object[] expectedTokens, int[] expectedLineStarts) {
     AbstractScanner scanner = newScanner(input);
     scanner.setPassThroughElements(new String[] {"script", "</"});
 
@@ -142,17 +199,25 @@ public abstract class AbstractScannerTest extends TestCase {
     Token token = firstToken;
 
     Token previousToken = token.getPrevious();
-    assertTrue(previousToken.isEof());
+    assertTrue(previousToken.getType() == EOF);
     assertSame(previousToken, previousToken.getPrevious());
     assertEquals(-1, previousToken.getOffset());
     assertSame(token, previousToken.getNext());
 
     assertEquals(0, token.getOffset());
-    while (!token.isEof()) {
+    while (token.getType() != EOF) {
       if (count == expectedTokens.length) {
         fail("too many parsed tokens");
       }
-      assertEquals("token " + count, expectedTokens[count], token.getLexeme());
+
+      Object expected = expectedTokens[count];
+      TokenType expectedTokenType = getExpectedTokenType(count, expected);
+      assertSame("token " + count, expectedTokenType, token.getType());
+      if (expectedTokenType.getLexeme() != null) {
+        assertSame("token " + count, expectedTokenType.getLexeme(), token.getLexeme());
+      } else {
+        assertEquals("token " + count, expected, token.getLexeme());
+      }
       count++;
 
       previousToken = token;

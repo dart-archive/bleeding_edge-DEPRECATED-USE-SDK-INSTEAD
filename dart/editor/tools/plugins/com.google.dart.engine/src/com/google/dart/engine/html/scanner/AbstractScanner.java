@@ -17,6 +17,18 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 
+import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
+import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
+import static com.google.dart.engine.html.scanner.TokenType.EOF;
+import static com.google.dart.engine.html.scanner.TokenType.EQ;
+import static com.google.dart.engine.html.scanner.TokenType.GT;
+import static com.google.dart.engine.html.scanner.TokenType.LT;
+import static com.google.dart.engine.html.scanner.TokenType.LT_SLASH;
+import static com.google.dart.engine.html.scanner.TokenType.SLASH_GT;
+import static com.google.dart.engine.html.scanner.TokenType.STRING;
+import static com.google.dart.engine.html.scanner.TokenType.TAG;
+import static com.google.dart.engine.html.scanner.TokenType.TEXT;
+
 /**
  * The abstract class {@code AbstractScanner} implements a scanner for HTML code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
@@ -54,7 +66,7 @@ public abstract class AbstractScanner {
    */
   public AbstractScanner(Source source) {
     this.source = source;
-    tokens = new Token("", -1);
+    tokens = new Token(EOF, -1);
     tokens.setNext(tokens);
     tail = tokens;
     recordStartOfLine();
@@ -142,17 +154,24 @@ public abstract class AbstractScanner {
   }
 
   private void appendEofToken() {
-    Token eofToken = new Token("", getOffset());
+    Token eofToken = new Token(EOF, getOffset());
     // The EOF token points to itself so that there is always infinite look-ahead.
     eofToken.setNext(eofToken);
     tail = tail.setNext(eofToken);
   }
 
-  private Token emit(int start, int count) {
-    Token token = new Token(getString(start, count), start);
+  private Token emit(Token token) {
     tail.setNext(token);
     tail = token;
     return token;
+  }
+
+  private Token emit(TokenType type, int start) {
+    return emit(new Token(type, start));
+  }
+
+  private Token emit(TokenType type, int start, int count) {
+    return emit(new Token(type, getString(start, count), start));
   }
 
   private Token firstToken() {
@@ -206,7 +225,7 @@ public abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit(start, -1);
+            emit(COMMENT, start, -1);
             // Capture <!--> and <!---> as tokens but report an error
             if (tail.getLength() < 7) {
               // TODO (danrubel): Report invalid HTML comment
@@ -221,7 +240,7 @@ public abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit(start, -1);
+            emit(DIRECTIVE, start, -1);
             if (!tail.getLexeme().endsWith(">")) {
               // TODO (danrubel): Report missing '>' in directive
             }
@@ -240,19 +259,19 @@ public abstract class AbstractScanner {
               c = recordStartOfLineAndAdvance(c);
             }
           }
-          emit(start, -1);
+          emit(DIRECTIVE, start, -1);
           if (tail.getLength() < 4) {
             // TODO (danrubel): Report invalid directive
           }
 
         } else if (c == '/') {
-          emit(start, 0);
+          emit(LT_SLASH, start);
           inBrackets = true;
           c = advance();
 
         } else {
           inBrackets = true;
-          emit(start, -1);
+          emit(LT, start);
           // ignore whitespace in braces
           while (Character.isWhitespace(c)) {
             c = recordStartOfLineAndAdvance(c);
@@ -264,7 +283,7 @@ public abstract class AbstractScanner {
             while (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
               c = advance();
             }
-            emit(tagStart, -1);
+            emit(TAG, tagStart, -1);
             // check tag against passThrough elements
             String tag = tail.getLexeme();
             for (String str : passThroughElements) {
@@ -278,7 +297,7 @@ public abstract class AbstractScanner {
         }
 
       } else if (c == '>') {
-        emit(start, 0);
+        emit(GT, start);
         inBrackets = false;
         c = advance();
 
@@ -288,14 +307,14 @@ public abstract class AbstractScanner {
             c = recordStartOfLineAndAdvance(c);
           }
           if (start + 1 < getOffset()) {
-            emit(start + 1, -1);
+            emit(TEXT, start + 1, -1);
           }
           passThrough = false;
         }
 
       } else if (c == '/' && peek() == '>') {
         advance();
-        emit(start, 0);
+        emit(SLASH_GT, start);
         inBrackets = false;
         c = advance();
 
@@ -304,7 +323,7 @@ public abstract class AbstractScanner {
         while (c != '<' && c >= 0) {
           c = recordStartOfLineAndAdvance(c);
         }
-        emit(start, -1);
+        emit(TEXT, start, -1);
 
       } else if (c == '"' || c == '\'') {
         // read a string
@@ -317,7 +336,12 @@ public abstract class AbstractScanner {
           }
           c = recordStartOfLineAndAdvance(c);
         }
-        emit(start, -1);
+        emit(STRING, start, -1);
+
+      } else if (c == '=') {
+        // a non-char token
+        emit(EQ, start);
+        c = advance();
 
       } else if (Character.isWhitespace(c)) {
         // ignore whitespace in braces
@@ -330,11 +354,11 @@ public abstract class AbstractScanner {
         while (Character.isLetterOrDigit(c) || c == '-' || c == '_') {
           c = advance();
         }
-        emit(start, -1);
+        emit(TAG, start, -1);
 
       } else {
-        // a non-char token (=, ...)
-        emit(start, 0);
+        // a non-char token
+        emit(TEXT, start, 0);
         c = advance();
 
       }

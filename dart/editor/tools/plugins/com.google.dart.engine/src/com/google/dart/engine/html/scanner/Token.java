@@ -34,6 +34,11 @@ public class Token {
   private Token next;
 
   /**
+   * The type of the token.
+   */
+  private final TokenType type;
+
+  /**
    * The lexeme represented by this token.
    */
   private final String value;
@@ -41,10 +46,22 @@ public class Token {
   /**
    * Initialize a newly created token.
    * 
-   * @param value the lexeme represented by this token
+   * @param type the token type (not {@code null})
    * @param offset the offset from the beginning of the file to the first character in the token
    */
-  public Token(String value, int offset) {
+  public Token(TokenType type, int offset) {
+    this(type, type.getLexeme(), offset);
+  }
+
+  /**
+   * Initialize a newly created token.
+   * 
+   * @param type the token type (not {@code null})
+   * @param value the lexeme represented by this token (not {@code null})
+   * @param offset the offset from the beginning of the file to the first character in the token
+   */
+  public Token(TokenType type, String value, int offset) {
+    this.type = type;
     this.value = value;
     this.offset = offset;
   }
@@ -106,10 +123,12 @@ public class Token {
   }
 
   /**
-   * Answer true if this token marks the end of the token stream.
+   * Answer the token type for the receiver.
+   * 
+   * @return the token type (not {@code null})
    */
-  public boolean isEof() {
-    return value.length() == 0;
+  public TokenType getType() {
+    return type;
   }
 
   /**
