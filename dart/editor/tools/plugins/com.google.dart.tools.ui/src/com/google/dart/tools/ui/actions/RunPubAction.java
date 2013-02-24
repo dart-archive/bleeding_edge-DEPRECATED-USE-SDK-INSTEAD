@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
@@ -40,6 +39,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
@@ -59,7 +59,7 @@ import java.util.regex.Pattern;
 /**
  * Action that runs pub commands on the selected project
  */
-public class RunPubAction extends SelectionDispatchAction {
+public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   private class PubMessageDialog extends MessageDialog {
 
@@ -133,49 +133,44 @@ public class RunPubAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(ISelection selection) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder(RunPubAction.class);
+  public void doRun(ISelection selection, Event event, InstrumentationBuilder instrumentation) {
     instrumentation.metric("command", command);
-    if (selection instanceof ITextSelection) {
-      IWorkbenchPage page = DartToolsPlugin.getActivePage();
-      if (page != null) {
-        IEditorPart part = page.getActiveEditor();
-        if (part != null) {
-          IEditorInput editorInput = part.getEditorInput();
-          DartProject dartProject = EditorUtility.getDartProject(editorInput);
-          if (dartProject != null) {
-            IProject project = dartProject.getProject();
-            runPubJob(project);
 
-            instrumentation.metric("Success", "true");
-            instrumentation.data("Project", project.getName());
-
-          } else {
-            //dartProject == null
-            instrumentation.metric("DartProject", "null");
-          }
-
-        } else {
-          //part == null
-          instrumentation.metric("part", "null");
-        }
-
-      } else {
-        //page == null
-        instrumentation.metric("page", "null");
-      }
-
-    } else {
-      //selection != ITextSelection
-      instrumentation.metric("ITextSelection", "false");
+    if (!(selection instanceof ITextSelection)) {
+      instrumentation.metric("Problem", "Selection was not a TextSelection");
     }
-    instrumentation.log();
+
+    IWorkbenchPage page = DartToolsPlugin.getActivePage();
+    if (page == null) {
+      instrumentation.metric("Problem", "Page was null");
+      return;
+    }
+
+    IEditorPart part = page.getActiveEditor();
+    if (part == null) {
+      instrumentation.metric("Problem", "Part was null");
+      return;
+    }
+
+    IEditorInput editorInput = part.getEditorInput();
+    DartProject dartProject = EditorUtility.getDartProject(editorInput);
+    if (dartProject == null) {
+      instrumentation.metric("Problem", "dartProject was null");
+      return;
+    }
+
+    IProject project = dartProject.getProject();
+    instrumentation.data("Project", project.getName());
+    runPubJob(project);
+
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder(RunPubAction.class);
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
     instrumentation.metric("command", command);
+
     if (!selection.isEmpty() && selection.getFirstElement() instanceof IResource) {
       Object object = selection.getFirstElement();
       if (object instanceof IFile) {
@@ -185,17 +180,17 @@ public class RunPubAction extends SelectionDispatchAction {
         object = ((IContainer) object).getParent();
       }
       if (object != null) {
-        runPubJob((IContainer) object);
 
         instrumentation.data("name", ((IContainer) object).getName());
-        instrumentation.log();
+        runPubJob((IContainer) object);
+
         return;
       } else {
-        instrumentation.metric("object", "null").log();
+        instrumentation.metric("Problem", "Object was null").log();
       }
     }
 
-    instrumentation.metric("Error", "dialog opened");
+    instrumentation.metric("Problem", "pubspec.yaml file not selected, showing dialog");
 
     MessageDialog.openError(
         getShell(),
