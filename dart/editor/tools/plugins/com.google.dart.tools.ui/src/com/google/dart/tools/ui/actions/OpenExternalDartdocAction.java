@@ -72,10 +72,8 @@ public class OpenExternalDartdocAction extends InstrumentedSelectionDispatchActi
   }
 
   /**
-   * Notifies this action that the given selection has changed. This default implementation sets the
-   * action's enablement state to <code>false</code>.
-   * 
-   * @param selection the new selection
+   * Notifies this action that the given selection has changed. This method overrides the default
+   * implementation to prevent the action's enablement state from being set to {@code false}.
    */
   @Override
   public void selectionChanged(ISelection selection) {
