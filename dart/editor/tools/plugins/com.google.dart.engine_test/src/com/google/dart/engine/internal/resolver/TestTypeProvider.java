@@ -208,6 +208,11 @@ public class TestTypeProvider implements TypeProvider {
   public InterfaceType getStringType() {
     if (stringType == null) {
       stringType = classElement("String").getType();
+      ClassElementImpl stringElement = (ClassElementImpl) stringType.getElement();
+      stringElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+          "length",
+          false,
+          getIntType())});
     }
     return stringType;
   }
