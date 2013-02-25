@@ -63,7 +63,10 @@ public class CompletionTestCase extends ResolverTestCase {
       CompletionEngine engine = new CompletionEngine(requestor, factory);
       engine.complete(new AssistContext(compilationUnit, test.testLocation, 0, index));
       if (test.positiveResults.size() > 0) {
-        assertTrue("Expected code completion suggestions", requestor.validate());
+        assertTrue(
+            "Test " + test.id + " expected code completion suggestions "
+                + String.valueOf(test.positiveResults),
+            requestor.validate());
       }
       for (String result : test.positiveResults) {
         requestor.assertSuggested(result);

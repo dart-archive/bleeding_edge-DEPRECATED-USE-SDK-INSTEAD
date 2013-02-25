@@ -54,4 +54,44 @@ public class CompletionTests extends CompletionTestCase {
         "}");
     test(source, "1+x", "2+b", "3+c");
   }
+
+  public void test005() throws Exception {
+    String source = src(//
+        "class A {}",
+        "void rr(var vim) {",
+        "  var !1vq = v!2.toString();",
+        "  var vf;",
+        "  v!3.toString();",
+        "}");
+    test(
+        source,
+        "1+A",
+        "1+vim",
+        "1-vq",
+        "1-vf",
+        "2-A",
+        "2+vim",
+        "2-vf",
+        "2-vq",
+        "3+vf",
+        "3+vq",
+        "3+vim",
+        "3-A");
+  }
+
+  public void testCommentSnippets001() throws Exception {
+    test(
+        "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
+        "1+MAX",
+        "2+xc",
+        "3+MAX");
+  }
+
+  public void testCommentSnippets002() throws Exception {
+    test(
+        "class Y {String x='hi';mth() {x.l!1ength;int n = 0;x!2.codeUnitAt(n!3);}}",
+        "1+length",
+        "2+x",
+        "3+n");
+  }
 }
