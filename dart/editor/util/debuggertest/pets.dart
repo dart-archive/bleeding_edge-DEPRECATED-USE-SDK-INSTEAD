@@ -128,6 +128,8 @@ class Dog extends FloppyEars implements Animal {
 
     closure();
   }
+
+  String toString() => "dog ${name}";
 }
 
 List<Animal> getLotsOfAnimals() {

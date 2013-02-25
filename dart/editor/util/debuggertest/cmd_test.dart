@@ -20,7 +20,9 @@ void main() {
 
   cat.color;
   cat.color = "dsdf";
-  
+
+  var testStr = "my\ncat";
+
   print("my ${cat} says:");
 
   cat.performAction();
@@ -28,7 +30,7 @@ void main() {
   pets.checkTypes();
 
   pets.createARealBigArray();
-  
+
   var dog = new pets.Dog("Scooter");
 
   dog.performAction();

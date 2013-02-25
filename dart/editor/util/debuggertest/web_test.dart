@@ -38,6 +38,8 @@ void testAnimals() {
   tempCat.color;
   tempCat.color = "dsdf";
 
+  var testStr = "my\ncat";
+
   print("${tempCat}:");
 
   tempCat.performAction();
