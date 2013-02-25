@@ -174,7 +174,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     Element seed = element;
     // getter or setter, rename FieldElement
     if (seed instanceof PropertyAccessorElement) {
-      seed = ((PropertyAccessorElement) seed).getField();
+      seed = ((PropertyAccessorElement) seed).getVariable();
     }
     // prepare super/sub-classes
     ClassElement parentClass = (ClassElement) seed.getEnclosingElement();

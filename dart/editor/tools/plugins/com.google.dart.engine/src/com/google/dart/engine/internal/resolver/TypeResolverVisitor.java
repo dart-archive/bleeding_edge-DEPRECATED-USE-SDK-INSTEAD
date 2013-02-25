@@ -56,9 +56,9 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
-import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -267,13 +267,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
     element.setType(type);
     if (element instanceof PropertyAccessorElementImpl) {
       PropertyAccessorElementImpl accessor = (PropertyAccessorElementImpl) element;
-      FieldElementImpl field = (FieldElementImpl) accessor.getField();
+      PropertyInducingElementImpl variable = (PropertyInducingElementImpl) accessor.getVariable();
       if (accessor.isGetter()) {
-        field.setType(type.getReturnType());
-      } else if (field.getType() == null) {
+        variable.setType(type.getReturnType());
+      } else if (variable.getType() == null) {
         Type[] parameterTypes = type.getNormalParameterTypes();
         if (parameterTypes != null && parameterTypes.length > 0) {
-          field.setType(parameterTypes[0]);
+          variable.setType(parameterTypes[0]);
         }
       }
     }

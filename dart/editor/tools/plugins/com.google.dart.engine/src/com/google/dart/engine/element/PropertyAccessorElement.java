@@ -30,12 +30,12 @@ package com.google.dart.engine.element;
  */
 public interface PropertyAccessorElement extends ExecutableElement {
   /**
-   * Return the field associated with this accessor. If this accessor was explicitly defined (is not
-   * synthetic) then the field associated with it will be synthetic.
+   * Return the field or top-level variable associated with this accessor. If this accessor was
+   * explicitly defined (is not synthetic) then the variable associated with it will be synthetic.
    * 
-   * @return the field associated with this accessor
+   * @return the variable associated with this accessor
    */
-  public FieldElement getField();
+  public PropertyInducingElement getVariable();
 
   /**
    * Return {@code true} if this accessor represents a getter.

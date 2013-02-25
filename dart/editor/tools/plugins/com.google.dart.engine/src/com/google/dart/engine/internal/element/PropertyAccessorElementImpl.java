@@ -16,8 +16,8 @@ package com.google.dart.engine.internal.element;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 
 /**
  * Instances of the class {@code PropertyAccessorElementImpl} implement a
@@ -26,26 +26,14 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 public class PropertyAccessorElementImpl extends ExecutableElementImpl implements
     PropertyAccessorElement {
   /**
-   * The field associated with this accessor.
+   * The variable associated with this accessor.
    */
-  private FieldElement field;
+  private PropertyInducingElement variable;
 
   /**
    * An empty array of property accessor elements.
    */
   public static final PropertyAccessorElement[] EMPTY_ARRAY = new PropertyAccessorElement[0];
-
-  /**
-   * Initialize a newly created synthetic property accessor element to be associated with the given
-   * field.
-   * 
-   * @param name the name of this element
-   */
-  public PropertyAccessorElementImpl(FieldElementImpl field) {
-    super(field.getName(), -1);
-    this.field = field;
-    setSynthetic(true);
-  }
 
   /**
    * Initialize a newly created property accessor element to have the given name.
@@ -54,6 +42,18 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
    */
   public PropertyAccessorElementImpl(Identifier name) {
     super(name);
+  }
+
+  /**
+   * Initialize a newly created synthetic property accessor element to be associated with the given
+   * variable.
+   * 
+   * @param variable the variable with which this access is associated
+   */
+  public PropertyAccessorElementImpl(PropertyInducingElementImpl variable) {
+    super(variable.getName(), -1);
+    this.variable = variable;
+    setSynthetic(true);
   }
 
   @Override
@@ -67,16 +67,16 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   }
 
   @Override
-  public FieldElement getField() {
-    return field;
-  }
-
-  @Override
   public ElementKind getKind() {
     if (isGetter()) {
       return ElementKind.GETTER;
     }
     return ElementKind.SETTER;
+  }
+
+  @Override
+  public PropertyInducingElement getVariable() {
+    return variable;
   }
 
   @Override
@@ -87,15 +87,6 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
   @Override
   public boolean isSetter() {
     return hasModifier(Modifier.SETTER);
-  }
-
-  /**
-   * Set the field associated with this accessor to the given field.
-   * 
-   * @param field the field associated with this accessor
-   */
-  public void setField(FieldElement field) {
-    this.field = field;
   }
 
   /**
@@ -116,10 +107,19 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
     setModifier(Modifier.SETTER, isSetter);
   }
 
+  /**
+   * Set the variable associated with this accessor to the given variable.
+   * 
+   * @param variable the variable associated with this accessor
+   */
+  public void setVariable(PropertyInducingElement variable) {
+    this.variable = variable;
+  }
+
   @Override
   protected void appendTo(StringBuilder builder) {
     builder.append(isGetter() ? "get " : "set ");
-    builder.append(getField().getName());
+    builder.append(getVariable().getName());
     super.appendTo(builder);
   }
 }

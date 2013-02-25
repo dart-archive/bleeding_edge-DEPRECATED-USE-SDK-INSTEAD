@@ -817,7 +817,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   private Type getType(PropertyAccessorElement accessor) {
     if (accessor.isSetter()) {
-      PropertyAccessorElement getter = accessor.getField().getGetter();
+      PropertyAccessorElement getter = accessor.getVariable().getGetter();
       if (getter == null) {
         Type[] parameterTypes = accessor.getType().getNormalParameterTypes();
         if (parameterTypes.length > 0) {

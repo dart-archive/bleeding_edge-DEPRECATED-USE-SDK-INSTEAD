@@ -14,8 +14,8 @@
 package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.ElementKind;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 
 /**
  * Instances of the class {@code PropertyAccessorElementHandle} implement a handle to a
@@ -33,8 +33,8 @@ public class PropertyAccessorElementHandle extends ExecutableElementHandle imple
   }
 
   @Override
-  public FieldElement getField() {
-    return getActualElement().getField();
+  public PropertyInducingElement getVariable() {
+    return getActualElement().getVariable();
   }
 
   @Override

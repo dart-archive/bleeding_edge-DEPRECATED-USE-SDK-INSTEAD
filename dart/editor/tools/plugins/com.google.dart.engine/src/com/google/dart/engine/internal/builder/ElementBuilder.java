@@ -50,6 +50,7 @@ import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.TypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
@@ -417,7 +418,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         getter.setLabels(holder.getLabels());
         getter.setLocalVariables(holder.getLocalVariables());
 
-        getter.setField(field);
+        getter.setVariable(field);
         getter.setGetter(true);
         field.setGetter(getter);
 
@@ -430,7 +431,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         setter.setLocalVariables(holder.getLocalVariables());
         setter.setParameters(holder.getParameters());
 
-        setter.setField(field);
+        setter.setVariable(field);
         setter.setSetter(true);
         field.setSetter(setter);
         field.setFinal(false);
@@ -543,25 +544,26 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       initializer.setSynthetic(true);
       element.setInitializer(initializer);
     }
-    if (inFieldContext) {
-      FieldElementImpl field = (FieldElementImpl) element;
-      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    if (element instanceof PropertyInducingElementImpl) {
+      PropertyInducingElementImpl variable = (PropertyInducingElementImpl) element;
+      PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(variable);
       getter.setGetter(true);
 
       currentHolder.addAccessor(getter);
-      field.setGetter(getter);
+      variable.setGetter(getter);
 
       if (!isFinal) {
-        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(field);
+        PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(variable);
         setter.setSetter(true);
 
         currentHolder.addAccessor(setter);
-        field.setSetter(setter);
+        variable.setSetter(setter);
       }
-
-      field.setStatic(matches(
-          ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
-          Keyword.STATIC));
+      if (inFieldContext) {
+        ((FieldElementImpl) variable).setStatic(matches(
+            ((FieldDeclaration) node.getParent().getParent()).getKeyword(),
+            Keyword.STATIC));
+      }
     }
     node.visitChildren(this);
     return null;

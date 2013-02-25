@@ -20,7 +20,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
 
 /**
@@ -57,9 +56,6 @@ public class LibraryScope extends EnclosedScope {
       define(element);
     }
     for (ClassElement element : compilationUnit.getTypes()) {
-      define(element);
-    }
-    for (VariableElement element : compilationUnit.getTopLevelVariables()) {
       define(element);
     }
   }

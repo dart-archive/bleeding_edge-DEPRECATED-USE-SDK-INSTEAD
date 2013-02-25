@@ -522,7 +522,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertTrue(getter.isGetter());
     assertFalse(getter.isSynthetic());
     assertEquals(methodName, getter.getName());
-    assertEquals(field, getter.getField());
+    assertEquals(field, getter.getVariable());
     assertLength(0, getter.getFunctions());
     assertLength(0, getter.getLabels());
     assertLength(0, getter.getLocalVariables());
@@ -611,7 +611,7 @@ public class ElementBuilderTest extends EngineTestCase {
     assertTrue(setter.isSetter());
     assertFalse(setter.isSynthetic());
     assertEquals(methodName, setter.getName());
-    assertEquals(field, setter.getField());
+    assertEquals(field, setter.getVariable());
     assertLength(0, setter.getFunctions());
     assertLength(0, setter.getLabels());
     assertLength(0, setter.getLocalVariables());
@@ -844,12 +844,14 @@ public class ElementBuilderTest extends EngineTestCase {
     TopLevelVariableElement[] variables = holder.getTopLevelVariables();
     assertLength(1, variables);
 
-    VariableElement variable = variables[0];
+    TopLevelVariableElement variable = variables[0];
     assertNotNull(variable);
     assertNull(variable.getInitializer());
     assertEquals(variableName, variable.getName());
     assertFalse(variable.isConst());
     assertFalse(variable.isFinal());
     assertFalse(variable.isSynthetic());
+    assertNotNull(variable.getGetter());
+    assertNotNull(variable.getSetter());
   }
 }
