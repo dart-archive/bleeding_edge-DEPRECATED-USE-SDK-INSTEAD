@@ -1,0 +1,9 @@
+This directory contains a copy of Chromium IDL and generation scripts
+used to generate Dart APIs for Chrome Apps.
+
+The original files are from:
+URL: http://src.chromium.org/svn
+Current revision: 180337
+
+Please see the corresponding LICENSE file at
+http://src.chromium.org/svn/trunk/src/LICENSE.
