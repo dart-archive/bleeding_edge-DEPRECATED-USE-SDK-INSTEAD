@@ -194,13 +194,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     if (operator != TokenType.EQ) {
       return recordReturnType(node, node.getElement());
     }
-    Type leftType = getType(node.getLeftHandSide());
-    Type rightType = getType(node.getRightHandSide());
-    if (!rightType.isAssignableTo(leftType)) {
-//      // TODO(brianwilkerson) Report this error
-//      resolver.reportError(StaticTypeWarningCode.INVALID_ASSIGNMENT, node.getRightHandSide(), leftType.toString(), rightType.toString());
-    }
-    return recordType(node, rightType);
+    return recordType(node, getType(node.getRightHandSide()));
   }
 
   /**

@@ -35,44 +35,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invalidAssignment_instanceVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        " int x;",
-        "}",
-        "f() {",
-        "  A a;",
-        "  a.x = '0';",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
-    verify(source);
-  }
-
-  public void fail_invalidAssignment_localVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  int x;",
-        "  x = '0';",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
-    verify(source);
-  }
-
-  public void fail_invalidAssignment_staticVariable() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        " static int x;",
-        "}",
-        "f() {",
-        "  A.x = '0';",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
-    verify(source);
-  }
-
   public void fail_invocationOfNonFunction() throws Exception { // Need more cases
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -180,6 +142,44 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_MEMBER);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_instanceVariable() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " int x;",
+        "}",
+        "f() {",
+        "  A a;",
+        "  a.x = '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_localVariable() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  int x;",
+        "  x = '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    verify(source);
+  }
+
+  public void test_invalidAssignment_staticVariable() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " static int x;",
+        "}",
+        "f() {",
+        "  A.x = '0';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 

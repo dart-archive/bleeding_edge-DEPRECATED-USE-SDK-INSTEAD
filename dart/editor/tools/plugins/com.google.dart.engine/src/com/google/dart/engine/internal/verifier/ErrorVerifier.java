@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
@@ -55,6 +56,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.errorReporter = errorReporter;
     this.typeProvider = typeProvider;
     dynamicType = typeProvider.getDynamicType();
+  }
+
+  @Override
+  public Void visitAssignmentExpression(AssignmentExpression node) {
+    Expression lhs = node.getLeftHandSide();
+    Expression rhs = node.getRightHandSide();
+    Type leftType = getType(lhs);
+    Type rightType = getType(rhs);
+    if (!rightType.isAssignableTo(leftType)) {
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          rhs,
+          leftType.toString(),
+          rightType.toString());
+    }
+    return super.visitAssignmentExpression(node);
   }
 
   @Override
