@@ -278,8 +278,11 @@ public enum StaticWarningCode implements ErrorCode {
   /**
    * 14.3 Parts: It is a static warning if the referenced part declaration <i>p</i> names a library
    * other than the current library as the library to which <i>p</i> belongs.
+   * 
+   * @param expectedLibraryName the name of expected library name
+   * @param actualLibraryName the non-matching actual library name from the "part of" declaration
    */
-  PART_OF_DIFFERENT_LIBRARY(""),
+  PART_OF_DIFFERENT_LIBRARY("Expected this library to be part of '%s', not '%s'"),
 
   /**
    * 7.6.2 Factories: It is a static warning if the function type of <i>k’</i> is not a subtype of

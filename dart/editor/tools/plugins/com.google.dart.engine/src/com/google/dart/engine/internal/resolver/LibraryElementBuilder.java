@@ -25,6 +25,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -127,7 +128,8 @@ public class LibraryElementBuilder {
                 librarySource,
                 partUri.getOffset(),
                 partUri.getLength(),
-                ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME,
+                StaticWarningCode.PART_OF_DIFFERENT_LIBRARY,
+                libraryNameNode.getName(),
                 partLibraryName));
           }
           if (entryPoint == null) {

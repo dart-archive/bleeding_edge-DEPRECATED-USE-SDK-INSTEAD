@@ -134,22 +134,6 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     }
   }
 
-  public void test_partWithWrongLibraryName() throws Exception {
-    addSource("/a.dart", createSource(//
-        "part of other_lib;",
-        "",
-        "class A {}"));
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part 'a.dart';"));
-
-    LibraryElement element = buildLibrary(
-        librarySource,
-        ResolverErrorCode.PART_WITH_WRONG_LIBRARY_NAME);
-    assertNotNull(element);
-  }
-
   public void test_singleFile() throws Exception {
     Source librarySource = addSource("/lib.dart", createSource(//
         "library lib;",

@@ -389,17 +389,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_partOfDifferentLibrary() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "library lib;",
-        "part 'part.dart';"));
-    addSource("/part.dart", createSource(//
-        "part of lub;"));
-    resolve(source);
-    assertErrors(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
-    verify(source);
-  }
-
   public void fail_redirectToInvalidReturnType() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -540,6 +529,17 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS);
+    verify(source);
+  }
+
+  public void test_partOfDifferentLibrary() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';"));
+    addSource("/part.dart", createSource(//
+        "part of lub;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
     verify(source);
   }
 }
