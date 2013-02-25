@@ -14,6 +14,7 @@ Require-Bundle: com.google.dart.engine,
 Bundle-ClassPath: .
 Export-Package: com.google.dart.engine,
  com.google.dart.engine.ast,
+ com.google.dart.engine.element,
  com.google.dart.engine.error,
  com.google.dart.engine.index,
  com.google.dart.engine.internal,
@@ -24,4 +25,9 @@ Export-Package: com.google.dart.engine,
  com.google.dart.engine.search,
  com.google.dart.engine.source,
  com.google.dart.engine.utilities,
- com.google.dart.engine.element
+ com.google.dart.engine.utilities.collection,
+ com.google.dart.engine.utilities.general,
+ com.google.dart.engine.utilities.io,
+ com.google.dart.engine.utilities.logging,
+ com.google.dart.engine.utilities.os,
+ com.google.dart.engine.utilities.source

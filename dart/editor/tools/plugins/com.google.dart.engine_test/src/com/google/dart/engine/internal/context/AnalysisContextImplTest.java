@@ -14,11 +14,8 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.EngineTestCase;
-import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
-import com.google.dart.engine.context.ChangeResult;
-import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
@@ -29,7 +26,6 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.TestSource;
 
@@ -91,62 +87,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
       assertTrue(iter.hasNext());
       assertNotNull(iter.next());
     }
-  }
-
-  public void test_changed() throws Exception {
-    ChangeSet changes = new ChangeSet();
-    TestSource added = new TestSource();
-    changes.added(added);
-    TestSource changed = new TestSource();
-    changes.changed(changed);
-    TestSource removed = new TestSource();
-    changes.removed(removed);
-    SourceContainer removedContainer = new SourceContainer() {
-      @Override
-      public boolean contains(Source source) {
-        return false;
-      }
-    };
-    changes.removedContainer(removedContainer);
-
-    // TODO (danrubel): update once changed is properly implemented
-    final Object[] args = new Object[4];
-    AnalysisContextImpl context = new AnalysisContextImpl() {
-      @Override
-      public void sourceAvailable(Source source) {
-        assign(0, source);
-      }
-
-      @Override
-      public void sourceChanged(Source source) {
-        assign(1, source);
-      }
-
-      @Override
-      public void sourceDeleted(Source source) {
-        assign(2, source);
-      }
-
-      @Override
-      public void sourcesDeleted(SourceContainer container) {
-        assign(3, container);
-      }
-
-      private void assign(int index, Object value) {
-        if (args[index] != null) {
-          fail("unexpected invocation");
-        }
-        args[index] = value;
-      }
-    };
-
-    ChangeResult result = context.changed(changes);
-
-    assertNotNull(result);
-    assertSame(added, args[0]);
-    assertSame(changed, args[1]);
-    assertSame(removed, args[2]);
-    assertSame(removedContainer, args[3]);
   }
 
   public void test_creation() {
@@ -227,21 +167,5 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
     assertEquals(sourceFactory, context.getSourceFactory());
-  }
-
-  public void test_sourceChanged() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-
-    sourceFactory.setContents(source, "class A {}");
-    CompilationUnit unit = context.parse(source, new GatheringErrorListener());
-    assertEquals("A", ((ClassDeclaration) unit.getDeclarations().get(0)).getName().getName());
-
-    sourceFactory.setContents(source, "class B {}");
-    context.sourceChanged(source);
-    unit = context.parse(source, new GatheringErrorListener());
-    assertEquals("B", ((ClassDeclaration) unit.getDeclarations().get(0)).getName().getName());
   }
 }

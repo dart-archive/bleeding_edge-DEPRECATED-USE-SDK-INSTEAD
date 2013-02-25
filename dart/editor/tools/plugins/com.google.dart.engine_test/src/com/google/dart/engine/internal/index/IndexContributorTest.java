@@ -752,7 +752,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
     setFileContent(
         "Lib.dart",
-        makeSource(
+        createSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;"));
@@ -782,7 +782,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
     setFileContent(
         "Lib.dart",
-        makeSource(
+        createSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;"));
@@ -837,7 +837,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
   public void test_isReferencedBy_LibraryElement_export() throws Exception {
     setFileContent(
         "Lib.dart",
-        makeSource(
+        createSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;"));
     parseTestUnit(
@@ -863,7 +863,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
   public void test_isReferencedBy_LibraryElement_import() throws Exception {
     setFileContent(
         "Lib.dart",
-        makeSource(
+        createSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;"));
     parseTestUnit(

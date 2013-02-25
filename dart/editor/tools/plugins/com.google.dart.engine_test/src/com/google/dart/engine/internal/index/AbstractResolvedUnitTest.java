@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.index;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
@@ -22,6 +21,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
@@ -30,6 +30,7 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -56,19 +57,17 @@ public class AbstractResolvedUnitTest extends EngineTestCase {
       ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
       // use single Source
-      SOURCE = new FileBasedSource(sourceFactory, new File("/Test.dart"));
+      SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
     }
     // update source
-    ANALYSIS_CONTEXT.sourceChanged(SOURCE);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changed(SOURCE);
+    ANALYSIS_CONTEXT.changed(changeSet);
     ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
     // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
     CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolve(SOURCE, library);
     return libraryUnit;
-  }
-
-  protected static String makeSource(String... lines) {
-    return Joiner.on("\n").join(lines);
   }
 
   private final Set<Source> sourceWithSetContent = Sets.newHashSet();
@@ -129,7 +128,7 @@ public class AbstractResolvedUnitTest extends EngineTestCase {
    * Sets {@link #testUnit} with mocked {@link Source} which has given code.
    */
   protected final void parseTestUnit(String... lines) throws Exception {
-    testCode = makeSource(lines);
+    testCode = createSource(lines);
     testUnit = parseUnit(testCode);
     testSource = testUnit.getElement().getSource();
     // TODO(scheglov) restore once "duplicate" fixed in resolver

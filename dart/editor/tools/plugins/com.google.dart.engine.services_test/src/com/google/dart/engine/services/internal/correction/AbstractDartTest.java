@@ -22,6 +22,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.sdk.DartSdk;
@@ -32,6 +33,7 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
@@ -41,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.io.File;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AbstractDartTest extends TestCase {
@@ -79,10 +80,12 @@ public class AbstractDartTest extends TestCase {
       ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
       // use single Source
-      SOURCE = new FileBasedSource(sourceFactory, new File("/Test.dart"));
+      SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
     }
     // update source
-    ANALYSIS_CONTEXT.sourceChanged(SOURCE);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changed(SOURCE);
+    ANALYSIS_CONTEXT.changed(changeSet);
     ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
     // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
