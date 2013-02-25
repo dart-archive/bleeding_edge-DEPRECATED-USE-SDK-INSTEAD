@@ -13,17 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.views.tasklist.TaskPropertiesDialog;
 
-public class AddTaskAction extends SelectionDispatchAction {
+public class AddTaskAction extends InstrumentedSelectionDispatchAction {
 
   public AddTaskAction(IWorkbenchSite site) {
     super(site);
@@ -32,20 +34,23 @@ public class AddTaskAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void selectionChanged(IStructuredSelection selection) {
+    setEnabled(getElement(selection) != null);
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
     IResource resource = getElement(selection);
     if (resource == null) {
+      instrumentation.metric("AddTaskAction-Resource", "null");
       return;
     }
 
     TaskPropertiesDialog dialog = new TaskPropertiesDialog(getShell());
     dialog.setResource(resource);
     dialog.open();
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(getElement(selection) != null);
   }
 
   private IResource getElement(IStructuredSelection selection) {

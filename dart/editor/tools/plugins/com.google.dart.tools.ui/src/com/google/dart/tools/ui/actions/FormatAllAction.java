@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -61,6 +62,7 @@ import org.eclipse.jface.text.formatter.MultiPassContentFormatter;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchSite;
@@ -85,7 +87,7 @@ import java.util.Map;
  * this early stage to solicit feedback from pioneering adopters on the understanding that any code
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
-public class FormatAllAction extends SelectionDispatchAction {
+public class FormatAllAction extends InstrumentedSelectionDispatchAction {
   /*
    * (non-Javadoc) Class implements IObjectActionDelegate
    */
@@ -136,9 +138,18 @@ public class FormatAllAction extends SelectionDispatchAction {
    * (non-Javadoc) Method declared on SelectionDispatchAction.
    */
   @Override
-  public void run(IStructuredSelection selection) {
+  public void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+
     CompilationUnit[] cus = getCompilationUnits(selection);
+
+    instrumentation.metric("CompilationUnitCount", cus.length);
+    for (CompilationUnit cu : cus) {
+      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    }
+
     if (cus.length == 0) {
+      instrumentation.metric("Problem", "Empty, showing dialog");
       MessageDialog.openInformation(
           getShell(),
           ActionMessages.FormatAllAction_EmptySelection_title,
@@ -149,6 +160,7 @@ public class FormatAllAction extends SelectionDispatchAction {
       if (cus.length == 1) {
         DartUI.openInEditor(cus[0]);
       } else {
+        instrumentation.metric("Multiple selection", "Showing no-undo dialog");
         int returnCode = OptionalMessageDialog.open("FormatAll", //$NON-NLS-1$
             getShell(),
             ActionMessages.FormatAllAction_noundo_title,
@@ -158,7 +170,10 @@ public class FormatAllAction extends SelectionDispatchAction {
             new String[] {IDialogConstants.OK_LABEL, IDialogConstants.CANCEL_LABEL},
             0);
         if (returnCode != OptionalMessageDialog.NOT_SHOWN && returnCode != Window.OK) {
+          instrumentation.metric("Problem", "No undo dialog not OK");
           return;
+        } else {
+          instrumentation.metric("Multiple selection", "No Undo dialog OK");
         }
       }
     } catch (CoreException e) {
@@ -168,14 +183,15 @@ public class FormatAllAction extends SelectionDispatchAction {
           ActionMessages.FormatAllAction_error_title,
           ActionMessages.FormatAllAction_error_message);
     }
-    runOnMultiple(cus);
+    runOnMultiple(cus, instrumentation);
   }
 
   /*
    * (non-Javadoc) Method declared on SelectionDispatchAction.
    */
   @Override
-  public void run(ITextSelection selection) {
+  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+    instrumentation.metric("Problem", "ITextSelection Not supported on format all");
   }
 
   /**
@@ -183,7 +199,7 @@ public class FormatAllAction extends SelectionDispatchAction {
    * 
    * @param cus The compilation units to format.
    */
-  public void runOnMultiple(final CompilationUnit[] cus) {
+  public void runOnMultiple(final CompilationUnit[] cus, InstrumentationBuilder instrumentation) {
     try {
       final MultiStatus status = new MultiStatus(
           DartUI.ID_PLUGIN,
@@ -193,6 +209,7 @@ public class FormatAllAction extends SelectionDispatchAction {
 
       IStatus valEditStatus = Resources.makeCommittable(getResources(cus), getShell());
       if (valEditStatus.matches(IStatus.CANCEL)) {
+        instrumentation.metric("Problem", "Resources.makeComittable caused cancel");
         return;
       }
       status.merge(valEditStatus);
@@ -208,6 +225,7 @@ public class FormatAllAction extends SelectionDispatchAction {
             })); // workspace lock
       }
       if (!status.isOK()) {
+        instrumentation.metric("Problem", "Formatting status not ok, showing dialog");
         String title = ActionMessages.FormatAllAction_multi_status_title;
         ErrorDialog.openError(getShell(), title, null, status);
       }
@@ -218,6 +236,7 @@ public class FormatAllAction extends SelectionDispatchAction {
           ActionMessages.FormatAllAction_error_title,
           ActionMessages.FormatAllAction_error_message);
     } catch (InterruptedException e) {
+      instrumentation.metric("Problem", "User cancelled");
       // Canceled by user
     }
   }
