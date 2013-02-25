@@ -21,11 +21,11 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-//    suite.addTestSuite(CompileTimeErrorCodeTest.class);
+    suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
-//    suite.addTestSuite(StaticTypeWarningCodeTest.class);
-//    suite.addTestSuite(StaticWarningCodeTest.class);
+    suite.addTestSuite(StaticTypeWarningCodeTest.class);
+    suite.addTestSuite(StaticWarningCodeTest.class);
     return suite;
   }
 }
