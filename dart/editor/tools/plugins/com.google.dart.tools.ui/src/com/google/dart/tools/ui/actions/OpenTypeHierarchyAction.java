@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -24,6 +25,7 @@ import com.google.dart.tools.ui.internal.util.OpenTypeHierarchyUtil;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
@@ -37,7 +39,7 @@ import java.util.List;
  * <p>
  * The action is applicable to selections containing elements of type <code>IType</code>.
  */
-public class OpenTypeHierarchyAction extends SelectionDispatchAction {
+public class OpenTypeHierarchyAction extends InstrumentedSelectionDispatchAction {
 
   private static String getDialogTitle() {
     return ActionMessages.OpenTypeHierarchyAction_dialog_title;
@@ -72,29 +74,51 @@ public class OpenTypeHierarchyAction extends SelectionDispatchAction {
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  public void selectionChanged(IStructuredSelection selection) {
+    setEnabled(isEnabled(selection));
+  }
+
+  @Override
+  public void selectionChanged(ITextSelection selection) {
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+    instrumentation.metric("Problem", "NotYetImplemented in IStructuredSelection");
     // TODO(scheglov)
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     DartElement input = SelectionConverter.getInput(fEditor);
     if (!ActionUtil.isProcessable(getShell(), input)) {
+      instrumentation.metric("Problem", "Editor not editable");
       return;
     }
 
     try {
       DartElement[] elements = SelectionConverter.codeResolveOrInputForked(fEditor);
       if (elements == null) {
+        instrumentation.metric("Problem", "elements was null");
         return;
       }
+
+      instrumentation.metric("elements-Length", elements.length);
       List<DartElement> candidates = new ArrayList<DartElement>(elements.length);
       for (int i = 0; i < elements.length; i++) {
+        ActionInstrumentationUtilities.recordElement(elements[i], instrumentation);
         DartElement[] resolvedElements = OpenTypeHierarchyUtil.getCandidates(elements[i]);
         if (resolvedElements != null) {
           candidates.addAll(Arrays.asList(resolvedElements));
         }
       }
+
+      instrumentation.metric("candidates-Length", candidates.size());
+      for (DartElement candidate : candidates) {
+        ActionInstrumentationUtilities.recordElement(candidate, instrumentation);
+      }
+
       run(candidates.toArray(new DartElement[candidates.size()]));
     } catch (InvocationTargetException e) {
       ExceptionHandler.handle(
@@ -103,17 +127,9 @@ public class OpenTypeHierarchyAction extends SelectionDispatchAction {
           getDialogTitle(),
           ActionMessages.SelectionConverter_codeResolve_failed);
     } catch (InterruptedException e) {
+      instrumentation.metric("Problem", "Cancelled");
       // cancelled
     }
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(isEnabled(selection));
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
   }
 
   private boolean isEnabled(IStructuredSelection selection) {
