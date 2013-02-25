@@ -64,7 +64,6 @@ import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
-import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -562,7 +561,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordType(prefixedIdentifier, variableType);
       return recordType(node, variableType);
     } else if (element instanceof PropertyAccessorElement) {
-      Type propertyType = ((PropertyAccessorElement) element).getType().getReturnType();
+      Type propertyType = getType((PropertyAccessorElement) element);
       recordType(prefixedIdentifier, propertyType);
       return recordType(node, propertyType);
     } else if (element instanceof MethodElement) {
@@ -643,21 +642,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordType(propertyName, type);
       return recordType(node, type);
     } else if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
-      if (accessor.isGetter()) {
-        if (accessor.getType() == null) {
-          // TODO(brianwilkerson) I think this can go away when everything is done because the type
-          // of the accessor should never be null.
-          recordType(propertyName, dynamicType);
-          return recordType(node, dynamicType);
-        }
-        Type returnType = accessor.getType().getReturnType();
-        recordType(propertyName, returnType);
-        return recordType(node, returnType);
-      } else {
-        recordType(propertyName, VoidTypeImpl.getInstance());
-        return recordType(node, VoidTypeImpl.getInstance());
-      }
+      Type propertyType = getType((PropertyAccessorElement) element);
+      recordType(propertyName, propertyType);
+      return recordType(node, propertyType);
     } else {
       // TODO(brianwilkerson) Report this internal error.
     }
@@ -730,18 +717,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else if (element instanceof MethodElement) {
       return recordType(node, ((MethodElement) element).getType());
     } else if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
-      if (accessor.isGetter()) {
-        return recordType(node, accessor.getType().getReturnType());
-      } else {
-        Type[] parameterTypes = accessor.getType().getNormalParameterTypes();
-        if (parameterTypes.length > 0) {
-          return recordType(node, parameterTypes[0]);
-        } else {
-          // TODO(brianwilkerson) Report this internal error
-          return null;
-        }
-      }
+      return recordType(node, getType((PropertyAccessorElement) element));
     } else if (element instanceof ExecutableElement) {
       return recordType(node, ((ExecutableElement) element).getType());
     } else if (element instanceof PrefixElement) {
@@ -831,6 +807,34 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return dynamicType;
     }
     return type;
+  }
+
+  /**
+   * Return the type that should be recorded for a node that resolved to the given accessor.
+   * 
+   * @param accessor the accessor that the node resolved to
+   * @return the type that should be recorded for a node that resolved to the given accessor
+   */
+  private Type getType(PropertyAccessorElement accessor) {
+    if (accessor.isSetter()) {
+      PropertyAccessorElement getter = accessor.getField().getGetter();
+      if (getter == null) {
+        Type[] parameterTypes = accessor.getType().getNormalParameterTypes();
+        if (parameterTypes.length > 0) {
+          return parameterTypes[0];
+        } else {
+          // TODO(brianwilkerson) Report this internal error.
+          return dynamicType;
+        }
+      }
+      accessor = getter;
+    }
+    if (accessor.getType() == null) {
+      // TODO(brianwilkerson) Report this internal error. I think this can go away when everything
+      // is done because the type of the accessor should never be null.
+      return dynamicType;
+    }
+    return accessor.getType().getReturnType();
   }
 
   /**

@@ -28,6 +28,7 @@ import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.TypeName;
@@ -36,12 +37,14 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.builder.ElementBuilder;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
@@ -96,6 +99,7 @@ import static com.google.dart.engine.ast.ASTFactory.throwExpression;
 import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
+import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.localVariableElement;
 
@@ -160,11 +164,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
   }
 
   public void fail_visitMethodInvocation() throws Exception {
-    fail("Not yet tested");
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitPropertyAccess() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
   }
@@ -651,11 +650,22 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitPrefixedIdentifier_property() throws Exception {
-    PropertyAccessorElementImpl getter = getterElement("b", false, typeProvider.getBoolType());
+  public void test_visitPrefixedIdentifier_getter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
     PrefixedIdentifier node = identifier("a", "b");
     node.getIdentifier().setElement(getter);
-    assertSame(typeProvider.getBoolType(), analyze(node));
+    assertSame(boolType, analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_setter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    FieldElementImpl field = fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.getSetter();
+    PrefixedIdentifier node = identifier("a", "b");
+    node.getIdentifier().setElement(setter);
+    assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
 
@@ -711,6 +721,25 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     PrefixExpression node = prefixExpression(TokenType.TILDE, resolvedInteger(0));
     node.setElement(getMethod(typeProvider.getIntType(), "~"));
     assertSame(typeProvider.getIntType(), analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_getter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    PropertyAccessorElementImpl getter = getterElement("b", false, boolType);
+    PropertyAccess node = propertyAccess(identifier("a"), "b");
+    node.getPropertyName().setElement(getter);
+    assertSame(boolType, analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPropertyAccess_setter() throws Exception {
+    Type boolType = typeProvider.getBoolType();
+    FieldElementImpl field = fieldElement("b", false, false, false, boolType);
+    PropertyAccessorElement setter = field.getSetter();
+    PropertyAccess node = propertyAccess(identifier("a"), "b");
+    node.getPropertyName().setElement(setter);
+    assertSame(boolType, analyze(node));
     listener.assertNoErrors();
   }
 
