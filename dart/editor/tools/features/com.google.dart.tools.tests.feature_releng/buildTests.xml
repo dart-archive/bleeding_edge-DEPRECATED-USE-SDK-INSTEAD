@@ -51,33 +51,9 @@
                 <include name="org.eclipse.swt.*.jar" />
             </fileset>
         </path>
-        <property name="build.test.suite" value="com.google.dart.tools.tests.buildbot_test" />
-        <pathconvert pathsep=" " property="build.test.classname.list">
-            <path>
-                <!-- Only include those files which end in 'Test.java', and do not 
-                    start with 'Abstract'. -->
-                <fileset dir="${build.stage.plugins}/${build.test.suite}/src">
-                    <include name="com/google/dart/tools/tests/buildbot/TestAll.java" />
-                </fileset>
-            </path>
-            <!-- Convert path structure for each file into the fully-qualified class
-                name corresponding to the file. To do this, we get rid of absolute
-                path name prefixes on each file, up to and inclding the "src" segment. 
-                We also remove the .java extension from each file. Then, each modified 
-                file path is converted into package format (i.e. the path separator 
-                characters are replaced with dots). -->
-            <chainedmapper>
-                <mapper
-                    type="regexp"
-                    from="^.*src\${file.separator}(.*)\.java"
-                    to="\1" />
-                <mapper
-                    type="package"
-                    from="*"
-                    to="*" />
-            </chainedmapper>
-        </pathconvert>
         
+        <property name="build.test.suite" value="com.google.dart.tools.tests.buildbot_test" />
+        <property name="build.test.classname.list" value="com.google.dart.tools.tests.buildbot.TestAll" />
     </target>
     
     <!--

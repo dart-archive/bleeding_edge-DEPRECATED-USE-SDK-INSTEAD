@@ -36,7 +36,7 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.core.TestAll.suite());
 
     // Debug
-    //suite.addTest(com.google.dart.tools.debug.core.TestAll.suite());
+    suite.addTest(com.google.dart.tools.debug.core.TestAll.suite());
 
     // UI
     //suite.addTest(com.google.dart.tools.ui.TestAll.suite());
@@ -46,7 +46,8 @@ public class TestAll {
 
   private static TestSuite engineTests() {
     // Copy of TestAll from engine_test
-    TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
+    TestSuite suite = new ExtendedTestSuite("Tests in "
+        + com.google.dart.engine.TestAll.class.getPackage().getName());
     //suite.addTestSuite(AnalysisEngineTest.class);
     suite.addTest(com.google.dart.engine.ast.TestAll.suite());
     suite.addTest(com.google.dart.engine.index.TestAll.suite());
