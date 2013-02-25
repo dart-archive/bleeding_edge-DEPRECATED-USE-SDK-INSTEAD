@@ -47,4 +47,25 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_nonBoolExpression_assert_functionType() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "bool makeAssertion() => true;",
+        "f() {",
+        "  assert(makeAssertion);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_test_nonBoolExpression_assert_bool() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  assert(true);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }

@@ -46,16 +46,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonBoolExpression() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  assert 0;",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    verify(source);
-  }
-
   public void fail_nonTypeAsTypeArgument() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
@@ -218,6 +208,16 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
+    verify(source);
+  }
+
+  public void test_nonBoolExpression() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  assert(0);",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
     verify(source);
   }
 

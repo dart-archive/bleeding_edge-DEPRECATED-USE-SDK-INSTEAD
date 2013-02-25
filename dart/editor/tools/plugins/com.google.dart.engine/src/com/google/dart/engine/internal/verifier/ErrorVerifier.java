@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoStatement;
@@ -29,6 +30,7 @@ import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -56,6 +58,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.errorReporter = errorReporter;
     this.typeProvider = typeProvider;
     dynamicType = typeProvider.getDynamicType();
+  }
+
+  @Override
+  public Void visitAssertStatement(AssertStatement node) {
+    Expression expression = node.getCondition();
+    Type type = getType(expression);
+    if (type instanceof InterfaceType) {
+      if (!type.isAssignableTo(typeProvider.getBoolType())) {
+        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+      }
+    } else if (type instanceof FunctionType) {
+      FunctionType functionType = (FunctionType) type;
+      if (functionType.getTypeArguments().length == 0
+          && !functionType.getReturnType().isAssignableTo(typeProvider.getBoolType())) {
+        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+      }
+    }
+    return super.visitAssertStatement(node);
   }
 
   @Override
@@ -107,7 +127,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } else {
       errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, typeName);
     }
-    return null;
+    return super.visitInstanceCreationExpression(node);
   }
 
   @Override

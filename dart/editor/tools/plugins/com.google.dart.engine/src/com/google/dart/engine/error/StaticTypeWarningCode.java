@@ -112,7 +112,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 13.15 Assert: It is a static type warning if the type of <i>e</i> may not be assigned to either
    * bool or () &rarr; bool
    */
-  NON_BOOL_EXPRESSION(""),
+  NON_BOOL_EXPRESSION("Assertions must be on either a 'bool' or '() -> bool'"),
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>A<sub>i</sub>, 1 &lt;= i &lt;=
