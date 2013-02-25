@@ -13,17 +13,15 @@
  */
 package com.google.dart.engine.integration;
 
-import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.error.GatheringErrorListener;
-import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
-import com.google.dart.engine.parser.ASTValidator;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.StringScanner;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenStreamValidator;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -72,26 +70,45 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     }
 
     public void reportResults() throws Exception {
-      System.out.println("Analyzed " + charCount + " characters in " + fileCount + " files");
-      printTime("  scanning: ", scannerTime);
-      printTime("  parsing:  ", parserTime);
-      printTime("  lexical:  ", scannerTime + parserTime);
-      printTime("  building: ", builderTime);
-      printTime("  total:    ", scannerTime + parserTime + builderTime);
+      System.out.print("Analyzed ");
+      System.out.print(fileCount);
+      System.out.print(" files in ");
+      printTime(totalTime);
+      System.out.println();
     }
 
-    private void printTime(String label, long time) {
+    private void printTime(long time) {
       if (time == 0) {
-        System.out.println(label + "0 ms ");
+        System.out.print("0 ms");
       } else {
-        long charsPerMs = charCount / time;
-        System.out.println(label + time + " ms (" + charsPerMs + " chars / ms)");
+        System.out.print(time);
+        System.out.print(" ms");
+        if (time > 60000) {
+          long seconds = time / 1000;
+          long minutes = seconds / 60;
+          seconds -= minutes * 60;
+          System.out.print(" (");
+          System.out.print(minutes);
+          System.out.print(":");
+          if (seconds < 10) {
+            System.out.print("0");
+          }
+          System.out.print(seconds);
+          System.out.print(")");
+        }
       }
     }
   }
 
   /**
-   * Build a JUnit test suite that will analyze all of the tests in the co19 test suite.
+   * An array containing the relative paths of test files that should be skipped. Files should only
+   * be added to this array when the test is not valid (typically because the test has not been
+   * updated to match the current specification).
+   */
+  private static final String[] SKIPPED_TESTS = {};
+
+  /**
+   * Build a JUnit test suite that will analyze all of the tests in the language test suite.
    * 
    * @return the test suite that was built
    */
@@ -107,35 +124,48 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     return new TestSuite("Analyze language files (no tests: directory not found)");
   }
 
+  /**
+   * Return {@code true} if the given file should be skipped because it is on the list of files to
+   * be skipped.
+   * 
+   * @param file the file being tested
+   * @return {@code true} if the file should be skipped
+   */
+  private static boolean shouldBeSkipped(File file) {
+    String fullPath = file.getAbsolutePath();
+    for (String relativePath : SKIPPED_TESTS) {
+      if (fullPath.endsWith(relativePath)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private long fileCount = 0L;
 
-  private long charCount = 0L;
-
-  private long scannerTime = 0L;
-
-  private long parserTime = 0L;
-
-  private long builderTime = 0L;
+  private long totalTime = 0L;
 
   @Override
   protected void addTestForFile(TestSuite suite, File file) {
-    //
-    // Determine how many tests to create from this one file.
-    //
-    try {
-      String contents = FileUtilities.getContents(file);
-      if (contents.indexOf("///") < 0) {
-        suite.addTest(new AnalysisTestWithSource(file, -1, contents));
-        return;
+    if (file.getName().endsWith("_test.dart") && !shouldBeSkipped(file)) {
+      //
+      // Determine how many tests to create from this one file.
+      //
+      try {
+        String contents = FileUtilities.getContents(file);
+        if (contents.indexOf("///") < 0) {
+          suite.addTest(new AnalysisTestWithSource(file, -1, contents));
+          return;
+        }
+        String[] lines = toLines(contents);
+        int count = getTestCount(lines);
+        for (int i = 0; i < count; i++) {
+          String testSource = getTestSource(i, lines);
+          suite.addTest(new AnalysisTestWithSource(file, i, testSource));
+        }
+      } catch (IOException exception) {
+        suite.addTest(new TestSuite("Analyze " + file.getAbsolutePath() + " (could not read file)"));
       }
-      String[] lines = toLines(contents);
-      int count = getTestCount(lines);
-      for (int i = 0; i < count; i++) {
-        String testSource = getTestSource(i, lines);
-        suite.addTest(new AnalysisTestWithSource(file, i, testSource));
-      }
-    } catch (IOException exception) {
-      suite.addTest(new TestSuite("Analyze " + file.getAbsolutePath() + " (could not read file)"));
     }
   }
 
@@ -166,58 +196,44 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       return;
     }
     //
-    // Scan the file.
+    // Create the analysis context in which the file will be analyzed.
     //
-    Source source = new FileBasedSource(new SourceFactory(), sourceFile);
-    GatheringErrorListener listener = new GatheringErrorListener();
-    StringScanner scanner = new StringScanner(source, contents, listener);
-    long scannerStartTime = System.currentTimeMillis();
-    Token token = scanner.tokenize();
-    long scannerEndTime = System.currentTimeMillis();
+    DartSdk sdk = DartSdk.getDefaultSdk();
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
+    context.setSourceFactory(sourceFactory);
     //
-    // Parse the file.
+    // Analyze the file.
     //
-    Parser parser = new Parser(source, listener);
-    long parserStartTime = System.currentTimeMillis();
-    final CompilationUnit unit = parser.parseCompilationUnit(token);
-    long parserEndTime = System.currentTimeMillis();
+    Source source = new FileBasedSource(sourceFactory, sourceFile);
+    sourceFactory.setContents(source, contents);
+    if ("import_collection_no_prefix_test.dart".equals(sourceFile.getName())) {
+      System.currentTimeMillis();
+    }
+    long startTime = System.currentTimeMillis();
+    LibraryElement library = context.getLibraryElement(source);
+    long endTime = System.currentTimeMillis();
+    if (library == null) {
+      Assert.fail("Could not analyze " + sourceFile.getAbsolutePath());
+    }
     //
-    // Build the element model for the compilation unit.
-    //
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), listener);
-    long builderStartTime = System.currentTimeMillis();
-    CompilationUnitElement element = builder.buildCompilationUnit(source, unit);
-    long builderEndTime = System.currentTimeMillis();
-    //
-    // Record the timing information.
+    // Gather statistics.
     //
     fileCount++;
-    charCount += contents.length();
-    scannerTime += (scannerEndTime - scannerStartTime);
-    parserTime += (parserEndTime - parserStartTime);
-    builderTime += (builderEndTime - builderStartTime);
-    //
-    // Validate that the token stream was built correctly.
-    //
-    new TokenStreamValidator().validate(token);
+    totalTime += (endTime - startTime);
     //
     // Validate the results.
     //
-    if (errorExpected) {
-      Assert.assertTrue("Expected errors", listener.getErrors().size() > 0);
-    } else {
-      listener.assertNoErrors();
+    ArrayList<AnalysisError> errorList = new ArrayList<AnalysisError>();
+    addErrors(errorList, library.getDefiningCompilationUnit());
+    for (CompilationUnitElement part : library.getParts()) {
+      addErrors(errorList, part);
     }
-    //
-    // Validate that the AST structure was built correctly.
-    //
-    ASTValidator validator = new ASTValidator();
-    unit.accept(validator);
-    validator.assertValid();
-    //
-    // Validate that the element model was built.
-    //
-    Assert.assertNotNull(element);
+    if (errorExpected) {
+      Assert.assertTrue("Expected errors, found none", errorList.size() > 0);
+    } else {
+      Assert.assertTrue("Expected 0 errors, found " + errorList.size(), errorList.size() == 0);
+    }
   }
 
   private int getTestCount(String[] lines) {

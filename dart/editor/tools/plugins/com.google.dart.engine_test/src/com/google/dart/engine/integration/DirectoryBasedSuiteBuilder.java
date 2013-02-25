@@ -13,10 +13,19 @@
  */
 package com.google.dart.engine.integration;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisError;
+
+import junit.framework.Assert;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public abstract class DirectoryBasedSuiteBuilder {
   public class AnalysisTest extends TestCase {
@@ -56,6 +65,28 @@ public abstract class DirectoryBasedSuiteBuilder {
       addTestsForFilesIn(suite, directory);
     }
     return suite;
+  }
+
+  /**
+   * Add the errors reported for the given compilation unit to the given list of errors.
+   * 
+   * @param errorList the list to which the errors are to be added
+   * @param element the compilation unit whose errors are to be added
+   * @throws AnalysisException if the errors could not be determined
+   */
+  protected void addErrors(ArrayList<AnalysisError> errorList, CompilationUnitElement element)
+      throws AnalysisException {
+    LibraryElement library = element.getLibrary();
+    AnalysisContext context = library.getContext();
+    CompilationUnit unit = context.resolve(element.getSource(), library);
+    AnalysisError[] errors = unit.getErrors();
+    if (errors == null) {
+      Assert.fail("The compilation unit \"" + element.getSource().getFullName()
+          + "\" was not resolved");
+    }
+    for (AnalysisError error : errors) {
+      errorList.add(error);
+    }
   }
 
   protected void addTestForFile(TestSuite suite, File file) {
