@@ -54,7 +54,7 @@ public abstract class AbstractOpenWizardAction extends InstrumentedAction {
       INewWizard wizard = createWizard();
       instrumentation.metric("Wizard Class", wizard.getClass().toString());
 
-      wizard.init(PlatformUI.getWorkbench(), selection);
+      wizard.init(PlatformUI.getWorkbench(), getSelection());
 
       WizardDialog dialog = new WizardDialog(shell, wizard);
       PixelConverter converter = new PixelConverter(JFaceResources.getDialogFont());
