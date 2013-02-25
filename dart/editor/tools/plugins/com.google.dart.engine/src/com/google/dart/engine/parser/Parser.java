@@ -3962,8 +3962,8 @@ public class Parser {
     }
     Expression expression = parseShiftExpression();
     if (matches(Keyword.AS)) {
-      Token isOperator = getAndAdvance();
-      expression = new AsExpression(expression, isOperator, parseTypeName());
+      Token asOperator = getAndAdvance();
+      expression = new AsExpression(expression, asOperator, parseTypeName());
     } else if (matches(Keyword.IS)) {
       Token isOperator = getAndAdvance();
       Token notOperator = null;
