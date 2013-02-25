@@ -752,9 +752,15 @@ public class TypeResolverVisitor extends ScopedVisitor {
           break;
       }
     }
-    functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
-    functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
-    functionType.setNamedParameterTypes(namedParameterTypes);
+    if (!normalParameterTypes.isEmpty()) {
+      functionType.setNormalParameterTypes(normalParameterTypes.toArray(new Type[normalParameterTypes.size()]));
+    }
+    if (!optionalParameterTypes.isEmpty()) {
+      functionType.setOptionalParameterTypes(optionalParameterTypes.toArray(new Type[optionalParameterTypes.size()]));
+    }
+    if (!namedParameterTypes.isEmpty()) {
+      functionType.setNamedParameterTypes(namedParameterTypes);
+    }
     if (returnType == null) {
       functionType.setReturnType(dynamicType);
     } else {

@@ -32,6 +32,9 @@ public abstract class TypeImpl implements Type {
    */
   protected static Type[] substitute(Type[] types, Type[] argumentTypes, Type[] parameterTypes) {
     int length = types.length;
+    if (length == 0) {
+      return types;
+    }
     Type[] newTypes = new Type[length];
     for (int i = 0; i < length; i++) {
       newTypes[i] = types[i].substitute(argumentTypes, parameterTypes);

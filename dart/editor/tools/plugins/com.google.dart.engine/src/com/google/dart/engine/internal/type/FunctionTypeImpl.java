@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.type;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.TypeAliasElement;
@@ -32,16 +33,16 @@ import java.util.Map.Entry;
  */
 public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**
-   * Return {@code true} if all of the types in the first array are equal to the corresponding types
-   * in the second array.
+   * Return {@code true} if all of the name/type pairs in the first map are equal to the
+   * corresponding name/type pairs in the second map. The maps are expected to iterate over their
+   * entries in the same order in which those entries were added to the map.
    * 
-   * @param firstTypes the first array of types being compared
-   * @param secondTypes the second array of types being compared
-   * @return {@code true} if all of the types in the first array are equal to the corresponding
-   *         types in the second array
+   * @param firstTypes the first map of name/type pairs being compared
+   * @param secondTypes the second map of name/type pairs being compared
+   * @return {@code true} if all of the name/type pairs in the first map are equal to the
+   *         corresponding name/type pairs in the second map
    */
-  private static boolean equals(LinkedHashMap<String, Type> firstTypes,
-      LinkedHashMap<String, Type> secondTypes) {
+  private static boolean equals(Map<String, Type> firstTypes, Map<String, Type> secondTypes) {
     if (secondTypes.size() != firstTypes.size()) {
       return false;
     }
@@ -68,8 +69,11 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * @param parameterTypes the parameter types for the substitution
    * @return the result of performing the substitution on each of the types
    */
-  private static LinkedHashMap<String, Type> substitute(LinkedHashMap<String, Type> types,
-      Type[] argumentTypes, Type[] parameterTypes) {
+  private static Map<String, Type> substitute(Map<String, Type> types, Type[] argumentTypes,
+      Type[] parameterTypes) {
+    if (types.isEmpty()) {
+      return types;
+    }
     LinkedHashMap<String, Type> newTypes = new LinkedHashMap<String, Type>();
     for (Map.Entry<String, Type> entry : types.entrySet()) {
       newTypes.put(entry.getKey(), entry.getValue().substitute(argumentTypes, parameterTypes));
@@ -100,7 +104,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * A table mapping the names of named parameters to the types of the named parameters of this type
    * of function.
    */
-  private LinkedHashMap<String, Type> namedParameterTypes = new LinkedHashMap<String, Type>();
+  private Map<String, Type> namedParameterTypes = ImmutableMap.of();
 
   /**
    * The type of object returned by this type of function.
@@ -316,7 +320,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
         optionalParameterTypes,
         argumentTypes,
         parameterTypes));
-    newType.setNamedParameterTypes(substitute(namedParameterTypes, argumentTypes, parameterTypes));
+    newType.namedParameterTypes = substitute(namedParameterTypes, argumentTypes, parameterTypes);
     return newType;
   }
 
