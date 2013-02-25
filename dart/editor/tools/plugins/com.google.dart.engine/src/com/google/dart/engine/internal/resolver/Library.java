@@ -343,6 +343,6 @@ public class Library {
     } catch (IllegalArgumentException exception) {
       return null;
     }
-    return builder.toString();
+    return builder.toString().trim();
   }
 }
