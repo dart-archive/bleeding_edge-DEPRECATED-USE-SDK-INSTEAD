@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
@@ -38,10 +39,13 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
   @Override
   protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode)
       throws CoreException {
-    // This change open us up to some race conditions where the build is doing something like
-    // running pub or build.dart and generating resources. W/ this change we could launch the app
-    // before it is ready to run...
-    return new IProject[0];
+    // indicate which project to save before launch
+    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+    IResource resource = launchConfig.getApplicationResource();
+    if (resource != null) {
+      return new IProject[] {resource.getProject()};
+    }
+    return null;
   }
 
 }
