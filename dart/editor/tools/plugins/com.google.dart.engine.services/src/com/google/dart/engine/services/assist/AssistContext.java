@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -29,6 +30,7 @@ public class AssistContext {
   private final int selectionLength;
   private ASTNode coveredNode;
   private ASTNode coveringNode;
+  private Index index;
 
   public AssistContext(CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
     this.compilationUnit = compilationUnit;
@@ -38,6 +40,12 @@ public class AssistContext {
 
   public AssistContext(CompilationUnit compilationUnit, SourceRange selectionRange) {
     this(compilationUnit, selectionRange.getOffset(), selectionRange.getLength());
+  }
+
+  public AssistContext(CompilationUnit compilationUnit, int selectionOffset, int selectionLength,
+      Index index) {
+    this(compilationUnit, selectionOffset, selectionLength);
+    this.index = index;
   }
 
   /**
@@ -67,6 +75,10 @@ public class AssistContext {
       coveringNode = locator.searchWithin(compilationUnit);
     }
     return coveringNode;
+  }
+
+  public Index getIndex() {
+    return index;
   }
 
   /**

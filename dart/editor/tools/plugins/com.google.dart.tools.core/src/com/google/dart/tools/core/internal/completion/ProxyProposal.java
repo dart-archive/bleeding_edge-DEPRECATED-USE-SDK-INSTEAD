@@ -58,7 +58,7 @@ public class ProxyProposal extends CompletionProposal {
       case FUNCTION_ALIAS:
         return CompletionProposal.TYPE_REF;
       case GETTER:
-        return CompletionProposal.METHOD_REF;
+        return CompletionProposal.FIELD_REF;
       case IMPORT:
         return CompletionProposal.TYPE_IMPORT;
       case LIBRARY_PREFIX:
@@ -68,7 +68,7 @@ public class ProxyProposal extends CompletionProposal {
       case PARAMETER:
         return CompletionProposal.LOCAL_VARIABLE_REF;
       case SETTER:
-        return CompletionProposal.METHOD_REF;
+        return CompletionProposal.FIELD_REF;
       case TYPE_VARIABLE:
         return CompletionProposal.TYPE_REF;
       case VARIABLE:

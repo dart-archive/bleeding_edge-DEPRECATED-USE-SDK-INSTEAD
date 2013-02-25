@@ -3,6 +3,8 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.util.LocationSpec;
@@ -18,6 +20,20 @@ public class CompletionTestCase extends ResolverTestCase {
 
   protected static String src(String... parts) {
     return Joiner.on('\n').join(parts);
+  }
+
+  private Index index;
+
+  @Override
+  public void setUp() {
+    super.setUp();
+    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    new Thread() {
+      @Override
+      public void run() {
+        index.run();
+      }
+    }.start();
   }
 
   /**
@@ -40,11 +56,12 @@ public class CompletionTestCase extends ResolverTestCase {
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
     CompilationUnit compilationUnit = analyze(completionTests.iterator().next().source);
+    index.indexUnit(compilationUnit);
     CompletionFactory factory = new CompletionFactory();
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
       CompletionEngine engine = new CompletionEngine(requestor, factory);
-      engine.complete(new AssistContext(compilationUnit, test.testLocation, 0));
+      engine.complete(new AssistContext(compilationUnit, test.testLocation, 0, index));
       if (test.positiveResults.size() > 0) {
         assertTrue("Expected code completion suggestions", requestor.validate());
       }

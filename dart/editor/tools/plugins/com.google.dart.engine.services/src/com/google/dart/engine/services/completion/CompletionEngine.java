@@ -14,31 +14,54 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.Declaration;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProviderImpl;
+import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.search.SearchListener;
+import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.search.SearchPattern;
+import com.google.dart.engine.search.SearchPatternFactory;
+import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import static com.google.dart.engine.services.completion.ProposalKind.CONSTRUCTOR;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The analysis engine for code completion.
@@ -47,6 +70,22 @@ import java.util.List;
  * utilities.
  */
 public class CompletionEngine {
+
+  static class SearchCollector implements SearchListener {
+    ArrayList<Element> results = new ArrayList<Element>();
+    boolean isComplete = false;
+
+    @Override
+    public void matchFound(SearchMatch match) {
+      Element element = match.getElement();
+      results.add(element);
+    }
+
+    @Override
+    public void searchComplete() {
+      isComplete = true;
+    }
+  }
 
   private class CompletionVisitor extends GeneralizingASTVisitor<Void> {
     ASTNode completionNode;
@@ -58,18 +97,27 @@ public class CompletionEngine {
 
   private class Filter {
     String prefix;
+    boolean isPrivateDisallowed = true;
 
     Filter(SimpleIdentifier ident) {
-      int len = context.getSelectionLength();
       int loc = context.getSelectionOffset();
       int pos = ident.getOffset();
-      prefix = ident.getName().substring(0, len + loc - pos);
+      prefix = ident.getName().substring(0, loc - pos);
+      if (prefix.length() >= 1) {
+        isPrivateDisallowed = !Identifier.isPrivateName(prefix);
+      }
     }
 
     boolean match(Element elem) {
       // Return true if the filter passes. Return false for private elements that should not be visible
-      // in the current context, or for library elements that are not accessible in the context.
-      return elem.getName().startsWith(prefix);
+      // in the current context, or for library elements that are not accessible in the context (NYI).
+      String name = elem.getName();
+      if (isPrivateDisallowed) {
+        if (name.length() > 0 && Identifier.isPrivateName(name)) {
+          return false;
+        }
+      }
+      return name.startsWith(prefix);
     }
   }
 
@@ -77,6 +125,16 @@ public class CompletionEngine {
 
     ParentNodeCompleter(ASTNode node) {
       super(node);
+    }
+
+    @Override
+    public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+      // { A() : this.!x = 1; }
+      if (node.getFieldName() == completionNode) {
+        ClassElement classElement = ((ConstructorDeclaration) node.getParent()).getElement().getEnclosingElement();
+        fieldReference(classElement, node.getFieldName());
+      }
+      return null;
     }
 
     @Override
@@ -97,33 +155,70 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitMethodInvocation(MethodInvocation node) {
+      if (node.getMethodName() == completionNode) {
+        // { x.!y() }
+        Expression expr = node.getTarget();
+        Type receiverType = typeOf(expr);
+        analyzePrefixedAccess(receiverType, node.getMethodName());
+      } else if (node.getTarget() == completionNode) {
+        // { x!.y() } -- only reached when node.getTarget() is a simple identifier. (TODO: verify)
+        if (completionNode instanceof SimpleIdentifier) {
+          SimpleIdentifier ident = (SimpleIdentifier) completionNode;
+          analyzeReceiver(ident);
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
       if (node.getPrefix() == completionNode) {
         // { x!.y }
-        node.getIdentifier();
+        node.getIdentifier(); // TODO: verify that this case occurs
       } else {
         // { v.! }
         SimpleIdentifier receiverName = node.getPrefix();
         Element receiver = receiverName.getElement();
         switch (receiver.getKind()) {
-          case LIBRARY: {
-            LibraryElement libraryElement = (LibraryElement) receiver;
+          case PREFIX: {
+            // TODO: remove this case if/when prefix resolution changes
+            PrefixElement prefixElement = (PrefixElement) receiver;
             // Complete lib_prefix.name
-            prefixedAccess(libraryElement, node.getIdentifier());
+            prefixedAccess(prefixElement, node.getIdentifier());
+          }
+          case IMPORT: {
+            ImportElement importElement = (ImportElement) receiver;
+            // Complete lib_prefix.name
+            prefixedAccess(importElement, node.getIdentifier());
             break;
           }
           default: {
             Type receiverType = typeOf(receiver);
-            if (receiverType != null) {
-              // Complete x.y
-              Element rcvrTypeElem = receiverType.getElement();
-              if (rcvrTypeElem instanceof ClassElement) {
-                prefixedAccess((ClassElement) rcvrTypeElem, node.getIdentifier());
-              }
-            }
+            analyzePrefixedAccess(receiverType, node.getIdentifier());
             break;
           }
         }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitPropertyAccess(PropertyAccess node) {
+      // { o.!hashCode }
+      if (node.getPropertyName() == completionNode) {
+        Type receiverType = typeOf(node.getRealTarget());
+        analyzePrefixedAccess(receiverType, node.getPropertyName());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+      // { A.Fac() : this.!b(); }
+      if (node.getConstructorName() == completionNode) {
+        ClassElement classElement = node.getElement().getEnclosingElement();
+        constructorReference(classElement, node.getConstructorName());
       }
       return null;
     }
@@ -188,12 +283,45 @@ public class CompletionEngine {
     return context;
   }
 
+  void analyzePrefixedAccess(Type receiverType, SimpleIdentifier completionNode) {
+    if (receiverType != null) {
+      // Complete x.!y
+      Element rcvrTypeElem = receiverType.getElement();
+      if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
+        rcvrTypeElem = getObjectClassElement();
+      }
+      if (rcvrTypeElem instanceof ClassElement) {
+        prefixedAccess((ClassElement) rcvrTypeElem, completionNode);
+      }
+    }
+  }
+
+  void analyzeReceiver(SimpleIdentifier identifier) {
+    // Completion x!.y
+    filter = new Filter(identifier);
+    Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : uniqueNames.values()) {
+      Element candidate = uniques.get(0);
+      pName(candidate, identifier);
+    }
+  }
+
   void constructorReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a constructor defined in classElement.
     filter = new Filter(identifier);
-    for (ConstructorElement cons : classElement.getConstructors()) { // TODO: These become the completion proposals.
-      if (filter(cons)) {
-        pConstructor(cons, identifier, classElement);
+    for (ConstructorElement cons : classElement.getConstructors()) {
+      if (filterAllows(cons)) {
+        pExecutable(cons, identifier, classElement);
+      }
+    }
+  }
+
+  void fieldReference(ClassElement classElement, SimpleIdentifier identifier) {
+    // Complete identifier when it refers to a constructor defined in classElement.
+    filter = new Filter(identifier);
+    for (FieldElement cons : classElement.getFields()) {
+      if (filterAllows(cons)) {
+        pField(cons, identifier, classElement);
       }
     }
   }
@@ -202,16 +330,45 @@ public class CompletionEngine {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
     InterfaceType[] allTypes = allTypes(classElement);
+    Map<String, List<ExecutableElement>> uniqueNames = new HashMap<String, List<ExecutableElement>>();
     for (InterfaceType type : allTypes) {
-      type.getElement().getAccessors(); // TODO These become the completion proposals
-      type.getElement().getMethods();
-      type.getElement().getFields(); // (probably ignore fields; names duplicated in accessors)
+      mergeNames(uniqueNames, type.getElement().getAccessors());
+      mergeNames(uniqueNames, type.getElement().getMethods());
+    }
+    allTypes = allSubtypes(classElement);
+    for (InterfaceType type : allTypes) {
+      mergeNames(uniqueNames, type.getElement().getAccessors());
+      mergeNames(uniqueNames, type.getElement().getMethods());
+    }
+    for (List<ExecutableElement> uniques : uniqueNames.values()) {
+      ExecutableElement candidate = uniques.get(0);
+      pExecutable(candidate, identifier, classElement);
     }
   }
 
-  void prefixedAccess(LibraryElement libElement, SimpleIdentifier identifier) {
-    // Complete identifier when it refers to a member defined in the libraryElement.
+  void prefixedAccess(ImportElement libElement, SimpleIdentifier identifier) {
+    // TODO: Complete identifier when it refers to a member defined in the libraryElement.
     filter = new Filter(identifier);
+  }
+
+  void prefixedAccess(PrefixElement libElement, SimpleIdentifier identifier) {
+    // TODO: Complete identifier when it refers to a member defined in the libraryElement, or remove.
+    filter = new Filter(identifier);
+  }
+
+  private InterfaceType[] allSubtypes(ClassElement classElement) {
+    SearchEngine engine = newSearchEngine();
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
+    List<SearchMatch> matches = engine.searchSubtypes(classElement, scope, null);
+    InterfaceType[] subtypes = new InterfaceType[matches.size()];
+    int i = 0;
+    for (SearchMatch match : matches) {
+      Element element = match.getElement();
+      if (element instanceof ClassElement) {
+        subtypes[i++] = ((ClassElement) element).getType();
+      }
+    }
+    return subtypes;
   }
 
   private InterfaceType[] allTypes(ClassElement classElement) {
@@ -222,30 +379,213 @@ public class CompletionEngine {
     return allTypes;
   }
 
+  private Map<String, List<Element>> collectIdentifiersVisibleAt(ASTNode ident) {
+    Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+    Declaration decl = ident.getAncestor(Declaration.class);
+    if (decl != null) {
+      Element element = decl.getElement();
+      if (element instanceof ExecutableElement) {
+        ExecutableElement execElement = (ExecutableElement) element;
+        ParameterElement[] params = execElement.getParameters();
+        mergeNames(uniqueNames, params);
+        VariableElement[] vars = execElement.getLocalVariables();
+        mergeNames(uniqueNames, vars); // TODO: Filter out vars defined after the completion point.
+        decl = decl.getAncestor(Declaration.class);
+        if (decl != null) {
+          element = decl.getElement();
+        }
+      }
+      if (element instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element;
+        // TODO: inherited fields
+        mergeNames(uniqueNames, classElement.getAccessors());
+        decl = decl.getAncestor(Declaration.class);
+        if (decl != null) {
+          element = decl.getElement();
+        }
+      }
+      mergeNames(uniqueNames, findAllTypes());
+      mergeNames(uniqueNames, findAllFunctions());
+      mergeNames(uniqueNames, findAllVariables());
+    }
+    return uniqueNames;
+  }
+
   private int completionLocation() {
     return context.getSelectionOffset();
   }
 
   private CompletionProposal createProposal(ProposalKind kind) {
-    return factory.createCompletionProposal(kind, completionLocation());
+    return factory.createCompletionProposal(kind, completionLocation() - filter.prefix.length());
   }
 
-  private boolean filter(Element element) {
+  private Element[] extractElementsFromSearchMatches(List<SearchMatch> matches) {
+    Element[] funcs = new Element[matches.size()];
+    int i = 0;
+    for (SearchMatch match : matches) {
+      funcs[i++] = match.getElement();
+    }
+    return funcs;
+  }
+
+  private boolean filterAllows(Element element) {
     return filter.match(element);
   }
 
-  private void pConstructor(ConstructorElement cons, SimpleIdentifier identifier,
-      ClassElement classElement) {
-    // Create a completion proposal for the element.
-    String name = cons.getName();
-    if (name.isEmpty()) {
-      return; // TODO: Check proposals for Cons() -- this handles Cons.fac() currently.
+  private boolean filterDisallows(Element element) {
+    return !filter.match(element);
+  }
+
+  private Element[] findAllFunctions() {
+    SearchEngine engine = newSearchEngine();
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, null);
+    return extractElementsFromSearchMatches(matches);
+  }
+
+  private Element[] findAllTypes() {
+    SearchEngine engine = newSearchEngine();
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    List<SearchMatch> matches = engine.searchTypeDeclarations(scope, pattern, null);
+    return extractElementsFromSearchMatches(matches);
+  }
+
+  private Element[] findAllVariables() {
+    SearchEngine engine = newSearchEngine();
+    SearchScope scope = SearchScopeFactory.createUniverseScope();
+    SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
+    List<SearchMatch> matches = engine.searchVariableDeclarations(scope, pattern, null);
+    return extractElementsFromSearchMatches(matches);
+  }
+
+  private ClassElement getObjectClassElement() {
+    return getTypeProvider().getObjectType().getElement();
+  }
+
+  private TypeProvider getTypeProvider() {
+    AnalysisContext ctxt = context.getCompilationUnit().getElement().getContext();
+    Source coreSource = ctxt.getSourceFactory().forUri(DartSdk.DART_CORE);
+    LibraryElement coreLibrary = ctxt.getLibraryElement(coreSource);
+    TypeProvider provider = new TypeProviderImpl(coreLibrary);
+    return provider;
+  }
+
+  private <X extends Element> void mergeNames(Map<String, List<X>> uniqueNames, X[] elements) {
+    for (X element : elements) {
+      String name = element.getName();
+      List<X> dups = uniqueNames.get(name);
+      if (dups == null) {
+        dups = new ArrayList<X>();
+        uniqueNames.put(name, dups);
+      }
+      dups.add(element);
     }
-    CompletionProposal prop = createProposal(CONSTRUCTOR);
-    setParameterInfo(cons, prop);
-    prop.setCompletion(name).setReturnType(cons.getType().getReturnType().getName()).setDeclaringType(
-        cons.getEnclosingElement().getName());
+  }
+
+  private SearchEngine newSearchEngine() {
+    SearchEngine engine = SearchEngineFactory.createSearchEngine(context.getIndex());
+    return engine;
+  }
+
+  private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
+      ClassElement classElement) {
+    // Create a completion proposal for the element: function, method, getter, setter, constructor.
+    String name = element.getName();
+    if (name.isEmpty() || filterDisallows(element)) {
+      return; // Simple constructors are not handled here
+    }
+    ProposalKind kind = proposalKindOf(element);
+    CompletionProposal prop = createProposal(kind);
+    setParameterInfo(element, prop);
+    prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
+    Element container = element.getEnclosingElement();
+    if (container != null) { // TODO: may be null for functions ??
+      prop.setDeclaringType(container.getName());
+    }
     requestor.accept(prop);
+  }
+
+  private void pField(FieldElement element, SimpleIdentifier identifier, ClassElement classElement) {
+    // Create a completion proposal for the element: field only.
+    String name = element.getName();
+    if (filterDisallows(element)) {
+      return;
+    }
+    ProposalKind kind = proposalKindOf(element);
+    CompletionProposal prop = createProposal(kind);
+    prop.setCompletion(name);
+    Element container = element.getEnclosingElement();
+    if (container != null) { // TODO: never null ??
+      prop.setDeclaringType(container.getName());
+    }
+    requestor.accept(prop);
+  }
+
+  private void pName(Element element, SimpleIdentifier identifier) {
+    // Create a completion proposal for the element: variable, field, class, function.
+    String name = element.getName();
+    if (filterDisallows(element)) {
+      return;
+    }
+    ProposalKind kind = proposalKindOf(element);
+    CompletionProposal prop = createProposal(kind);
+    prop.setCompletion(name);
+    Element container = element.getEnclosingElement();
+    if (container != null) { // TODO: may be null for functions ??
+      prop.setDeclaringType(container.getName());
+    }
+    requestor.accept(prop);
+  }
+
+  private ProposalKind proposalKindOf(Element element) {
+    ProposalKind kind;
+    switch (element.getKind()) {
+      case CONSTRUCTOR:
+        kind = ProposalKind.CONSTRUCTOR;
+        break;
+      case FUNCTION:
+        kind = ProposalKind.FUNCTION;
+        break;
+      case METHOD:
+        kind = ProposalKind.METHOD;
+        break;
+      case GETTER:
+        kind = ProposalKind.GETTER;
+        break;
+      case SETTER:
+        kind = ProposalKind.SETTER;
+        break;
+      case CLASS:
+        kind = ProposalKind.CLASS;
+        break;
+      case FIELD:
+        kind = ProposalKind.FIELD;
+        break;
+      case IMPORT:
+        kind = ProposalKind.IMPORT;
+        break;
+      case PARAMETER:
+        kind = ProposalKind.PARAMETER;
+        break;
+      case PREFIX:
+        kind = ProposalKind.LIBRARY_PREFIX;
+        break;
+      case TYPE_ALIAS:
+        kind = ProposalKind.CLASS_ALIAS;
+        break;
+      case TYPE_VARIABLE:
+        kind = ProposalKind.TYPE_VARIABLE;
+        break;
+      case LOCAL_VARIABLE:
+      case TOP_LEVEL_VARIABLE:
+        kind = ProposalKind.VARIABLE;
+        break;
+      default:
+        throw new IllegalArgumentException();
+    }
+    return kind;
   }
 
   private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {
@@ -315,5 +655,16 @@ public class CompletionEngine {
       }
     }
     return receiverType;
+  }
+
+  private Type typeOf(Expression expr) {
+    Type type = expr.getPropagatedType();
+    if (type == null) {
+      type = expr.getStaticType();
+    }
+    if (type == null) {
+      type = DynamicTypeImpl.getInstance();
+    }
+    return type;
   }
 }

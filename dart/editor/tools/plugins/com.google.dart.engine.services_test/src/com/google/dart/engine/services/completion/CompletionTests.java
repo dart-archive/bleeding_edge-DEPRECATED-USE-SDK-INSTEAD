@@ -18,31 +18,18 @@ package com.google.dart.engine.services.completion;
  */
 public class CompletionTests extends CompletionTestCase {
 
-  public void test000() throws Exception {
-    String source = src(//
-        "class A {",
-        "  int x;",
-        "  A() : this.x = 1;",
-        "  A.b() : this();",
-        "  A.c() : this.b();",
-        "  g() => new A.c();",
-        "  h() { A q; q.!1x; }",
-        "}");
-    test(source, "1+x");
-  }
-
   public void test001() throws Exception {
     String source = src(//
-        "void r(var v) {",
-        "  v.!1to!2",
+        "void r1(var v) {",
+        "  v.!1toString!2().!3hash!4Code",
         "}");
-    test(source, "1+toString", "2+toString");
+    test(source, "1+toString", "2+toString", "3+hashCode", "3+toString", "4+hashCode", "4-toString");
   }
 
   public void test002() throws Exception {
     String source = src(//
-        "void r(var vim) {",
-        "  v!1.toStri",
+        "void r2(var vim) {",
+        "  v!1.toString()",
         "}");
     test(source, "1+vim");
   }
@@ -51,7 +38,7 @@ public class CompletionTests extends CompletionTestCase {
     String source = src(//
         "class A {",
         "  int a() => 3;",
-        "  int b() => this.1!a();",
+        "  int b() => this.!1a();",
         "}");
     test(source, "1+a");
   }

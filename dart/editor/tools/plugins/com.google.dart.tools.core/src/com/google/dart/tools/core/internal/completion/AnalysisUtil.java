@@ -28,6 +28,7 @@ public class AnalysisUtil implements CompletionRequestor {
 
   public void setRequestor(com.google.dart.tools.core.completion.CompletionRequestor requestor) {
     this.requestor = requestor;
+    requestor.acceptContext(new InternalCompletionContext());
   }
 
 }

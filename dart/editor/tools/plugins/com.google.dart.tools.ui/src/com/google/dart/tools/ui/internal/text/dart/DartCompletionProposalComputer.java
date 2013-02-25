@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.assist.TemporaryResolver;
 import com.google.dart.engine.source.Source;
@@ -478,14 +479,17 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       // Use new completion engine.
       com.google.dart.engine.services.completion.CompletionEngine engine;
       com.google.dart.engine.services.completion.CompletionFactory factory;
+      com.google.dart.engine.ast.CompilationUnit compilationUnit;
       AnalysisUtil util = new AnalysisUtil();
       util.setRequestor(collector);
       factory = new com.google.dart.engine.services.completion.CompletionFactory();
       engine = new com.google.dart.engine.services.completion.CompletionEngine(util, factory);
-      // Caution: resolution has not yet been done, so this path is incomplete.
-      engine.complete(new AssistContext(resolve(
-          context.getCompilationUnit().getPath().toOSString(),
-          context.getInputUnit()), offset, len));
+      // Caution: resolution has not yet been done properly, so this control flow path is incomplete.
+      String path = context.getCompilationUnit().getPath().toOSString();
+      compilationUnit = resolve(path, context.getInputUnit());
+      Index index = TemporaryResolver.getIndex();
+      index.indexUnit(compilationUnit);
+      engine.complete(new AssistContext(compilationUnit, offset, len, index));
     } catch (OperationCanceledException x) {
       IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
           IBindingService.class);

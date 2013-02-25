@@ -11,8 +11,11 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
@@ -220,10 +223,10 @@ public class TemporaryResolver {
       ClassElementImpl numElement = (ClassElementImpl) classElement("num");
       numType = numElement.getType();
 
-      ClassElementImpl intElement = (ClassElementImpl) classElement("int", numType);
+      ClassElementImpl intElement = classElement("int", numType);
       intType = intElement.getType();
 
-      ClassElementImpl doubleElement = (ClassElementImpl) classElement("double", numType);
+      ClassElementImpl doubleElement = classElement("double", numType);
       doubleType = doubleElement.getType();
       //
       // Add the methods.
@@ -279,10 +282,42 @@ public class TemporaryResolver {
     }
   }
 
-  private static ClassElement objectElement;
+  private static ClassElementImpl objectElement;
+  private static ClassElementImpl stringElement;
+  private static ClassElementImpl intElement;
+  private static ClassElementImpl numElement;
 
-  static ClassElement classElement(String typeName, InterfaceType superclassType,
+  public static PropertyAccessorElementImpl getterElement(String name, boolean isStatic, Type type) {
+    FieldElementImpl field = new FieldElementImpl(identifier(name));
+    field.setStatic(isStatic);
+    field.setSynthetic(true);
+    field.setType(type);
+
+    PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(field);
+    getter.setGetter(true);
+    field.setGetter(getter);
+
+    FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
+    getterType.setReturnType(type);
+    getter.setType(getterType);
+
+    return getter;
+  }
+
+  static ClassElementImpl classElement(String typeName, InterfaceType superclassType,
       String... parameterNames) {
+    if (typeName.equals("Object") && objectElement != null) {
+      return objectElement;
+    }
+    if (typeName.equals("String") && stringElement != null) {
+      return stringElement;
+    }
+    if (typeName.equals("num") && numElement != null) {
+      return numElement;
+    }
+    if (typeName.equals("int") && intElement != null) {
+      return intElement;
+    }
     ClassElementImpl element = new ClassElementImpl(identifier(typeName));
     element.setSupertype(superclassType);
     InterfaceTypeImpl type = new InterfaceTypeImpl(element);
@@ -349,6 +384,14 @@ public class TemporaryResolver {
   static ClassElement getObject() {
     if (objectElement == null) {
       objectElement = classElement("Object", (InterfaceType) null);
+      stringElement = classElement("String", objectElement.getType());
+      numElement = classElement("num", objectElement.getType());
+      intElement = classElement("int", numElement.getType());
+      MethodElement toStringMethod = methodElement("toString", stringElement.getType());
+      objectElement.setMethods(new MethodElement[] {toStringMethod});
+      PropertyAccessorElement hashCodeGetter;
+      hashCodeGetter = getterElement("hashCode", false, intElement.getType());
+      objectElement.setAccessors(new PropertyAccessorElement[] {hashCodeGetter});
     }
     return objectElement;
   }
@@ -419,6 +462,22 @@ public class TemporaryResolver {
     }
   }
 
+  {
+    index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
+    new Thread() {
+      @Override
+      public void run() {
+        index.run();
+      }
+    }.start();
+  }
+
+  private static Index index;
+
+  public static Index getIndex() {
+    return index;
+  }
+
   private AnalysisContextImpl analysisContext = AnalysisContextFactory.contextWithCore();
 
   public Source addSource(String filePath, String contents) {
@@ -472,6 +531,8 @@ public class TemporaryResolver {
     };
     LibraryResolver resolver = new LibraryResolver(analysisContext, listener);
     resolver.resolveLibrary(librarySource, true);
+    index.removeSource(librarySource);
+    index.indexUnit(getAnalysisContext().parse(librarySource));
   }
 
 }
