@@ -57,6 +57,13 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
+   * Return {@code true} if this type represents the type {@code dynamic}.
+   * 
+   * @return {@code true} if this type represents the type {@code dynamic}
+   */
+  public boolean isDynamic();
+
+  /**
    * Return {@code true} if this type is more specific than the given type.
    * 
    * @param type the type being compared with this type
