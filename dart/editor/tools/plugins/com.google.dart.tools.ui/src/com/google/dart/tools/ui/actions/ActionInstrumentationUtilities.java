@@ -3,6 +3,7 @@ package com.google.dart.tools.ui.actions;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
@@ -44,6 +45,7 @@ public class ActionInstrumentationUtilities {
 
     if (element == null) {
       instrumentation.metric("Element", "null");
+      return;
     }
 
     instrumentation.metric("Element-Class", element.getClass().toString());
@@ -64,6 +66,17 @@ public class ActionInstrumentationUtilities {
 
     instrumentation.data("Problem-Exception Message", e.getMessage());
     instrumentation.data("Problem-Exception StackTrace", e.getStackTrace().toString());
+
+  }
+
+  public static void recordLibrary(DartLibrary library, InstrumentationBuilder instrumentation) {
+
+    if (library == null) {
+      instrumentation.metric("Library", "null");
+      return;
+    }
+
+    instrumentation.data("Library-Name", library.getElementName());
 
   }
 

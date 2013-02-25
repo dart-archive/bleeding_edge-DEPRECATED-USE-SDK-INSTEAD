@@ -34,6 +34,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
@@ -49,7 +50,7 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
  * 
  * @see GenerateJavascriptAction
  */
-public class GenerateDartdocAction extends AbstractInstrumentedAction implements IWorkbenchAction,
+public class GenerateDartdocAction extends InstrumentedAction implements IWorkbenchAction,
     ISelectionListener, IPartListener {
 
   class DeployOptimizedJob extends InstrumentedJob {
@@ -70,6 +71,8 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
     @Override
     protected IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation) {
       try {
+
+        ActionInstrumentationUtilities.recordLibrary(library, instrumentation);
         monitor.beginTask(
             ActionMessages.GenerateDartdocAction_Compiling + library.getElementName(),
             IProgressMonitor.UNKNOWN);
@@ -78,11 +81,17 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
 
         return Status.OK_STATUS;
       } catch (OperationCanceledException exception) {
+
+        instrumentation.metric("Problem", "User cancelled generation");
         // The user cancelled.
         DartCore.getConsole().println("Generation cancelled.");
 
         return Status.CANCEL_STATUS;
       } catch (Exception exception) {
+
+        instrumentation.metric("Problem-Exception", exception.getClass().toString());
+        instrumentation.data("Problem-Exception", exception.toString());
+
         DartCore.getConsole().println(
             NLS.bind(ActionMessages.GenerateDartdocAction_FailException, exception.toString()));
 
@@ -90,10 +99,18 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
       } finally {
         if (OPEN_BROWSER_AFTER_GENERATION) {
           try {
-            ExternalBrowserUtil.openInExternalBrowser("file://"
+            String url = "file://"
                 + DartdocGenerator.getDocsIndexPath(
-                    library.getCorrespondingResource().getLocation()).toOSString());
+                    library.getCorrespondingResource().getLocation()).toOSString();
+
+            instrumentation.metric("DartDocOpenInBrowser", "Opening");
+            instrumentation.data("DartDocOpenInBrowser", url);
+
+            ExternalBrowserUtil.openInExternalBrowser(url);
           } catch (DartModelException e) {
+
+            instrumentation.metric("Problem-Exception", e.getClass().toString());
+            instrumentation.data("Problem-Exception", e.toString());
             e.printStackTrace();
           }
         }
@@ -126,6 +143,11 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
   }
 
   @Override
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+    deployOptimized(window.getActivePage(), instrumentation);
+  }
+
+  @Override
   public void partActivated(IWorkbenchPart part) {
     if (part instanceof IEditorPart) {
       handleEditorActivated((IEditorPart) part);
@@ -153,23 +175,20 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
-    deployOptimized(window.getActivePage());
-  }
-
-  @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
     if (selection instanceof IStructuredSelection) {
       handleSelectionChanged((IStructuredSelection) selection);
     }
   }
 
-  private void deployOptimized(IWorkbenchPage page) {
+  private void deployOptimized(IWorkbenchPage page, InstrumentationBuilder instrumentation) {
     boolean isSaveNeeded = isSaveAllNeeded(page);
+
+    instrumentation.metric("isSaveNeeded", String.valueOf(isSaveNeeded));
 
     if (isSaveNeeded) {
       if (!saveDirtyEditors(page)) {
+        instrumentation.metric("Problem", "User cancelled launch");
         // The user cancelled the launch.
         return;
       }
@@ -177,7 +196,10 @@ public class GenerateDartdocAction extends AbstractInstrumentedAction implements
 
     final DartLibrary library = getCurrentLibrary();
 
+    ActionInstrumentationUtilities.recordLibrary(library, instrumentation);
+
     if (library == null) {
+      instrumentation.metric("Problem", "No library selected");
       MessageDialog.openError(
           window.getShell(),
           ActionMessages.GenerateDartdocAction_unableToLaunch,
