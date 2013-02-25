@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
@@ -27,12 +27,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
@@ -46,10 +46,10 @@ import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
 /**
  * An action to create an optimized JavaScript build of a Dart library.
  */
-public class GenerateJavascriptAction extends AbstractInstrumentedAction implements
-    IWorkbenchAction, ISelectionListener, IPartListener {
+public class GenerateJavascriptAction extends InstrumentedAction implements IWorkbenchAction,
+    ISelectionListener, IPartListener {
 
-  class DeployOptimizedJob extends Job {
+  class DeployOptimizedJob extends InstrumentedJob {
     private DartLibrary library;
 
     public DeployOptimizedJob(IWorkbenchPage page, DartLibrary library) {
@@ -65,9 +65,7 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     }
 
     @Override
-    protected IStatus run(IProgressMonitor monitor) {
-      long start = System.currentTimeMillis();
-      long compilerStart = 0; //This is going to get rewritten
+    protected IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation) {
 
       if (DartCore.getPlugin().getCompileWithDart2JS()) {
         try {
@@ -75,68 +73,35 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
               ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
               IProgressMonitor.UNKNOWN);
 
-          compilerStart = System.currentTimeMillis();
-
+          instrumentation.data("Library", library.getElementName());
           Dart2JSCompiler.compileLibrary(library, monitor, DartCore.getConsole());
 
-          long compilerElapsed = System.currentTimeMillis() - compilerStart;
-          long elapsed = System.currentTimeMillis() - start;
-
-          Instrumentation.metric("GenerateJavaScript-CompilerOnly", compilerElapsed).with(
-              "Success",
-              "true").log();
-
-          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "true").log();
-
-          Instrumentation.operation("GenerateJavaScript", elapsed).with(
-              "library",
-              library.getElementName()).log();
+          instrumentation.metric("GenerateJavascript", "Complete");
 
           return Status.OK_STATUS;
         } catch (OperationCanceledException exception) {
           // The user cancelled.
+          instrumentation.metric("Problem", "User cancelled");
+          instrumentation.data("Problem", exception.toString());
+
           DartCore.getConsole().println("Generation cancelled.");
-
-          long compilerElapsed = System.currentTimeMillis() - compilerStart;
-          long elapsed = System.currentTimeMillis() - start;
-          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
-              "Failure-Reason",
-              "User cancel").with("CompilerElapsed", compilerElapsed).log();
-
-          Instrumentation.operation("GenerateJavaScript", elapsed).with(
-              "library",
-              library.getElementName()).log();
 
           return Status.CANCEL_STATUS;
         } catch (Exception exception) {
+
+          instrumentation.metric("Problem-Exception", exception.getClass().toString());
+          instrumentation.data("Problem-Exception", exception.toString());
+
           DartCore.getConsole().println(
               NLS.bind(ActionMessages.GenerateJavascriptAction_FailException, exception.toString()));
-
-          long compilerElapsed = System.currentTimeMillis() - compilerStart;
-          long elapsed = System.currentTimeMillis() - start;
-          Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
-              "Failure-Reason-Type",
-              exception.getClass().getName()).with("CompilerElapsed", compilerElapsed).log();
-
-          Instrumentation.operation("GenerateJavaScript", elapsed).with(
-              "library",
-              library.getElementName()).with("Failure-Reason", exception.toString()).log();
 
           return Status.CANCEL_STATUS;
         } finally {
           monitor.done();
         }
       }
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("GenerateJavaScript", elapsed).with("Success", "false").with(
-          "Failure-Reason",
-          "DartSDK not installed").log();
-
-      Instrumentation.operation("GenerateJavaScript", elapsed).with(
-          "library",
-          library.getElementName()).log();
-
+      //TODO(devoncarew): Clarify whether the condition -> message mapping is still correct
+      instrumentation.metric("Problem", "Dart SDK not installed");
       return new Status(Status.WARNING, "Deploy optimized", "Dart SDK not installed");
     }
   }
@@ -160,6 +125,11 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
   @Override
   public void dispose() {
 
+  }
+
+  @Override
+  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+    deployOptimized(window.getActivePage(), instrumentation);
   }
 
   @Override
@@ -190,23 +160,19 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
   }
 
   @Override
-  public void run() {
-    emitInstrumentationCommand();
-    deployOptimized(window.getActivePage());
-  }
-
-  @Override
   public void selectionChanged(IWorkbenchPart part, ISelection selection) {
     if (selection instanceof IStructuredSelection) {
       handleSelectionChanged((IStructuredSelection) selection);
     }
   }
 
-  private void deployOptimized(IWorkbenchPage page) {
+  private void deployOptimized(IWorkbenchPage page, InstrumentationBuilder instrumentation) {
     boolean isSaveNeeded = isSaveAllNeeded(page);
+    instrumentation.metric("isSaveNeeded", String.valueOf(isSaveNeeded));
 
     if (isSaveNeeded) {
       if (!saveDirtyEditors(page)) {
+        instrumentation.metric("Problem", "User cancelled launch");
         // The user cancelled the launch.
         return;
       }
@@ -215,6 +181,7 @@ public class GenerateJavascriptAction extends AbstractInstrumentedAction impleme
     final DartLibrary library = getCurrentLibrary();
 
     if (library == null) {
+      instrumentation.metric("Problem", "No library selected");
       MessageDialog.openError(
           window.getShell(),
           ActionMessages.GenerateJavascriptAction_unableToLaunch,
