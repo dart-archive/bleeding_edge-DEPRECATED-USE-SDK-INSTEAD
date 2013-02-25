@@ -42,12 +42,6 @@ public class ScopeTest extends ResolverTestCase {
      */
     private AnalysisErrorListener errorListener;
 
-    /**
-     * The element that should be returned from {@link #lookup(String, LibraryElement)} as if it
-     * were defined in an outer scope.
-     */
-    private Element lookupResult;
-
     private TestScope(LibraryElement definingLibrary, AnalysisErrorListener errorListener) {
       this.definingLibrary = definingLibrary;
       this.errorListener = errorListener;
@@ -63,15 +57,8 @@ public class ScopeTest extends ResolverTestCase {
       return errorListener;
     }
 
-    public void setLookupResult(Element element) {
-      lookupResult = element;
-    }
-
     @Override
     protected Element lookup(String name, LibraryElement referencingLibrary) {
-      if (lookupResult != null) {
-        return lookupResult;
-      }
       return localLookup(name, referencingLibrary);
     }
   }
