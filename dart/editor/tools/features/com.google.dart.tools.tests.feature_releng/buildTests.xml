@@ -258,9 +258,6 @@
         <setupDeltaPack location="${build.target}" eclipse="${build.target.eclipse.version}" />
         <copy todir="${build.stage.plugins}">
             <fileset dir="${build.source}/tools/plugins">
-                <!-- the indexer plugin is deprecated -->
-                <exclude name="com.google.dart.indexer_test/**"/>
-
                 <!-- for now, don't copy this over; several of its plugin dependencies are not satisfied -->
                 <exclude name="com.google.dart.tools.ui.swtbot_test/**"/>
 

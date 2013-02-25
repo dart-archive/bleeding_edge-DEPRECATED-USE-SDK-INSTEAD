@@ -340,10 +340,6 @@ build system.  The PDE build system has to run under Eclipse.
                 <!-- excluded to avoid a dependency on org.eclipse.wb -->
                 <exclude name="com.google.dart.tools.designer/**" />
 
-                <!-- no longer used -->
-                <exclude name="com.google.dart.indexer/**" />
-                <exclude name="com.google.dart.indexer_test/**" />
-                
                 <!-- exclude swtbot for now -->
                 <exclude name="com.google.dart.tools.ui.swtbot_test/**" />
 
