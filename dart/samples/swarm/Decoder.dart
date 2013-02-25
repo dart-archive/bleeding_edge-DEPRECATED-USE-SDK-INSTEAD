@@ -20,7 +20,7 @@ class Decoder {
   int readInt() {
     var r = 0;
     for (var i=0; ; i++) {
-      var v = data.charCodeAt(index++);
+      var v = data.codeUnitAt(index++);
       r |= (v & 0x3F) << (6 * i);
       if ((v & 0x40) == 0) break;
     }

@@ -39,7 +39,7 @@ class BenchUtil {
   }
 
   static bool _inRange(int charCode, String start, String end) {
-    return start.charCodeAt(0) <= charCode && charCode <= end.charCodeAt(0);
+    return start.codeUnitAt(0) <= charCode && charCode <= end.codeUnitAt(0);
   }
 
   static const String DIGITS = '0123456789ABCDEF';
@@ -50,7 +50,7 @@ class BenchUtil {
   static String encodeUri(final String s) {
     StringBuffer sb = new StringBuffer();
     for (int i = 0; i < s.length; i++) {
-      final int charCode = s.charCodeAt(i);
+      final int charCode = s.codeUnitAt(i);
       final bool noEscape =
           _inRange(charCode, '0', '9') ||
           _inRange(charCode, 'a', 'z') ||

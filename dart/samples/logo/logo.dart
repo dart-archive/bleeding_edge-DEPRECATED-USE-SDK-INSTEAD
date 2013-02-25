@@ -51,24 +51,8 @@ class Color {
       _parseHex(hex.substring(3, 5))/255,
       _parseHex(hex.substring(5, 7))/255);
 
-  // This should be in the core library. Issue #233
   static int _parseHex(String hex) {
-    final codes = hex.charCodes;
-    var number = 0;
-    for (var i = 0; i < codes.length; i++) {
-      final code = codes[i];
-      var digit;
-      if (code >= 48 && code <= 57) { // 0-9
-        digit = code - 48;
-      } else if (code >= 97 && code <= 102) { // a-f
-        digit = code - 97 + 10;
-      } else {
-        throw "Invalid hex string: '$hex'";
-      }
-      number *= 16; // shift previous digits left one place
-      number += digit;
-    }
-    return number;
+    return int.parse(hex, radix: 16);
   }
 
   String get hex {

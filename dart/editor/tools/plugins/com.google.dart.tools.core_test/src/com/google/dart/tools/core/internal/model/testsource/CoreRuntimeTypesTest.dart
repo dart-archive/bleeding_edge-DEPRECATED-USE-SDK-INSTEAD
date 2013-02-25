@@ -147,7 +147,7 @@ class CoreRuntimeTypesTest {
   static testStringOperators() {
     var s = "abcdef";
     assertEquals(s, "abcdef");
-    assertEquals(s.charCodeAt(0), 97);
+    assertEquals(s.codeUnitAt(0), 97);
     assertEquals(s[0], 'a');
     assertEquals(s.length, 6);
     assertTypeError(function() { s[null]; });

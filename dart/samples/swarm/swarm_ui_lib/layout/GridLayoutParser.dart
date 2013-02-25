@@ -13,18 +13,18 @@ class _Parser {
 
   // TODO(jmesserly): shouldn't need this optimization, but dart_json parser
   // found that they needed this.
-  static const A_BIG = 65;  // 'A'.charCodeAt(0)
-  static const Z_BIG = 90;  // 'Z'.charCodeAt(0)
-  static const A_SMALL = 97;  // 'a'.charCodeAt(0)
-  static const Z_SMALL = 122;  // 'z'.charCodeAt(0)
-  static const TAB = 9;  // '\t'.charCodeAt(0)
-  static const NEW_LINE = 10;  // '\n'.charCodeAt(0)
-  static const LINE_FEED = 13;  // '\r'.charCodeAt(0)
-  static const SPACE = 32;  // ' '.charCodeAt(0)
-  static const ZERO = 48;  // '0'.charCodeAt(0)
-  static const NINE = 57;  // '9'.charCodeAt(0)
-  static const DOT = 46;  // '.'.charCodeAt(0)
-  static const R_PAREN = 41;  // ')'.charCodeAt(0)
+  static const A_BIG = 65;  // 'A'.codeUnitAt(0)
+  static const Z_BIG = 90;  // 'Z'.codeUnitAt(0)
+  static const A_SMALL = 97;  // 'a'.codeUnitAt(0)
+  static const Z_SMALL = 122;  // 'z'.codeUnitAt(0)
+  static const TAB = 9;  // '\t'.codeUnitAt(0)
+  static const NEW_LINE = 10;  // '\n'.codeUnitAt(0)
+  static const LINE_FEED = 13;  // '\r'.codeUnitAt(0)
+  static const SPACE = 32;  // ' '.codeUnitAt(0)
+  static const ZERO = 48;  // '0'.codeUnitAt(0)
+  static const NINE = 57;  // '9'.codeUnitAt(0)
+  static const DOT = 46;  // '.'.codeUnitAt(0)
+  static const R_PAREN = 41;  // ')'.codeUnitAt(0)
 
   final String _src;
   int _offset;
@@ -61,7 +61,7 @@ class _Parser {
 
   int get remaining => _src.length - _offset;
 
-  int _peekChar() => _src.charCodeAt(_offset);
+  int _peekChar() => _src.codeUnitAt(_offset);
 
   bool get endOfInput => _offset >= _src.length;
 
@@ -113,9 +113,9 @@ class _Parser {
     // If we're eating something that's like a word, make sure
     // it's not followed by more characters.
     // This is ugly. Proper tokenization would make this cleaner.
-    if (_isLetter(value.charCodeAt(value.length - 1))) {
+    if (_isLetter(value.codeUnitAt(value.length - 1))) {
       int i = _offset + value.length;
-      if (i < _src.length && _isLetter(_src.charCodeAt(i))) {
+      if (i < _src.length && _isLetter(_src.codeUnitAt(i))) {
         return false;
       }
     }

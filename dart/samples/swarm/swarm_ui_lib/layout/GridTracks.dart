@@ -118,7 +118,7 @@ class GridTemplate {
     for (int r = 0; r < templateRows.length; r++) {
       String row = templateRows[r];
       for (int c = 0; c < row.length; c++) {
-        int cell = row.charCodeAt(c);
+        int cell = row.codeUnitAt(c);
         final rect = _rects[cell];
         if (rect != null) {
           rect.add(r + 1, c + 1);
@@ -142,7 +142,7 @@ class GridTemplate {
       throw new UnsupportedError(
           'grid-cell "$cell" must be a one character string');
     }
-    final rect = _rects[cell.charCodeAt(0)];
+    final rect = _rects[cell.codeUnitAt(0)];
     if (rect == null) {
       throw new UnsupportedError(
         'grid-cell "$cell" not found in parent\'s grid-template');
