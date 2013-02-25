@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -27,11 +28,14 @@ import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisCo
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.mock.MockContainer;
+import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
 
+import static com.google.dart.engine.element.ElementFactory.library;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.Path;
 
@@ -41,12 +45,23 @@ import java.io.File;
 
 public class ProjectImplTest extends AbstractDartCoreTest {
 
+  private final class MockContextForTest extends MockContext {
+    @Override
+    public LibraryElement getLibraryElement(Source source) {
+      if (source.getShortName().equals("libraryA.dart")) {
+        return library(this, "libraryA");
+      }
+      return null;
+    }
+  }
+
   private MockProject projectContainer;
   private MockFolder webContainer;
   private MockFolder subContainer;
   private MockFolder appContainer;
   private MockFolder subAppContainer;
   private Project project;
+
   private DartSdk expectedSdk;
 
   public void test_discardContextsIn_project() {
@@ -109,6 +124,18 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     context1.assertExtracted(null);
 
     assertFactoryInitialized(projectContainer, context1);
+  }
+
+  public void test_getLibraries() {
+    IContainer container = projectContainer.getFolder("web");
+    LibraryElement[] libraries = project.getLibraries(container);
+    assertTrue(libraries.length == 0);
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(folder, "libraryA.dart", "library libraryA;\n\n main(){}");
+    folder.add(file);
+    libraries = project.getLibraries(container);
+    assertTrue(libraries.length == 1);
+    assertTrue(libraries[0].getName().equals("libraryA"));
   }
 
   public void test_getResource() {
@@ -346,7 +373,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     project = new ProjectImpl(projectContainer, expectedSdk, new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
-        return new MockContext();
+        return new MockContextForTest();
       }
     });
   }
@@ -369,4 +396,5 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals("packages", packages.getName());
     assertEquals(file1.getParent(), packages.getParent());
   }
+
 }

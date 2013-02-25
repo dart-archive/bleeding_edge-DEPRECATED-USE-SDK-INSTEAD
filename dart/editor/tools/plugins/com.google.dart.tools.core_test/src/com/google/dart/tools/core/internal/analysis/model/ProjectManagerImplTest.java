@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
@@ -23,14 +24,22 @@ import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
+import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.builder.TestProjects;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.mock.MockFile;
+import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
 import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
+import static com.google.dart.engine.element.ElementFactory.library;
+
 import junit.framework.TestCase;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
 
 import static org.mockito.Mockito.mock;
 
@@ -38,6 +47,16 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class ProjectManagerImplTest extends TestCase {
+
+  private final class MockContextForTest extends MockContext {
+    @Override
+    public LibraryElement getLibraryElement(Source source) {
+      if (source.getShortName().equals("libraryA.dart")) {
+        return library(this, "libraryA");
+      }
+      return null;
+    }
+  }
 
   private final class MockProjectListener implements ProjectListener {
     private final ArrayList<Project> analyzed = new ArrayList<Project>();
@@ -57,11 +76,38 @@ public class ProjectManagerImplTest extends TestCase {
     }
   }
 
+  private final class MockProjectManagerImpl extends ProjectManagerImpl {
+
+    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
+        DartIgnoreManager ignoreManager) {
+      super(resource, sdk, ignoreManager);
+    }
+
+    @Override
+    public Project getProject(IProject project) {
+      if (project == projectContainer) {
+        Project result = projects.get(project);
+        if (result == null) {
+          result = new ProjectImpl(projectContainer, expectedSdk, new AnalysisContextFactory() {
+            @Override
+            public AnalysisContext createContext() {
+              return context;
+            }
+          });
+          projects.put(projectContainer, result);
+        }
+        return result;
+      }
+      return super.getProject(project);
+    }
+  }
+
   private MockWorkspaceRoot rootContainer;
   private MockProject projectContainer;
   private ProjectManager manager;
   private DartSdk expectedSdk;
   private DartIgnoreManager ignoreManager = new DartIgnoreManager();
+  private MockContext context;
 
   public void test_getContext() {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
@@ -80,6 +126,17 @@ public class ProjectManagerImplTest extends TestCase {
     Index index = manager.getIndex();
     assertNotNull(index);
     assertSame(index, manager.getIndex());
+  }
+
+  public void test_getLibraries() {
+    Project actual = manager.getProject(projectContainer);
+    MockFolder mockFolder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
+    mockFolder.add(file);
+    LibraryElement[] libraries = manager.getLibraries(mockFolder);
+    LibraryElement[] elements = actual.getLibraries(mockFolder);
+    assertEquals(elements.length, libraries.length);
+    assertEquals(elements[0], libraries[0]);
   }
 
   public void test_getProject() {
@@ -162,6 +219,7 @@ public class ProjectManagerImplTest extends TestCase {
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
     expectedSdk = mock(DartSdk.class);
-    manager = new ProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
+    manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
+    context = new MockContextForTest();
   }
 }

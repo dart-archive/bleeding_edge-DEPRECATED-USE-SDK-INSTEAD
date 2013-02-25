@@ -17,7 +17,8 @@ Require-Bundle: com.google.dart.compiler.js,
  org.eclipse.jface.text,
  org.eclipse.team.core,
  org.junit,
- org.eclipse.debug.ui
+ org.eclipse.debug.ui,
+ com.google.dart.engine_test
 Export-Package: com.google.dart.tools.core,
  com.google.dart.tools.core.samples,
  com.google.dart.tools.core.test,

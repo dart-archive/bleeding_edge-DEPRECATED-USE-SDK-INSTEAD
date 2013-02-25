@@ -23,4 +23,5 @@ Export-Package: com.google.dart.engine,
  com.google.dart.engine.sdk,
  com.google.dart.engine.search,
  com.google.dart.engine.source,
- com.google.dart.engine.utilities
+ com.google.dart.engine.utilities,
+ com.google.dart.engine.element

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
@@ -41,7 +42,8 @@ import java.util.HashMap;
 public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
 
   private final IWorkspaceRoot resource;
-  private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
+  @VisibleForTesting
+  protected final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartSdk sdk;
   private final DartIgnoreManager ignoreManager;
