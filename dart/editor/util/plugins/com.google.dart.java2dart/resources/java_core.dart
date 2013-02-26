@@ -91,6 +91,10 @@ class Character {
     if (0x41 <= codePoint && codePoint <= 0x46) {
       return 0xA + (codePoint - 0x41);
     }
+    if (0x61 <= codePoint && codePoint <= 0x66) {
+      return 0xA + (codePoint - 0x61);
+    }
+    return -1;
   }
   static String toChars(int codePoint) {
     throw new UnsupportedOperationException();
