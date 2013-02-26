@@ -14,3 +14,4 @@ Require-Bundle: com.google.dart.engine,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
+Export-Package: com.google.dart.engine.services

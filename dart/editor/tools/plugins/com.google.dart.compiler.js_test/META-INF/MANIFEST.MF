@@ -11,3 +11,4 @@ Require-Bundle: com.google.dart.thirdparty_test,
  org.junit,
  com.google.dart.compiler.js,
  com.google.dart.thirdparty
+Export-Package: com.google.dart.compiler
