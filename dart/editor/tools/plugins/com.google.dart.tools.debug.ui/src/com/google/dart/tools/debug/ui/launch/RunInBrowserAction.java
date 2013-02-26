@@ -13,9 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
+import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 
 import org.eclipse.core.resources.IResource;
@@ -51,14 +53,17 @@ public class RunInBrowserAction extends DartRunAbstractAction {
   }
 
   @Override
-  public void run() {
+  protected void doLaunch(InstrumentationBuilder instrumentation) {
     IResource resource = LaunchUtils.getSelectedResource(window);
 
     try {
       if (resource != null) {
+        instrumentation.metric("Resource-Class", resource.getClass().toString());
+        instrumentation.data("Resource-Name", resource.getName());
         List<ILaunchConfiguration> launchConfigs = LaunchUtils.getExistingLaunchesFor(resource);
 
         for (ILaunchConfiguration config : launchConfigs) {
+          DebugInstrumentationUtilities.recordLaunchConfiguration(config, instrumentation);
           if (config.getType().getIdentifier().equals(DartDebugCorePlugin.BROWSER_LAUNCH_CONFIG_ID)) {
             DebugUITools.launch(config, ILaunchManager.RUN_MODE);
             return;
@@ -68,12 +73,14 @@ public class RunInBrowserAction extends DartRunAbstractAction {
         // new launch config
         ILaunchShortcut shortcut = LaunchUtils.getBrowserLaunchShortcut();
         ISelection selection = new StructuredSelection(resource);
-        launch(shortcut, selection);
+        launch(shortcut, selection, instrumentation);
       }
     } catch (Exception exception) {
+      instrumentation.metric("Problem", "Exception launching " + exception.getClass().toString());
+      instrumentation.data("Problem", "Exception launching " + exception.toString());
+
       DebugErrorHandler.errorDialog(window.getShell(), "Error Launching", "Unable to launch "
           + resource.getName() + ".", exception);
     }
   }
-
 }

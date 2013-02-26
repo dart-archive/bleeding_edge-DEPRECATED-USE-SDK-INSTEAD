@@ -14,17 +14,19 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.ui.actions.AbstractInstrumentedAction;
+import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuCreator;
@@ -43,7 +45,7 @@ import java.util.Comparator;
 /**
  * The abstract superclass of the run and debug actions.
  */
-public abstract class DartRunAbstractAction extends AbstractInstrumentedAction implements
+public abstract class DartRunAbstractAction extends InstrumentedAction implements
     IWorkbenchWindowPulldownDelegate2, IMenuCreator {
   private static class LaunchConfigComparator implements Comparator<ILaunchConfiguration> {
     @Override
@@ -108,26 +110,37 @@ public abstract class DartRunAbstractAction extends AbstractInstrumentedAction i
   }
 
   @Override
-  public void runWithEvent(Event event) {
-    if (((event.stateMask & SWT.MOD1) > 0) && (event.type != SWT.KeyDown)) {
-      // The menu was opened.
-    } else {
-      run();
-    }
-  }
-
-  @Override
   public void selectionChanged(IAction action, ISelection selection) {
 
+  }
+
+  protected abstract void doLaunch(InstrumentationBuilder instrumentation);
+
+  @Override
+  protected final void doRun(Event event, InstrumentationBuilder instrumentation) {
+    if (event == null) {
+      doLaunch(instrumentation);
+      return;
+    }
+
+    if (((event.stateMask & SWT.MOD1) > 0) && (event.type != SWT.KeyDown)) {
+      instrumentation.metric("Skipped", "The Menu was opened");
+      // The menu was opened.
+    } else {
+      doLaunch(instrumentation);
+      return;
+
+    }
   }
 
   protected IWorkbenchWindow getWindow() {
     return window;
   }
 
-  protected void launch(ILaunchConfiguration config) {
+  protected void launch(ILaunchConfiguration config, InstrumentationBuilder instrumentation) {
     String mode = ILaunchManager.RUN_MODE;
 
+    instrumentation.metric("Launch mode", mode);
     try {
       if (config.supportsMode(ILaunchManager.DEBUG_MODE)) {
         mode = ILaunchManager.DEBUG_MODE;
@@ -135,17 +148,24 @@ public abstract class DartRunAbstractAction extends AbstractInstrumentedAction i
 
       if (config.getType().getIdentifier().equals(DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID)) {
         DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+        DebugInstrumentationUtilities.recordLaunchConfiguration(launchConfig, instrumentation);
+
         launchConfig.markAsLaunched();
         LaunchUtils.clearDartiumConsoles();
       }
 
       DebugUITools.launch(config, mode);
     } catch (CoreException e) {
+      instrumentation.metric("Problem-Exception", e.getClass().getName());
+      instrumentation.metric("Problem-Exception", e.toString());
+
       DartDebugCorePlugin.logError(e);
     }
   }
 
-  protected void launch(ILaunchShortcut shortcut, ISelection selection) {
+  protected void launch(ILaunchShortcut shortcut, ISelection selection,
+      InstrumentationBuilder instrumentation) {
+    ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
     shortcut.launch(selection, ILaunchManager.DEBUG_MODE);
   }
 
@@ -159,12 +179,12 @@ public abstract class DartRunAbstractAction extends AbstractInstrumentedAction i
     for (int i = 0; i < count; i++) {
       final ILaunchConfiguration config = launches[i];
 
-      Action launchAction = new Action(
+      InstrumentedAction launchAction = new InstrumentedAction(
           LaunchUtils.getLongLaunchName(config),
           DebugUITools.getDefaultImageDescriptor(config)) {
         @Override
-        public void run() {
-          launch(config);
+        public void doRun(Event event, InstrumentationBuilder instrumentation) {
+          launch(config, instrumentation);
         }
       };
 

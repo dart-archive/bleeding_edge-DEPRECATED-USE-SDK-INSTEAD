@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
@@ -50,20 +51,27 @@ public class DartRunLastAction extends DartRunAbstractAction {
   }
 
   @Override
-  public void run() {
+  protected void doLaunch(InstrumentationBuilder instrumentation) {
     try {
       List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
+
+      instrumentation.metric("launches-count", launches.size());
 
       if (launches.size() != 0) {
         ILaunchConfiguration launchConfig = LaunchUtils.chooseLatest(launches);
 
         if (launchConfig != null) {
-          launch(launchConfig);
+          launch(launchConfig, instrumentation);
+        } else {
+          instrumentation.metric("Problem", "Launch config was null");
         }
       }
     } catch (Throwable exception) {
       // We need to defensively show all errors coming out of here - the user needs feedback as
       // to why their launch didn't work.
+      instrumentation.metric("Problem-Exception", exception.getClass().toString());
+      instrumentation.data("Problem-Exception", exception.toString());
+
       DartUtil.logError(exception);
 
       DebugErrorHandler.errorDialog(

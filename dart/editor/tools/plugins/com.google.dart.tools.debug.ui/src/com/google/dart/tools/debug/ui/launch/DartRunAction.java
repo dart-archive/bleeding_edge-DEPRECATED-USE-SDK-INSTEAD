@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -87,25 +88,36 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 //  }
 
   @Override
-  public void run() {
+  protected void doLaunch(InstrumentationBuilder instrumentation) {
     try {
       IResource resource = LaunchUtils.getSelectedResource(window);
 
       if (resource != null) {
-        launchResource(resource);
+        instrumentation.metric("Resource-Class", resource.getClass().toString());
+        instrumentation.data("Resource-Name", resource.getName());
+
+        launchResource(resource, instrumentation);
       } else {
         List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 
+        instrumentation.metric("Launches-Count", launches.size());
+
         if (launches.size() == 0) {
+          instrumentation.metric(
+              "Problem",
+              "Unable to run, not a library with a main, showing dialog");
           MessageDialog.openInformation(
               getWindow().getShell(),
               "Unable to Run",
               "Unable to run the current selection. Please choose a file in a library with a main() function.");
         } else {
-          chooseAndLaunch(launches);
+          chooseAndLaunch(launches, instrumentation);
         }
       }
     } catch (CoreException ce) {
+      instrumentation.metric("Problem", "Exception launching " + ce.getClass().toString());
+      instrumentation.data("Problem", "Exception launching " + ce.toString());
+
       DartUtil.logError(ce);
 
       DebugErrorHandler.errorDialog(
@@ -114,6 +126,9 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
           ce.getStatus().getMessage(),
           ce.getStatus());
     } catch (Throwable exception) {
+      instrumentation.metric("Problem", "Exception launching " + exception.getClass().toString());
+      instrumentation.data("Problem", "Exception launching " + exception.toString());
+
       DartUtil.logError(exception);
 
       DebugErrorHandler.errorDialog(
@@ -149,11 +164,12 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 //    }
 //  }
 
-  protected void launchResource(IResource resource) throws DartModelException {
+  protected void launchResource(IResource resource, InstrumentationBuilder instrumentation)
+      throws DartModelException {
     ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
 
     if (config != null) {
-      launch(config);
+      launch(config, instrumentation);
     } else {
       List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
 
@@ -164,26 +180,28 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
       } else {
         ISelection sel = new StructuredSelection(resource);
 
-        launch(candidates.get(0), sel);
+        launch(candidates.get(0), sel, instrumentation);
       }
     }
   }
 
-  private boolean chooseAndLaunch(List<ILaunchConfiguration> launches) {
+  private boolean chooseAndLaunch(List<ILaunchConfiguration> launches,
+      InstrumentationBuilder instrumentation) {
     if (launches.size() == 0) {
       return false;
     } else if (launches.size() == 1) {
-      launch(launches.get(0));
+      launch(launches.get(0), instrumentation);
 
       return true;
     } else {
       ILaunchConfiguration config = LaunchUtils.chooseConfiguration(launches);
 
       if (config != null) {
-        launch(config);
+        launch(config, instrumentation);
 
         return true;
       } else {
+        instrumentation.metric("Problem", "Config was null");
         return false;
       }
     }
