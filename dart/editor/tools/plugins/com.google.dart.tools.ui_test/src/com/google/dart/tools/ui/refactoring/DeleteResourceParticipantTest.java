@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.DeleteResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -41,7 +41,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
   }
 
   /**
-   * Uses {@link RenameSupport} to rename {@link DartVariableDeclaration}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartVariableDeclaration}.
    */
   @SuppressWarnings("restriction")
   private static void deleteFile(IFile file) throws Exception {

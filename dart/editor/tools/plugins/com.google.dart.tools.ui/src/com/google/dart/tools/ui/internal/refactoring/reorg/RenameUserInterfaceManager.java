@@ -43,26 +43,26 @@ public class RenameUserInterfaceManager extends UserInterfaceManager {
 //    put(RenameCompilationUnitProcessor.class, RenameUserInterfaceStarter.class,
 //        RenameCuWizard.class);
 //    put(RenameTypeProcessor.class, RenameUserInterfaceStarter.class, RenameTypeWizard.class);
-    put(RenameFunctionProcessor.class, RenameUserInterfaceStarter.class, RenameFunctionWizard.class);
+    put(RenameFunctionProcessor.class, RenameUserInterfaceStarter_OLD.class, RenameFunctionWizard.class);
     put(
         RenameGlobalVariableProcessor.class,
-        RenameUserInterfaceStarter.class,
+        RenameUserInterfaceStarter_OLD.class,
         RenameGlobalVariableWizard.class);
     put(
         RenameClassTypeAliasProcessor.class,
-        RenameUserInterfaceStarter.class,
+        RenameUserInterfaceStarter_OLD.class,
         RenameClassTypeAliasWizard.class);
     put(
         RenameFunctionTypeAliasProcessor.class,
-        RenameUserInterfaceStarter.class,
+        RenameUserInterfaceStarter_OLD.class,
         RenameFunctionTypeAliasWizard.class);
-    put(RenameTypeProcessor.class, RenameUserInterfaceStarter.class, RenameTypeWizard.class);
+    put(RenameTypeProcessor.class, RenameUserInterfaceStarter_OLD.class, RenameTypeWizard.class);
     put(
         RenameTypeParameterProcessor.class,
-        RenameUserInterfaceStarter.class,
+        RenameUserInterfaceStarter_OLD.class,
         RenameTypeParameterWizard.class);
-    put(RenameFieldProcessor.class, RenameUserInterfaceStarter.class, RenameFieldWizard.class);
-    put(RenameMethodProcessor.class, RenameUserInterfaceStarter.class, RenameMethodWizard.class);
+    put(RenameFieldProcessor.class, RenameUserInterfaceStarter_OLD.class, RenameFieldWizard.class);
+    put(RenameMethodProcessor.class, RenameUserInterfaceStarter_OLD.class, RenameMethodWizard.class);
 //    put(RenameEnumConstProcessor.class, RenameUserInterfaceStarter.class,
 //        RenameEnumConstWizard.class);
 //    put(RenameTypeParameterProcessor.class, RenameUserInterfaceStarter.class,
@@ -73,7 +73,7 @@ public class RenameUserInterfaceManager extends UserInterfaceManager {
 //        RenameMethodWizard.class);
     put(
         RenameLocalVariableProcessor.class,
-        RenameUserInterfaceStarter.class,
+        RenameUserInterfaceStarter_OLD.class,
         RenameLocalVariableWizard.class);
   }
 }

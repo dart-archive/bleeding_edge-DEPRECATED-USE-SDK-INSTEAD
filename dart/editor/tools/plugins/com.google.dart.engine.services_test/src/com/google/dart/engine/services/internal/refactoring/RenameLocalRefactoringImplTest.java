@@ -194,7 +194,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         findRangeIdentifier("newName v;"));
   }
 
-  public void test_checkInitialConditions_FunctionElement() throws Exception {
+  public void test_checkNewName_FunctionElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -204,15 +204,14 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     // null
     refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Function name must not be null.");
     // OK
-    refactoring.setNewName("newName");
-    assertRefactoringStatusOK(refactoring.checkInitialConditions(pm));
+    assertRefactoringStatusOK(refactoring.checkNewName("newName"));
   }
 
-  public void test_checkInitialConditions_LocalVariableElement() throws Exception {
+  public void test_checkNewName_LocalVariableElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -220,40 +219,35 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "}");
     createRenameRefactoring("test = 0");
     // null
-    refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Variable name must not be null.");
     // empty
-    refactoring.setNewName("");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(""),
         RefactoringStatusSeverity.ERROR,
         "Variable name must not be empty.");
     // same name
-    refactoring.setNewName("test");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName("test"),
         RefactoringStatusSeverity.FATAL,
         "Choose another name.");
   }
 
-  public void test_checkInitialConditions_ParameterVariableElement() throws Exception {
+  public void test_checkNewName_ParameterVariableElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main2(int test) {",
         "}");
     createRenameRefactoring("test) {");
     // null
-    refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Parameter name must not be null.");
     // OK
-    refactoring.setNewName("newName");
-    assertRefactoringStatusOK(refactoring.checkInitialConditions(pm));
+    assertRefactoringStatusOK(refactoring.checkNewName("newName"));
   }
 
   public void test_createChange_localFunction() throws Exception {

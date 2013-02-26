@@ -53,6 +53,13 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     this.resource = resource;
     this.sdk = sdk;
     this.ignoreManager = ignoreManager;
+    // TODO(scheglov) Dan, can you check if this is correct place to start Index? Where to stop?
+    new Thread() {
+      @Override
+      public void run() {
+        index.run();
+      }
+    }.start();
   }
 
   @Override

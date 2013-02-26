@@ -13,35 +13,48 @@
  */
 package com.google.dart.tools.internal.corext.refactoring;
 
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.services.refactoring.RefactoringFactory;
-import com.google.dart.engine.services.refactoring.RenameRefactoring;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartClassTypeAlias;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
+import com.google.dart.tools.core.model.DartFunctionTypeAlias;
+import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartTypeParameter;
+import com.google.dart.tools.core.model.DartVariableDeclaration;
+import com.google.dart.tools.core.model.Field;
+import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertGetterToMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableContext;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
+import org.eclipse.ltk.ui.refactoring.resource.RenameResourceWizard;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
 
@@ -56,37 +69,37 @@ import java.lang.reflect.InvocationTargetException;
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public final class RefactoringExecutionStarter {
+public final class RefactoringExecutionStarter_OLD {
 
-//  public static RenameSupport createRenameSupport(DartElement element, String newName, int flags)
-//      throws CoreException {
-//    switch (element.getElementType()) {
-//      case DartElement.IMPORT:
-//        return RenameSupport.create((DartImport) element, newName);
-//      case DartElement.FUNCTION:
-//        return RenameSupport.create((DartFunction) element, newName);
-//      case DartElement.CLASS_TYPE_ALIAS:
-//        return RenameSupport.create((DartClassTypeAlias) element, newName);
-//      case DartElement.FUNCTION_TYPE_ALIAS:
-//        return RenameSupport.create((DartFunctionTypeAlias) element, newName);
-//      case DartElement.TYPE:
-//        return RenameSupport.create((Type) element, newName);
-//      case DartElement.TYPE_PARAMETER:
-//        return RenameSupport.create((DartTypeParameter) element, newName);
-//      case DartElement.FIELD:
-//        return RenameSupport.create((Field) element, newName);
-//      case DartElement.METHOD: {
-//        Method method = (Method) element;
-//        if (method.isConstructor() && !method.getElementName().contains(".")) {
-//          return createRenameSupport(method.getDeclaringType(), newName, flags);
-//        }
-//        return RenameSupport.create(method, newName);
-//      }
-//      case DartElement.VARIABLE:
-//        return RenameSupport.create((DartVariableDeclaration) element, newName);
-//    }
-//    return null;
-//  }
+  public static RenameSupport_OLD createRenameSupport(DartElement element, String newName, int flags)
+      throws CoreException {
+    switch (element.getElementType()) {
+      case DartElement.IMPORT:
+        return RenameSupport_OLD.create((DartImport) element, newName);
+      case DartElement.FUNCTION:
+        return RenameSupport_OLD.create((DartFunction) element, newName);
+      case DartElement.CLASS_TYPE_ALIAS:
+        return RenameSupport_OLD.create((DartClassTypeAlias) element, newName);
+      case DartElement.FUNCTION_TYPE_ALIAS:
+        return RenameSupport_OLD.create((DartFunctionTypeAlias) element, newName);
+      case DartElement.TYPE:
+        return RenameSupport_OLD.create((Type) element, newName);
+      case DartElement.TYPE_PARAMETER:
+        return RenameSupport_OLD.create((DartTypeParameter) element, newName);
+      case DartElement.FIELD:
+        return RenameSupport_OLD.create((Field) element, newName);
+      case DartElement.METHOD: {
+        Method method = (Method) element;
+        if (method.isConstructor() && !method.getElementName().contains(".")) {
+          return createRenameSupport(method.getDeclaringType(), newName, flags);
+        }
+        return RenameSupport_OLD.create(method, newName);
+      }
+      case DartElement.VARIABLE:
+        return RenameSupport_OLD.create((DartVariableDeclaration) element, newName);
+    }
+    return null;
+  }
 
 //  public static void startChangeSignatureRefactoring(final IMethod method, final SelectionDispatchAction action, final Shell shell) throws JavaModelException {
 //  	if (!RefactoringAvailabilityTester.isChangeSignatureAvailable(method))
@@ -300,43 +313,43 @@ public final class RefactoringExecutionStarter {
     return false;
   }
 
-//  public static boolean startInlineMethodRefactoring(CompilationUnit unit, int offset, int length,
-//      Shell shell) {
-//    try {
-//      DartElement[] elements = unit.codeSelect(offset, length);
-//      if (elements.length == 1 && elements[0] instanceof DartFunction) {
-//        DartFunction method = (DartFunction) elements[0];
-//        InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
-//        if (refactoring != null) {
-//          new RefactoringStarter().activate(
-//              new InlineMethodWizard(refactoring),
-//              shell,
-//              RefactoringMessages.InlineMethodAction_dialog_title,
-//              RefactoringSaveHelper.SAVE_ALL);
-//          return true;
-//        }
-//      }
-//    } catch (DartModelException e) {
-//    }
-//    return false;
-//  }
+  public static boolean startInlineMethodRefactoring(CompilationUnit unit, int offset, int length,
+      Shell shell) {
+    try {
+      DartElement[] elements = unit.codeSelect(offset, length);
+      if (elements.length == 1 && elements[0] instanceof DartFunction) {
+        DartFunction method = (DartFunction) elements[0];
+        InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
+        if (refactoring != null) {
+          new RefactoringStarter().activate(
+              new InlineMethodWizard(refactoring),
+              shell,
+              RefactoringMessages.InlineMethodAction_dialog_title,
+              RefactoringSaveHelper.SAVE_ALL);
+          return true;
+        }
+      }
+    } catch (DartModelException e) {
+    }
+    return false;
+  }
 
-//  public static boolean startInlineTempRefactoring(final CompilationUnit unit, DartUnit node,
-//      final ITextSelection selection, final Shell shell) {
-//    final InlineLocalRefactoring refactoring = new InlineLocalRefactoring(
-//        unit,
-//        selection.getOffset(),
-//        selection.getLength());
-//    if (!refactoring.checkIfTempSelected().hasFatalError()) {
-//      new RefactoringStarter().activate(
-//          new InlineLocalWizard(refactoring),
-//          shell,
-//          RefactoringMessages.InlineLocalAction_dialog_title,
-//          RefactoringSaveHelper.SAVE_NOTHING);
-//      return true;
-//    }
-//    return false;
-//  }
+  public static boolean startInlineTempRefactoring(final CompilationUnit unit, DartUnit node,
+      final ITextSelection selection, final Shell shell) {
+    final InlineLocalRefactoring refactoring = new InlineLocalRefactoring(
+        unit,
+        selection.getOffset(),
+        selection.getLength());
+    if (!refactoring.checkIfTempSelected().hasFatalError()) {
+      new RefactoringStarter().activate(
+          new InlineLocalWizard(refactoring),
+          shell,
+          RefactoringMessages.InlineLocalAction_dialog_title,
+          RefactoringSaveHelper.SAVE_NOTHING);
+      return true;
+    }
+    return false;
+  }
 
 //  public static void startIntroduceFactoryRefactoring(final ICompilationUnit unit, final ITextSelection selection, final Shell shell) {
 //  	final IntroduceFactoryRefactoring refactoring= new IntroduceFactoryRefactoring(unit, selection.getOffset(), selection.getLength());
@@ -428,27 +441,25 @@ public final class RefactoringExecutionStarter {
 //  	new RefactoringStarter().activate(wizard, shell, RefactoringMessages.OpenRefactoringWizardAction_refactoring, RefactoringSaveHelper.SAVE_REFACTORING);
 //  }
 
-  public static void startRenameRefactoring(Element element, final Shell shell)
+  public static void startRenameRefactoring(final DartElement element, final Shell shell)
       throws CoreException {
-    RenameRefactoring refactoring = RefactoringFactory.createRenameRefactoring(
-        DartCore.getProjectManager().newSearchEngine(),
-        element);
-    if (refactoring != null) {
-      RenameSupport support = RenameSupport.create(element, null);
-      if (support != null) {
-        support.openDialog(shell);
-      }
+    final RenameSupport_OLD support = createRenameSupport(
+        element,
+        null,
+        RenameSupport_OLD.UPDATE_REFERENCES);
+    if (support != null && support.preCheck().isOK()) {
+      support.openDialog(shell);
     }
   }
 
-//  public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
-//    RenameResourceWizard wizard = new RenameResourceWizard(resource);
-//    new RefactoringStarter().activate(
-//        wizard,
-//        shell,
-//        wizard.getWindowTitle(),
-//        RefactoringSaveHelper.SAVE_ALL);
-//  }
+  public static void startRenameResourceRefactoring(final IResource resource, final Shell shell) {
+    RenameResourceWizard wizard = new RenameResourceWizard(resource);
+    new RefactoringStarter().activate(
+        wizard,
+        shell,
+        wizard.getWindowTitle(),
+        RefactoringSaveHelper.SAVE_ALL);
+  }
 
 //  public static void startReplaceInvocationsRefactoring(final ITypeRoot typeRoot, final int offset, final int length, final Shell shell) {
 //  	final ReplaceInvocationsRefactoring refactoring= new ReplaceInvocationsRefactoring(typeRoot, offset, length);

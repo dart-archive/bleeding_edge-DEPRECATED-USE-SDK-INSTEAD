@@ -1,6 +1,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -117,6 +118,19 @@ public class ActionInstrumentationUtilities {
     instrumentation.metric("Element-Class", element.getClass().toString());
 
     instrumentation.data("Element-Name", element.getElementName());
+
+  }
+
+  public static void recordElement(Element element, InstrumentationBuilder instrumentation) {
+
+    if (element == null) {
+      instrumentation.metric("Element", "null");
+      return;
+    }
+
+    instrumentation.metric("Element-Class", element.getClass().toString());
+
+    instrumentation.data("Element-Name", element.getName());
 
   }
 

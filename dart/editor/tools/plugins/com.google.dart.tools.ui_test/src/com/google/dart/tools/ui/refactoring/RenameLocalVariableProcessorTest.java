@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalVariableProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -33,11 +33,11 @@ import java.lang.reflect.Proxy;
  */
 public final class RenameLocalVariableProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link DartVariableDeclaration}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartVariableDeclaration}.
    */
   private static void renameLocalVariable(DartVariableDeclaration variable, String newName)
       throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(variable, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(variable, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

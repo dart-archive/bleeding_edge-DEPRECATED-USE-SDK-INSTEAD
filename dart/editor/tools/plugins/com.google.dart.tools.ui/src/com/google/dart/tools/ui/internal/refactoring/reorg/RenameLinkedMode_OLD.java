@@ -16,13 +16,14 @@ package com.google.dart.tools.ui.internal.refactoring.reorg;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartConventions;
+import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
 import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
@@ -77,7 +78,7 @@ import java.util.Comparator;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameLinkedMode {
+public class RenameLinkedMode_OLD {
 
   private class EditorSynchronizer implements ILinkedModeListener {
     @Override
@@ -134,9 +135,9 @@ public class RenameLinkedMode {
     }
   }
 
-  private static RenameLinkedMode fgActiveLinkedMode;
+  private static RenameLinkedMode_OLD fgActiveLinkedMode;
 
-  public static RenameLinkedMode getActiveLinkedMode() {
+  public static RenameLinkedMode_OLD getActiveLinkedMode() {
     if (fgActiveLinkedMode != null) {
       ISourceViewer viewer = fgActiveLinkedMode.fEditor.getViewer();
       if (viewer != null) {
@@ -153,9 +154,9 @@ public class RenameLinkedMode {
 
   private final CompilationUnitEditor fEditor;
 
-  private final Element fDartElement;
+  private final DartElement fDartElement;
 
-  private RenameInformationPopup fInfoPopup;
+  private RenameInformationPopup_OLD fInfoPopup;
   private Point fOriginalSelection;
 
   private String fOriginalName;
@@ -174,7 +175,7 @@ public class RenameLinkedMode {
    */
   private IUndoableOperation fStartingUndoOperation;
 
-  public RenameLinkedMode(Element element, CompilationUnitEditor editor) {
+  public RenameLinkedMode_OLD(DartElement element, CompilationUnitEditor editor) {
     Assert.isNotNull(element);
     Assert.isNotNull(editor);
     fEditor = editor;
@@ -370,7 +371,7 @@ public class RenameLinkedMode {
 
     try {
       String newName = fNamePosition.getContent();
-      RenameSupport renameSupport = undoAndCreateRenameSupport(newName);
+      RenameSupport_OLD renameSupport = undoAndCreateRenameSupport(newName);
       if (renameSupport != null) {
         renameSupport.openDialog(fEditor.getSite().getShell());
       }
@@ -425,7 +426,7 @@ public class RenameLinkedMode {
       if (fOriginalName.equals(newName)) {
         return;
       }
-      RenameSupport renameSupport = undoAndCreateRenameSupport(newName);
+      RenameSupport_OLD renameSupport = undoAndCreateRenameSupport(newName);
       if (renameSupport == null) {
         return;
       }
@@ -481,7 +482,7 @@ public class RenameLinkedMode {
   }
 
   private void openSecondaryPopup() {
-    fInfoPopup = new RenameInformationPopup(fEditor, this);
+    fInfoPopup = new RenameInformationPopup_OLD(fEditor, this);
     fInfoPopup.open();
   }
 
@@ -499,7 +500,7 @@ public class RenameLinkedMode {
     }
   }
 
-  private RenameSupport undoAndCreateRenameSupport(String newName) throws CoreException {
+  private RenameSupport_OLD undoAndCreateRenameSupport(String newName) throws CoreException {
     // Assumption: the linked mode model should be shut down by now.
 
     final ISourceViewer viewer = fEditor.getViewer();
@@ -547,7 +548,7 @@ public class RenameLinkedMode {
       return null;
     }
 
-    return RenameSupport.create(fDartElement, newName);
+    return RefactoringExecutionStarter_OLD.createRenameSupport(fDartElement, newName, 0);
   }
 
 }

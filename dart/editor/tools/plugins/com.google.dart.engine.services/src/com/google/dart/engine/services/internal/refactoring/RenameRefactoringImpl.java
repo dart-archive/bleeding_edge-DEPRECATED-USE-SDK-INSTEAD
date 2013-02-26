@@ -51,11 +51,26 @@ public abstract class RenameRefactoringImpl extends RenameRefactoring {
 
   @Override
   public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    return new RefactoringStatus();
+  }
+
+  @Override
+  public RefactoringStatus checkNewName(String newName) {
     RefactoringStatus result = new RefactoringStatus();
     if (Objects.equal(newName, element.getName())) {
       result.addFatalError("Choose another name.");
     }
     return result;
+  }
+
+  @Override
+  public String getCurrentName() {
+    return element.getName();
+  }
+
+  @Override
+  public String getNewName() {
+    return newName;
   }
 
   /**

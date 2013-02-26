@@ -56,7 +56,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         findRangeIdentifier("newName() {} // existing"));
   }
 
-  public void test_checkInitialConditions() throws Exception {
+  public void test_checkNewName() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -64,18 +64,15 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}");
     createRenameRefactoring("test() {} // marker");
     // null
-    refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Constructor name must not be null.");
     // empty
-    refactoring.setNewName("");
-    assertRefactoringStatusOK(refactoring.checkInitialConditions(pm));
+    assertRefactoringStatusOK(refactoring.checkNewName(""));
     // same name
-    refactoring.setNewName("test");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName("test"),
         RefactoringStatusSeverity.FATAL,
         "Choose another name.");
   }

@@ -20,6 +20,7 @@ import com.google.dart.engine.services.status.RefactoringStatusSeverity;
  * Test for {@link RenameClassMemberRefactoringImpl}.
  */
 public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplTest {
+
   public void test_checkFinalConditions_hasMember_MethodElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -123,6 +124,54 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         RefactoringStatusSeverity.ERROR,
         "Renamed method will shadow method 'A.newName'.",
         findRangeIdentifier("newName() {} // marker"));
+  }
+
+  public void test_checkNewName_FieldElement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int test;",
+        "}");
+    createRenameRefactoring("test;");
+    // null
+    assertRefactoringStatus(
+        refactoring.checkNewName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Field name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkNewName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Field name must not be empty.");
+    // same name
+    assertRefactoringStatus(
+        refactoring.checkNewName("test"),
+        RefactoringStatusSeverity.FATAL,
+        "Choose another name.");
+  }
+
+  public void test_checkNewName_MethodElement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}");
+    createRenameRefactoring("test() {}");
+    // null
+    assertRefactoringStatus(
+        refactoring.checkNewName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Method name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkNewName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Method name must not be empty.");
+    // same name
+    assertRefactoringStatus(
+        refactoring.checkNewName("test"),
+        RefactoringStatusSeverity.FATAL,
+        "Choose another name.");
   }
 
 //  public void test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() throws Exception {

@@ -110,52 +110,47 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
 
-  public void test_checkInitialConditions_ClassElement() throws Exception {
+  public void test_checkNewName_ClassElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Test {}");
     createRenameRefactoring("Test {}");
     // null
-    refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Class name must not be null.");
     // empty
     refactoring.setNewName("");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(""),
         RefactoringStatusSeverity.ERROR,
         "Class name must not be empty.");
     // same name
-    refactoring.setNewName("Test");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName("Test"),
         RefactoringStatusSeverity.FATAL,
         "Choose another name.");
   }
 
-  public void test_checkInitialConditions_FunctionElement() throws Exception {
+  public void test_checkNewName_FunctionElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "test() {}");
     createRenameRefactoring("test() {");
     // null
-    refactoring.setNewName(null);
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(null),
         RefactoringStatusSeverity.ERROR,
         "Function name must not be null.");
     // empty
-    refactoring.setNewName("");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName(""),
         RefactoringStatusSeverity.ERROR,
         "Function name must not be empty.");
     // same name
-    refactoring.setNewName("test");
     assertRefactoringStatus(
-        refactoring.checkInitialConditions(pm),
+        refactoring.checkNewName("test"),
         RefactoringStatusSeverity.FATAL,
         "Choose another name.");
   }

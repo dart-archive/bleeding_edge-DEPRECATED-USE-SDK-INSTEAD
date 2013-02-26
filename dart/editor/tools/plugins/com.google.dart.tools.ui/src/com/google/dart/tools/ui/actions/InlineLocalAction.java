@@ -5,7 +5,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -53,7 +53,7 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
       instrumentation.metric("Problem", "Editor not editable");
       return;
     }
-    RefactoringExecutionStarter.startInlineTempRefactoring(input, null, selection, getShell());
+    RefactoringExecutionStarter_OLD.startInlineTempRefactoring(input, null, selection, getShell());
   }
 
   @Override
@@ -76,6 +76,6 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
   }
 
   boolean tryInlineTemp(CompilationUnit unit, DartUnit node, ITextSelection selection, Shell shell) {
-    return RefactoringExecutionStarter.startInlineTempRefactoring(unit, node, selection, shell);
+    return RefactoringExecutionStarter_OLD.startInlineTempRefactoring(unit, node, selection, shell);
   }
 }

@@ -66,9 +66,9 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @Override
-  public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+  public RefactoringStatus checkNewName(String newName) {
     RefactoringStatus result = new RefactoringStatus();
-    result.merge(super.checkInitialConditions(pm));
+    result.merge(super.checkNewName(newName));
     if (element instanceof TopLevelVariableElement) {
       result.merge(NamingConventions.validateVariableName(newName));
     }

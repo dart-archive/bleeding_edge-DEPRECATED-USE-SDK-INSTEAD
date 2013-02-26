@@ -39,14 +39,14 @@ public interface INameUpdating {
    */
   String getCurrentElementName();
 
-  /**
-   * Gets the original elements. Since an <code>INameUpdating</code> only renames one element, this
-   * method must return an array containing exactly one element.
-   * 
-   * @return an array containing exactly one element
-   * @see org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor#getElements()
-   */
-  Object[] getElements();
+//  /**
+//   * Gets the original elements. Since an <code>INameUpdating</code> only renames one element, this
+//   * method must return an array containing exactly one element.
+//   * 
+//   * @return an array containing exactly one element
+//   * @see org.eclipse.ltk.core.refactoring.participants.RefactoringProcessor#getElements()
+//   */
+//  Object[] getElements();
 
   /**
    * Gets the element after renaming, or <code>null</code> if not available.

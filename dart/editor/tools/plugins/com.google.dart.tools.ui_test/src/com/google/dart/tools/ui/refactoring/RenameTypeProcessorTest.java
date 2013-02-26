@@ -17,7 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -32,10 +32,10 @@ public final class RenameTypeProcessorTest extends RefactoringTest {
   private static boolean renameUnit = false;
 
   /**
-   * Uses {@link RenameSupport} to rename {@link Type}.
+   * Uses {@link RenameSupport_OLD} to rename {@link Type}.
    */
   private static void renameType(Type type, String newName) throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(type, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(type, newName);
     // we rename type Test in unit Test.dart and usually don't want to rename unit
     {
       RenameTypeProcessor renameTypeProcessor = ReflectionUtils.invokeMethod(

@@ -103,6 +103,20 @@ public class RefactoringStatus {
     addEntry(new RefactoringStatusEntry(RefactoringStatusSeverity.WARNING, msg, context));
   }
 
+  // XXX
+  public RefactoringStatus escalateErrorToFatal() {
+    RefactoringStatus result = new RefactoringStatus();
+    List<RefactoringStatusEntry> entries2 = entries;
+    for (RefactoringStatusEntry entry : entries2) {
+      RefactoringStatusSeverity severity = entry.getSeverity();
+      if (severity == RefactoringStatusSeverity.ERROR) {
+        severity = RefactoringStatusSeverity.FATAL;
+      }
+      result.addEntry(new RefactoringStatusEntry(severity, entry.getMessage(), entry.getContext()));
+    }
+    return result;
+  }
+
   /**
    * @return the {@link RefactoringStatusEntry}s.
    */

@@ -13,57 +13,51 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 
 /**
+ * {@link Action} for renaming {@link Element}.
+ * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction extends InstrumentedSelectionDispatchAction {
+public class RenameDartElementAction extends InstrumentedSelectionDispatchAction implements
+    RenameDartElementAction_I {
 
-  private static boolean canEnable(IStructuredSelection selection) throws CoreException {
-    DartElement element = getDartElement(selection);
-    if (element == null) {
-      return false;
-    }
-    return RefactoringAvailabilityTester.isRenameElementAvailable(element);
-  }
-
-  private static DartElement getDartElement(IStructuredSelection selection) {
+  private static Element getElement(IStructuredSelection selection) {
     if (selection.size() != 1) {
       return null;
     }
     Object first = selection.getFirstElement();
-    if (!(first instanceof DartElement)) {
+    if (!(first instanceof Element)) {
       return null;
     }
-    return (DartElement) first;
+    return (Element) first;
+  }
+
+  private static boolean isRenameElementAvailable(Element element) {
+    return element != null;
   }
 
   private DartEditor fEditor;
@@ -79,25 +73,12 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
   }
 
   public boolean canRunInEditor() {
-    if (RenameLinkedMode.getActiveLinkedMode() != null) {
-      return true;
-    }
-
-    try {
-      DartElement element = getDartElementFromEditor();
-      if (element == null) {
-        return true;
-      }
-
-      return RefactoringAvailabilityTester.isRenameElementAvailable(element);
-    } catch (DartModelException e) {
-      if (DartModelUtil.isExceptionToBeLogged(e)) {
-        DartToolsPlugin.log(e);
-      }
-    } catch (CoreException e) {
-      DartToolsPlugin.log(e);
-    }
-    return false;
+    // TODO(scheglov) already running, why check?
+//    if (RenameLinkedMode.getActiveLinkedMode() != null) {
+//      return true;
+//    }
+    Element element = getElementFromEditor();
+    return element != null;
   }
 
   @Override
@@ -114,12 +95,10 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
     }
 
     try {
-      DartElement element = getDartElementFromEditor();
+      Element element = getElementFromEditor();
       ActionInstrumentationUtilities.recordElement(element, instrumentation);
-      IPreferenceStore store = DartToolsPlugin.getDefault().getPreferenceStore();
-      boolean lightweight = store.getBoolean(PreferenceConstants.REFACTOR_LIGHTWEIGHT);
-      if (element != null && RefactoringAvailabilityTester.isRenameElementAvailable(element)) {
-        run(element, lightweight);
+      if (isRenameElementAvailable(element)) {
+        run(element, true);
         return;
       }
     } catch (CoreException e) {
@@ -128,6 +107,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
           RefactoringMessages.RenameDartElementAction_name,
           RefactoringMessages.RenameDartElementAction_exception);
     }
+    // report problem
     instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
     MessageDialog.openInformation(
         getShell(),
@@ -138,100 +118,90 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
   @Override
   public void doRun(IStructuredSelection selection, Event event,
       InstrumentationBuilder instrumentation) {
-    DartElement element = getDartElement(selection);
-    if (element == null) {
-      instrumentation.metric("Problem", "Element was null");
-      return;
-    }
-    ActionInstrumentationUtilities.recordElement(element, instrumentation);
-
-    if (!ActionUtil.isEditable(getShell(), element)) {
-      instrumentation.metric("Problem", "Editor not editable");
-      return;
-    }
-    try {
-      run(element, false);
-    } catch (CoreException e) {
-      ExceptionHandler.handle(
-          e,
-          RefactoringMessages.RenameDartElementAction_name,
-          RefactoringMessages.RenameDartElementAction_exception);
-    }
+    // TODO(scheglov)
+//    Element element = getDartElement(selection);
+//    if (element == null) {
+//      instrumentation.metric("Problem", "Element was null");
+//      return;
+//    }
+//    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+//
+//    if (!ActionUtil.isEditable(getShell(), element)) {
+//      instrumentation.metric("Problem", "Editor not editable");
+//      return;
+//    }
+//    try {
+//      run(element, false);
+//    } catch (CoreException e) {
+//      ExceptionHandler.handle(
+//          e,
+//          RefactoringMessages.RenameDartElementAction_name,
+//          RefactoringMessages.RenameDartElementAction_exception);
+//    }
   }
 
   @Override
   public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
-    if (!ActionUtil.isEditable(fEditor)) {
-      instrumentation.metric("Problem", "Editor not editable");
-      return;
-    }
-    if (canRunInEditor()) {
-      doRun(event, instrumentation);
-    } else {
-      instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
-      MessageDialog.openInformation(
-          getShell(),
-          RefactoringMessages.RenameAction_rename,
-          RefactoringMessages.RenameAction_unavailable);
-    }
+    System.out.println("doRun.ITextSelection: " + selection);
+    doRun(event, instrumentation);
+    // TODO(scheglov)
+//    if (!ActionUtil.isEditable(fEditor)) {
+//      instrumentation.metric("Problem", "Editor not editable");
+//      return;
+//    }
+//    if (canRunInEditor()) {
+//      doRun(event, instrumentation);
+//    } else {
+//      instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
+//      MessageDialog.openInformation(
+//          getShell(),
+//          RefactoringMessages.RenameAction_rename,
+//          RefactoringMessages.RenameAction_unavailable);
+//    }
   }
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
-    try {
-      if (selection.size() == 1) {
-        setEnabled(canEnable(selection));
-        return;
-      }
-    } catch (DartModelException e) {
-      // http://bugs.eclipse.org/bugs/show_bug.cgi?id=19253
-      if (DartModelUtil.isExceptionToBeLogged(e)) {
-        DartToolsPlugin.log(e);
-      }
-    } catch (CoreException e) {
-      DartToolsPlugin.log(e);
-    }
-    setEnabled(false);
+    Element element = getElement(selection);
+    setEnabled(isRenameElementAvailable(element));
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    if (selection instanceof DartTextSelection) {
-      try {
-        DartTextSelection dartTextSelection = (DartTextSelection) selection;
-        DartElement[] elements = dartTextSelection.resolveElementAtOffset();
-        if (elements.length == 1) {
-          setEnabled(RefactoringAvailabilityTester.isRenameElementAvailable(elements[0]));
-        } else {
-          DartNode node = dartTextSelection.resolveCoveringNode();
-          setEnabled(node instanceof DartIdentifier);
-        }
-      } catch (CoreException e) {
-        setEnabled(false);
-      }
-    } else {
-      setEnabled(true);
-    }
+    // TODO(scheglov)
+//    if (selection instanceof DartTextSelection) {
+//      try {
+//        DartTextSelection dartTextSelection = (DartTextSelection) selection;
+//        Element[] elements = dartTextSelection.resolveElementAtOffset();
+//        if (elements.length == 1) {
+//          setEnabled(RefactoringAvailabilityTester.isRenameElementAvailable(elements[0]));
+//        } else {
+//          DartNode node = dartTextSelection.resolveCoveringNode();
+//          setEnabled(node instanceof DartIdentifier);
+//        }
+//      } catch (CoreException e) {
+//        setEnabled(false);
+//      }
+//    } else {
+//      setEnabled(true);
+//    }
   }
 
-  private DartElement getDartElementFromEditor() throws DartModelException {
-    DartElement[] elements = SelectionConverter.codeResolve(fEditor);
-    if (elements == null || elements.length != 1) {
-      return null;
-    }
-    return elements[0];
+  private Element getElementFromEditor() {
+    ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+    return getElementFromEditor(selection);
   }
 
-  private void run(DartElement element, boolean lightweight) throws CoreException {
-    // Work around for http://dev.eclipse.org/bugs/show_bug.cgi?id=19104
-    if (!ActionUtil.isEditable(fEditor, getShell(), element)) {
-      return;
+  private Element getElementFromEditor(ITextSelection selection) {
+    CompilationUnit unit = fEditor.getInputUnit();
+    ASTNode selectedNode = new NodeLocator(selection.getOffset()).searchWithin(unit);
+    if (selectedNode instanceof SimpleIdentifier) {
+      return ((SimpleIdentifier) selectedNode).getElement();
     }
-    // Workaround bug 31998
-    if (ActionUtil.mustDisableDartModelAction(getShell(), element)) {
-      return;
-    }
+    return null;
+  }
 
+  private void run(Element element, boolean lightweight) throws CoreException {
     if (lightweight && fEditor instanceof CompilationUnitEditor) {
       new RenameLinkedMode(element, (CompilationUnitEditor) fEditor).start();
     } else {

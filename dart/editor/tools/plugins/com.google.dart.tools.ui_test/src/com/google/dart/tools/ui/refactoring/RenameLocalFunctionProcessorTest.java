@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFunctionProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameLocalFunctionProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -29,10 +29,10 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public final class RenameLocalFunctionProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link DartFunction}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartFunction}.
    */
   private static void renameFunction(DartFunction function, String newName) throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(function, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(function, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

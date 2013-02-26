@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Field;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -29,10 +29,10 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public final class RenameFieldProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link Field}.
+   * Uses {@link RenameSupport_OLD} to rename {@link Field}.
    */
   private static void renameField(Field field, String newName) throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(field, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(field, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

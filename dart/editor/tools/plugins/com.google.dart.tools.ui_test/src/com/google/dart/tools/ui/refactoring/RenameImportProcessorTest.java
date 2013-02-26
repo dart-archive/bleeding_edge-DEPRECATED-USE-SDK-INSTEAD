@@ -17,7 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartImport;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameImportProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -30,10 +30,10 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public final class RenameImportProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link DartImport}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartImport}.
    */
   private static void renameImport(DartImport imprt, String newName) throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(imprt, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(imprt, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

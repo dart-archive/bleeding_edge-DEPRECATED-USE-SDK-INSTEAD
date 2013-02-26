@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.DartTypeParameter;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeParameterProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -33,11 +33,11 @@ import java.lang.reflect.Proxy;
  */
 public final class RenameTypeParameterProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link DartTypeParameter}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartTypeParameter}.
    */
   private static void renameTypeParameter(DartTypeParameter parameter, String newName)
       throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(parameter, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(parameter, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

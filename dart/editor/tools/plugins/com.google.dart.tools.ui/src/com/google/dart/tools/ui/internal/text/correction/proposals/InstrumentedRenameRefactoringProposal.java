@@ -18,7 +18,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionCommandHandler;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
@@ -58,7 +58,7 @@ public class InstrumentedRenameRefactoringProposal implements IDartCompletionPro
     InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
     try {
 
-      RenameDartElementAction renameAction = new RenameDartElementAction(fEditor);
+      RenameDartElementAction_OLD renameAction = new RenameDartElementAction_OLD(fEditor);
       renameAction.doRun(null, instrumentation);
 
       instrumentation.metric("Apply", "Completed");

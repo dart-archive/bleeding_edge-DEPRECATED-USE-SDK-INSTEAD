@@ -62,9 +62,9 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @Override
-  public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+  public RefactoringStatus checkNewName(String newName) {
     RefactoringStatus result = new RefactoringStatus();
-    result.merge(super.checkInitialConditions(pm));
+    result.merge(super.checkNewName(newName));
     result.merge(NamingConventions.validateConstructorName(newName));
     return result;
   }

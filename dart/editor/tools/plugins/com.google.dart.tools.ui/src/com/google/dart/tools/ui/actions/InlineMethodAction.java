@@ -7,7 +7,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
@@ -117,7 +117,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
   }
 
   public boolean tryInlineMethod(CompilationUnit unit, ITextSelection selection, Shell shell) {
-    return RefactoringExecutionStarter.startInlineMethodRefactoring(
+    return RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(
         unit,
         selection.getOffset(),
         selection.getLength(),
@@ -128,7 +128,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
     if (!ActionUtil.isEditable(fEditor, getShell(), unit)) {
       return;
     }
-    if (!RefactoringExecutionStarter.startInlineMethodRefactoring(unit, offset, length, getShell())) {
+    if (!RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(unit, offset, length, getShell())) {
       MessageDialog.openInformation(
           getShell(),
           RefactoringMessages.InlineMethodAction_dialog_title,

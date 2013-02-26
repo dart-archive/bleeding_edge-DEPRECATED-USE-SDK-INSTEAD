@@ -18,7 +18,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -73,7 +73,7 @@ public class ConvertMethodToGetterAction extends InstrumentedSelectionDispatchAc
 
     try {
       DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
-      boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+      boolean success = RefactoringExecutionStarter_OLD.startConvertMethodToGetterRefactoring(
           function,
           getShell());
       if (success) {
@@ -129,7 +129,7 @@ public class ConvertMethodToGetterAction extends InstrumentedSelectionDispatchAc
         if (!RefactoringAvailabilityTester.isConvertMethodToGetterAvailable(function)) {
           instrumentation.metric("Problem", "RefactoringAvailabilityTester Returned false");
         }
-        boolean success = RefactoringExecutionStarter.startConvertMethodToGetterRefactoring(
+        boolean success = RefactoringExecutionStarter_OLD.startConvertMethodToGetterRefactoring(
             function,
             getShell());
 

@@ -17,7 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.Method;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameFieldProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameMethodProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -30,10 +30,10 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public final class RenameMethodProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link Method}.
+   * Uses {@link RenameSupport_OLD} to rename {@link Method}.
    */
   private static void renameMethod(Method method, String newName) throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(method, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(method, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

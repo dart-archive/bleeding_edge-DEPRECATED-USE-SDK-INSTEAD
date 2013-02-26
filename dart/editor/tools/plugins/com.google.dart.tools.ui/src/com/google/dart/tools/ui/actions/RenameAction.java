@@ -14,8 +14,11 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_I;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_OLD;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameResourceAction;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -30,42 +33,22 @@ import org.eclipse.ui.PlatformUI;
 
 /**
  * Renames a Dart element or workbench resource.
- * <p>
- * Action is applicable to selections containing elements of type <code>DartElement</code> or
- * <code>IResource</code>.
- * <p>
- * This class may be instantiated; it is not intended to be subclassed.
- * </p>
- * 
- * @noextend This class is not intended to be subclassed by clients.
  */
 public class RenameAction extends InstrumentedSelectionDispatchAction {
-
-  private RenameDartElementAction fRenameDartElement;
+  private RenameDartElementAction_I fRenameDartElement;
   private final RenameResourceAction fRenameResource;
 
-  /**
-   * Note: This constructor is for internal use only. Clients should not call this constructor.
-   * 
-   * @param editor the {@link DartEditor}
-   * @noreference This constructor is not intended to be referenced by clients.
-   */
   public RenameAction(DartEditor editor) {
     this(editor.getEditorSite());
-    fRenameDartElement = new RenameDartElementAction(editor);
+    fRenameDartElement = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new RenameDartElementAction(editor)
+        : new RenameDartElementAction_OLD(editor);
   }
 
-  /**
-   * Creates a new <code>RenameAction</code>. The action requires that the selection provided by the
-   * site's selection provider is of type <code>
-   * org.eclipse.jface.viewers.IStructuredSelection</code>.
-   * 
-   * @param site the site providing context information for this action
-   */
   public RenameAction(IWorkbenchSite site) {
     super(site);
     setText(RefactoringMessages.RenameAction_text);
-    fRenameDartElement = new RenameDartElementAction(site);
+    fRenameDartElement = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new RenameDartElementAction(site)
+        : new RenameDartElementAction_OLD(site);
     fRenameDartElement.setText(getText());
     fRenameResource = new RenameResourceAction(site);
     fRenameResource.setText(getText());
@@ -75,18 +58,16 @@ public class RenameAction extends InstrumentedSelectionDispatchAction {
   @Override
   public void doRun(IStructuredSelection selection, Event event,
       InstrumentationBuilder instrumentation) {
+    boolean renameRan = false;
 
-    Boolean renameRan = false;
     if (fRenameDartElement.isEnabled()) {
       fRenameDartElement.doRun(selection, event, instrumentation);
-
       renameRan = true;
       instrumentation.metric("Rename Ran", "DartElement");
     }
 
     if (fRenameResource != null && fRenameResource.isEnabled()) {
       fRenameResource.doRun(selection, event, instrumentation);
-
       renameRan = true;
       instrumentation.metric("Rename Ran", "Resource");
     }

@@ -17,7 +17,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameClassTypeAliasProcessor;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameTypeProcessor;
-import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -30,11 +30,11 @@ import static org.fest.assertions.Assertions.assertThat;
  */
 public final class RenameClassTypeAliasProcessorTest extends RefactoringTest {
   /**
-   * Uses {@link RenameSupport} to rename {@link DartClassTypeAlias}.
+   * Uses {@link RenameSupport_OLD} to rename {@link DartClassTypeAlias}.
    */
   private static void renameType(DartClassTypeAlias classTypeAlias, String newName)
       throws Exception {
-    RenameSupport renameSupport = RenameSupport.create(classTypeAlias, newName);
+    RenameSupport_OLD renameSupport = RenameSupport_OLD.create(classTypeAlias, newName);
     IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
     renameSupport.perform(workbenchWindow.getShell(), workbenchWindow);
   }

@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -58,7 +58,7 @@ public class ConvertOptionalParametersToNamedRefactoringProposal implements
 
   @Override
   public void apply(IDocument document) {
-    RefactoringExecutionStarter.startConvertOptionalParametersToNamedRefactoring(
+    RefactoringExecutionStarter_OLD.startConvertOptionalParametersToNamedRefactoring(
         function,
         editor.getSite().getShell());
   }
