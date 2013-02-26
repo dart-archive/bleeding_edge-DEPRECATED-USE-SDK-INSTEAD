@@ -221,6 +221,18 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_returnOfInvalidType_localFunction() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  String m() {",
+        "    int f() { return '0'; }",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_method() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
