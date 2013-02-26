@@ -64,6 +64,7 @@ import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
@@ -404,7 +405,21 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitPrefixedIdentifier() throws Exception {
+  public void test_visitPrefixedIdentifier_dynamic() throws Exception {
+    Type dynamicType = typeProvider.getDynamicType();
+    SimpleIdentifier target = identifier("a");
+    VariableElementImpl variable = localVariableElement(target);
+    variable.setType(dynamicType);
+    target.setElement(variable);
+    target.setStaticType(dynamicType);
+    PrefixedIdentifier identifier = identifier(target, identifier("b"));
+    resolveNode(identifier);
+    assertNull(identifier.getElement());
+    assertNull(identifier.getIdentifier().getElement());
+    listener.assertNoErrors();
+  }
+
+  public void test_visitPrefixedIdentifier_nonDynamic() throws Exception {
     ClassElementImpl classA = classElement("A");
     String getterName = "b";
     PropertyAccessorElement getter = getterElement(getterName, false, typeProvider.getIntType());

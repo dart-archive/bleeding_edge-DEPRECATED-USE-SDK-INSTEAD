@@ -180,7 +180,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (operator.isUserDefinableOperator()) {
       Type leftType = getType(node.getLeftOperand());
       Element leftTypeElement;
-      if (leftType == null) {
+      if (leftType == null || leftType.isDynamic()) {
         return null;
       } else if (leftType instanceof FunctionType) {
         leftTypeElement = resolver.getTypeProvider().getFunctionType().getElement();
@@ -292,7 +292,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitIndexExpression(IndexExpression node) {
     Type arrayType = getType(node.getRealTarget());
-    if (arrayType == null) {
+    if (arrayType == null || arrayType.isDynamic()) {
       return null;
     }
     Element arrayTypeElement = arrayType.getElement();
@@ -423,7 +423,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitPostfixExpression(PostfixExpression node) {
     Token operator = node.getOperator();
     Type operandType = getType(node.getOperand());
-    if (operandType == null) {
+    if (operandType == null || operandType.isDynamic()) {
       return null;
     }
     Element operandTypeElement = operandType.getElement();
@@ -500,28 +500,33 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     // Otherwise, determine the type of the left-hand side.
     //
-    Element variableType;
+    Element variableTypeElement;
     if (prefixElement instanceof PropertyAccessorElement) {
       PropertyAccessorElement accessor = (PropertyAccessorElement) prefixElement;
       FunctionType type = accessor.getType();
       if (type == null) {
-        // TODO(brianwilkerson) Figure out why this happens and either prevent it or report it (here
-        // or at the point of origin)
+        // TODO(brianwilkerson) Figure out why the type is sometimes null and either prevent it or
+        // report it (here or at the point of origin)
         return null;
       }
+      Type variableType;
       if (accessor.isGetter()) {
-        variableType = type.getReturnType().getElement();
+        variableType = type.getReturnType();
       } else {
-        variableType = type.getNormalParameterTypes()[0].getElement();
+        variableType = type.getNormalParameterTypes()[0];
       }
+      if (variableType == null || variableType.isDynamic()) {
+        return null;
+      }
+      variableTypeElement = variableType.getElement();
     } else if (prefixElement instanceof VariableElement) {
       Type prefixType = ((VariableElement) prefixElement).getType();
-      if (prefixType == null) {
-        // TODO(brianwilkerson) Figure out why this happens and either prevent it or report it (here
-        // or at the point of origin)
+      if (prefixType == null || prefixType.isDynamic()) {
+        // TODO(brianwilkerson) Figure out why the type is sometimes null and either prevent it or
+        // report it (here or at the point of origin)
         return null;
       }
-      variableType = prefixType.getElement();
+      variableTypeElement = prefixType.getElement();
     } else {
       // reportError(ResolverErrorCode.UNDEFINED_PREFIX);
       return null;
@@ -531,13 +536,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     //
     PropertyAccessorElement memberElement = null;
     if (node.getIdentifier().inSetterContext()) {
-      memberElement = lookUpSetter(variableType, identifier.getName());
+      memberElement = lookUpSetter(variableTypeElement, identifier.getName());
     }
     if (memberElement == null && node.getIdentifier().inGetterContext()) {
-      memberElement = lookUpGetter(variableType, identifier.getName());
+      memberElement = lookUpGetter(variableTypeElement, identifier.getName());
     }
     if (memberElement == null) {
-      MethodElement methodElement = lookUpMethod(variableType, identifier.getName(), -1);
+      MethodElement methodElement = lookUpMethod(variableTypeElement, identifier.getName(), -1);
       if (methodElement != null) {
         // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
         // type with no parameters and a return type that is equal to the function type of the method.
@@ -562,7 +567,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (operatorType.isUserDefinableOperator() || operatorType == TokenType.PLUS_PLUS
         || operatorType == TokenType.MINUS_MINUS) {
       Type operandType = getType(node.getOperand());
-      if (operandType == null) {
+      if (operandType == null || operandType.isDynamic()) {
         return null;
       }
       Element operandTypeElement = operandType.getElement();
