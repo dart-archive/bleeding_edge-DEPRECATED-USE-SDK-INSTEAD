@@ -18,7 +18,6 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
-import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
@@ -26,7 +25,6 @@ import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -358,19 +356,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
-    if (breakpoint instanceof DartBreakpoint) {
-      DartBreakpoint bp = (DartBreakpoint) breakpoint;
-      DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
-          getLaunch().getLaunchConfiguration());
-
-      IProject project = wrapper.getProject();
-
-      if (project != null && bp.getFile() != null) {
-        return project.equals(bp.getFile().getProject());
-      }
-    }
-
-    return false;
+    return breakpoint instanceof DartBreakpoint;
   }
 
   @Override
