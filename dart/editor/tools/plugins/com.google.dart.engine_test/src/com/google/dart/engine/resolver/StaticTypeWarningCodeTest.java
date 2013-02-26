@@ -116,17 +116,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedMember() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "class B extends A {",
-        "  m() { return super.m(); }",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_MEMBER);
-    verify(source);
-  }
-
   public void test_invalidAssignment_instanceVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -240,6 +229,17 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_undefinedMember() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  m() { return super.m(); }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
     verify(source);
   }
 

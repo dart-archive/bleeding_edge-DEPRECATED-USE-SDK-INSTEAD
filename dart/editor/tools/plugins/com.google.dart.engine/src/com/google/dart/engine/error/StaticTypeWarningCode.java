@@ -164,8 +164,11 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>: a<sub>n+1</sub>, &hellip;
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static type warning if <i>S</i> does not have an
    * accessible instance member named <i>m</i>.
+   * 
+   * @param methodName the name of the method that is undefined
+   * @param typeName the resolved type name that the method lookup is happening on
    */
-  UNDEFINED_MEMBER(""),
+  UNDEFINED_METHOD("There is no such method '%s' in '%s'"),
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not an accessible generic

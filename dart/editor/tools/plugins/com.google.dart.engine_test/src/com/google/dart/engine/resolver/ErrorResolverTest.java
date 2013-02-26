@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.resolver;
 
-import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class ErrorResolverTest extends ResolverTestCase {
@@ -57,25 +56,6 @@ public class ErrorResolverTest extends ResolverTestCase {
     resolve(source);
     assertErrors(ResolverErrorCode.CONTINUE_LABEL_ON_SWITCH);
     verify(source);
-  }
-
-  public void test_duplicateMemberError() throws Exception {
-    Source librarySource = addSource("/lib.dart", createSource(//
-        "library lib;",
-        "",
-        "part 'a.dart';",
-        "part 'b.dart';"));
-    Source sourceA = addSource("/a.dart", createSource(//
-        "part of lib;",
-        "",
-        "class A {}"));
-    Source sourceB = addSource("/b.dart", createSource(//
-        "part of lib;",
-        "",
-        "class A {}"));
-    resolve(librarySource, sourceA, sourceB);
-    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
-    verify(librarySource, sourceA, sourceB);
   }
 
 }

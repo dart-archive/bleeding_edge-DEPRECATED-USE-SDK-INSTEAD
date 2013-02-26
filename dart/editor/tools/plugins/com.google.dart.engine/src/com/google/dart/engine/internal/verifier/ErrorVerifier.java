@@ -135,6 +135,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
+    // TODO(jwren) in visitFunctionDeclaration and visitMethodDeclaration reference the enclosing
+    // function and method
     FunctionDeclaration enclosingFunction = node.getAncestor(FunctionDeclaration.class);
     Type methodOrFunctionReturnType = null;
     if (enclosingFunction != null && enclosingFunction.getReturnType() != null) {

@@ -45,6 +45,7 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -65,6 +66,7 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -345,6 +347,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             methodName.getName(),
             parameterCount,
             parameterNames.toArray(new String[parameterNames.size()]));
+        if (element == null && target instanceof SuperExpression) {
+          // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes, this one, and
+          // a code that describes the situation where the method was found, but it was not
+          // accessible from the current library.
+          resolver.reportError(
+              StaticTypeWarningCode.UNDEFINED_METHOD,
+              methodName,
+              methodName.getName(),
+              targetType.getElement().getName());
+          return null;
+        }
       } else if (target instanceof SimpleIdentifier) {
         Element targetElement = ((SimpleIdentifier) target).getElement();
         if (targetElement instanceof PrefixElement) {

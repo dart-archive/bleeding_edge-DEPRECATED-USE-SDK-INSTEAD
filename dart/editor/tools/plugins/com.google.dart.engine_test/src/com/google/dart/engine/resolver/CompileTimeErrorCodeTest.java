@@ -1296,6 +1296,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateMemberError() throws Exception {
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "",
+        "part 'a.dart';",
+        "part 'b.dart';"));
+    Source sourceA = addSource("/a.dart", createSource(//
+        "part of lib;",
+        "",
+        "class A {}"));
+    Source sourceB = addSource("/b.dart", createSource(//
+        "part of lib;",
+        "",
+        "class A {}"));
+    resolve(librarySource, sourceA, sourceB);
+    assertErrors(CompileTimeErrorCode.DUPLICATE_DEFINITION);
+    verify(librarySource, sourceA, sourceB);
+  }
+
   public void test_extendsNonClass() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
