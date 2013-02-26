@@ -18,8 +18,11 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
@@ -88,8 +91,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           rhs,
-          leftType.toString(),
-          rightType.toString());
+          leftType.getName(),
+          rightType.getName());
     }
     return super.visitAssignmentExpression(node);
   }
@@ -128,6 +131,30 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, typeName);
     }
     return super.visitInstanceCreationExpression(node);
+  }
+
+  @Override
+  public Void visitReturnStatement(ReturnStatement node) {
+    FunctionDeclaration enclosingFunction = node.getAncestor(FunctionDeclaration.class);
+    MethodDeclaration enclosingMethod = node.getAncestor(MethodDeclaration.class);
+    Type methodOrFunctionReturnType = null;
+    if (enclosingFunction != null && enclosingFunction.getReturnType() != null) {
+      methodOrFunctionReturnType = enclosingFunction.getReturnType().getType();
+    } else if (enclosingMethod != null && enclosingMethod.getReturnType() != null) {
+      methodOrFunctionReturnType = enclosingMethod.getReturnType().getType();
+    }
+    Expression returnExpression = node.getExpression();
+    if (methodOrFunctionReturnType != null && returnExpression != null) {
+      Type returnType = getType(returnExpression);
+      if (!methodOrFunctionReturnType.isAssignableTo(getType(returnExpression))) {
+        errorReporter.reportError(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            returnExpression,
+            returnType.getName(),
+            methodOrFunctionReturnType.getName());
+      }
+    }
+    return super.visitReturnStatement(node);
   }
 
   @Override

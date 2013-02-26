@@ -74,14 +74,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_returnOfInvalidType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "int f() { return '0'; }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
-    verify(source);
-  }
-
   public void fail_typeArgumentNotMatchingBounds_const() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
@@ -218,6 +210,24 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_EXPRESSION);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_function() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "int f() { return '0'; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_method() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int f() { return '0'; }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
     verify(source);
   }
 

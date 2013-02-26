@@ -130,7 +130,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not be assigned to the
    * declared return type of the immediately enclosing function.
    */
-  RETURN_OF_INVALID_TYPE(""),
+  RETURN_OF_INVALID_TYPE("The return type '%s' is not a '%s', as defined by the method"),
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
