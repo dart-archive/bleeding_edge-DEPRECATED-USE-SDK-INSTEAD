@@ -136,12 +136,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
     FunctionDeclaration enclosingFunction = node.getAncestor(FunctionDeclaration.class);
-    MethodDeclaration enclosingMethod = node.getAncestor(MethodDeclaration.class);
     Type methodOrFunctionReturnType = null;
     if (enclosingFunction != null && enclosingFunction.getReturnType() != null) {
       methodOrFunctionReturnType = enclosingFunction.getReturnType().getType();
-    } else if (enclosingMethod != null && enclosingMethod.getReturnType() != null) {
-      methodOrFunctionReturnType = enclosingMethod.getReturnType().getType();
+    } else {
+      MethodDeclaration enclosingMethod = node.getAncestor(MethodDeclaration.class);
+      if (enclosingMethod != null && enclosingMethod.getReturnType() != null) {
+        methodOrFunctionReturnType = enclosingMethod.getReturnType().getType();
+      }
     }
     Expression returnExpression = node.getExpression();
     if (methodOrFunctionReturnType != null && returnExpression != null) {
