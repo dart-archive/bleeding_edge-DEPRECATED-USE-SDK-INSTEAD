@@ -1,19 +1,85 @@
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
+import java.util.List;
+
 /*
  * Utilities to assist with instrumenting actions
  */
 public class ActionInstrumentationUtilities {
+
+  public static void record(DartElement[] members, String collectionName,
+      InstrumentationBuilder instrumentation) {
+    if (members == null) {
+      instrumentation.metric(collectionName, "null");
+      return;
+    }
+
+    instrumentation.metric(collectionName + "-length", members.length);
+    for (DartElement m : members) {
+      recordElement(m, instrumentation);
+    }
+  }
+
+  public static void record(DartNode node, InstrumentationBuilder instrumentation) {
+
+    if (node == null) {
+      instrumentation.metric("DartNode", "null");
+    }
+
+    instrumentation.metric("DartNode-Class", node.getClass().toString());
+
+    com.google.dart.compiler.resolver.Element element = node.getElement();
+
+    if (element == null) {
+      instrumentation.metric("Element", "null");
+    } else {
+      instrumentation.metric("Element-Name", element.getName());
+    }
+
+  }
+
+  public static void record(List<DartElement> members, String collectionName,
+      InstrumentationBuilder instrumentation) {
+
+    if (members == null) {
+      instrumentation.metric(collectionName, "null");
+      return;
+    }
+
+    instrumentation.metric(collectionName + "-length", members.size());
+    for (DartElement m : members) {
+      recordElement(m, instrumentation);
+    }
+  }
+
+  public static void record(TypeMember member, InstrumentationBuilder instrumentation) {
+    instrumentation.data("TypeMember-Name", member.getElementName());
+  }
+
+  public static void record(TypeMember[] members, String collectionName,
+      InstrumentationBuilder instrumentation) {
+    if (members == null) {
+      instrumentation.metric(collectionName, "null");
+      return;
+    }
+
+    instrumentation.metric(collectionName + "-length", members.length);
+    for (TypeMember m : members) {
+      record(m, instrumentation);
+    }
+  }
 
   public static void recordCompilationUnit(CompilationUnit cu,
       InstrumentationBuilder instrumentation) {
@@ -132,5 +198,4 @@ public class ActionInstrumentationUtilities {
     instrumentation.data("Selection-text", selection.getText());
 
   }
-
 }
