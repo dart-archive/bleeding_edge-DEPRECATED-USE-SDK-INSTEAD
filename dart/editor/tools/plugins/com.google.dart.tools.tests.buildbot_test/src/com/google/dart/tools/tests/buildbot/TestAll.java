@@ -33,7 +33,7 @@ public class TestAll {
     suite.addTest(engineTests());
 
     // Services
-    suite.addTest(com.google.dart.engine.services.TestAll.suite());
+    //suite.addTest(com.google.dart.engine.services.TestAll.suite());
 
     // Dartc
     //suite.addTest(com.google.dart.compiler.TestAll.suite());
