@@ -123,6 +123,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast/visitor"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/scanner"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
@@ -223,6 +224,13 @@ public class MainEngine {
       Files.write(
           getFormattedSource(library),
           new File(targetFolder + "/scanner.dart"),
+          Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildHtmlScannerLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/html_scanner.dart"),
           Charsets.UTF_8);
     }
     {
@@ -480,6 +488,11 @@ public class MainEngine {
             "resolver.dart",
             null,
             importShowCombinator("Namespace", "NamespaceBuilder", "LibraryResolver")));
+    unit.getDirectives().add(
+        importDirective(
+            "html_scanner.dart",
+            null,
+            importShowCombinator("HtmlScanner", "HtmlScanResult")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
@@ -500,6 +513,23 @@ public class MainEngine {
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
       if (isEnginePath(file, "error/") || isEnginePath(file, "internal/error/")) {
+        unit.getDeclarations().addAll(entry.getValue());
+      }
+    }
+    return unit;
+  }
+
+  private static CompilationUnit buildHtmlScannerLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "html", "scanner"));
+    unit.getDirectives().add(importDirective("dart:collection", null));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(importDirective("instrumentation.dart", null));
+    for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
+      File file = entry.getKey();
+      if (isEnginePath(file, "html/scanner/")) {
         unit.getDeclarations().addAll(entry.getValue());
       }
     }

@@ -19,11 +19,14 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
+import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
+import static com.google.dart.java2dart.util.ASTFactory.typeName;
 
 import java.util.List;
 
@@ -42,6 +45,10 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
         List<Expression> args = node.getArgumentList().getArguments();
         if (isMethodInClass(node, "equal", "com.google.common.base.Objects")) {
           replaceNode(node, binaryExpression(args.get(0), TokenType.EQ_EQ, args.get(1)));
+          return null;
+        }
+        if (isMethodInClass(node, "of", "com.google.common.collect.ImmutableMap")) {
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Map")));
           return null;
         }
         return null;

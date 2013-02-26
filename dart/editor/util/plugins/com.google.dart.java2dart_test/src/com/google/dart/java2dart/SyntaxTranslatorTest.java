@@ -17,10 +17,9 @@ package com.google.dart.java2dart;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.java2dart.util.ToFormattedSourceVisitor;
-
-import junit.framework.TestCase;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.JavaCore;
@@ -32,7 +31,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Test for {@link SyntaxTranslator}.
  */
-public class SyntaxTranslatorTest extends TestCase {
+public class SyntaxTranslatorTest extends AbstractSemanticTest {
 
   /**
    * @return the formatted Dart source dump of the given {@link ASTNode}.
@@ -479,55 +478,68 @@ public class SyntaxTranslatorTest extends TestCase {
   }
 
   public void test_expressionInfix() throws Exception {
-    parseJava(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "public class A {",
-        "  void test() {",
-        "    int m1 = 0 + 1;",
-        "    int m2 = 0 - 1;",
-        "    int m3 = 0 * 1;",
-        "    int m4 = 0 / 1;",
-        "    int m5 = 0 % 1;",
-        "    int s1 = 0 << 1;",
-        "    int s2 = 0 >> 1;",
-        "    int s3 = 0 >>> 1;",
-        "    boolean c1 = false || true;",
-        "    boolean c2 = false && true;",
-        "    int b1 = 0 ^ 1;",
-        "    int b2 = 0 | 1;",
-        "    int b3 = 0 & 1;",
-        "    boolean r1 = 0 < 1;",
-        "    boolean r2 = 0 > 1;",
-        "    boolean r3 = 0 <= 1;",
-        "    boolean r4 = 0 >= 1;",
-        "    boolean r5 = 0 == 1;",
-        "    boolean r6 = 0 != 1;",
-        "  }",
-        "}");
-    assertDartSource(
-        "class A {",
-        "  void test() {",
-        "    int m1 = 0 + 1;",
-        "    int m2 = 0 - 1;",
-        "    int m3 = 0 * 1;",
-        "    int m4 = 0 / 1;",
-        "    int m5 = 0 % 1;",
-        "    int s1 = 0 << 1;",
-        "    int s2 = 0 >> 1;",
-        "    int s3 = 0 >> 1;",
-        "    bool c1 = false || true;",
-        "    bool c2 = false && true;",
-        "    int b1 = 0 ^ 1;",
-        "    int b2 = 0 | 1;",
-        "    int b3 = 0 & 1;",
-        "    bool r1 = 0 < 1;",
-        "    bool r2 = 0 > 1;",
-        "    bool r3 = 0 <= 1;",
-        "    bool r4 = 0 >= 1;",
-        "    bool r5 = 0 == 1;",
-        "    bool r6 = 0 != 1;",
-        "  }",
-        "}");
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class A {",
+            "  void test() {",
+            "    int m1 = 0 + 1;",
+            "    int m2 = 0 - 1;",
+            "    int m3 = 0 * 1;",
+            "    int m4 = 0 / 1;",
+            "    int m5 = 0.0 / 1;",
+            "    int m6 = 0 / 1.0;",
+            "    int m7 = 0 % 1;",
+            "    int s1 = 0 << 1;",
+            "    int s2 = 0 >> 1;",
+            "    int s3 = 0 >>> 1;",
+            "    boolean c1 = false || true;",
+            "    boolean c2 = false && true;",
+            "    int b1 = 0 ^ 1;",
+            "    int b2 = 0 | 1;",
+            "    int b3 = 0 & 1;",
+            "    boolean r1 = 0 < 1;",
+            "    boolean r2 = 0 > 1;",
+            "    boolean r3 = 0 <= 1;",
+            "    boolean r4 = 0 >= 1;",
+            "    boolean r5 = 0 == 1;",
+            "    boolean r6 = 0 != 1;",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  void test() {",
+            "    int m1 = 0 + 1;",
+            "    int m2 = 0 - 1;",
+            "    int m3 = 0 * 1;",
+            "    int m4 = 0 ~/ 1;",
+            "    int m5 = 0.0 / 1;",
+            "    int m6 = 0 / 1.0;",
+            "    int m7 = 0 % 1;",
+            "    int s1 = 0 << 1;",
+            "    int s2 = 0 >> 1;",
+            "    int s3 = 0 >> 1;",
+            "    bool c1 = false || true;",
+            "    bool c2 = false && true;",
+            "    int b1 = 0 ^ 1;",
+            "    int b2 = 0 | 1;",
+            "    int b3 = 0 & 1;",
+            "    bool r1 = 0 < 1;",
+            "    bool r2 = 0 > 1;",
+            "    bool r3 = 0 <= 1;",
+            "    bool r4 = 0 >= 1;",
+            "    bool r5 = 0 == 1;",
+            "    bool r6 = 0 != 1;",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
   }
 
   public void test_expressionInfix_multipleOperands() throws Exception {
@@ -1342,6 +1354,10 @@ public class SyntaxTranslatorTest extends TestCase {
         "  void main(int p) {",
         "    switch (p) {",
         "      case 1:",
+        "        if (0 == 1) {",
+        "          print(0);",
+        "          break;",
+        "        }",
         "        print(1);",
         "        break;",
         "      case 2:",
@@ -1357,12 +1373,19 @@ public class SyntaxTranslatorTest extends TestCase {
     assertDartSource(
         "class A {",
         "  void main(int p) {",
-        "    if (p == 1) {",
-        "      print(1);",
-        "    } else if (p == 2 || p == 3) {",
-        "      print(2);",
-        "    } else {",
-        "      print(3);",
+        "    while (true) {",
+        "      if (p == 1) {",
+        "        if (0 == 1) {",
+        "          print(0);",
+        "          break;",
+        "        }",
+        "        print(1);",
+        "      } else if (p == 2 || p == 3) {",
+        "        print(2);",
+        "      } else {",
+        "        print(3);",
+        "      }",
+        "      break;",
         "    }",
         "  }",
         "}");

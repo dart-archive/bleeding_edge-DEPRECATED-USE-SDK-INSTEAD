@@ -409,6 +409,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Map_isEmpty() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Map;",
+        "public class Test {",
+        "  public boolean foo(Map<String, String> p) {",
+        "    return p.isEmpty();",
+        "  }",
+        "}");
+    CollectionSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  bool foo(Map<String, String> p) => p.isEmpty;",
+        "}");
+  }
+
   public void test_Map_put() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

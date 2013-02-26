@@ -169,6 +169,10 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           replaceNode(node, propertyAccess(node.getTarget(), nameNode));
           return null;
         }
+        if (isMethodInClass(node, "isEmpty", "java.util.Map")) {
+          replaceNode(node, propertyAccess(node.getTarget(), nameNode));
+          return null;
+        }
         if (isMethodInClass(node, "put", "java.util.Map")) {
           Assert.isTrue(node.getParent() instanceof ExpressionStatement);
           IndexExpression indexExpression = indexExpression(node.getTarget(), args.get(0));

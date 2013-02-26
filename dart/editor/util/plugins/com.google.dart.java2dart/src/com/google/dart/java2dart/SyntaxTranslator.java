@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -67,6 +68,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.StringToken;
@@ -293,6 +295,12 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     return false;
   }
 
+  private static boolean isIntegerType(org.eclipse.jdt.core.dom.Expression expression) {
+    ITypeBinding typeBinding = expression.resolveTypeBinding();
+    return JavaUtils.isTypeNamed(typeBinding, "int") || JavaUtils.isTypeNamed(typeBinding, "long")
+        || JavaUtils.isTypeNamed(typeBinding, "short");
+  }
+
   /**
    * @return <code>true</code> if "subConstructor" is constructor of inner class which call
    *         "superConstructor".
@@ -423,7 +431,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     Assert.isNotNull(tokenType, "No token for: " + javaOperator);
     // done
-    return done(new BinaryExpression(left, new Token(tokenType, 0), right));
+    return done(new AssignmentExpression(left, new Token(tokenType, 0), right));
   }
 
   @Override
@@ -889,7 +897,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       tokenType = TokenType.STAR;
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.DIVIDE) {
-      tokenType = TokenType.SLASH;
+      if (isIntegerType(node.getLeftOperand()) && isIntegerType(node.getRightOperand())) {
+        tokenType = TokenType.TILDE_SLASH;
+      } else {
+        tokenType = TokenType.SLASH;
+      }
     }
     if (javaOperator == org.eclipse.jdt.core.dom.InfixExpression.Operator.REMAINDER) {
       tokenType = TokenType.PERCENT;
@@ -1244,6 +1256,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         org.eclipse.jdt.core.dom.IVariableBinding variableBinding = (org.eclipse.jdt.core.dom.IVariableBinding) binding;
         org.eclipse.jdt.core.dom.ASTNode parent = node.getParent();
         if (locationInParent == org.eclipse.jdt.core.dom.EnumConstantDeclaration.ARGUMENTS_PROPERTY
+            || locationInParent == org.eclipse.jdt.core.dom.ClassInstanceCreation.ARGUMENTS_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.MethodInvocation.ARGUMENTS_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.ConstructorInvocation.ARGUMENTS_PROPERTY
             || locationInParent == org.eclipse.jdt.core.dom.SuperConstructorInvocation.ARGUMENTS_PROPERTY
@@ -1397,7 +1410,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         }
       }
     }
-    return done(mainIfStatement);
+    // wrap everything into "while(true)" to handle inner "break"
+    WhileStatement whileStatement = whileStatement(
+        booleanLiteral(true),
+        block(mainIfStatement, breakStatement()));
+    return done(whileStatement);
   }
 
   @Override

@@ -17,6 +17,64 @@ package com.google.dart.java2dart.processor;
  * Test for {@link BeautifySemanticProcessor}.
  */
 public class BeautifySemanticProcessorTest extends SemanticProcessorTest {
+  public void test_expression_castIntToInt() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  short main() {",
+        "    return (short) 0xFFFF;",
+        "  }",
+        "}");
+    BeautifySemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class A {",
+        "  int main() => 0xFFFF;",
+        "}");
+  }
+
+  public void test_expression_extraParenthesis() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "public class A {",
+        "  void main(Object p) {",
+        "    print((Integer) p);",
+        "    print(-(Integer) p);",
+        "    print((Integer) p + 1);",
+        "    print((Integer) p - 1);",
+        "    Object v = (Integer) p;",
+        "    v = (Integer) p;",
+        "  }",
+        "  int main2(Object p) {",
+        "    return (Integer) p;",
+        "  }",
+        "  int main3(Object p) {",
+        "    print(0);",
+        "    return (Integer) p;",
+        "  }",
+        "  void print(Object x) {",
+        "  }",
+        "}");
+    BeautifySemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class A {",
+        "  void main(Object p) {",
+        "    print((p as int));",
+        "    print(-(p as int));",
+        "    print((p as int) + 1);",
+        "    print((p as int) - 1);",
+        "    Object v = p as int;",
+        "    v = p as int;",
+        "  }",
+        "  int main2(Object p) => p as int;",
+        "  int main3(Object p) {",
+        "    print(0);",
+        "    return p as int;",
+        "  }",
+        "  void print(Object x) {",
+        "  }",
+        "}");
+  }
+
   public void test_expression_instanceOf() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

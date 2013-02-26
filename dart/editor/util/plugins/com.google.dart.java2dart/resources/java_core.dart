@@ -78,6 +78,9 @@ class Character {
   static bool isLetterOrDigit(int c) {
     return isLetter(c) || c >= 0x30 && c <= 0x39;
   }
+  static bool isWhitespace(int c) {
+    return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;
+  }
   static int digit(int codePoint, int radix) {
     if (radix != 16) {
       throw new ArgumentError("only radix == 16 is supported");

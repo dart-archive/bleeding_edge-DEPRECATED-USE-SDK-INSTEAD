@@ -14,10 +14,17 @@
 
 package com.google.dart.java2dart.processor;
 
+import com.google.dart.engine.ast.AsExpression;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
+import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ParenthesizedExpression;
 import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
@@ -30,9 +37,68 @@ import static com.google.dart.java2dart.util.TokenFactory.token;
 public class BeautifySemanticProcessor extends SemanticProcessor {
   public static final SemanticProcessor INSTANCE = new BeautifySemanticProcessor();
 
+  private static boolean canRemovePathenthesis(ParenthesizedExpression node) {
+    // argument of invocation
+    if (node.getParent() instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) node.getParent();
+      if (invocation.getArgumentList().getArguments().contains(node)) {
+        return true;
+      }
+    }
+    // RHS of assignment
+    if (node.getParent() instanceof AssignmentExpression) {
+      AssignmentExpression assignment = (AssignmentExpression) node.getParent();
+      if (assignment.getRightHandSide() == node) {
+        return true;
+      }
+    }
+    // initializer
+    if (node.getParent() instanceof VariableDeclaration) {
+      VariableDeclaration declaration = (VariableDeclaration) node.getParent();
+      if (declaration.getInitializer() == node) {
+        return true;
+      }
+    }
+    // return statement
+    if (node.getParent() instanceof ReturnStatement) {
+      ReturnStatement returnStatement = (ReturnStatement) node.getParent();
+      if (returnStatement.getExpression() == node) {
+        return true;
+      }
+    }
+    if (node.getParent() instanceof ExpressionFunctionBody) {
+      ExpressionFunctionBody body = (ExpressionFunctionBody) node.getParent();
+      if (body.getExpression() == node) {
+        return true;
+      }
+    }
+    // no
+    return false;
+  }
+
   @Override
   public void process(final Context context, CompilationUnit unit) {
     unit.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitAsExpression(AsExpression node) {
+        super.visitAsExpression(node);
+        if (node.getExpression() instanceof IntegerLiteral
+            && node.getType().getName().getName().equals("int")) {
+          replaceNode(node, node.getExpression());
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitParenthesizedExpression(ParenthesizedExpression node) {
+        super.visitParenthesizedExpression(node);
+        if (canRemovePathenthesis(node)) {
+          replaceNode(node, node.getExpression());
+          return null;
+        }
+        return null;
+      }
+
       @Override
       public Void visitPrefixExpression(PrefixExpression node) {
         super.visitPrefixExpression(node);

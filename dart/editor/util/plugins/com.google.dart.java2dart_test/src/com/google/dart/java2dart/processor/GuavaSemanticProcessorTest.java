@@ -18,6 +18,31 @@ package com.google.dart.java2dart.processor;
  */
 public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
 
+  public void test_ImmutableMap_of_empty() throws Exception {
+    setFileLines(
+        "com/google/common/collect/ImmutableMap.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.Map;",
+            "public class ImmutableMap {",
+            "  public static <K, V> Map<K, V> of() { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Map;",
+        "import com.google.common.collect.ImmutableMap;",
+        "public class Test {",
+        "  Map<String, String> m = ImmutableMap.of();",
+        "}");
+    GuavaSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Map<String, String> m = new Map();",
+        "}");
+  }
+
   public void test_Objects_equal() throws Exception {
     setFileLines(
         "com/google/common/base/Objects.java",
