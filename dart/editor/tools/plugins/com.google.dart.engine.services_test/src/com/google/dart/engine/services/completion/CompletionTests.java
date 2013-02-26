@@ -79,6 +79,22 @@ public class CompletionTests extends CompletionTestCase {
         "3-A");
   }
 
+  public void test006() throws Exception {
+    String source = src(//
+        "void r2(var vim, {va: 2, b: 3}) {",
+        "  v!1.toString()",
+        "}");
+    test(source, "1+va", "1-b");
+  }
+
+  public void test007() throws Exception {
+    String source = src(//
+        "void r2(var vim, [va: 2, b: 3]) {",
+        "  v!1.toString()",
+        "}");
+    test(source, "1+va", "1-b");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -104,5 +120,22 @@ public class CompletionTests extends CompletionTestCase {
         "3-y",
         "5+mth",
         "6+x");
+  }
+
+  public void testCommentSnippets006() throws Exception {
+    test("class B1 {B1();x(){}}class B2 extends B1 {B2() { super.!2x();}}", "2+x");
+  }
+
+  public void testCommentSnippets007() throws Exception {
+    test(
+        "class C {mth(Map x, !1) {}mtf(!2, Map x) {}m() {for (in!3t i=0; i<5; i++); A!4 x;}}class int{}class Arrays{}class bool{}",
+        "1+bool",
+        "2+bool",
+        "3+int",
+        "4+Arrays");
+  }
+
+  public void testCommentSnippets008() throws Exception {
+    test("class Date{}final num M = Dat!1", "1+Date");
   }
 }

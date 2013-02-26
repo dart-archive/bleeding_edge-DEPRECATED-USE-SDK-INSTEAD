@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -240,6 +241,14 @@ public class CompletionEngine {
       if (node.getConstructorName() == completionNode) {
         ClassElement classElement = node.getElement().getEnclosingElement();
         constructorReference(classElement, node.getConstructorName());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
+      if (node.getIdentifier() == completionNode) {
+        analyzeLocalName((SimpleIdentifier) completionNode);
       }
       return null;
     }
