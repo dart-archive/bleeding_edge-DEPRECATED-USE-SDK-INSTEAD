@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../../../clock/web/clock.dart' as clock;
+library hi_test;
+
+import '../../../hi/hi.dart' as hi;
 
 // @static-clean
 
 /**
- * This test exists to ensure that the clock sample compiles without errors.
+ * This test exists to ensure that the hi sample compiles without errors.
  */
 void main() {
   

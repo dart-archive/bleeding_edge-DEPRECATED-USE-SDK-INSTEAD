@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library build_dart;
+
 import "dart:io";
 import "package:args/args.dart";
 
@@ -13,10 +15,11 @@ List<String> changedFiles;
 List<String> removedFiles;
 
 /**
- * This build script is invoked automatically by the Editor whenever a file
- * in the project changes. It must be placed in the root of a project and named
- * 'build.dart'. See the source code of [processArgs] for information about the
- * legal command line options.
+ * If the file is named 'build.dart' and is placed in the root directory of a
+ * project or in a directory containing a pubspec.yaml file, then the Editor
+ * will automatically invoke that file whenever a file in that project changes.
+ * See the source code of [processArgs] for information about the legal command
+ * line options.
  */
 void main() {
   processArgs();
@@ -48,9 +51,9 @@ void processArgs() {
   parser.addFlag("machine",
     negatable: false, help: "produce warnings in a machine parseable format");
   parser.addFlag("help", negatable: false, help: "display this help and exit");
-  
+
   var args = parser.parse(new Options().arguments);
-  
+
   if (args["help"]) {
     print(parser.getUsage());
     exit(0);
@@ -70,8 +73,8 @@ void processArgs() {
  */
 void handleCleanCommand() {
   Directory current = new Directory.current();
-  current.list(recursive: true).listen((entity) {
-    if (entity.isFile) _maybeClean(entity.path)
+  current.list(recursive: true).listen((FileSystemEntity entity) {
+    if (entity is File) _maybeClean(entity);
   });
 }
 
@@ -80,9 +83,10 @@ void handleCleanCommand() {
  */
 void handleFullBuild() {
   var files = <String>[];
+
   new Directory.current().list(recursive: true).listen(
-      (entity) {
-        if (entity.isFile) files.add(entity.path);
+      (FileSystemEntity entity) {
+        if (entity is File) files.add(entity.fullPathSync());
       },
       onDone: () => handleChangedFiles(files));
 }
@@ -146,8 +150,8 @@ void _findErrors(String arg) {
 /**
  * If this file is a generated file (based on the extension), delete it.
  */
-void _maybeClean(String file) {
-  if (file.endsWith(".foobar")) {
-    new File(file).delete();
+void _maybeClean(File file) {
+  if (file.name.endsWith(".foobar")) {
+    file.delete();
   }
 }
