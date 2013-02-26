@@ -331,29 +331,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public Void visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.getElement();
     Location location;
-    {
-      String nameStr = node.toSource();
-      // TODO(scheglov) remove this code after parser fix
-      {
-        int periodIndex = nameStr.indexOf('.');
-        if (periodIndex != -1) {
-          int start = node.getOffset() + periodIndex;
-          int end = node.getEnd();
-          location = createLocation(start, end - start, null);
-        } else {
-          int start = node.getType().getEnd();
-          location = createLocation(start, 0, null);
-        }
-      }
-      // TODO(scheglov) use this code after parser fix
-//      if (node.getName() != null) {
-//        int start = node.getPeriod().getOffset();
-//        int end = node.getName().getEnd();
-//        location = createLocation(start, end - start, null);
-//      } else {
-//        int start = node.getType().getEnd();
-//        location = createLocation(start, 0, null);
-//      }
+    if (node.getName() != null) {
+      int start = node.getPeriod().getOffset();
+      int end = node.getName().getEnd();
+      location = createLocation(start, end - start, null);
+    } else {
+      int start = node.getType().getEnd();
+      location = createLocation(start, 0, null);
     }
     recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
     return super.visitConstructorName(node);

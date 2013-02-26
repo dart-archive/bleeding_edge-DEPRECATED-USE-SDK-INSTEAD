@@ -22,8 +22,6 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.FunctionExpression;
-import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.NodeLocator;
@@ -65,29 +63,30 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
   private final AssistContext context;
   private final SourceRange selectionRange;
   private final int selectionStart;
-  private final int selectionLength;
+
   private final CompilationUnit unitNode;
   private final CorrectionUtils utils;
   private SelectionAnalyzer selectionAnalyzer;
   private Expression rootExpression;
   private Expression singleExpression;
   private String stringLiteralPart;
+
   private String localName;
   private boolean replaceAllOccurrences;
+
   private Set<String> excludedVariableNames;
+  private String[] guessedNames;
 
   public ExtractLocalRefactoringImpl(AssistContext context) throws Exception {
     this.context = context;
     this.selectionRange = context.getSelectionRange();
     this.selectionStart = selectionRange.getOffset();
-    this.selectionLength = selectionRange.getLength();
     this.unitNode = context.getCompilationUnit();
     this.utils = new CorrectionUtils(unitNode);
   }
 
   @Override
   public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
-    // TODO(scheglov)
     return new RefactoringStatus();
   }
 
@@ -97,9 +96,9 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
     try {
       RefactoringStatus result = new RefactoringStatus();
       // name
-      RefactoringStatus status = NamingConventions.validateVariableName(localName);
+      result.merge(NamingConventions.validateVariableName(localName));
       if (getExcludedVariableNames().contains(localName)) {
-        status.addWarning(MessageFormat.format(
+        result.addWarning(MessageFormat.format(
             "A variable with name ''{0}'' is already defined in the visible scope.",
             localName));
       }
@@ -160,8 +159,20 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
 
   @Override
   public String[] guessNames() {
-    // TODO(scheglov)
-    return ArrayUtils.EMPTY_STRING_ARRAY;
+    if (guessedNames == null) {
+      Set<String> excluded = getExcludedVariableNames();
+      if (stringLiteralPart != null) {
+        return CorrectionUtils.getVariableNameSuggestions(stringLiteralPart, excluded);
+      } else if (singleExpression != null) {
+        guessedNames = CorrectionUtils.getVariableNameSuggestions(
+            singleExpression.getStaticType(),
+            singleExpression,
+            excluded);
+      } else {
+        guessedNames = ArrayUtils.EMPTY_STRING_ARRAY;
+      }
+    }
+    return guessedNames;
   }
 
   @Override
@@ -258,7 +269,7 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
           Block enclosingBlock = enclosingNode.getAncestor(Block.class);
           if (enclosingBlock != null) {
             final SourceRange newVariableVisibleRange = rangeStartEnd(
-                selectionStart,
+                selectionRange,
                 enclosingBlock.getEnd());
             ExecutableElement enclosingExecutable = CorrectionUtils.getEnclosingExecutableElement(enclosingNode);
             if (enclosingExecutable != null) {
@@ -292,14 +303,10 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
     List<com.google.dart.engine.scanner.Token> selectionTokens = TokenUtils.getTokens(selectionSource);
     selectionSource = StringUtils.join(selectionTokens, TOKEN_SEPARATOR);
     // prepare enclosing function
-    // TODO(scheglov) not only MethodDeclaration
     ASTNode enclosingFunction;
     {
       ASTNode selectionNode = new NodeLocator(selectionStart).searchWithin(unitNode);
-      enclosingFunction = selectionNode.getAncestor(MethodDeclaration.class);
-      if (enclosingFunction == null) {
-        enclosingFunction = selectionNode.getAncestor(FunctionExpression.class);
-      }
+      enclosingFunction = CorrectionUtils.getEnclosingExecutableNode(selectionNode);
     }
     // ...we need function
     if (enclosingFunction != null) {

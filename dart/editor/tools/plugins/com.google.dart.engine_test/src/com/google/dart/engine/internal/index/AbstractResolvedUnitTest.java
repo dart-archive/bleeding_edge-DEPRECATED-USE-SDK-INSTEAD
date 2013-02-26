@@ -63,10 +63,12 @@ public class AbstractResolvedUnitTest extends EngineTestCase {
       ANALYSIS_CONTEXT.changed(changeSet);
     }
     // update source
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changed(SOURCE);
-    ANALYSIS_CONTEXT.changed(changeSet);
-    ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.changed(SOURCE);
+      ANALYSIS_CONTEXT.changed(changeSet);
+      ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
+    }
     // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
     CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolve(SOURCE, library);

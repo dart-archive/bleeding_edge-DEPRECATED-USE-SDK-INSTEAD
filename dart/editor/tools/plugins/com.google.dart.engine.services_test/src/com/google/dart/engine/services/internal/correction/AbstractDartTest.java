@@ -70,6 +70,13 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
+   * Function to force formatter to put every string on separate line.
+   */
+  public static String[] formatLines(String... lines) {
+    return lines;
+  }
+
+  /**
    * @return the resolved {@link CompilationUnit} for given Dart code.
    */
   public static CompilationUnit parseUnit(String code) throws Exception {
@@ -83,10 +90,12 @@ public class AbstractDartTest extends TestCase {
       SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
     }
     // update source
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.changed(SOURCE);
-    ANALYSIS_CONTEXT.changed(changeSet);
-    ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
+    {
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.changed(SOURCE);
+      ANALYSIS_CONTEXT.changed(changeSet);
+      ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
+    }
     // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
     CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolve(SOURCE, library);
@@ -149,6 +158,7 @@ public class AbstractDartTest extends TestCase {
 
   protected String testCode;
   protected Source testSource;
+
   protected CompilationUnit testUnit;
 
   protected boolean verifyNoTestUnitErrors = true;

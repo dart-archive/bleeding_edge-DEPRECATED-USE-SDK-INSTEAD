@@ -93,7 +93,7 @@ public final class StubUtilityTest extends AbstractDartTest {
     }
   }
 
-  public void test_getVariableNameSuggestions_forText() throws Exception {
+  public void test_getVariableNameSuggestions_String() throws Exception {
     {
       String[] suggestions = StubUtility.getVariableNameSuggestions(
           "Goodbye, cruel world!",

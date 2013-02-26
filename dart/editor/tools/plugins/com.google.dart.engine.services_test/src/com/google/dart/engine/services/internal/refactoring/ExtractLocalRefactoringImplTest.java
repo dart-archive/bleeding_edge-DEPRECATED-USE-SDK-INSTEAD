@@ -32,7 +32,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   private boolean replaceAllOccurences = true;
   private RefactoringStatus refactoringStatus;
 
-  public void test_bad_notPartOfFunction() throws Exception {
+  public void test_checkInitialConditions_notPartOfFunction() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "int a = 1 + 2;",
@@ -48,7 +48,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "Expression inside of function must be selected to activate this refactoring.");
   }
 
-  public void test_bad_sameVariable_after() throws Exception {
+  public void test_checkInitialConditions_sameVariable_after() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -73,7 +73,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
 //    }
   }
 
-  public void test_bad_sameVariable_before() throws Exception {
+  public void test_checkInitialConditions_sameVariable_before() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -96,6 +96,23 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
 //      refactoringStatus = refactoring.checkAllConditions(pm);
 //      assertRefactoringStatusOK(refactoringStatus);
 //    }
+  }
+
+  public void test_checkInitialConditions_variableName_warning() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    localName = "Res";
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.WARNING,
+        "Variable name should start with a lowercase letter.");
   }
 
   public void test_fragmentExpression_leadingNotWhitespace() throws Exception {
@@ -248,10 +265,12 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   }
 
   public void test_guessNames_singleExpression() throws Exception {
+    // TODO(scheglov) change "getSelectedItem()" to return "null"
+    // it does not work not because of bug in Resolver
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class TreeItem {}",
-        "TreeItem getSelectedItem() => null;",
+        "TreeItem getSelectedItem() => new TreeItem();",
         "process(arg) {}",
         "main() {",
         "  process(getSelectedItem()); // marker",
@@ -261,8 +280,9 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     selectionEnd = findOffset("); // marker");
     createRefactoring();
     // check guesses
-    // TODO(scheglov) implement and test
-//    String[] names = refactoring.guessNames();
+    String[] names = refactoring.guessNames();
+    // TODO(scheglov) we should have "arg" only Resolver will provide us with ParameterElement
+    assertThat(names).contains("selectedItem", "item", "treeItem");
 //    assertThat(names).contains("selectedItem", "item", "arg", "treeItem");
   }
 
@@ -276,9 +296,8 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     setSelectionString("Hello Bob");
     createRefactoring();
     // check guesses
-    // TODO(scheglov) implement and test
-//    String[] names = refactoring.guessNames();
-//    assertThat(names).contains("helloBob", "bob");
+    String[] names = refactoring.guessNames();
+    assertThat(names).contains("helloBob", "bob");
   }
 
   public void test_occurences_disableOccurences() throws Exception {
@@ -466,6 +485,28 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "  A a = new A();",
         "  var res = a.foo;",
         "  int b = 1 + res; // marker",
+        "}");
+  }
+
+  public void test_singleExpression_inMethod() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  main() {",
+        "    print(1 + 2);",
+        "  }",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  main() {",
+        "    var res = 1 + 2;",
+        "    print(res);",
+        "  }",
         "}");
   }
 

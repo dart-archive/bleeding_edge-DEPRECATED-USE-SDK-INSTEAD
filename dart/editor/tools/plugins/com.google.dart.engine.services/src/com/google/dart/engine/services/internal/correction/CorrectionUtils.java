@@ -18,14 +18,21 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NamedExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
@@ -52,6 +59,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeSt
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.CharBuffer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -62,7 +70,6 @@ import java.util.Set;
  * Utilities for analyzing {@link CompilationUnit}, its parts and source.
  */
 public class CorrectionUtils {
-
   /**
    * Describes where to insert new directive or top-level declaration at the top of file.
    */
@@ -71,6 +78,8 @@ public class CorrectionUtils {
     public boolean insertEmptyLineBefore;
     public boolean insertEmptyLineAfter;
   }
+
+  private static final String[] KNOWN_METHOD_NAME_PREFIXES = {"get", "is", "to"};
 
   /**
    * The default end-of-line marker for the current platform.
@@ -185,14 +194,33 @@ public class CorrectionUtils {
    */
   public static ExecutableElement getEnclosingExecutableElement(ASTNode node) {
     while (node != null) {
-      if (node instanceof FunctionExpression) {
-        return ((FunctionExpression) node).getElement();
+      if (node instanceof FunctionDeclaration) {
+        return ((FunctionDeclaration) node).getElement();
       }
       if (node instanceof ConstructorDeclaration) {
         return ((ConstructorDeclaration) node).getElement();
       }
       if (node instanceof MethodDeclaration) {
         return ((MethodDeclaration) node).getElement();
+      }
+      node = node.getParent();
+    }
+    return null;
+  }
+
+  /**
+   * @return the enclosing executable {@link ASTNode}.
+   */
+  public static ASTNode getEnclosingExecutableNode(ASTNode node) {
+    while (node != null) {
+      if (node instanceof FunctionDeclaration) {
+        return node;
+      }
+      if (node instanceof ConstructorDeclaration) {
+        return node;
+      }
+      if (node instanceof MethodDeclaration) {
+        return node;
       }
       node = node.getParent();
     }
@@ -315,6 +343,156 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the possible names for variable with initializer of the given {@link StringLiteral}.
+   */
+  public static String[] getVariableNameSuggestions(String text, Set<String> excluded) {
+    // filter out everything except of letters and white spaces
+    {
+      CharMatcher matcher = CharMatcher.JAVA_LETTER.or(CharMatcher.WHITESPACE);
+      text = matcher.retainFrom(text);
+    }
+    // make single camel-case text
+    {
+      String[] words = StringUtils.split(text);
+      StringBuilder sb = new StringBuilder();
+      for (int i = 0; i < words.length; i++) {
+        String word = words[i];
+        if (i > 0) {
+          word = StringUtils.capitalize(word);
+        }
+        sb.append(word);
+      }
+      text = sb.toString();
+    }
+    // split camel-case into separate suggested names
+    Set<String> res = Sets.newLinkedHashSet();
+    addAll(excluded, res, getVariableNameSuggestions(text));
+    return res.toArray(new String[res.size()]);
+  }
+
+  /**
+   * @return the possible names for variable with given expected type and expression.
+   */
+  public static String[] getVariableNameSuggestions(Type expectedType,
+      Expression assignedExpression, Set<String> excluded) {
+    Set<String> res = Sets.newLinkedHashSet();
+    // use expression
+    if (assignedExpression != null) {
+      String nameFromExpression = getBaseNameFromExpression(assignedExpression);
+      if (nameFromExpression != null) {
+        addAll(excluded, res, getVariableNameSuggestions(nameFromExpression));
+      }
+
+      String nameFromParent = getBaseNameFromLocationInParent(assignedExpression);
+      if (nameFromParent != null) {
+        addAll(excluded, res, getVariableNameSuggestions(nameFromParent));
+      }
+    }
+    // use type
+    if (expectedType != null && !isDynamicType(expectedType)) {
+      String typeName = expectedType.getName();
+      if ("int".equals(typeName)) {
+        addSingleCharacterName(excluded, res, 'i');
+      } else if ("double".equals(typeName)) {
+        addSingleCharacterName(excluded, res, 'd');
+      } else {
+        addAll(excluded, res, getVariableNameSuggestions(typeName));
+      }
+      res.remove(typeName);
+    }
+    // done
+    return res.toArray(new String[res.size()]);
+  }
+
+  /**
+   * Adds "toAdd" items which are not excluded.
+   */
+  private static void addAll(Set<String> excluded, Set<String> result, Collection<String> toAdd) {
+    for (String item : toAdd) {
+      // add name based on "item", but not "excluded"
+      for (int suffix = 1;; suffix++) {
+        // prepare name, just "item" or "item2", "item3", etc
+        String name = item;
+        if (suffix > 1) {
+          name += suffix;
+        }
+        // add once found not excluded
+        if (!excluded.contains(name)) {
+          result.add(name);
+          break;
+        }
+      }
+    }
+  }
+
+  private static void addSingleCharacterName(Set<String> excluded, Set<String> result, char c) {
+    while (c < 'z') {
+      String name = String.valueOf(c);
+      // may be done
+      if (!excluded.contains(name)) {
+        result.add(name);
+        break;
+      }
+      // next character
+      c = (char) (c + 1);
+    }
+  }
+
+  private static String getBaseNameFromExpression(Expression expression) {
+    String name = null;
+    // e as Type
+    if (expression instanceof AsExpression) {
+      AsExpression asExpression = (AsExpression) expression;
+      expression = asExpression.getExpression();
+    }
+    // analyze expressions
+    if (expression instanceof SimpleIdentifier) {
+      SimpleIdentifier node = (SimpleIdentifier) expression;
+      return node.getName();
+    } else if (expression instanceof PrefixedIdentifier) {
+      PrefixedIdentifier node = (PrefixedIdentifier) expression;
+      return node.getIdentifier().getName();
+    } else if (expression instanceof MethodInvocation) {
+      name = ((MethodInvocation) expression).getMethodName().getName();
+    }
+    // strip known prefixes
+    if (name != null) {
+      for (int i = 0; i < KNOWN_METHOD_NAME_PREFIXES.length; i++) {
+        String curr = KNOWN_METHOD_NAME_PREFIXES[i];
+        if (name.startsWith(curr)) {
+          if (name.equals(curr)) {
+            return null; // don't suggest 'get' as variable name
+          } else if (Character.isUpperCase(name.charAt(curr.length()))) {
+            return name.substring(curr.length());
+          }
+        }
+      }
+    }
+    // done
+    return name;
+  }
+
+  private static String getBaseNameFromLocationInParent(Expression expression) {
+    // value in named expression
+    if (expression.getParent() instanceof NamedExpression) {
+      NamedExpression namedExpression = (NamedExpression) expression.getParent();
+      if (namedExpression.getExpression() == expression) {
+        return namedExpression.getName().getLabel().getName();
+      }
+    }
+    // positional argument
+    // TODO(scheglov) hopefully new resolver will provide this information
+//    if (location == DART_INVOCATION_ARGS) {
+//      if (expression.getInvocationParameterId() instanceof VariableElement) {
+//        VariableElement parameter = (VariableElement) expression.getInvocationParameterId();
+//        return parameter.getName();
+//      }
+//    }
+    // unknown
+    return null;
+  }
+
+  /**
    * @return {@link Expression}s from <code>operands</code> which are completely covered by given
    *         {@link SourceRange}. Range should start and end between given {@link Expression}s.
    */
@@ -383,8 +561,28 @@ public class CorrectionUtils {
     return operands;
   }
 
+  /**
+   * @return all variants of names by removing leading words by one.
+   */
+  private static List<String> getVariableNameSuggestions(String name) {
+    List<String> result = Lists.newArrayList();
+    String[] parts = name.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
+    for (int i = 0; i < parts.length; i++) {
+      String suggestion = parts[i].toLowerCase() + StringUtils.join(parts, "", i + 1, parts.length);
+      result.add(suggestion);
+    }
+    return result;
+  }
+
+  // TODO(scheglov) replace it
+  private static boolean isDynamicType(Type type) {
+    return type != null && type.getName().equals("dynamic");
+  }
+
   private final CompilationUnit unit;
+
   private String buffer;
+
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
@@ -496,6 +694,63 @@ public class CorrectionUtils {
     return index;
   }
 
+//  /**
+//   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
+//   *         declaration at the top of file.
+//   */
+//  public TopInsertDesc getTopInsertDesc() {
+//    // skip leading line comments
+//    int offset = 0;
+//    boolean insertEmptyLineBefore = false;
+//    boolean insertEmptyLineAfter = false;
+//    String source = getText();
+//    // skip hash-bang
+//    if (offset < source.length() - 2) {
+//      String linePrefix = getText(offset, 2);
+//      if (linePrefix.equals("#!")) {
+//        insertEmptyLineBefore = true;
+//        offset = getLineNext(offset);
+//        // skip empty lines to first line comment
+//        int emptyOffset = offset;
+//        while (emptyOffset < source.length() - 2) {
+//          int nextLineOffset = getLineNext(emptyOffset);
+//          String line = source.substring(emptyOffset, nextLineOffset);
+//          if (line.trim().isEmpty()) {
+//            emptyOffset = nextLineOffset;
+//            continue;
+//          } else if (line.startsWith("//")) {
+//            offset = emptyOffset;
+//            break;
+//          } else {
+//            break;
+//          }
+//        }
+//      }
+//    }
+//    // skip line comments
+//    while (offset < source.length() - 2) {
+//      String linePrefix = getText(offset, 2);
+//      if (linePrefix.equals("//")) {
+//        insertEmptyLineBefore = true;
+//        offset = getLineNext(offset);
+//      } else {
+//        break;
+//      }
+//    }
+//    // determine if empty line required
+//    int nextLineOffset = getLineNext(offset);
+//    String insertLine = source.substring(offset, nextLineOffset);
+//    if (!insertLine.trim().isEmpty()) {
+//      insertEmptyLineAfter = true;
+//    }
+//    // fill TopInsertDesc
+//    TopInsertDesc desc = new TopInsertDesc();
+//    desc.offset = offset;
+//    desc.insertEmptyLineBefore = insertEmptyLineBefore;
+//    desc.insertEmptyLineAfter = insertEmptyLineAfter;
+//    return desc;
+//  }
+
   /**
    * @return the index of the last space or tab on the left from the given one, if from statement or
    *         method start, then this is in most cases start of the line.
@@ -510,6 +765,20 @@ public class CorrectionUtils {
     }
     return index;
   }
+
+//  /**
+//   * @return the offset of the token on the right from given "offset" on the same line or offset of
+//   *         the next line.
+//   */
+//  public int getTokenOrNextLineOffset(int offset) {
+//    int nextOffset = getLineContentEnd(offset);
+//    String sourceToNext = getText(offset, nextOffset - offset);
+//    List<Token> tokens = TokenUtils.getTokens(sourceToNext);
+//    if (tokens.isEmpty()) {
+//      return nextOffset;
+//    }
+//    return tokens.get(0).getOffset();
+//  }
 
   /**
    * @return the start index of the next line after the line which contains given index.
@@ -608,63 +877,6 @@ public class CorrectionUtils {
     return getPrefix(offset);
   }
 
-//  /**
-//   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
-//   *         declaration at the top of file.
-//   */
-//  public TopInsertDesc getTopInsertDesc() {
-//    // skip leading line comments
-//    int offset = 0;
-//    boolean insertEmptyLineBefore = false;
-//    boolean insertEmptyLineAfter = false;
-//    String source = getText();
-//    // skip hash-bang
-//    if (offset < source.length() - 2) {
-//      String linePrefix = getText(offset, 2);
-//      if (linePrefix.equals("#!")) {
-//        insertEmptyLineBefore = true;
-//        offset = getLineNext(offset);
-//        // skip empty lines to first line comment
-//        int emptyOffset = offset;
-//        while (emptyOffset < source.length() - 2) {
-//          int nextLineOffset = getLineNext(emptyOffset);
-//          String line = source.substring(emptyOffset, nextLineOffset);
-//          if (line.trim().isEmpty()) {
-//            emptyOffset = nextLineOffset;
-//            continue;
-//          } else if (line.startsWith("//")) {
-//            offset = emptyOffset;
-//            break;
-//          } else {
-//            break;
-//          }
-//        }
-//      }
-//    }
-//    // skip line comments
-//    while (offset < source.length() - 2) {
-//      String linePrefix = getText(offset, 2);
-//      if (linePrefix.equals("//")) {
-//        insertEmptyLineBefore = true;
-//        offset = getLineNext(offset);
-//      } else {
-//        break;
-//      }
-//    }
-//    // determine if empty line required
-//    int nextLineOffset = getLineNext(offset);
-//    String insertLine = source.substring(offset, nextLineOffset);
-//    if (!insertLine.trim().isEmpty()) {
-//      insertEmptyLineAfter = true;
-//    }
-//    // fill TopInsertDesc
-//    TopInsertDesc desc = new TopInsertDesc();
-//    desc.offset = offset;
-//    desc.insertEmptyLineBefore = insertEmptyLineBefore;
-//    desc.insertEmptyLineAfter = insertEmptyLineAfter;
-//    return desc;
-//  }
-
   /**
    * @return the index of the first non-whitespace character after given index.
    */
@@ -681,20 +893,6 @@ public class CorrectionUtils {
     // done
     return index;
   }
-
-//  /**
-//   * @return the offset of the token on the right from given "offset" on the same line or offset of
-//   *         the next line.
-//   */
-//  public int getTokenOrNextLineOffset(int offset) {
-//    int nextOffset = getLineContentEnd(offset);
-//    String sourceToNext = getText(offset, nextOffset - offset);
-//    List<Token> tokens = TokenUtils.getTokens(sourceToNext);
-//    if (tokens.isEmpty()) {
-//      return nextOffset;
-//    }
-//    return tokens.get(0).getOffset();
-//  }
 
   /**
    * @return the line prefix consisting of spaces and tabs on the left from the given offset.

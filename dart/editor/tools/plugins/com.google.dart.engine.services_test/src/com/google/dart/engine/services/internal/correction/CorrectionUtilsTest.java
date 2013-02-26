@@ -15,9 +15,11 @@
 package com.google.dart.engine.services.internal.correction;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -32,6 +34,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -66,11 +69,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.List;
 import java.util.Set;
 
 public class CorrectionUtilsTest extends AbstractDartTest {
+
+  private static void assert_getVariableNameSuggestions(Type expectedType, Expression expression,
+      Set<String> nameSuggestExclude, String[] expected) {
+    String[] suggestions = CorrectionUtils.getVariableNameSuggestions(
+        expectedType,
+        expression,
+        nameSuggestExclude);
+    assertThat(suggestions).isEqualTo(expected);
+  }
 
   public void test_allListsEqual_0() throws Exception {
     List<List<Integer>> lists = ImmutableList.<List<Integer>> of(
@@ -130,20 +143,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
             "}",
             "} // marker"),
         CorrectionUtils.applyReplaceEdits(testCode, ImmutableList.of(edit)));
-  }
-
-  public void test_findEnclosingExecutableElement_constructor() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  A() {",
-        "    print(0);",
-        "  }",
-        "}",
-        "");
-    ConstructorElement constructorElement = findTestNode("A()", ConstructorDeclaration.class).getElement();
-    SimpleIdentifier node = findIdentifier("print(0)");
-    assertSame(constructorElement, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
   public void test_getChildren() throws Exception {
@@ -264,6 +263,22 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     }
   }
 
+  public void test_getEnclosingExecutableElement_constructor() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  A() {",
+        "    print(0);",
+        "  }",
+        "}",
+        "");
+    ConstructorDeclaration constructorNode = findTestNode("A()", ConstructorDeclaration.class);
+    ConstructorElement constructorElement = constructorNode.getElement();
+    SimpleIdentifier node = findIdentifier("print(0)");
+    assertSame(constructorNode, CorrectionUtils.getEnclosingExecutableNode(node));
+    assertSame(constructorElement, CorrectionUtils.getEnclosingExecutableElement(node));
+  }
+
   public void test_getEnclosingExecutableElement_function() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -273,13 +288,11 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  print(0);",
         "}",
         "");
-    // function
-    {
-      FunctionElement mainElement = findIdentifierElement("fff(");
-      SimpleIdentifier node = findIdentifier("print(0)");
-      ExecutableElement actual = CorrectionUtils.getEnclosingExecutableElement(node);
-      assertSame(mainElement, actual);
-    }
+    FunctionDeclaration functionNode = findTestNode("fff(p)", FunctionDeclaration.class);
+    ExecutableElement functionElement = functionNode.getElement();
+    SimpleIdentifier node = findIdentifier("print(0)");
+    assertSame(functionNode, CorrectionUtils.getEnclosingExecutableNode(node));
+    assertSame(functionElement, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
   public void test_getEnclosingExecutableElement_method() throws Exception {
@@ -294,6 +307,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     MethodDeclaration methodNode = findTestNode("method()", MethodDeclaration.class);
     MethodElement methodElement = (MethodElement) methodNode.getElement();
     SimpleIdentifier node = findIdentifier("print(0)");
+    assertSame(methodNode, CorrectionUtils.getEnclosingExecutableNode(node));
     assertSame(methodElement, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
@@ -303,6 +317,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "var v = 42;",
         "");
     SimpleIdentifier node = findIdentifier("v = 42");
+    assertSame(null, CorrectionUtils.getEnclosingExecutableNode(node));
     assertSame(null, CorrectionUtils.getEnclosingExecutableElement(node));
   }
 
@@ -832,6 +847,261 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertSame(testUnit, utils.getUnit());
   }
 
+  // XXX
+  public void test_getVariableNameSuggestions_expectedType() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeNode {}",
+        "main() {",
+        "  TreeNode node = null;",
+        "}");
+    Expression expression = findTestNode("null;", Expression.class);
+    Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of(""),
+        formatLines("treeNode", "node"));
+  }
+
+  public void test_getVariableNameSuggestions_expectedType_double() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeNode {}",
+        "main() {",
+        "  double res = 0;",
+        "}");
+    Expression expression = findTestNode("0;", Expression.class);
+    Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
+    // first choice for "double" is "d"
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of(""),
+        formatLines("d"));
+    // if "d" is used, try "e", "f", etc
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of("d", "e"),
+        formatLines("f"));
+  }
+
+  public void test_getVariableNameSuggestions_expectedType_int() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class TreeNode {}",
+        "main() {",
+        "  int res = 0;",
+        "}");
+    Expression expression = findTestNode("0;", Expression.class);
+    Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
+    // first choice for "int" is "i"
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of(""),
+        formatLines("i"));
+    // if "i" is used, try "j", "k", etc
+    assert_getVariableNameSuggestions(
+        expectedType,
+        expression,
+        ImmutableSet.of("i", "j"),
+        formatLines("k"));
+  }
+
+  public void test_getVariableNameSuggestions_invocationArgument_named() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo({a, b, c}) {}",
+        "main() {",
+        "  foo(111, c: 333, b: 222);",
+        "}");
+    // TODO(scheglov) hopefully resolver will provide this information
+//    assert_getVariableNameSuggestions(
+//        null,
+//        findTestNode("111", Expression.class),
+//        ImmutableSet.of(""),
+//        formatLines("a"));
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("222", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("b"));
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("333", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("c"));
+  }
+
+  public void test_getVariableNameSuggestions_invocationArgument_positional() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(a, b) {}",
+        "main() {",
+        "  foo(111, 222);",
+        "}");
+    // TODO(scheglov) hopefully resolver will provide this information
+//    assert_getVariableNameSuggestions(
+//        null,
+//        findTestNode("111", Expression.class),
+//        ImmutableSet.of(""),
+//        formatLines("a"));
+//    assert_getVariableNameSuggestions(
+//        null,
+//        findTestNode("222", Expression.class),
+//        ImmutableSet.of(""),
+//        formatLines("b"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_cast() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var sortedNodes;",
+        "  var res = sortedNodes as String;",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("sortedNodes as String", AsExpression.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_methodInvocation() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = doc.getSortedNodes();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("doc.getSortedNodes()", MethodInvocation.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  /**
+   * "get" is valid, but not nice name.
+   */
+  public void test_getVariableNameSuggestions_Node_name_get() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = doc.get();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("doc.get()", MethodInvocation.class),
+        ImmutableSet.of(""),
+        formatLines());
+  }
+
+  public void test_getVariableNameSuggestions_Node_noPrefix() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = doc.sortedNodes();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("doc.sortedNodes()", MethodInvocation.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_propertyAccess() throws Exception {
+    // TODO(scheglov) there should not be error
+    verifyNoTestUnitErrors = false;
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var doc;",
+        "main() {",
+        "  var res = doc.sortedNodes;",
+        "}");
+    // TODO(scheglov) would be good if resolver rewrite this to PropertyAccess
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("doc.sortedNodes", PrefixedIdentifier.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_simpleName() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var sortedNodes = null;",
+        "  var res = sortedNodes;",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("sortedNodes;", Expression.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_unqualifiedInvocation() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = getSortedNodes();",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("getSortedNodes()", MethodInvocation.class),
+        ImmutableSet.of(""),
+        formatLines("sortedNodes", "nodes"));
+  }
+
+  public void test_getVariableNameSuggestions_Node_withExclude() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var sortedTreeNodes = null;",
+        "  var res = sortedTreeNodes;",
+        "}");
+    assert_getVariableNameSuggestions(
+        null,
+        findTestNode("sortedTreeNodes", Expression.class),
+        ImmutableSet.of("treeNodes"),
+        formatLines("sortedTreeNodes", "treeNodes2", "nodes"));
+  }
+
+  // XXX
+  public void test_getVariableNameSuggestions_String() throws Exception {
+    {
+      Set<String> nameSuggestExclude = ImmutableSet.of("");
+      String[] suggestions = CorrectionUtils.getVariableNameSuggestions(
+          "Goodbye, cruel world!",
+          nameSuggestExclude);
+      assertThat(suggestions).isEqualTo(new String[] {"goodbyeCruelWorld", "cruelWorld", "world"});
+    }
+    {
+      Set<String> nameSuggestExclude = ImmutableSet.of("world");
+      String[] suggestions = CorrectionUtils.getVariableNameSuggestions(
+          "Goodbye, cruel world!",
+          nameSuggestExclude);
+      assertThat(suggestions).isEqualTo(new String[] {"goodbyeCruelWorld", "cruelWorld", "world2"});
+    }
+  }
+
+  public void test_getVariableNameSuggestions_String_multipleUpper() throws Exception {
+    List<String> suggestions = getVariableNameSuggestions_String("sortedHTMLNodes");
+    assertThat(suggestions).containsExactly("sortedHTMLNodes", "htmlNodes", "nodes");
+  }
+
+  public void test_getVariableNameSuggestions_String_simpleCamel() throws Exception {
+    List<String> suggestions = getVariableNameSuggestions_String("sortedNodes");
+    assertThat(suggestions).containsExactly("sortedNodes", "nodes");
+  }
+
+  public void test_getVariableNameSuggestions_String_simpleName() throws Exception {
+    List<String> suggestions = getVariableNameSuggestions_String("name");
+    assertThat(suggestions).containsExactly("name");
+  }
+
   public void test_isJustWhitespace() throws Exception {
     parseTestUnit("//  0123");
     CorrectionUtils utils = getTestCorrectionUtils();
@@ -1042,5 +1312,17 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   @SuppressWarnings("unchecked")
   private <T extends ASTNode> T findVariableInitializer(String pattern) {
     return (T) findTestNode(pattern, VariableDeclaration.class).getInitializer();
+  }
+
+  /**
+   * Calls {@link StubUtility#getVariableNameSuggestions(String)}.
+   */
+  @SuppressWarnings("unchecked")
+  private List<String> getVariableNameSuggestions_String(String name) throws Exception {
+    Method method = CorrectionUtils.class.getDeclaredMethod(
+        "getVariableNameSuggestions",
+        String.class);
+    method.setAccessible(true);
+    return (List<String>) method.invoke(null, name);
   }
 }
