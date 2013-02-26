@@ -29,7 +29,6 @@ import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -208,11 +207,6 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public Collection<Source> getAvailableSources() {
-    return null;
-  }
-
-  @Override
   public Element getElement(ElementLocation location) {
     return null;
   }
@@ -229,6 +223,11 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public SourceKind getKnownKindOf(Source source) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Source[] getLibrariesContaining(Source source) {
     throw new UnsupportedOperationException();
   }
 
@@ -290,26 +289,6 @@ public class MockContext implements AnalysisContext {
   @Override
   public void setSourceFactory(SourceFactory sourceFactory) {
     factory = sourceFactory;
-  }
-
-  @Override
-  public void sourceAvailable(Source source) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public void sourceChanged(Source source) {
-    calls.add(this, SOURCE_CHANGED, source);
-  }
-
-  @Override
-  public void sourceDeleted(Source source) {
-    calls.add(this, SOURCE_DELETED, source);
-  }
-
-  @Override
-  public void sourcesDeleted(SourceContainer container) {
-    calls.add(this, SOURCE_DELETED, container);
   }
 
   @Override

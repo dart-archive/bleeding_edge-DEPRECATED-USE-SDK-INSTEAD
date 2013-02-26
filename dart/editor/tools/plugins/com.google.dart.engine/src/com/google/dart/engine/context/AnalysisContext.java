@@ -27,8 +27,6 @@ import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 
-import java.util.Collection;
-
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
  * which analysis can be performed. The context includes such information as the version of the SDK
@@ -83,17 +81,6 @@ public interface AnalysisContext {
   public AnalysisContext extractAnalysisContext(SourceContainer container);
 
   /**
-   * Answer the collection of sources that have been added to the receiver via
-   * {@link #sourceAvailable(Source)} and not removed from the receiver via
-   * {@link #sourceDeleted(Source)} or {@link #sourcesDeleted(SourceContainer)}.
-   * 
-   * @return a collection of sources (not {@code null}, contains no {@code null}s)
-   */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public Collection<Source> getAvailableSources();
-
-  /**
    * Return the element referenced by the given location.
    * 
    * @param location the reference describing the element to be returned
@@ -130,6 +117,20 @@ public interface AnalysisContext {
    * @see #getOrComputeKindOf(Source)
    */
   public SourceKind getKnownKindOf(Source source);
+
+  /**
+   * Return the sources for the defining compilation units of any libraries of which the given
+   * source is a part. The array will normally contain a single library because most Dart sources
+   * are only included in a single library, but it is possible to have a part that is contained in
+   * multiple identically named libraries. If the source represents the defining compilation unit of
+   * a library, then the returned array will contain the given source as its only element. If the
+   * source does not represent a Dart source or is not known to this context, the returned array
+   * will be empty.
+   * 
+   * @param source the source contained in the returned libraries
+   * @return the sources for the libraries containing the given source
+   */
+  public Source[] getLibrariesContaining(Source source);
 
   /**
    * Return the element model corresponding to the library defined by the given source. If the
@@ -253,47 +254,14 @@ public interface AnalysisContext {
   public void setSourceFactory(SourceFactory sourceFactory);
 
   /**
-   * Cache the fact that content for the given source is now available, is of interest to the
-   * client, and should be analyzed. Do not modify or discard any information about this source that
-   * is already cached.
-   * 
-   * @param source the source that is now available
-   */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public void sourceAvailable(Source source);
-
-  /**
-   * Respond to the fact that the content of the given source has changed by removing any cached
-   * information that might now be out-of-date.
-   * 
-   * @param source the source whose content has changed
-   */
-  public void sourceChanged(Source source);
-
-  /**
-   * Respond to the fact that the given source has been deleted and should no longer be analyzed by
-   * removing any cached information that might now be out-of-date.
-   * 
-   * @param source the source that was deleted
-   */
-  public void sourceDeleted(Source source);
-
-  /**
-   * Discard cached information for all files in the specified source container.
-   * 
-   * @param container the source container that was deleted (not {@code null})
-   */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public void sourcesDeleted(SourceContainer container);
-
-  /**
    * Given a collection of sources with content that has changed, return an {@link Iterable}
    * identifying the sources that need to be resolved.
    * 
    * @param changedSources an array of sources (not {@code null}, contains no {@code null}s)
    * @return An iterable returning the sources to be resolved
    */
+  // Soon to be deprecated, but the replacement isn't quite ready yet
+  // * @deprecated Use the ChangeResult returned by {@link #changed(ChangeSet)}.
+  // @Deprecated
   public Iterable<Source> sourcesToResolve(Source[] changedSources);
 }

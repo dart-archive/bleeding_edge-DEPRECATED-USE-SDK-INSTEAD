@@ -42,6 +42,11 @@ public interface Source {
   }
 
   /**
+   * An empty array of sources.
+   */
+  public static final Source[] EMPTY_ARRAY = new Source[0];
+
+  /**
    * Return {@code true} if the given object is a source that represents the same source code as
    * this source.
    * 

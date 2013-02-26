@@ -42,13 +42,9 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
-import java.io.File;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -85,6 +81,11 @@ public class AnalysisContextImpl implements AnalysisContext {
   private SourceFactory sourceFactory;
 
   /**
+   * A table mapping sources known to the context to the information known about the source.
+   */
+  private final HashMap<Source, SourceInfo> sourceMap = new HashMap<Source, SourceInfo>();
+
+  /**
    * A cache mapping sources to the compilation units that were produced for the contents of the
    * source.
    */
@@ -104,13 +105,6 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   // TODO(brianwilkerson) Replace this with a real cache.
   private HashMap<Source, Namespace> publicNamespaceCache = new HashMap<Source, Namespace>();
-
-  /**
-   * A cache of the available sources of interest to the client. Sources are added to this
-   * collection via {@link #sourceAvailable(Source)} and removed from this collection via
-   * {@link #sourceDeleted(Source)} and {@link #directoryDeleted(File)}
-   */
-  private final HashSet<Source> availableSources = new HashSet<Source>();
 
   /**
    * The object used to synchronize access to all of the caches.
@@ -136,18 +130,20 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public ChangeResult changed(ChangeSet changes) {
-    // TODO (danrubel): Replace this with a real implementation
-    for (Source source : changes.getAdded()) {
-      sourceAvailable(source);
-    }
-    for (Source source : changes.getChanged()) {
-      sourceChanged(source);
-    }
-    for (Source source : changes.getRemoved()) {
-      sourceDeleted(source);
-    }
-    for (SourceContainer container : changes.getRemovedContainers()) {
-      sourcesDeleted(container);
+    synchronized (cacheLock) {
+      // TODO (danrubel): Replace this with a real implementation
+      for (Source source : changes.getAdded()) {
+        sourceAvailable(source);
+      }
+      for (Source source : changes.getChanged()) {
+        sourceChanged(source);
+      }
+      for (Source source : changes.getRemoved()) {
+        sourceDeleted(source);
+      }
+      for (SourceContainer container : changes.getRemovedContainers()) {
+        sourcesDeleted(container);
+      }
     }
     return new ChangeResult();
   }
@@ -166,40 +162,38 @@ public class AnalysisContextImpl implements AnalysisContext {
   public void discard() {
     synchronized (cacheLock) {
       // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
+      sourceMap.clear();
       parseCache.clear();
       libraryElementCache.clear();
       publicNamespaceCache.clear();
-      availableSources.clear();
     }
   }
 
   @Override
   public AnalysisContext extractAnalysisContext(SourceContainer container) {
-    AnalysisContext newContext = AnalysisEngine.getInstance().createAnalysisContext();
-
+    AnalysisContextImpl newContext = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
+    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
     synchronized (cacheLock) {
       // Move sources in the specified directory to the new context
-      Iterator<Source> iter = availableSources.iterator();
-      while (iter.hasNext()) {
-        Source source = iter.next();
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        Source source = entry.getKey();
         if (container.contains(source)) {
-          iter.remove();
-          newContext.sourceAvailable(source);
+          sourcesToRemove.add(source);
+          newContext.sourceMap.put(source, new SourceInfo(entry.getValue()));
         }
       }
-
-      // TODO (danrubel): Copy cached ASTs without resolution into the new context
-      // because the file content has not changed, but the resolution has changed.
+//      for (Source source : sourcesToRemove) {
+//        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
+//        // there are no additional dependencies on the source), and if so remove all information
+//        // about the source.
+//        sourceMap.remove(source);
+//        parseCache.remove(source);
+//        publicNamespaceCache.remove(source);
+//        libraryElementCache.remove(source);
+//      }
     }
 
     return newContext;
-  }
-
-  @Override
-  public Collection<Source> getAvailableSources() {
-    synchronized (cacheLock) {
-      return new ArrayList<Source>(availableSources);
-    }
   }
 
   @Override
@@ -249,6 +243,17 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public Source[] getLibrariesContaining(Source source) {
+    synchronized (cacheLock) {
+      SourceInfo info = sourceMap.get(source);
+      if (info == null) {
+        return Source.EMPTY_ARRAY;
+      }
+      return info.getLibrarySources();
+    }
+  }
+
+  @Override
   public LibraryElement getLibraryElement(Source source) {
     synchronized (cacheLock) {
       LibraryElement element = libraryElementCache.get(source);
@@ -259,7 +264,9 @@ public class AnalysisContextImpl implements AnalysisContext {
         LibraryResolver resolver = new LibraryResolver(this);
         try {
           element = resolver.resolveLibrary(source, true);
-          // TODO(brianwilkerson) Cache the errors that were recorded by the listener.
+          if (element != null) {
+            libraryElementCache.put(source, element);
+          }
         } catch (AnalysisException exception) {
           AnalysisEngine.getInstance().getLogger().logError(
               "Could not resolve the library " + source.getFullName(),
@@ -361,11 +368,16 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public void mergeAnalysisContext(AnalysisContext context) {
     synchronized (cacheLock) {
-      // Move sources in the specified context into the receiver
-      availableSources.addAll(context.getAvailableSources());
-
-      // TODO (danrubel): Copy ASTs without resolution information from the old context
-      // into this context because the file content has not changed, but the resolution has changed.
+      for (Map.Entry<Source, SourceInfo> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
+        Source newSource = entry.getKey();
+        SourceInfo existingInfo = sourceMap.get(newSource);
+        if (existingInfo == null) {
+          // TODO(brianwilkerson) Decide whether we really need to copy the info.
+          sourceMap.put(newSource, new SourceInfo(entry.getValue()));
+        } else {
+          // TODO(brianwilkerson) Decide whether/how to merge the info's.
+        }
+      }
     }
   }
 
@@ -448,48 +460,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public void sourceAvailable(Source source) {
-    synchronized (cacheLock) {
-      availableSources.add(source);
-    }
-  }
-
-  @Override
-  public void sourceChanged(Source source) {
-    synchronized (cacheLock) {
-      parseCache.remove(source);
-      libraryElementCache.remove(source);
-      publicNamespaceCache.remove(source);
-    }
-  }
-
-  @Override
-  public void sourceDeleted(Source source) {
-    synchronized (cacheLock) {
-      availableSources.remove(source);
-      sourceChanged(source);
-    }
-  }
-
-  @Override
-  public void sourcesDeleted(SourceContainer container) {
-    synchronized (cacheLock) {
-      // TODO (danrubel): Optimize to remove only the specified files
-      parseCache.clear();
-      libraryElementCache.clear();
-      publicNamespaceCache.clear();
-
-      // Remove deleted sources from the available sources collection
-      Iterator<Source> iter = availableSources.iterator();
-      while (iter.hasNext()) {
-        if (container.contains(iter.next())) {
-          iter.remove();
-        }
-      }
-    }
-  }
-
-  @Override
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
     // TODO(keertip): revisit to include dependent libraries that are not in changed sources but
     // have to be re-resolved.
@@ -541,5 +511,73 @@ public class AnalysisContextImpl implements AnalysisContext {
       throw new AnalysisException(exception);
     }
     return result;
+  }
+
+  /**
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source that has been added
+   */
+  private void sourceAvailable(Source source) {
+    SourceInfo existingInfo = sourceMap.get(source);
+    if (existingInfo == null) {
+      sourceMap.put(source, new SourceInfo(source, getOrComputeKindOf(source)));
+    }
+  }
+
+  /**
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source that has been changed
+   */
+  private void sourceChanged(Source source) {
+    SourceInfo info = sourceMap.get(source);
+    if (info == null) {
+      // TODO(brianwilkerson) Figure out how to report this error.
+      return;
+    }
+    parseCache.remove(source);
+    // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
+    libraryElementCache.remove(source);
+    publicNamespaceCache.remove(source);
+    for (Source librarySource : info.getLibrarySources()) {
+      // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
+      // public namespace hasn't changed, which will be a fairly common case.
+      libraryElementCache.remove(librarySource);
+      publicNamespaceCache.remove(librarySource);
+    }
+  }
+
+  /**
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source that has been deleted
+   */
+  private void sourceDeleted(Source source) {
+    sourceMap.remove(source);
+    sourceChanged(source);
+  }
+
+  /**
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param container the source container specifying the sources that have been deleted
+   */
+  private void sourcesDeleted(SourceContainer container) {
+    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
+    for (Source source : sourceMap.keySet()) {
+      if (container.contains(source)) {
+        sourcesToRemove.add(source);
+      }
+    }
+//    for (Source source : sourcesToRemove) {
+//      // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
+//      // there are no additional dependencies on the source), and if so remove all information
+//      // about the source.
+//      sourceMap.remove(source);
+//      parseCache.remove(source);
+//      publicNamespaceCache.remove(source);
+//      libraryElementCache.remove(source);
+//    }
   }
 }
