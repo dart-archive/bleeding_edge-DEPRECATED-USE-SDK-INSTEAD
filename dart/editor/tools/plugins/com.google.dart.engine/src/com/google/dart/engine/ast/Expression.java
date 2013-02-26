@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -37,6 +38,25 @@ public abstract class Expression extends ASTNode {
    * performed on the AST structure.
    */
   private Type propagatedType;
+
+  /**
+   * If this expression is an argument to an invocation, and the AST structure has been resolved,
+   * and the function being invoked is known, and this expression corresponds to one of the
+   * parameters of the function being invoked, then return the parameter element representing the
+   * parameter to which the value of this expression will be bound. Otherwise, return {@code null}.
+   * 
+   * @return the parameter element representing the parameter to which the value of this expression
+   *         will be bound
+   */
+  public ParameterElement getParameterElement() {
+    ASTNode parent = getParent();
+    if (parent instanceof ArgumentList) {
+      return ((ArgumentList) parent).getParameterElementFor(this);
+    }
+    // TODO(brianwilkerson) Consider implementing this method for children of BinaryExpression,
+    // IndexExpression, PrefixExpression, and PostfixExpression.
+    return null;
+  }
 
   /**
    * Return the propagated type of this expression, or {@code null} if type propagation has not been

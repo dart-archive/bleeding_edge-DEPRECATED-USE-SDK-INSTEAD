@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -45,6 +46,15 @@ public class ArgumentList extends ASTNode {
    * The right parenthesis.
    */
   private Token rightParenthesis;
+
+  /**
+   * An array containing the elements representing the parameters corresponding to each of the
+   * arguments in this list, or {@code null} if the AST has not been resolved or if the function or
+   * method being invoked could not be determined. The array must be the same length as the number
+   * of arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   */
+  private ParameterElement[] correspondingParameters;
 
   /**
    * Initialize a newly created list of arguments.
@@ -104,6 +114,22 @@ public class ArgumentList extends ASTNode {
   }
 
   /**
+   * Set the parameter elements corresponding to each of the arguments in this list to the given
+   * array of parameters. The array of parameters must be the same length as the number of
+   * arguments, but can contain {@code null} entries if a given argument does not correspond to a
+   * formal parameter.
+   * 
+   * @param parameters the parameter elements corresponding to the arguments
+   */
+  public void setCorrespondingParameters(ParameterElement[] parameters) {
+    if (parameters.length != arguments.size()) {
+      throw new IllegalArgumentException("Expected " + arguments.size() + " parameters, not "
+          + parameters.length);
+    }
+    correspondingParameters = parameters;
+  }
+
+  /**
    * Set the left parenthesis to the given token.
    * 
    * @param parenthesis the left parenthesis
@@ -124,5 +150,31 @@ public class ArgumentList extends ASTNode {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     arguments.accept(visitor);
+  }
+
+  /**
+   * If the given expression is a child of this list, and the AST structure has been resolved, and
+   * the function being invoked is known, and the expression corresponds to one of the parameters of
+   * the function being invoked, then return the parameter element representing the parameter to
+   * which the value of the given expression will be bound. Otherwise, return {@code null}.
+   * <p>
+   * This method is only intended to be used by {@link Expression#getParameterElement()}.
+   * 
+   * @param expression the expression corresponding to the parameter to be returned
+   * @return the parameter element representing the parameter to which the value of the expression
+   *         will be bound
+   */
+  protected ParameterElement getParameterElementFor(Expression expression) {
+    if (correspondingParameters == null) {
+      // Either the AST structure has not been resolved or the invocation of which this list is a
+      // part could not be resolved.
+      return null;
+    }
+    int index = arguments.indexOf(expression);
+    if (index < 0) {
+      // The expression isn't a child of this node.
+      return null;
+    }
+    return correspondingParameters[index];
   }
 }
