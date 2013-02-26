@@ -15,25 +15,39 @@ package com.google.dart.dev.util.ast;
 
 import com.google.dart.dev.util.DartDevPlugin;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ExportDirective;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.ast.PartOfDirective;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.type.Type;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.core.utilities.resource.IFileUtilities;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -74,7 +88,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A basic AST explorer view.
@@ -193,7 +206,10 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
 
     @Override
     public Object[] getElements(Object parent) {
-      return getChildren(parent);
+      // TODO(brianwilkerson) Figure out how to get the CompilationUnit to be the top-level node in
+      // the tree rather than it's children. The commented out code causes an infinite recursion (as
+      // in, the unit appears to have one child, which is the unit, which has one child, etc.).
+      return getChildren(parent); // new Object[] {parent};
     }
 
     @Override
@@ -216,26 +232,31 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
       viewer.getControl().setRedraw(true);
     }
 
-    private Object[] nodes(CollectingVisitor nodeCollector, Object parent) {
-
-      List<? extends Object> nodes = nodeCollector.getNodes();
-
-      if (parent instanceof CompilationUnit) {
-        ArrayList<Object> nodesAndErrors = new ArrayList<Object>(nodes);
-        nodesAndErrors.addAll(errors);
-        return nodesAndErrors.toArray();
+    private Object[] nodes(CollectingVisitor nodeCollector, Object object) {
+      ArrayList<Object> children = new ArrayList<Object>(nodeCollector.getNodes());
+      if (object instanceof CompilationUnit) {
+        children.addAll(errors);
       }
-
-      return nodes.toArray();
+      Element element = getElement(object);
+      if (element != null) {
+        children.add(element);
+      }
+      return children.toArray();
     }
-
   }
 
   private static class ExplorerLabelProvider extends LabelProvider {
 
     @Override
     public Image getImage(Object obj) {
-      String img = obj instanceof AnalysisError ? "error_obj.gif" : "brkpi_obj.gif";
+      String img;
+      if (obj instanceof AnalysisError) {
+        img = "error_obj.gif";
+      } else if (obj instanceof Element) {
+        img = "methpro_obj.gif";
+      } else {
+        img = "brkpi_obj.gif";
+      }
       return DartDevPlugin.getImage(img);
     }
 
@@ -258,6 +279,22 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
           builder.append(" - ");
           builder.append(name);
         }
+        if (obj instanceof Expression) {
+          builder.append(" (");
+          Type type = ((Expression) obj).getStaticType();
+          if (type == null) {
+            builder.append("null");
+          } else {
+            builder.append(type);
+          }
+          builder.append(")");
+        }
+      } else if (obj instanceof Element) {
+        String name = ((Element) obj).getName();
+        if (name != null) {
+          builder.append(" - ");
+          builder.append(name);
+        }
       }
       return builder.toString();
     }
@@ -270,21 +307,21 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
      */
     private String getName(ASTNode node) {
       // TODO(brianwilkerson) Rewrite this to use a visitor.
-      if (node instanceof ConstructorDeclaration) {
+      if (node instanceof ClassTypeAlias) {
+        return ((ClassTypeAlias) node).getName().getName();
+      } else if (node instanceof ClassDeclaration) {
+        return ((ClassDeclaration) node).getName().getName();
+      } else if (node instanceof ConstructorDeclaration) {
         ConstructorDeclaration cd = (ConstructorDeclaration) node;
         if (cd.getName() == null) {
           return cd.getReturnType().getName();
         } else {
           return cd.getReturnType().getName() + '.' + cd.getName().getName();
         }
+      } else if (node instanceof ConstructorName) {
+        return ((ConstructorName) node).toSource();
       } else if (node instanceof FieldDeclaration) {
         return getNames(((FieldDeclaration) node).getFields());
-      } else if (node instanceof MethodDeclaration) {
-        return ((MethodDeclaration) node).getName().getName();
-      } else if (node instanceof ClassDeclaration) {
-        return ((ClassDeclaration) node).getName().getName();
-      } else if (node instanceof ClassTypeAlias) {
-        return ((ClassTypeAlias) node).getName().getName();
       } else if (node instanceof FunctionDeclaration) {
         SimpleIdentifier nameNode = ((FunctionDeclaration) node).getName();
         if (nameNode != null) {
@@ -294,8 +331,12 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
         return ((FunctionTypeAlias) node).getName().getName();
       } else if (node instanceof Identifier) {
         return ((Identifier) node).getName();
+      } else if (node instanceof MethodDeclaration) {
+        return ((MethodDeclaration) node).getName().getName();
       } else if (node instanceof TopLevelVariableDeclaration) {
         return getNames(((TopLevelVariableDeclaration) node).getVariables());
+      } else if (node instanceof TypeName) {
+        return ((TypeName) node).toSource();
       } else if (node instanceof TypeParameter) {
         return ((TypeParameter) node).getName().getName();
       } else if (node instanceof VariableDeclaration) {
@@ -422,6 +463,39 @@ public class ASTExplorer extends ViewPart implements AnalysisErrorListener {
           DartDevPlugin.logError(e);
         }
       }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element associated with the given AST node, or {@code null} if there is no element.
+   * 
+   * @param object the AST node whose associated element is to be returned
+   * @return the element associated with the given AST node
+   */
+  private Element getElement(Object object) {
+    if (object instanceof BinaryExpression) {
+      return ((BinaryExpression) object).getElement();
+    } else if (object instanceof CompilationUnit) {
+      return ((CompilationUnit) object).getElement();
+    } else if (object instanceof ExportDirective) {
+      return ((ExportDirective) object).getElement();
+    } else if (object instanceof FunctionExpressionInvocation) {
+      return ((FunctionExpressionInvocation) object).getElement();
+    } else if (object instanceof ImportDirective) {
+      return ((ImportDirective) object).getElement();
+    } else if (object instanceof LibraryDirective) {
+      return ((LibraryDirective) object).getElement();
+    } else if (object instanceof PartDirective) {
+      return ((PartDirective) object).getElement();
+    } else if (object instanceof PartOfDirective) {
+      return ((PartOfDirective) object).getElement();
+    } else if (object instanceof PostfixExpression) {
+      return ((PostfixExpression) object).getElement();
+    } else if (object instanceof PrefixExpression) {
+      return ((PrefixExpression) object).getElement();
+    } else if (object instanceof SimpleIdentifier) {
+      return ((SimpleIdentifier) object).getElement();
     }
     return null;
   }
