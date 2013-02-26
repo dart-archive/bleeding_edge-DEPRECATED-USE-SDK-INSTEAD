@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.ThisExpression;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -90,6 +91,7 @@ import static com.google.dart.engine.ast.ASTFactory.typeName;
 import static com.google.dart.engine.element.ElementFactory.classElement;
 import static com.google.dart.engine.element.ElementFactory.constructorElement;
 import static com.google.dart.engine.element.ElementFactory.exportFor;
+import static com.google.dart.engine.element.ElementFactory.fieldElement;
 import static com.google.dart.engine.element.ElementFactory.getterElement;
 import static com.google.dart.engine.element.ElementFactory.importFor;
 import static com.google.dart.engine.element.ElementFactory.library;
@@ -469,7 +471,7 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitSimpleIdentifier_inClassScope() throws Exception {
+  public void test_visitSimpleIdentifier_classScope() throws Exception {
     InterfaceType doubleType = typeProvider.getDoubleType();
     String fieldName = "NAN";
     SimpleIdentifier node = identifier(fieldName);
@@ -478,10 +480,26 @@ public class ElementResolverTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void test_visitSimpleIdentifier_inLexicalScope() throws Exception {
+  public void test_visitSimpleIdentifier_lexicalScope() throws Exception {
     SimpleIdentifier node = identifier("i");
     VariableElementImpl element = localVariableElement(node);
     assertSame(element, resolve(node, element));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitSimpleIdentifier_lexicalScope_field_setter() throws Exception {
+    InterfaceType intType = typeProvider.getIntType();
+    ClassElementImpl classA = classElement("A");
+    String fieldName = "a";
+    FieldElement field = fieldElement(fieldName, false, false, false, intType);
+    classA.setFields(new FieldElement[] {field});
+    classA.setAccessors(new PropertyAccessorElement[] {field.getGetter(), field.getSetter()});
+    SimpleIdentifier node = identifier(fieldName);
+    assignmentExpression(node, TokenType.EQ, integer(0L));
+    resolveInClass(node, classA);
+    Element element = node.getElement();
+    assertInstanceOf(PropertyAccessorElement.class, element);
+    assertTrue(((PropertyAccessorElement) element).isSetter());
     listener.assertNoErrors();
   }
 

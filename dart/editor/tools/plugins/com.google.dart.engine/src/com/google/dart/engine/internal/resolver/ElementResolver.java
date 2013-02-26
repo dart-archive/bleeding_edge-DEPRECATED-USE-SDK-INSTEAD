@@ -61,6 +61,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -646,6 +647,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     // Otherwise, the node should be resolved.
     //
     Element element = resolver.getNameScope().lookup(node, resolver.getDefiningLibrary());
+    if (element instanceof PropertyAccessorElement && node.inSetterContext()) {
+      PropertyInducingElement variable = ((PropertyAccessorElement) element).getVariable();
+      if (variable != null) {
+        PropertyAccessorElement setter = variable.getSetter();
+        if (setter != null) {
+          element = setter;
+        }
+      }
+    }
     if (element == null && node.inSetterContext()) {
       element = lookUpSetter(resolver.getEnclosingClass(), node.getName());
     }
