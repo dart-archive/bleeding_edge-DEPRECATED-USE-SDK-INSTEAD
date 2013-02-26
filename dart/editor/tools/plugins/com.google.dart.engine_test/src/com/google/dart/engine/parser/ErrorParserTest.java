@@ -758,6 +758,20 @@ public class ErrorParserTest extends ParserTestCase {
     assertNotNull(unit);
   }
 
+  public void test_missingTerminatorForParameterGroup_named() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, {b: 0)",
+        ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP);
+  }
+
+  public void test_missingTerminatorForParameterGroup_optional() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, [b = 0)",
+        ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP);
+  }
+
   public void test_missingTypedefParameters_nonVoid() throws Exception {
     parse("parseCompilationUnit", "typedef int F;", ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
   }
@@ -948,6 +962,20 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseCompilationUnit", "static var x;", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
   }
 
+  public void test_unexpectedTerminatorForParameterGroup_named() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, b})",
+        ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP);
+  }
+
+  public void test_unexpectedTerminatorForParameterGroup_optional() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, b])",
+        ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP);
+  }
+
   public void test_unexpectedToken_semicolonBetweenClassMembers() throws Exception {
     parse(
         "parseClassDeclaration",
@@ -1023,5 +1051,19 @@ public class ErrorParserTest extends ParserTestCase {
         "parseFormalParameterList",
         "(a, [b : 0])",
         ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER);
+  }
+
+  public void test_wrongTerminatorForParameterGroup_named() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, {b, c])",
+        ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP);
+  }
+
+  public void test_wrongTerminatorForParameterGroup_optional() throws Exception {
+    parse(
+        "parseFormalParameterList",
+        "(a, [b, c})",
+        ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP);
   }
 }

@@ -2460,16 +2460,26 @@ public class Parser {
         rightSquareBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftSquareBracket == null) {
-          // TODO(brianwilkerson) Report an error.
-          // reportError(ParserErrorCode.);
+          if (leftCurlyBracket != null) {
+            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "}");
+            rightCurlyBracket = rightSquareBracket;
+            rightSquareBracket = null;
+          } else {
+            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "[");
+          }
         }
         kind = ParameterKind.REQUIRED;
       } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
         rightCurlyBracket = getAndAdvance();
         currentParameters = normalParameters;
         if (leftCurlyBracket == null) {
-          // TODO(brianwilkerson) Report an error.
-          // reportError(ParserErrorCode.);
+          if (leftSquareBracket != null) {
+            reportError(ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, "]");
+            rightSquareBracket = rightCurlyBracket;
+            rightCurlyBracket = null;
+          } else {
+            reportError(ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP, "{");
+          }
         }
         kind = ParameterKind.REQUIRED;
       }
@@ -2479,12 +2489,10 @@ public class Parser {
     // Check that the groups were closed correctly.
     //
     if (leftSquareBracket != null && rightSquareBracket == null) {
-      // TODO(brianwilkerson) Report an error.
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "]");
     }
     if (leftCurlyBracket != null && rightCurlyBracket == null) {
-      // TODO(brianwilkerson) Report an error.
-      // reportError(ParserErrorCode.?);
+      reportError(ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP, "}");
     }
     //
     // Build the parameter list.

@@ -98,6 +98,7 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_IDENTIFIER("Expected an identifier"),
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
   MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
+  MISSING_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to close the parameter group"),
   MISSING_TYPEDEF_PARAMETERS("Type aliases for functions must have an explicit list of parameters"),
   MISSING_VARIABLE_IN_FOR_EACH(
       "A loop variable must be declared in a for-each loop before the 'in', but none were found"),
@@ -128,6 +129,7 @@ public enum ParserErrorCode implements ErrorCode {
   STATIC_CONSTRUCTOR("Constructors cannot be static"),
   STATIC_OPERATOR("Operators cannot be static"),
   STATIC_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'static'"),
+  UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to open a parameter group"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),
   WITH_BEFORE_EXTENDS("The extends clause must be before the with clause"),
@@ -136,6 +138,7 @@ public enum ParserErrorCode implements ErrorCode {
       "The default value of a named parameter should be preceeded by ':'"),
   WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER(
       "The default value of a positional parameter should be preceeded by '='"),
+  WRONG_TERMINATOR_FOR_PARAMETER_GROUP("Expected '%s' to close parameter group"),
   VAR_CLASS("Classes cannot be declared to be 'var'"),
   VAR_RETURN_TYPE("The return type cannot be 'var'"),
   VAR_TYPEDEF("Type aliases cannot be declared to be 'var'"),
