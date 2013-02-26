@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
@@ -21,6 +22,8 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -228,7 +231,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     parameter.setFinal(node.isFinal());
     parameter.setInitializer(initializer);
     parameter.setParameterKind(node.getKind());
-    // TODO(brianwilkerson) Set visible range
+    FunctionBody body = getFunctionBody(node);
+    if (body != null) {
+      parameter.setVisibleRange(body.getOffset(), body.getLength());
+    }
 
     currentHolder.addParameter(parameter);
     parameterName.setElement(parameter);
@@ -284,11 +290,57 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       element.setLabels(holder.getLabels());
       element.setLocalVariables(holder.getLocalVariables());
       element.setParameters(holder.getParameters());
-      // TODO(brianwilkerson) Set visible range
+
+      FunctionTypeImpl type = new FunctionTypeImpl(element);
+      element.setType(type);
 
       currentHolder.addFunction(element);
       expression.setElement(element);
       functionName.setElement(element);
+
+      Token property = node.getPropertyKeyword();
+      if (property != null) {
+        Identifier propertyNameNode = node.getName();
+        if (propertyNameNode == null) {
+          // TODO(brianwilkerson) Report this internal error.
+          return null;
+        }
+        String propertyName = propertyNameNode.getName();
+        FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
+        if (field == null) {
+          field = new FieldElementImpl(node.getName().getName());
+          field.setFinal(true);
+
+          currentHolder.addField(field);
+        }
+        if (matches(property, Keyword.GET)) {
+          PropertyAccessorElementImpl getter = new PropertyAccessorElementImpl(propertyNameNode);
+          getter.setFunctions(holder.getFunctions());
+          getter.setLabels(holder.getLabels());
+          getter.setLocalVariables(holder.getLocalVariables());
+
+          getter.setVariable(field);
+          getter.setGetter(true);
+          field.setGetter(getter);
+
+          currentHolder.addAccessor(getter);
+          propertyNameNode.setElement(getter);
+        } else {
+          PropertyAccessorElementImpl setter = new PropertyAccessorElementImpl(propertyNameNode);
+          setter.setFunctions(holder.getFunctions());
+          setter.setLabels(holder.getLabels());
+          setter.setLocalVariables(holder.getLocalVariables());
+          setter.setParameters(holder.getParameters());
+
+          setter.setVariable(field);
+          setter.setSetter(true);
+          field.setSetter(setter);
+          field.setFinal(false);
+
+          currentHolder.addAccessor(setter);
+          propertyNameNode.setElement(setter);
+        }
+      }
     }
     return null;
   }
@@ -310,6 +362,14 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setLabels(holder.getLabels());
     element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
+    if (inFunction) {
+      Block enclosingBlock = node.getAncestor(Block.class);
+      if (enclosingBlock != null) {
+        int functionEnd = node.getOffset() + node.getLength();
+        int blockEnd = enclosingBlock.getOffset() + enclosingBlock.getLength();
+        element.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+      }
+    }
 
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     element.setType(type);
@@ -512,7 +572,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     } else if (inFunction) {
       SimpleIdentifier variableName = node.getName();
       element = new LocalVariableElementImpl(variableName);
-      // TODO(brianwilkerson) Set visible range
+      Block enclosingBlock = node.getAncestor(Block.class);
+      int functionEnd = node.getOffset() + node.getLength();
+      int blockEnd = enclosingBlock.getOffset() + enclosingBlock.getLength();
+      ((LocalVariableElementImpl) element).setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
 
       currentHolder.addLocalVariable((LocalVariableElementImpl) element);
       variableName.setElement(element);
@@ -566,6 +629,26 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       }
     }
     node.visitChildren(this);
+    return null;
+  }
+
+  /**
+   * Return the body of the function that contains the given parameter, or {@code null} if no
+   * function body could be found.
+   * 
+   * @param node the parameter contained in the function whose body is to be returned
+   * @return the body of the function that contains the given parameter
+   */
+  private FunctionBody getFunctionBody(FormalParameter node) {
+    ASTNode parent = node.getParent();
+    while (parent != null) {
+      if (parent instanceof FunctionExpression) {
+        return ((FunctionExpression) parent).getBody();
+      } else if (parent instanceof MethodDeclaration) {
+        return ((MethodDeclaration) parent).getBody();
+      }
+      parent = parent.getParent();
+    }
     return null;
   }
 

@@ -158,7 +158,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "");
     CompilationUnitElement unitElement = testUnit.getElement();
     ClassElement classElement = ((ClassDeclaration) testUnit.getDeclarations().get(0)).getElement();
-    FunctionElement topFunctionElement = ((FunctionDeclaration) testUnit.getDeclarations().get(2)).getElement();
+    ExecutableElement topFunctionElement = ((FunctionDeclaration) testUnit.getDeclarations().get(2)).getElement();
     // not found
     assertThat(CorrectionUtils.getChildren(unitElement, "noSuchElement")).isEmpty();
     // find "A"

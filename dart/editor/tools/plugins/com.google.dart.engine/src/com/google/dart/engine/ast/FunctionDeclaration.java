@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -87,8 +87,8 @@ public class FunctionDeclaration extends CompilationUnitMember {
   }
 
   @Override
-  public FunctionElement getElement() {
-    return name != null ? (FunctionElement) name.getElement() : null;
+  public ExecutableElement getElement() {
+    return name != null ? (ExecutableElement) name.getElement() : null;
   }
 
   @Override
