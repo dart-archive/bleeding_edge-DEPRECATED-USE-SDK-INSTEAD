@@ -562,7 +562,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     TopLevelVariableElement topVariableElement = mock(TopLevelVariableElement.class);
     when(topVariableElement.getGetter()).thenReturn(getterElement);
     when(topVariableElement.getSetter()).thenReturn(setterElement);
-    when(topVariableElement.getKind()).thenReturn(ElementKind.FIELD);
+    when(topVariableElement.getKind()).thenReturn(ElementKind.TOP_LEVEL_VARIABLE);
     {
       Location location = new Location(elementA, 1, 10, null);
       indexStore.recordRelationship(
@@ -571,24 +571,10 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     {
-      Location location = new Location(elementB, 2, 20, null);
-      indexStore.recordRelationship(
-          getterElement,
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementC, 3, 30, null);
+      Location location = new Location(elementC, 2, 20, null);
       indexStore.recordRelationship(
           setterElement,
           IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-          location);
-    }
-    {
-      Location location = new Location(elementD, 4, 40, null);
-      indexStore.recordRelationship(
-          setterElement,
-          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
     // search matches
@@ -600,9 +586,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertMatches(
         matches,
         new ExpectedMatch(elementA, MatchKind.FIELD_READ, 1, 10, false),
-        new ExpectedMatch(elementB, MatchKind.FIELD_READ, 2, 20, true),
-        new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 3, 30, false),
-        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true));
+        new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 2, 20, false));
   }
 
   public void test_searchReferences_TypeAliasElement() throws Exception {

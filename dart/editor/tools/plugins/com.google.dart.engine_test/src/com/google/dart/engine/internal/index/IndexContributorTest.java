@@ -1199,22 +1199,29 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "class A {",
         "  var myField;",
         "  main() {",
+        "    myField = 5;",
         "    print(myField);",
         "  }",
         "}");
     // set elements
     Element mainElement = getElement("main() {");
     FieldElement fieldElement = getElement("myField;");
-    PropertyAccessorElement accessorElement = fieldElement.getGetter();
+    PropertyAccessorElement getterElement = fieldElement.getGetter();
+    PropertyAccessorElement setterElement = fieldElement.getSetter();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        accessorElement,
+        getterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
         new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+    assertRecordedRelation(
+        relations,
+        setterElement,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myField = 5"), "myField"));
   }
 
   public void test_isReferencedByUnqualified_MethodElement() throws Exception {
@@ -1241,28 +1248,33 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isReferencedByUnqualified_TopLevelVariableElement_getter() throws Exception {
+  public void test_isReferencedByUnqualified_TopLevelVariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var myTopLevelVariable;",
         "main() {",
+        "  myTopLevelVariable = 5;",
         "  print(myTopLevelVariable);",
         "}");
     // set elements
     Element mainElement = getElement("main() {");
     TopLevelVariableElement topVarElement = getElement("myTopLevelVariable;");
-    PropertyAccessorElement accessorElement = topVarElement.getGetter();
-//    findSimpleIdentifier("myTopLevelVariable);").setElement(accessorElement);
+    PropertyAccessorElement getterElement = topVarElement.getGetter();
+    PropertyAccessorElement setterElement = topVarElement.getSetter();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
-    // TODO(scheglov) restore after TopLevelVariableElement getter/setter
-//    assertRecordedRelation(
-//        relations,
-//        accessorElement,
-//        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-//        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable);"), "myTopLevelVariable"));
+    assertRecordedRelation(
+        relations,
+        getterElement,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable);"), "myTopLevelVariable"));
+    assertRecordedRelation(
+        relations,
+        setterElement,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable = 5"), "myTopLevelVariable"));
   }
 
   public void test_unresolvedUnit() throws Exception {
