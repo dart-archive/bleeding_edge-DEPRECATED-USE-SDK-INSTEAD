@@ -14,6 +14,8 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
@@ -26,6 +28,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
@@ -35,6 +38,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeAliasElement;
@@ -128,6 +132,22 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitArgumentList(ArgumentList node) {
+      if (completionNode instanceof SimpleIdentifier) {
+        analyzeLocalName((SimpleIdentifier) completionNode);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitAssignmentExpression(AssignmentExpression node) {
+      if (completionNode instanceof SimpleIdentifier) {
+        analyzeLocalName((SimpleIdentifier) completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
       // { A() : this.!x = 1; }
       if (node.getFieldName() == completionNode) {
@@ -186,6 +206,7 @@ public class CompletionEngine {
             PrefixElement prefixElement = (PrefixElement) receiver;
             // Complete lib_prefix.name
             prefixedAccess(prefixElement, node.getIdentifier());
+            break;
           }
           case IMPORT: {
             ImportElement importElement = (ImportElement) receiver;
@@ -219,6 +240,24 @@ public class CompletionEngine {
       if (node.getConstructorName() == completionNode) {
         ClassElement classElement = node.getElement().getEnclosingElement();
         constructorReference(classElement, node.getConstructorName());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitTypeName(TypeName node) {
+      if (completionNode instanceof SimpleIdentifier) {
+        analyzeLocalName((SimpleIdentifier) completionNode);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitVariableDeclaration(VariableDeclaration node) {
+      if (node.getName() == completionNode) {
+        analyzeLocalName(node.getName());
+      } else if (node.getInitializer() == completionNode) {
+        analyzeLocalName((SimpleIdentifier) node.getInitializer());
       }
       return null;
     }
@@ -265,11 +304,6 @@ public class CompletionEngine {
   public void complete(AssistContext context) {
     this.context = context;
     requestor.beginReporting();
-    // TODO: Temporary code for exercising test framework.
-//    CompletionProposal prop = createProposal(METHOD);
-//    prop.setCompletion("toString");
-//    requestor.accept(prop);
-    // End temp
     ASTNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
       TerminalNodeCompleter visitor = new TerminalNodeCompleter(completionNode);
@@ -278,9 +312,14 @@ public class CompletionEngine {
     requestor.endReporting();
   }
 
-  public AssistContext getContext() {
-    // TODO: Consider deleting this method.
-    return context;
+  void analyzeLocalName(SimpleIdentifier identifier) {
+    // Completion x!
+    filter = new Filter(identifier);
+    Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : uniqueNames.values()) {
+      Element candidate = uniques.get(0);
+      pName(candidate, identifier);
+    }
   }
 
   void analyzePrefixedAccess(Type receiverType, SimpleIdentifier completionNode) {
@@ -384,13 +423,29 @@ public class CompletionEngine {
     Declaration decl = ident.getAncestor(Declaration.class);
     if (decl != null) {
       Element element = decl.getElement();
+      Element localDef = null;
+      if (element instanceof LocalVariableElement) { // TODO: Also applies to local functions...
+        decl = decl.getParent().getAncestor(Declaration.class);
+        localDef = element;
+        element = decl.getElement();
+      }
       if (element instanceof ExecutableElement) {
         ExecutableElement execElement = (ExecutableElement) element;
         ParameterElement[] params = execElement.getParameters();
         mergeNames(uniqueNames, params);
         VariableElement[] vars = execElement.getLocalVariables();
-        mergeNames(uniqueNames, vars); // TODO: Filter out vars defined after the completion point.
-        decl = decl.getAncestor(Declaration.class);
+        mergeNames(uniqueNames, vars);
+        for (VariableElement var : vars) {
+          // Remove local vars defined after ident.
+          if (var.getNameOffset() >= ident.getOffset()) {
+            mergedNameRemove(uniqueNames, var);
+          }
+          // If ident is part of the initializer for a local var, remove that local var.
+          if (localDef != null) {
+            mergedNameRemove(uniqueNames, localDef);
+          }
+        }
+        decl = decl.getParent().getAncestor(Declaration.class);
         if (decl != null) {
           element = decl.getElement();
         }
@@ -470,6 +525,18 @@ public class CompletionEngine {
     LibraryElement coreLibrary = ctxt.getLibraryElement(coreSource);
     TypeProvider provider = new TypeProviderImpl(coreLibrary);
     return provider;
+  }
+
+  private <X extends Element> void mergedNameRemove(Map<String, List<X>> uniqueNames, X element) {
+    String name = element.getName();
+    List<X> list = uniqueNames.get(name);
+    if (list == null) {
+      return;
+    }
+    list.remove(element);
+    if (list.isEmpty()) {
+      uniqueNames.remove(name);
+    }
   }
 
   private <X extends Element> void mergeNames(Map<String, List<X>> uniqueNames, X[] elements) {
@@ -634,6 +701,7 @@ public class CompletionEngine {
         ExecutableElement receiverElement = (ExecutableElement) receiver;
         FunctionType funType = receiverElement.getType();
         receiverType = funType.getReturnType();
+        break;
       }
       case CLASS: {
         ClassElement receiverElement = (ClassElement) receiver;
@@ -643,6 +711,7 @@ public class CompletionEngine {
       case DYNAMIC: {
         DynamicElementImpl receiverElement = (DynamicElementImpl) receiver;
         receiverType = receiverElement.getType();
+        break;
       }
       case TYPE_ALIAS: {
         TypeAliasElement receiverElement = (TypeAliasElement) receiver;
@@ -652,6 +721,7 @@ public class CompletionEngine {
       }
       default: {
         receiverType = null;
+        break;
       }
     }
     return receiverType;

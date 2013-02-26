@@ -204,6 +204,10 @@ public class TemporaryResolver {
     public InterfaceType getStringType() {
       if (stringType == null) {
         stringType = classElement("String").getType();
+        stringElement.setAccessors(new PropertyAccessorElement[] {getterElement(
+            "length",
+            false,
+            getIntType())});
       }
       return stringType;
     }

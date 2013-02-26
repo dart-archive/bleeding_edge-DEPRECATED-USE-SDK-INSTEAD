@@ -14,7 +14,7 @@
 package com.google.dart.engine.services.completion;
 
 /**
- * Short, specific code completion tests.
+ * Short, specific code completion tests. 29 ATM.
  */
 public class CompletionTests extends CompletionTestCase {
 
@@ -93,5 +93,16 @@ public class CompletionTests extends CompletionTestCase {
         "1+length",
         "2+x",
         "3+n");
+  }
+
+  public void testCommentSnippets004() throws Exception {
+    test(
+        "class A {!1int x; !2mth() {!3int y = this.!5x!6;}}class B{}",
+        "1+A",
+        "2+B",
+        "3+x",
+        "3-y",
+        "5+mth",
+        "6+x");
   }
 }
