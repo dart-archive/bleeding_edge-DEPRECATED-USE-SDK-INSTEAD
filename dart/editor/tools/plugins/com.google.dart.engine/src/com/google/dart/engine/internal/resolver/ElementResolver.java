@@ -53,7 +53,6 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
@@ -402,19 +401,42 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     ExecutableElement invokedMethod = null;
     if (element instanceof ExecutableElement) {
       invokedMethod = (ExecutableElement) element;
-    } else if (element instanceof FieldElement) {
-      // TODO(brianwilkerson) Decide whether to resolve to the getter or the setter (or what to do
-      // when both are appropriate).
     } else {
-      resolver.reportError(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-          methodName,
-          methodName.getName());
-      return null;
-    }
-    if (invokedMethod == null) {
-      // TODO(brianwilkerson) Report this error.
-      return null;
+      //
+      // This is really a function expression invocation.
+      //
+      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
+      if (element instanceof PropertyInducingElement) {
+        PropertyAccessorElement getter = ((PropertyInducingElement) element).getGetter();
+        FunctionType getterType = getter.getType();
+        if (getterType != null) {
+          Type returnType = getterType.getReturnType();
+          if (!returnType.isDynamic() && !(returnType instanceof FunctionType)) {
+            resolver.reportError(
+                StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+                methodName,
+                methodName.getName());
+          }
+        }
+        recordResolution(methodName, element);
+        return null;
+      } else if (element instanceof VariableElement) {
+        Type variableType = ((VariableElement) element).getType();
+        if (!variableType.isDynamic() && !(variableType instanceof FunctionType)) {
+          resolver.reportError(
+              StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+              methodName,
+              methodName.getName());
+        }
+        recordResolution(methodName, element);
+        return null;
+      } else {
+        resolver.reportError(
+            StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+            methodName,
+            methodName.getName());
+        return null;
+      }
     }
     recordResolution(methodName, invokedMethod);
     resolveNamedArguments(node.getArgumentList(), invokedMethod);

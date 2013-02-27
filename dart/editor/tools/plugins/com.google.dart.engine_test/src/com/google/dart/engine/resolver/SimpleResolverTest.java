@@ -16,17 +16,6 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
-  public void fail_invocationOfNonFunction() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  var g;",
-        "  g();",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -80,6 +69,17 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  var x;",
         "  var y;",
         "  x = y;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  var g;",
+        "  g();",
         "}"));
     resolve(source);
     assertNoErrors();
