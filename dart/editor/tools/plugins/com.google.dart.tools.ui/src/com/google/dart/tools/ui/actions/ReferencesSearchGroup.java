@@ -169,8 +169,8 @@ public class ReferencesSearchGroup extends ActionGroup {
     }
   }
 
-  private void registerAction(SelectionDispatchAction action, ISelectionProvider provider,
-      ISelection selection, ISelectionProvider specialSelectionProvider) {
+  private void registerAction(InstrumentedSelectionDispatchAction action,
+      ISelectionProvider provider, ISelection selection, ISelectionProvider specialSelectionProvider) {
     action.update(selection);
     provider.addSelectionChangedListener(action);
     if (specialSelectionProvider != null) {

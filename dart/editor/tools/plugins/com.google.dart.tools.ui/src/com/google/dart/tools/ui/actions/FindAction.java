@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -49,6 +50,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
@@ -63,7 +65,7 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public abstract class FindAction extends SelectionDispatchAction {
+public abstract class FindAction extends InstrumentedSelectionDispatchAction {
 
   // A dummy element that can't be selected in the UI
   private static final DartElement RETURN_WITHOUT_BEEP = DartCore.create(DartToolsPlugin.getWorkspace().getRoot());
@@ -83,14 +85,25 @@ public abstract class FindAction extends SelectionDispatchAction {
     init();
   }
 
+  @Override
+  public void selectionChanged(IStructuredSelection selection) {
+    setEnabled(canOperateOn(selection));
+  }
+
+  @Override
+  public void selectionChanged(ITextSelection selection) {
+  }
+
   /**
    * Executes this action for the given dart element.
    * 
    * @param element The dart element to be found.
    */
-  public void run(DartElement element) {
+  protected void doFind(DartElement element, InstrumentationBuilder instrumentation) {
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
 
     if (!ActionUtil.isProcessable(getShell(), element)) {
+      instrumentation.metric("Problem", "Element is not processable");
       return;
     }
 
@@ -105,10 +118,12 @@ public abstract class FindAction extends SelectionDispatchAction {
           SearchMessages.Search_Error_search_notsuccessful_message);
     } catch (InterruptedException e) {
       // cancelled
+      instrumentation.metric("Problem", "User cancelled");
     }
   }
 
-  public void run(DartNode node) {
+  protected void doFind(DartNode node, InstrumentationBuilder instrumentation) {
+    ActionInstrumentationUtilities.record(node, instrumentation);
     try {
       performNewSearch(new DartSearchQuery(createQuery(node)));
     } catch (DartModelException ex) {
@@ -119,36 +134,44 @@ public abstract class FindAction extends SelectionDispatchAction {
           SearchMessages.Search_Error_search_notsuccessful_message);
     } catch (InterruptedException e) {
       // cancelled
+      instrumentation.metric("Problem", "User cancelled");
     }
   }
 
   @Override
-  public void run(IStructuredSelection selection) {
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
     DartElement element = getDartElement(selection, false);
     if (element == null || !element.exists()) {
+      instrumentation.metric("Problem", "Element null or not exist, showing ");
       showOperationUnavailableDialog();
       return;
     } else if (element == RETURN_WITHOUT_BEEP) {
+      instrumentation.metric("Problem", "Find action on non-selectable element");
       return;
     }
 
-    run(element);
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+    doFind(element, instrumentation);
   }
 
   @Override
-  public void run(ITextSelection selection) {
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     if (!ActionUtil.isProcessable(editor)) {
+      instrumentation.metric("Problem", "Editor is not processable");
       return;
     }
     DartUnit ast = ((CompilationUnitEditor) editor).getAST();
     CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputDartElement(
         editor,
         false);
+    ActionInstrumentationUtilities.recordCompilationUnit(compilationUnit, instrumentation);
     int offset = selection.getOffset();
     DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);
     DartElement dartElement = elementLocator.searchWithin(ast);
+    ActionInstrumentationUtilities.recordElement(dartElement, instrumentation);
     if (canOperateOn(dartElement)) {
-      run(dartElement);
+      doFind(dartElement, instrumentation);
       return;
     } else {
       NodeFinder finder = NodeFinder.find(ast, offset, selection.getLength());
@@ -157,11 +180,13 @@ public abstract class FindAction extends SelectionDispatchAction {
         node = finder.getCoveringNode();
       }
       if (node != null) {
-        run(node);
+        ActionInstrumentationUtilities.record(node, instrumentation);
+        doFind(node, instrumentation);
         return;
       }
     }
     // not reached on successful search
+    instrumentation.metric("Problem", "FindAction on unresovlable selection, showing dialog");
     if (editor != null) {
       IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
       if (statusLine != null) {
@@ -169,15 +194,6 @@ public abstract class FindAction extends SelectionDispatchAction {
       }
     }
     showOperationUnavailableDialog();
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(canOperateOn(selection));
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
   }
 
   boolean canOperateOn(DartElement element) {
