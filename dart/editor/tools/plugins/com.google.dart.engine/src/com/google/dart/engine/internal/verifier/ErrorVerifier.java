@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -121,10 +122,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type createdType = typeName.getType();
     if (createdType instanceof InterfaceType) {
       if (((InterfaceType) createdType).getElement().isAbstract()) {
-        if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {
-          errorReporter.reportError(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
-        } else {
-          errorReporter.reportError(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+        ConstructorElement element = node.getElement();
+        if (element != null && !element.isFactory()) {
+          if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {
+            errorReporter.reportError(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
+          } else {
+            errorReporter.reportError(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+          }
         }
       }
     } else {
