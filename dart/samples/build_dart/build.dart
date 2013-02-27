@@ -119,7 +119,7 @@ void _processFile(String arg) {
     File outFile = new File("${arg}bar");
 
     var out = outFile.openWrite();
-    out.addString("// processed from ${file.name}:\n");
+    out.addString("// processed from ${file.path}:\n");
     if (contents != null) {
       out.addString(contents);
     }
@@ -127,7 +127,7 @@ void _processFile(String arg) {
 
     _findErrors(arg);
 
-    print("wrote: ${outFile.name}");
+    print("wrote: ${outFile.path}");
   }
 }
 
@@ -151,7 +151,7 @@ void _findErrors(String arg) {
  * If this file is a generated file (based on the extension), delete it.
  */
 void _maybeClean(File file) {
-  if (file.name.endsWith(".foobar")) {
+  if (file.path.endsWith(".foobar")) {
     file.delete();
   }
 }
