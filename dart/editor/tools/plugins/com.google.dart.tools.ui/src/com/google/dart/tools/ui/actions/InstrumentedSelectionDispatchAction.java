@@ -125,7 +125,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     try {
 
       if (selection != null) {
-        ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+        instrumentation.record(selection);
       }
 
       doRun(selection, null, instrumentation);
@@ -147,7 +147,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     try {
 
       if (selection != null) {
-        ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+        instrumentation.record(selection);
       }
 
       doRun(selection, null, instrumentation);
@@ -251,21 +251,19 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     ISelection selection = getSelection();
 
     if (selection instanceof DartTextSelection) {
-      ActionInstrumentationUtilities.RecordSelection((DartTextSelection) selection, instrumentation);
+      instrumentation.record((DartTextSelection) selection);
       doRun((DartTextSelection) selection, event, instrumentation);
 
     } else if (selection instanceof IStructuredSelection) {
-      ActionInstrumentationUtilities.RecordSelection(
-          (IStructuredSelection) selection,
-          instrumentation);
+      instrumentation.record((IStructuredSelection) selection);
       doRun((IStructuredSelection) selection, event, instrumentation);
 
     } else if (selection instanceof ITextSelection) {
-      ActionInstrumentationUtilities.RecordSelection((ITextSelection) selection, instrumentation);
+      instrumentation.record((ITextSelection) selection);
       doRun((ITextSelection) selection, event, instrumentation);
 
     } else {
-      ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+      instrumentation.record(selection);
       doRun(selection, event, instrumentation);
     }
 

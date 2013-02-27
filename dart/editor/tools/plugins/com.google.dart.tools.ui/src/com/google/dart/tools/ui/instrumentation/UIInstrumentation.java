@@ -4,6 +4,8 @@ import com.google.dart.engine.utilities.instrumentation.AsyncValue;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
@@ -58,12 +60,6 @@ public class UIInstrumentation {
     }
 
     @Override
-    public void record(Throwable exception) {
-      metric("Exception", exception.getClass().toString());
-      data("Exception", exception.toString());
-    }
-
-    @Override
     public InstrumentationLevel getInstrumentationLevel() {
       return builder.getInstrumentationLevel();
     }
@@ -98,21 +94,74 @@ public class UIInstrumentation {
     }
 
     @Override
-    public void record(DartTextSelection selection) {
-      if (selection != null) {
-        metric("Selection-Class", selection.getClass().toString());
+    public void record(CompilationUnit cu) {
 
-        metric("Selection-length", selection.getLength());
-        metric("Selection-startLine", selection.getStartLine());
-        metric("Selection-endLine", selection.getEndLine());
-        metric("Selection-offset", selection.getOffset());
+      metric("CompilationUnit-LastModified", cu.getModificationStamp());
+      data("CompilationUnit-Name", cu.getElementName());
+      //Try and extract the source code
+      String source = null;
+      try {
+        metric("CompilationUnit-hasUnsavedChanges", String.valueOf(cu.hasUnsavedChanges()));
 
-        data("Selection-text", selection.getText());
+        source = cu.getSource();
+      } catch (DartModelException e) {
+      } //discard this, it doesn't necessarily indicate a real problem
+      //we just won't be able to capture much about this compilation unit
+
+      if (source != null) {
+        metric("CompilationUnit-SourceLength", source.length());
+        data("CompilationUnit-Source", source);
       }
     }
 
     @Override
+    public void record(CompilationUnit[] cus) {
+      record(cus, null);
+    }
+
+    @Override
+    public void record(CompilationUnit[] cus, String collectionName) {
+      if (collectionName != null) {
+        metric("CompilationUnits", collectionName);
+      }
+
+      if (cus == null) {
+        metric("CompilationUnits", "null");
+        return;
+      }
+
+      for (CompilationUnit cu : cus) {
+        record(cu);
+      }
+
+    }
+
+    @Override
+    public void record(DartTextSelection selection) {
+
+      if (selection == null) {
+        metric("Selection", "null");
+        return;
+      }
+
+      metric("Selection-Class", selection.getClass().toString());
+
+      metric("Selection-length", selection.getLength());
+      metric("Selection-startLine", selection.getStartLine());
+      metric("Selection-endLine", selection.getEndLine());
+      metric("Selection-offset", selection.getOffset());
+
+      data("Selection-text", selection.getText());
+
+    }
+
+    @Override
     public void record(ISelection selection) {
+      if (selection == null) {
+        metric("Selection", "null");
+        return;
+      }
+
       if (selection instanceof DartTextSelection) {
         record((DartTextSelection) selection);
       } else if (selection instanceof IStructuredSelection) {
@@ -126,28 +175,46 @@ public class UIInstrumentation {
 
     @Override
     public void record(IStructuredSelection selection) {
-      if (selection != null) {
-        metric("Selection-Class", selection.getClass().toString());
+      if (selection == null) {
+        metric("Selection", "null");
+        return;
+      }
 
-        Object firstElement = selection.getFirstElement();
-        if (firstElement != null) {
-          metric("Selection-FirstElement", firstElement.getClass().toString());
-        }
+      metric("Selection-Class", selection.getClass().toString());
+
+      Object firstElement = selection.getFirstElement();
+      if (firstElement != null) {
+        metric("Selection-FirstElement", firstElement.getClass().toString());
       }
     }
 
     @Override
     public void record(ITextSelection selection) {
-      if (selection != null) {
-        metric("Selection-Class", selection.getClass().toString());
-
-        metric("Selection-length", selection.getLength());
-        metric("Selection-startLine", selection.getStartLine());
-        metric("Selection-endLine", selection.getEndLine());
-        metric("Selection-offset", selection.getOffset());
-
-        data("Selection-text", selection.getText());
+      if (selection == null) {
+        metric("Selection", "null");
+        return;
       }
+
+      metric("Selection-Class", selection.getClass().toString());
+
+      metric("Selection-length", selection.getLength());
+      metric("Selection-startLine", selection.getStartLine());
+      metric("Selection-endLine", selection.getEndLine());
+      metric("Selection-offset", selection.getOffset());
+
+      data("Selection-text", selection.getText());
+    }
+
+    @Override
+    public void record(Throwable exception) {
+
+      if (exception == null) {
+        metric("Exception", "null");
+        return;
+      }
+
+      metric("Exception", exception.getClass().toString());
+      data("Exception", exception.toString());
     }
   }
 

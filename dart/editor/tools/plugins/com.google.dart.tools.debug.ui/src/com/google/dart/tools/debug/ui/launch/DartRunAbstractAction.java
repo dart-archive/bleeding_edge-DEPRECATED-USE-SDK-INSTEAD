@@ -18,7 +18,6 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
@@ -165,7 +164,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
 
   protected void launch(ILaunchShortcut shortcut, ISelection selection,
       UIInstrumentationBuilder instrumentation) {
-    ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+    instrumentation.record(selection);
     shortcut.launch(selection, ILaunchManager.DEBUG_MODE);
   }
 
