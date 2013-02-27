@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.filesview.FilesView;
 
 import org.eclipse.core.resources.IResource;
@@ -78,7 +78,7 @@ public class CopyFilePathAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     if (!isEnabled()) {
       instrumentation.metric("Problem", "Not Enabled");

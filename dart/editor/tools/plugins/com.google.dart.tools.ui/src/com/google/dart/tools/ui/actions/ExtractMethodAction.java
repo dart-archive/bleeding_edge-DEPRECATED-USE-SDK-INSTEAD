@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.ExtractMethodWizard;
@@ -50,7 +50,7 @@ public class ExtractMethodAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(editor)) {
       instrumentation.metric("Problem", "Editor not editable");

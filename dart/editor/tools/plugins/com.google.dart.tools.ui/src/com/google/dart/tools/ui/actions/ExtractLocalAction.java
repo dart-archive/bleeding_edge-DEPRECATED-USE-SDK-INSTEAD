@@ -1,8 +1,8 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.ExtractLocalWizard;
@@ -46,7 +46,7 @@ public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(editor)) {
       instrumentation.metric("Problem", "Editor not editable");

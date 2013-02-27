@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.web.pubspec.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.web.pubspec.PubspecEditor;
 
 import org.eclipse.core.resources.IFile;
@@ -41,7 +41,7 @@ public class OpenInPubspecEditorAction extends InstrumentedSelectionDispatchActi
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
 
     if (selection == null || !(selection instanceof StructuredSelection)) {

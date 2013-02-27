@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.model.DartProject;
@@ -22,6 +21,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.PubMessages;
 import com.google.dart.tools.core.pub.RunPubJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.resources.IContainer;
@@ -133,7 +133,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  public void doRun(ISelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ISelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     instrumentation.metric("command", command);
 
     if (!(selection instanceof ITextSelection)) {
@@ -167,7 +167,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     instrumentation.metric("command", command);
 

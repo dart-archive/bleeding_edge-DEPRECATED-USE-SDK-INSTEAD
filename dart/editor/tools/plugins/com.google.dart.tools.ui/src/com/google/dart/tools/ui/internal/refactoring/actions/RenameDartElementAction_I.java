@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.Event;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public interface RenameDartElementAction_I {
-  void doRun(IStructuredSelection selection, Event event, InstrumentationBuilder instrumentation);
+  void doRun(IStructuredSelection selection, Event event, UIInstrumentationBuilder instrumentation);
 
-  void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation);
+  void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation);
 
   boolean isEnabled();
 

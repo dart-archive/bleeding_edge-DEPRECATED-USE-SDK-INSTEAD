@@ -67,6 +67,14 @@ public interface InstrumentationBuilder {
   public InstrumentationBuilder data(String name, String[] value);
 
   /**
+   * Answer the {@link InstrumentationLevel} of this {@code InstrumentationBuilder}.
+   * 
+   * @return one of {@link InstrumentationLevel#EVERYTHING}, {@link InstrumentationLevel#METRICS},
+   *         {@link InstrumentationLevel#OFF}
+   */
+  public InstrumentationLevel getInstrumentationLevel();
+
+  /**
    * Log the data that has been collected. The instrumentation builder should not be used after this
    * method is invoked. The behavior of any method defined on this interface that is used after this
    * method is invoked is undefined.

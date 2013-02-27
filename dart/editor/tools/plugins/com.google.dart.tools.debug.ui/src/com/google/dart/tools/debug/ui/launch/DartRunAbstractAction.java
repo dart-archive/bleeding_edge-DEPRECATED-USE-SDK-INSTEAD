@@ -14,13 +14,13 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -114,10 +114,10 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
 
   }
 
-  protected abstract void doLaunch(InstrumentationBuilder instrumentation);
+  protected abstract void doLaunch(UIInstrumentationBuilder instrumentation);
 
   @Override
-  protected final void doRun(Event event, InstrumentationBuilder instrumentation) {
+  protected final void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     if (event == null) {
       doLaunch(instrumentation);
       return;
@@ -137,7 +137,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
     return window;
   }
 
-  protected void launch(ILaunchConfiguration config, InstrumentationBuilder instrumentation) {
+  protected void launch(ILaunchConfiguration config, UIInstrumentationBuilder instrumentation) {
     String mode = ILaunchManager.RUN_MODE;
 
     instrumentation.metric("Launch mode", mode);
@@ -164,7 +164,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
   }
 
   protected void launch(ILaunchShortcut shortcut, ISelection selection,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
     shortcut.launch(selection, ILaunchManager.DEBUG_MODE);
   }
@@ -183,7 +183,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
           LaunchUtils.getLongLaunchName(config),
           DebugUITools.getDefaultImageDescriptor(config)) {
         @Override
-        public void doRun(Event event, InstrumentationBuilder instrumentation) {
+        public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
           launch(config, instrumentation);
         }
       };

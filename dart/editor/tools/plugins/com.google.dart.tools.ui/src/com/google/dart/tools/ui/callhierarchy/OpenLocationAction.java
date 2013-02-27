@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.callhierarchy.CallLocation;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
 
@@ -54,7 +55,7 @@ class OpenLocationAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     if (!checkEnabled(selection)) {
       instrumentation.metric("Problem", "Open Location not enabled for selection");
       return;

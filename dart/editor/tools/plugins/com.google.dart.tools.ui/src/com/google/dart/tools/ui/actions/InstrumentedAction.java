@@ -1,7 +1,7 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -39,24 +39,17 @@ public abstract class InstrumentedAction extends Action {
 
   @Override
   public final void runWithEvent(Event event) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
-
-      ISelection selection = getSelection();
-      if (selection != null) {
-        ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
-      }
+      instrumentation.record(getSelection());
 
       doRun(event, instrumentation);
+
       instrumentation.metric("Run", "Completed");
-
     } catch (RuntimeException e) {
-      instrumentation.metric("Exception", e.getClass().toString());
-      instrumentation.data("Exception", e.toString());
+      instrumentation.record(e);
       throw e;
-    }
-
-    finally {
+    } finally {
       instrumentation.log();
     }
   }
@@ -67,7 +60,7 @@ public abstract class InstrumentedAction extends Action {
    * @param event The event passed with the event, may be null
    * @param instrumentation The instrumentation logger, will not be null
    */
-  protected abstract void doRun(Event event, InstrumentationBuilder instrumentation);
+  protected abstract void doRun(Event event, UIInstrumentationBuilder instrumentation);
 
   /**
    * Get the current selection. If there isn't one, returns null. The default implementation will

@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.intro.IntroEditor;
 
 import org.eclipse.swt.widgets.Event;
@@ -33,7 +33,7 @@ public class OpenIntroEditorAction extends InstrumentedAction {
   }
 
   @Override
-  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     try {
       IDE.openEditor(DartToolsPlugin.getActivePage(), IntroEditor.INPUT, IntroEditor.ID);
     } catch (PartInitException e) {

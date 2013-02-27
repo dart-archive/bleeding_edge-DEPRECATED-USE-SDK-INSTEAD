@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -46,7 +46,7 @@ public class OpenApiDocsAction extends InstrumentedAction implements IWorkbenchA
   }
 
   @Override
-  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ExternalBrowserUtil.openInExternalBrowser(ActionMessages.OpenApiDocsAction_href);
 
   }

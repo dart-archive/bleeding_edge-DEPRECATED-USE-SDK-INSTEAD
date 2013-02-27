@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -84,13 +84,14 @@ public class OpenTypeHierarchyAction extends InstrumentedSelectionDispatchAction
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     instrumentation.metric("Problem", "NotYetImplemented in IStructuredSelection");
     // TODO(scheglov)
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     DartElement input = SelectionConverter.getInput(fEditor);
     if (!ActionUtil.isProcessable(getShell(), input)) {
       instrumentation.metric("Problem", "Editor not editable");

@@ -14,9 +14,9 @@
 package com.google.dart.eclipse.ui.internal.actions;
 
 import com.google.dart.eclipse.wizards.DartProjectWizard;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.AbstractOpenWizardAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Event;
@@ -47,7 +47,7 @@ public class OpenNewProjectWizardAction extends AbstractOpenWizardAction impleme
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
 
     closeIntroPage();
 

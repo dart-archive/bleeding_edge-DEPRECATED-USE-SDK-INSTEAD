@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.internal.builder.ScanCallbackProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.dialogs.OpenFolderDialog;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
@@ -52,7 +52,7 @@ public class OpenExternalFolderDialogAction extends InstrumentedAction implement
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     OpenFolderDialog openFolderDialog = new OpenFolderDialog(window.getShell());
 
     if (openFolderDialog.open() != Window.OK) {

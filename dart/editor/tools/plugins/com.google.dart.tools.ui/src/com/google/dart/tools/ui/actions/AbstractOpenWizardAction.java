@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.runtime.CoreException;
@@ -48,7 +48,7 @@ public abstract class AbstractOpenWizardAction extends InstrumentedAction {
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     Shell shell = getShell();
     try {
       INewWizard wizard = createWizard();

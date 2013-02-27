@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
@@ -24,6 +23,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -102,7 +102,7 @@ public class RenameDartElementAction_OLD extends InstrumentedSelectionDispatchAc
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     RenameLinkedMode_OLD activeLinkedMode = RenameLinkedMode_OLD.getActiveLinkedMode();
     if (activeLinkedMode != null) {
       if (activeLinkedMode.isCaretInLinkedPosition()) {
@@ -138,7 +138,7 @@ public class RenameDartElementAction_OLD extends InstrumentedSelectionDispatchAc
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     DartElement element = getDartElement(selection);
     if (element == null) {
       instrumentation.metric("Problem", "Element was null");
@@ -161,7 +161,7 @@ public class RenameDartElementAction_OLD extends InstrumentedSelectionDispatchAc
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     if (!ActionUtil.isEditable(fEditor)) {
       instrumentation.metric("Problem", "Editor not editable");
       return;

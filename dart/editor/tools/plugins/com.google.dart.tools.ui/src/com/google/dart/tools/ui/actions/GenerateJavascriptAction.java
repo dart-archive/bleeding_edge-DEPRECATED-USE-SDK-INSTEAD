@@ -20,6 +20,7 @@ import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -65,7 +66,7 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
     }
 
     @Override
-    protected IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation) {
+    protected IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation) {
 
       if (DartCore.getPlugin().getCompileWithDart2JS()) {
         try {
@@ -128,7 +129,7 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     deployOptimized(window.getActivePage(), instrumentation);
   }
 

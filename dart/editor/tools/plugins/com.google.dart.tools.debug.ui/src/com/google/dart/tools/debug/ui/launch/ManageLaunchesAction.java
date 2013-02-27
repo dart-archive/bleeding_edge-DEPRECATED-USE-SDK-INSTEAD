@@ -14,10 +14,10 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.dialogs.ManageLaunchesDialog;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -38,7 +38,7 @@ public class ManageLaunchesAction extends InstrumentedAction {
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
 
     ManageLaunchesDialog dialog = new ManageLaunchesDialog(window);
     dialog.open();

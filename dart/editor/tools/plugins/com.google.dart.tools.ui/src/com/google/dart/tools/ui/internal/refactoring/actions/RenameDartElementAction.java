@@ -18,10 +18,10 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
@@ -82,7 +82,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
     if (activeLinkedMode != null) {
       if (activeLinkedMode.isCaretInLinkedPosition()) {
@@ -117,7 +117,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     // TODO(scheglov)
 //    Element element = getDartElement(selection);
 //    if (element == null) {
@@ -141,7 +141,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     System.out.println("doRun.ITextSelection: " + selection);
     doRun(event, instrumentation);
     // TODO(scheglov)

@@ -1,7 +1,7 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.runtime.Assert;
@@ -121,7 +121,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   }
 
   public void run(DartTextSelection selection) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
 
       if (selection != null) {
@@ -143,7 +143,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   }
 
   public void run(IStructuredSelection selection) {
-    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
 
       if (selection != null) {
@@ -242,12 +242,12 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * @param selection the selection
    */
   protected void doRun(DartTextSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     doRun((ITextSelection) selection, event, instrumentation);
   }
 
   @Override
-  protected void doRun(Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
 
     if (selection instanceof DartTextSelection) {
@@ -276,7 +276,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * 
    * @param selection the selection
    */
-  protected void doRun(ISelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ISelection selection, Event event, UIInstrumentationBuilder instrumentation) {
   }
 
   /**
@@ -286,7 +286,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * @param selection the selection
    */
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     doRun((ISelection) selection, event, instrumentation);
   }
 
@@ -296,7 +296,8 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * 
    * @param selection the selection
    */
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     doRun((ISelection) selection, event, instrumentation);
   }
 

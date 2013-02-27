@@ -14,13 +14,13 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dartdoc.DartdocGenerator;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.core.resources.IResource;
@@ -69,7 +69,7 @@ public class GenerateDartdocAction extends InstrumentedAction implements IWorkbe
     }
 
     @Override
-    protected IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation) {
+    protected IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation) {
       try {
 
         ActionInstrumentationUtilities.recordLibrary(library, instrumentation);
@@ -143,7 +143,7 @@ public class GenerateDartdocAction extends InstrumentedAction implements IWorkbe
   }
 
   @Override
-  public void doRun(Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     deployOptimized(window.getActivePage(), instrumentation);
   }
 
@@ -181,7 +181,7 @@ public class GenerateDartdocAction extends InstrumentedAction implements IWorkbe
     }
   }
 
-  private void deployOptimized(IWorkbenchPage page, InstrumentationBuilder instrumentation) {
+  private void deployOptimized(IWorkbenchPage page, UIInstrumentationBuilder instrumentation) {
     boolean isSaveNeeded = isSaveAllNeeded(page);
 
     instrumentation.metric("isSaveNeeded", String.valueOf(isSaveNeeded));

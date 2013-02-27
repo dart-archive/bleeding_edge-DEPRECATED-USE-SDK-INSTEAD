@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -139,7 +140,7 @@ public class FormatAllAction extends InstrumentedSelectionDispatchAction {
    */
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     CompilationUnit[] cus = getCompilationUnits(selection);
 
@@ -190,7 +191,7 @@ public class FormatAllAction extends InstrumentedSelectionDispatchAction {
    * (non-Javadoc) Method declared on SelectionDispatchAction.
    */
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     instrumentation.metric("Problem", "ITextSelection Not supported on format all");
   }
 

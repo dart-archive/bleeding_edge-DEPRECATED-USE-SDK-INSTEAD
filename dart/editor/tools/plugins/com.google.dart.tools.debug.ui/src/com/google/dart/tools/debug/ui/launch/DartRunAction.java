@@ -14,12 +14,12 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -88,7 +88,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 //  }
 
   @Override
-  protected void doLaunch(InstrumentationBuilder instrumentation) {
+  protected void doLaunch(UIInstrumentationBuilder instrumentation) {
     try {
       IResource resource = LaunchUtils.getSelectedResource(window);
 
@@ -164,7 +164,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 //    }
 //  }
 
-  protected void launchResource(IResource resource, InstrumentationBuilder instrumentation)
+  protected void launchResource(IResource resource, UIInstrumentationBuilder instrumentation)
       throws DartModelException {
     ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
 
@@ -186,7 +186,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
   }
 
   private boolean chooseAndLaunch(List<ILaunchConfiguration> launches,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     if (launches.size() == 0) {
       return false;
     } else if (launches.size() == 1) {

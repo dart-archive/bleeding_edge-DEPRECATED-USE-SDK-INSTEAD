@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.resources.IResource;
@@ -40,7 +40,7 @@ public class AddTaskAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     IResource resource = getElement(selection);
     if (resource == null) {

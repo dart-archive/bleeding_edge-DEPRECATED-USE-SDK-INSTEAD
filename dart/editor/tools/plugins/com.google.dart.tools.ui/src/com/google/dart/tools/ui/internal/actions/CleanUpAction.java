@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.common.collect.Sets;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -27,6 +26,7 @@ import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -100,7 +100,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     CompilationUnit[] cus = getCompilationUnits(selection);
 
     instrumentation.metric("CompilationUnits-Count", cus.length);
@@ -130,7 +130,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     CompilationUnit cu = getCompilationUnit(editor);
     if (cu != null) {
       ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
@@ -272,7 +272,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 //    return false;
   }
 
-  private void run(CompilationUnit cu, InstrumentationBuilder instrumentation) {
+  private void run(CompilationUnit cu, UIInstrumentationBuilder instrumentation) {
 
     if (!ActionUtil.isEditable(editor, getShell(), cu)) {
       instrumentation.metric("Problem", "CompilationUnit was not editable");
@@ -300,7 +300,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
     }
   }
 
-  private void runOnMultiple(CompilationUnit[] cus, InstrumentationBuilder instrumentation) {
+  private void runOnMultiple(CompilationUnit[] cus, UIInstrumentationBuilder instrumentation) {
 
     ICleanUp[] cleanUps = getCleanUps(cus);
     if (cleanUps == null) {

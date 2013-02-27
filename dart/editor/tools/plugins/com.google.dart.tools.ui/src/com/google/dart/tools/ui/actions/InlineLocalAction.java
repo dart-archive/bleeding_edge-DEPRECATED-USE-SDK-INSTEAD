@@ -1,11 +1,11 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartUnit;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -41,13 +41,13 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     instrumentation.metric("Problem", "InlineLocal called on StructuredSelection");
     //do nothing
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(fEditor);
     if (!ActionUtil.isEditable(fEditor)) {
       instrumentation.metric("Problem", "Editor not editable");

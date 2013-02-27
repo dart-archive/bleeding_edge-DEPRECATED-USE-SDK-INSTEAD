@@ -13,13 +13,13 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -54,7 +54,7 @@ public class RunInDartiumAction extends DartRunAbstractAction {
   }
 
   @Override
-  protected void doLaunch(InstrumentationBuilder instrumentation) {
+  protected void doLaunch(UIInstrumentationBuilder instrumentation) {
     IResource resource = LaunchUtils.getSelectedResource(window);
 
     try {

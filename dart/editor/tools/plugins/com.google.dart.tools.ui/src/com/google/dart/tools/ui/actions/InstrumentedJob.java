@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -38,12 +38,12 @@ public abstract class InstrumentedJob extends Job {
    * @param event The event passed with the event, may be null
    * @param instrumentation The instrumentation logger, will not be null
    */
-  protected abstract IStatus doRun(IProgressMonitor monitor, InstrumentationBuilder instrumentation);
+  protected abstract IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation);
 
   @Override
   protected final IStatus run(IProgressMonitor monitor) {
     IStatus result;
-    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
       result = doRun(monitor, instrumentation);
       instrumentation.metric("Run", "Completed");

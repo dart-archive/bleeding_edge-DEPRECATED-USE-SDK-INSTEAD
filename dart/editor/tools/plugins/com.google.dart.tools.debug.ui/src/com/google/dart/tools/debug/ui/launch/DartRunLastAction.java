@@ -14,11 +14,11 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.jface.action.IAction;
@@ -51,7 +51,7 @@ public class DartRunLastAction extends DartRunAbstractAction {
   }
 
   @Override
-  protected void doLaunch(InstrumentationBuilder instrumentation) {
+  protected void doLaunch(UIInstrumentationBuilder instrumentation) {
     try {
       List<ILaunchConfiguration> launches = LaunchUtils.getAllLaunches();
 

@@ -14,8 +14,8 @@
 
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.MultiOrganizeImportAction;
 
 import org.eclipse.jface.text.ITextSelection;
@@ -43,13 +43,13 @@ public class OrganizeImportsAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
     new MultiOrganizeImportAction(site).doRun(selection, event, instrumentation);
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
     IEditorPart activeEditor = site.getPage().getActiveEditor();
     if (activeEditor != null && activeEditor.getEditorInput() instanceof IFileEditorInput) {

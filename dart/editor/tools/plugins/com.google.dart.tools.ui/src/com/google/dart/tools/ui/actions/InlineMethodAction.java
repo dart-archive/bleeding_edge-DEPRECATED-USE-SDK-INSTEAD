@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -10,6 +9,7 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailability
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
@@ -49,7 +49,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     try {
       Assert.isTrue(RefactoringAvailabilityTester.isInlineMethodAvailable(selection));
@@ -71,7 +71,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     DartElement element = SelectionConverter.getInput(fEditor);
     if (element == null) {
       instrumentation.metric("Problem", "Element was null");

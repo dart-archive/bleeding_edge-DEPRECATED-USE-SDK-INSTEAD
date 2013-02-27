@@ -87,12 +87,14 @@ public class InstrumentationLogger {
       IConfigurationElement element = elements[0];
 
       try {
+        Object executableExtension = element.createExecutableExtension("class");
 
         //Setup old logger
-        logger = (IInstrumentationLogger) element.createExecutableExtension("class");
+        if (executableExtension instanceof IInstrumentationLogger) {
+          logger = (IInstrumentationLogger) executableExtension;
+        }
 
         //Setup new logger
-
         if (logger instanceof com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) {
           Instrumentation.setLogger((com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) logger);
         }

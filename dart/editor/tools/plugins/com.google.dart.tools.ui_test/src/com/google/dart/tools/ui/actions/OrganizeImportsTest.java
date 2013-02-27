@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.codemanipulation.OrganizeImportsOperation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.refactoring.RefactoringTest;
 
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -142,6 +142,6 @@ public final class OrganizeImportsTest extends RefactoringTest {
   }
 
   private void doOrganize(CompilationUnit... units) {
-    action.doRun(new StructuredSelection(units), null, Instrumentation.NULL_INSTRUMENTATION_BUILDER);
+    action.doRun(new StructuredSelection(units), null, UIInstrumentation.getNullBuilder());
   }
 }

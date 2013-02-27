@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.callhierarchy;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -24,6 +23,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.callhierarchy.CallHierarchy;
@@ -89,7 +89,7 @@ public class OpenCallHierarchyAction extends InstrumentedSelectionDispatchAction
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
 
     List<?> elements = selection.toList();
     instrumentation.metric("Elements-Length", elements.size());
@@ -109,7 +109,8 @@ public class OpenCallHierarchyAction extends InstrumentedSelectionDispatchAction
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(editor);
     if (input != null) {
       ActionInstrumentationUtilities.recordCompilationUnit(input, instrumentation);

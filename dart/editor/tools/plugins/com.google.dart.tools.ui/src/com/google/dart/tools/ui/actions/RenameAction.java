@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction_I;
@@ -57,7 +57,7 @@ public class RenameAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     boolean renameRan = false;
 
     if (fRenameDartElement.isEnabled()) {
@@ -78,7 +78,7 @@ public class RenameAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  public void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
     if (fRenameDartElement.isEnabled()) {
       fRenameDartElement.doRun(selection, event, instrumentation);
     } else {

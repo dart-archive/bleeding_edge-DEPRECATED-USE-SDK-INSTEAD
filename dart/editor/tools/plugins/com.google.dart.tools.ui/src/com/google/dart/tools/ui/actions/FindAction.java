@@ -30,6 +30,7 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.search.DartSearchQuery;
@@ -140,7 +141,7 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
-      InstrumentationBuilder instrumentation) {
+      UIInstrumentationBuilder instrumentation) {
     DartElement element = getDartElement(selection, false);
     if (element == null || !element.exists()) {
       instrumentation.metric("Problem", "Element null or not exist, showing ");
@@ -156,7 +157,8 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     if (!ActionUtil.isProcessable(editor)) {
       instrumentation.metric("Problem", "Editor is not processable");
       return;

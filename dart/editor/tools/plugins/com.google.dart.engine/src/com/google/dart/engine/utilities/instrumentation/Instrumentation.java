@@ -18,8 +18,9 @@ package com.google.dart.engine.utilities.instrumentation;
  * <p>
  * Instrumentation information consists of information about specific operations. Those operations
  * can range from user-facing operations, such as saving the changes to a file, to internal
- * operations, such as tokenizing source code. The information to be logged is gathered by an
- * {@link OperationBuilder operation builder}, created by one of the static methods on this class.
+ * operations, such as tokenizing source code. The information to be logged is gathered by
+ * {@link InstrumentationBuilder instrumentation builder}, created by one of the static methods on
+ * this class such as {@link #builder(Class)} or {@link #builder(String)}.
  * <p>
  * Note, however, that until an instrumentation logger is installed using the method
  * {@link #setLogger(InstrumentationLogger)}, all instrumentation data will be lost.
@@ -30,23 +31,23 @@ package com.google.dart.engine.utilities.instrumentation;
  * following:
  * 
  * <pre>
- * long startTime = System.currentTimeMillis();
+ * InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
  * // save the file
- * long endTime = System.currentTimeMillis();
- * metric("Save", endTime - startTime).with("chars", fileLength).log();
+ * instrumentation.metric("chars", fileLength).log();
  * </pre>
- * The {@code metric} method creates an operation builder for an operation named {@code "Save"} that
- * took {@code endTime - startTime} milliseconds to run. The {@code with} method attaches additional
- * data to the operation; in this case recording that the file was {@code fileLength} characters
- * long. The {@code log} method tells the builder that all of the data has been collected and that
- * the resulting information should be logged.
+ * The {@code Instrumentation.builder} method creates a new {@link InstrumentationBuilder
+ * instrumentation builder} and records the time at which it was created. The
+ * {@link InstrumentationBuilder#metric(String, long)} appends the information specified by the
+ * arguments and records the time at which the method is called so that the time to complete the
+ * save operation can be calculated. The {@code log} method tells the builder that all of the data
+ * has been collected and that the resulting information should be logged.
  */
 public final class Instrumentation {
 
   /**
    * A builder that will silently ignore all data and logging requests.
    */
-  public static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
+  private static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
 
     @Override
     public InstrumentationBuilder data(String name, AsyncValue valueGenerator) {
@@ -66,6 +67,11 @@ public final class Instrumentation {
     @Override
     public InstrumentationBuilder data(String name, String[] value) {
       return this;
+    }
+
+    @Override
+    public InstrumentationLevel getInstrumentationLevel() {
+      return InstrumentationLevel.OFF;
     }
 
     @Override
@@ -141,7 +147,6 @@ public final class Instrumentation {
     public OperationBuilder createOperation(String name, long time) {
       return NULL_BUILDER;
     }
-
   };
 
   /**
