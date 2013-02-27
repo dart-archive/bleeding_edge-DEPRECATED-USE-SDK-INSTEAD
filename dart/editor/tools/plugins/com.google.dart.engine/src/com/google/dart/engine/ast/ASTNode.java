@@ -18,6 +18,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
@@ -28,6 +30,12 @@ public abstract class ASTNode {
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
   private ASTNode parent;
+
+  /**
+   * A table mapping the names of properties to their values, or {@code null} if this node does not
+   * have any properties associated with it.
+   */
+  private Map<String, Object> propertyMap;
 
   /**
    * A comparator that can be used to sort AST nodes in lexical order. In other words,
@@ -131,6 +139,19 @@ public abstract class ASTNode {
   }
 
   /**
+   * Return the value of the property with the given name, or {@code null} if this node does not
+   * have a property with the given name.
+   * 
+   * @return the value of the property with the given name
+   */
+  public Object getProperty(String propertyName) {
+    if (propertyMap == null) {
+      return null;
+    }
+    return propertyMap.get(propertyName);
+  }
+
+  /**
    * Return the node at the root of this node's AST structure. Note that this method's performance
    * is linear with respect to the depth of the node in the AST structure (O(depth)).
    * 
@@ -155,6 +176,29 @@ public abstract class ASTNode {
    */
   public boolean isSynthetic() {
     return false;
+  }
+
+  /**
+   * Set the value of the property with the given name to the given value. If the value is
+   * {@code null}, the property will effectively be removed.
+   * 
+   * @param propertyName the name of the property whose value is to be set
+   * @param propertyValue the new value of the property
+   */
+  public void setProperty(String propertyName, Object propertyValue) {
+    if (propertyValue == null) {
+      if (propertyMap != null) {
+        propertyMap.remove(propertyName);
+        if (propertyMap.isEmpty()) {
+          propertyMap = null;
+        }
+      }
+    } else {
+      if (propertyMap == null) {
+        propertyMap = new HashMap<String, Object>();
+      }
+      propertyMap.put(propertyName, propertyValue);
+    }
   }
 
   /**
