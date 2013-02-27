@@ -113,7 +113,7 @@ class Suites {
         List<String> libraries = variant[1];
         for(String lib in libraries) {
           String path = _getHtmlPathForVariant(platform, lib, suite.file);
-          final combined = new List.from(suite.tags);
+          final combined = new List.from(suite.tags, growable: true);
           combined.add(platform);
           if (lib != '') {
             combined.add(lib);
