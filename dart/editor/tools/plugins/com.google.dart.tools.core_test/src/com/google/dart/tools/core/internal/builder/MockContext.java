@@ -29,6 +29,9 @@ import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -41,7 +44,7 @@ public class MockContext implements AnalysisContext {
       super(target, CHANGED, expected);
     }
 
-    protected boolean equalArgument(ArrayList<?> list1, ArrayList<?> list2) {
+    protected boolean equalArgument(List<?> list1, List<?> list2) {
       ArrayList<Object> copy = new ArrayList<Object>(list2);
       for (Object object : list1) {
         if (!copy.remove(object)) {
@@ -58,8 +61,8 @@ public class MockContext implements AnalysisContext {
       }
       ChangeSet changes = (ChangeSet) args[0];
       ChangeSet otherChanges = (ChangeSet) otherArgs[0];
-      return equalArgument(changes.getAdded(), otherChanges.getAdded())
-          && equalArgument(changes.getChanged(), otherChanges.getChanged())
+      return equalArgument(changes.getAddedWithContent(), otherChanges.getAddedWithContent())
+          && equalArgument(changes.getChangedWithContent(), otherChanges.getChangedWithContent())
           && equalArgument(changes.getRemoved(), otherChanges.getRemoved())
           && equalArgument(changes.getRemovedContainers(), otherChanges.getRemovedContainers());
     }
@@ -69,14 +72,14 @@ public class MockContext implements AnalysisContext {
       ChangeSet changes = (ChangeSet) args[0];
       writer.print(indent);
       writer.println("ChangeSet");
-      printCollection(writer, indent, "added", changes.getAdded());
-      printCollection(writer, indent, "changed", changes.getChanged());
+      printCollection(writer, indent, "added", changes.getAddedWithContent().keySet());
+      printCollection(writer, indent, "changed", changes.getChangedWithContent().keySet());
       printCollection(writer, indent, "removed", changes.getRemoved());
       printCollection(writer, indent, "removedContainers", changes.getRemovedContainers());
     }
 
     protected void printCollection(PrintStringWriter writer, String indent, String name,
-        ArrayList<?> collection) {
+        Collection<?> collection) {
       writer.print(indent);
       writer.print("    ");
       writer.print(name);
@@ -86,6 +89,17 @@ public class MockContext implements AnalysisContext {
         writer.print("        ");
         writer.println(object != null ? object.toString() : "null");
       }
+    }
+
+    private boolean equalArgument(Map<Source, String> firstMap, Map<Source, String> secondMap) {
+      ArrayList<Object> copy = new ArrayList<Object>(secondMap.keySet());
+      for (Map.Entry<Source, String> entry : firstMap.entrySet()) {
+        Source key = entry.getKey();
+        if (!copy.remove(key) || !entry.getValue().equals(secondMap.get(key))) {
+          return false;
+        }
+      }
+      return copy.isEmpty();
     }
   }
 

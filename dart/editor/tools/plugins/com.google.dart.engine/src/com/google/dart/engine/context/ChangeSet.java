@@ -17,85 +17,139 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Instances of {@code ChangeSet} indicate what sources have been added, changed, or removed.
+ * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
+ * removed.
  */
 public class ChangeSet {
-  private ArrayList<Source> added = new ArrayList<Source>();
-  private ArrayList<Source> changed = new ArrayList<Source>();
+  /**
+   * A table mapping the sources that have been added to their contents.
+   */
+  private HashMap<Source, String> added = new HashMap<Source, String>();
+
+  /**
+   * A table mapping the sources that have been changed to their contents.
+   */
+  private HashMap<Source, String> changed = new HashMap<Source, String>();
+
+  /**
+   * A list containing the sources that have been removed..
+   */
   private ArrayList<Source> removed = new ArrayList<Source>();
+
+  /**
+   * A list containing the source containers specifying additional sources that have been removed.
+   */
   private ArrayList<SourceContainer> removedContainers = new ArrayList<SourceContainer>();
 
   /**
-   * Mark the specified source as added.
+   * Initialize a newly created change set to be empty.
+   */
+  public ChangeSet() {
+    super();
+  }
+
+  /**
+   * Record that the specified source has been added and that it's content is the default contents
+   * of the source.
    * 
    * @param source the source that was added
    */
   public void added(Source source) {
+    added(source, null);
+  }
+
+  /**
+   * Record that the specified source has been added and that it has the given content. If the
+   * content is non-{@code null}, this has the effect of overriding the default contents of the
+   * source. If the contents are {@code null}, any previous the override is removed so that the
+   * default contents will be used.
+   * 
+   * @param source the source that was added
+   * @param content the content of the new source
+   */
+  public void added(Source source, String content) {
     if (source != null) {
-      added.add(source);
+      added.put(source, content);
     }
   }
 
   /**
-   * Mark the specified source as changed.
+   * Record that the specified source has been changed and that it's content is the default contents
+   * of the source.
    * 
-   * @param source the source that has changed
+   * @param source the source that was changed
    */
   public void changed(Source source) {
+    changed(source, null);
+  }
+
+  /**
+   * Record that the specified source has been changed and that it now has the given content. If the
+   * content is non-{@code null}, this has the effect of overriding the default contents of the
+   * source. If the contents are {@code null}, any previous the override is removed so that the
+   * default contents will be used.
+   * 
+   * @param source the source that was changed
+   * @param content the new content of the source
+   */
+  public void changed(Source source, String content) {
     if (source != null) {
-      changed.add(source);
+      changed.put(source, content);
     }
   }
 
   /**
-   * Return the sources that were added.
+   * Return a table mapping the sources that have been added to their contents.
    * 
-   * @return a collection of added sources (not {@code null}, contains no {@code null}s)
+   * @return a table mapping the sources that have been added to their contents
    */
-  public ArrayList<Source> getAdded() {
+  public Map<Source, String> getAddedWithContent() {
     return added;
   }
 
   /**
-   * Return the sources that were changed.
+   * Return a table mapping the sources that have been changed to their contents.
    * 
-   * @return a collection of changed sources (not {@code null}, contains no {@code null}s)
+   * @return a table mapping the sources that have been changed to their contents
    */
-  public ArrayList<Source> getChanged() {
+  public Map<Source, String> getChangedWithContent() {
     return changed;
   }
 
   /**
-   * Return the sources that were removed.
+   * Return a list containing the sources that were removed.
    * 
-   * @return a collection of removed sources (not {@code null}, contains no {@code null}s)
+   * @return a list containing the sources that were removed
    */
-  public ArrayList<Source> getRemoved() {
+  public List<Source> getRemoved() {
     return removed;
   }
 
   /**
-   * Return the source containers that were removed.
+   * Return a list containing the source containers that were removed.
    * 
-   * @return a collection of removed source containers (not {@code null}, contains no {@code null}s)
+   * @return a list containing the source containers that were removed
    */
-  public ArrayList<SourceContainer> getRemovedContainers() {
+  public List<SourceContainer> getRemovedContainers() {
     return removedContainers;
   }
 
   /**
-   * Determine if the receiver contains any changes.
+   * Return {@code true} if this change set does not contain any changes.
    * 
-   * @return {@code true} if the receiver does not contain any changes
+   * @return {@code true} if this change set does not contain any changes
    */
   public boolean isEmpty() {
     return added.isEmpty() && changed.isEmpty() && removed.isEmpty() && removedContainers.isEmpty();
   }
 
   /**
-   * Mark the specified source as having been removed.
+   * Record that the specified source has been removed.
    * 
    * @param source the source that was removed
    */
@@ -106,13 +160,13 @@ public class ChangeSet {
   }
 
   /**
-   * Mark the specified source container as having been removed.
+   * Record that the specified source container has been removed.
    * 
-   * @param sourceContainer the container that was removed
+   * @param container the source container that was removed
    */
-  public void removedContainer(SourceContainer sourceContainer) {
-    if (sourceContainer != null) {
-      removedContainers.add(sourceContainer);
+  public void removedContainer(SourceContainer container) {
+    if (container != null) {
+      removedContainers.add(container);
     }
   }
 }

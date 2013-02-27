@@ -30,13 +30,13 @@ import com.google.dart.engine.source.SourceKind;
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
  * which analysis can be performed. The context includes such information as the version of the SDK
- * being analyzed against as well as the package-root used to resolve 'package:' URI's. This
- * information is included indirectly through the {@link SourceFactory source factory}.
+ * being analyzed against as well as the package-root used to resolve 'package:' URI's. (The latter
+ * is included indirectly through the {@link SourceFactory source factory}.)
  * <p>
  * Analysis engine allows for having more than one context. This can be used, for example, to
  * perform one analysis based on the state of files on disk and a separate analysis based on the
  * state of those files in open editors. It can also be used to perform an analysis based on a
- * proposed future state, such as after a refactoring.
+ * proposed future state, such as the state after a refactoring.
  */
 public interface AnalysisContext {
   /**
@@ -44,10 +44,10 @@ public interface AnalysisContext {
    * out-of-date. The result indicates what operations need to be performed as a result of this
    * change without actually performing those operations.
    * 
-   * @param changes An object (not {@code null}) describing the changes
+   * @param changeSet a description of the changes that have occurred
    * @return a result (not {@code null}) indicating operations to be performed
    */
-  public ChangeResult changed(ChangeSet changes);
+  public ChangeResult changed(ChangeSet changeSet);
 
   /**
    * Clear any cached information that is dependent on resolution. This method should be invoked if

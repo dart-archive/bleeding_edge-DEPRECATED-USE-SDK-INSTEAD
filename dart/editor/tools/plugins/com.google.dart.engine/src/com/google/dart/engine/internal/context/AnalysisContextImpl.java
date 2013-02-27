@@ -129,19 +129,35 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public ChangeResult changed(ChangeSet changes) {
+  public ChangeResult changed(ChangeSet changeSet) {
+    if (changeSet.isEmpty()) {
+      return new ChangeResult();
+    }
     synchronized (cacheLock) {
-      // TODO (danrubel): Replace this with a real implementation
-      for (Source source : changes.getAdded()) {
+      //
+      // First, update the contents of the sources.
+      //
+      for (Map.Entry<Source, String> entry : changeSet.getAddedWithContent().entrySet()) {
+        sourceFactory.setContents(entry.getKey(), entry.getValue());
+      }
+      for (Map.Entry<Source, String> entry : changeSet.getChangedWithContent().entrySet()) {
+        sourceFactory.setContents(entry.getKey(), entry.getValue());
+      }
+      //
+      // Then determine which cached results are no longer valid and what the new structure of the
+      // sources is.
+      // TODO(brianwilkerson) The code below is incomplete.
+      //
+      for (Source source : changeSet.getAddedWithContent().keySet()) {
         sourceAvailable(source);
       }
-      for (Source source : changes.getChanged()) {
+      for (Source source : changeSet.getChangedWithContent().keySet()) {
         sourceChanged(source);
       }
-      for (Source source : changes.getRemoved()) {
+      for (Source source : changeSet.getRemoved()) {
         sourceDeleted(source);
       }
-      for (SourceContainer container : changes.getRemovedContainers()) {
+      for (SourceContainer container : changeSet.getRemovedContainers()) {
         sourcesDeleted(container);
       }
     }
