@@ -50,11 +50,6 @@ public final class Instrumentation {
   private static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
 
     @Override
-    public InstrumentationBuilder data(String name, AsyncValue valueGenerator) {
-      return this;
-    }
-
-    @Override
     public InstrumentationBuilder data(String name, long value) {
       return this;
     }
@@ -76,11 +71,6 @@ public final class Instrumentation {
 
     @Override
     public void log() {
-    }
-
-    @Override
-    public InstrumentationBuilder metric(String name, AsyncValue valueGenerator) {
-      return this;
     }
 
     @Override
@@ -110,11 +100,6 @@ public final class Instrumentation {
     private final OperationBuilder NULL_BUILDER = new OperationBuilder() {
       @Override
       public void log() {
-      }
-
-      @Override
-      public OperationBuilder with(String name, AsyncValue valueGenerator) {
-        return this;
       }
 
       @Override

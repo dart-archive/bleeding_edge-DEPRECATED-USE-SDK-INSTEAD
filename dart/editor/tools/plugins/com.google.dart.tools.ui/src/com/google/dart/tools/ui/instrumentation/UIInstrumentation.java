@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.instrumentation;
 
-import com.google.dart.engine.utilities.instrumentation.AsyncValue;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
@@ -36,12 +35,6 @@ public class UIInstrumentation {
     }
 
     @Override
-    public UIInstrumentationBuilder data(String name, AsyncValue valueGenerator) {
-      builder.data(name, valueGenerator);
-      return this;
-    }
-
-    @Override
     public UIInstrumentationBuilder data(String name, long value) {
       builder.data(name, value);
       return this;
@@ -67,12 +60,6 @@ public class UIInstrumentation {
     @Override
     public void log() {
       builder.log();
-    }
-
-    @Override
-    public UIInstrumentationBuilder metric(String name, AsyncValue valueGenerator) {
-      builder.metric(name, valueGenerator);
-      return this;
     }
 
     @Override

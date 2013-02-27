@@ -22,18 +22,6 @@ package com.google.dart.engine.utilities.instrumentation;
 public interface InstrumentationBuilder {
 
   /**
-   * Lazily compute and append the given data to the data being collected by this builder. The
-   * information is declared to potentially contain data that is either user identifiable or
-   * contains user intellectual property (but is not guaranteed to contain either).
-   * 
-   * @param name the name used to identify the data
-   * @param a function that will be executed in the background to return the value of the data to be
-   *          collected
-   * @return this builder
-   */
-  public InstrumentationBuilder data(String name, AsyncValue valueGenerator);
-
-  /**
    * Append the given data to the data being collected by this builder. The information is declared
    * to potentially contain data that is either user identifiable or contains user intellectual
    * property (but is not guaranteed to contain either).
@@ -80,18 +68,6 @@ public interface InstrumentationBuilder {
    * method is invoked is undefined.
    */
   public void log();
-
-  /**
-   * Lazily compute and append the given data to the data being collected by this builder. The
-   * information is declared to contain only metrics data (data that is not user identifiable and
-   * does not contain user intellectual property).
-   * 
-   * @param name the name used to identify the data
-   * @param a function that will be executed in the background to return the value of the data to be
-   *          collected
-   * @return this builder
-   */
-  public InstrumentationBuilder metric(String name, AsyncValue valueGenerator);
 
   /**
    * Append the given metric to the data being collected by this builder. The information is
