@@ -58,6 +58,81 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
 
+  public void test_checkFinalConditions_shadowed_byLocal_inSameClass() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "  main() {",
+        "    var newName;",
+        "    test(); // marker",
+        "  }",
+        "}");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.ERROR,
+        "Usage of renamed method will be shadowed by local variable 'newName'.",
+        findRangeIdentifier("test(); // marker"));
+  }
+
+  public void test_checkFinalConditions_shadowed_byLocal_inSubClass() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}",
+        "class B extends A {",
+        "  main() {",
+        "    var newName;",
+        "    test(); // marker",
+        "  }",
+        "}",
+        "",
+        "");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatus(
+        refactoring.checkFinalConditions(pm),
+        RefactoringStatusSeverity.ERROR,
+        "Usage of renamed method will be shadowed by local variable 'newName'.",
+        findRangeIdentifier("test(); // marker"));
+  }
+
+  public void test_checkFinalConditions_shadowed_byLocal_OK_qualifiedReference() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "  main() {",
+        "    var newName;",
+        "  }",
+        "}");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
+  }
+
+  public void test_checkFinalConditions_shadowed_byLocal_OK_renamedNotUsed() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "  main() {",
+        "    var newName;",
+        "    this.test(); // marker",
+        "  }",
+        "}");
+    createRenameRefactoring("test() {}");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
+  }
+
   public void test_checkFinalConditions_shadowed_inSubClass() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -173,116 +248,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         RefactoringStatusSeverity.FATAL,
         "Choose another name.");
   }
-
-//  public void test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() throws Exception {
-//    indexTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class Test {}",
-//        "typedef NewName(); // existing");
-//    createRenameRefactoring("Test {}");
-//    // check status
-//    refactoring.setNewName("NewName");
-//    assertRefactoringStatus(
-//        refactoring.checkFinalConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Library already declares function type alias with name 'NewName'.",
-//        findRangeIdentifier("NewName(); // existing"));
-//  }
-//
-//  public void test_checkFinalConditions_shadowedBy_MethodElement() throws Exception {
-//    indexTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class Test {}",
-//        "class A {",
-//        "  NewName() {}",
-//        "  main() {",
-//        "    new Test();",
-//        "  }",
-//        "}");
-//    createRenameRefactoring("Test {}");
-//    // check status
-//    refactoring.setNewName("NewName");
-//    assertRefactoringStatus(
-//        refactoring.checkFinalConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Reference to renamed class will shadowed by method 'A.NewName'.",
-//        findRangeIdentifier("NewName() {}"));
-//  }
-//
-//  public void test_checkFinalConditions_shadows_MethodElement() throws Exception {
-//    indexTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class Test {}",
-//        "class A {",
-//        "  NewName() {}",
-//        "}",
-//        "class B extends A {",
-//        "  main() {",
-//        "    NewName(); // super-ref",
-//        "  }",
-//        "}",
-//        "",
-//        "",
-//        "");
-//    createRenameRefactoring("Test {}");
-//    // check status
-//    refactoring.setNewName("NewName");
-//    assertRefactoringStatus(
-//        refactoring.checkFinalConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Renamed class will shadow method 'A.NewName'.",
-//        findRangeIdentifier("NewName(); // super-ref"));
-//  }
-//
-//  public void test_checkInitialConditions_ClassElement() throws Exception {
-//    indexTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class Test {}");
-//    createRenameRefactoring("Test {}");
-//    // null
-//    refactoring.setNewName(null);
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Class name must not be null");
-//    // empty
-//    refactoring.setNewName("");
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Class name must not be empty");
-//    // same name
-//    refactoring.setNewName("Test");
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.FATAL,
-//        "Choose another name.");
-//  }
-//
-//  public void test_checkInitialConditions_FunctionElement() throws Exception {
-//    indexTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "test() {}");
-//    createRenameRefactoring("test() {");
-//    // null
-//    refactoring.setNewName(null);
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Function name must not be null");
-//    // empty
-//    refactoring.setNewName("");
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.ERROR,
-//        "Function name must not be empty");
-//    // same name
-//    refactoring.setNewName("test");
-//    assertRefactoringStatus(
-//        refactoring.checkInitialConditions(pm),
-//        RefactoringStatusSeverity.FATAL,
-//        "Choose another name.");
-//  }
 
   public void test_createChange_FieldElement() throws Exception {
     indexTestUnit(

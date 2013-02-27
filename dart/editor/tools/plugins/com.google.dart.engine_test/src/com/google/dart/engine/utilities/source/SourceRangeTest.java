@@ -99,6 +99,8 @@ public class SourceRangeTest extends TestCase {
 
   public void test_intersects() throws Exception {
     SourceRange r = new SourceRange(5, 3);
+    // null
+    assertFalse(r.intersects(null));
     // ends before
     assertFalse(r.intersects(new SourceRange(0, 5)));
     // begins after

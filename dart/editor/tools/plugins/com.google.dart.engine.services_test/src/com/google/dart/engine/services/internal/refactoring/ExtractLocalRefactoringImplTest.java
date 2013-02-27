@@ -58,19 +58,18 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     // create refactoring
     setSelectionString("1 + 2");
     createRefactoring();
-    // TODO(scheglov) Does not work now because no "visible range" set in resolver
-//    // conflicting name
-//    {
-//      refactoring.setLocalName("res");
-//      refactoringStatus = refactoring.checkAllConditions(pm);
-//      assert_warning_alreadyDefined();
-//    }
-//    // unique name
-//    {
-//      refactoring.setLocalName("uniqueName");
-//      refactoringStatus = refactoring.checkAllConditions(pm);
-//      assertRefactoringStatusOK(refactoringStatus);
-//    }
+    // conflicting name
+    {
+      refactoring.setLocalName("res");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assert_warning_alreadyDefined();
+    }
+    // unique name
+    {
+      refactoring.setLocalName("uniqueName");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assertRefactoringStatusOK(refactoringStatus);
+    }
   }
 
   public void test_checkInitialConditions_sameVariable_before() throws Exception {
@@ -83,19 +82,18 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     // create refactoring
     setSelectionString("1 + 2");
     createRefactoring();
-    // TODO(scheglov) Does not work now because no "visible range" set in resolver
-//    // conflicting name
-//    {
-//      refactoring.setLocalName("res");
-//      refactoringStatus = refactoring.checkAllConditions(pm);
-//      assert_warning_alreadyDefined();
-//    }
-//    // unique name
-//    {
-//      refactoring.setLocalName("uniqueName");
-//      refactoringStatus = refactoring.checkAllConditions(pm);
-//      assertRefactoringStatusOK(refactoringStatus);
-//    }
+    // conflicting name
+    {
+      refactoring.setLocalName("res");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assert_warning_alreadyDefined();
+    }
+    // unique name
+    {
+      refactoring.setLocalName("uniqueName");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assertRefactoringStatusOK(refactoringStatus);
+    }
   }
 
   public void test_checkInitialConditions_variableName_warning() throws Exception {

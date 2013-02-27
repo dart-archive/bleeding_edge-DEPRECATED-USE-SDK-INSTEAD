@@ -108,6 +108,17 @@ public class RefactoringStatusTest extends AbstractDartTest {
     assertEquals("warning-msg", refactoringStatus.getMessage());
   }
 
+  public void test_escalateErrorToFatal() throws Exception {
+    RefactoringStatus refactoringStatus = new RefactoringStatus();
+    refactoringStatus.addError("msg");
+    // status
+    assertSame(RefactoringStatusSeverity.ERROR, refactoringStatus.getSeverity());
+    // escalated
+    RefactoringStatus escalated = refactoringStatus.escalateErrorToFatal();
+    assertSame(RefactoringStatusSeverity.FATAL, escalated.getSeverity());
+    assertEquals("<FATAL\n\tFATAL: msg\n>", escalated.toString());
+  }
+
   public void test_getEntryWithHighestSeverity() throws Exception {
     RefactoringStatus refactoringStatus = new RefactoringStatus();
     // no entries

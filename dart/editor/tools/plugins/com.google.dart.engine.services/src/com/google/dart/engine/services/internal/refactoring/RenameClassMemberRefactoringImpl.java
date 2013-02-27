@@ -14,10 +14,13 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -46,10 +49,13 @@ import java.util.Set;
  */
 public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   private final Element element;
+  private ClassElement elementClass;
   private Set<ClassElement> superClasses;
   private Set<ClassElement> subClasses;
   private Set<ClassElement> hierarchyClasses;
   private Set<Element> renameElements = Sets.newHashSet();
+
+  private List<SearchMatch> renameElementsReferences = Lists.newArrayList();
 
   public RenameClassMemberRefactoringImpl(SearchEngine searchEngine, Element element) {
     super(searchEngine, element);
@@ -85,16 +91,15 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     SourceChange change = new SourceChange(getRefactoringName(), elementSource);
+    // update declaration
     for (Element renameElement : renameElements) {
-      // update declaration
       if (!renameElement.isSynthetic()) {
         change.addEdit("Update declaration", createDeclarationRenameEdit(renameElement));
       }
-      // update references
-      List<SearchMatch> references = searchEngine.searchReferences(renameElement, null, null);
-      for (SearchMatch reference : references) {
-        change.addEdit("Update reference", createReferenceRenameEdit(reference));
-      }
+    }
+    // update references
+    for (SearchMatch reference : renameElementsReferences) {
+      change.addEdit("Update reference", createReferenceRenameEdit(reference));
     }
     return change;
   }
@@ -111,7 +116,7 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {
-    pm.beginTask("Analyze possible conflicts", 3);
+    pm.beginTask("Analyze possible conflicts", 4);
     try {
       final RefactoringStatus result = new RefactoringStatus();
       // check if there are members with "newName" in the same ClassElement
@@ -128,8 +133,8 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       }
       pm.worked(1);
       // check shadowing in hierarchy
+      List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
       {
-        List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
         for (SearchMatch nameDeclaration : nameDeclarations) {
           Element member = nameDeclaration.getElement();
           Element memberDeclClass = member.getEnclosingElement();
@@ -150,6 +155,29 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
                 getElementKindName(member),
                 getElementQualifiedName(member));
             result.addError(message, RefactoringStatusContext.create(member));
+          }
+        }
+        pm.worked(1);
+      }
+      // check if shadowed by local
+      {
+        for (SearchMatch nameDeclaration : nameDeclarations) {
+          Element nameElement = nameDeclaration.getElement();
+          if (nameElement instanceof LocalElement) {
+            LocalElement localElement = (LocalElement) nameElement;
+            ClassElement enclosingClass = nameElement.getAncestor(ClassElement.class);
+            if (Objects.equal(enclosingClass, elementClass) || subClasses.contains(enclosingClass)) {
+              for (SearchMatch reference : renameElementsReferences) {
+                if (isReferenceInLocalRange(localElement, reference)) {
+                  String message = MessageFormat.format(
+                      "Usage of renamed {0} will be shadowed by {1} ''{2}''.",
+                      getElementKindName(element),
+                      getElementKindName(localElement),
+                      localElement.getName());
+                  result.addError(message, RefactoringStatusContext.create(reference));
+                }
+              }
+            }
           }
         }
         pm.worked(1);
@@ -177,12 +205,12 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       seed = ((PropertyAccessorElement) seed).getVariable();
     }
     // prepare super/sub-classes
-    ClassElement parentClass = (ClassElement) seed.getEnclosingElement();
-    superClasses = getSuperClassElements(parentClass);
-    subClasses = getSubClassElements(parentClass);
+    elementClass = (ClassElement) seed.getEnclosingElement();
+    superClasses = getSuperClassElements(elementClass);
+    subClasses = getSubClassElements(elementClass);
     // full hierarchy
     hierarchyClasses = Sets.newHashSet();
-    hierarchyClasses.add(parentClass);
+    hierarchyClasses.add(elementClass);
     hierarchyClasses.addAll(superClasses);
     hierarchyClasses.addAll(subClasses);
     // prepare elements to rename
@@ -190,6 +218,11 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     String oldName = seed.getName();
     for (ClassElement superClass : hierarchyClasses) {
       renameElements.addAll(getChildren(superClass, oldName));
+    }
+    // prepare references
+    for (Element renameElement : renameElements) {
+      List<SearchMatch> references = searchEngine.searchReferences(renameElement, null, null);
+      renameElementsReferences.addAll(references);
     }
   }
 }

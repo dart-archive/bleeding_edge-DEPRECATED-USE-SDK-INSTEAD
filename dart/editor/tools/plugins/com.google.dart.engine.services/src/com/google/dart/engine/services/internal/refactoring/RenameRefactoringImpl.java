@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
@@ -26,6 +27,7 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
 
@@ -37,8 +39,24 @@ import java.util.Set;
  * Abstract implementation of {@link RenameRefactoring}.
  */
 public abstract class RenameRefactoringImpl extends RenameRefactoring {
+  /**
+   * @return if given unqualified {@link SearchMatch} intersects with visibility range of
+   *         {@link LocalElement}.
+   */
+  protected static boolean isReferenceInLocalRange(LocalElement localElement, SearchMatch reference) {
+    if (reference.isQualified()) {
+      return false;
+    }
+    Source localSource = localElement.getSource();
+    Source referenceSource = reference.getElement().getSource();
+    SourceRange localRange = localElement.getVisibleRange();
+    SourceRange referenceRange = reference.getSourceRange();
+    return Objects.equal(referenceSource, localSource) && referenceRange.intersects(localRange);
+  }
+
   protected final SearchEngine searchEngine;
   protected final Element element;
+
   protected final Source elementSource;
 
   protected String newName;
@@ -73,29 +91,6 @@ public abstract class RenameRefactoringImpl extends RenameRefactoring {
     return newName;
   }
 
-  /**
-   * @return the {@link Set} with all direct and indirect sub {@link ClassElement}s of the given.
-   */
-  public Set<ClassElement> getSubClassElements(ClassElement seed) {
-    Set<ClassElement> subClasses = Sets.newHashSet();
-    // prepare queue
-    LinkedList<ClassElement> subClassQueue = Lists.newLinkedList();
-    subClassQueue.add(seed);
-    // process queue
-    while (!subClassQueue.isEmpty()) {
-      ClassElement subClass = subClassQueue.removeFirst();
-      if (subClasses.add(subClass)) {
-        List<SearchMatch> subMatches = searchEngine.searchSubtypes(subClass, null, null);
-        for (SearchMatch subMatch : subMatches) {
-          ClassElement subClassNew = (ClassElement) subMatch.getElement();
-          subClassQueue.addLast(subClassNew);
-        }
-      }
-    }
-    subClasses.remove(seed);
-    return subClasses;
-  }
-
   @Override
   public void setNewName(String newName) {
     this.newName = newName;
@@ -120,5 +115,28 @@ public abstract class RenameRefactoringImpl extends RenameRefactoring {
    */
   protected final Edit createReferenceRenameEdit(SearchMatch reference) {
     return new Edit(reference.getSourceRange(), newName);
+  }
+
+  /**
+   * @return the {@link Set} with all direct and indirect sub {@link ClassElement}s of the given.
+   */
+  protected Set<ClassElement> getSubClassElements(ClassElement seed) {
+    Set<ClassElement> subClasses = Sets.newHashSet();
+    // prepare queue
+    LinkedList<ClassElement> subClassQueue = Lists.newLinkedList();
+    subClassQueue.add(seed);
+    // process queue
+    while (!subClassQueue.isEmpty()) {
+      ClassElement subClass = subClassQueue.removeFirst();
+      if (subClasses.add(subClass)) {
+        List<SearchMatch> subMatches = searchEngine.searchSubtypes(subClass, null, null);
+        for (SearchMatch subMatch : subMatches) {
+          ClassElement subClassNew = (ClassElement) subMatch.getElement();
+          subClassQueue.addLast(subClassNew);
+        }
+      }
+    }
+    subClasses.remove(seed);
+    return subClasses;
   }
 }

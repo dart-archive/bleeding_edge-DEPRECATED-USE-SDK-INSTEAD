@@ -155,6 +155,50 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "Choose another name.");
   }
 
+  public void test_checkNewName_TopLevelVariableElement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var test;");
+    createRenameRefactoring("test;");
+    // null
+    assertRefactoringStatus(
+        refactoring.checkNewName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Variable name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkNewName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Variable name must not be empty.");
+    // same name
+    assertRefactoringStatus(
+        refactoring.checkNewName("test"),
+        RefactoringStatusSeverity.FATAL,
+        "Choose another name.");
+  }
+
+  public void test_checkNewName_TypeAliasElement() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "typedef Test();");
+    createRenameRefactoring("Test();");
+    // null
+    assertRefactoringStatus(
+        refactoring.checkNewName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Function type alias name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkNewName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Function type alias name must not be empty.");
+    // same name
+    assertRefactoringStatus(
+        refactoring.checkNewName("Test"),
+        RefactoringStatusSeverity.FATAL,
+        "Choose another name.");
+  }
+
   public void test_createChange_ClassElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -235,7 +279,8 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "}");
   }
 
-  public void test_createChange_PrefixElement() throws Exception {
+  // TODO(scheglov) we actually want to rename ImportElement here, not PrefixElement
+  public void test_createChange_ImportElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "import 'dart:math' as test;",
@@ -244,7 +289,6 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "}");
     // configure refactoring
     createRenameRefactoring("test.PI");
-    // TODO(scheglov) currently PrefixElement has no enclosing Element, so no refactoring
 //    assertEquals("Rename Import Prefix", refactoring.getRefactoringName());
 //    refactoring.setNewName("newName");
 //    // validate change
@@ -268,13 +312,12 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
     assertEquals("Rename Top-Level Variable", refactoring.getRefactoringName());
     refactoring.setNewName("newName");
     // validate change
-    // TODO(scheglov) top-level variable is not yet resolved correctly
-//    assertSuccessfulRename(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "int newName = 42;",
-//        "main() {",
-//        "  print(newName);",
-//        "}");
+    assertSuccessfulRename(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int newName = 42;",
+        "main() {",
+        "  print(newName);",
+        "}");
   }
 
   public void test_createChange_TypeAliasElement() throws Exception {

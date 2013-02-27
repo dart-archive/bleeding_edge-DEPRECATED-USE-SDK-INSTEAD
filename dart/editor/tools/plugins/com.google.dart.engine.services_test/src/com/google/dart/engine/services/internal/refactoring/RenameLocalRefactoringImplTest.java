@@ -14,8 +14,6 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.element.LocalVariableElement;
-import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 
 /**
@@ -30,13 +28,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  var test = 0;",
         "} // main");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -54,13 +45,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  var newName = 1;",
         "} // main");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -78,13 +62,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  var test = 0;",
         "} // main");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -104,13 +81,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  var test = 0;",
         "} // main");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
@@ -127,13 +97,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  } // main",
         "}");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -141,6 +104,22 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         RefactoringStatusSeverity.ERROR,
         "Usage of field 'A.newName' declared in '/Test.dart' will be shadowed by renamed local variable.",
         findRangeIdentifier("newName);"));
+  }
+
+  public void test_checkFinalConditions_shadows_classMemberOK_qualifiedReference() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var newName = 1;",
+        "  main() {",
+        "    var test = 0;",
+        "    print(this.newName);",
+        "  } // main",
+        "}");
+    createRenameRefactoring("test = 0");
+    // check status
+    refactoring.setNewName("newName");
+    assertRefactoringStatusOK(refactoring.checkFinalConditions(pm));
   }
 
   public void test_checkFinalConditions_shadows_topLevelFunction() throws Exception {
@@ -152,13 +131,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  newName(); // ref",
         "} // main");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -178,13 +150,6 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "  } // main",
         "}");
     createRenameRefactoring("test = 0");
-    // TODO(scheglov) remove this once resolver will set this information
-    {
-      LocalVariableElement element = findIdentifierElement("test = 0");
-      ((LocalVariableElementImpl) element).setVisibleRange(
-          findOffset("test = 0"),
-          findOffset("} // main"));
-    }
     // check status
     refactoring.setNewName("newName");
     assertRefactoringStatus(
@@ -322,5 +287,21 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
         "main() {",
         "  myFunction(newName: 2);",
         "}");
+  }
+
+  public void test_RenameRefactoringImpl_getName() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 0;",
+        "}");
+    createRenameRefactoring("test = 0");
+    // old name
+    assertEquals("test", refactoring.getCurrentName());
+    // no new name yet
+    assertEquals(null, refactoring.getNewName());
+    // new name
+    refactoring.setNewName("newName");
+    assertEquals("newName", refactoring.getNewName());
   }
 }

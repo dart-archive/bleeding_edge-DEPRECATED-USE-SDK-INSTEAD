@@ -29,7 +29,6 @@ import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
-import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
@@ -99,7 +98,6 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {
-    SourceRange elementRange = element.getVisibleRange();
     pm.beginTask("Analyze possible conflicts", 1);
     try {
       RefactoringStatus result = new RefactoringStatus();
@@ -120,8 +118,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         // shadowing referenced element
         List<SearchMatch> nameReferences = searchEngine.searchReferences(nameElement, null, null);
         for (SearchMatch nameReference : nameReferences) {
-          SourceRange referenceRange = nameReference.getSourceRange();
-          if (elementRange.intersects(referenceRange)) {
+          if (isReferenceInLocalRange(element, nameReference)) {
             String nameElementSourceName = nameElement.getSource().getFullName();
             String message = MessageFormat.format(
                 "Usage of {0} ''{1}'' declared in ''{2}'' will be shadowed by renamed {3}.",

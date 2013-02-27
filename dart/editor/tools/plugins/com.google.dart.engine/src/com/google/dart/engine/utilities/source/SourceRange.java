@@ -134,6 +134,9 @@ public final class SourceRange {
    * @return <code>true</code> if this {@link SourceRange} intersects with given.
    */
   public boolean intersects(SourceRange other) {
+    if (other == null) {
+      return false;
+    }
     if (getEnd() <= other.getOffset()) {
       return false;
     }
