@@ -112,9 +112,7 @@ public class OpenCallHierarchyAction extends InstrumentedSelectionDispatchAction
   protected void doRun(ITextSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     CompilationUnit input = SelectionConverter.getInputAsCompilationUnit(editor);
-    if (input != null) {
-      ActionInstrumentationUtilities.recordCompilationUnit(input, instrumentation);
-    }
+    instrumentation.record(input);
 
     if (!ActionUtil.isProcessable(getShell(), input)) {
       instrumentation.metric("Problem", "input cu is not processable");

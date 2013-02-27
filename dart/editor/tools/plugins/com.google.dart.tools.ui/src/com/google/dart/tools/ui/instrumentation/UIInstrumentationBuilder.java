@@ -2,6 +2,7 @@ package com.google.dart.tools.ui.instrumentation;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
@@ -17,11 +18,26 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 public interface UIInstrumentationBuilder extends InstrumentationBuilder {
 
   /**
-   * Append information about the exception.
+   * Append information about the compilation unit.
    * 
-   * @param exception the exception (may be {@code null})
+   * @param cu the compilation unit (may be {@code null})
    */
-  void record(Throwable exception);
+  void record(CompilationUnit cu);
+
+  /**
+   * Append information about the compilation units.
+   * 
+   * @param cus the compilation units (may be {@code null})
+   */
+  void record(CompilationUnit[] cus);
+
+  /**
+   * Append information about the compilation units.
+   * 
+   * @param cus the compilation units (may be {@code null})
+   * @param collectionName the name of the collection of compilation units (may be {@code null})
+   */
+  void record(CompilationUnit[] cus, String collectionName);
 
   /**
    * Append information about the selection.
@@ -50,4 +66,11 @@ public interface UIInstrumentationBuilder extends InstrumentationBuilder {
    * @param selection the selection (may be {@code null})
    */
   void record(ITextSelection selection);
+
+  /**
+   * Append information about the exception.
+   * 
+   * @param exception the exception (may be {@code null})
+   */
+  void record(Throwable exception);
 }

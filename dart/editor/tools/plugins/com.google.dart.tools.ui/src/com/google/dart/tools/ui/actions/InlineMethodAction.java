@@ -56,9 +56,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
       Method method = (Method) selection.getFirstElement();
       SourceRange nameRange = method.getNameRange();
       instrumentation.data("MethodsName", method.getElementName());
-      ActionInstrumentationUtilities.recordCompilationUnit(
-          method.getCompilationUnit(),
-          instrumentation);
+      instrumentation.record(method.getCompilationUnit());
 
       run(nameRange.getOffset(), nameRange.getLength(), method.getCompilationUnit());
     } catch (DartModelException e) {
@@ -87,7 +85,7 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
       return;
     }
 
-    ActionInstrumentationUtilities.recordCompilationUnit(unit, instrumentation);
+    instrumentation.record(unit);
     run(selection.getOffset(), selection.getLength(), unit);
   }
 
@@ -128,7 +126,11 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
     if (!ActionUtil.isEditable(fEditor, getShell(), unit)) {
       return;
     }
-    if (!RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(unit, offset, length, getShell())) {
+    if (!RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(
+        unit,
+        offset,
+        length,
+        getShell())) {
       MessageDialog.openInformation(
           getShell(),
           RefactoringMessages.InlineMethodAction_dialog_title,

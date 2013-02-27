@@ -81,7 +81,7 @@ public class InlineAction extends InstrumentedSelectionDispatchAction {
 
     // TODO(scheglov)
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
-    ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    instrumentation.record(cu);
     if (fInlineTemp.isEnabled() && fInlineTemp.tryInlineTemp(cu, null, selection, getShell())) {
       return;
     }

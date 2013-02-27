@@ -22,7 +22,6 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionSta
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
@@ -105,9 +104,7 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 
     instrumentation.metric("CompilationUnits-Count", cus.length);
     //before
-    for (CompilationUnit cu : cus) {
-      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
-    }
+    instrumentation.record(cus, "Before");
 
     if (cus.length == 0) {
       instrumentation.metric("Problem", "No compilation Units");
@@ -123,20 +120,18 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
 
     //Add marker to make back-end processing of before and after easier
     instrumentation.metric("CleanUp", "Complete");
-    for (CompilationUnit cu : cus) {
-      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
-    }
-
+    instrumentation.record(cus, "After");
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     CompilationUnit cu = getCompilationUnit(editor);
     if (cu != null) {
-      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+      instrumentation.record(cu);
       run(cu, instrumentation);
       instrumentation.metric("CleanUp", "Complete");
-      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+      instrumentation.record(cu);
     } else {
       instrumentation.metric("Problem", "CompilationUnit was null");
     }

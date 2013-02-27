@@ -69,7 +69,7 @@ public class ConvertMethodToGetterAction extends InstrumentedSelectionDispatchAc
     }
 
     CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
-    ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
+    instrumentation.record(cu);
 
     try {
       DartFunction function = DartModelUtil.findFunction(cu, selection.getOffset());
@@ -84,7 +84,7 @@ public class ConvertMethodToGetterAction extends InstrumentedSelectionDispatchAc
           "RefactoringExecutionStarter.startConvertGetterToMethodRefactoring False");
 
     } catch (Throwable e) {
-      ActionInstrumentationUtilities.recordException(e, instrumentation);
+      instrumentation.record(e);
     }
 
     instrumentation.metric("Problem", "No valid selection, showing dialog");

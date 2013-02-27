@@ -167,7 +167,7 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
     CompilationUnit compilationUnit = (CompilationUnit) EditorUtility.getEditorInputDartElement(
         editor,
         false);
-    ActionInstrumentationUtilities.recordCompilationUnit(compilationUnit, instrumentation);
+    instrumentation.record(compilationUnit);
     int offset = selection.getOffset();
     DartElementLocator elementLocator = new DartElementLocator(compilationUnit, offset, true);
     DartElement dartElement = elementLocator.searchWithin(ast);

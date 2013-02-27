@@ -130,6 +130,8 @@ public class UIInstrumentation {
         return;
       }
 
+      metric("CompilationUnits-Length", cus.length);
+
       for (CompilationUnit cu : cus) {
         record(cu);
       }

@@ -144,10 +144,7 @@ public class FormatAllAction extends InstrumentedSelectionDispatchAction {
 
     CompilationUnit[] cus = getCompilationUnits(selection);
 
-    instrumentation.metric("CompilationUnitCount", cus.length);
-    for (CompilationUnit cu : cus) {
-      ActionInstrumentationUtilities.recordCompilationUnit(cu, instrumentation);
-    }
+    instrumentation.record(cus);
 
     if (cus.length == 0) {
       instrumentation.metric("Problem", "Empty, showing dialog");
