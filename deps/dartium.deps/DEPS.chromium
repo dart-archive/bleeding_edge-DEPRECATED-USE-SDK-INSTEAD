@@ -8,38 +8,42 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "142426",
+  "webkit_revision": "143980",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "10738",
+  "nacl_revision": "10867",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "278",
+  "libjingle_revision": "284",
   "libphonenumber_revision": "456",
   "libvpx_revision": "180104",
   "lss_revision": "17",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "180199",
-  "ffmpeg_hash": "5ef9ec1c09371f72efecddfc4ba0be0a50870040",
+  "ffmpeg_revision": "182844",
+  "ffmpeg_hash": "bb82a38d45e65c1fba378c15180b98ad76ebe1ca",
 
   "sfntly_revision": "134",
-  "skia_revision": "7694",
+  "skia_revision": "7840",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "13634",
+  "v8_revision": "13719",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
   "webrtc_revision": "3501",
   "jsoncpp_revision": "248",
-  "nss_revision": "181529",
+  "nss_revision": "182578",
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling swarm_client
+  # and whatever else without interference from each other.
+  "swarm_revision": "184106",
 }
 
 deps = {
@@ -62,7 +66,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1825",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1827",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@204",
@@ -75,7 +79,7 @@ deps = {
     "/trunk/deps/third_party/WebKit@76115",
 
   "src/third_party/icu":
-    "/trunk/deps/third_party/icu46@180531",
+    "/trunk/deps/third_party/icu46@182486",
 
   "src/third_party/libexif/sources":
     "/trunk/deps/third_party/libexif/sources@146817",
@@ -100,13 +104,13 @@ deps = {
     (Var("googlecode_url") % "snappy") + "/trunk@63",
 
   "src/tools/grit":
-    (Var("googlecode_url") % "grit-i18n") + "/trunk@107",
+    (Var("googlecode_url") % "grit-i18n") + "/trunk@114",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1569",
+    (Var("googlecode_url") % "gyp") + "/trunk@1583",
 
   "src/tools/swarm_client":
-    "/trunk/tools/swarm_client@181665",
+    "/trunk/tools/swarm_client@" + Var("swarm_revision"),
 
   "src/v8":
     (Var("googlecode_url") % "v8") + "/trunk@" + Var("v8_revision"),
@@ -314,7 +318,7 @@ deps = {
     "/trunk/deps/third_party/undoview@119694",
 
   "src/tools/deps2git":
-    "/trunk/tools/deps2git@179157",
+    "/trunk/tools/deps2git@181098",
 
   "src/third_party/webpagereplay":
     (Var("googlecode_url") % "web-page-replay") + "/trunk@506",
@@ -536,7 +540,7 @@ deps_os = {
     # Used on Linux only. CrOS already has a copy.
     "src/third_party/mtpd/source":
       Var("chromiumos_git") + "/platform/mtpd.git" +
-      "@7313deef1bb6e4188bd1714acb6fc4c2be835be1",
+      "@f4fbb705327109a64f4e9118e2ee029879aab427",
 
     # Used on Linux only. CrOS already has a copy.
     "src/third_party/cros_dbus_cplusplus/source":
@@ -546,7 +550,12 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@f1fccbe00f2e161da74ccb2776ab9d961b15259d",
+      "@08f3bd35fad8441eed73aae86fea5102f3739187",
+
+    # Note that this is different from Android's freetype repo.
+    "src/third_party/freetype2/src":
+      Var("chromium_git") + "/chromium/src/third_party/freetype2.git" +
+      "@d699c2994ecc178c4ed05ac2086061b2034c2178",
   },
   "android": {
     "src/third_party/android_tools":
