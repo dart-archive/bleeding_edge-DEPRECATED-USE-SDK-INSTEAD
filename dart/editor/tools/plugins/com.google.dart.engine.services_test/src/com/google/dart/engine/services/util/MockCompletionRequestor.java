@@ -13,9 +13,9 @@
  */
 package com.google.dart.engine.services.util;
 
-import com.google.dart.engine.services.completion.CompletionTests;
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.CompletionRequestor;
+import com.google.dart.engine.services.completion.CompletionTests;
 
 import static junit.framework.Assert.fail;
 
@@ -37,18 +37,18 @@ public class MockCompletionRequestor implements CompletionRequestor {
   /**
    * Assert that the receiver does NOT contain the specified suggestion
    */
-  public void assertNotSuggested(String suggestion) {
+  public void assertNotSuggested(String suggestion, char testId) {
     if (suggestions.contains(suggestion)) {
-      CompletionTests.fail("Invalid suggestion: " + suggestion);
+      CompletionTests.fail("Test " + testId + " invalid suggestion: " + suggestion);
     }
   }
 
   /**
    * Assert that the receiver contains the specified suggestion
    */
-  public void assertSuggested(String suggestion) {
+  public void assertSuggested(String suggestion, char testId) {
     if (!suggestions.contains(suggestion)) {
-      CompletionTests.fail("Expected suggestion: " + suggestion);
+      CompletionTests.fail("Test " + testId + " expected suggestion: " + suggestion);
     }
   }
 

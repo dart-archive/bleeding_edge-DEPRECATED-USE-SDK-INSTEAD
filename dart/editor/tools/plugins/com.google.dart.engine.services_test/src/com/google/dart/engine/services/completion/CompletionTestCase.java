@@ -69,10 +69,10 @@ public class CompletionTestCase extends ResolverTestCase {
             requestor.validate());
       }
       for (String result : test.positiveResults) {
-        requestor.assertSuggested(result);
+        requestor.assertSuggested(result, test.id);
       }
       for (String result : test.negativeResults) {
-        requestor.assertNotSuggested(result);
+        requestor.assertNotSuggested(result, test.id);
       }
     }
   }
