@@ -27,6 +27,7 @@ public class PubYamlObject {
   public List<String> authors;
   public String description;
   public String homepage;
+  public String documentation;
   public Map<String, Object> environment;
   public Map<String, Object> dependencies;
 

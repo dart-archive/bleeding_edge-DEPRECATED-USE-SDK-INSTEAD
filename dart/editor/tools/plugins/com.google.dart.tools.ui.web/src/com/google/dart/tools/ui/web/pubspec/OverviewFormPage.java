@@ -84,6 +84,8 @@ public class OverviewFormPage extends FormPage implements IModelListener {
   private boolean ignoreModify = false;
   private Text sdkVersionText;
 
+  private Text documentationText;
+
   public OverviewFormPage(FormEditor editor) {
     super(editor, "overview", "Overview");
     block = new DependenciesMasterBlock(this);
@@ -357,6 +359,18 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       }
     });
 
+    Label documentationLabel = toolkit.createLabel(client, "Documentation: ");
+    documentationLabel.setToolTipText("URL for the site that hosts documentation separate from the main homepage for this package.");
+    documentationText = toolkit.createText(client, "", SWT.SINGLE);
+    documentationText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+    documentationText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        model.setDocumentation(documentationText.getText().trim());
+        setTextDirty();
+      }
+    });
+
     Label sdkVersionLabel = toolkit.createLabel(client, "SDK version:");
     sdkVersionLabel.setToolTipText("Set SDK version contraints for this package");
     sdkVersionText = toolkit.createText(client, "", SWT.SINGLE);
@@ -407,6 +421,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
       homepageText.setText(model.getHomepage());
       authorText.setText(model.getAuthor());
       sdkVersionText.setText(model.getSdkVersion());
+      documentationText.setText(model.getDocumentation());
     }
     if (ignoreModify) {
       ignoreModify = false;

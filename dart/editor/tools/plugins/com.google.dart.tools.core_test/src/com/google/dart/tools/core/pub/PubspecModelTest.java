@@ -40,6 +40,8 @@ public class PubspecModelTest extends TestCase {
     assertNotNull(pubspecModel.getHomepage());
     assertNotNull(pubspecModel.getVersion());
     assertNotNull(pubspecModel.getDependecies());
+    assertNotNull(pubspecModel.getDocumentation());
+    assertNotNull(pubspecModel.getHomepage());
   }
 
   // Assert that there is no info lost in getContents conversion to yaml 
@@ -51,6 +53,8 @@ public class PubspecModelTest extends TestCase {
     assertEquals(pubspecModel2.getDescription(), pubspecModel1.getDescription());
     assertEquals(pubspecModel2.getVersion(), pubspecModel1.getVersion());
     assertEquals(pubspecModel2.getAuthor(), pubspecModel1.getAuthor());
+    assertEquals(pubspecModel2.getHomepage(), pubspecModel1.getHomepage());
+    assertEquals(pubspecModel2.getDocumentation(), pubspecModel1.getDocumentation());
     List<Object> list1 = Arrays.asList(pubspecModel1.getDependecies());
     List<Object> list2 = Arrays.asList(pubspecModel2.getDependecies());
     assertEquals(list1.size(), list2.size());
@@ -65,6 +69,8 @@ public class PubspecModelTest extends TestCase {
     assertEquals("an easy way to build web apps in Dart", pubspecModel.getDescription());
     assertEquals("0.0.1", pubspecModel.getVersion());
     assertEquals("dart team", pubspecModel.getAuthor());
+    assertEquals("http://pub.dartlang.org", pubspecModel.getHomepage());
+    assertEquals("http://www.dartlang.org", pubspecModel.getDocumentation());
     assertEquals(7, pubspecModel.getDependecies().length);
     assertEquals("", pubspecModel.getSdkVersion());
   }

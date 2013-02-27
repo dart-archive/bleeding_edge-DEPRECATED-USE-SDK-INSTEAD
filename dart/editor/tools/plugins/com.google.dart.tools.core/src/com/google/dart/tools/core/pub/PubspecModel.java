@@ -40,6 +40,7 @@ public class PubspecModel {
   private String author;
   private String homepage;
   private String sdkVersion;
+  private String documentation;
 
   private ArrayList<DependencyObject> dependencies;
 
@@ -92,6 +93,10 @@ public class PubspecModel {
 
   public String getDescription() {
     return description;
+  }
+
+  public String getDocumentation() {
+    return documentation;
   }
 
   public String getHomepage() {
@@ -151,6 +156,10 @@ public class PubspecModel {
     this.isDirty = isDirty;
   }
 
+  public void setDocumentation(String documentation) {
+    this.documentation = documentation;
+  }
+
   public void setHomepage(String homepage) {
     this.homepage = homepage;
   }
@@ -169,7 +178,7 @@ public class PubspecModel {
 
   private void clearModelFields() {
     isDirty = false;
-    name = version = description = homepage = author = sdkVersion = comments = EMPTY_STRING;
+    name = version = description = homepage = author = sdkVersion = comments = documentation = EMPTY_STRING;
     dependencies.clear();
   }
 
@@ -195,6 +204,9 @@ public class PubspecModel {
     }
     if (!homepage.isEmpty()) {
       pubYamlObject.homepage = homepage;
+    }
+    if (!documentation.isEmpty()) {
+      pubYamlObject.documentation = documentation;
     }
     if (!sdkVersion.isEmpty()) {
       Map<String, Object> map = new HashMap<String, Object>();
@@ -317,6 +329,8 @@ public class PubspecModel {
         ? pubspecMap.get(PubspecConstants.DESCRIPTION) : EMPTY_STRING);
     homepage = (String) ((pubspecMap.get(PubspecConstants.HOMEPAGE) != null)
         ? pubspecMap.get(PubspecConstants.HOMEPAGE) : EMPTY_STRING);
+    documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
+        ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
     add(
         processDependencies((Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES)),
         IModelListener.REFRESH);
