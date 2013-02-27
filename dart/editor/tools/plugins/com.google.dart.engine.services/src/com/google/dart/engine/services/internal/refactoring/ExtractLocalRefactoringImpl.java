@@ -72,7 +72,7 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
   private String stringLiteralPart;
 
   private String localName;
-  private boolean replaceAllOccurrences;
+  private boolean replaceAllOccurrences = true;
 
   private Set<String> excludedVariableNames;
   private String[] guessedNames;
@@ -87,12 +87,7 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
 
   @Override
   public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
-    return new RefactoringStatus();
-  }
-
-  @Override
-  public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
-    pm.beginTask("Checking final conditions", 2);
+    pm.beginTask("Checking final conditions", 1);
     try {
       RefactoringStatus result = new RefactoringStatus();
       // name
@@ -102,6 +97,18 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
             "A variable with name ''{0}'' is already defined in the visible scope.",
             localName));
       }
+      // done
+      return result;
+    } finally {
+      pm.done();
+    }
+  }
+
+  @Override
+  public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    pm.beginTask("Checking initial conditions", 2);
+    try {
+      RefactoringStatus result = new RefactoringStatus();
       // selection
       result.merge(checkSelection());
       pm.worked(1);
@@ -110,6 +117,11 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
     } finally {
       pm.done();
     }
+  }
+
+  @Override
+  public RefactoringStatus checkLocalName(String newName) {
+    return NamingConventions.validateVariableName(newName);
   }
 
   @Override
@@ -173,6 +185,11 @@ public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
       }
     }
     return guessedNames;
+  }
+
+  @Override
+  public boolean replaceAllOccurrences() {
+    return replaceAllOccurrences;
   }
 
   @Override

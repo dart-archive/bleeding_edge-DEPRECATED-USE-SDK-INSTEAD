@@ -68,7 +68,7 @@ import java.util.Set;
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class ExtractLocalRefactoring extends Refactoring {
+public class ExtractLocalRefactoring_OLD extends Refactoring implements ExtractLocalRefactoring_I {
   private static final String TOKEN_SEPARATOR = "\uFFFF";
 
   private final CompilationUnit unit;
@@ -90,7 +90,7 @@ public class ExtractLocalRefactoring extends Refactoring {
   private Set<String> excludedVariableNames;
   private boolean replaceAllOccurrences;
 
-  public ExtractLocalRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
+  public ExtractLocalRefactoring_OLD(CompilationUnit unit, int selectionStart, int selectionLength) {
     Assert.isTrue(selectionStart >= 0);
     Assert.isTrue(selectionLength >= 0);
     this.unit = unit;
@@ -136,6 +136,7 @@ public class ExtractLocalRefactoring extends Refactoring {
     }
   }
 
+  @Override
   public RefactoringStatus checkLocalName(String newName) {
     RefactoringStatus status = Checks.checkVariableName(newName);
     if (getExcludedVariableNames().contains(newName)) {
@@ -223,6 +224,7 @@ public class ExtractLocalRefactoring extends Refactoring {
    * @return proposed variable names (may be empty, but not null). The first proposal should be used
    *         as "best guess" (if it exists).
    */
+  @Override
   public String[] guessNames() {
     if (guessedNames == null) {
       Set<String> excluded = getExcludedVariableNames();
@@ -240,6 +242,7 @@ public class ExtractLocalRefactoring extends Refactoring {
     return guessedNames;
   }
 
+  @Override
   public boolean replaceAllOccurrences() {
     return replaceAllOccurrences;
   }
@@ -247,10 +250,12 @@ public class ExtractLocalRefactoring extends Refactoring {
   /**
    * Sets the name for new local variable.
    */
+  @Override
   public void setLocalName(String newName) {
     localName = newName;
   }
 
+  @Override
   public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
     this.replaceAllOccurrences = replaceAllOccurrences;
   }

@@ -32,6 +32,71 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   private boolean replaceAllOccurences = true;
   private RefactoringStatus refactoringStatus;
 
+  public void test_checkFinalConditions_sameVariable_after() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "  var res;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    createRefactoring();
+    // conflicting name
+    {
+      refactoring.setLocalName("res");
+      refactoringStatus = refactoring.checkFinalConditions(pm);
+      assert_warning_alreadyDefined();
+    }
+    // unique name
+    {
+      refactoring.setLocalName("uniqueName");
+      refactoringStatus = refactoring.checkFinalConditions(pm);
+      assertRefactoringStatusOK(refactoringStatus);
+    }
+  }
+
+  public void test_checkFinalConditions_sameVariable_before() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res;",
+        "  int a = 1 + 2;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    createRefactoring();
+    // conflicting name
+    {
+      refactoring.setLocalName("res");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assert_warning_alreadyDefined();
+    }
+    // unique name
+    {
+      refactoring.setLocalName("uniqueName");
+      refactoringStatus = refactoring.checkAllConditions(pm);
+      assertRefactoringStatusOK(refactoringStatus);
+    }
+  }
+
+  public void test_checkFinalConditions_variableName_warning() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int a = 1 + 2;",
+        "}");
+    // create refactoring
+    setSelectionString("1 + 2");
+    localName = "Res";
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.WARNING,
+        "Variable name should start with a lowercase letter.");
+  }
+
   public void test_checkInitialConditions_notPartOfFunction() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -48,55 +113,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "Expression inside of function must be selected to activate this refactoring.");
   }
 
-  public void test_checkInitialConditions_sameVariable_after() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  int a = 1 + 2;",
-        "  var res;",
-        "}");
-    // create refactoring
-    setSelectionString("1 + 2");
-    createRefactoring();
-    // conflicting name
-    {
-      refactoring.setLocalName("res");
-      refactoringStatus = refactoring.checkAllConditions(pm);
-      assert_warning_alreadyDefined();
-    }
-    // unique name
-    {
-      refactoring.setLocalName("uniqueName");
-      refactoringStatus = refactoring.checkAllConditions(pm);
-      assertRefactoringStatusOK(refactoringStatus);
-    }
-  }
-
-  public void test_checkInitialConditions_sameVariable_before() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var res;",
-        "  int a = 1 + 2;",
-        "}");
-    // create refactoring
-    setSelectionString("1 + 2");
-    createRefactoring();
-    // conflicting name
-    {
-      refactoring.setLocalName("res");
-      refactoringStatus = refactoring.checkAllConditions(pm);
-      assert_warning_alreadyDefined();
-    }
-    // unique name
-    {
-      refactoring.setLocalName("uniqueName");
-      refactoringStatus = refactoring.checkAllConditions(pm);
-      assertRefactoringStatusOK(refactoringStatus);
-    }
-  }
-
-  public void test_checkInitialConditions_variableName_warning() throws Exception {
+  public void test_checkLocalName() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -104,13 +121,24 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
         "}");
     // create refactoring
     setSelectionString("1 + 2");
-    localName = "Res";
     createRefactoring();
-    // check conditions
+    // null
     assertRefactoringStatus(
-        refactoringStatus,
+        refactoring.checkLocalName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Variable name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkLocalName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Variable name must not be empty.");
+    // warning
+    assertRefactoringStatus(
+        refactoring.checkLocalName("Res"),
         RefactoringStatusSeverity.WARNING,
         "Variable name should start with a lowercase letter.");
+    // OK
+    assertRefactoringStatusOK(refactoring.checkLocalName("res"));
   }
 
   public void test_fragmentExpression_leadingNotWhitespace() throws Exception {
@@ -661,7 +689,10 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     refactoring = new ExtractLocalRefactoringImpl(context);
     refactoring.setLocalName(localName);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
+    // prepare status
     refactoringStatus = refactoring.checkAllConditions(pm);
+    // just to get coverage
+    assertEquals(replaceAllOccurences, refactoring.replaceAllOccurrences());
   }
 
   /**

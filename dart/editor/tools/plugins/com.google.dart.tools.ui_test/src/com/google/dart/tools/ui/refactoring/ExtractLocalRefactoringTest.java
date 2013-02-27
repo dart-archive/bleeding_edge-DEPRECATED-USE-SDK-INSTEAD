@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.compiler.ast.DartBinaryExpression;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring_OLD;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,7 +28,7 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * Test for {@link ExtractLocalRefactoring}.
+ * Test for {@link ExtractLocalRefactoring_OLD}.
  */
 public final class ExtractLocalRefactoringTest extends RefactoringTest {
   private static final IProgressMonitor pm = new NullProgressMonitor();
@@ -36,7 +36,7 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
   private int selectionStart;
   private int selectionEnd;
   private boolean replaceAllOccurences = true;
-  private ExtractLocalRefactoring refactoring;
+  private ExtractLocalRefactoring_OLD refactoring;
   private RefactoringStatus refactoringStatus;
 
   public void test_access() throws Exception {
@@ -606,7 +606,7 @@ public final class ExtractLocalRefactoringTest extends RefactoringTest {
    */
   private void createRefactoring(String name) throws Exception {
     int selectionLength = selectionEnd - selectionStart;
-    refactoring = new ExtractLocalRefactoring(testUnit, selectionStart, selectionLength);
+    refactoring = new ExtractLocalRefactoring_OLD(testUnit, selectionStart, selectionLength);
     refactoring.setLocalName(name);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     refactoringStatus = refactoring.checkAllConditions(pm);

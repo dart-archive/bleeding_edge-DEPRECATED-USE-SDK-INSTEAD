@@ -15,16 +15,27 @@
 package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.services.status.RefactoringStatus;
 
 /**
  * {@link Refactoring} to extract {@link Expression} into separate local variable declaration.
  */
 public abstract class ExtractLocalRefactoring extends Refactoring {
   /**
+   * Validates the name for new local variable.
+   */
+  public abstract RefactoringStatus checkLocalName(String newName);
+
+  /**
    * @return proposed variable names (may be empty, but not null). The first proposal should be used
    *         as "best guess" (if it exists).
    */
   public abstract String[] guessNames();
+
+  /**
+   * @return <code>true</code> if all occurrences of the selected expression should be replaced.
+   */
+  public abstract boolean replaceAllOccurrences();
 
   /**
    * Sets the name for new local variable.
