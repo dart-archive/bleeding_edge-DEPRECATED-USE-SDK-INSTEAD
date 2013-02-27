@@ -123,6 +123,7 @@
                     <jvmarg value="-Xmx1024m" />
                     <jvmarg value="-XX:MaxPermSize=256m" />
                     <jvmarg value="-ea" />
+                    <jvmarg value="-Dcom.google.dart.sdk=${build.target}/eclipse/dart-sdk" />
                     <jvmarg value="-Dbuild.extra.artifacts=${build.extra.artifacts}" />
                     <arg value="-consolelog" />
                     <arg value="-debug" />
@@ -281,14 +282,12 @@
         <unzip dest="${build.target}" src="${build.out}/dart-editor-${build.eclipse.os.ws}.${build.eclipse.arch}.zip">
             <patternset>
                 <include name="*/samples/**" />
-                <include name="*/libraries/**" />
                 <include name="*/dart-sdk/**" />
             </patternset>
         </unzip>
         <move todir="${build.target}/eclipse">
             <fileset dir="${build.target}/dart">
                 <include name="samples/**" />
-                <include name="libraries/**" />
                 <include name="dart-sdk/**" />
             </fileset>
         </move>
