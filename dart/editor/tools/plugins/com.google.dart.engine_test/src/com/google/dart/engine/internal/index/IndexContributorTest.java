@@ -288,47 +288,6 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
-  public void test_isAccessedBy_ParameterElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main2(var p) {",
-        "  print(p);",
-        "}");
-    // prepare elements
-    Element mainElement = getElement("main2(");
-    ParameterElement parameterElement = getElement("p) {");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        parameterElement,
-        IndexConstants.IS_ACCESSED_BY,
-        new ExpectedLocation(mainElement, getOffset("p);"), "p"));
-  }
-
-  public void test_isAccessedBy_VariableElement() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var v = 0;",
-        "  print(v);",
-        "}");
-    // prepare elements
-    Element mainElement = getElement("main(");
-    VariableElement variableElement = getElement("v = 0");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    assertRecordedRelation(
-        relations,
-        variableElement,
-        IndexConstants.IS_ACCESSED_BY,
-        new ExpectedLocation(mainElement, getOffset("v);"), "v"));
-  }
-
   public void test_isDefinedBy_ConstructorElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -554,13 +513,13 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         new ExpectedLocation(classElementC, getOffset("A; // 2"), "A"));
   }
 
-  public void test_isModifiedBy_ParameterElement() throws Exception {
+  public void test_isReadBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main2(var p) {",
-        "  p = 1;",
+        "  print(p);",
         "}");
-    // set elements
+    // prepare elements
     Element mainElement = getElement("main2(");
     ParameterElement parameterElement = getElement("p) {");
     // index
@@ -570,29 +529,70 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     assertRecordedRelation(
         relations,
         parameterElement,
-        IndexConstants.IS_MODIFIED_BY,
-        new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
+        IndexConstants.IS_READ_BY,
+        new ExpectedLocation(mainElement, getOffset("p);"), "p"));
   }
 
-  public void test_isModifiedBy_VariableElement() throws Exception {
+  public void test_isReadBy_VariableElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  var v = 0;",
-        "  v = 1;",
+        "  print(v);",
         "}");
     // prepare elements
     Element mainElement = getElement("main(");
-    VariableElement varElement = getElement("v = 0");
+    VariableElement variableElement = getElement("v = 0");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(
         relations,
-        varElement,
-        IndexConstants.IS_MODIFIED_BY,
-        new ExpectedLocation(mainElement, getOffset("v = 1;"), "v"));
+        variableElement,
+        IndexConstants.IS_READ_BY,
+        new ExpectedLocation(mainElement, getOffset("v);"), "v"));
+  }
+
+  public void test_isReadWrittenBy_ParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main2(var p) {",
+        "  p += 1;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main2(");
+    ParameterElement parameterElement = getElement("p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        parameterElement,
+        IndexConstants.IS_READ_WRITTEN_BY,
+        new ExpectedLocation(mainElement, getOffset("p += 1"), "p"));
+  }
+
+  public void test_isReadWrittenBy_VariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 0;",
+        "  v += 1;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    VariableElement variableElement = getElement("v = 0");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        variableElement,
+        IndexConstants.IS_READ_WRITTEN_BY,
+        new ExpectedLocation(mainElement, getOffset("v += 1"), "v"));
   }
 
   public void test_isReferencedBy_ClassElement() throws Exception {
@@ -1275,6 +1275,47 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         setterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
         new ExpectedLocation(mainElement, getOffset("myTopLevelVariable = 5"), "myTopLevelVariable"));
+  }
+
+  public void test_isWrittenBy_ParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main2(var p) {",
+        "  p = 1;",
+        "}");
+    // set elements
+    Element mainElement = getElement("main2(");
+    ParameterElement parameterElement = getElement("p) {");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        parameterElement,
+        IndexConstants.IS_WRITTEN_BY,
+        new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
+  }
+
+  public void test_isWrittenBy_VariableElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 0;",
+        "  v = 1;",
+        "}");
+    // prepare elements
+    Element mainElement = getElement("main(");
+    VariableElement varElement = getElement("v = 0");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        varElement,
+        IndexConstants.IS_WRITTEN_BY,
+        new ExpectedLocation(mainElement, getOffset("v = 1;"), "v"));
   }
 
   public void test_unresolvedUnit() throws Exception {

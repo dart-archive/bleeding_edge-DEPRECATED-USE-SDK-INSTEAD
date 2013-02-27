@@ -131,6 +131,11 @@ public enum MatchKind {
   VARIABLE_READ,
 
   /**
+   * A reference to a variable in which the variable's value is being both read and write.
+   */
+  VARIABLE_READ_WRITE,
+
+  /**
    * A reference to a variable in which the variables's value is being written.
    */
   VARIABLE_WRITE,

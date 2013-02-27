@@ -516,14 +516,18 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.PARAMETER);
     {
       Location location = new Location(elementA, 1, 10, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_BY, location);
     }
     {
       Location location = new Location(elementB, 2, 20, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_MODIFIED_BY, location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_WRITTEN_BY, location);
     }
     {
       Location location = new Location(elementC, 3, 30, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
+    }
+    {
+      Location location = new Location(elementD, 4, 40, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
@@ -534,7 +538,8 @@ public class SearchEngineImplTest extends EngineTestCase {
         matches,
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
         new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20),
-        new ExpectedMatch(elementC, MatchKind.NAMED_PARAMETER_REFERENCE, 3, 30));
+        new ExpectedMatch(elementC, MatchKind.VARIABLE_READ_WRITE, 3, 30),
+        new ExpectedMatch(elementD, MatchKind.NAMED_PARAMETER_REFERENCE, 4, 40));
   }
 
   public void test_searchReferences_String() throws Exception {
@@ -636,11 +641,15 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(referencedElement.getKind()).thenReturn(ElementKind.LOCAL_VARIABLE);
     {
       Location location = new Location(elementA, 1, 10, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_ACCESSED_BY, location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_BY, location);
     }
     {
       Location location = new Location(elementB, 2, 20, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_MODIFIED_BY, location);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_WRITTEN_BY, location);
+    }
+    {
+      Location location = new Location(elementC, 3, 30, null);
+      indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(VariableElement.class, referencedElement);
@@ -649,7 +658,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertMatches(
         matches,
         new ExpectedMatch(elementA, MatchKind.VARIABLE_READ, 1, 10),
-        new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20));
+        new ExpectedMatch(elementB, MatchKind.VARIABLE_WRITE, 2, 20),
+        new ExpectedMatch(elementC, MatchKind.VARIABLE_READ_WRITE, 3, 30));
   }
 
   public void test_searchSubtypes() throws Exception {

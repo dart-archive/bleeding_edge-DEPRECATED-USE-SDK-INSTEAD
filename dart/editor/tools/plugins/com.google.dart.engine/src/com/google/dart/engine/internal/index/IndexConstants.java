@@ -86,12 +86,6 @@ public interface IndexConstants {
 //  Relationship IMPLEMENTS = Relationship.getRelationship("implements");
 
   /**
-   * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * accessed at a specific location (the right operand).
-   */
-  Relationship IS_ACCESSED_BY = Relationship.getRelationship("is-accessed-by");
-
-  /**
    * The relationship used to indicate that a name (the left-operand) is defined at a specific
    * location (the right operand).
    */
@@ -116,10 +110,22 @@ public interface IndexConstants {
   Relationship IS_MIXED_IN_BY = Relationship.getRelationship("is-mixed-in-by");
 
   /**
-   * The relationship used to indicate that a field, parameter, or variable (the left-operand) is
-   * modified (assigned to) at a specific location (the right operand).
+   * The relationship used to indicate that a parameter or variable (the left-operand) is read at a
+   * specific location (the right operand).
    */
-  Relationship IS_MODIFIED_BY = Relationship.getRelationship("is-modified-by");
+  Relationship IS_READ_BY = Relationship.getRelationship("is-read-by");
+
+  /**
+   * The relationship used to indicate that a parameter or variable (the left-operand) is both read
+   * and modified at a specific location (the right operand).
+   */
+  Relationship IS_READ_WRITTEN_BY = Relationship.getRelationship("is-read-written-by");
+
+  /**
+   * The relationship used to indicate that a parameter or variable (the left-operand) is modified
+   * (assigned to) at a specific location (the right operand).
+   */
+  Relationship IS_WRITTEN_BY = Relationship.getRelationship("is-written-by");
 
 //  /**
 //   * The relationship used to indicate that a method (the left-operand) is overridden by a method at

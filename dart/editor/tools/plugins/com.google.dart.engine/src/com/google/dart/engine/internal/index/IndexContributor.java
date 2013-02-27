@@ -62,7 +62,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -459,12 +458,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       } else {
         recordRelationship(element, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
       }
-    } else if (element instanceof ParameterElement || element instanceof LocalVariableElement
-        || element instanceof TopLevelVariableElement) {
-      if (node.inGetterContext()) {
-        recordRelationship(element, IndexConstants.IS_ACCESSED_BY, location);
-      } else {
-        recordRelationship(element, IndexConstants.IS_MODIFIED_BY, location);
+    } else if (element instanceof ParameterElement || element instanceof LocalVariableElement) {
+      boolean inGetterContext = node.inGetterContext();
+      boolean inSetterContext = node.inSetterContext();
+      if (inGetterContext && inSetterContext) {
+        recordRelationship(element, IndexConstants.IS_READ_WRITTEN_BY, location);
+      } else if (inGetterContext) {
+        recordRelationship(element, IndexConstants.IS_READ_BY, location);
+      } else if (inSetterContext) {
+        recordRelationship(element, IndexConstants.IS_WRITTEN_BY, location);
       }
     }
     recordImportElementReferenceWithoutPrefix(node);

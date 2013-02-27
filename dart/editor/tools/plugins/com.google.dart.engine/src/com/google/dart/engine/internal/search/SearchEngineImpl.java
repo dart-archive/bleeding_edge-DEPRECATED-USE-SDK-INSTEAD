@@ -490,14 +490,18 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(2, listener);
+    listener = new CountingSearchListener(4, listener);
     index.getRelationships(
         parameter,
-        IndexConstants.IS_ACCESSED_BY,
+        IndexConstants.IS_READ_BY,
         newCallback(MatchKind.VARIABLE_READ, scope, listener));
     index.getRelationships(
         parameter,
-        IndexConstants.IS_MODIFIED_BY,
+        IndexConstants.IS_READ_WRITTEN_BY,
+        newCallback(MatchKind.VARIABLE_READ_WRITE, scope, listener));
+    index.getRelationships(
+        parameter,
+        IndexConstants.IS_WRITTEN_BY,
         newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
     index.getRelationships(
         parameter,
@@ -639,14 +643,18 @@ public class SearchEngineImpl implements SearchEngine {
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);
-    listener = new CountingSearchListener(2, listener);
+    listener = new CountingSearchListener(3, listener);
     index.getRelationships(
         variable,
-        IndexConstants.IS_ACCESSED_BY,
+        IndexConstants.IS_READ_BY,
         newCallback(MatchKind.VARIABLE_READ, scope, listener));
     index.getRelationships(
         variable,
-        IndexConstants.IS_MODIFIED_BY,
+        IndexConstants.IS_READ_WRITTEN_BY,
+        newCallback(MatchKind.VARIABLE_READ_WRITE, scope, listener));
+    index.getRelationships(
+        variable,
+        IndexConstants.IS_WRITTEN_BY,
         newCallback(MatchKind.VARIABLE_WRITE, scope, listener));
   }
 
