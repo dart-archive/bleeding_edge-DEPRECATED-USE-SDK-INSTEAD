@@ -625,7 +625,7 @@ class IsolatedServer {
 class Rate {
   Rate([int timeRange = 1000, int buckets = 10])
       : _timeRange = timeRange,
-        _buckets = new List.fixedLength(buckets + 1),  // Current bucket is not in the sum.
+        _buckets = new List(buckets + 1),  // Current bucket is not in the sum.
         _currentBucket = 0,
         _currentBucketTime = new DateTime.now().millisecondsSinceEpoch,
         _sum = 0 {

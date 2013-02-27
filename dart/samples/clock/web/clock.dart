@@ -34,9 +34,9 @@ class CountDownClock {
   static const double BALL_WIDTH = 19.0;
   static const double BALL_HEIGHT = 19.0;
 
-  List<ClockNumber> hours = new List<ClockNumber>.fixedLength(2);
-  List<ClockNumber> minutes = new List<ClockNumber>.fixedLength(2);
-  List<ClockNumber> seconds = new List<ClockNumber>.fixedLength(2);
+  List<ClockNumber> hours = new List<ClockNumber>(2);
+  List<ClockNumber> minutes = new List<ClockNumber>(2);
+  List<ClockNumber> seconds = new List<ClockNumber>(2);
   int displayedHour = -1;
   int displayedMinute = -1;
   int displayedSecond = -1;

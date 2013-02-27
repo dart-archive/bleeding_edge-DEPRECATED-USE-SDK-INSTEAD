@@ -22,7 +22,7 @@ class ClockNumber {
     setElementPosition(root, pos, 0.0);
 
     for (int y = 0; y < HEIGHT; ++y) {
-      imgs[y] = new List<ImageElement>.fixedLength(WIDTH);
+      imgs[y] = new List<ImageElement>(WIDTH);
     }
 
     for (int y = 0; y < HEIGHT; ++y) {

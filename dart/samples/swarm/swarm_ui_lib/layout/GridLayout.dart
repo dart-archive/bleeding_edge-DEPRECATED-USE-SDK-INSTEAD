@@ -506,7 +506,7 @@ class GridLayout extends ViewLayout {
 
     assert(start >= 0 && span >= 1);
 
-    final result = new List<GridTrack>.fixedLength(span);
+    final result = new List<GridTrack>(span);
     for (int i = 0; i < span; i++) {
       result[i] = tracks[start + i];
     }

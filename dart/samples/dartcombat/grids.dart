@@ -21,9 +21,9 @@ class Boat {
 class BoatGrid {
   List<List<Boat>> boatMap;
 
-  BoatGrid() : boatMap = new List.fixedLength(Constants.SIZE) {
+  BoatGrid() : boatMap = new List(Constants.SIZE) {
     for (int i = 0; i < Constants.SIZE; i++) {
-      boatMap[i] = new List.fixedLength(10);
+      boatMap[i] = new List(10);
     }
   }
 
@@ -61,9 +61,9 @@ class GridState {
   List<List<int>> cells;
 
   GridState()
-      : cells = new List.fixedLength(Constants.SIZE) {
+      : cells = new List(Constants.SIZE) {
     for (int i = 0; i < Constants.SIZE; i++) {
-      cells[i] = new List.fixedLength(10);
+      cells[i] = new List(10);
     }
   }
 

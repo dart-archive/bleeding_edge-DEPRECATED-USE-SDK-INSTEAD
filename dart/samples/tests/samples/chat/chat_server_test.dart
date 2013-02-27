@@ -240,9 +240,9 @@ class TestMain {
         });
 
     // Prepare the requested number of clients.
-    clientPorts = new List<SendPort>.fixedLength(clientCount);
+    clientPorts = new List<SendPort>(clientCount);
     int liveClientsCount = 0;
-    clientStatusPorts = new List<ReceivePort>.fixedLength(clientCount);
+    clientStatusPorts = new List<ReceivePort>(clientCount);
     for (int i = 0; i < clientCount; i++) {
       ReceivePort statusPort = new ReceivePort();
       statusPort.receive((var message, SendPort replyTo) {
