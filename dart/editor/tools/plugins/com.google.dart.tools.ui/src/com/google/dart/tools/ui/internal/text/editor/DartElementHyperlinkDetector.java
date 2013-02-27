@@ -19,8 +19,8 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction;
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
@@ -59,7 +59,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     }
 
     IAction openAction = textEditor.getAction("OpenEditor"); //$NON-NLS-1$
-    if (!(openAction instanceof SelectionDispatchAction)) {
+    if (!(openAction instanceof InstrumentedSelectionDispatchAction)) {
       return null;
     }
 
