@@ -406,7 +406,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       // TODO(brianwilkerson) Decide whether to resolve to the getter or the setter (or what to do
       // when both are appropriate).
     } else {
-      //TODO(brianwilkerson) Report this error (for example, found an "invocation" of a class).
+      resolver.reportError(
+          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+          methodName,
+          methodName.getName());
       return null;
     }
     if (invokedMethod == null) {

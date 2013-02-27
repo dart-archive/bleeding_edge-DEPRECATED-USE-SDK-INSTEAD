@@ -84,8 +84,10 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * <p>
    * 12.15.3 Static Invocation: It is a static type warning if the type <i>F</i> of <i>C.m</i> may
    * not be assigned to a function type.
+   * 
+   * @param nonFunctionIdentifier the name of the identifier that is not a function type
    */
-  INVOCATION_OF_NON_FUNCTION(""),
+  INVOCATION_OF_NON_FUNCTION("'%s' is not a method or function"),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type

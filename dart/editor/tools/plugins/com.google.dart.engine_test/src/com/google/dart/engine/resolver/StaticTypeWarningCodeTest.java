@@ -35,17 +35,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_invocationOfNonFunction() throws Exception { // Need more cases
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        " int x;",
-        " return x();",
-        "}"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
-    verify(source);
-  }
-
   public void fail_nonTypeAsTypeArgument() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
@@ -152,6 +141,57 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
+  }
+
+  public void test_invocationOfNonFunction_class() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " void m() {",
+        "  A();",
+        " }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction_localVariable() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        " int x;",
+        " return x();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction_ordinaryInvocation() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " int x;",
+        "}",
+        "class B {",
+        " m() {",
+        "  A.x();",
+        " }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    // A call to verify(source) fails as A.x() cannot be resolved.
+  }
+
+  public void test_invocationOfNonFunction_staticInvocation() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " static int get g => 0;",
+        " f() {",
+        "  A.g();",
+        " }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
+    // A call to verify(source) fails as g() cannot be resolved.
   }
 
   public void test_nonBoolCondition_conditional() throws Exception {

@@ -16,6 +16,21 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
+  public void fail_staticInvocation() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        " static int get g => (a,b) => 0;",
+        "}",
+        "class B {",
+        " f() {",
+        "  A.g(1,0);",
+        " }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_breakWithoutLabelInSwitch() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
