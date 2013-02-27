@@ -19,6 +19,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
@@ -95,7 +96,7 @@ public class MockContext implements AnalysisContext {
       ArrayList<Object> copy = new ArrayList<Object>(secondMap.keySet());
       for (Map.Entry<Source, String> entry : firstMap.entrySet()) {
         Source key = entry.getKey();
-        if (!copy.remove(key) || !entry.getValue().equals(secondMap.get(key))) {
+        if (!copy.remove(key) || !ObjectUtilities.equals(entry.getValue(), secondMap.get(key))) {
           return false;
         }
       }
