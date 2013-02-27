@@ -63,6 +63,18 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invalidAssignment() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  var x;",
+        "  var y;",
+        "  x = y;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_nonBoolExpression_assert_bool() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",

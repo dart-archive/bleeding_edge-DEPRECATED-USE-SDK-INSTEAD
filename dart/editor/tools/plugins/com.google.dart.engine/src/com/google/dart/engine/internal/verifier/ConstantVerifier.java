@@ -70,8 +70,10 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
-    for (Expression element : node.getElements()) {
-      validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+    if (node.getModifier() != null) {
+      for (Expression element : node.getElements()) {
+        validate(element, CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT);
+      }
     }
     return null;
   }
@@ -79,6 +81,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitMapLiteral(MapLiteral node) {
     super.visitMapLiteral(node);
+    boolean isConst = node.getModifier() != null;
     HashSet<String> keys = new HashSet<String>();
     for (MapLiteralEntry entry : node.getEntries()) {
       StringLiteral key = entry.getKey();
@@ -92,7 +95,9 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
       } else if (value != null) {
         // TODO(brianwilkerson) If this can ever happen, report this error.
       }
-      validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+      if (isConst) {
+        validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+      }
     }
     return null;
   }
