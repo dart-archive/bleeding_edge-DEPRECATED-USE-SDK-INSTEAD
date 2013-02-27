@@ -51,6 +51,11 @@ public class ActionInstrumentationUtilities {
 
   }
 
+  public static void record(Exception exception, InstrumentationBuilder instrumentation) {
+    instrumentation.metric("Problem-Class", exception.getClass().toString());
+    instrumentation.data("Problem-Exception", exception.toString());
+  }
+
   public static void record(List<DartElement> members, String collectionName,
       InstrumentationBuilder instrumentation) {
 
@@ -212,4 +217,5 @@ public class ActionInstrumentationUtilities {
     instrumentation.data("Selection-text", selection.getText());
 
   }
+
 }

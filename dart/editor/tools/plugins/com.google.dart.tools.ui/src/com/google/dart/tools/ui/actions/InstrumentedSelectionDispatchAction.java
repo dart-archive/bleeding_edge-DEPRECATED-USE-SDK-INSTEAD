@@ -1,5 +1,6 @@
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
@@ -117,6 +118,50 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
       fSite = window.getActivePage().getActivePart().getSite();
     }
     return fSite;
+  }
+
+  public void run(DartTextSelection selection) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+
+      if (selection != null) {
+        ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+      }
+
+      doRun(selection, null, instrumentation);
+      instrumentation.metric("Run", "Completed");
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    }
+
+    finally {
+      instrumentation.log();
+    }
+  }
+
+  public void run(IStructuredSelection selection) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+
+      if (selection != null) {
+        ActionInstrumentationUtilities.RecordSelection(selection, instrumentation);
+      }
+
+      doRun(selection, null, instrumentation);
+      instrumentation.metric("Run", "Completed");
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    }
+
+    finally {
+      instrumentation.log();
+    }
   }
 
   /**

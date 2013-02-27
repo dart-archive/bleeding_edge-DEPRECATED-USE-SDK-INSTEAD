@@ -13,8 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.ui.actions.SelectionDispatchAction;
+import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.actions.OpenAction;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -27,14 +31,13 @@ import org.eclipse.jface.viewers.StructuredSelection;
 public class DartElementHyperlink implements IHyperlink {
 
   private final DartElement element;
-  private final SelectionDispatchAction openAction;
+  private final InstrumentedSelectionDispatchAction openAction;
   private final IRegion region;
 
   /**
    * Creates a new Dart element hyperlink.
    */
-  public DartElementHyperlink(DartElement element, IRegion region,
-      SelectionDispatchAction openAction) {
+  public DartElementHyperlink(DartElement element, IRegion region, OpenAction openAction) {
     Assert.isNotNull(element);
     Assert.isNotNull(region);
     Assert.isNotNull(openAction);
@@ -60,6 +63,25 @@ public class DartElementHyperlink implements IHyperlink {
 
   @Override
   public void open() {
-    openAction.run(new StructuredSelection(element));
+
+    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+
+      ActionInstrumentationUtilities.recordElement(element, instrumentation);
+
+      openAction.run(new StructuredSelection(element));
+
+      instrumentation.metric("Run", "Completed");
+
+    } catch (RuntimeException e) {
+      instrumentation.metric("Exception", e.getClass().toString());
+      instrumentation.data("Exception", e.toString());
+      throw e;
+    }
+
+    finally {
+      instrumentation.log();
+    }
+
   }
 }

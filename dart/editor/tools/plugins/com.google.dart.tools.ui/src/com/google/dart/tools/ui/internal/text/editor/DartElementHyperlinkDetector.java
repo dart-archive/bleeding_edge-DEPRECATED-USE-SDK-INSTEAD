@@ -109,7 +109,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
           return new IHyperlink[] {new DartElementHyperlink(
               foundElement,
               wordRegion,
-              (SelectionDispatchAction) openAction)};
+              (OpenAction) openAction)};
         }
       }
     }

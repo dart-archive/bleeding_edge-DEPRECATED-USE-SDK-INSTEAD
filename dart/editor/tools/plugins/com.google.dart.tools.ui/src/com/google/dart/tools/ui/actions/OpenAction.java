@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -43,6 +44,7 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PartInitException;
@@ -62,7 +64,7 @@ import java.util.Iterator;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class OpenAction extends SelectionDispatchAction {
+public class OpenAction extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
 
@@ -106,6 +108,38 @@ public class OpenAction extends SelectionDispatchAction {
     return object;
   }
 
+  @Override
+  public void selectionChanged(DartTextSelection selection) {
+    if (selection instanceof DartElementSelection) {
+      DartElementSelection sel = (DartElementSelection) selection;
+      setEnabled(checkEnabled(sel));
+//      if (isEnabled()) {
+//        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
+//      }
+    } else {
+      selectionChanged((ITextSelection) selection);
+    }
+  }
+
+  @Override
+  public void selectionChanged(IStructuredSelection selection) {
+    setEnabled(checkEnabled(selection));
+  }
+
+  @Override
+  public void selectionChanged(ITextSelection selection) {
+  }
+
+  public void updateLabel() {
+    ISelection selection = fEditor.createElementSelection();
+    if (ActionUtil.isOpenDeclarationAvailable((DartElementSelection) selection)) {
+      update(selection);
+    } else {
+      setText(ActionMessages.OpenAction_declaration_label);
+      setEnabled(false);
+    }
+  }
+
   /**
    * Note: this method is for internal use only. Clients should not call this method.
    * 
@@ -113,10 +147,14 @@ public class OpenAction extends SelectionDispatchAction {
    * @param candidateRegion
    * @noreference This method is not intended to be referenced by clients.
    */
-  public void run(DartElement element, IRegion candidateRegion) {
+  protected void doOpen(DartElement element, IRegion candidateRegion,
+      InstrumentationBuilder instrumentation) {
     if (element == null) {
+      instrumentation.metric("Problem", "Element was null");
       return;
     }
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+
     IStatus status = Status.OK_STATUS;
     try {
       Object elementToOpen = getElementToOpen(element);
@@ -126,6 +164,8 @@ public class OpenAction extends SelectionDispatchAction {
         selectInEditor(part, (DartElement) elementToOpen, candidateRegion);
       }
     } catch (PartInitException exception) {
+
+      ActionInstrumentationUtilities.record(exception, instrumentation);
       String message = Messages.format(
           ActionMessages.OpenAction_error_problem_opening_editor,
           new String[] {
@@ -133,6 +173,7 @@ public class OpenAction extends SelectionDispatchAction {
               exception.getStatus().getMessage()});
       status = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
     } catch (CoreException exception) {
+      ActionInstrumentationUtilities.record(exception, instrumentation);
       String message = Messages.format(
           ActionMessages.OpenAction_error_problem_opening_editor,
           new String[] {
@@ -141,6 +182,9 @@ public class OpenAction extends SelectionDispatchAction {
       status = new Status(IStatus.ERROR, DartToolsPlugin.PLUGIN_ID, IStatus.ERROR, message, null);
       DartToolsPlugin.log(exception);
     }
+
+    instrumentation.metric("Problem", "Open status not ok, showing dialog");
+
     if (!status.isOK()) {
       ErrorDialog.openError(
           getShell(),
@@ -150,25 +194,98 @@ public class OpenAction extends SelectionDispatchAction {
     }
   }
 
-  @Override
-  public void run(IStructuredSelection selection) {
-    emitInstrumentationCommand();
-    if (!checkEnabled(selection)) {
+  /**
+   * Note: this method is for internal use only. Clients should not call this method.
+   * 
+   * @param elements the elements to process
+   * @noreference This method is not intended to be referenced by clients.
+   */
+  protected void doOpen(Object[] elements, InstrumentationBuilder instrumentation) {
+    if (elements == null) {
+      instrumentation.metric("Problem", "Element was null");
       return;
     }
-    run(selection.toArray());
+
+    instrumentation.metric("Elements-Length", elements.length);
+
+    MultiStatus status = new MultiStatus(
+        DartToolsPlugin.PLUGIN_ID,
+        IStatus.OK,
+        ActionMessages.OpenAction_multistatus_message,
+        null);
+
+    for (int i = 0; i < elements.length; i++) {
+      Object element = elements[i];
+      try {
+        element = getElementToOpen(element);
+        boolean activateOnOpen = fEditor != null ? true : OpenStrategy.activateOnOpen();
+        IEditorPart part = EditorUtility.openInEditor(element, activateOnOpen);
+        if (part != null && element instanceof DartElement) {
+          selectInEditor(part, (DartElement) element);
+        }
+      } catch (PartInitException e) {
+        ActionInstrumentationUtilities.record(e, instrumentation);
+        String message = Messages.format(
+            ActionMessages.OpenAction_error_problem_opening_editor,
+            new String[] {
+                DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
+                e.getStatus().getMessage()});
+        status.add(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.PLUGIN_ID,
+            IStatus.ERROR,
+            message,
+            null));
+      } catch (CoreException e) {
+        ActionInstrumentationUtilities.record(e, instrumentation);
+        String message = Messages.format(
+            ActionMessages.OpenAction_error_problem_opening_editor,
+            new String[] {
+                DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
+                e.getStatus().getMessage()});
+        status.add(new Status(
+            IStatus.ERROR,
+            DartToolsPlugin.PLUGIN_ID,
+            IStatus.ERROR,
+            message,
+            null));
+        DartToolsPlugin.log(e);
+      }
+    }
+    instrumentation.metric("Problem", "Open status not ok, showing dialog");
+    if (!status.isOK()) {
+      IStatus[] children = status.getChildren();
+      ErrorDialog.openError(
+          getShell(),
+          getDialogTitle(),
+          ActionMessages.OpenAction_error_message,
+          children.length == 1 ? children[0] : status);
+    }
   }
 
   @Override
-  public void run(ITextSelection selection) {
-    emitInstrumentationCommand();
+  protected void doRun(IStructuredSelection selection, Event event,
+      InstrumentationBuilder instrumentation) {
+    if (!checkEnabled(selection)) {
+      instrumentation.metric("Problem", "checkEnabled false");
+      return;
+    }
+    doOpen(selection.toArray(), instrumentation);
+  }
+
+  @Override
+  protected void doRun(ITextSelection selection, Event event, InstrumentationBuilder instrumentation) {
     if (!isProcessable()) {
+      instrumentation.metric("Problem", "Not procesible");
       return;
     }
     DartElement element = EditorUtility.getEditorInputDartElement(fEditor, false);
     if (!(element instanceof CompilationUnit)) {
+      instrumentation.metric("Problem", "element was not a compilation unit");
       return;
     }
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+
     DartElementLocator locator = new DartElementLocator(
         (CompilationUnit) element,
         selection.getOffset(),
@@ -176,6 +293,7 @@ public class OpenAction extends SelectionDispatchAction {
     DartUnit unit = fEditor.getAST();
     DartElement targetElement = unit == null ? null : locator.searchWithin(unit);
     if (targetElement == null) {
+      instrumentation.metric("Problem", "target Element was null, beeping");
       IEditorStatusLine statusLine = (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
       if (statusLine != null) {
         statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
@@ -184,7 +302,7 @@ public class OpenAction extends SelectionDispatchAction {
       return;
     }
 //    IRegion candidateRegion = locator.getCandidateRegion();
-    run(targetElement, locator.getCandidateRegion());
+    doOpen(targetElement, locator.getCandidateRegion(), instrumentation);
 //    try {
 //      DartElement[] elements = SelectionConverter.codeResolveForked(fEditor, false);
 //      elements = selectOpenableElements(elements);
@@ -223,102 +341,6 @@ public class OpenAction extends SelectionDispatchAction {
 //    } catch (InterruptedException e) {
 //      // ignore
 //    }
-  }
-
-  /**
-   * Note: this method is for internal use only. Clients should not call this method.
-   * 
-   * @param elements the elements to process
-   * @noreference This method is not intended to be referenced by clients.
-   */
-  public void run(Object[] elements) {
-    emitInstrumentationCommand();
-    if (elements == null) {
-      return;
-    }
-
-    MultiStatus status = new MultiStatus(
-        DartToolsPlugin.PLUGIN_ID,
-        IStatus.OK,
-        ActionMessages.OpenAction_multistatus_message,
-        null);
-
-    for (int i = 0; i < elements.length; i++) {
-      Object element = elements[i];
-      try {
-        element = getElementToOpen(element);
-        boolean activateOnOpen = fEditor != null ? true : OpenStrategy.activateOnOpen();
-        IEditorPart part = EditorUtility.openInEditor(element, activateOnOpen);
-        if (part != null && element instanceof DartElement) {
-          selectInEditor(part, (DartElement) element);
-        }
-      } catch (PartInitException e) {
-        String message = Messages.format(
-            ActionMessages.OpenAction_error_problem_opening_editor,
-            new String[] {
-                DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
-                e.getStatus().getMessage()});
-        status.add(new Status(
-            IStatus.ERROR,
-            DartToolsPlugin.PLUGIN_ID,
-            IStatus.ERROR,
-            message,
-            null));
-      } catch (CoreException e) {
-        String message = Messages.format(
-            ActionMessages.OpenAction_error_problem_opening_editor,
-            new String[] {
-                DartElementLabels.getTextLabel(element, DartElementLabels.ALL_DEFAULT),
-                e.getStatus().getMessage()});
-        status.add(new Status(
-            IStatus.ERROR,
-            DartToolsPlugin.PLUGIN_ID,
-            IStatus.ERROR,
-            message,
-            null));
-        DartToolsPlugin.log(e);
-      }
-    }
-    if (!status.isOK()) {
-      IStatus[] children = status.getChildren();
-      ErrorDialog.openError(
-          getShell(),
-          getDialogTitle(),
-          ActionMessages.OpenAction_error_message,
-          children.length == 1 ? children[0] : status);
-    }
-  }
-
-  @Override
-  public void selectionChanged(DartTextSelection selection) {
-    if (selection instanceof DartElementSelection) {
-      DartElementSelection sel = (DartElementSelection) selection;
-      setEnabled(checkEnabled(sel));
-//      if (isEnabled()) {
-//        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
-//      }
-    } else {
-      selectionChanged((ITextSelection) selection);
-    }
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(checkEnabled(selection));
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
-  }
-
-  public void updateLabel() {
-    ISelection selection = fEditor.createElementSelection();
-    if (ActionUtil.isOpenDeclarationAvailable((DartElementSelection) selection)) {
-      update(selection);
-    } else {
-      setText(ActionMessages.OpenAction_declaration_label);
-      setEnabled(false);
-    }
   }
 
   protected void selectInEditor(IEditorPart part, DartElement element) {
