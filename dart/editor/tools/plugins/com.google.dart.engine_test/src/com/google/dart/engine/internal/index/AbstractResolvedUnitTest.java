@@ -58,9 +58,11 @@ public class AbstractResolvedUnitTest extends EngineTestCase {
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
       // use single Source
       SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.added(SOURCE);
-      ANALYSIS_CONTEXT.changed(changeSet);
+      {
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.added(SOURCE);
+        ANALYSIS_CONTEXT.changed(changeSet);
+      }
     }
     // update source
     {

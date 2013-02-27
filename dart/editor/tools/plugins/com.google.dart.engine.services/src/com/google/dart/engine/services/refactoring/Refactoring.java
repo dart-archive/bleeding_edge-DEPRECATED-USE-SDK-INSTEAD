@@ -20,43 +20,31 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 /**
  * Abstract refactoring operation.
  */
-public abstract class Refactoring {
+public interface Refactoring {
   /**
    * Checks all conditions - {@link #checkInitialConditions(ProgressMonitor)} and
    * {@link #checkFinalConditions(ProgressMonitor)} to decide if refactoring can be performed.
    */
-  public RefactoringStatus checkAllConditions(ProgressMonitor pm) throws Exception {
-    pm.beginTask("", 2);
-    RefactoringStatus result = new RefactoringStatus();
-    result.merge(checkInitialConditions(new SubProgressMonitor(pm, 1)));
-    if (!result.hasFatalError()) {
-      if (pm.isCanceled()) {
-        throw new OperationCanceledException();
-      }
-      result.merge(checkFinalConditions(new SubProgressMonitor(pm, 1)));
-    }
-    pm.done();
-    return result;
-  }
+  RefactoringStatus checkAllConditions(ProgressMonitor pm) throws Exception;
 
   /**
    * Validates environment to check if refactoring can be performed.
    */
-  public abstract RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception;
+  RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception;
 
   /**
    * Validates arguments to check if refactoring can be performed. This check is usually quick
    * because it is used often as arguments change, may be by human.
    */
-  public abstract RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception;
+  RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception;
 
   /**
    * @return the {@link Change} to apply to perform this refactoring.
    */
-  public abstract Change createChange(ProgressMonitor pm) throws Exception;
+  Change createChange(ProgressMonitor pm) throws Exception;
 
   /**
    * @return the human readable name of this {@link Refactoring}.
    */
-  public abstract String getRefactoringName();
+  String getRefactoringName();
 }

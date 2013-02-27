@@ -38,6 +38,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
@@ -389,7 +390,7 @@ public class CorrectionUtils {
       }
     }
     // use type
-    if (expectedType != null && !isDynamicType(expectedType)) {
+    if (expectedType != null && !expectedType.isDynamic()) {
       String typeName = expectedType.getName();
       if ("int".equals(typeName)) {
         addSingleCharacterName(excluded, res, 'i');
@@ -481,13 +482,12 @@ public class CorrectionUtils {
       }
     }
     // positional argument
-    // TODO(scheglov) hopefully new resolver will provide this information
-//    if (location == DART_INVOCATION_ARGS) {
-//      if (expression.getInvocationParameterId() instanceof VariableElement) {
-//        VariableElement parameter = (VariableElement) expression.getInvocationParameterId();
-//        return parameter.getName();
-//      }
-//    }
+    {
+      ParameterElement parameter = expression.getParameterElement();
+      if (parameter != null) {
+        return parameter.getName();
+      }
+    }
     // unknown
     return null;
   }
@@ -574,15 +574,8 @@ public class CorrectionUtils {
     return result;
   }
 
-  // TODO(scheglov) replace it
-  private static boolean isDynamicType(Type type) {
-    return type != null && type.getName().equals("dynamic");
-  }
-
   private final CompilationUnit unit;
-
   private String buffer;
-
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {

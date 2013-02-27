@@ -20,30 +20,30 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 /**
  * {@link Refactoring} to extract {@link Expression} into separate local variable declaration.
  */
-public abstract class ExtractLocalRefactoring extends Refactoring {
+public interface ExtractLocalRefactoring extends Refactoring {
   /**
    * Validates the name for new local variable.
    */
-  public abstract RefactoringStatus checkLocalName(String newName);
+  RefactoringStatus checkLocalName(String newName);
 
   /**
    * @return proposed variable names (may be empty, but not null). The first proposal should be used
    *         as "best guess" (if it exists).
    */
-  public abstract String[] guessNames();
+  String[] guessNames();
 
   /**
    * @return <code>true</code> if all occurrences of the selected expression should be replaced.
    */
-  public abstract boolean replaceAllOccurrences();
+  boolean replaceAllOccurrences();
 
   /**
    * Sets the name for new local variable.
    */
-  public abstract void setLocalName(String localName);
+  void setLocalName(String localName);
 
   /**
    * Specifies if all occurrences of the selected expression should be replaced.
    */
-  public abstract void setReplaceAllOccurrences(boolean replaceAllOccurrences);
+  void setReplaceAllOccurrences(boolean replaceAllOccurrences);
 }

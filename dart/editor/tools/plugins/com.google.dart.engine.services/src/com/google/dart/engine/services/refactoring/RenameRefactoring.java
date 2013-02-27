@@ -20,24 +20,24 @@ import com.google.dart.engine.services.status.RefactoringStatus;
 /**
  * Abstract {@link Refactoring} to rename some {@link Element}.
  */
-public abstract class RenameRefactoring extends Refactoring {
+public interface RenameRefactoring extends Refactoring {
   /**
    * Validates new {@link Element} name.
    */
-  public abstract RefactoringStatus checkNewName(String newName);
+  RefactoringStatus checkNewName(String newName);
 
   /**
    * @return the current name for the {@link Element}.
    */
-  public abstract String getCurrentName();
+  String getCurrentName();
 
   /**
    * @return the new name for the {@link Element}.
    */
-  public abstract String getNewName();
+  String getNewName();
 
   /**
    * Sets the new name for the {@link Element}.
    */
-  public abstract void setNewName(String newName);
+  void setNewName(String newName);
 }

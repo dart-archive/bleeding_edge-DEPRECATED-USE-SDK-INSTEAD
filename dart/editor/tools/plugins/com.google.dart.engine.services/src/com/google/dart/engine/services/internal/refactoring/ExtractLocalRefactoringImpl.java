@@ -57,7 +57,7 @@ import java.util.Set;
 /**
  * Implementation of {@link ExtractLocalRefactoring}.
  */
-public class ExtractLocalRefactoringImpl extends ExtractLocalRefactoring {
+public class ExtractLocalRefactoringImpl extends RefactoringImpl implements ExtractLocalRefactoring {
   private static final String TOKEN_SEPARATOR = "\uFFFF";
 
   private final AssistContext context;

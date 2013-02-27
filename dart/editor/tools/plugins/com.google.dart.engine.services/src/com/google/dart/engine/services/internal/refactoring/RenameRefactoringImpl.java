@@ -38,7 +38,7 @@ import java.util.Set;
 /**
  * Abstract implementation of {@link RenameRefactoring}.
  */
-public abstract class RenameRefactoringImpl extends RenameRefactoring {
+public abstract class RenameRefactoringImpl extends RefactoringImpl implements RenameRefactoring {
   /**
    * @return if given unqualified {@link SearchMatch} intersects with visibility range of
    *         {@link LocalElement}.

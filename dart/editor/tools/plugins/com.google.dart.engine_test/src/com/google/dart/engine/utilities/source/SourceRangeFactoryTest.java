@@ -15,6 +15,7 @@ package com.google.dart.engine.utilities.source;
 
 import com.google.common.collect.ImmutableList;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import junit.framework.TestCase;
@@ -49,6 +50,14 @@ public class SourceRangeFactoryTest extends TestCase {
     when(token.getLength()).thenReturn(length);
     when(token.getEnd()).thenReturn(offset + length);
     return token;
+  }
+
+  public void test_rangeElementName() throws Exception {
+    Element element = mock(Element.class);
+    when(element.getNameOffset()).thenReturn(5);
+    when(element.getName()).thenReturn("MyClass");
+    SourceRange range = SourceRangeFactory.rangeElementName(element);
+    assertRange(range, 5, 7);
   }
 
   public void test_rangeEndEnd_NI() throws Exception {

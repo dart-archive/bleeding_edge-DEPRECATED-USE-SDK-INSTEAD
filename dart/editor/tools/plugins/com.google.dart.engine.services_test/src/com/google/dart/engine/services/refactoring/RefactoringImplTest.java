@@ -15,6 +15,7 @@
 package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+import com.google.dart.engine.services.internal.refactoring.RefactoringImpl;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusEntry;
 
@@ -27,11 +28,14 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-public class RefactoringTest extends AbstractDartTest {
+/**
+ * Test for {@link RefactoringImpl}.
+ */
+public class RefactoringImplTest extends AbstractDartTest {
   private final ProgressMonitor pm = mock(ProgressMonitor.class);
 
   public void test_checkAllConditions_checkInitial_checkFinal() throws Exception {
-    Refactoring refactoring = mock(Refactoring.class);
+    Refactoring refactoring = mock(RefactoringImpl.class);
     when(refactoring.checkAllConditions(any(ProgressMonitor.class))).thenCallRealMethod();
     // initial 
     RefactoringStatus initialStatus = new RefactoringStatus();
@@ -51,7 +55,7 @@ public class RefactoringTest extends AbstractDartTest {
   }
 
   public void test_checkAllConditions_fatalInitial() throws Exception {
-    Refactoring refactoring = mock(Refactoring.class);
+    Refactoring refactoring = mock(RefactoringImpl.class);
     when(refactoring.checkAllConditions(any(ProgressMonitor.class))).thenCallRealMethod();
     // initial 
     RefactoringStatus initialStatus = new RefactoringStatus();
@@ -65,7 +69,7 @@ public class RefactoringTest extends AbstractDartTest {
   }
 
   public void test_checkAllConditions_isCancelled() throws Exception {
-    Refactoring refactoring = mock(Refactoring.class);
+    Refactoring refactoring = mock(RefactoringImpl.class);
     when(refactoring.checkAllConditions(any(ProgressMonitor.class))).thenCallRealMethod();
     // make monitor as cancelled
     when(pm.isCanceled()).thenReturn(true);

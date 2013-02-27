@@ -598,6 +598,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getNodePrefix_FunctionExpression() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "foo(x) {}",
         "main() {",
         "  foo(() => true);",
         "}",
@@ -847,7 +848,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertSame(testUnit, utils.getUnit());
   }
 
-  // XXX
   public void test_getVariableNameSuggestions_expectedType() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1012,8 +1012,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_getVariableNameSuggestions_Node_propertyAccess() throws Exception {
-    // TODO(scheglov) there should not be error
-    verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var doc;",
@@ -1045,12 +1043,13 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getVariableNameSuggestions_Node_unqualifiedInvocation() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "getSortedNodes() {}",
         "main() {",
         "  var res = getSortedNodes();",
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("getSortedNodes()", MethodInvocation.class),
+        findTestNode("getSortedNodes();", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1069,7 +1068,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         formatLines("sortedTreeNodes", "treeNodes2", "nodes"));
   }
 
-  // XXX
   public void test_getVariableNameSuggestions_String() throws Exception {
     {
       Set<String> nameSuggestExclude = ImmutableSet.of("");

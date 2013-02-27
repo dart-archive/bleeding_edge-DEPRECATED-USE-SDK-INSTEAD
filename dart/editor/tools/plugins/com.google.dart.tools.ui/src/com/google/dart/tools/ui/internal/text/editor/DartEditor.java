@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
@@ -2108,6 +2109,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           file.getProject());
       AnalysisContext context = project.getContext(file);
       Source source = project.getSource(file);
+      // update source
+      {
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.added(source);
+        context.changed(changeSet);
+      }
+      {
+        String code = getDocumentProvider().getDocument(getEditorInput()).get();
+        ChangeSet changeSet = new ChangeSet();
+        changeSet.changed(source, code);
+        context.changed(changeSet);
+      }
+      // resolve
       LibraryElement libraryElement = context.getLibraryElement(source);
       return context.resolve(source, libraryElement);
     } catch (Throwable e) {

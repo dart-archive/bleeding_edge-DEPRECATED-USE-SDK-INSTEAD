@@ -22,7 +22,7 @@ public class TestAll {
     suite.addTestSuite(OperationCancelledExceptionTest.class);
     suite.addTestSuite(NullProgressMonitorTest.class);
     suite.addTestSuite(SubProgressMonitorTest.class);
-    suite.addTestSuite(RefactoringTest.class);
+    suite.addTestSuite(RefactoringImplTest.class);
     suite.addTestSuite(RefactoringFactoryTest.class);
     return suite;
   }
