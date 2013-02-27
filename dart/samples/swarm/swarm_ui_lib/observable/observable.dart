@@ -205,19 +205,9 @@ class ObservableList<T>
   }
 
   T removeAt(int index) {
-    int i = 0;
-    T found = null;
-    _internal = _internal.where((element) {
-      if (i++ == index) {
-        found = element;
-        return false;
-      }
-      return true;
-    }).toList();
-    if (found != null) {
-      recordListRemove(index, found);
-    }
-    return found;
+    T result = _internal.removeAt(index);
+    recordListRemove(index, result);
+    return result;
   }
 
   int indexOf(T element, [int start = 0]) {
