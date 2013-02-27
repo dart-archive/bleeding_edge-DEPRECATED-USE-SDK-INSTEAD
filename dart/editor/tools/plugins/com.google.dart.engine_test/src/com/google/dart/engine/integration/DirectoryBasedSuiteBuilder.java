@@ -19,6 +19,8 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
@@ -91,6 +93,33 @@ public abstract class DirectoryBasedSuiteBuilder {
 
   protected void addTestForFile(TestSuite suite, File file) {
     suite.addTest(new AnalysisTest(file));
+  }
+
+  protected void assertErrors(boolean errorExpected, ArrayList<AnalysisError> errorList) {
+    if (errorExpected) {
+      if (errorList.size() <= 0) {
+        Assert.fail("Expected errors, found none");
+      }
+    } else {
+      if (errorList.size() > 0) {
+        PrintStringWriter writer = new PrintStringWriter();
+        writer.print("Expected 0 errors, found ");
+        writer.print(errorList.size());
+        writer.print(":");
+        for (AnalysisError error : errorList) {
+          Source source = error.getSource();
+          int offset = error.getOffset();
+          writer.println();
+          writer.printf(
+              "  %s %s (%d..%d)",
+              source == null ? "" : source.getShortName(),
+              error.getErrorCode(),
+              offset,
+              offset + error.getLength());
+        }
+        Assert.fail(writer.toString());
+      }
+    }
   }
 
   protected abstract void testSingleFile(File sourceFile) throws Exception;

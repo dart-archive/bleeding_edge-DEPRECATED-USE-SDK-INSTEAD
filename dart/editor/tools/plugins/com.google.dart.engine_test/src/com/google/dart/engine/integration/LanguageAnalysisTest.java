@@ -229,11 +229,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     for (CompilationUnitElement part : library.getParts()) {
       addErrors(errorList, part);
     }
-    if (errorExpected) {
-      Assert.assertTrue("Expected errors, found none", errorList.size() > 0);
-    } else {
-      Assert.assertTrue("Expected 0 errors, found " + errorList.size(), errorList.size() == 0);
-    }
+    assertErrors(errorExpected, errorList);
   }
 
   private int getTestCount(String[] lines) {
