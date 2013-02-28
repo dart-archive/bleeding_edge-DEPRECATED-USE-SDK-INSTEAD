@@ -19,6 +19,7 @@ TRUNK = 'gs://dart-editor-archive-trunk'
 TESTING = 'gs://dart-editor-archive-testing'
 INTEGRATION = 'gs://dart-editor-archive-integration'
 RELEASE = 'gs://dart-editor-archive-release'
+INTERNAL = 'gs://dart-editor-archive-internal'
 
 DART_PATH = os.path.join('..', '..', '..', 'dart')
 
@@ -68,6 +69,9 @@ def _BuildOptions():
   group.add_option('--trunk',
                    help='Promote from trunk',
                    action='store_true')
+  group.add_option('--internal',
+                   help='Promote from trunk to internal',
+                   action='store_true')
   group.add_option('--integration',
                    help='Promote from integration',
                    action='store_true')
@@ -107,7 +111,7 @@ def main():
       parser.print_help()
       sys.exit(3)
     if not (options.continuous or options.integration or 
-            options.testing or options.trunk):
+            options.testing or options.trunk or options.internal):
       print 'Specify --continuous, --integration, --testing, or --trunk'
       parser.print_help()
       sys.exit(4)
@@ -147,6 +151,9 @@ def main():
   elif options.integration:
     bucket_from = INTEGRATION
     bucket_to = RELEASE
+  elif options.internal:
+    bucket_from = TRUNK
+    bucket_to = INTERNAL
 
   if command == 'cleanup':
     #if the testing flag is set remove the date from the testing bucket
