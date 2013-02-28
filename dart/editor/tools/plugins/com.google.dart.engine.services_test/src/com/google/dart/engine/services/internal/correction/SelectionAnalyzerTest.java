@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Statement;
@@ -26,6 +27,32 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 public class SelectionAnalyzerTest extends AbstractDartTest {
+
+  /**
+   * We need this NoOp subclass of {@link SelectionAnalyzer} to make its protected methods available
+   * during running tests in OSGi.
+   */
+  public static class SelectionAnalyzer extends
+      com.google.dart.engine.services.internal.correction.SelectionAnalyzer {
+    public SelectionAnalyzer(SourceRange selection) {
+      super(selection);
+    }
+
+    @Override
+    protected void handleSelectionEndsIn(ASTNode node) {
+      super.handleSelectionEndsIn(node);
+    }
+
+    @Override
+    protected void handleSelectionStartsIn(ASTNode node) {
+      super.handleSelectionStartsIn(node);
+    }
+
+    @Override
+    protected void reset() {
+      super.reset();
+    }
+  }
 
   public void test_handleSelectionEndsIn() throws Exception {
     parseTestUnit(

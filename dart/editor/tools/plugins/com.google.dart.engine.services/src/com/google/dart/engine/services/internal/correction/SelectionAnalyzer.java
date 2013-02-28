@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.services.internal.correction;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
@@ -90,33 +89,11 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * Notifies that selection ends in given {@link ASTNode}.
-   */
-  @VisibleForTesting
-  public void handleSelectionEndsIn(ASTNode node) {
-  }
-
-  /**
-   * Notifies that selection starts in given {@link ASTNode}.
-   */
-  @VisibleForTesting
-  public void handleSelectionStartsIn(ASTNode node) {
-  }
-
-  /**
    * @return <code>true</code> if there are {@link ASTNode} fully covered by the selection
    *         {@link SourceRange}.
    */
   public boolean hasSelectedNodes() {
     return selectedNodes != null && !selectedNodes.isEmpty();
-  }
-
-  /**
-   * Resets selected nodes.
-   */
-  @VisibleForTesting
-  public void reset() {
-    selectedNodes = null;
   }
 
   @Override
@@ -156,11 +133,28 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
    * Adds second or more selected {@link ASTNode}.
    */
   protected void handleNextSelectedNode(ASTNode node) {
-    // TODO(scheglov) I don't think we need this condition
-//    if (getFirstSelectedNode().getParent() == node.getParent()) {
-//      selectedNodes.add(node);
-//    }
-    selectedNodes.add(node);
+    if (getFirstSelectedNode().getParent() == node.getParent()) {
+      selectedNodes.add(node);
+    }
+  }
+
+  /**
+   * Notifies that selection ends in given {@link ASTNode}.
+   */
+  protected void handleSelectionEndsIn(ASTNode node) {
+  }
+
+  /**
+   * Notifies that selection starts in given {@link ASTNode}.
+   */
+  protected void handleSelectionStartsIn(ASTNode node) {
+  }
+
+  /**
+   * Resets selected nodes.
+   */
+  protected void reset() {
+    selectedNodes = null;
   }
 
   /**
