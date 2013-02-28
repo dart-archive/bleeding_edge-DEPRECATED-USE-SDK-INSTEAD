@@ -20,6 +20,10 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -2041,6 +2045,42 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * @return the {@link AssistContext} with resolved {@link CompilationUnit}, selection and
+   *         {@link SearchEngine}.
+   */
+  public AssistContext getAssistContext() {
+    try {
+      IFile file = getInputFile();
+      if (file == null) {
+        return null;
+      }
+      com.google.dart.tools.core.analysis.model.Project project = DartCore.getProjectManager().getProject(
+          file.getProject());
+      AnalysisContext context = project.getContext(file);
+      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+      // prepare selection
+      int selectionOffset = 0;
+      int selectionLength = 0;
+      {
+        SourceRange selectionRange = getTextSelectionRange();
+        if (selectionRange != null) {
+          selectionOffset = selectionRange.getOffset();
+          selectionLength = selectionRange.getLength();
+        }
+      }
+      // return AssistContext
+      Index index = DartCore.getProjectManager().getIndex();
+      return new AssistContext(
+          SearchEngineFactory.createSearchEngine(index),
+          unit,
+          selectionOffset,
+          selectionLength);
+    } catch (Throwable e) {
+      throw new Error(e);
+    }
+  }
+
+  /**
    * Return the AST structure corresponding to the current contents of this editor's document, or
    * <code>null</code> if the AST structure cannot be created.
    * 
@@ -2127,53 +2167,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     } catch (Throwable e) {
       throw new Error(e);
     }
-
-//    // TODO(jwren) the Element should not be computed every time, instead, after the AnalysisContext
-//    // API has been decided on, this method should get the information from a shared cache
-//    java.io.File file = null;
-//    if (getEditorInput() instanceof IFileEditorInput) {
-//      IFileEditorInput input = (IFileEditorInput) getEditorInput();
-//      if (input.getFile().getLocation() != null) {
-//        file = input.getFile().getLocation().toFile();
-//      }
-//    }
-//
-//    if (file == null) {
-//      return null;
-//    }
-//
-//    AnalysisErrorListener ael = new AnalysisErrorListener() {
-//      @Override
-//      public void onError(AnalysisError error) {
-//        // do nothing
-//      }
-//    };
-//    // Scanner
-//    Source source = new FileBasedSource(new SourceFactory(), file);
-//    StringScanner scanner = null;
-//    try {
-//      scanner = new StringScanner(source, FileUtilities.getContents(file), ael);
-//    } catch (IOException e) {
-//      e.printStackTrace();
-//    }
-//    if (scanner == null) {
-//      return null;
-//    }
-//    Token token = scanner.tokenize();
-//
-//    // Parser
-//    Parser parser = new Parser(source, ael);
-//    final com.google.dart.engine.ast.CompilationUnit unit = parser.parseCompilationUnit(token);
-//
-//    // Element Builder
-//    CompilationUnitBuilder builder = new CompilationUnitBuilder(new AnalysisContextImpl(), ael);
-//    CompilationUnitElement element = null;
-//    try {
-//      element = builder.buildCompilationUnit(source, unit);
-//    } catch (AnalysisException e) {
-//      e.printStackTrace();
-//    }
-//    return unit;
   }
 
   @Override

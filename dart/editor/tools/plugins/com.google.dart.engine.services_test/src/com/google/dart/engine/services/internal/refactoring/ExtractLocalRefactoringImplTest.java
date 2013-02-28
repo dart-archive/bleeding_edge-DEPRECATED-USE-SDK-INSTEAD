@@ -685,7 +685,11 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
    */
   private void createRefactoring() throws Exception {
     int selectionLength = selectionEnd - selectionStart;
-    AssistContext context = new AssistContext(testUnit, selectionStart, selectionLength);
+    AssistContext context = new AssistContext(
+        searchEngine,
+        testUnit,
+        selectionStart,
+        selectionLength);
     refactoring = new ExtractLocalRefactoringImpl(context);
     refactoring.setLocalName(localName);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);

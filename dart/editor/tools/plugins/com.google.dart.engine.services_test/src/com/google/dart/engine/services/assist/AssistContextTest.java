@@ -18,6 +18,7 @@ import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.parser.ParserTestCase;
+import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -31,6 +32,8 @@ public class AssistContextTest extends TestCase {
     return Joiner.on("\n").join(lines);
   }
 
+  private final SearchEngine searchEngine = mock(SearchEngine.class);
+
   public void test_access() throws Exception {
     Source source = mock(Source.class);
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
@@ -39,7 +42,12 @@ public class AssistContextTest extends TestCase {
     when(compilationUnitElement.getSource()).thenReturn(source);
     int selectionOffset = 10;
     int selectionLength = 2;
-    AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
+    AssistContext context = new AssistContext(
+        searchEngine,
+        compilationUnit,
+        selectionOffset,
+        selectionLength);
+    assertSame(searchEngine, context.getSearchEngine());
     assertSame(source, context.getSource());
     assertSame(compilationUnit, context.getCompilationUnit());
     assertEquals(10, context.getSelectionOffset());
@@ -49,7 +57,7 @@ public class AssistContextTest extends TestCase {
 
   public void test_access_noElement() throws Exception {
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    AssistContext context = new AssistContext(compilationUnit, 0, 0);
+    AssistContext context = new AssistContext(searchEngine, compilationUnit, 0, 0);
     assertSame(null, context.getSource());
   }
 
@@ -66,7 +74,11 @@ public class AssistContextTest extends TestCase {
       int selectionOffset = sourceContent.indexOf("tring ");
       int selectionEnd = sourceContent.indexOf("ng ");
       int selectionLength = selectionEnd - selectionOffset;
-      AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
+      AssistContext context = new AssistContext(
+          searchEngine,
+          compilationUnit,
+          selectionOffset,
+          selectionLength);
       assertSame(compilationUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String", context.getCoveringNode().toSource());
@@ -78,7 +90,11 @@ public class AssistContextTest extends TestCase {
       int selectionOffset = sourceContent.indexOf("tring ");
       int selectionEnd = sourceContent.indexOf(" = ''");
       int selectionLength = selectionEnd - selectionOffset;
-      AssistContext context = new AssistContext(compilationUnit, selectionOffset, selectionLength);
+      AssistContext context = new AssistContext(
+          searchEngine,
+          compilationUnit,
+          selectionOffset,
+          selectionLength);
       assertSame(compilationUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String text = ''", context.getCoveringNode().toSource());
@@ -89,7 +105,7 @@ public class AssistContextTest extends TestCase {
 
   public void test_new_SourceRange() throws Exception {
     CompilationUnit compilationUnit = mock(CompilationUnit.class);
-    AssistContext context = new AssistContext(compilationUnit, new SourceRange(10, 2));
+    AssistContext context = new AssistContext(searchEngine, compilationUnit, new SourceRange(10, 2));
     assertSame(compilationUnit, context.getCompilationUnit());
     assertEquals(10, context.getSelectionOffset());
     assertEquals(2, context.getSelectionLength());

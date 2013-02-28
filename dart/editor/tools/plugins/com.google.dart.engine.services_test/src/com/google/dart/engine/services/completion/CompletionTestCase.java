@@ -6,6 +6,8 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.resolver.ResolverTestCase;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.util.LocationSpec;
 import com.google.dart.engine.services.util.MockCompletionRequestor;
@@ -23,6 +25,7 @@ public class CompletionTestCase extends ResolverTestCase {
   }
 
   private Index index;
+  private SearchEngine searchEngine;
 
   @Override
   public void setUp() {
@@ -34,6 +37,7 @@ public class CompletionTestCase extends ResolverTestCase {
         index.run();
       }
     }.start();
+    searchEngine = SearchEngineFactory.createSearchEngine(index);
   }
 
   /**
@@ -61,7 +65,7 @@ public class CompletionTestCase extends ResolverTestCase {
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();
       CompletionEngine engine = new CompletionEngine(requestor, factory);
-      engine.complete(new AssistContext(compilationUnit, test.testLocation, 0, index));
+      engine.complete(new AssistContext(searchEngine, compilationUnit, test.testLocation, 0));
       if (test.positiveResults.size() > 0) {
         assertTrue(
             "Test " + test.id + " expected code completion suggestions "

@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -61,11 +60,7 @@ public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       try {
-        CompilationUnit newUnit = editor.getInputUnit();
-        AssistContext context = new AssistContext(
-            newUnit,
-            selection.getOffset(),
-            selection.getLength());
+        AssistContext context = editor.getAssistContext();
         com.google.dart.engine.services.refactoring.ExtractLocalRefactoring newRefactoring = RefactoringFactory.createExtractLocalRefactoring(context);
         ServiceExtractLocalRefactoring ltkRefactoring = new ServiceExtractLocalRefactoring(
             newRefactoring);

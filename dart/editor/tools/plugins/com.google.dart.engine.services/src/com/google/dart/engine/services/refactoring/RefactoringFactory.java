@@ -16,6 +16,7 @@ package com.google.dart.engine.services.refactoring;
 
 import com.google.common.base.Preconditions;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -26,6 +27,7 @@ import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
@@ -42,6 +44,14 @@ public class RefactoringFactory {
   public static ExtractLocalRefactoring createExtractLocalRefactoring(AssistContext context)
       throws Exception {
     return new ExtractLocalRefactoringImpl(context);
+  }
+
+  /**
+   * @return the {@link Refactoring} to inline local {@link VariableDeclaration}.
+   */
+  public static InlineLocalRefactoring createInlineLocalRefactoring(AssistContext context)
+      throws Exception {
+    return new InlineLocalRefactoringImpl(context);
   }
 
   /**

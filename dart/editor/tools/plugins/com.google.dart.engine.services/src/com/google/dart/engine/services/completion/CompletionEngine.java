@@ -50,7 +50,6 @@ import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.search.SearchPattern;
@@ -405,7 +404,7 @@ public class CompletionEngine {
   }
 
   private InterfaceType[] allSubtypes(ClassElement classElement) {
-    SearchEngine engine = newSearchEngine();
+    SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
     List<SearchMatch> matches = engine.searchSubtypes(classElement, scope, null);
     InterfaceType[] subtypes = new InterfaceType[matches.size()];
@@ -501,7 +500,7 @@ public class CompletionEngine {
   }
 
   private Element[] findAllFunctions() {
-    SearchEngine engine = newSearchEngine();
+    SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
     SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
     List<SearchMatch> matches = engine.searchFunctionDeclarations(scope, pattern, null);
@@ -509,7 +508,7 @@ public class CompletionEngine {
   }
 
   private Element[] findAllTypes() {
-    SearchEngine engine = newSearchEngine();
+    SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
     SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
     List<SearchMatch> matches = engine.searchTypeDeclarations(scope, pattern, null);
@@ -517,7 +516,7 @@ public class CompletionEngine {
   }
 
   private Element[] findAllVariables() {
-    SearchEngine engine = newSearchEngine();
+    SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
     SearchPattern pattern = SearchPatternFactory.createWildcardPattern("*", false);
     List<SearchMatch> matches = engine.searchVariableDeclarations(scope, pattern, null);
@@ -558,11 +557,6 @@ public class CompletionEngine {
       }
       dups.add(element);
     }
-  }
-
-  private SearchEngine newSearchEngine() {
-    SearchEngine engine = SearchEngineFactory.createSearchEngine(context.getIndex());
-    return engine;
   }
 
   private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,

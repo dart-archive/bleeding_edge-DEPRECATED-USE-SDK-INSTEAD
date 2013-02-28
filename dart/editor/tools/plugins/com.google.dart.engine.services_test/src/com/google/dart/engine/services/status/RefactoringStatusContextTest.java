@@ -14,18 +14,33 @@
 
 package com.google.dart.engine.services.status;
 
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RefactoringStatusContextTest extends AbstractDartTest {
+
+  public void test_new_ASTNode() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {}",
+        "");
+    SimpleIdentifier node = findTestNode("main() {}", SimpleIdentifier.class);
+    RefactoringStatusContext context = RefactoringStatusContext.create(node);
+    // access
+    assertSame(testUnit.getElement().getContext(), context.getContext());
+    assertSame(testUnit.getElement().getSource(), context.getSource());
+    assertEquals(SourceRangeFactory.rangeNode(node), context.getRange());
+  }
 
   public void test_new_CompilationUnit_SourceRange() throws Exception {
     parseTestUnit(

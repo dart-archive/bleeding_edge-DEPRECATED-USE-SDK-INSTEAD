@@ -38,6 +38,7 @@ import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.element.ClassElement;
@@ -144,6 +145,36 @@ public class CorrectionUtilsTest extends AbstractDartTest {
             "}",
             "} // marker"),
         CorrectionUtils.applyReplaceEdits(testCode, ImmutableList.of(edit)));
+  }
+
+  public void test_findNode() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  String v = null;",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    // no any node
+    {
+      ASTNode node = utils.findNode(Integer.MAX_VALUE, ASTNode.class);
+      assertNull(node);
+    }
+    // "String" as SimpleIdentifier
+    {
+      SimpleIdentifier node = utils.findNode(findOffset("String "), SimpleIdentifier.class);
+      assertNotNull(node);
+    }
+    // "String" as TypeName
+    {
+      TypeName node = utils.findNode(findOffset("String "), TypeName.class);
+      assertNotNull(node);
+    }
+    // "String" as part of FunctionDeclaration
+    {
+      FunctionDeclaration node = utils.findNode(findOffset("String "), FunctionDeclaration.class);
+      assertNotNull(node);
+    }
   }
 
   public void test_getChildren() throws Exception {

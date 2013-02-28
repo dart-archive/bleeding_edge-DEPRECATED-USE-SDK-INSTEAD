@@ -42,14 +42,15 @@ public class OrganizeImportsAction extends InstrumentedSelectionDispatchAction {
   }
 
   @Override
-  protected void doRun(IStructuredSelection selection, Event event,
+  public void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
     new MultiOrganizeImportAction(site).doRun(selection, event, instrumentation);
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     IWorkbenchSite site = getSite();
     IEditorPart activeEditor = site.getPage().getActiveEditor();
     if (activeEditor != null && activeEditor.getEditorInput() instanceof IFileEditorInput) {

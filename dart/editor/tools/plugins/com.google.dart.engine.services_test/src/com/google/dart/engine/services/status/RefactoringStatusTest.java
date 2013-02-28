@@ -96,10 +96,20 @@ public class RefactoringStatusTest extends AbstractDartTest {
     assertEquals("error-msg", refactoringStatus.getMessage());
   }
 
-  public void test_createFatalStatus() throws Exception {
+  public void test_createFatalErrorStatus() throws Exception {
     RefactoringStatus refactoringStatus = RefactoringStatus.createFatalErrorStatus("fatal-msg");
     assertTrue(refactoringStatus.hasFatalError());
     assertEquals("fatal-msg", refactoringStatus.getMessage());
+  }
+
+  public void test_createFatalErrorStatus_withContext() throws Exception {
+    RefactoringStatusContext context = mock(RefactoringStatusContext.class);
+    RefactoringStatus refactoringStatus = RefactoringStatus.createFatalErrorStatus(
+        "fatal-msg",
+        context);
+    assertTrue(refactoringStatus.hasFatalError());
+    assertEquals("fatal-msg", refactoringStatus.getMessage());
+    assertSame(context, refactoringStatus.getEntries().get(0).getContext());
   }
 
   public void test_createWarningStatus() throws Exception {

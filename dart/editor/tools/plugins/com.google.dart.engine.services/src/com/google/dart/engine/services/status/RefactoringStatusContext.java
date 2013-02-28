@@ -15,6 +15,7 @@ package com.google.dart.engine.services.status;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -22,13 +23,25 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-import com.google.dart.engine.utilities.source.SourceRangeFactory;
+
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
+import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNode;
 
 /**
  * {@link RefactoringStatusContext} can be used to annotate a {@link RefactoringStatusEntry} with
  * additional information typically presented in the user interface.
  */
 public class RefactoringStatusContext {
+  /**
+   * @return the {@link RefactoringStatusContext} which corresponds to the given {@link ASTNode}.
+   */
+  public static RefactoringStatusContext create(ASTNode node) {
+    Preconditions.checkNotNull(node);
+    SourceRange range = rangeNode(node);
+    CompilationUnit unit = node.getAncestor(CompilationUnit.class);
+    return create(unit, range);
+  }
+
   /**
    * @return the {@link RefactoringStatusContext} which corresponds to given location in the
    *         {@link Source} of the given {@link CompilationUnit}.
@@ -44,9 +57,7 @@ public class RefactoringStatusContext {
    */
   public static RefactoringStatusContext create(Element element) {
     Preconditions.checkNotNull(element);
-    SourceRange range = SourceRangeFactory.rangeStartLength(
-        element.getNameOffset(),
-        element.getName().length());
+    SourceRange range = rangeElementName(element);
     return new RefactoringStatusContext(element.getContext(), element.getSource(), range);
   }
 

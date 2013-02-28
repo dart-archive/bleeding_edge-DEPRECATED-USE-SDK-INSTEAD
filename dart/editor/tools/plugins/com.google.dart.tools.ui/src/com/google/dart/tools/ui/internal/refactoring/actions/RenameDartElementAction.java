@@ -77,8 +77,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
 //    if (RenameLinkedMode.getActiveLinkedMode() != null) {
 //      return true;
 //    }
-    Element element = getElementFromEditor();
-    return element != null;
+    return getElementFromEditor() != null;
   }
 
   @Override

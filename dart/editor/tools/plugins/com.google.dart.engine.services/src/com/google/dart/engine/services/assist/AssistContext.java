@@ -17,7 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -25,27 +25,24 @@ import com.google.dart.engine.utilities.source.SourceRange;
  * Context for which assistance should be provided.
  */
 public class AssistContext {
+  private final SearchEngine searchEngine;
   private final CompilationUnit compilationUnit;
   private final int selectionOffset;
   private final int selectionLength;
   private ASTNode coveredNode;
   private ASTNode coveringNode;
-  private Index index;
 
-  public AssistContext(CompilationUnit compilationUnit, int selectionOffset, int selectionLength) {
+  public AssistContext(SearchEngine searchEngine, CompilationUnit compilationUnit,
+      int selectionOffset, int selectionLength) {
+    this.searchEngine = searchEngine;
     this.compilationUnit = compilationUnit;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
   }
 
-  public AssistContext(CompilationUnit compilationUnit, SourceRange selectionRange) {
-    this(compilationUnit, selectionRange.getOffset(), selectionRange.getLength());
-  }
-
-  public AssistContext(CompilationUnit compilationUnit, int selectionOffset, int selectionLength,
-      Index index) {
-    this(compilationUnit, selectionOffset, selectionLength);
-    this.index = index;
+  public AssistContext(SearchEngine searchEngine, CompilationUnit compilationUnit,
+      SourceRange selectionRange) {
+    this(searchEngine, compilationUnit, selectionRange.getOffset(), selectionRange.getLength());
   }
 
   /**
@@ -77,8 +74,11 @@ public class AssistContext {
     return coveringNode;
   }
 
-  public Index getIndex() {
-    return index;
+  /**
+   * @return the {@link SearchEngine} which should be used in this context.
+   */
+  public SearchEngine getSearchEngine() {
+    return searchEngine;
   }
 
   /**

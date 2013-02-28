@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.dart;
 
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.assist.TemporaryResolver;
 import com.google.dart.engine.source.Source;
@@ -489,7 +490,11 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       compilationUnit = resolve(path, context.getInputUnit());
       Index index = TemporaryResolver.getIndex();
       index.indexUnit(compilationUnit);
-      engine.complete(new AssistContext(compilationUnit, offset, len, index));
+      engine.complete(new AssistContext(
+          SearchEngineFactory.createSearchEngine(index),
+          compilationUnit,
+          offset,
+          len));
     } catch (OperationCanceledException x) {
       IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
           IBindingService.class);

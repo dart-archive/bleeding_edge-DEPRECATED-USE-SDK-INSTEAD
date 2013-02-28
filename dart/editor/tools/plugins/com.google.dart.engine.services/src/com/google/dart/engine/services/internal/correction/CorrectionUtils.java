@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
@@ -421,6 +422,9 @@ public class CorrectionUtils {
     }
   }
 
+  /**
+   * Add to "result" then given "c" or the first ASCII character after it.
+   */
   private static void addSingleCharacterName(Set<String> excluded, Set<String> result, char c) {
     while (c < 'z') {
       String name = String.valueOf(c);
@@ -570,6 +574,7 @@ public class CorrectionUtils {
   }
 
   private final CompilationUnit unit;
+
   private String buffer;
   private String endOfLine;
 
@@ -595,6 +600,17 @@ public class CorrectionUtils {
   public Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
     String newSource = getIndentSource(range, oldIndent, newIndent);
     return new Edit(range.getOffset(), range.getLength(), newSource);
+  }
+
+  /**
+   * @return the enclosing node with given {@link Class}.
+   */
+  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
+    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+    if (node != null) {
+      return node.getAncestor(clazz);
+    }
+    return null;
   }
 
   /**
