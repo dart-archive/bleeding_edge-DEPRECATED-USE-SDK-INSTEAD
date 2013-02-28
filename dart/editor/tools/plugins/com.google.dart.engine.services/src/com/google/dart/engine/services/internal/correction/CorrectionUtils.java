@@ -83,11 +83,6 @@ public class CorrectionUtils {
   private static final String[] KNOWN_METHOD_NAME_PREFIXES = {"get", "is", "to"};
 
   /**
-   * The default end-of-line marker for the current platform.
-   */
-  public static final String DEFAULT_END_OF_LINE = System.getProperty("line.separator", "\n");
-
-  /**
    * @return <code>true</code> if given {@link List}s are equals at given position.
    */
   public static <T> boolean allListsEqual(List<List<T>> lists, int position) {
@@ -615,9 +610,9 @@ public class CorrectionUtils {
             return "\r\n";
           }
           // use default
-          return DEFAULT_END_OF_LINE;
+          return "\n";
         }
-      }, DEFAULT_END_OF_LINE);
+      }, "\n");
     }
     return endOfLine;
   }
@@ -645,7 +640,7 @@ public class CorrectionUtils {
   public String getIndentSource(String source, String oldIndent, String newIndent) {
     StringBuilder sb = new StringBuilder();
     String eol = getEndOfLine();
-    String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
       // last line, stop if empty

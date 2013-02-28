@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.correction;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -324,15 +325,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   /**
    * Test for {@link CorrectionUtils#getEndOfLine()}.
    */
-  public void test_getEndOfLine_default() throws Exception {
-    parseTestUnit("");
-    CorrectionUtils utils = getTestCorrectionUtils();
-    assertEquals(CorrectionUtils.DEFAULT_END_OF_LINE, utils.getEndOfLine());
-  }
-
-  /**
-   * Test for {@link CorrectionUtils#getEndOfLine()}.
-   */
   public void test_getEndOfLine_unix() throws Exception {
     parseTestUnit("// aaa\n// bbb\n// ccc");
     CorrectionUtils utils = getTestCorrectionUtils();
@@ -365,10 +357,9 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  }",
         "} // marker");
     CorrectionUtils utils = getTestCorrectionUtils();
-    assertEquals("if (true) {\n  print(0);\n}\n", utils.getIndentSource(
-        rangeStartEnd(findOffset("  if (true"), findOffset("} // marker")),
-        "  ",
-        ""));
+    SourceRange range = rangeStartEnd(findOffset("  if (true"), findOffset("} // marker"));
+    String result = utils.getIndentSource(range, "  ", "");
+    assertEquals("if (true) {\n  print(0);\n}\n", toUnixEol(result));
   }
 
   public void test_getIndentSource_String() throws Exception {
@@ -383,13 +374,14 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_getLineContentEnd() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "// 1 \t ",
-        "// 2\r",
-        "// 3",
-        "",
-        "// 4");
+    parseTestUnit(Joiner.on("\n").join(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "// 1 \t ",
+            "// 2\r",
+            "// 3",
+            "",
+            "// 4")));
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(findOffset("// 2"), utils.getLineContentEnd(findEnd("// 1")));
     assertEquals(findOffset("// 3"), utils.getLineContentEnd(findEnd("// 2")));
@@ -408,11 +400,12 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_getLineNext() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "// 1",
-        "// 2\r",
-        "// 3");
+    parseTestUnit(Joiner.on("\n").join(
+        formatLines(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "// 1",
+            "// 2\r",
+            "// 3")));
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(findOffset("// 1"), utils.getLineNext(findOffset(" filler")));
     assertEquals(findOffset("// 2"), utils.getLineNext(findOffset("/ 1")));

@@ -46,6 +46,8 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class AbstractDartTest extends TestCase {
+  protected final static String lineSeparator = System.getProperty("line.separator", "\n");
+
   private static AnalysisContext ANALYSIS_CONTEXT;
   private static Source SOURCE;
 
@@ -140,14 +142,14 @@ public class AbstractDartTest extends TestCase {
   }
 
   protected static String makeSource(String... lines) {
-    return Joiner.on("\n").join(lines);
+    return Joiner.on(lineSeparator).join(lines);
   }
 
   /**
    * Prints given multi-line source in the way ready to paste back into Java test source.
    */
   protected static void printSourceLines(String source) {
-    String[] lines = StringUtils.split(source, '\n');
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, lineSeparator);
     for (int i = 0; i < lines.length; i++) {
       String line = lines[i];
       line = StringUtils.replace(line, "\"", "\\\"");
@@ -159,6 +161,13 @@ public class AbstractDartTest extends TestCase {
         System.out.println("\"");
       }
     }
+  }
+
+  /**
+   * @return {@link String} with system line separator converted to Unix <code>\n</code>.
+   */
+  protected static String toUnixEol(String s) {
+    return s.replace(lineSeparator, "\n");
   }
 
   protected String testCode;
