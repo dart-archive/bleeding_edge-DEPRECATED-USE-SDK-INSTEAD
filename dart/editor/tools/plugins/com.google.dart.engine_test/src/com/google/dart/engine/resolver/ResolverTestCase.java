@@ -154,7 +154,7 @@ public class ResolverTestCase extends EngineTestCase {
    * 
    * @param librarySource the source for the compilation unit that defines the library
    * @param unitSources the sources for the compilation units that are part of the library
-   * @return the error listener used while scanning, parsing and resolving the compilation units
+   * @return the element representing the resolved library
    * @throws AnalysisException if the analysis could not be performed
    */
   protected LibraryElement resolve(Source librarySource, Source... unitSources)
