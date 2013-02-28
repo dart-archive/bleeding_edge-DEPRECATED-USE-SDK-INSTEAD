@@ -140,6 +140,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
           CompileTimeErrorCode.EXTENDS_NON_CLASS,
           CompileTimeErrorCode.EXTENDS_NON_CLASS,
           null);
+      if (superclassType != getTypeProvider().getObjectType()) {
+        classElement.setValidMixin(false);
+      }
     }
     if (classElement != null) {
       if (superclassType == null) {

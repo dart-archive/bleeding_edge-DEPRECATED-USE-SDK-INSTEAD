@@ -24,6 +24,7 @@ public enum Modifier {
   FINAL,
   GETTER,
   INITIALIZING_FORMAL,
+  MIXIN,
   SETTER,
   STATIC,
   SYNTHETIC,

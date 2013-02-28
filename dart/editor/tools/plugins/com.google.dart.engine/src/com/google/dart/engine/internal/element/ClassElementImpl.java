@@ -218,6 +218,11 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @Override
+  public boolean isValidMixin() {
+    return hasModifier(Modifier.MIXIN);
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     PropertyAccessorElement element = getGetter(getterName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -411,6 +416,15 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       ((TypeVariableElementImpl) typeVariable).setEnclosingElement(this);
     }
     this.typeVariables = typeVariables;
+  }
+
+  /**
+   * Set whether this class is a valid mixin to correspond to the given value.
+   * 
+   * @param isValidMixin {@code true} if this class can be used as a mixin
+   */
+  public void setValidMixin(boolean isValidMixin) {
+    setModifier(Modifier.MIXIN, isValidMixin);
   }
 
   @Override

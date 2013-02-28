@@ -128,10 +128,22 @@ public interface ClassElement extends Element {
   public boolean isTypedef();
 
   /**
+   * Return {@code true} if this class can validly be used as a mixin when defining another class.
+   * The behavior of this method is defined by the Dart Language Specification in section 9:
+   * <blockquote>It is a compile-time error if a declared or derived mixin refers to super. It is a
+   * compile-time error if a declared or derived mixin explicitly declares a constructor. It is a
+   * compile-time error if a mixin is derived from a class whose superclass is not
+   * Object.</blockquote>
+   * 
+   * @return {@code true} if this class can validly be used as a mixin
+   */
+  public boolean isValidMixin();
+
+  /**
    * Return the element representing the getter that results from looking up the given getter in
    * this class with respect to the given library, or {@code null} if the look up fails. The
    * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
-   * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
    * with respect to library <i>L</i> is:
    * <ul>
    * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is

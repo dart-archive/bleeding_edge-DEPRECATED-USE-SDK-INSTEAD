@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.resolver;
 
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
@@ -95,6 +98,71 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  g();",
         "}"));
     resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_isValidMixin_badSuperclass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends B {",
+        "}",
+        "class B {}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(2, classes);
+    assertFalse(classes[0].isValidMixin());
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_isValidMixin_constructor() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  A() {}",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    assertFalse(classes[0].isValidMixin());
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_isValidMixin_super() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  toString() {",
+        "    return super.toString();",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    assertFalse(classes[0].isValidMixin());
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_isValidMixin_valid() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNotNull(library);
+    CompilationUnitElement unit = library.getDefiningCompilationUnit();
+    assertNotNull(unit);
+    ClassElement[] classes = unit.getTypes();
+    assertLength(1, classes);
+    assertTrue(classes[0].isValidMixin());
     assertNoErrors();
     verify(source);
   }

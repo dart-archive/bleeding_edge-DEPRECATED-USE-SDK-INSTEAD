@@ -34,6 +34,7 @@ import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SuperExpression;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.SwitchDefault;
 import com.google.dart.engine.ast.SwitchStatement;
@@ -88,6 +89,11 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private boolean inFunction = false;
 
   /**
+   * A flag indicating whether the class currently being visited can be used as a mixin.
+   */
+  private boolean isValidMixin = false;
+
+  /**
    * Initialize a newly created element builder to build the elements for a compilation unit.
    * 
    * @param initialHolder the element holder associated with the compilation unit being built
@@ -120,6 +126,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
+    isValidMixin = true;
     visitChildren(holder, node);
 
     SimpleIdentifier className = node.getName();
@@ -156,6 +163,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setFields(holder.getFields());
     element.setMethods(holder.getMethods());
     element.setTypeVariables(typeVariables);
+    element.setValidMixin(isValidMixin);
 
     currentHolder.addType(element);
     className.setElement(element);
@@ -193,6 +201,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    isValidMixin = false;
     ElementHolder holder = new ElementHolder();
     visitChildren(holder, node);
 
@@ -517,6 +526,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     node.visitChildren(this);
     return null;
+  }
+
+  @Override
+  public Void visitSuperExpression(SuperExpression node) {
+    isValidMixin = false;
+    return super.visitSuperExpression(node);
   }
 
   @Override

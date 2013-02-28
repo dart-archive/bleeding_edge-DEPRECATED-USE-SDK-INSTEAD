@@ -18,6 +18,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
@@ -156,9 +157,10 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the error listener used while scanning, parsing and resolving the compilation units
    * @throws AnalysisException if the analysis could not be performed
    */
-  protected void resolve(Source librarySource, Source... unitSources) throws AnalysisException {
+  protected LibraryElement resolve(Source librarySource, Source... unitSources)
+      throws AnalysisException {
     LibraryResolver resolver = new LibraryResolver(analysisContext, errorListener);
-    resolver.resolveLibrary(librarySource, true);
+    return resolver.resolveLibrary(librarySource, true);
   }
 
   /**

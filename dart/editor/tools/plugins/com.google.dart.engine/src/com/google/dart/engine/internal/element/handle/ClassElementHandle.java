@@ -116,6 +116,11 @@ public class ClassElementHandle extends ElementHandle implements ClassElement {
   }
 
   @Override
+  public boolean isValidMixin() {
+    return getActualElement().isValidMixin();
+  }
+
+  @Override
   public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
     return getActualElement().lookUpGetter(getterName, library);
   }
