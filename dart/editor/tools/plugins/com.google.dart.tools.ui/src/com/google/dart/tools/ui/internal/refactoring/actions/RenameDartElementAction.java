@@ -22,6 +22,7 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionSta
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
@@ -31,7 +32,6 @@ import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
@@ -56,10 +56,6 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
     return (Element) first;
   }
 
-  private static boolean isRenameElementAvailable(Element element) {
-    return element != null;
-  }
-
   private DartEditor fEditor;
 
   public RenameDartElementAction(DartEditor editor) {
@@ -72,16 +68,9 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
     super(site);
   }
 
-  public boolean canRunInEditor() {
-    // TODO(scheglov) already running, why check?
-//    if (RenameLinkedMode.getActiveLinkedMode() != null) {
-//      return true;
-//    }
-    return getElementFromEditor() != null;
-  }
-
   @Override
   public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+    // may be linked mode rename, open dialog or cancel 
     RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
     if (activeLinkedMode != null) {
       if (activeLinkedMode.isCaretInLinkedPosition()) {
@@ -92,108 +81,69 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
         activeLinkedMode.cancel();
       }
     }
-
-    try {
-      Element element = getElementFromEditor();
-      ActionInstrumentationUtilities.recordElement(element, instrumentation);
-      if (isRenameElementAvailable(element)) {
-        run(element, true);
-        return;
-      }
-    } catch (CoreException e) {
-      ExceptionHandler.handle(
-          e,
-          RefactoringMessages.RenameDartElementAction_name,
-          RefactoringMessages.RenameDartElementAction_exception);
-    }
-    // report problem
-    instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
-    MessageDialog.openInformation(
-        getShell(),
-        RefactoringMessages.RenameDartElementAction_name,
-        RefactoringMessages.RenameDartElementAction_not_available);
+    // dispatch depending on selection
+    super.doRun(event, instrumentation);
   }
 
   @Override
   public void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov)
-//    Element element = getDartElement(selection);
-//    if (element == null) {
-//      instrumentation.metric("Problem", "Element was null");
-//      return;
-//    }
-//    ActionInstrumentationUtilities.recordElement(element, instrumentation);
-//
-//    if (!ActionUtil.isEditable(getShell(), element)) {
-//      instrumentation.metric("Problem", "Editor not editable");
-//      return;
-//    }
-//    try {
-//      run(element, false);
-//    } catch (CoreException e) {
-//      ExceptionHandler.handle(
-//          e,
-//          RefactoringMessages.RenameDartElementAction_name,
-//          RefactoringMessages.RenameDartElementAction_exception);
-//    }
+    Element element = getElement(selection);
+    doRun(instrumentation, element, false);
   }
 
   @Override
   public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-    System.out.println("doRun.ITextSelection: " + selection);
-    doRun(event, instrumentation);
-    // TODO(scheglov)
-//    if (!ActionUtil.isEditable(fEditor)) {
-//      instrumentation.metric("Problem", "Editor not editable");
-//      return;
-//    }
-//    if (canRunInEditor()) {
-//      doRun(event, instrumentation);
-//    } else {
-//      instrumentation.metric("Problem", "Rename Action not valid here, showing dialog");
-//      MessageDialog.openInformation(
-//          getShell(),
-//          RefactoringMessages.RenameAction_rename,
-//          RefactoringMessages.RenameAction_unavailable);
-//    }
+    Element element = getElementFromEditor(selection);
+    doRun(instrumentation, element, true);
   }
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
-    Element element = getElement(selection);
-    setEnabled(isRenameElementAvailable(element));
+    // TODO(scheglov) implement when we will get selection notification for cursor movement
+//    Element element = getElement(selection);
+//    setEnabled(isRenameElementAvailable(element));
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    // TODO(scheglov)
-//    if (selection instanceof DartTextSelection) {
-//      try {
-//        DartTextSelection dartTextSelection = (DartTextSelection) selection;
-//        Element[] elements = dartTextSelection.resolveElementAtOffset();
-//        if (elements.length == 1) {
-//          setEnabled(RefactoringAvailabilityTester.isRenameElementAvailable(elements[0]));
-//        } else {
-//          DartNode node = dartTextSelection.resolveCoveringNode();
-//          setEnabled(node instanceof DartIdentifier);
-//        }
-//      } catch (CoreException e) {
-//        setEnabled(false);
-//      }
-//    } else {
-//      setEnabled(true);
-//    }
+    // TODO(scheglov) implement when we will get selection notification for cursor movement
+//    Element element = getElementFromEditor(selection);
+//    setEnabled(element != null);
   }
 
-  private Element getElementFromEditor() {
-    ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-    return getElementFromEditor(selection);
+  private void doRun(UIInstrumentationBuilder instrumentation, Element element, boolean lightweight) {
+    // check Element
+    if (element == null) {
+      instrumentation.metric("Problem", "Element was null");
+      return;
+    }
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+    // check if can be modified
+    if (!ActionUtil.isEditable(getShell(), element)) {
+      instrumentation.metric("Problem", "Editor not editable");
+      return;
+    }
+    // run rename
+    try {
+      run(element, lightweight);
+    } catch (Throwable e) {
+      ExceptionHandler.handle(
+          e,
+          RefactoringMessages.RenameDartElementAction_name,
+          RefactoringMessages.RenameDartElementAction_exception);
+    }
   }
+
+//  private Element getElementFromEditor() {
+//    ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+//    return getElementFromEditor(selection);
+//  }
 
   private Element getElementFromEditor(ITextSelection selection) {
     CompilationUnit unit = fEditor.getInputUnit();
-    ASTNode selectedNode = new NodeLocator(selection.getOffset()).searchWithin(unit);
+    int selectionOffset = selection.getOffset();
+    ASTNode selectedNode = new NodeLocator(selectionOffset).searchWithin(unit);
     if (selectedNode instanceof SimpleIdentifier) {
       return ((SimpleIdentifier) selectedNode).getElement();
     }

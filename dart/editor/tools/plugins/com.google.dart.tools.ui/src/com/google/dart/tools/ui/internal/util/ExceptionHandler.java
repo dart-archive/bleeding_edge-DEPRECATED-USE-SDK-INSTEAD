@@ -99,6 +99,18 @@ public class ExceptionHandler {
   }
 
   /**
+   * Handles the given <code>Throwable</code>. The workbench shell is used as a parent for the
+   * dialog window.
+   * 
+   * @param e the <code>Throwable</code> to be handled
+   * @param title the dialog window's window title
+   * @param message message to be displayed by the dialog window
+   */
+  public static void handle(Throwable e, String title, String message) {
+    handle(new CoreException(DartToolsPlugin.createErrorStatus(e.getMessage(), e)), title, message);
+  }
+
+  /**
    * Logs the given exception using the platform's logging mechanism. The exception is logged as an
    * error with the error code <code>JavaStatusConstants.INTERNAL_ERROR</code>.
    */

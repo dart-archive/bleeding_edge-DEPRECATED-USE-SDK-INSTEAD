@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -238,6 +239,20 @@ public class ActionUtil {
       }
     }
     return isEditable(shell, element);
+  }
+
+  public static boolean isEditable(Shell shell, com.google.dart.engine.element.Element element) {
+    Source source = element.getSource();
+    if (source != null) {
+      IResource resource = DartCore.getProjectManager().getResource(source);
+      if (resource != null) {
+        if (resource.isDerived()) {
+          return false;
+        }
+        return !resource.getResourceAttributes().isReadOnly();
+      }
+    }
+    return true;
   }
 
   public static boolean isEditable(Shell shell, DartElement element) {
