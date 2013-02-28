@@ -119,7 +119,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
         List<SearchMatch> nameReferences = searchEngine.searchReferences(nameElement, null, null);
         for (SearchMatch nameReference : nameReferences) {
           if (isReferenceInLocalRange(element, nameReference)) {
-            String nameElementSourceName = nameElement.getSource().getFullName();
+            String nameElementSourceName = nameElement.getSource().getShortName();
             String message = MessageFormat.format(
                 "Usage of {0} ''{1}'' declared in ''{2}'' will be shadowed by renamed {3}.",
                 getElementKindName(nameElement),

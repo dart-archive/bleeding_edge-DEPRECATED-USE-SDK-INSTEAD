@@ -102,7 +102,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.ERROR,
-        "Usage of field 'A.newName' declared in '/Test.dart' will be shadowed by renamed local variable.",
+        "Usage of field 'A.newName' declared in 'Test.dart' will be shadowed by renamed local variable.",
         findRangeIdentifier("newName);"));
   }
 
@@ -136,7 +136,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.ERROR,
-        "Usage of function 'newName' declared in '/Test.dart' will be shadowed by renamed local variable.",
+        "Usage of function 'newName' declared in 'Test.dart' will be shadowed by renamed local variable.",
         findRangeIdentifier("newName(); // ref"));
   }
 
@@ -155,7 +155,7 @@ public class RenameLocalRefactoringImplTest extends RenameRefactoringImplTest {
     assertRefactoringStatus(
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.ERROR,
-        "Usage of type variable 'newName' declared in '/Test.dart' will be shadowed by renamed local variable.",
+        "Usage of type variable 'newName' declared in 'Test.dart' will be shadowed by renamed local variable.",
         findRangeIdentifier("newName v;"));
   }
 
