@@ -50,12 +50,22 @@ public class ProjectManagerImplTest extends TestCase {
 
   private final class MockContextForTest extends MockContext {
     @Override
+    public Source[] getLibrariesContaining(Source source) {
+      if (source.getShortName().equals("libraryA.dart")) {
+        return new Source[] {source};
+      }
+
+      return new Source[] {};
+    }
+
+    @Override
     public LibraryElement getLibraryElement(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
         return library(this, "libraryA");
       }
       return null;
     }
+
   }
 
   private final class MockProjectListener implements ProjectListener {
@@ -137,6 +147,18 @@ public class ProjectManagerImplTest extends TestCase {
     LibraryElement[] elements = actual.getLibraries(mockFolder);
     assertEquals(elements.length, libraries.length);
     assertEquals(elements[0], libraries[0]);
+  }
+
+  public void test_getLibrarySources() {
+    MockFolder mockFolder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
+    mockFolder.add(file);
+    Source[] sources = manager.getLibrarySources(mockFolder);
+    Source[] libraries = manager.getLibrarySources(file);
+    assertEquals(1, sources.length);
+    assertEquals(sources.length, libraries.length);
+    assertEquals(sources[0].getShortName(), libraries[0].getShortName());
+
   }
 
   public void test_getProject() {

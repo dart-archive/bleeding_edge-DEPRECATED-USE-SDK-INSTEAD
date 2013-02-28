@@ -27,14 +27,23 @@ import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.builder.DeltaAdapter;
+import com.google.dart.tools.core.internal.builder.DeltaProcessor;
+import com.google.dart.tools.core.internal.builder.SourceDeltaEvent;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.runtime.CoreException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Concrete implementation of {@link ProjectManager}
@@ -82,6 +91,34 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public Index getIndex() {
     return index;
+  }
+
+  @Override
+  public Source[] getLibrarySources(IResource resource) {
+    final AnalysisContext context = getContext(resource);
+    if (resource instanceof IContainer) {
+      final Set<Source> sources = new HashSet<Source>();
+      Project project = getProject(resource.getProject());
+      DeltaProcessor processor = new DeltaProcessor(project);
+      processor.addDeltaListener(new DeltaAdapter() {
+        @Override
+        public void sourceAdded(SourceDeltaEvent event) {
+          Source source = getSource((IFile) event.getResource());
+          if (source != null) {
+            sources.addAll(Arrays.asList(context.getLibrariesContaining(source)));
+          }
+        }
+      });
+      try {
+        processor.traverse((IContainer) resource);
+      } catch (CoreException e) {
+        DartCore.logError("Failed to traverse container", e);
+      }
+      return sources.toArray(new Source[sources.size()]);
+    } else {
+      Source source = getSource((IFile) resource);
+      return context.getLibrariesContaining(source);
+    }
   }
 
   @Override

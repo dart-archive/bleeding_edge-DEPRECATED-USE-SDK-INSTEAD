@@ -165,6 +165,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public Source[] getLibrarySources(IResource resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project getProject(IProject resource) {
       if (project == null) {
         project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {

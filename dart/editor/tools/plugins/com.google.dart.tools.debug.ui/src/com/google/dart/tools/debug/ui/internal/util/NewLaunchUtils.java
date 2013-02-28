@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.util;
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.model.DartModelException;
@@ -27,7 +28,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Utility methods for launching that use the engine model to get information
@@ -36,10 +39,6 @@ public class NewLaunchUtils {
 
   /**
    * Return the best launch configuration to run for the given resource.
-   * 
-   * @param resource
-   * @return
-   * @throws DartModelException
    */
   public static ILaunchConfiguration getLaunchFor(IResource resource) throws DartModelException {
     // If it's a project, find any launches in that project.
@@ -60,26 +59,24 @@ public class NewLaunchUtils {
     }
 
     // No existing configs - check if the current resource is not launchable.
-//    if (getApplicableLaunchShortcuts(resource).size() == 0) {
-//      // Try and locate a launchable library that references this library.
-//    LibraryElement[] libraries = getLibraries(resource);
-//
-//      if (libraries.length > 0) {
-//        Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
-//
-//        for (LibraryElement library : libraries) {
-//          for (DartLibrary referencingLib : library.getReferencingLibraries()) {
-//            IResource libResource = referencingLib.getCorrespondingResource();
-//
-//            libraryConfigs.addAll(getExistingLaunchesFor(libResource));
-//          }
-//        }
-//
-//        if (libraryConfigs.size() > 0) {
-//          return chooseLatest(libraryConfigs);
-//        }
-//      }
-//    }
+    if (LaunchUtils.getApplicableLaunchShortcuts(resource).size() == 0) {
+      // Try and locate a launchable library that references this library.
+      Source[] libraries = getLibrariesSource(resource);
+
+      if (libraries.length > 0) {
+        Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
+        ProjectManager manager = DartCore.getProjectManager();
+
+        for (Source librarySource : libraries) {
+          IResource libResource = manager.getResource(librarySource);
+          libraryConfigs.addAll(LaunchUtils.getExistingLaunchesFor(libResource));
+
+        }
+        if (libraryConfigs.size() > 0) {
+          return LaunchUtils.chooseLatest(libraryConfigs);
+        }
+      }
+    }
 
     return null;
   }
@@ -87,7 +84,7 @@ public class NewLaunchUtils {
   /**
    * Returns the LibraryElement for the dart library associated with the file, if any
    * 
-   * @return LibraryElement or <code>null</code>
+   * @return LibraryElement[]
    */
   public static LibraryElement[] getLibraries(IResource resource) {
     // TODO(keertip): replace this with a call to method that gets Source about libraries with an entrypoint 
@@ -114,6 +111,32 @@ public class NewLaunchUtils {
       return manager.getLibraries((IContainer) resource);
     }
     return new LibraryElement[] {};
+  }
+
+  /**
+   * Returns the Source for any libraries associated with the resource
+   * 
+   * @return Source[]
+   */
+  public static Source[] getLibrariesSource(IResource resource) {
+    ProjectManager manager = DartCore.getProjectManager();
+    if (resource instanceof IFile) {
+      if (DartCore.isDartLikeFileName(resource.getName())) {
+        return manager.getLibrarySources(resource);
+      }
+      if (DartCore.isHTMLLikeFileName(resource.getName())) {
+        HtmlElement htmlElement = manager.getHtmlElement((IFile) resource);
+        if (htmlElement != null) {
+          // TODO(keertip): get Source of referenced libraries
+        }
+      }
+    } else {
+      resource = resource.getParent();
+    }
+    if (resource instanceof IContainer) {
+      return manager.getLibrarySources(resource);
+    }
+    return new Source[] {};
   }
 
   /**

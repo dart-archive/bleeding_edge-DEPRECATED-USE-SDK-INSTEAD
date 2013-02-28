@@ -231,6 +231,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public Source[] getLibrarySources(IResource resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Project getProject(IProject resource) {
       if (project == null) {
         project = new MockProjectImpl(resource);

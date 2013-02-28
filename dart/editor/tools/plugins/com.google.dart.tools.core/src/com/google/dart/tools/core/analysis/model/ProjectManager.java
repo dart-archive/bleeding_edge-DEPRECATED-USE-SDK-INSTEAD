@@ -16,9 +16,11 @@ package com.google.dart.tools.core.analysis.model;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
 /**
@@ -46,6 +48,14 @@ public interface ProjectManager extends ContextManager {
    * @return the index (not {@code null})
    */
   Index getIndex();
+
+  /**
+   * Answer with all the library sources that the given resource is part of or is the library file
+   * 
+   * @return the {@link Source}[] for all the libraries that the given resource is part of or is the
+   *         library file
+   */
+  Source[] getLibrarySources(IResource resource);
 
   /**
    * Answer the project for the specified Eclipse resource
