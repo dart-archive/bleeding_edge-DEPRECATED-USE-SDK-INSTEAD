@@ -178,9 +178,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       updateColors();
     }
 
-    /*
-     * @see org.eclipse.jface.viewers.AbstractTreeViewer#isExpandable(java.lang.Object )
-     */
     @Override
     public boolean isExpandable(Object element) {
       if (hasFilters()) {
@@ -255,9 +252,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       return null;
     }
 
-    /*
-     * @see ContentViewer#handleLabelProviderChanged(LabelProviderChangedEvent)
-     */
     @Override
     protected void handleLabelProviderChanged(LabelProviderChangedEvent event) {
       Object input = getInput();
@@ -284,9 +278,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       super.handleLabelProviderChanged(event);
     }
 
-    /*
-     * @see TreeViewer#internalExpandToLevel
-     */
     @Override
     protected void internalExpandToLevel(Widget node, int level) {
       if (node instanceof Item) {
@@ -668,40 +659,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-//  class ClassOnlyAction extends Action {
-//
-//    public ClassOnlyAction() {
-//      super();
-//      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-//          DartHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
-//      setText(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_label);
-//      setToolTipText(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_tooltip);
-//      setDescription(DartEditorMessages.JavaOutlinePage_GoIntoTopLevelType_description);
-//      JavaPluginImages.setLocalImageDescriptors(this,
-//          "gointo_toplevel_type.gif"); //$NON-NLS-1$
-//
-//      IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
-//      boolean showclass = preferenceStore.getBoolean("GoIntoTopLevelTypeAction.isChecked"); //$NON-NLS-1$
-//      setTopLevelTypeOnly(showclass);
-//    }
-//
-//    /*
-//     * @see org.eclipse.jface.action.Action#run()
-//     */
-//    public void run() {
-//      setTopLevelTypeOnly(!fTopLevelTypeOnly);
-//    }
-//
-//    private void setTopLevelTypeOnly(boolean show) {
-//      fTopLevelTypeOnly = show;
-//      setChecked(show);
-//      fOutlineViewer.refresh(false);
-//
-//      IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
-//      preferenceStore.setValue("GoIntoTopLevelTypeAction.isChecked", show); //$NON-NLS-1$
-//    }
-//  }
-
   class LexicalSortingAction extends Action {
 
     private final DartElementComparator fComparator = new DartElementComparator();
@@ -756,9 +713,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       return null;
     }
 
-    /*
-     * @see java.lang.Object#toString()
-     */
     @Override
     public String toString() {
       return DartEditorMessages.JavaOutlinePage_error_NoTopLevelType;
@@ -877,10 +831,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
-  /*
-   * @see org.eclipse.jface.text.IPostSelectionProvider#addPostSelectionChangedListener
-   * (org.eclipse.jface.viewers.ISelectionChangedListener)
-   */
   @Override
   public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
     if (fOutlineViewer != null) {
@@ -890,9 +840,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-  /*
-   * @see ISelectionProvider#addSelectionChangedListener(ISelectionChangedListener)
-   */
   @Override
   public void addSelectionChangedListener(ISelectionChangedListener listener) {
     if (fOutlineViewer != null) {
@@ -902,9 +849,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-  /*
-   * @see IPage#createControl
-   */
   @Override
   public void createControl(Composite parent) {
 
@@ -991,10 +935,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       StatusBarUpdater updater = new StatusBarUpdater(statusLineManager);
       fOutlineViewer.addPostSelectionChangedListener(updater);
     }
-    // Custom filter group
-    DartX.todo();
-//    fCustomFiltersActionGroup = new CustomFiltersActionGroup(
-//        "com.google.dart.tools.ui.JavaOutlinePage", fOutlineViewer); //$NON-NLS-1$
 
     fOpenAndLinkWithEditorHelper = new OpenAndLinkWithEditorHelper(fOutlineViewer) {
 
@@ -1035,22 +975,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     if (fEditor == null) {
       return;
     }
-
-//    if (fMemberFilterActionGroup != null) {
-//      fMemberFilterActionGroup.dispose();
-//      fMemberFilterActionGroup = null;
-//    }
-
-    DartX.todo();
-//    if (fCategoryFilterActionGroup != null) {
-//      fCategoryFilterActionGroup.dispose();
-//      fCategoryFilterActionGroup = null;
-//    }
-//
-//    if (fCustomFiltersActionGroup != null) {
-//      fCustomFiltersActionGroup.dispose();
-//      fCustomFiltersActionGroup = null;
-//    }
 
     fEditor.outlinePageClosed();
     fEditor = null;
@@ -1127,9 +1051,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     return null;
   }
 
-  /*
-   * @see ISelectionProvider#getSelection()
-   */
   @Override
   public ISelection getSelection() {
     if (fOutlineViewer == null) {
@@ -1138,51 +1059,26 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     return fOutlineViewer.getSelection();
   }
 
-  /*
-   * (non-Javadoc) Method declared on Page
-   */
   @Override
   public void init(IPageSite pageSite) {
     super.init(pageSite);
   }
 
-  /*
-   * @see org.eclipse.jface.text.IPostSelectionProvider# removePostSelectionChangedListener
-   * (org.eclipse.jface.viewers.ISelectionChangedListener)
-   */
   @Override
   public void removePostSelectionChangedListener(ISelectionChangedListener listener) {
     if (fOutlineViewer != null) {
       fOutlineViewer.removePostSelectionChangedListener(listener);
     } else {
-      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
-      // contents to be displayed in the outline view. After there is a change listener for the
-      // analysis engine, that logic will go here.
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        fPostSelectionChangedListeners.remove(listener);
-      }
+      fPostSelectionChangedListeners.remove(listener);
     }
   }
 
-  /*
-   * @see ISelectionProvider#removeSelectionChangedListener(ISelectionChangedListener )
-   */
   @Override
   public void removeSelectionChangedListener(ISelectionChangedListener listener) {
     if (fOutlineViewer != null) {
-      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
-      // contents to be displayed in the outline view. After there is a change listener for the
-      // analysis engine, that logic will go here.
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        fOutlineViewer.removeSelectionChangedListener(listener);
-      }
+      fOutlineViewer.removeSelectionChangedListener(listener);
     } else {
-      // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
-      // contents to be displayed in the outline view. After there is a change listener for the
-      // analysis engine, that logic will go here.
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        fSelectionChangedListeners.remove(listener);
-      }
+      fSelectionChangedListeners.remove(listener);
     }
   }
 
@@ -1195,12 +1091,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         List<?> elements = ss.toList();
         if (!elements.contains(reference)) {
           s = (reference == null ? StructuredSelection.EMPTY : new StructuredSelection(reference));
-          // TODO (jwren) Selection change listener must be disabled when for the new analysis engine
-          // contents to be displayed in the outline view. After there is a change listener for the
-          // analysis engine, that logic will go here.
-          if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-            fOutlineViewer.setSelection(s, true);
-          }
+          fOutlineViewer.setSelection(s, true);
         }
       }
     }
@@ -1215,9 +1106,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-  /*
-   * @see Page#setFocus()
-   */
   @Override
   public void setFocus() {
     if (fOutlineViewer != null) {
@@ -1231,9 +1119,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
       fOutlineViewer.setInput(fInput);
       updateSelectionProvider(getSite());
     }
-    DartX.todo();
-//    if (fCategoryFilterActionGroup != null)
-//      fCategoryFilterActionGroup.setInput(new DartElement[]{fInput});
   }
 
   /**
@@ -1248,9 +1133,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-  /*
-   * @see ISelectionProvider#setSelection(ISelection)
-   */
   @Override
   public void setSelection(ISelection selection) {
     if (fOutlineViewer != null) {
