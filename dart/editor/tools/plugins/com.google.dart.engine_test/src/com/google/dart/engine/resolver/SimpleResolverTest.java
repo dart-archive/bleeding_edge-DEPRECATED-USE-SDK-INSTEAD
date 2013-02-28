@@ -63,6 +63,19 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_forLoops_nonConflicting() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  for (int i = 0; i < 3; i++) {",
+        "  }",
+        "  for (int i = 0; i < 3; i++) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",

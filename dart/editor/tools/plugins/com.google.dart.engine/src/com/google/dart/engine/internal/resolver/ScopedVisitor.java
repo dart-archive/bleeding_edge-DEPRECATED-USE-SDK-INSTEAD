@@ -188,24 +188,30 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
-    LabelScope outerScope = labelScope;
-    labelScope = new LabelScope(outerScope, false, false);
+    LabelScope outerLabelScope = labelScope;
+    labelScope = new LabelScope(outerLabelScope, false, false);
+    Scope outerNameScope = nameScope;
+    nameScope = new EnclosedScope(nameScope);
     try {
       super.visitForEachStatement(node);
     } finally {
-      labelScope = outerScope;
+      nameScope = outerNameScope;
+      labelScope = outerLabelScope;
     }
     return null;
   }
 
   @Override
   public Void visitForStatement(ForStatement node) {
-    LabelScope outerScope = labelScope;
-    labelScope = new LabelScope(outerScope, false, false);
+    LabelScope outerLabelScope = labelScope;
+    labelScope = new LabelScope(outerLabelScope, false, false);
+    Scope outerNameScope = nameScope;
+    nameScope = new EnclosedScope(nameScope);
     try {
       super.visitForStatement(node);
     } finally {
-      labelScope = outerScope;
+      nameScope = outerNameScope;
+      labelScope = outerLabelScope;
     }
     return null;
   }
