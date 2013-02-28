@@ -57,6 +57,11 @@ public class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @Override
+  public boolean isVoid() {
+    return true;
+  }
+
+  @Override
   public VoidTypeImpl substitute(Type[] argumentTypes, Type[] parameterTypes) {
     return this;
   }

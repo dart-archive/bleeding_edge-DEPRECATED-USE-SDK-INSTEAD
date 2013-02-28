@@ -105,6 +105,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public boolean isVoid() {
+    return false;
+  }
+
+  @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     appendTo(builder);

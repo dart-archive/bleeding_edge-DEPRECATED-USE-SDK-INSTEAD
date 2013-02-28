@@ -57,9 +57,9 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
-   * Return {@code true} if this type represents the type {@code dynamic}.
+   * Return {@code true} if this type represents the type 'dynamic'.
    * 
-   * @return {@code true} if this type represents the type {@code dynamic}
+   * @return {@code true} if this type represents the type 'dynamic'
    */
   public boolean isDynamic();
 
@@ -87,6 +87,13 @@ public interface Type {
    * @return {@code true} if this type is a supertype of the given type
    */
   public boolean isSupertypeOf(Type type);
+
+  /**
+   * Return {@code true} if this type represents the type 'void'.
+   * 
+   * @return {@code true} if this type represents the type 'void'
+   */
+  public boolean isVoid();
 
   /**
    * Return the type resulting from substituting the given arguments for the given parameters in
