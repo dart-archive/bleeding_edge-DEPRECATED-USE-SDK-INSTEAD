@@ -51,8 +51,9 @@ public final class AnalysisContextFactory {
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl("core.dart");
     unit.setTypes(new ClassElement[] {
         provider.getBoolType().getElement(), provider.getDoubleType().getElement(),
-        provider.getIntType().getElement(), provider.getListType().getElement(),
-        provider.getMapType().getElement(), provider.getObjectType().getElement(),
+        provider.getFunctionType().getElement(), provider.getIntType().getElement(),
+        provider.getListType().getElement(), provider.getMapType().getElement(),
+        provider.getNumType().getElement(), provider.getObjectType().getElement(),
         provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
         provider.getTypeType().getElement()});
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("core"));
