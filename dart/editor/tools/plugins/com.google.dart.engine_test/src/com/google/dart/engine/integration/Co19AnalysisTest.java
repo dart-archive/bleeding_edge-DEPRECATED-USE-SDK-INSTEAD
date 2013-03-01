@@ -47,6 +47,12 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
       System.out.print(" files in ");
       printTime(totalTime);
       System.out.println();
+
+      System.out.print(errorCount);
+      System.out.println(" tests failed with unexpected errors");
+
+      System.out.print(noErrorCount);
+      System.out.println(" tests failed with no errors being generated");
     }
 
     private void printTime(long time) {

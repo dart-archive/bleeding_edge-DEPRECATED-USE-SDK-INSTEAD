@@ -75,6 +75,15 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       System.out.print(" files in ");
       printTime(totalTime);
       System.out.println();
+
+      System.out.print(skippedTests);
+      System.out.println(" tests were skipped");
+
+      System.out.print(errorCount);
+      System.out.println(" tests failed with unexpected errors");
+
+      System.out.print(noErrorCount);
+      System.out.println(" tests failed with no errors being generated");
     }
 
     private void printTime(long time) {
@@ -145,6 +154,8 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
 
   private long totalTime = 0L;
 
+  private int skippedTests = 0;
+
   @Override
   protected void addTestForFile(TestSuite suite, File file) {
     if (file.getName().endsWith("_test.dart")) {
@@ -181,7 +192,9 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     // interface declarations.
     //
     if (contents.indexOf("#library") >= 0 || contents.indexOf("#import") >= 0
-        || contents.indexOf("#source") >= 0 || contents.indexOf("interface") >= 0) {
+        || contents.indexOf("#source") >= 0 || contents.indexOf("interface") >= 0
+        || contents.indexOf("===") >= 0 || contents.indexOf("!==") >= 0) {
+      skippedTests++;
       return;
     }
     //
@@ -192,9 +205,10 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
         || contents.indexOf("static type warning") > 0 || contents.indexOf("static warning") > 0;
     // Uncomment the lines below to stop reporting failures for files that are expected to contain
     // errors.
-    if (errorExpected) {
-      return;
-    }
+//    if (errorExpected) {
+//      skippedTests++;
+//      return;
+//    }
     //
     // Create the analysis context in which the file will be analyzed.
     //

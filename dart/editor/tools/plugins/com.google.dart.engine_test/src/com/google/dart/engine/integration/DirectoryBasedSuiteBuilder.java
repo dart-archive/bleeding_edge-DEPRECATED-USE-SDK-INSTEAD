@@ -61,6 +61,18 @@ public abstract class DirectoryBasedSuiteBuilder {
     }
   }
 
+  /**
+   * The number of tests that failed because there were errors generated when there were not
+   * expected to be any errors.
+   */
+  protected int errorCount = 0;
+
+  /**
+   * The number of tests that failed because there were no errors generated when errors were
+   * expected.
+   */
+  protected int noErrorCount = 0;
+
   public TestSuite buildSuite(File directory, String suiteName) {
     TestSuite suite = new TestSuite(suiteName);
     if (directory.exists()) {
@@ -111,6 +123,7 @@ public abstract class DirectoryBasedSuiteBuilder {
         }
       } else {
         if (errorList.size() <= 0) {
+          noErrorCount++;
           Assert.fail("Expected errors, found none");
         }
       }
@@ -121,6 +134,7 @@ public abstract class DirectoryBasedSuiteBuilder {
         }
       } else {
         if (errorList.size() > 0) {
+          errorCount++;
           PrintStringWriter writer = new PrintStringWriter();
           writer.print("Expected 0 errors, found ");
           writer.print(errorList.size());
