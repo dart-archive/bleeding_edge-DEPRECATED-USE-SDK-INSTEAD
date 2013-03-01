@@ -13,8 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.dartium;
 
-import com.google.dart.tools.core.internal.model.DartLibraryImpl;
-import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
@@ -22,6 +21,7 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -58,20 +58,7 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
       }
     }
 
-    DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
-
-    if (libraries.length > 0) {
-      for (DartLibrary library : libraries) {
-        if (library instanceof DartLibraryImpl) {
-          DartLibraryImpl impl = (DartLibraryImpl) library;
-          if (impl.isBrowserApplication()) {
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
+    return isBrowserApplication(resource);
   }
 
   @Override
@@ -128,6 +115,9 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
 
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return NewLaunchUtils.isLaunchableWith(resource, config);
+    }
     return LaunchUtils.isLaunchableWith(resource, config);
   }
 

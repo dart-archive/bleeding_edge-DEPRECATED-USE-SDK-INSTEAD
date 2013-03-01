@@ -84,6 +84,18 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public IResource getHtmlFileForLibrary(Source source) {
+
+    // TODO(keertip): implement when there is API in the context to get to the 
+    // html file that has a reference to a particular library source
+
+    //AnalysisContext context = getContext(getResource(source));
+    // Source htmlSource = context.getHtmlForLibrary(source);
+    // return getResource(source);
+    return null;
+  }
+
+  @Override
   public DartIgnoreManager getIgnoreManager() {
     return ignoreManager;
   }

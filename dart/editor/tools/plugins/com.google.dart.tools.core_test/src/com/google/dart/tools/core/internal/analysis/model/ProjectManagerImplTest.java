@@ -128,6 +128,23 @@ public class ProjectManagerImplTest extends TestCase {
     assertSame(expected, actual);
   }
 
+  public void test_getHtmlFileForLibrary() {
+    //TODO(keertip): finish when context api has been implemented
+    MockFolder mockFolder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
+    mockFolder.add(file);
+    MockFile htmlfile = new MockFile(mockFolder, "<!DOCTYPE html>\n<html><body> +"
+        + " <script type=\"application/dart\" src=\"libraryA.dart\"></script>\n" + "</body></html>");
+    mockFolder.add(htmlfile);
+    MockFile libFile = new MockFile(mockFolder, "libraryB.dart", "library libraryB;\n\n main(){}");
+    mockFolder.add(libFile);
+//    IResource resource = manager.getHtmlFileForLibrary(manager.getSource(file));
+//    assertNotNull(resource);
+//    assertEquals(htmlfile, resource);
+//    assertNull(manager.getHtmlFileForLibrary(manager.getSource(libFile)));
+
+  }
+
   public void test_getIgnoreManager() throws Exception {
     assertSame(ignoreManager, manager.getIgnoreManager());
   }

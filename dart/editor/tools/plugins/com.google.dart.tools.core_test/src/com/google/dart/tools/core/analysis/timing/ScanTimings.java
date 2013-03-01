@@ -140,6 +140,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public IResource getHtmlFileForLibrary(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }

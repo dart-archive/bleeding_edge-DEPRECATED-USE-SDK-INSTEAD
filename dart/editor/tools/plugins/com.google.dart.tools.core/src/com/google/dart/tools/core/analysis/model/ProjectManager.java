@@ -36,6 +36,14 @@ public interface ProjectManager extends ContextManager {
   void addProjectListener(ProjectListener listener);
 
   /**
+   * Answer with the html file which has a reference to the library represented by the given source
+   * 
+   * @param source the source for a library
+   * @return IResource that is the html file with a reference to the given library, or {@code null}
+   */
+  IResource getHtmlFileForLibrary(Source source);
+
+  /**
    * Answer the global ignore manager used for all Dart source
    * 
    * @return the ignore manager (not {@code null})

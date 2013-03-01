@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.chromeapp;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -24,6 +25,7 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -136,6 +138,9 @@ public class ChromeAppLaunchShortcut extends AbstractLaunchShortcut implements I
 
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return NewLaunchUtils.isLaunchableWith(resource, config);
+    }
     return LaunchUtils.isLaunchableWith(resource, config);
   }
 

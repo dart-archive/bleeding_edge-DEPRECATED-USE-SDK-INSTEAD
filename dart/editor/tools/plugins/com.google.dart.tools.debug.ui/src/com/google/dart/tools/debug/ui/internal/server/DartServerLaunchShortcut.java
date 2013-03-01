@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -20,6 +22,7 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -57,19 +60,28 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       return false;
     }
 
-    DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      LibraryElement[] elements = NewLaunchUtils.getLibraries(resource);
+      for (LibraryElement element : elements) {
+        if (element.isBrowserApplication()) {
+          return false;
+        }
+      }
+      return true;
+    } else {
+      DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
-    if (libraries.length > 0) {
-      for (DartLibrary library : libraries) {
-        if (library instanceof DartLibraryImpl) {
-          DartLibraryImpl impl = (DartLibraryImpl) library;
-          if (impl.isServerApplication()) {
-            return true;
+      if (libraries.length > 0) {
+        for (DartLibrary library : libraries) {
+          if (library instanceof DartLibraryImpl) {
+            DartLibraryImpl impl = (DartLibraryImpl) library;
+            if (impl.isServerApplication()) {
+              return true;
+            }
           }
         }
       }
     }
-
     return false;
   }
 
@@ -204,6 +216,9 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
   }
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return NewLaunchUtils.isLaunchableWith(resource, config);
+    }
     return LaunchUtils.isLaunchableWith(resource, config);
   }
 

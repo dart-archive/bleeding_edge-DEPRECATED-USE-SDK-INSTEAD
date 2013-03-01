@@ -206,6 +206,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public IResource getHtmlFileForLibrary(Source source) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public DartIgnoreManager getIgnoreManager() {
       return ignoreManager;
     }

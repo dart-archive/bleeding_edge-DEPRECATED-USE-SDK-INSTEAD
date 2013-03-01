@@ -127,7 +127,8 @@ public class NewLaunchUtils {
       if (DartCore.isHTMLLikeFileName(resource.getName())) {
         HtmlElement htmlElement = manager.getHtmlElement((IFile) resource);
         if (htmlElement != null) {
-          // TODO(keertip): get Source of referenced libraries
+          //TODO(keertip): when there is API in htmlelement do a getLibrarySources to get
+          // Source[] of all referencing libraries
         }
       }
     } else {
@@ -140,8 +141,6 @@ public class NewLaunchUtils {
   }
 
   /**
-   * @param resource
-   * @param config
    * @return whether the given launch config could be used to launch the given resource
    */
   public static boolean isLaunchableWith(IResource resource, ILaunchConfiguration config) {
@@ -153,18 +152,16 @@ public class NewLaunchUtils {
       return true;
     }
 
-    // TODO: this does not use the launch configurations correctly
+    Source[] testLibraries = getLibrariesSource(resource);
+    Source[] existingLibrary = getLibrariesSource(launchWrapper.getApplicationResource());
 
-//    DartLibrary[] testLibraries = LaunchUtils.getDartLibraries(resource);
-//    DartLibrary[] existingLibrary = LaunchUtils.getDartLibraries(launchWrapper.getApplicationResource());
-//
-//    if (testLibraries.length > 0 & existingLibrary.length > 0) {
-//      for (DartLibrary testLibrary : testLibraries) {
-//        if (testLibrary.equals(existingLibrary[0])) {
-//          return true;
-//        }
-//      }
-//    }
+    if (testLibraries.length > 0 & existingLibrary.length > 0) {
+      for (Source testLibrary : testLibraries) {
+        if (testLibrary.equals(existingLibrary[0])) {
+          return true;
+        }
+      }
+    }
 
     return false;
   }

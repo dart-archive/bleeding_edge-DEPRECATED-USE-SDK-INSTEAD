@@ -13,7 +13,12 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.HTMLFileImpl;
 import com.google.dart.tools.core.model.DartElement;
@@ -112,8 +117,8 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     Object res = null;
     if (elem instanceof IResource) {
       res = elem;
-    } else if (elem instanceof DartElement) {
-      res = elem;
+//    } else if (elem instanceof DartElement) {
+//      res = elem;
     } else if (elem instanceof IAdaptable) {
       res = ((IAdaptable) elem).getAdapter(IResource.class);
     }
@@ -261,6 +266,10 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       return null;
     }
 
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return getResourceToLaunch(originalResource);
+    }
+
     DartElement elem = null;
 
     if (originalResource instanceof IResource) {
@@ -311,6 +320,35 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   }
 
   /**
+   * Checks if given resource is part of/is library that can be run on browser
+   */
+  protected boolean isBrowserApplication(IResource resource) {
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      LibraryElement[] elements = NewLaunchUtils.getLibraries(resource);
+      for (LibraryElement element : elements) {
+        if (element.isBrowserApplication()) {
+          return true;
+        }
+      }
+    } else {
+      DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
+
+      if (libraries.length > 0) {
+        for (DartLibrary library : libraries) {
+          if (library instanceof DartLibraryImpl) {
+            DartLibraryImpl impl = (DartLibraryImpl) library;
+            if (impl.isBrowserApplication()) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * Find or create and launch the given resource.
    * 
    * @param resource
@@ -340,6 +378,36 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       // TODO(keertip): need to handle the case of multiple html files
       return htmlFiles.get(0).getCorrespondingResource();
     }
+  }
+
+  private IResource getResourceToLaunch(Object originalResource) {
+
+    if (originalResource instanceof IResource) {
+      IResource resource = (IResource) originalResource;
+      if (!resource.isAccessible()) {
+        return null;
+      }
+
+      if (DartUtil.isWebPage(resource)) {
+        return resource;
+      }
+
+      ProjectManager manager = DartCore.getProjectManager();
+      Source[] sources = manager.getLibrarySources(resource);
+
+      Set<IResource> htmlFiles = new HashSet<IResource>();
+      for (Source source : sources) {
+        IResource htmlFile = manager.getHtmlFileForLibrary(source);
+        if (htmlFile != null) {
+          htmlFiles.add(resource);
+        }
+      }
+      if (!htmlFiles.isEmpty()) {
+        return htmlFiles.iterator().next();
+      }
+    }
+
+    return null;
   }
 
 }
