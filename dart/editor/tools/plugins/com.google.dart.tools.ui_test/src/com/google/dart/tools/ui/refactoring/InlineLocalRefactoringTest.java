@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_OLD;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,13 +28,13 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import java.text.MessageFormat;
 
 /**
- * Test for {@link InlineLocalRefactoring}.
+ * Test for {@link InlineLocalRefactoring_OLD}.
  */
 public final class InlineLocalRefactoringTest extends RefactoringTest {
   private static final IProgressMonitor pm = new NullProgressMonitor();
 
   private int selection;
-  private InlineLocalRefactoring refactoring;
+  private InlineLocalRefactoring_OLD refactoring;
   private RefactoringStatus refactoringStatus;
 
   public void test_access() throws Exception {
@@ -48,7 +48,7 @@ public final class InlineLocalRefactoringTest extends RefactoringTest {
     // prepare refactoring
     createRefactoring();
     assertEquals("Inline Local Variable", refactoring.getName());
-    assertEquals("test", refactoring.getVariableElement().getName());
+    assertEquals("test", refactoring.getVariableName());
   }
 
   public void test_bad_selectionEmpty() throws Exception {
@@ -249,7 +249,7 @@ public final class InlineLocalRefactoringTest extends RefactoringTest {
    * Creates refactoring and checks all conditions.
    */
   private void createRefactoring() throws Exception {
-    refactoring = new InlineLocalRefactoring(testUnit, selection, 0);
+    refactoring = new InlineLocalRefactoring_OLD(testUnit, selection, 0);
     refactoringStatus = refactoring.checkAllConditions(pm);
   }
 

@@ -54,7 +54,7 @@ import java.util.List;
 /**
  * @coverage dart.editor.ui.refactoring.core
  */
-public class InlineLocalRefactoring extends Refactoring {
+public class InlineLocalRefactoring_OLD extends Refactoring implements InlineLocalRefactoring_I {
 
   private static ReplaceEdit createReplaceEdit(SourceRange range, String text) {
     return new ReplaceEdit(range.getOffset(), range.getLength(), text);
@@ -69,7 +69,7 @@ public class InlineLocalRefactoring extends Refactoring {
   private VariableElement variableElement;
   private List<DartIdentifier> references;
 
-  public InlineLocalRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
+  public InlineLocalRefactoring_OLD(CompilationUnit unit, int selectionStart, int selectionLength) {
     Assert.isTrue(selectionStart >= 0);
     Assert.isTrue(selectionLength >= 0);
     this.selectionStart = selectionStart;
@@ -166,25 +166,14 @@ public class InlineLocalRefactoring extends Refactoring {
     return RefactoringCoreMessages.InlineLocalRefactoring_name;
   }
 
-  public List<DartIdentifier> getReferences() {
-    if (references == null) {
-      references = Lists.newArrayList();
-      unitNode.accept(new ASTVisitor<Void>() {
-        @Override
-        public Void visitIdentifier(DartIdentifier node) {
-          if (Objects.equal(node.getElement(), variableElement)
-              && PropertyDescriptorHelper.getLocationInParent(node) != PropertyDescriptorHelper.DART_VARIABLE_NAME) {
-            references.add(node);
-          }
-          return null;
-        }
-      });
-    }
-    return references;
+  @Override
+  public int getReferenceCount() {
+    return getReferences().size();
   }
 
-  public VariableElement getVariableElement() {
-    return variableElement;
+  @Override
+  public String getVariableName() {
+    return variableElement.getName();
   }
 
   private RefactoringStatus checkSelection() {
@@ -215,6 +204,23 @@ public class InlineLocalRefactoring extends Refactoring {
     }
     // OK
     return new RefactoringStatus();
+  }
+
+  private List<DartIdentifier> getReferences() {
+    if (references == null) {
+      references = Lists.newArrayList();
+      unitNode.accept(new ASTVisitor<Void>() {
+        @Override
+        public Void visitIdentifier(DartIdentifier node) {
+          if (Objects.equal(node.getElement(), variableElement)
+              && PropertyDescriptorHelper.getLocationInParent(node) != PropertyDescriptorHelper.DART_VARIABLE_NAME) {
+            references.add(node);
+          }
+          return null;
+        }
+      });
+    }
+    return references;
   }
 
   /**

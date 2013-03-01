@@ -87,6 +87,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
 
   @Override
   public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     pm.beginTask("Checking final conditions", 1);
     try {
       RefactoringStatus result = new RefactoringStatus();
@@ -106,6 +107,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
 
   @Override
   public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     pm.beginTask("Checking initial conditions", 2);
     try {
       RefactoringStatus result = new RefactoringStatus();
@@ -126,6 +128,7 @@ public class ExtractLocalRefactoringImpl extends RefactoringImpl implements Extr
 
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     SourceChange change = new SourceChange(getRefactoringName(), context.getSource());
     // prepare occurrences
     List<SourceRange> occurrences;

@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.OperationCanceledException;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
@@ -24,8 +25,19 @@ import com.google.dart.engine.services.status.RefactoringStatus;
  * Abstract implementation of {@link Refactoring}.
  */
 public abstract class RefactoringImpl implements Refactoring {
+  /**
+   * @return the given {@link ProgressMonitor} or new {@link NullProgressMonitor} instance.
+   */
+  protected static ProgressMonitor checkProgressMonitor(ProgressMonitor pm) {
+    if (pm != null) {
+      return pm;
+    }
+    return new NullProgressMonitor();
+  }
+
   @Override
   public RefactoringStatus checkAllConditions(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     pm.beginTask("", 2);
     RefactoringStatus result = new RefactoringStatus();
     result.merge(checkInitialConditions(new SubProgressMonitor(pm, 1)));

@@ -2062,11 +2062,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       int selectionOffset = 0;
       int selectionLength = 0;
       {
-        SourceRange selectionRange = getTextSelectionRange();
-        if (selectionRange != null) {
-          selectionOffset = selectionRange.getOffset();
-          selectionLength = selectionRange.getLength();
-        }
+        Point selectedRange = getViewer().getSelectedRange();
+        selectionOffset = selectedRange.x;
+        selectionLength = selectedRange.y;
       }
       // return AssistContext
       Index index = DartCore.getProjectManager().getIndex();

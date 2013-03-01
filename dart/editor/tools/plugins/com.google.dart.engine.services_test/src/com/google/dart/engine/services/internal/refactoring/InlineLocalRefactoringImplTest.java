@@ -32,12 +32,14 @@ public class InlineLocalRefactoringImplTest extends RefactoringImplTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  int test = 1 + 2;",
-        "  print(0);",
+        "  print(test);",
         "}");
     selection = findOffset("test = ");
     createRefactoring();
     // validate
     assertEquals("Inline Local Variable", refactoring.getRefactoringName());
+    assertEquals(1, refactoring.getReferenceCount());
+    assertEquals("test", refactoring.getVariableName());
   }
 
   public void test_bad_selectionEmpty() throws Exception {

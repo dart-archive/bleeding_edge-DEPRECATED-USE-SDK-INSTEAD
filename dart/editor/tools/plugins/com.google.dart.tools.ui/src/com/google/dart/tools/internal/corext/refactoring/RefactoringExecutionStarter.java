@@ -14,8 +14,11 @@
 package com.google.dart.tools.internal.corext.refactoring;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
+import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
@@ -23,16 +26,19 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_I;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertGetterToMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard;
 import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
+import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
+import com.google.dart.tools.ui.internal.refactoring.ServiceInlineLocalRefactoring;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 
 import org.eclipse.core.runtime.CoreException;
@@ -321,22 +327,22 @@ public final class RefactoringExecutionStarter {
 //    return false;
 //  }
 
-//  public static boolean startInlineTempRefactoring(final CompilationUnit unit, DartUnit node,
-//      final ITextSelection selection, final Shell shell) {
-//    final InlineLocalRefactoring refactoring = new InlineLocalRefactoring(
-//        unit,
-//        selection.getOffset(),
-//        selection.getLength());
-//    if (!refactoring.checkIfTempSelected().hasFatalError()) {
-//      new RefactoringStarter().activate(
-//          new InlineLocalWizard(refactoring),
-//          shell,
-//          RefactoringMessages.InlineLocalAction_dialog_title,
-//          RefactoringSaveHelper.SAVE_NOTHING);
-//      return true;
-//    }
-//    return false;
-//  }
+  public static boolean startInlineTempRefactoring(AssistContext assistContext, Shell shell)
+      throws Exception {
+    InlineLocalRefactoring serviceRefactoring = RefactoringFactory.createInlineLocalRefactoring(assistContext);
+    RefactoringStatus refactoringStatus = serviceRefactoring.checkInitialConditions(null);
+    if (!refactoringStatus.hasFatalError()) {
+      InlineLocalRefactoring_I ltkRefactoring = new ServiceInlineLocalRefactoring(
+          serviceRefactoring);
+      new RefactoringStarter().activate(
+          new InlineLocalWizard(ltkRefactoring),
+          shell,
+          RefactoringMessages.InlineLocalAction_dialog_title,
+          RefactoringSaveHelper.SAVE_NOTHING);
+      return true;
+    }
+    return false;
+  }
 
 //  public static void startIntroduceFactoryRefactoring(final ICompilationUnit unit, final ITextSelection selection, final Shell shell) {
 //  	final IntroduceFactoryRefactoring refactoring= new IntroduceFactoryRefactoring(unit, selection.getOffset(), selection.getLength());

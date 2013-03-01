@@ -80,9 +80,7 @@ public class InlineAction extends InstrumentedSelectionDispatchAction {
     }
 
     // TODO(scheglov)
-    CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
-    instrumentation.record(cu);
-    if (fInlineTemp.isEnabled() && fInlineTemp.tryInlineTemp(cu, null, selection, getShell())) {
+    if (fInlineTemp.isEnabled() && fInlineTemp.tryInlineTemp(getShell())) {
       return;
     }
 
@@ -106,6 +104,7 @@ public class InlineAction extends InstrumentedSelectionDispatchAction {
 //    }
 
     //InlineMethod is last (also tries enclosing element):
+    CompilationUnit cu = SelectionConverter.getInputAsCompilationUnit(fEditor);
     if (fInlineMethod.isEnabled() && fInlineMethod.tryInlineMethod(cu, selection, getShell())) {
       return;
     }

@@ -12,22 +12,13 @@
  * the License.
  */
 
-package com.google.dart.engine.services.refactoring;
-
-import com.google.dart.engine.element.VariableElement;
+package com.google.dart.tools.internal.corext.refactoring.code;
 
 /**
- * {@link Refactoring} to inline local {@link VariableElement}.
+ * Interface of "Inline Local Variable" refactoring.
  */
-public interface InlineLocalRefactoring extends Refactoring {
-
-  /**
-   * @return the number of reference to the {@link VariableElement}.
-   */
+public interface InlineLocalRefactoring_I {
   int getReferenceCount();
 
-  /**
-   * @return the name of the {@link VariableElement}.
-   */
   String getVariableName();
 }

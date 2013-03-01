@@ -55,6 +55,7 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @Override
   public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     pm.beginTask("Checking final conditions", 1);
     try {
       RefactoringStatus result = new RefactoringStatus();
@@ -86,6 +87,7 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     SourceChange change = new SourceChange(getRefactoringName(), elementSource);
     // update declaration
     change.addEdit("Update declaration", createDeclarationRenameEdit());

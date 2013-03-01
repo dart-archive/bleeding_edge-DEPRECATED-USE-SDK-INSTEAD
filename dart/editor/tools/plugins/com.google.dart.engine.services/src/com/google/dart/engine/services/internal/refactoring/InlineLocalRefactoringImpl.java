@@ -70,6 +70,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
 
   @Override
   public RefactoringStatus checkInitialConditions(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     pm.beginTask("Checking initial conditions", 5);
     try {
       RefactoringStatus result = new RefactoringStatus();
@@ -129,6 +130,7 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
 
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
+    pm = checkProgressMonitor(pm);
     SourceChange change = new SourceChange(getRefactoringName(), context.getSource());
     // remove declaration
     {
@@ -174,6 +176,16 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
   @Override
   public String getRefactoringName() {
     return "Inline Local Variable";
+  }
+
+  @Override
+  public int getReferenceCount() {
+    return references.size();
+  }
+
+  @Override
+  public String getVariableName() {
+    return variableElement.getName();
   }
 
   /**

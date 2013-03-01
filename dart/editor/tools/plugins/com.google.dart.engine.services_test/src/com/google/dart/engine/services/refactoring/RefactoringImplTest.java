@@ -82,4 +82,11 @@ public class RefactoringImplTest extends AbstractDartTest {
     verify(refactoring).checkInitialConditions(any(ProgressMonitor.class));
     verify(refactoring, times(0)).checkFinalConditions(any(ProgressMonitor.class));
   }
+
+  public void test_checkAllConditions_nullProgressMonitor() throws Exception {
+    Refactoring refactoring = mock(RefactoringImpl.class);
+    when(refactoring.checkAllConditions(any(ProgressMonitor.class))).thenCallRealMethod();
+    // no NPE
+    refactoring.checkAllConditions(null);
+  }
 }

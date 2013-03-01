@@ -1,9 +1,10 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_I;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
+import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.PlatformUI;
@@ -28,9 +29,9 @@ public class InlineLocalWizard extends RefactoringWizard {
 
     @Override
     protected String getMessageString() {
-      InlineLocalRefactoring refactoring = (InlineLocalRefactoring) getRefactoring();
-      int occurrences = refactoring.getReferences().size();
-      final String name = refactoring.getVariableElement().getName();
+      InlineLocalRefactoring_I refactoring = (InlineLocalRefactoring_I) getRefactoring();
+      int occurrences = refactoring.getReferenceCount();
+      final String name = refactoring.getVariableName();
       switch (occurrences) {
         case 0:
           return Messages.format(RefactoringMessages.InlineLocalInputPage_message_zero, name);
@@ -46,8 +47,8 @@ public class InlineLocalWizard extends RefactoringWizard {
     }
   }
 
-  public InlineLocalWizard(InlineLocalRefactoring ref) {
-    super(ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE
+  public InlineLocalWizard(InlineLocalRefactoring_I ref) {
+    super((Refactoring) ref, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE
         | NO_BACK_BUTTON_ON_STATUS_DIALOG);
     setDefaultPageTitle(RefactoringMessages.InlineLocalWizard_defaultPageTitle);
   }

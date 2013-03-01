@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring;
 
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartClassTypeAlias;
 import com.google.dart.tools.core.model.DartElement;
@@ -29,7 +28,7 @@ import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMethodRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_OLD;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
@@ -334,9 +333,9 @@ public final class RefactoringExecutionStarter_OLD {
     return false;
   }
 
-  public static boolean startInlineTempRefactoring(final CompilationUnit unit, DartUnit node,
-      final ITextSelection selection, final Shell shell) {
-    final InlineLocalRefactoring refactoring = new InlineLocalRefactoring(
+  public static boolean startInlineTempRefactoring(CompilationUnit unit, ITextSelection selection,
+      Shell shell) {
+    final InlineLocalRefactoring_OLD refactoring = new InlineLocalRefactoring_OLD(
         unit,
         selection.getOffset(),
         selection.getLength());
