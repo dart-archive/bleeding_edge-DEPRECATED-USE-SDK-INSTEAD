@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.dialogs.ScanProgressUI;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRegistry;
@@ -322,17 +323,38 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   }
 
   public static void log(IStatus status) {
-    Instrumentation.operation("DartToolsPlugin-log").with("message", status.getMessage()).with(
-        "plugin",
-        status.getPlugin()).with("severity", status.getSeverity()).log();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartToolsPlugin.log");
+    try {
 
-    getDefault().getLog().log(status);
+      instrumentation.metric("Severity", status.getSeverity());
+      instrumentation.data("Message", status.getMessage());
+
+      Throwable e = status.getException();
+      if (e != null) {
+        instrumentation.metric("Exception", e.getClass().toString());
+        instrumentation.data("Exception", e.toString());
+      }
+
+      getDefault().getLog().log(status);
+
+    } finally {
+      instrumentation.log();
+
+    }
   }
 
   public static void log(String message) {
 
-    Instrumentation.operation("DartToolsPlugin-log").with("message", message).log();
-    getDefault().getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartToolsPlugin.log");
+    try {
+
+      instrumentation.data("Message", message);
+      getDefault().getLog().log(new Status(IStatus.INFO, PLUGIN_ID, message));
+
+    } finally {
+      instrumentation.log();
+
+    }
   }
 
   public static void log(String message, Throwable e) {

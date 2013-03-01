@@ -15,7 +15,6 @@ package com.google.dart.engine.html.scanner;
 
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 
 import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
 import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
@@ -112,11 +111,8 @@ public abstract class AbstractScanner {
    * @return the first token in the list of tokens that were produced
    */
   public Token tokenize() {
-    long startTime = System.currentTimeMillis();
     scan();
     appendEofToken();
-    long endTime = System.currentTimeMillis();
-    Instrumentation.metric("Engine-Html-Scanner", endTime - startTime).with("chars", getOffset()).log();
     return firstToken();
   }
 

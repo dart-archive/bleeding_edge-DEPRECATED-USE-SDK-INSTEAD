@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
@@ -158,44 +159,51 @@ public class TypeProvider extends OmniProposalProvider {
   private OmniElement[] doSearch(com.google.dart.tools.core.search.SearchPattern searchPattern,
       final String filterText) throws SearchException {
 
-    if (!searchStarted) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-TypeProvider.doSearch");
+    try {
+      instrumentation.metric("searchStarted", String.valueOf(searchStarted));
 
-      long start = System.currentTimeMillis();
+      if (!searchStarted) {
 
-      searchStarted = true;
+        searchStarted = true;
 
-      searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
+        searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
 
-      results.add(searchPlaceHolderElement);
+        results.add(searchPlaceHolderElement);
 
-      SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
-      engine.searchTypeDeclarations(
-          getSearchScope(),
-          searchPattern,
-          IGNORE_FILTER,
-          new SearchListener() {
+        SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
+        engine.searchTypeDeclarations(
+            getSearchScope(),
+            searchPattern,
+            IGNORE_FILTER,
+            new SearchListener() {
 
-            @Override
-            public void matchFound(SearchMatch match) {
-              DartElement element = match.getElement();
-              if (element instanceof Type) {
-                results.add(new TypeElement(TypeProvider.this, (Type) element));
+              @Override
+              public void matchFound(SearchMatch match) {
+                DartElement element = match.getElement();
+                if (element instanceof Type) {
+                  results.add(new TypeElement(TypeProvider.this, (Type) element));
+                }
               }
-            }
 
-            @Override
-            public void searchComplete() {
-              searchComplete = true;
-              results.remove(searchPlaceHolderElement);
-            }
-          },
-          progressMonitor);
+              @Override
+              public void searchComplete() {
+                searchComplete = true;
+                results.remove(searchPlaceHolderElement);
+              }
+            },
+            progressMonitor);
 
-      long delta = System.currentTimeMillis() - start;
-      Instrumentation.metric("TypeProvider.doSearch", delta).log(); //$NON-NLS-1$
+      }
+
+      instrumentation.metric("ResultsSize", results.size());
+
+      return results.toArray(new OmniElement[results.size()]);
+    } finally {
+      instrumentation.log();
+
     }
 
-    return results.toArray(new OmniElement[results.size()]);
   }
 
   private SearchScope getSearchScope() {

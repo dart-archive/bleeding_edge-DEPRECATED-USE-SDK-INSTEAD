@@ -13,14 +13,14 @@
  */
 package com.google.dart.tools.ui.feedback;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.InstrumentedJob;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -38,7 +38,7 @@ import java.net.URL;
  * forwarding
  * <li>submit feedback
  */
-public class FeedbackSubmissionJob extends Job {
+public class FeedbackSubmissionJob extends InstrumentedJob {
 
   private final FeedbackWriter writer;
 
@@ -59,7 +59,7 @@ public class FeedbackSubmissionJob extends Job {
   }
 
   @Override
-  protected IStatus run(IProgressMonitor monitor) {
+  protected IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation) {
 
     final URL serverURL = pingServer();
 
@@ -72,7 +72,7 @@ public class FeedbackSubmissionJob extends Job {
     try {
       // Attempt to upload.
       //long startTime = System.currentTimeMillis();
-      submitFeedback(serverURL, monitor);
+      submitFeedback(serverURL, monitor, instrumentation);
 
 //      if (Activator.DEBUG) {
 //        Activator.log((dataLength / 1024) + "K feedback data uploaded in "
@@ -150,8 +150,9 @@ public class FeedbackSubmissionJob extends Job {
     }
   }
 
-  private void submitFeedback(URL serverURL, IProgressMonitor monitor) throws IOException {
-    submitFeedback_text(serverURL, monitor);
+  private void submitFeedback(URL serverURL, IProgressMonitor monitor,
+      UIInstrumentationBuilder instrumentation) throws IOException {
+    submitFeedback_text(serverURL, monitor, instrumentation);
     if (OpenFeedbackDialogAction.SCREEN_CAPTURE_ENABLED) {
       if (writer.sendScreenshotData()) {
         submitFeedback_png(serverURL, monitor);
@@ -211,9 +212,10 @@ public class FeedbackSubmissionJob extends Job {
     return data.length;
   }
 
-  private int submitFeedback_text(URL serverURL, IProgressMonitor monitor) throws IOException {
+  private int submitFeedback_text(URL serverURL, IProgressMonitor monitor,
+      UIInstrumentationBuilder instrumentation) throws IOException {
 
-    long start = System.currentTimeMillis();
+    instrumentation.metric("SubmitText", "Start");
 
     ByteArrayOutputStream bout = new ByteArrayOutputStream(4096);
 
@@ -272,8 +274,8 @@ public class FeedbackSubmissionJob extends Job {
 
     connection.disconnect();
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("SubmitFeedback-Sent", elapsed).with("Feedback", bout.toString()).log();
+    instrumentation.metric("data.length", data.length);
+    instrumentation.data("Feedback", bout.toString());
 
     return data.length;
   }

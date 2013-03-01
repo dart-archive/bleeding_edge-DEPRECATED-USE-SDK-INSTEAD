@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.search.ui.text.TextSearchScopeFilter;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -231,66 +232,69 @@ public class FileProvider extends OmniProposalProvider {
   @Override
   public OmniElement[] getElements(String stringPattern) {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-FileProvider.doSearch");
+    try {
+      String filenamePattern;
 
-    String filenamePattern;
-
-    int sep = stringPattern.lastIndexOf(IPath.SEPARATOR);
-    if (sep != -1) {
-      filenamePattern = stringPattern.substring(sep + 1, stringPattern.length());
-      if ("*".equals(filenamePattern)) {
-        filenamePattern = "**"; //$NON-NLS-1$
-      }
-
-      if (sep > 0) {
-        if (filenamePattern.length() == 0) {
+      int sep = stringPattern.lastIndexOf(IPath.SEPARATOR);
+      if (sep != -1) {
+        filenamePattern = stringPattern.substring(sep + 1, stringPattern.length());
+        if ("*".equals(filenamePattern)) {
           filenamePattern = "**"; //$NON-NLS-1$
         }
 
-        String containerPattern = stringPattern.substring(0, sep);
+        if (sep > 0) {
+          if (filenamePattern.length() == 0) {
+            filenamePattern = "**"; //$NON-NLS-1$
+          }
 
-        if (container != null) {
-          relativeContainerPattern = new SearchPattern(SearchPattern.RULE_EXACT_MATCH
-              | SearchPattern.RULE_PATTERN_MATCH);
-          relativeContainerPattern.setPattern(container.getFullPath().append(containerPattern).toString());
+          String containerPattern = stringPattern.substring(0, sep);
+
+          if (container != null) {
+            relativeContainerPattern = new SearchPattern(SearchPattern.RULE_EXACT_MATCH
+                | SearchPattern.RULE_PATTERN_MATCH);
+            relativeContainerPattern.setPattern(container.getFullPath().append(containerPattern).toString());
+          }
+
+          if (!containerPattern.startsWith("" + IPath.SEPARATOR)) {
+            containerPattern = IPath.SEPARATOR + containerPattern;
+          }
+          this.containerPattern = new SearchPattern(SearchPattern.RULE_EXACT_MATCH
+              | SearchPattern.RULE_PREFIX_MATCH | SearchPattern.RULE_PATTERN_MATCH);
+          this.containerPattern.setPattern(containerPattern);
         }
+        patternMatcher.setPattern(filenamePattern);
 
-        if (!containerPattern.startsWith("" + IPath.SEPARATOR)) {
-          containerPattern = IPath.SEPARATOR + containerPattern;
+      } else {
+        filenamePattern = stringPattern;
+        patternMatcher.setPattern(stringPattern);
+      }
+
+      int lastPatternDot = filenamePattern.lastIndexOf('.');
+      if (lastPatternDot != -1) {
+        char last = filenamePattern.charAt(filenamePattern.length() - 1);
+        if (last != ' ' && last != '<' && getMatchRule() != SearchPattern.RULE_EXACT_MATCH) {
+          namePattern = new SearchPattern();
+          namePattern.setPattern(filenamePattern.substring(0, lastPatternDot));
+          extensionPattern = new SearchPattern();
+          extensionPattern.setPattern(filenamePattern.substring(lastPatternDot + 1));
         }
-        this.containerPattern = new SearchPattern(SearchPattern.RULE_EXACT_MATCH
-            | SearchPattern.RULE_PREFIX_MATCH | SearchPattern.RULE_PATTERN_MATCH);
-        this.containerPattern.setPattern(containerPattern);
       }
-      patternMatcher.setPattern(filenamePattern);
 
-    } else {
-      filenamePattern = stringPattern;
-      patternMatcher.setPattern(stringPattern);
-    }
-
-    int lastPatternDot = filenamePattern.lastIndexOf('.');
-    if (lastPatternDot != -1) {
-      char last = filenamePattern.charAt(filenamePattern.length() - 1);
-      if (last != ' ' && last != '<' && getMatchRule() != SearchPattern.RULE_EXACT_MATCH) {
-        namePattern = new SearchPattern();
-        namePattern.setPattern(filenamePattern.substring(0, lastPatternDot));
-        extensionPattern = new SearchPattern();
-        extensionPattern.setPattern(filenamePattern.substring(lastPatternDot + 1));
+      try {
+        FileCollector collector = new FileCollector(progressMonitor);
+        container.accept(collector, IResource.NONE);
+        return collector.getFiles();
+      } catch (CoreException e) {
+        DartToolsPlugin.log(e);
       }
-    }
 
-    try {
-      FileCollector collector = new FileCollector(progressMonitor);
-      container.accept(collector, IResource.NONE);
-      return collector.getFiles();
-    } catch (CoreException e) {
-      DartToolsPlugin.log(e);
+      return EMPTY_ARRAY;
+
     } finally {
-      long delta = System.currentTimeMillis() - start;
-      Instrumentation.metric("FileProvider.getElements", delta).log(); //$NON-NLS-1$
+      instrumentation.log();
+
     }
-    return EMPTY_ARRAY;
 
   }
 

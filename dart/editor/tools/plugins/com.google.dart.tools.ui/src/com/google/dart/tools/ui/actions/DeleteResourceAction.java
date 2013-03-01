@@ -13,10 +13,10 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.OperationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.commands.ExecutionException;
@@ -140,105 +140,75 @@ public class DeleteResourceAction extends SelectionListenerAction {
   @Override
   public void run() {
 
-    long start = System.currentTimeMillis();
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("DeleteResourceAction.runClick");
+    try {
 
-    final IResource[] resources = getSelectedResourcesArray();
+      final IResource[] resources = getSelectedResourcesArray();
+      instrumentation.record(resources);
 
-    // on Windows platform call out to system to do the delete, since 
-    // Eclipse has no knowledge of junctions used in packages
-    if (DartCore.isWindows()) {
-      if (confirmDelete(resources)) {
-        windowsDelete(resources);
-      }
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
-          "Windows",
-          "true").with("Success", "true").log();
-
-      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
-      for (IResource ir : resources) {
-        builder = builder.with("resourceName", ir.getName());
-      }
-      builder.log();
-
-      return;
-    }
-
-    if (LTKLauncher.openDeleteWizard(getStructuredSelection())) {
-
-      EditorUtility.closeOrphanedEditors();
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
-          "Windows",
-          "false").with("Success", "true").log();
-
-      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
-      for (IResource ir : resources) {
-        builder = builder.with("resourceName", ir.getName());
-      }
-      builder.log();
-
-      return;
-    }
-
-    // WARNING: do not query the selected resources more than once
-    // since the selection may change during the run,
-    // e.g. due to window activation when the prompt dialog is dismissed.
-    // For more details, see Bug 60606 [Navigator] (data loss) Navigator
-    // deletes/moves the wrong file
-    if (!confirmDelete(resources)) {
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
-          "Windows",
-          "false").with("Confirmed", "false").log();
-
-      OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
-      for (IResource ir : resources) {
-        builder = builder.with("resourceName", ir.getName());
-      }
-      builder.log();
-
-      return;
-
-    }
-
-    Job deletionCheckJob = new Job(IDEWorkbenchMessages.DeleteResourceAction_checkJobName) {
-
-      @Override
-      public boolean belongsTo(Object family) {
-        if (IDEWorkbenchMessages.DeleteResourceAction_jobName.equals(family)) {
-          return true;
+      // on Windows platform call out to system to do the delete, since 
+      // Eclipse has no knowledge of junctions used in packages
+      if (DartCore.isWindows()) {
+        if (confirmDelete(resources)) {
+          windowsDelete(resources);
         }
-        return super.belongsTo(family);
+
+        instrumentation.metric("windows-delete", "true");
+
+        return;
       }
 
-      @Override
-      protected IStatus run(IProgressMonitor monitor) {
-        if (resources.length == 0) {
+      if (LTKLauncher.openDeleteWizard(getStructuredSelection())) {
 
-          return Status.CANCEL_STATUS;
+        EditorUtility.closeOrphanedEditors();
+        instrumentation.metric("DeleteWizardShown", "true");
+
+        return;
+
+      }
+
+      // WARNING: do not query the selected resources more than once
+      // since the selection may change during the run,
+      // e.g. due to window activation when the prompt dialog is dismissed.
+      // For more details, see Bug 60606 [Navigator] (data loss) Navigator
+      // deletes/moves the wrong file
+      if (!confirmDelete(resources)) {
+
+        instrumentation.metric("Confirmed", "false");
+        return;
+
+      }
+
+      Job deletionCheckJob = new InstrumentedJob(
+          IDEWorkbenchMessages.DeleteResourceAction_checkJobName) {
+
+        @Override
+        public boolean belongsTo(Object family) {
+          if (IDEWorkbenchMessages.DeleteResourceAction_jobName.equals(family)) {
+            return true;
+          }
+          return super.belongsTo(family);
         }
-        scheduleDeleteJob(resources);
 
-        return Status.OK_STATUS;
-      }
-    };
+        @Override
+        protected IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation) {
+          if (resources.length == 0) {
+            instrumentation.metric("Problem", "Resources.length == 0");
+            return Status.CANCEL_STATUS;
+          }
+          instrumentation.metric("resources-length", resources.length);
+          scheduleDeleteJob(resources);
 
-    deletionCheckJob.schedule();
+          return Status.OK_STATUS;
+        }
+      };
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DeleteResources", elapsed).with("resourcesCount", resources.length).with(
-        "Windows",
-        "false").with("Scheduled", "true").log();
+      deletionCheckJob.schedule();
 
-    OperationBuilder builder = Instrumentation.operation("DeleteResources", elapsed);
-    for (IResource ir : resources) {
-      builder = builder.with("resourceName", ir.getName());
+    } finally {
+      instrumentation.log();
+
     }
-    builder.log();
   }
 
   /**

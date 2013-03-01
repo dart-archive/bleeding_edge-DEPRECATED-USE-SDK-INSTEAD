@@ -1,5 +1,6 @@
 package com.google.dart.tools.ui.instrumentation;
 
+import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
@@ -7,6 +8,7 @@ import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -125,6 +127,24 @@ public class UIInstrumentation {
 
     }
 
+    public void record(DartNode node) {
+      if (node == null) {
+        metric("DartNode", "null");
+        return;
+      }
+
+      metric("DartNode-Class", node.getClass().toString());
+
+      com.google.dart.compiler.resolver.Element element = node.getElement();
+
+      if (element == null) {
+        metric("Element", "null");
+      } else {
+        data("Element-Name", element.getName());
+      }
+
+    }
+
     @Override
     public void record(DartTextSelection selection) {
 
@@ -142,6 +162,20 @@ public class UIInstrumentation {
 
       data("Selection-text", selection.getText());
 
+    }
+
+    @Override
+    public void record(IResource[] resources) {
+      if (resources == null) {
+        metric("resouces", "null");
+        return;
+      }
+
+      metric("resourcesLength", resources.length);
+
+      for (IResource ir : resources) {
+        data("ResourceName", ir.getName());
+      }
     }
 
     @Override
@@ -205,6 +239,7 @@ public class UIInstrumentation {
       metric("Exception", exception.getClass().toString());
       data("Exception", exception.toString());
     }
+
   }
 
   /**

@@ -169,59 +169,6 @@ public final class Instrumentation {
   }
 
   /**
-   * Create an operation builder that can collect the data associated with an operation. The
-   * operation is identified by the given name and is declared to contain only metrics data (data
-   * that is not user identifiable and does not contain user intellectual property).
-   * 
-   * @param name the name used to uniquely identify the operation
-   * @return the operation builder that was created
-   */
-  public static OperationBuilder metric(String name) {
-    return CURRENT_LOGGER.createMetric(name, -1);
-  }
-
-  /**
-   * Create an operation builder that can collect the data associated with an operation. The
-   * operation is identified by the given name, is declared to contain only metrics data (data that
-   * is not user identifiable and does not contain user intellectual property), and took the given
-   * amount of time to complete.
-   * 
-   * @param name the name used to uniquely identify the operation
-   * @param time the number of milliseconds required to perform the operation
-   * @return the operation builder that was created
-   */
-  public static OperationBuilder metric(String name, long time) {
-    return CURRENT_LOGGER.createMetric(name, time);
-  }
-
-  /**
-   * Create an operation builder that can collect the data associated with an operation. The
-   * operation is identified by the given name and is declared to potentially contain data that is
-   * either user identifiable or contains user intellectual property (but is not guaranteed to
-   * contain either).
-   * 
-   * @param name the name used to uniquely identify the operation
-   * @return the operation builder that was created
-   */
-  public static OperationBuilder operation(String name) {
-    return CURRENT_LOGGER.createOperation(name, -1);
-  }
-
-  /**
-   * Create an operation builder that can collect the data associated with an operation. The
-   * operation is identified by the given name, is declared to potentially contain data that is
-   * either user identifiable or contains user intellectual property (but is not guaranteed to
-   * contain either), and took the given amount of time to complete.
-   * 
-   * @param name the name used to uniquely identify the operation
-   * @param time the number of milliseconds required to perform the operation
-   * @return the operation builder that was created
-   */
-  public static OperationBuilder operation(String name, long time) {
-    return CURRENT_LOGGER.createOperation(name, time);
-  }
-
-  /**
    * Set the logger that should receive instrumentation information to the given logger.
    * 
    * @param logger the logger that should receive instrumentation information

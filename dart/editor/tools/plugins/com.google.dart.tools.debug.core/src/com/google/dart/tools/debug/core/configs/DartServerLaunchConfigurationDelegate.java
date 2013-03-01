@@ -14,7 +14,7 @@
 package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -61,10 +61,8 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
   }
 
   @Override
-  public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
-      IProgressMonitor monitor) throws CoreException {
-
-    long start = System.currentTimeMillis();
+  public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
+      IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
     DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
 
@@ -76,9 +74,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     terminateSameLaunches(launch);
 
     launchVM(launch, launchConfig, enableDebugging, monitor);
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartServerLaunchConfiguration-launch", elapsed).with("mode", mode).log();
 
   }
 

@@ -25,6 +25,7 @@ import com.google.dart.engine.search.SearchPatternFactory;
 import com.google.dart.engine.search.SearchScope;
 import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
@@ -163,48 +164,53 @@ public class ClassProvider extends OmniProposalProvider {
   private OmniElement[] doSearch(com.google.dart.engine.search.SearchPattern searchPattern,
       final String filterText) {
 
-    if (!searchStarted) {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-ClassProvider.doSearch");
+    try {
+      instrumentation.metric("searchStarted", String.valueOf(searchStarted));
 
-      long start = System.currentTimeMillis();
+      if (!searchStarted) {
 
-      searchStarted = true;
+        searchStarted = true;
 
-      searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
+        searchPlaceHolderElement = new SearchInProgressPlaceHolder(this);
 
-      results.add(searchPlaceHolderElement);
+        results.add(searchPlaceHolderElement);
 
-      Index globalIndex = DartCore.getProjectManager().getIndex();
-      SearchEngine engine = SearchEngineFactory.createSearchEngine(globalIndex);
-      engine.searchTypeDeclarations(
-          getSearchScope(),
-          searchPattern,
-          IGNORE_FILTER,
-          new SearchListener() {
+        Index globalIndex = DartCore.getProjectManager().getIndex();
+        SearchEngine engine = SearchEngineFactory.createSearchEngine(globalIndex);
+        engine.searchTypeDeclarations(
+            getSearchScope(),
+            searchPattern,
+            IGNORE_FILTER,
+            new SearchListener() {
 
-            //TODO (pquitslund): consider adding progress reporting
+              //TODO (pquitslund): consider adding progress reporting
 
-            @Override
-            public void matchFound(SearchMatch match) {
-              Element element = match.getElement();
-              if (element instanceof ClassElement) {
-                results.add(new com.google.dart.tools.ui.omni.elements.ClassElement(
-                    ClassProvider.this,
-                    (ClassElement) element));
+              @Override
+              public void matchFound(SearchMatch match) {
+                Element element = match.getElement();
+                if (element instanceof ClassElement) {
+                  results.add(new com.google.dart.tools.ui.omni.elements.ClassElement(
+                      ClassProvider.this,
+                      (ClassElement) element));
+                }
               }
-            }
 
-            @Override
-            public void searchComplete() {
-              searchComplete = true;
-              results.remove(searchPlaceHolderElement);
-            }
-          });
+              @Override
+              public void searchComplete() {
+                searchComplete = true;
+                results.remove(searchPlaceHolderElement);
+              }
+            });
 
-      long delta = System.currentTimeMillis() - start;
-      Instrumentation.metric("ClassProvider.doSearch", delta).log(); //$NON-NLS-1$
+      }
+
+      instrumentation.metric("Results-Size", results.size());
+      return results.toArray(new OmniElement[results.size()]);
+    } finally {
+      instrumentation.log();
+
     }
-
-    return results.toArray(new OmniElement[results.size()]);
   }
 
   private SearchScope getSearchScope() {

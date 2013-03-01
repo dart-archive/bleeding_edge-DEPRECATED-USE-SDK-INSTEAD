@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
@@ -35,24 +35,6 @@ public class ClassElement extends OmniElement {
       com.google.dart.engine.element.ClassElement type) {
     super(provider);
     this.cls = type;
-  }
-
-  @Override
-  public void execute(String text) {
-
-// try {
-
-    Instrumentation.operation("ClassElement.searchResultSelected").with("text", //$NON-NLS-1$
-        cls.getName()).log();
-
-    //TODO (pquitslund): add support for opening Elements to DartUI
-    //DartUI.openInEditor(cls, true, true);
-
-//    } catch (PartInitException e) {
-//      DartToolsPlugin.log(e);
-//    } catch (DartModelException e) {
-//      DartToolsPlugin.log(e);
-//    }
   }
 
   @Override
@@ -79,5 +61,22 @@ public class ClassElement extends OmniElement {
       result.append(library.getName());
     }
     return result.toString();
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+
+    instrumentation.data("ClassElement.searchResultSelected", cls.getName());
+
+// try {
+
+    //TODO (pquitslund): add support for opening Elements to DartUI
+    //DartUI.openInEditor(cls, true, true);
+
+//    } catch (PartInitException e) {
+//      DartToolsPlugin.log(e);
+//    } catch (DartModelException e) {
+//      DartToolsPlugin.log(e);
+//    }
   }
 }

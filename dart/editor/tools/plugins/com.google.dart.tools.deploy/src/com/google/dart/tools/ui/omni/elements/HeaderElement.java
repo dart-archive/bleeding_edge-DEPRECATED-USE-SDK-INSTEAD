@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.omni.elements;
 
 import com.google.dart.tools.search.ui.actions.TextSearchAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
@@ -29,11 +30,6 @@ public class HeaderElement extends OmniElement {
   }
 
   @Override
-  public void execute(String text) {
-    new TextSearchAction(getShell(), text).run();
-  }
-
-  @Override
   public String getId() {
     return getProvider().getId();
   }
@@ -46,6 +42,11 @@ public class HeaderElement extends OmniElement {
   @Override
   public String getLabel() {
     return getProvider().getName();
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    new TextSearchAction(getShell(), text).run();
   }
 
   private Shell getShell() {

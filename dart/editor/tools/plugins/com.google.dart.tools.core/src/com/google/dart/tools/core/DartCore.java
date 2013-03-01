@@ -16,7 +16,7 @@ package com.google.dart.tools.core;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
-import com.google.dart.engine.utilities.instrumentation.OperationBuilder;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -1055,12 +1055,12 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param exception the exception being logged
    */
   public static void logInformation(String message, Throwable exception) {
+
     if (DartCoreDebug.VERBOSE) {
       getPluginLog().log(new Status(Status.INFO, PLUGIN_ID, "INFO: " + message, exception));
-      Instrumentation.operation("DartCore.logInformation").with(
-          "Exception",
-          exception != null ? exception.toString() : "null").with("message", message).log();
     }
+
+    instrumentationLogErrorImpl(message, exception);
   }
 
   /**
@@ -1238,18 +1238,17 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   private static void instrumentationLogErrorImpl(String message, Throwable exception) {
     if (instrumentationLogErrorEnabled) {
+
+      InstrumentationBuilder instrumentation = Instrumentation.builder("DartCore.LogError");
       try {
-        OperationBuilder operation = Instrumentation.operation("DartCore.logError");
-        if (message != null) {
-          operation = operation.with("Message", message);
-        }
-        if (exception != null) {
-          operation = operation.with("Exception", exception.toString());
-        }
-        operation.log();
+        instrumentation.data("Message", message != null ? message : "null");
+        instrumentation.data("Exception", exception != null ? exception.toString() : "null");
+
       } catch (Exception e) {
         instrumentationLogErrorEnabled = false;
         logErrorImpl("Instrumentation failed to log error", exception);
+      } finally {
+        instrumentation.log();
       }
     }
   }

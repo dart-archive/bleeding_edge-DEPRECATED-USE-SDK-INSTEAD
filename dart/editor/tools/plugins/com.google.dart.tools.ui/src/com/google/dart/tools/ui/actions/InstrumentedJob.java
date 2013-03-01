@@ -31,17 +31,8 @@ public abstract class InstrumentedJob extends Job {
     super(name);
   }
 
-  /**
-   * Implementing classes should override this method to perform the action for the class
-   * 
-   * @param instrumentation
-   * @param event The event passed with the event, may be null
-   * @param instrumentation The instrumentation logger, will not be null
-   */
-  protected abstract IStatus doRun(IProgressMonitor monitor, UIInstrumentationBuilder instrumentation);
-
   @Override
-  protected final IStatus run(IProgressMonitor monitor) {
+  public final IStatus run(IProgressMonitor monitor) {
     IStatus result;
     UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
     try {
@@ -56,4 +47,14 @@ public abstract class InstrumentedJob extends Job {
       instrumentation.log();
     }
   }
+
+  /**
+   * Implementing classes should override this method to perform the action for the class
+   * 
+   * @param instrumentation
+   * @param event The event passed with the event, may be null
+   * @param instrumentation The instrumentation logger, will not be null
+   */
+  protected abstract IStatus doRun(IProgressMonitor monitor,
+      UIInstrumentationBuilder instrumentation);
 }

@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.search.ui.actions.TextSearchAction;
 import com.google.dart.tools.ui.Messages;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniBoxImages;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
 import com.google.dart.tools.ui.omni.OmniElement;
@@ -79,14 +79,6 @@ public class TextSearchElement extends OmniElement {
   }
 
   @Override
-  public void execute(String text) {
-
-    Instrumentation.operation("TextSearchElement.searchResultSelected").with("text", text).log(); //$NON-NLS-1$
-
-    new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), searchText).run();
-  }
-
-  @Override
   public String getId() {
     return getProvider().getId() + "." + getSearchText(); //$NON-NLS-1$
   }
@@ -126,6 +118,12 @@ public class TextSearchElement extends OmniElement {
       hash += searchText.hashCode();
     }
     return hash;
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+
+    new TextSearchAction(((TextSearchProvider) getProvider()).getShell(), searchText).run();
   }
 
   protected String getSearchText() {

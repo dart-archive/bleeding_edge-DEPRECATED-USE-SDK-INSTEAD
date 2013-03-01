@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.omni;
 
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.util.CamelUtil;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -42,7 +44,17 @@ public abstract class OmniElement {
    * 
    * @param text the current string in the search box
    */
-  public abstract void execute(String text);
+  public void execute(String text) {
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder(this.getClass());
+
+    instrumentation.data("text", text);
+    try {
+      doExecute(text, instrumentation);
+    } finally {
+      instrumentation.log();
+    }
+
+  }
 
   /**
    * Returns a detailed label (used for disambiguating duplicate matches)
@@ -216,5 +228,7 @@ public abstract class OmniElement {
   public void setIsDuplicate(boolean isDuplicate) {
     this.duplicate = isDuplicate;
   }
+
+  protected abstract void doExecute(String text, UIInstrumentationBuilder instrumentation);
 
 }

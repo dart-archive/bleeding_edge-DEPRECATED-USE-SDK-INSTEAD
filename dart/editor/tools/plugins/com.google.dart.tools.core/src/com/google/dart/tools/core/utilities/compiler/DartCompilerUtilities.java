@@ -35,6 +35,7 @@ import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
@@ -506,74 +507,66 @@ public class DartCompilerUtilities {
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
+    try {
 
-    if (cachedLibraries.get(library) == null) {
-      Collection<DartUnit> parsedUnits = new ArrayList<DartUnit>();
-      parsedUnits.add(suppliedUnit);
-      LibraryUnit resolvedLib = resolveLibrary(library, parsedUnits, parseErrors);
-      synchronized (cachedLibraries) {
-        LibraryUnit newLib = cachedLibraries.get(library);
-        if (newLib == null) {
-          cachedLibraries.put(library, resolvedLib);
+      if (cachedLibraries.get(library) == null) {
+        Collection<DartUnit> parsedUnits = new ArrayList<DartUnit>();
+        parsedUnits.add(suppliedUnit);
+        LibraryUnit resolvedLib = resolveLibrary(library, parsedUnits, parseErrors);
+        synchronized (cachedLibraries) {
+          LibraryUnit newLib = cachedLibraries.get(library);
+          if (newLib == null) {
+            cachedLibraries.put(library, resolvedLib);
+          }
         }
+
+        instrumentation.metric("Cached", "false");
+        instrumentation.metric("librarySource.LastModified", library.getLastModified());
+        instrumentation.metric("ParsedUnits", parsedUnits.size());
+        instrumentation.metric("ParseErrors", parseErrors != null ? parseErrors.size() : 0);
+        instrumentation.metric("sourceString-length", sourceString.length());
+
+        instrumentation.data("analyzeDelta.Name", library.getName());
+        instrumentation.data("sourceString", sourceString);
+
+        return completionNode;
       }
+      DartSource src = (DartSource) suppliedUnit.getSourceInfo().getSource();
+      URI unitUri = src.getUri();
+      Map<URI, String> suppliedSources = new HashMap<URI, String>();
+      suppliedSources.put(unitUri, sourceString);
+      DeltaAnalysisRunnable runnable = new DeltaAnalysisRunnable(
+          library,
+          unitUri,
+          suppliedSources,
+          suppliedUnit,
+          completionNode,
+          completionLocation,
+          parseErrors);
+      runnable.runSafe();
 
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DartCompilerUtils-analyzeDelta", elapsed).with("Cached", "false").with(
-          "ParsedUnits",
-          parsedUnits.size()).with("ParseErrors", parseErrors != null ? parseErrors.size() : 0).with(
-          "sourceString-length",
-          sourceString.length()).with("CachedLibraries", "false").log();
+      instrumentation.metric("librarySource.LastModified", library.getLastModified());
+      instrumentation.metric("ParseErrors", parseErrors != null ? parseErrors.size() : 0);
+      instrumentation.metric("sourceString-length", sourceString.length());
 
-      Instrumentation.operation("DartCompilerUtils-analyzeDelta", elapsed).with(
-          "analyzeDelta.Name",
-          library.getName()).with("librarySource.LastModified", library.getLastModified()).with(
-          "sourceString",
-          sourceString).with("sourceString-length", sourceString.length()).with(
-          "CachedLibraries",
-          "true").log();
+      instrumentation.data("analyzeDelta.Name", library.getName());
+      instrumentation.data("sourceString", sourceString);
 
-      return completionNode;
-    }
-    DartSource src = (DartSource) suppliedUnit.getSourceInfo().getSource();
-    URI unitUri = src.getUri();
-    Map<URI, String> suppliedSources = new HashMap<URI, String>();
-    suppliedSources.put(unitUri, sourceString);
-    DeltaAnalysisRunnable runnable = new DeltaAnalysisRunnable(
-        library,
-        unitUri,
-        suppliedSources,
-        suppliedUnit,
-        completionNode,
-        completionLocation,
-        parseErrors);
-    runnable.runSafe();
+      if (runnable.exception != null) {
+        throw new DartModelException(new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            "Failed to parse " + library.getName(),
+            runnable.exception)));
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-analyzeDelta", elapsed).with("Cached", "false").with(
-        "ParseErrors",
-        parseErrors != null ? parseErrors.size() : 0).with(
-        "sourceString-length",
-        sourceString.length()).with("CachedLibraries", "false").log();
+      }
+      return runnable.analyzedNode;
 
-    Instrumentation.operation("DartCompilerUtils-analyzeDelta", elapsed).with(
-        "analyzeDelta.Name",
-        library.getName()).with("librarySource.LastModified", library.getLastModified()).with(
-        "sourceString",
-        sourceString).with("sourceString-length", sourceString.length()).with(
-        "CachedLibraries",
-        "true").log();
-
-    if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getName(),
-          runnable.exception)));
+    } finally {
+      instrumentation.log();
 
     }
-    return runnable.analyzedNode;
   }
 
   /**
@@ -590,27 +583,29 @@ public class DartCompilerUtilities {
   public static DartUnit parseSource(DartSource sourceRef, String source, boolean preserveComments,
       Collection<DartCompilationError> parseErrors) throws DartModelException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.parseSource");
+    try {
 
-    ParserRunnable runnable = new ParserRunnable(sourceRef, source, preserveComments, parseErrors);
-    runnable.runSafe();
+      ParserRunnable runnable = new ParserRunnable(sourceRef, source, preserveComments, parseErrors);
+      runnable.runSafe();
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-parseSource", elapsed).log();
-    Instrumentation.operation("DartCompilerUtils-parseSource", elapsed).with(
-        "sourceRef.Name",
-        sourceRef.getName()).with("source", source).with(
-        "parseErrors",
-        parseErrors != null ? parseErrors.size() : 0).log();
+      instrumentation.data("sourceRef.Name", sourceRef.getName());
+      instrumentation.data("source", source);
+      instrumentation.metric("ParseError", parseErrors != null ? parseErrors.size() : 0);
 
-    if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Failed to parse " + sourceRef.getName(),
-          runnable.exception)));
+      if (runnable.exception != null) {
+        throw new DartModelException(new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            "Failed to parse " + sourceRef.getName(),
+            runnable.exception)));
+      }
+      return runnable.result;
+
+    } finally {
+      instrumentation.log();
+
     }
-    return runnable.result;
   }
 
   /**
@@ -733,29 +728,32 @@ public class DartCompilerUtilities {
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveLibrary");
+    try {
 
-    ResolverRunnable runnable = new ResolverRunnable(
-        library,
-        createMap(suppliedUnits),
-        false,
-        parseErrors);
-    runnable.runSafe();
+      ResolverRunnable runnable = new ResolverRunnable(
+          library,
+          createMap(suppliedUnits),
+          false,
+          parseErrors);
+      runnable.runSafe();
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-resolveLibrary", elapsed).log();
-    Instrumentation.operation("DartCompilerUtils-resolveLibrary", elapsed).with(
-        "librarySource.Name",
-        library.getName()).with("librarySource.LastModified", library.getLastModified()).log();
+      instrumentation.metric("librarySource.LastModified", library.getLastModified());
+      instrumentation.data("librarySource.Name", library.getName());
 
-    if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Failed to parse " + library.getName(),
-          runnable.exception)));
+      if (runnable.exception != null) {
+        throw new DartModelException(new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            "Failed to parse " + library.getName(),
+            runnable.exception)));
+      }
+      return runnable.libraryResult;
+
+    } finally {
+      instrumentation.log();
+
     }
-    return runnable.libraryResult;
   }
 
   /**
@@ -782,60 +780,52 @@ public class DartCompilerUtilities {
   public static DartUnit resolveUnit(CompilationUnit compilationUnit,
       Collection<DartCompilationError> parseErrors) throws DartModelException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
+    try {
 
-    DartLibraryImpl library = (DartLibraryImpl) compilationUnit.getLibrary();
-    if (library == null) {
-      // If we cannot get the library, we cannot resolve any elements so we
-      // revert to simply parsing the compilation unit.
-      DartUnit ret = parseUnit(compilationUnit, parseErrors);
+      DartLibraryImpl library = (DartLibraryImpl) compilationUnit.getLibrary();
+      if (library == null) {
+        // If we cannot get the library, we cannot resolve any elements so we
+        // revert to simply parsing the compilation unit.
+        DartUnit ret = parseUnit(compilationUnit, parseErrors);
 
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DartCompilerUtils-resolveUnit", elapsed).with(
-          "ParseOnlyFallback",
-          "true").log();
+        instrumentation.metric("ParseOnlyFallback", "true");
+        instrumentation.data("Element name", compilationUnit.getElementName());
 
-      Instrumentation.operation("DartCompilerUtils-resolveUnit", elapsed).with(
-          "ParseOnlyFallback",
-          "true").with("CompilaitonUnit-ElementName", compilationUnit.getElementName()).log();
+        return ret;
+
+      }
+      IResource resource = compilationUnit.getResource();
+      URI unitUri = null;
+      if (resource != null) {
+        unitUri = resource.getLocationURI();
+      }
+      if (unitUri == null && compilationUnit instanceof ExternalCompilationUnitImpl) {
+        unitUri = ((ExternalCompilationUnitImpl) compilationUnit).getUri();
+      }
+      if (unitUri == null) {
+        unitUri = ((CompilationUnitImpl) compilationUnit).getSourceRef().getUri();
+      }
+      String unitSource = compilationUnit.getSource();
+      Map<URI, String> suppliedSources = new HashMap<URI, String>();
+      if (unitSource != null) {
+        suppliedSources.put(unitUri, unitSource);
+      }
+      DartUnit ret = resolveUnit(
+          library.getLibrarySourceFile(),
+          unitUri,
+          suppliedSources,
+          parseErrors);
+
+      instrumentation.metric("ParseOnlyFallback", "false");
+      instrumentation.data("Element name", compilationUnit.getElementName());
+      //TODO(Luke): Push the compilation Unit instrumentation utility method down to here
 
       return ret;
+    } finally {
+      instrumentation.log();
 
     }
-    IResource resource = compilationUnit.getResource();
-    URI unitUri = null;
-    if (resource != null) {
-      unitUri = resource.getLocationURI();
-    }
-    if (unitUri == null && compilationUnit instanceof ExternalCompilationUnitImpl) {
-      unitUri = ((ExternalCompilationUnitImpl) compilationUnit).getUri();
-    }
-    if (unitUri == null) {
-      unitUri = ((CompilationUnitImpl) compilationUnit).getSourceRef().getUri();
-    }
-    String unitSource = compilationUnit.getSource();
-    Map<URI, String> suppliedSources = new HashMap<URI, String>();
-    if (unitSource != null) {
-      suppliedSources.put(unitUri, unitSource);
-    }
-    DartUnit ret = resolveUnit(
-        library.getLibrarySourceFile(),
-        unitUri,
-        suppliedSources,
-        parseErrors);
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-resolveUnit", elapsed).with(
-        "ParseOnlyFallback",
-        "false").log();
-
-    Instrumentation.operation("DartCompilerUtils-resolveUnit", elapsed).with(
-        "ParseOnlyFallback",
-        "false").with("CompilaitonUnit-ElementName", compilationUnit.getElementName()).with(
-        "compilationUnit.LastModified",
-        compilationUnit.getModificationStamp()).log();
-
-    return ret;
   }
 
   /**
@@ -852,31 +842,32 @@ public class DartCompilerUtilities {
       Map<URI, String> suppliedSources, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
+    try {
 
-    ResolverRunnable runnable = new ResolverRunnable(
-        librarySource,
-        unitUri,
-        suppliedSources,
-        false,
-        parseErrors);
-    runnable.runSafe();
+      ResolverRunnable runnable = new ResolverRunnable(
+          librarySource,
+          unitUri,
+          suppliedSources,
+          false,
+          parseErrors);
+      runnable.runSafe();
 
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-resolveUnit", elapsed).log();
+      instrumentation.metric("librarySource.LastModified", librarySource.getLastModified());
+      instrumentation.data("librarySource-ElementName", librarySource.getName());
 
-    Instrumentation.operation("DartCompilerUtils-resolveUnit", elapsed).with(
-        "librarySource-ElementName",
-        librarySource.getName()).with("librarySource.LastModified", librarySource.getLastModified()).log();
+      if (runnable.exception != null) {
+        throw new DartModelException(new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            "Failed to parse " + unitUri,
+            runnable.exception)));
+      }
+      return runnable.unitResult;
+    } finally {
+      instrumentation.log();
 
-    if (runnable.exception != null) {
-      throw new DartModelException(new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Failed to parse " + unitUri,
-          runnable.exception)));
     }
-    return runnable.unitResult;
   }
 
   /**
@@ -887,27 +878,28 @@ public class DartCompilerUtilities {
       DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
     // All calls to DartC must be synchronized
 
-    long start = System.currentTimeMillis();
     Map<URI, LibraryUnit> ret;
 
-    synchronized (compilerLock) {
-      ret = DartCompiler.analyzeLibraries(
-          librarySource,
-          selectiveCache,
-          config,
-          provider,
-          listener,
-          resolveAllNewLibs);
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureAnalyzeLibraries");
+    try {
+
+      synchronized (compilerLock) {
+        ret = DartCompiler.analyzeLibraries(
+            librarySource,
+            selectiveCache,
+            config,
+            provider,
+            listener,
+            resolveAllNewLibs);
+      }
+
+      instrumentation.metric("librarySource.LastModified", librarySource.getLastModified());
+      instrumentation.data("librarySource.Name", librarySource.getName());
+      return ret;
+    } finally {
+      instrumentation.log();
+
     }
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-secureAnalyzeLibraries", elapsed).log();
-    Instrumentation.operation("DartCompilerUtils-secureAnalyzeLibraries", elapsed).with(
-        "librarySource.Name",
-        librarySource.getName()).with("librarySource.LastModified", librarySource.getLastModified()).log();
-
-    return ret;
-
   }
 
   /**
@@ -917,87 +909,81 @@ public class DartCompilerUtilities {
       final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureAnalyzeLibrary");
+    try {
 
-    if (!DartSdkManager.getManager().hasSdk()) {
-      return null;
-    }
-
-    final PackageLibraryManager manager = PackageLibraryManagerProvider.getPackageLibraryManager();
-    AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
-
-    URI librarySourceUri = librarySource.getUri();
-
-    if (parsedUnits == null && !(librarySource instanceof LibraryWithSuppliedSources)) {
-
-      // Resolve dart:<libname> to file URI before calling AnalysisServer
-      URI libraryFileUri = manager.resolveDartUri(librarySourceUri);
-      File libraryFile = new File(libraryFileUri.getPath());
-
-      LibraryUnit ret = server.getSavedContext().resolve(libraryFile, 30000);
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DartCompilerUtils-secureAnalyzeLibrary", elapsed).log();
-      Instrumentation.operation("DartCompilerUtils-secureAnalyzeLibrary", elapsed).with(
-          "librarySource.Name",
-          librarySource.getName()).with(
-          "librarySource.LastModified",
-          librarySource.getLastModified()).log();
-
-      return ret;
-    }
-
-    // Resolve the specified library against all currently cached libraries
-    final Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
-    resolvedLibs.remove(librarySourceUri);
-
-    // Construct the selective cache
-    SelectiveCache selectiveCache = new DartCompiler.SelectiveCache() {
-      @Override
-      public Map<URI, LibraryUnit> getResolvedLibraries() {
-        return resolvedLibs;
+      if (!DartSdkManager.getManager().hasSdk()) {
+        instrumentation.metric("Problem", "No SDK");
+        return null;
       }
 
-      @Override
-      public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
-        if (parsedUnits == null) {
-          return null;
-        }
-        URI srcUri = dartSrc.getUri();
-        DartUnit parsedUnit = parsedUnits.remove(srcUri);
-        if (parsedUnit != null) {
-          return parsedUnit;
-        }
-        URI fileUri = manager.resolveDartUri(srcUri);
-        return parsedUnits.remove(fileUri);
+      final PackageLibraryManager manager = PackageLibraryManagerProvider.getPackageLibraryManager();
+      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+
+      URI librarySourceUri = librarySource.getUri();
+
+      if (parsedUnits == null && !(librarySource instanceof LibraryWithSuppliedSources)) {
+
+        // Resolve dart:<libname> to file URI before calling AnalysisServer
+        URI libraryFileUri = manager.resolveDartUri(librarySourceUri);
+        File libraryFile = new File(libraryFileUri.getPath());
+
+        LibraryUnit ret = server.getSavedContext().resolve(libraryFile, 30000);
+
+        instrumentation.metric("librarySource.LastModified", librarySource.getLastModified());
+        instrumentation.data("librarySource.Name", librarySource.getName());
+
+        return ret;
+
       }
-    };
 
-    Map<URI, LibraryUnit> libMap;
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      libMap = DartCompiler.analyzeLibraries(
-          librarySource,
-          selectiveCache,
-          config,
-          provider,
-          listener,
-          false);
+      // Resolve the specified library against all currently cached libraries
+      final Map<URI, LibraryUnit> resolvedLibs = server.getSavedContext().getResolvedLibraries(50);
+      resolvedLibs.remove(librarySourceUri);
+
+      // Construct the selective cache
+      SelectiveCache selectiveCache = new DartCompiler.SelectiveCache() {
+        @Override
+        public Map<URI, LibraryUnit> getResolvedLibraries() {
+          return resolvedLibs;
+        }
+
+        @Override
+        public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
+          if (parsedUnits == null) {
+            return null;
+          }
+          URI srcUri = dartSrc.getUri();
+          DartUnit parsedUnit = parsedUnits.remove(srcUri);
+          if (parsedUnit != null) {
+            return parsedUnit;
+          }
+          URI fileUri = manager.resolveDartUri(srcUri);
+          return parsedUnits.remove(fileUri);
+        }
+      };
+
+      Map<URI, LibraryUnit> libMap;
+      // All calls to DartC must be synchronized
+      synchronized (compilerLock) {
+        libMap = DartCompiler.analyzeLibraries(
+            librarySource,
+            selectiveCache,
+            config,
+            provider,
+            listener,
+            false);
+      }
+
+      instrumentation.metric("librarySource.LastModified", librarySource.getLastModified());
+      instrumentation.metric("LibMapHasResult", Boolean.toString(libMap != null)).log();
+      instrumentation.data("librarySource.Name", librarySource.getName());
+
+      return libMap != null ? libMap.get(librarySourceUri) : null;
+    } finally {
+      instrumentation.log();
+
     }
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-secureAnalyzeLibrary", elapsed).with(
-        "libMapHasResult",
-        Boolean.toString(libMap != null)).log();
-
-    Instrumentation.operation("DartCompilerUtils-secureAnalyzeLibrary", elapsed).with(
-        "librarySource.Name",
-        librarySource.getName()).with("libMapHasResult", Boolean.toString(libMap != null)).with(
-        "librarySource.LastModified",
-        librarySource.getLastModified()).log();
-
-    return libMap != null ? libMap.get(librarySourceUri) : null;
-
   }
 
   /**
@@ -1007,25 +993,24 @@ public class DartCompilerUtilities {
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureAnalyzeLibrary");
+    try {
 
-    if (!DartSdkManager.getManager().hasSdk()) {
-      return;
+      if (!DartSdkManager.getManager().hasSdk()) {
+        instrumentation.metric("Problem", "No SDK");
+        return;
+      }
+
+      List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
+      // All calls to DartC must be synchronized
+      synchronized (compilerLock) {
+        DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
+      }
+      instrumentation.data("librarySource.Name", libSource.getName());
+    } finally {
+      instrumentation.log();
+
     }
-
-    List<LibrarySource> embeddedLibraries = new ArrayList<LibrarySource>();
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      DartCompiler.compileLib(libSource, embeddedLibraries, config, provider, listener);
-    }
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("DartCompilerUtils-secureCompileLib", elapsed).log();
-
-    Instrumentation.operation("DartCompilerUtils-secureCompileLib", elapsed).with(
-        "librarySource.Name",
-        libSource.getName()).log();
-
   }
 
   /**
@@ -1033,20 +1018,17 @@ public class DartCompilerUtilities {
    */
   public static DartUnit secureParseUnit(DartParser parser, DartSource sourceRef) {
 
-    long start = System.currentTimeMillis();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureParseUnit");
+    try {
 
-    // All calls to DartC must be synchronized
-    synchronized (compilerLock) {
-      DartUnit ret = parser.parseUnit();
-
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("DartCompilerUtils-secureParseUnit", elapsed).log();
-
-      Instrumentation.operation("DartCompilerUtils-secureParseUnit", elapsed).with(
-          "sourceRef.Name",
-          sourceRef != null ? sourceRef.getName() : "null").log();
-
-      return ret;
+      // All calls to DartC must be synchronized
+      synchronized (compilerLock) {
+        DartUnit ret = parser.parseUnit();
+        instrumentation.data("sourceRef.Name", sourceRef != null ? sourceRef.getName() : "null");
+        return ret;
+      }
+    } finally {
+      instrumentation.log();
 
     }
   }

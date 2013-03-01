@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.browser;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -85,14 +85,12 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
    * Match both the input and id, so that different types of editor can be opened on the same input.
    */
   @Override
-  public void launch(ILaunchConfiguration config, String mode, ILaunch launch,
-      IProgressMonitor monitor) throws CoreException {
-
-    long start = System.currentTimeMillis();
+  public void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
+      IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException {
 
     mode = ILaunchManager.RUN_MODE;
 
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(config);
+    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
     launchConfig.markAsLaunched();
 
     String url;
@@ -153,9 +151,6 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
     }
 
     DebugPlugin.getDefault().getLaunchManager().removeLaunch(launch);
-
-    long elapsed = System.currentTimeMillis() - start;
-    Instrumentation.metric("BrowserLaunchConfiguration-launch", elapsed).with("mode", mode).log();
 
   }
 

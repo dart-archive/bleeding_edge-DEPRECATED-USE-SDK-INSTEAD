@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.debug.core;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -32,9 +35,24 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
     return false;
   }
 
+  public abstract void doLaunch(ILaunchConfiguration configuration, String mode, ILaunch launch,
+      IProgressMonitor monitor, InstrumentationBuilder instrumentation) throws CoreException;
+
   @Override
-  public abstract void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
-      IProgressMonitor monitor) throws CoreException;
+  public final void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
+      IProgressMonitor monitor) throws CoreException {
+    InstrumentationBuilder instrumentation = Instrumentation.builder(this.getClass());
+    try {
+
+      instrumentation.metric("Mode", mode);
+
+      doLaunch(configuration, mode, launch, monitor, instrumentation);
+
+    } finally {
+      instrumentation.log();
+    }
+
+  }
 
   @Override
   protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode)

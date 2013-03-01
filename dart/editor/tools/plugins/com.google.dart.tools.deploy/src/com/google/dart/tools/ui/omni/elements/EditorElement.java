@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -58,17 +59,6 @@ public class EditorElement extends OmniElement {
   }
 
   @Override
-  public void execute(String text) {
-    IWorkbenchPart part = editorReference.getPart(true);
-    if (part != null) {
-      IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-      if (activePage != null) {
-        activePage.activate(part);
-      }
-    }
-  }
-
-  @Override
   public String getId() {
     return editorReference.getId() + editorReference.getTitleToolTip();
   }
@@ -96,4 +86,16 @@ public class EditorElement extends OmniElement {
     result = prime * result + ((editorReference == null) ? 0 : editorReference.hashCode());
     return result;
   }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    IWorkbenchPart part = editorReference.getPart(true);
+    if (part != null) {
+      IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+      if (activePage != null) {
+        activePage.activate(part);
+      }
+    }
+  }
+
 }

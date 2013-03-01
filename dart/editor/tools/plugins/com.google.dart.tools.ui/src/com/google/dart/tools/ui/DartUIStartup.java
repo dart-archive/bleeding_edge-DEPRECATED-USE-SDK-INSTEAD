@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -71,59 +72,57 @@ public class DartUIStartup implements IStartup {
 
       //Pre-start the instrumentation logger if it's registered
       InstrumentationLogger.ensureLoggerStarted();
+      InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.run");
+      try { //Instrumentation try - finally
 
-      long start = System.currentTimeMillis();
+        try {
 
-      try {
+          if (!getThread().isInterrupted()) {
+            reportPlatformStatistics(); //Early report statistics to aid debugging in case of crash
+          }
 
-        if (!getThread().isInterrupted()) {
-          reportPlatformStatistics(); //Early report statistics to aid debugging in case of crash
+          if (!getThread().isInterrupted()) {
+            modelWarmup();
+            instrumentation.metric("ModelWarmup", "Complete");
+
+          }
+          if (!getThread().isInterrupted()) {
+            compilerWarmup();
+            instrumentation.metric("Compiler", "Complete");
+
+          }
+          if (!getThread().isInterrupted()) {
+            detectStartupComplete();
+            instrumentation.metric("StartupComplete", "Complete");
+          }
+          if (!getThread().isInterrupted()) {
+            openInitialFilesAndFolders();
+            instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
+          }
+          if (!getThread().isInterrupted()) {
+            printPerformanceNumbers();
+          }
+          AutoSaveHelper.start();
+        } catch (Throwable throwable) {
+          // Catch any runtime exceptions that occur during warmup and log them.
+          DartToolsPlugin.log("Exception occured during editor warmup", throwable);
         }
 
-        if (!getThread().isInterrupted()) {
-          modelWarmup();
+        //This is a special case as it's for recording from before when instrumentation was
+        //available, so need to manually compute the time
+        long delta = System.currentTimeMillis()
+            - InstrumentationDataCarrier.getApproximateStartTime();
+        instrumentation.metric("DartUIStartup-Complete-FromInitialTimeApproximation", delta).log();
 
-          long delta = System.currentTimeMillis() - start;
-          Instrumentation.metric("DartUIStartup.modelWarmup", delta).log();
+        synchronized (startupSync) {
+          startupJob = null;
+        }
 
-        }
-        if (!getThread().isInterrupted()) {
-          compilerWarmup();
-          long delta = System.currentTimeMillis() - start;
-          Instrumentation.metric("DartUIStartup.compilerWarmup", delta).log();
-        }
-        if (!getThread().isInterrupted()) {
-          detectStartupComplete();
-          long delta = System.currentTimeMillis() - start;
-          Instrumentation.metric("DartUIStartup.detectSetupComplete", delta).log();
-        }
-        if (!getThread().isInterrupted()) {
-          openInitialFilesAndFolders();
-          long delta = System.currentTimeMillis() - start;
-          Instrumentation.metric("DartUIStartup.openInitialFilesAndFolder", delta).log();
-        }
-        if (!getThread().isInterrupted()) {
-          printPerformanceNumbers();
-        }
-        AutoSaveHelper.start();
-      } catch (Throwable throwable) {
-        // Catch any runtime exceptions that occur during warmup and log them.
-        DartToolsPlugin.log("Exception occured during editor warmup", throwable);
-        long delta = System.currentTimeMillis() - start;
-        Instrumentation.operation("DartUIStartup.exception").with("Exception", throwable.toString()).with(
-            "TimeSinceStartup",
-            delta).log();
+        return Status.OK_STATUS;
+      } finally {
+        instrumentation.log();
+
       }
-
-      long delta = System.currentTimeMillis()
-          - InstrumentationDataCarrier.getApproximateStartTime();
-      Instrumentation.metric("DartUIStartup-Complete-FromInitialTimeApproximation", delta).log();
-
-      synchronized (startupSync) {
-        startupJob = null;
-      }
-
-      return Status.OK_STATUS;
     }
 
     /**
@@ -244,13 +243,18 @@ public class DartUIStartup implements IStartup {
      * Report core statistics about the executing platform to instrumentation system
      */
     private void reportPlatformStatistics() {
-      Instrumentation.metric("DartUIStartup").with("BuildDate", DartCore.getBuildDate()).with(
-          "BuildID",
-          DartCore.getBuildId()).with("Version", DartCore.getVersion()).with(
-          "SDKVersion",
-          DartSdkManager.getManager().getSdk().getSdkVersion()).with(
-          "OSVersion",
-          FeedbackUtils.getOSName()).log();
+      InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportPlatformStatistics");
+      try {
+        instrumentation.metric("BuildDate", DartCore.getBuildDate());
+        instrumentation.metric("BuildID", DartCore.getBuildId());
+        instrumentation.metric("Version", DartCore.getVersion());
+        instrumentation.metric("SDKVersion", DartSdkManager.getManager().getSdk().getSdkVersion());
+        instrumentation.metric("OSVersion", FeedbackUtils.getOSName());
+
+      } finally {
+        instrumentation.log();
+
+      }
 
     }
 

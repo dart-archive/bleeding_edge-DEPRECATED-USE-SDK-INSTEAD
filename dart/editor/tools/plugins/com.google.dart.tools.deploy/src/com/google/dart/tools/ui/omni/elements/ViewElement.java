@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -85,17 +86,6 @@ public class ViewElement extends OmniElement {
   }
 
   @Override
-  public void execute(String text) {
-    IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-    if (activePage != null) {
-      try {
-        activePage.showView(viewDescriptor.getId(), secondaryId, IWorkbenchPage.VIEW_ACTIVATE);
-      } catch (PartInitException e) {
-      }
-    }
-  }
-
-  @Override
   public String getId() {
     if (secondaryId == null) {
       return viewDescriptor.getId();
@@ -165,6 +155,17 @@ public class ViewElement extends OmniElement {
    */
   public void setSecondaryId(String secondaryId) {
     this.secondaryId = secondaryId;
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+    if (activePage != null) {
+      try {
+        activePage.showView(viewDescriptor.getId(), secondaryId, IWorkbenchPage.VIEW_ACTIVATE);
+      } catch (PartInitException e) {
+      }
+    }
   }
 
 }

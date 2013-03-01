@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.Type;
@@ -21,6 +20,7 @@ import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
@@ -39,21 +39,6 @@ public class TypeElement extends OmniElement {
   public TypeElement(OmniProposalProvider provider, Type type) {
     super(provider);
     this.type = type;
-  }
-
-  @Override
-  public void execute(String text) {
-    try {
-
-      Instrumentation.operation("TypeElement.searchResultSelected").with("text", //$NON-NLS-1$
-          type.getElementName()).log();
-
-      DartUI.openInEditor(type, true, true);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    } catch (DartModelException e) {
-      DartToolsPlugin.log(e);
-    }
   }
 
   @Override
@@ -80,6 +65,20 @@ public class TypeElement extends OmniElement {
       result.append(library.getDisplayName());
     }
     return result.toString();
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    try {
+
+      instrumentation.data("typeName", type.getElementName());
+
+      DartUI.openInEditor(type, true, true);
+    } catch (PartInitException e) {
+      DartToolsPlugin.log(e);
+    } catch (DartModelException e) {
+      DartToolsPlugin.log(e);
+    }
   }
 
 }

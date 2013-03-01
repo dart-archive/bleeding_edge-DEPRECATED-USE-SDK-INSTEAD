@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 
 import org.eclipse.jface.preference.IPreferenceNode;
@@ -62,17 +63,6 @@ public class PreferenceElement extends OmniElement {
   }
 
   @Override
-  public void execute(String text) {
-    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-    if (window != null) {
-      WorkbenchPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(
-          window.getShell(),
-          preferenceNode.getId());
-      dialog.open();
-    }
-  }
-
-  @Override
   public String getId() {
     return preferenceNode.getId();
   }
@@ -101,5 +91,16 @@ public class PreferenceElement extends OmniElement {
     int result = 1;
     result = prime * result + ((preferenceNode == null) ? 0 : preferenceNode.hashCode());
     return result;
+  }
+
+  @Override
+  protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+    if (window != null) {
+      WorkbenchPreferenceDialog dialog = WorkbenchPreferenceDialog.createDialogOn(
+          window.getShell(),
+          preferenceNode.getId());
+      dialog.open();
+    }
   }
 }

@@ -5,6 +5,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -45,6 +46,13 @@ public interface UIInstrumentationBuilder extends InstrumentationBuilder {
    * @param selection the selection (may be {@code null})
    */
   void record(DartTextSelection selection);
+
+  /**
+   * Append information about the resources.
+   * 
+   * @param resources the resources to instrument (may be {@code null})
+   */
+  void record(IResource[] resources);
 
   /**
    * Append information about the selection.
