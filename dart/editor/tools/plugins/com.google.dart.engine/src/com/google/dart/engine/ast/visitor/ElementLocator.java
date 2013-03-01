@@ -14,14 +14,81 @@
 package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.LibraryDirective;
+import com.google.dart.engine.ast.PostfixExpression;
+import com.google.dart.engine.ast.PrefixExpression;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.element.Element;
 
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}
  * associated with a given {@link ASTNode AST node}.
  */
-public class ElementLocator extends GeneralizingASTVisitor<Void> {
+public class ElementLocator {
+
+  /**
+   * Visitor that maps nodes to elements.
+   */
+  private static final class ElementMapper extends GeneralizingASTVisitor<Element> {
+
+    @Override
+    public Element visitBinaryExpression(BinaryExpression node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitIdentifier(Identifier node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitImportDirective(ImportDirective node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitIndexExpression(IndexExpression node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitLibraryDirective(LibraryDirective node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitPostfixExpression(PostfixExpression node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitPrefixedIdentifier(PrefixedIdentifier node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitPrefixExpression(PrefixExpression node) {
+      return node.getElement();
+    }
+
+    @Override
+    public Element visitStringLiteral(StringLiteral node) {
+
+      ASTNode parent = node.getParent();
+
+      if (parent instanceof UriBasedDirective) {
+        return ((UriBasedDirective) parent).getElement();
+      }
+
+      return null;
+    }
+  }
 
   /**
    * Locate the {@link Element Dart model element} associated with the given {@link ASTNode AST
@@ -31,26 +98,14 @@ public class ElementLocator extends GeneralizingASTVisitor<Void> {
    * @return the associated element, or {@code null} if none is found
    */
   public static Element locate(ASTNode node) {
-    ElementLocator locator = new ElementLocator();
-    node.accept(locator);
-    return locator.element;
+    ElementMapper mapper = new ElementMapper();
+    return node.accept(mapper);
   }
-
-  /**
-   * The found element (or {@code null} in case none is located).
-   */
-  private Element element;
 
   /**
    * Clients should use {@link #locate(ASTNode)}.
    */
   private ElementLocator() {
-  }
-
-  @Override
-  public Void visitIdentifier(Identifier node) {
-    element = node.getElement();
-    return null;
   }
 
 }
