@@ -321,7 +321,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier methodName = node.getMethodName();
-    Expression target = node.getTarget();
+    Expression target = node.getRealTarget();
     Element element;
     if (target == null) {
       element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
@@ -346,6 +346,22 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             methodName.getName(),
             parameterCount,
             parameterNames.toArray(new String[parameterNames.size()]));
+        if (element == null) {
+          PropertyAccessorElement accessor = lookUpGetterInType(
+              (ClassElement) targetType.getElement(),
+              methodName.getName());
+          if (accessor != null) {
+            Type returnType = accessor.getType().getReturnType();
+            if (!returnType.isDynamic() && !(returnType instanceof FunctionType)) {
+              resolver.reportError(
+                  StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+                  methodName,
+                  methodName.getName());
+              return null;
+            }
+            element = accessor;
+          }
+        }
         if (element == null && target instanceof SuperExpression) {
           // TODO(jwren) We should split the UNDEFINED_METHOD into two error codes, this one, and
           // a code that describes the situation where the method was found, but it was not

@@ -27,6 +27,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionBody;
+import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IndexExpression;
@@ -242,6 +243,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       case EQ_EQ:
       case BANG_EQ:
         return recordType(node, typeProvider.getBoolType());
+//      case MINUS:
+//      case PERCENT:
+//      case PLUS:
+//      case STAR:
+//        Type intType = typeProvider.getIntType();
+//        if (getType(node.getLeftOperand()) == intType && getType(node.getRightOperand()) == intType) {
+//          return recordType(node, intType);
+//        }
+//        break;
     }
     return recordReturnType(node, node.getElement());
   }
@@ -787,6 +797,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return the return type that was computed
    */
   private Type computeReturnType(FunctionExpression node) {
+    ASTNode parent = node.getParent();
+    if (parent instanceof FunctionDeclaration) {
+      TypeName returnType = ((FunctionDeclaration) parent).getReturnType();
+      if (returnType != null) {
+        return returnType.getType();
+      }
+    }
     FunctionBody body = node.getBody();
     if (body instanceof ExpressionFunctionBody) {
       return getType(((ExpressionFunctionBody) body).getExpression());

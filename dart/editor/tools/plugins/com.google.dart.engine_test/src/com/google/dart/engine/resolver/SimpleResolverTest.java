@@ -91,7 +91,32 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_invocationOfNonFunction() throws Exception {
+  public void test_invalidAssignment_toDynamic() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  var g;",
+        "  g = () => 0;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction_getter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  var g;",
+        "}",
+        "f() {",
+        "  A a;",
+        "  a.g();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invocationOfNonFunction_localVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
         "  var g;",
@@ -199,6 +224,44 @@ public class SimpleResolverTest extends ResolverTestCase {
         "f() {",
         "  assert(makeAssertion);",
         "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_dynamic() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static void testLogicalOp() {",
+        "    testOr(a, b, onTypeError) {",
+        "      try {",
+        "        return a || b;",
+        "      } on TypeError catch (t) {",
+        "        return onTypeError;",
+        "      }",
+        "    }",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_subtype() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "A f(B b) { return b; }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_returnOfInvalidType_supertype() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "B f(A a) { return a; }"));
     resolve(source);
     assertNoErrors();
     verify(source);

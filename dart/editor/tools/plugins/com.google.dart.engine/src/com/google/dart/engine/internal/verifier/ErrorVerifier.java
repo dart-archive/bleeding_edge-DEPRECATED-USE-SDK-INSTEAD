@@ -16,9 +16,11 @@ package com.google.dart.engine.internal.verifier;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -27,6 +29,7 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -57,6 +60,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * The object providing access to the types defined by the language.
    */
   private TypeProvider typeProvider;
+
+  /**
+   * The method or function that we are currently visiting, or {@code null} if we are not inside a
+   * method or function.
+   */
+  private ExecutableElement currentFunction;
 
   public ErrorVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
@@ -105,9 +114,42 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    ExecutableElement previousFunction = currentFunction;
+    try {
+      currentFunction = node.getElement();
+      return super.visitConstructorDeclaration(node);
+    } finally {
+      currentFunction = previousFunction;
+    }
+  }
+
+  @Override
   public Void visitDoStatement(DoStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitDoStatement(node);
+  }
+
+  @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    ExecutableElement previousFunction = currentFunction;
+    try {
+      currentFunction = node.getElement();
+      return super.visitFunctionDeclaration(node);
+    } finally {
+      currentFunction = previousFunction;
+    }
+  }
+
+  @Override
+  public Void visitFunctionExpression(FunctionExpression node) {
+    ExecutableElement previousFunction = currentFunction;
+    try {
+      currentFunction = node.getElement();
+      return super.visitFunctionExpression(node);
+    } finally {
+      currentFunction = previousFunction;
+    }
   }
 
   @Override
@@ -138,28 +180,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
-  public Void visitReturnStatement(ReturnStatement node) {
-    // TODO(jwren) in visitFunctionDeclaration and visitMethodDeclaration reference the enclosing
-    // function and method
-    FunctionDeclaration enclosingFunction = node.getAncestor(FunctionDeclaration.class);
-    Type methodOrFunctionReturnType = null;
-    if (enclosingFunction != null && enclosingFunction.getReturnType() != null) {
-      methodOrFunctionReturnType = enclosingFunction.getReturnType().getType();
-    } else {
-      MethodDeclaration enclosingMethod = node.getAncestor(MethodDeclaration.class);
-      if (enclosingMethod != null && enclosingMethod.getReturnType() != null) {
-        methodOrFunctionReturnType = enclosingMethod.getReturnType().getType();
-      }
+  public Void visitMethodDeclaration(MethodDeclaration node) {
+    ExecutableElement previousFunction = currentFunction;
+    try {
+      currentFunction = node.getElement();
+      return super.visitMethodDeclaration(node);
+    } finally {
+      currentFunction = previousFunction;
     }
+  }
+
+  @Override
+  public Void visitReturnStatement(ReturnStatement node) {
+    FunctionType functionType = currentFunction == null ? null : currentFunction.getType();
+    Type expectedReturnType = functionType == null ? null : functionType.getReturnType();
     Expression returnExpression = node.getExpression();
-    if (methodOrFunctionReturnType != null && returnExpression != null) {
-      Type returnType = getType(returnExpression);
-      if (!methodOrFunctionReturnType.isAssignableTo(getType(returnExpression))) {
+    if (expectedReturnType != null && !expectedReturnType.isVoid() && returnExpression != null) {
+      Type actualReturnType = getType(returnExpression);
+      if (!actualReturnType.isAssignableTo(expectedReturnType)) {
         errorReporter.reportError(
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
             returnExpression,
-            returnType.getName(),
-            methodOrFunctionReturnType.getName());
+            actualReturnType.getName(),
+            expectedReturnType.getName());
       }
     }
     return super.visitReturnStatement(node);

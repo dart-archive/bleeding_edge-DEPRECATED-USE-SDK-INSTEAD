@@ -180,9 +180,13 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @Override
   public boolean isSubtypeOf(Type type) {
     // trivial base cases
-    if (type == null || !(type instanceof FunctionType)) {
+    if (type == null) {
       return false;
-    } else if (this == type || this.equals(type)) {
+    } else if (this == type || type.isDynamic()) {
+      return true;
+    } else if (!(type instanceof FunctionType)) {
+      return false;
+    } else if (this.equals(type)) {
       return true;
     }
     FunctionType t = this;
