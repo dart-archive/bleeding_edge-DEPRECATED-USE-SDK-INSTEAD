@@ -137,15 +137,12 @@ public abstract class AbstractScanner {
    * @return the first token in the list of tokens that were produced
    */
   public Token tokenize() {
-
     int next = advance();
     while (next != -1) {
       next = bigSwitch(next);
     }
     appendEofToken();
-
     return firstToken();
-
   }
 
   /**

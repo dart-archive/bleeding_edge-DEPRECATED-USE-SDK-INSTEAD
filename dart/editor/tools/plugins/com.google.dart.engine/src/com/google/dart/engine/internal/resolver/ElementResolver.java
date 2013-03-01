@@ -79,7 +79,6 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.dart.ParameterKind;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -160,7 +159,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         if (leftType != null) {
           Element leftElement = leftType.getElement();
           if (leftElement != null) {
-            MethodElement method = lookUpMethod(leftElement, operator.getLexeme(), 1);
+            MethodElement method = lookUpMethod(leftElement, operator.getLexeme());
             if (method != null) {
               node.setElement(method);
             } else {
@@ -187,7 +186,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         leftTypeElement = leftType.getElement();
       }
       String methodName = operator.getLexeme();
-      MethodElement member = lookUpMethod(leftTypeElement, methodName, 1);
+      MethodElement member = lookUpMethod(leftTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
       } else {
@@ -301,7 +300,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       operator = TokenType.INDEX.getLexeme();
     }
-    MethodElement member = lookUpMethod(arrayTypeElement, operator, 1);
+    MethodElement member = lookUpMethod(arrayTypeElement, operator);
     if (member == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, node, operator);
     } else {
@@ -326,26 +325,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (target == null) {
       element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
       if (element == null) {
-        element = lookUpMethod(resolver.getEnclosingClass(), methodName.getName(), -1);
+        element = lookUpMethod(resolver.getEnclosingClass(), methodName.getName());
       }
     } else {
       Type targetType = getType(target);
       if (targetType instanceof InterfaceType) {
-        int parameterCount = 0;
-        ArrayList<String> parameterNames = new ArrayList<String>();
-        ArgumentList argumentList = node.getArgumentList();
-        for (Expression argument : argumentList.getArguments()) {
-          if (argument instanceof NamedExpression) {
-            parameterNames.add(((NamedExpression) argument).getName().getLabel().getName());
-          } else {
-            parameterCount++;
-          }
-        }
-        element = lookUpMethod(
-            targetType.getElement(),
-            methodName.getName(),
-            parameterCount,
-            parameterNames.toArray(new String[parameterNames.size()]));
+        element = lookUpMethod(targetType.getElement(), methodName.getName());
         if (element == null) {
           PropertyAccessorElement accessor = lookUpGetterInType(
               (ClassElement) targetType.getElement(),
@@ -456,7 +441,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     recordResolution(methodName, invokedMethod);
     resolveNamedArguments(node.getArgumentList(), invokedMethod);
-    //TODO(brianwilkerson) Validate the method invocation (number of arguments, etc.).
     return null;
   }
 
@@ -474,7 +458,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       methodName = TokenType.MINUS.getLexeme();
     }
-    MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
+    MethodElement member = lookUpMethod(operandTypeElement, methodName);
     if (member == null) {
       resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
     } else {
@@ -518,7 +502,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         memberElement = lookUpGetterInType((ClassElement) prefixElement, identifier.getName());
       }
       if (memberElement == null) {
-        MethodElement methodElement = lookUpMethod(prefixElement, identifier.getName(), -1);
+        MethodElement methodElement = lookUpMethod(prefixElement, identifier.getName());
         if (methodElement != null) {
           // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
           // type with no parameters and a return type that is equal to the function type of the method.
@@ -583,7 +567,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       memberElement = lookUpGetter(variableTypeElement, identifier.getName());
     }
     if (memberElement == null) {
-      MethodElement methodElement = lookUpMethod(variableTypeElement, identifier.getName(), -1);
+      MethodElement methodElement = lookUpMethod(variableTypeElement, identifier.getName());
       if (methodElement != null) {
         // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
         // type with no parameters and a return type that is equal to the function type of the method.
@@ -622,7 +606,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       } else {
         methodName = operator.getLexeme();
       }
-      MethodElement member = lookUpMethod(operandTypeElement, methodName, 1);
+      MethodElement member = lookUpMethod(operandTypeElement, methodName);
       if (member == null) {
         resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
       } else {
@@ -649,7 +633,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       memberElement = lookUpGetter(targetElement, identifier.getName());
     }
     if (memberElement == null) {
-      MethodElement methodElement = lookUpMethod(targetElement, identifier.getName(), -1);
+      MethodElement methodElement = lookUpMethod(targetElement, identifier.getName());
       if (methodElement != null) {
         // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
         // type with no parameters and a return type that is equal to the function type of the method.
@@ -722,7 +706,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       element = lookUpGetter(resolver.getEnclosingClass(), node.getName());
     }
     if (element == null) {
-      element = lookUpMethod(resolver.getEnclosingClass(), node.getName(), -1);
+      element = lookUpMethod(resolver.getEnclosingClass(), node.getName());
     }
     if (element == null) {
       // TODO(brianwilkerson) Report and recover from this error.
@@ -951,8 +935,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param methodName the name of the method being looked up
    * @return the element representing the method that was found
    */
-  private MethodElement lookUpMethod(Element element, String methodName, int parameterCount,
-      String... parameterNames) {
+  private MethodElement lookUpMethod(Element element, String methodName) {
     // TODO(brianwilkerson) Decide whether/how to represent members defined in 'dynamic'.
     if (element == DynamicTypeImpl.getInstance()) {
       return null;

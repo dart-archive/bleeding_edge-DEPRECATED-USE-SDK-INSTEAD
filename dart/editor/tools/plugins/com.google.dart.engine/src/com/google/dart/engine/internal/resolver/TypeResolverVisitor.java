@@ -161,8 +161,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ClassElementImpl classElement = getClassElement(node.getName());
-    // TODO(brianwilkerson) Report these errors.
-    InterfaceType superclassType = resolveType(node.getSuperclass(), null, null, null);
+    // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
+    InterfaceType superclassType = resolveType(
+        node.getSuperclass(),
+        CompileTimeErrorCode.EXTENDS_NON_CLASS,
+        CompileTimeErrorCode.EXTENDS_NON_CLASS,
+        null);
     if (superclassType == null) {
       superclassType = getTypeProvider().getObjectType();
     }

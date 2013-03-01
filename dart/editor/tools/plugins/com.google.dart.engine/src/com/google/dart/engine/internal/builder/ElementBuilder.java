@@ -119,8 +119,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         stackTraceParameter.setElement(stackTrace);
       }
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitCatchClause(node);
   }
 
   @Override
@@ -226,7 +225,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node.getDefaultValue());
+    visit(holder, node.getDefaultValue());
 
     FunctionElementImpl initializer = new FunctionElementImpl();
     initializer.setFunctions(holder.getFunctions());
@@ -276,8 +275,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addParameter(parameter);
       parameterName.setElement(parameter);
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitFieldFormalParameter(node);
   }
 
   @Override
@@ -436,8 +434,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitLabeledStatement(node);
   }
 
   @Override
@@ -524,8 +521,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addParameter(parameter);
       parameterName.setElement(parameter);
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitSimpleFormalParameter(node);
   }
 
   @Override
@@ -543,8 +539,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitSwitchCase(node);
   }
 
   @Override
@@ -556,8 +551,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addLabel(element);
       labelName.setElement(element);
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitSwitchDefault(node);
   }
 
   @Override
@@ -570,8 +564,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addTypeVariable(element);
     parameterName.setElement(element);
-    node.visitChildren(this);
-    return null;
+    return super.visitTypeParameter(node);
   }
 
   @Override
@@ -611,7 +604,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       boolean wasInFieldContext = inFieldContext;
       inFieldContext = false;
       try {
-        visitChildren(holder, node.getInitializer());
+        visit(holder, node.getInitializer());
       } finally {
         inFieldContext = wasInFieldContext;
       }
@@ -643,8 +636,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
             Keyword.STATIC));
       }
     }
-    node.visitChildren(this);
-    return null;
+    return super.visitVariableDeclaration(node);
   }
 
   /**
@@ -677,6 +669,24 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   private boolean matches(Token token, Keyword keyword) {
     return token != null && token.getType() == TokenType.KEYWORD
         && ((KeywordToken) token).getKeyword() == keyword;
+  }
+
+  /**
+   * Make the given holder be the current holder while visiting the given node.
+   * 
+   * @param holder the holder that will gather elements that are built while visiting the children
+   * @param node the node to be visited
+   */
+  private void visit(ElementHolder holder, ASTNode node) {
+    if (node != null) {
+      ElementHolder previousHolder = currentHolder;
+      currentHolder = holder;
+      try {
+        node.accept(this);
+      } finally {
+        currentHolder = previousHolder;
+      }
+    }
   }
 
   /**
