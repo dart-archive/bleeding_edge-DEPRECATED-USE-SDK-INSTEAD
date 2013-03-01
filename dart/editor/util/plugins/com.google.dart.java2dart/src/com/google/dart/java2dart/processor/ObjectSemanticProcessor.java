@@ -416,6 +416,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.Throwable")) {
             replaceNode(nameNode, simpleIdentifier("Exception"));
           }
+          if (JavaUtils.isTypeNamed(typeBinding, "java.lang.IndexOutOfBoundsException")) {
+            replaceNode(nameNode, simpleIdentifier("RangeError"));
+          }
           // StringBuilder -> StringBuffer
           if (name.equals("StringBuilder")) {
             replaceNode(nameNode, simpleIdentifier("StringBuffer"));

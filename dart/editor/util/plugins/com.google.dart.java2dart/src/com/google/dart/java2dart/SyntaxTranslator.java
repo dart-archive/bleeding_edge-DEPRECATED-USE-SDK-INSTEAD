@@ -366,7 +366,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       return done(listLiteral(null, typeArgs, elements));
     } else {
       List<Expression> arguments = translateArguments(null, node.dimensions());
-      return done(instanceCreationExpression(Keyword.NEW, listType, "fixedLength", arguments));
+      return done(instanceCreationExpression(Keyword.NEW, listType, arguments));
     }
   }
 

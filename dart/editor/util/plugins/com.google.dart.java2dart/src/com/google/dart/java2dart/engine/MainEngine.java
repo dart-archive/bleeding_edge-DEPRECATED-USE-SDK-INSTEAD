@@ -51,6 +51,7 @@ import org.eclipse.jdt.core.dom.ITypeBinding;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -378,6 +379,10 @@ public class MainEngine {
     List<Statement> mainStatements = Lists.newArrayList();
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
+      // TODO(scheglov) I've asked Phil to remove ResolverTestCase dependency
+      if (isEngineTestPath(file, "ast/visitor/ElementLocatorTest.java")) {
+        continue;
+      }
       if (isEngineTestPath(file, "ast/")) {
         List<CompilationUnitMember> unitMembers = entry.getValue();
         for (CompilationUnitMember unitMember : unitMembers) {
@@ -385,6 +390,15 @@ public class MainEngine {
           if (!isTestSuite) {
             unit.getDeclarations().add(unitMember);
           }
+        }
+      }
+    }
+    // TODO(scheglov) remove ElementLocatorTest, it depends on ResolverTestCase
+    {
+      for (Iterator<Statement> I = mainStatements.iterator(); I.hasNext();) {
+        Statement statement = I.next();
+        if (statement.toSource().contains("ElementLocatorTest")) {
+          I.remove();
         }
       }
     }

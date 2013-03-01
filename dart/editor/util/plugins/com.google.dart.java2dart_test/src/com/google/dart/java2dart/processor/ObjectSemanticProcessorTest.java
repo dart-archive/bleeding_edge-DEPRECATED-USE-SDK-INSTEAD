@@ -164,6 +164,34 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_IndexOutOfBoundsException() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public void mainA() {",
+        "    throw new IndexOutOfBoundsException();",
+        "  }",
+        "  public void main() {",
+        "    try {",
+        "    } catch (IndexOutOfBoundsException e) {",
+        "    }",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  void mainA() {",
+        "    throw new RangeError();",
+        "  }",
+        "  void main() {",
+        "    try {",
+        "    } on RangeError catch (e) {",
+        "    }",
+        "  }",
+        "}");
+  }
+
   public void test_Integer_intValue() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
