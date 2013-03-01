@@ -95,29 +95,49 @@ public abstract class DirectoryBasedSuiteBuilder {
     suite.addTest(new AnalysisTest(file));
   }
 
-  protected void assertErrors(boolean errorExpected, ArrayList<AnalysisError> errorList) {
+  /**
+   * Assert that the errors in the error list match the expected behavior of the test.
+   * 
+   * @param errorExpected {@code true} if the test indicates that errors should be produced
+   * @param expectedToFail {@code true} if the outcome is expected to be inverted from normal
+   * @param errorList the list of errors that were produced for the files that were analyzed
+   */
+  protected void assertErrors(boolean errorExpected, boolean expectedToFail,
+      ArrayList<AnalysisError> errorList) {
     if (errorExpected) {
-      if (errorList.size() <= 0) {
-        Assert.fail("Expected errors, found none");
+      if (expectedToFail) {
+        if (errorList.size() > 0) {
+          Assert.fail("Expected to fail with no errors, but passed with errors");
+        }
+      } else {
+        if (errorList.size() <= 0) {
+          Assert.fail("Expected errors, found none");
+        }
       }
     } else {
-      if (errorList.size() > 0) {
-        PrintStringWriter writer = new PrintStringWriter();
-        writer.print("Expected 0 errors, found ");
-        writer.print(errorList.size());
-        writer.print(":");
-        for (AnalysisError error : errorList) {
-          Source source = error.getSource();
-          int offset = error.getOffset();
-          writer.println();
-          writer.printf(
-              "  %s %s (%d..%d)",
-              source == null ? "" : source.getShortName(),
-              error.getErrorCode(),
-              offset,
-              offset + error.getLength());
+      if (expectedToFail) {
+        if (errorList.size() <= 0) {
+          Assert.fail("Expected to fail with errors, but passed with no errors");
         }
-        Assert.fail(writer.toString());
+      } else {
+        if (errorList.size() > 0) {
+          PrintStringWriter writer = new PrintStringWriter();
+          writer.print("Expected 0 errors, found ");
+          writer.print(errorList.size());
+          writer.print(":");
+          for (AnalysisError error : errorList) {
+            Source source = error.getSource();
+            int offset = error.getOffset();
+            writer.println();
+            writer.printf(
+                "  %s %s (%d..%d)",
+                source == null ? "" : source.getShortName(),
+                error.getErrorCode(),
+                offset,
+                offset + error.getLength());
+          }
+          Assert.fail(writer.toString());
+        }
       }
     }
   }

@@ -78,11 +78,9 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
   private static final Pattern FILE_NAME_PATTERN = Pattern.compile(".*_A\\d\\d_t\\d\\d.dart\\z");
 
   /**
-   * An array containing the relative paths of test files that should be skipped. Files should only
-   * be added to this array when the test is not valid (typically because the test has not been
-   * updated to match the current specification).
+   * An array containing the relative paths of test files that are expected to fail.
    */
-  private static final String[] SKIPPED_TESTS = {};
+  private static final String[] FAILING_TESTS = {};
 
   /**
    * Build a JUnit test suite that will analyze all of the tests in the co19 test suite.
@@ -108,9 +106,9 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
    * @param file the file being tested
    * @return {@code true} if the file should be skipped
    */
-  private static boolean shouldBeSkipped(File file) {
+  private static boolean expectedToFail(File file) {
     String fullPath = file.getAbsolutePath();
-    for (String relativePath : SKIPPED_TESTS) {
+    for (String relativePath : FAILING_TESTS) {
       if (fullPath.endsWith(relativePath)) {
         return true;
       }
@@ -124,7 +122,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
 
   @Override
   protected void addTestForFile(TestSuite suite, File file) {
-    if (FILE_NAME_PATTERN.matcher(file.getName()).matches() && !shouldBeSkipped(file)) {
+    if (FILE_NAME_PATTERN.matcher(file.getName()).matches()) {
       super.addTestForFile(suite, file);
     }
   }
@@ -172,6 +170,6 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     for (CompilationUnitElement part : library.getParts()) {
       addErrors(errorList, part);
     }
-    assertErrors(errorExpected, errorList);
+    assertErrors(errorExpected, expectedToFail(sourceFile), errorList);
   }
 }

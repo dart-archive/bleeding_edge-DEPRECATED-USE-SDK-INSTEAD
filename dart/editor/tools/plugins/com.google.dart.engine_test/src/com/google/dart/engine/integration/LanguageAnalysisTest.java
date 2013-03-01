@@ -101,11 +101,11 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
   }
 
   /**
-   * An array containing the relative paths of test files that should be skipped. Files should only
-   * be added to this array when the test is not valid (typically because the test has not been
-   * updated to match the current specification).
+   * An array containing the relative paths of test files that are expected to fail.
    */
-  private static final String[] SKIPPED_TESTS = {};
+  private static final String[] FAILING_TESTS = {//
+  "/application_test.dart", // missing a part-of directive
+  };
 
   /**
    * Build a JUnit test suite that will analyze all of the tests in the language test suite.
@@ -131,9 +131,9 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
    * @param file the file being tested
    * @return {@code true} if the file should be skipped
    */
-  private static boolean shouldBeSkipped(File file) {
+  private static boolean expectedToFail(File file) {
     String fullPath = file.getAbsolutePath();
-    for (String relativePath : SKIPPED_TESTS) {
+    for (String relativePath : FAILING_TESTS) {
       if (fullPath.endsWith(relativePath)) {
         return true;
       }
@@ -147,7 +147,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
 
   @Override
   protected void addTestForFile(TestSuite suite, File file) {
-    if (file.getName().endsWith("_test.dart") && !shouldBeSkipped(file)) {
+    if (file.getName().endsWith("_test.dart")) {
       //
       // Determine how many tests to create from this one file.
       //
@@ -207,9 +207,6 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     Source source = new FileBasedSource(sourceFactory, sourceFile);
     sourceFactory.setContents(source, contents);
-    if ("import_collection_no_prefix_test.dart".equals(sourceFile.getName())) {
-      System.currentTimeMillis();
-    }
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.getLibraryElement(source);
     long endTime = System.currentTimeMillis();
@@ -229,7 +226,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     for (CompilationUnitElement part : library.getParts()) {
       addErrors(errorList, part);
     }
-    assertErrors(errorExpected, errorList);
+    assertErrors(errorExpected, expectedToFail(sourceFile), errorList);
   }
 
   private int getTestCount(String[] lines) {
