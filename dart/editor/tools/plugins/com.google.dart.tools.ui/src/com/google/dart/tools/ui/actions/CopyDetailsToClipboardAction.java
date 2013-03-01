@@ -13,9 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -26,6 +25,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 /**
  * Helper class for adding basic copy/paste support to controls.
  */
-public class CopyDetailsToClipboardAction extends Action {
+public class CopyDetailsToClipboardAction extends InstrumentedAction {
 
   public static interface DetailsProvider {
     String getDetails();
@@ -75,25 +75,18 @@ public class CopyDetailsToClipboardAction extends Action {
   }
 
   @Override
-  public void run() {
-    long start = System.currentTimeMillis();
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
 
     Clipboard clipboard = new Clipboard(getShell().getDisplay());
     try {
       copyToClipboard(clipboard, detailsProvider.getDetails(), 0);
 
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("CopyToClipboard", elapsed).with("Success", "true").log();
-      Instrumentation.operation("CopyToClipboard", elapsed).with(
-          "text",
-          detailsProvider.getDetails()).log();
+      instrumentation.data("text", detailsProvider.getDetails());
 
     } finally {
       clipboard.dispose();
-      long elapsed = System.currentTimeMillis() - start;
-      Instrumentation.metric("CopyToClipboard", elapsed).log();
-
     }
+
   }
 
   private void copyToClipboard(Clipboard clipboard, String text, int repeatCount) {
@@ -117,5 +110,4 @@ public class CopyDetailsToClipboardAction extends Action {
   private Shell getShell() {
     return shell;
   }
-
 }
