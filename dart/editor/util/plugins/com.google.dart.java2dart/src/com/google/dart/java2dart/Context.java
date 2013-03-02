@@ -51,14 +51,11 @@ import com.google.dart.java2dart.util.JavaUtils;
 import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.block;
 import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
-import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.compilationUnit;
 import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
-import static com.google.dart.java2dart.util.ASTFactory.doubleLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
 import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.TokenFactory.token;
@@ -712,16 +709,7 @@ public class Context {
         String typeName = fields.getType().toString();
         for (VariableDeclaration variable : fields.getVariables()) {
           if (variable.getInitializer() == null) {
-            Expression initializer = null;
-            if ("bool".equals(typeName)) {
-              initializer = booleanLiteral(false);
-            }
-            if ("int".equals(typeName)) {
-              initializer = integer(0);
-            }
-            if ("double".equals(typeName)) {
-              initializer = doubleLiteral(0.0);
-            }
+            Expression initializer = SyntaxTranslator.getPrimitiveTypeDefaultValue(typeName);
             if (initializer != null) {
               variable.setInitializer(initializer);
             }

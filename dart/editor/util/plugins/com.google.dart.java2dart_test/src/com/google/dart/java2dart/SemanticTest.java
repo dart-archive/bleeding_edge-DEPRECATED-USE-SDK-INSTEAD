@@ -648,7 +648,7 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
-  public void test_ensureFieldInitializer() throws Exception {
+  public void test_ensurePrimitiveFieldInitializer() throws Exception {
     setFileLines(
         "test/Test.java",
         toString(
@@ -1292,6 +1292,53 @@ public class SemanticTest extends AbstractSemanticTest {
             "    print(A.zero());",
             "    print(A.zero());",
             "    print(one());",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  /**
+   * https://code.google.com/p/dart/issues/detail?id=8854
+   */
+  public void test_initializePrimitiveArrays() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class Test {",
+            "  void main() {",
+            "    Object res;",
+            "    res = new boolean[5];",
+            "    res = new byte[5];",
+            "    res = new char[5];",
+            "    res = new short[5];",
+            "    res = new int[5];",
+            "    res = new long[5];",
+            "    res = new float[5];",
+            "    res = new double[5];",
+            "    res = new Object[5];",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void main() {",
+            "    Object res;",
+            "    res = new List<bool>.filled(5, false);",
+            "    res = new List<int>.filled(5, 0);",
+            "    res = new List<int>.filled(5, 0);",
+            "    res = new List<int>.filled(5, 0);",
+            "    res = new List<int>.filled(5, 0);",
+            "    res = new List<int>.filled(5, 0);",
+            "    res = new List<double>.filled(5, 0.0);",
+            "    res = new List<double>.filled(5, 0.0);",
+            "    res = new List<Object>(5);",
             "  }",
             "}"),
         getFormattedSource(unit));

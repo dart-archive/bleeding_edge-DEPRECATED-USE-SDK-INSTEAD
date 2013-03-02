@@ -92,6 +92,7 @@ import static com.google.dart.java2dart.util.ASTFactory.compilationUnit;
 import static com.google.dart.java2dart.util.ASTFactory.conditionalExpression;
 import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.doStatement;
+import static com.google.dart.java2dart.util.ASTFactory.doubleLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.emptyFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.emptyStatement;
 import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
@@ -220,6 +221,19 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     SyntaxTranslator translator = new SyntaxTranslator(context);
     javaUnit.accept(translator);
     return (CompilationUnit) translator.result;
+  }
+
+  static Expression getPrimitiveTypeDefaultValue(String typeName) {
+    if ("bool".equals(typeName)) {
+      return booleanLiteral(false);
+    }
+    if ("int".equals(typeName)) {
+      return integer(0);
+    }
+    if ("double".equals(typeName)) {
+      return doubleLiteral(0.0);
+    }
+    return null;
   }
 
   private static org.eclipse.jdt.core.dom.MethodDeclaration getEnclosingMethod(
@@ -366,6 +380,16 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       return done(listLiteral(null, typeArgs, elements));
     } else {
       List<Expression> arguments = translateArguments(null, node.dimensions());
+      // may be primitive array element
+      {
+        String arrayElementTypeName = typeArgs.getArguments().get(0).getName().getName();
+        Expression initializer = getPrimitiveTypeDefaultValue(arrayElementTypeName);
+        if (initializer != null) {
+          arguments.add(initializer);
+          return done(instanceCreationExpression(Keyword.NEW, listType, "filled", arguments));
+        }
+      }
+      // non-primitive array element
       return done(instanceCreationExpression(Keyword.NEW, listType, arguments));
     }
   }

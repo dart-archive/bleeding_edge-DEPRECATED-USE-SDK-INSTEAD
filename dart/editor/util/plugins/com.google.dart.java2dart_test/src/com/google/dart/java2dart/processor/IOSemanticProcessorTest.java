@@ -60,7 +60,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    f.fullPathSync();",
         "    f.fullPathSync();",
         "    getAbsoluteFile(f);",
-        "    f.name;",
+        "    f.path;",
         "    f.existsSync();",
         "  }",
         "}");

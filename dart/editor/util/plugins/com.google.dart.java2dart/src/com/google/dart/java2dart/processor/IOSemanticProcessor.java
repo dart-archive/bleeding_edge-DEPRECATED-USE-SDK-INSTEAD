@@ -111,7 +111,7 @@ public class IOSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "getName", "java.io.File")) {
-          replaceNode(node, propertyAccess(node.getTarget(), identifier("name")));
+          replaceNode(node, propertyAccess(node.getTarget(), identifier("path")));
           return null;
         }
         if (isMethodInClass(node, "getPath", "java.io.File")
