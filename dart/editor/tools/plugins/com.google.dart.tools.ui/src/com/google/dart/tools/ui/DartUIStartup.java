@@ -15,6 +15,7 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
@@ -23,17 +24,11 @@ import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.internal.perf.DartEditorCommandLineManager;
-import com.google.dart.tools.core.internal.perf.InstrumentationDataCarrier;
 import com.google.dart.tools.core.internal.perf.Performance;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerWarmup;
-import com.google.dart.tools.ui.actions.CreateAndRevealProjectAction;
 import com.google.dart.tools.ui.feedback.FeedbackUtils;
 import com.google.dart.tools.ui.internal.text.editor.AutoSaveHelper;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -41,12 +36,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-
-import java.io.File;
-import java.util.ArrayList;
 
 /**
  * This early startup class is called after the main workbench window opens, and is used to warm up
@@ -55,10 +45,11 @@ import java.util.ArrayList;
 public class DartUIStartup implements IStartup {
 
   private class StartupJob extends Job {
+    private CmdLineOptions options;
 
     public StartupJob() {
       super("Dart Editor Initialization");
-
+      options = CmdLineOptions.getOptions();
       setSystem(true);
     }
 
@@ -96,24 +87,23 @@ public class DartUIStartup implements IStartup {
             instrumentation.metric("StartupComplete", "Complete");
           }
           if (!getThread().isInterrupted()) {
-            openInitialFilesAndFolders();
+            new CmdLineFileProcessor(options).run();
             instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
           }
           if (!getThread().isInterrupted()) {
             printPerformanceNumbers();
+
+            //This is a special case as it's for recording from before when instrumentation was
+            //available, so need to manually compute the time
+            long delta = System.currentTimeMillis() - options.getStartTime();
+            instrumentation.metric("DartUIStartup-Complete-FromInitialTimeApproximation", delta).log();
+
           }
           AutoSaveHelper.start();
         } catch (Throwable throwable) {
           // Catch any runtime exceptions that occur during warmup and log them.
           DartToolsPlugin.log("Exception occured during editor warmup", throwable);
         }
-
-        //This is a special case as it's for recording from before when instrumentation was
-        //available, so need to manually compute the time
-        long delta = System.currentTimeMillis()
-            - InstrumentationDataCarrier.getApproximateStartTime();
-        instrumentation.metric("DartUIStartup-Complete-FromInitialTimeApproximation", delta).log();
-
         synchronized (startupSync) {
           startupJob = null;
         }
@@ -138,12 +128,12 @@ public class DartUIStartup implements IStartup {
     }
 
     /**
-     * If {@link DartEditorCommandLineManager#MEASURE_PERFORMANCE} is <code>true</code>, then record
-     * the {@link Performance#TIME_TO_START_UI} metric.
+     * If {@link CmdLineOptions#getMeasurePerformance()} is <code>true</code>, then record the
+     * {@link Performance#TIME_TO_START_UI} metric.
      */
     private void detectStartupComplete() {
-      if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
-        Performance.TIME_TO_START_UI.log(DartEditorCommandLineManager.getStartTime());
+      if (options.getMeasurePerformance()) {
+        Performance.TIME_TO_START_UI.log(options.getStartTime());
       }
     }
 
@@ -160,55 +150,11 @@ public class DartUIStartup implements IStartup {
     }
 
     /**
-     * Loop through the files input on the command line, retrieved from
-     * {@link DartEditorCommandLineManager#getFileSet()}, and open them in the Editor appropriately.
-     */
-    private void openInitialFilesAndFolders() {
-      final ArrayList<File> fileSet = DartEditorCommandLineManager.getFileSet();
-      if (fileSet == null || fileSet.isEmpty()) {
-        return;
-      }
-      Display.getDefault().asyncExec(new Runnable() {
-        @Override
-        public void run() {
-          for (File file : fileSet) {
-            // verify that this file is not null, and exists
-            if (file == null || !file.exists()) {
-              continue;
-            }
-            final File fileToOpen = file;
-            IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            if (fileToOpen.isFile()) {
-              // If this File to open is a file, instead of a directory, then open the directory,
-              // and then open the file in an editor
-              String directoryToOpen = fileToOpen.getParentFile().getAbsolutePath();
-              new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
-              try {
-                EditorUtility.openInEditor(ResourceUtil.getFile(fileToOpen));
-              } catch (PartInitException e) {
-                e.printStackTrace();
-              } catch (DartModelException e) {
-                e.printStackTrace();
-              }
-            } else {
-              // If this File to open is a directory, instead of a file, then just open the directory.
-              String directoryToOpen = fileToOpen.getAbsolutePath();
-              new CreateAndRevealProjectAction(workbenchWindow, directoryToOpen).run();
-            }
-          }
-          if (DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
-            Performance.TIME_TO_OPEN.log(DartEditorCommandLineManager.getStartTime());
-          }
-        }
-      });
-    }
-
-    /**
-     * Print the performance numbers, if {@link DartEditorCommandLineManager#MEASURE_PERFORMANCE} is
+     * Print the performance numbers, if {@link CmdLineOptions#getMeasurePerformance()} is
      * <code>true</code>.
      */
     private void printPerformanceNumbers() {
-      if (!DartEditorCommandLineManager.MEASURE_PERFORMANCE) {
+      if (!options.getMeasurePerformance()) {
         return;
       }
       // wait for analysis is finished
@@ -218,13 +164,13 @@ public class DartUIStartup implements IStartup {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {
-          Performance.TIME_TO_ANALYSIS_COMPLETE.log(DartEditorCommandLineManager.getStartTime());
+          Performance.TIME_TO_ANALYSIS_COMPLETE.log(options.getStartTime());
           InMemoryIndex.getInstance().notify(new NotifyCallback() {
             @Override
             public void done() {
-              Performance.TIME_TO_INDEX_COMPLETE.log(DartEditorCommandLineManager.getStartTime());
+              Performance.TIME_TO_INDEX_COMPLETE.log(options.getStartTime());
               Performance.printResults_keyValue();
-              if (DartEditorCommandLineManager.KILL_AFTER_PERF) {
+              if (options.getAutoExit()) {
                 // From the UI thread, call PlatformUI.getWorkbench().close() to exit the Dart Editor
                 Display.getDefault().syncExec(new Runnable() {
                   @Override
@@ -268,7 +214,6 @@ public class DartUIStartup implements IStartup {
         System.err.println("Stopped waiting for the analysis server.");
       }
     }
-
   }
 
   private static StartupJob startupJob;
@@ -290,5 +235,4 @@ public class DartUIStartup implements IStartup {
       startupJob.schedule(500);
     }
   }
-
 }

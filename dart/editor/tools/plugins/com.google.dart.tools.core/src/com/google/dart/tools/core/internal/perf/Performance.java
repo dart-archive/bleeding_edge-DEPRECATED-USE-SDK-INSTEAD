@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.perf;
 
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 
@@ -34,7 +35,7 @@ import java.util.TreeSet;
  * 
  * @see Metric
  * @see Result
- * @see DartEditorCommandLineManager
+ * @see CmdLineOptions
  */
 public class Performance {
 

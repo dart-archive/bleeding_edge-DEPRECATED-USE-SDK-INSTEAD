@@ -25,6 +25,7 @@ public class TestAll {
     // Build the SDK index first
     suite.addTestSuite(TestGenerateArtifacts.class);
 
+    suite.addTestSuite(CmdLineOptionsTest.class);
     suite.addTestSuite(DartCoreTest.class);
     suite.addTestSuite(PluginXMLTest.class);
 
