@@ -28,7 +28,7 @@ public class CmdLineOptionsTest extends TestCase {
   }
 
   public void test_parse_file() {
-    String filePath = "/does/not/exist.dart";
+    String filePath = "does-not-exist.dart";
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {filePath});
     assertOptions(options, false, 0, false, 1, false);
     assertEquals(filePath, options.getFiles().get(0).getPath());
