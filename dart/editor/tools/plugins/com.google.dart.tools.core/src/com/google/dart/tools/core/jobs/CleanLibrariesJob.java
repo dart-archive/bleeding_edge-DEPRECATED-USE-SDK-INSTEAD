@@ -16,6 +16,7 @@ package com.google.dart.tools.core.jobs;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.internal.util.CanonicalizationManager;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -50,9 +51,11 @@ public class CleanLibrariesJob extends Job {
 
   @Override
   protected IStatus run(IProgressMonitor monitor) {
+    // Reset our cached info about file canonicalizations.
+    CanonicalizationManager.getManager().reset();
+
     try {
       if (resetModel) {
-
         PackageLibraryManagerProvider.resetLibraryManager();
 
         AnalysisIndexManager.startIndexing();

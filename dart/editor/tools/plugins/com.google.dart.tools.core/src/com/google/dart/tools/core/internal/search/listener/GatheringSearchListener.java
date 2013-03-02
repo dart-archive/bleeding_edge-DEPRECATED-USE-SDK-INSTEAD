@@ -19,6 +19,7 @@ import com.google.dart.tools.core.search.SearchMatch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class GatheringSearchListener implements SearchListener {
   /**
@@ -26,12 +27,25 @@ public class GatheringSearchListener implements SearchListener {
    */
   private final List<SearchMatch> matches = new ArrayList<SearchMatch>();
 
+  private CountDownLatch latch = new CountDownLatch(1);
+
   /**
    * A flag indicating whether the search is complete.
    */
   private boolean isComplete = false;
 
+  /**
+   * Block until the search has finished. This method returns immediately if the serch is already
+   * complete.
+   * 
+   * @throws InterruptedException if the current thread is interrupted while waiting
+   */
+  public void blockUntilComplete() throws InterruptedException {
+    latch.await();
+  }
+
   public List<SearchMatch> getMatches() {
+    // TODO(devoncarew): consider using a sorted list instead
     Collections.sort(matches, SearchMatch.SORT_BY_ELEMENT_NAME);
     return matches;
   }
@@ -53,5 +67,6 @@ public class GatheringSearchListener implements SearchListener {
   @Override
   public void searchComplete() {
     isComplete = true;
+    latch.countDown();
   }
 }

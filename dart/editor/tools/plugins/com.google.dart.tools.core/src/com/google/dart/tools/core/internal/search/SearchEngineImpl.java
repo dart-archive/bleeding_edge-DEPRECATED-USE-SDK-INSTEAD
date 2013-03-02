@@ -1055,9 +1055,13 @@ public class SearchEngineImpl implements SearchEngine {
   private List<SearchMatch> gatherResults(SearchRunner runner) throws SearchException {
     GatheringSearchListener listener = new GatheringSearchListener();
     runner.performSearch(listener);
-    while (!listener.isComplete()) {
-      Thread.yield();
+
+    try {
+      listener.blockUntilComplete();
+    } catch (InterruptedException e) {
+      throw new SearchException(e);
     }
+
     return listener.getMatches();
   }
 

@@ -29,7 +29,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -65,14 +64,7 @@ public class ResourceUtil {
   };
 
   public static URI getCanonicalUri(URI uri) {
-    if (uri == null) {
-      return null;
-    }
-    try {
-      return new File(uri).getCanonicalFile().toURI();
-    } catch (IOException exception) {
-    }
-    return uri;
+    return CanonicalizationManager.getManager().getCanonicalUri(uri);
   }
 
   /**
@@ -233,11 +225,7 @@ public class ResourceUtil {
   }
 
   private static URI getCanonicalUri(File file) {
-    try {
-      return file.getAbsoluteFile().getCanonicalFile().toURI();
-    } catch (IOException exception) {
-      return file.getAbsoluteFile().toURI();
-    }
+    return CanonicalizationManager.getManager().getCanonicalUri(file);
   }
 
   private static URI getCanonicalUri(IResource resource) {
