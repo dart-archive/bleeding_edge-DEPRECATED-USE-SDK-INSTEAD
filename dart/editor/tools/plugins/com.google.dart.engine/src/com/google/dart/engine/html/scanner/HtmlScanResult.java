@@ -19,7 +19,7 @@ package com.google.dart.engine.html.scanner;
 public class HtmlScanResult {
 
   /**
-   * The first token in the token stream.
+   * The first token in the token stream (not {@code null}).
    */
   private final Token token;
 

@@ -33,6 +33,8 @@ import static com.google.dart.engine.html.scanner.TokenType.TEXT;
  * required to implement the interface used to access the characters being scanned.
  */
 public abstract class AbstractScanner {
+  private static final String[] NO_PASS_THROUGH_ELEMENTS = new String[] {};
+
   /**
    * The source being scanned.
    */
@@ -56,7 +58,7 @@ public abstract class AbstractScanner {
   /**
    * An array of element tags for which the content between tags should be consider a single token.
    */
-  private String[] passThroughElements;
+  private String[] passThroughElements = NO_PASS_THROUGH_ELEMENTS;
 
   /**
    * Initialize a newly created scanner.
@@ -102,7 +104,8 @@ public abstract class AbstractScanner {
    * Set array of element tags for which the content between tags should be consider a single token.
    */
   public void setPassThroughElements(String[] passThroughElements) {
-    this.passThroughElements = passThroughElements;
+    this.passThroughElements = passThroughElements != null ? passThroughElements
+        : NO_PASS_THROUGH_ELEMENTS;
   }
 
   /**
@@ -167,7 +170,7 @@ public abstract class AbstractScanner {
   }
 
   private Token emit(TokenType type, int start, int count) {
-    return emit(new Token(type, getString(start, count), start));
+    return emit(new Token(type, start, getString(start, count)));
   }
 
   private Token firstToken() {

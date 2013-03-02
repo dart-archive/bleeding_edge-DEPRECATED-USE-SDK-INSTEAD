@@ -50,17 +50,17 @@ public class Token {
    * @param offset the offset from the beginning of the file to the first character in the token
    */
   public Token(TokenType type, int offset) {
-    this(type, type.getLexeme(), offset);
+    this(type, offset, type.getLexeme());
   }
 
   /**
    * Initialize a newly created token.
    * 
    * @param type the token type (not {@code null})
-   * @param value the lexeme represented by this token (not {@code null})
    * @param offset the offset from the beginning of the file to the first character in the token
+   * @param value the lexeme represented by this token (not {@code null})
    */
-  public Token(TokenType type, String value, int offset) {
+  public Token(TokenType type, int offset, String value) {
     this.type = type;
     this.value = value;
     this.offset = offset;
@@ -129,6 +129,17 @@ public class Token {
    */
   public TokenType getType() {
     return type;
+  }
+
+  /**
+   * Return {@code true} if this token is a synthetic token. A synthetic token is a token that was
+   * introduced by the parser in order to recover from an error in the code. Synthetic tokens always
+   * have a length of zero ({@code 0}).
+   * 
+   * @return {@code true} if this token is a synthetic token
+   */
+  public boolean isSynthetic() {
+    return getLength() == 0;
   }
 
   /**
