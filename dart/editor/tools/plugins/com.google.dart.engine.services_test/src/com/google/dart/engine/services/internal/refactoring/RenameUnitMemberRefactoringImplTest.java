@@ -177,6 +177,30 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "Choose another name.");
   }
 
+  public void test_checkNewName_TopLevelVariableElement_const() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const TEST;");
+    createRenameRefactoring("TEST;");
+    // null
+    assertRefactoringStatus(
+        refactoring.checkNewName(null),
+        RefactoringStatusSeverity.ERROR,
+        "Constant name must not be null.");
+    // empty
+    assertRefactoringStatus(
+        refactoring.checkNewName(""),
+        RefactoringStatusSeverity.ERROR,
+        "Constant name must not be empty.");
+    // same name
+    assertRefactoringStatus(
+        refactoring.checkNewName("TEST"),
+        RefactoringStatusSeverity.FATAL,
+        "Choose another name.");
+    // with underscore
+    assertRefactoringStatusOK(refactoring.checkNewName("NEW_NAME"));
+  }
+
   public void test_checkNewName_TypeAliasElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

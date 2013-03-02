@@ -81,7 +81,12 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     RefactoringStatus result = new RefactoringStatus();
     result.merge(super.checkNewName(newName));
     if (element instanceof FieldElement) {
-      result.merge(NamingConventions.validateFieldName(newName));
+      FieldElement fieldElement = (FieldElement) element;
+      if (fieldElement.isStatic() && fieldElement.isConst()) {
+        result.merge(NamingConventions.validateConstantName(newName));
+      } else {
+        result.merge(NamingConventions.validateFieldName(newName));
+      }
     }
     if (element instanceof MethodElement) {
       result.merge(NamingConventions.validateMethodName(newName));
