@@ -26,52 +26,20 @@ import org.eclipse.core.runtime.Platform;
  * A manager class to retrieve the current IInstrumentationLogger instance.
  */
 public class InstrumentationLogger {
-  private static class NullLogger implements IInstrumentationLogger {
-    @Override
-    public void debug(String tag, String text) {
-    }
-
-    @Override
-    public void error(String tag, String text) {
-    }
-
-    @Override
-    public String getSessionId() {
-      return null;
-    }
-
-    @Override
-    public String getUserId() {
-      return null;
-    }
-
-    @Override
-    public void info(String tag, String text) {
-    }
-
-    @Override
-    public void verbose(String tag, String text) {
-    }
-  }
 
   private static final String EXTENSION_POINT_ID = DartCore.PLUGIN_ID + ".instrumentationLogger";
 
-  private static IInstrumentationLogger logger = null;
+  private static boolean initialized = false;
 
   /**
    * Ensure that the instrumentation system has started and if a logger is available that it is
    * registered
    */
   public static void ensureLoggerStarted() {
-    if (logger == null) {
+    if (!initialized) {
+      initialized = true;
       init();
     }
-  }
-
-  public static IInstrumentationLogger getLogger() {
-    ensureLoggerStarted();
-
-    return logger;
   }
 
   private static void init() {
@@ -89,14 +57,14 @@ public class InstrumentationLogger {
       try {
         Object executableExtension = element.createExecutableExtension("class");
 
-        //Setup old logger
-        if (executableExtension instanceof IInstrumentationLogger) {
-          logger = (IInstrumentationLogger) executableExtension;
-        }
-
         //Setup new logger
-        if (logger instanceof com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) {
-          Instrumentation.setLogger((com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) logger);
+        if (executableExtension instanceof com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) {
+          Instrumentation.setLogger((com.google.dart.engine.utilities.instrumentation.InstrumentationLogger) executableExtension);
+        } else {
+          Class<?> exClass = executableExtension != null ? executableExtension.getClass() : null;
+          DartCore.logError("Failed to set instrumentation logger\nbecause " + exClass
+              + "\ndoes not implement "
+              + com.google.dart.engine.utilities.instrumentation.InstrumentationLogger.class);
         }
 
         return;
@@ -104,8 +72,6 @@ public class InstrumentationLogger {
         DartCore.logError(t);
       }
     }
-
-    logger = new NullLogger();
   }
 
   private InstrumentationLogger() {

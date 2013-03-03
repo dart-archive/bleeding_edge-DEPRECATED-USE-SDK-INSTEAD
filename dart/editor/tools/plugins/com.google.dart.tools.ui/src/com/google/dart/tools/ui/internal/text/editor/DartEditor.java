@@ -28,7 +28,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.instrumentation.InstrumentationLogger;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -40,7 +39,6 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
-import com.google.dart.tools.core.utilities.general.Timer;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -54,6 +52,8 @@ import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -3494,17 +3494,23 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void performSave(boolean overwrite, IProgressMonitor progressMonitor) {
-    Timer timer = new Timer("save");
+    UIInstrumentationBuilder instrumentation = UIInstrumentation.builder("Editor-Save-Perf");
+    try {
 
-    performSaveActions();
+      performSaveActions();
 
-    super.performSave(overwrite, progressMonitor);
+      instrumentation.metric("Save-Actions", "complete");
 
-    long millis = timer.stop();
+      super.performSave(overwrite, progressMonitor);
 
-    int lines = getDocumentProvider().getDocument(getEditorInput()).getNumberOfLines();
+      instrumentation.metric("Save", "complete");
 
-    InstrumentationLogger.getLogger().info("Editor-Save-Perf", lines + " lines," + millis + " ms");
+      int lines = getDocumentProvider().getDocument(getEditorInput()).getNumberOfLines();
+      instrumentation.metric("Lines", lines);
+
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @Override

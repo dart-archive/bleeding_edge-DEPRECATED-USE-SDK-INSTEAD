@@ -94,43 +94,9 @@ public final class Instrumentation {
    * configured. This logger will silently ignore all data and logging requests.
    */
   private static final InstrumentationLogger NULL_LOGGER = new InstrumentationLogger() {
-    /**
-     * An operation builder that will silently ignore all data and logging requests.
-     */
-    private final OperationBuilder NULL_BUILDER = new OperationBuilder() {
-      @Override
-      public void log() {
-      }
-
-      @Override
-      public OperationBuilder with(String name, long value) {
-        return this;
-      }
-
-      @Override
-      public OperationBuilder with(String name, String value) {
-        return this;
-      }
-
-      @Override
-      public OperationBuilder with(String name, String[] value) {
-        return this;
-      }
-    };
-
     @Override
     public InstrumentationBuilder createBuilder(String name) {
       return NULL_INSTRUMENTATION_BUILDER;
-    }
-
-    @Override
-    public OperationBuilder createMetric(String name, long time) {
-      return NULL_BUILDER;
-    }
-
-    @Override
-    public OperationBuilder createOperation(String name, long time) {
-      return NULL_BUILDER;
     }
   };
 
