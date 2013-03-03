@@ -396,7 +396,7 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
 
   @Override
   public R visitMethodInvocation(MethodInvocation node) {
-    return visitNode(node);
+    return visitExpression(node);
   }
 
   @Override
