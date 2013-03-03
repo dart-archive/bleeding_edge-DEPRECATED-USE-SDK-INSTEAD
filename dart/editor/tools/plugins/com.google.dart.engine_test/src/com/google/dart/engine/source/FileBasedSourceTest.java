@@ -45,6 +45,14 @@ public class FileBasedSourceTest extends TestCase {
     assertTrue(source1.equals(source2));
   }
 
+  public void test_getEncoding() {
+    SourceFactory factory = new SourceFactory(new FileUriResolver());
+    String fullPath = "/does/not/exist.dart";
+    File file = createFile(fullPath);
+    FileBasedSource source = new FileBasedSource(factory, file);
+    assertEquals(source, factory.fromEncoding(source.getEncoding()));
+  }
+
   public void test_getFullName() {
     SourceFactory factory = new SourceFactory();
     String fullPath = "/does/not/exist.dart";

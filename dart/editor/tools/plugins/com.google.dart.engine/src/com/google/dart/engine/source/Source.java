@@ -77,6 +77,15 @@ public interface Source {
   public void getContents(ContentReceiver receiver) throws Exception;
 
   /**
+   * Return an encoded representation of this source that can be used to create a source that is
+   * equal to this source.
+   * 
+   * @return an encoded representation of this source
+   * @see SourceFactory#fromEncoding(String)
+   */
+  public String getEncoding();
+
+  /**
    * Return the full (long) version of the name that can be displayed to the user to denote this
    * source. For example, for a source representing a file this would typically be the absolute path
    * of the file.

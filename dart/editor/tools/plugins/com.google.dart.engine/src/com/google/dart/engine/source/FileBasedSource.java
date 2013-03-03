@@ -123,6 +123,11 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  public String getEncoding() {
+    return file.toURI().toString();
+  }
+
+  @Override
   public String getFullName() {
     return file.getAbsolutePath();
   }

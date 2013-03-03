@@ -71,6 +71,18 @@ public class SourceFactory {
   }
 
   /**
+   * Return a source object that is equal to the source object used to obtain the given encoding, or
+   * {@code null} if the argument is not a valid encoding.
+   * 
+   * @param encoding the encoding of a source object
+   * @return a source object that is described by the given encoding
+   * @see Source#getEncoding()
+   */
+  public Source fromEncoding(String encoding) {
+    return forUri(encoding);
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
