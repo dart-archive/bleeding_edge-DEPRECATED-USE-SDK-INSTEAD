@@ -19,7 +19,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentType;
 import org.eclipse.core.runtime.content.IContentTypeManager;
-import org.eclipse.team.core.Team;
 
 public class PluginXMLTest extends TestCase {
   public void test_pluginxml_builder() {
@@ -35,9 +34,10 @@ public class PluginXMLTest extends TestCase {
     assertNotNull(type);
   }
 
-  public void test_pluginxml_fileType_dart() {
-    assertEquals(Team.TEXT, Team.getFileContentManager().getTypeForExtension("dart"));
-  }
+// Remove our dependency on org.eclipse.team.core.
+//  public void test_pluginxml_fileType_dart() {
+//    assertEquals(Team.TEXT, Team.getFileContentManager().getTypeForExtension("dart"));
+//  }
 
   public void test_pluginxml_projectNature() {
     assertNotNull(ResourcesPlugin.getWorkspace().getNatureDescriptor(DartCore.DART_PROJECT_NATURE));

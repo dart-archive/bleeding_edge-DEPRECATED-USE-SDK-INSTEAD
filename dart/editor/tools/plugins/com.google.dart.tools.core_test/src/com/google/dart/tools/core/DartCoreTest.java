@@ -38,7 +38,8 @@ import java.util.ArrayList;
 public class DartCoreTest extends TestCase {
 
   public static boolean isRunningOnBuildBot() {
-    return System.getProperty("user.name").startsWith("chrome");
+    return System.getProperty("user.name").startsWith("chrome")
+        || System.getProperty("dart.buildbot") != null;
   }
 
   public void test_DartCore_create_file_notNull() {

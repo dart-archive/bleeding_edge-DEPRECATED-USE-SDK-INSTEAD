@@ -409,7 +409,6 @@ build system.  The PDE build system has to run under Eclipse.
         <copy todir="${dart.thirdparty_test.dir}/lib">
             <fileset dir="${build.source.root}/third_party">
                 <include name="fest/**" />
-                <include name="hamcrest/**" />
                 <include name="mockito/**" />
             </fileset>
         </copy>

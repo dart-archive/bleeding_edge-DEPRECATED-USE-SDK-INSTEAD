@@ -80,17 +80,7 @@
     <!--
     run the tests in DartTools
     -->
-    <target name="doTests" depends="deploy, setupTests, getPort">
-        
-        <!-- Exclude the UI plugins when running headless tests -->
-        <property name="build.target.dropins.unused" location="${build.target.dropins}-unused"/>
-        <mkdir dir="${build.target.dropins.unused}"/>
-        <move todir="${build.target.dropins.unused}">
-            <fileset dir="${build.target.dropins}">
-                <include name="dart/plugins/com.google.dart.tools.ui*.jar"/>
-            </fileset>
-        </move>
-
+    <target name="doTests" depends="deploy, setupTests, getPort">        
         <property name="build.eclipse.test_application"
                   value="org.eclipse.pde.junit.runtime.coretestapplication" />
         <property name="build.test.platform.vm.args" value="" />
@@ -101,8 +91,8 @@
         <echoproperties prefix="build." />
         <fileset dir="${build.target.abs}/eclipse/plugins" 
                  includes="org.eclipse.equinox.launcher_*.jar"
-                 id="fs.eclipse.target.laincher" />
-        <pathconvert property="eclipse.target.launcher.jar" refid="fs.eclipse.target.laincher" />
+                 id="fs.eclipse.target.launcher" />
+        <pathconvert property="eclipse.target.launcher.jar" refid="fs.eclipse.target.launcher" />
         <echo message="starting Eclipse with ${eclipse.target.launcher.jar}" />
         <echo message="running application ${build.eclipse.test_application}"/>
         <parallel>
