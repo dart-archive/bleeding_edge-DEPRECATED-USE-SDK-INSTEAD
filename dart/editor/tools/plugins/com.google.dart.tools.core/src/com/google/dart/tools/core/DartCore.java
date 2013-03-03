@@ -1363,6 +1363,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   @Override
   public void start(BundleContext context) throws Exception {
     super.start(context);
+    CmdLineOptions.setOptions(CmdLineOptions.parseCmdLine(Platform.getApplicationArgs()));
     AnalysisEngine.getInstance().setLogger(new Logger() {
       @Override
       public void logError(String message) {

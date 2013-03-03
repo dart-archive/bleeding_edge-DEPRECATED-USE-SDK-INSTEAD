@@ -88,8 +88,6 @@ public class DartIDEApplication implements IApplication {
       // processor must be created before we start event loop
       DelayedEventsProcessor processor = new DelayedEventsProcessor(display);
 
-      CmdLineOptions.setOptions(CmdLineOptions.parseCmdLine(Platform.getApplicationArgs()));
-
       // Now that the start time of the Editor has been recorded from the command line, we can
       // record the time taken to start the Application
       if (CmdLineOptions.getOptions().getMeasurePerformance()) {
