@@ -1289,6 +1289,15 @@ public class SimpleParserTest extends ParserTestCase {
     assertEquals(35, reference.getOffset());
   }
 
+  public void test_parseCompilationUnit_abstractAsPrefix_parameterized() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "abstract<dynamic> _abstract = new abstract.A();");
+    assertNull(unit.getScriptTag());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
+  }
+
   public void test_parseCompilationUnit_directives_multiple() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "library l;\npart 'a.dart';");
     assertNull(unit.getScriptTag());
@@ -1310,6 +1319,31 @@ public class SimpleParserTest extends ParserTestCase {
     assertSize(0, unit.getDeclarations());
   }
 
+  public void test_parseCompilationUnit_exportAsPrefix() throws Exception {
+    CompilationUnit unit = parse("parseCompilationUnit", "export.A _export = new export.A();");
+    assertNull(unit.getScriptTag());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
+  }
+
+  public void test_parseCompilationUnit_exportAsPrefix_parameterized() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "export<dynamic> _export = new export.A();");
+    assertNull(unit.getScriptTag());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
+  }
+
+  public void test_parseCompilationUnit_operatorAsPrefix_parameterized() throws Exception {
+    CompilationUnit unit = parse(
+        "parseCompilationUnit",
+        "operator<dynamic> _operator = new operator.A();");
+    assertNull(unit.getScriptTag());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
+  }
+
   public void test_parseCompilationUnit_script() throws Exception {
     CompilationUnit unit = parse("parseCompilationUnit", "#! /bin/dart");
     assertNotNull(unit.getScriptTag());
@@ -1322,6 +1356,22 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(unit.getScriptTag());
     assertSize(0, unit.getDirectives());
     assertSize(1, unit.getDeclarations());
+  }
+
+  public void test_parseCompilationUnit_typedefAsPrefix() throws Exception {
+    CompilationUnit unit = parse("parseCompilationUnit", "typedef.A _typedef = new typedef.A();");
+    assertNull(unit.getScriptTag());
+    assertSize(0, unit.getDirectives());
+    assertSize(1, unit.getDeclarations());
+  }
+
+  public void test_parseCompilationUnitMember_abstractAsPrefix() throws Exception {
+    TopLevelVariableDeclaration declaration = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "abstract.A _abstract = new abstract.A();");
+    assertNotNull(declaration.getSemicolon());
+    assertNotNull(declaration.getVariables());
   }
 
   public void test_parseCompilationUnitMember_class() throws Exception {

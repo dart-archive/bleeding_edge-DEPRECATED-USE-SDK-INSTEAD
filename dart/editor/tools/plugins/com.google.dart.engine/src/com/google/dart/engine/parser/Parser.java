@@ -1153,7 +1153,7 @@ public class Parser {
     Token rightBracket = null;
     if (matches(TokenType.OPEN_CURLY_BRACKET)) {
       leftBracket = expect(TokenType.OPEN_CURLY_BRACKET);
-      members = parseClassMembers(className);
+      members = parseClassMembers(className, ((BeginToken) leftBracket).getEndToken() != null);
       rightBracket = expect(TokenType.CLOSE_CURLY_BRACKET);
     } else {
       leftBracket = createSyntheticToken(TokenType.OPEN_CURLY_BRACKET);
@@ -1251,7 +1251,8 @@ public class Parser {
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
+        && matches(peek(2), TokenType.OPEN_PAREN)) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (!matchesIdentifier()) {
@@ -1315,7 +1316,8 @@ public class Parser {
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           type);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
+        && matches(peek(2), TokenType.OPEN_PAREN)) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
     } else if (!matchesIdentifier()) {
@@ -1344,13 +1346,16 @@ public class Parser {
    *     (metadata memberDefinition)*
    * </pre>
    * 
+   * @param className the name of the class whose members are being parsed
+   * @param balancedBrackets {@code true} if the opening and closing brackets for the class are
+   *          balanced
    * @return the list of class members that were parsed
    */
-  private List<ClassMember> parseClassMembers(String className) {
+  private List<ClassMember> parseClassMembers(String className, boolean balancedBrackets) {
     List<ClassMember> members = new ArrayList<ClassMember>();
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF) && !matches(TokenType.CLOSE_CURLY_BRACKET)
-        && !matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)) {
+        && (balancedBrackets || (!matches(Keyword.CLASS) && !matches(Keyword.TYPEDEF)))) {
       if (matches(TokenType.SEMICOLON)) {
         reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken, currentToken.getLexeme());
         advance();
@@ -1628,8 +1633,8 @@ public class Parser {
     Token memberStart = currentToken;
     while (!matches(TokenType.EOF)) {
       CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-      if (matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY)
-          || matches(Keyword.PART)) {
+      if ((matches(Keyword.IMPORT) || matches(Keyword.EXPORT) || matches(Keyword.LIBRARY) || matches(Keyword.PART))
+          && !matches(peek(), TokenType.PERIOD) && !matches(peek(), TokenType.LT)) {
         Directive directive = parseDirective(commentAndMetadata);
         if (declarations.size() > 0 && !directiveFoundAfterDeclaration) {
           reportError(ParserErrorCode.DIRECTIVE_AFTER_DECLARATION);
@@ -1711,7 +1716,8 @@ public class Parser {
     Modifiers modifiers = parseModifiers();
     if (matches(Keyword.CLASS)) {
       return parseClassDeclaration(commentAndMetadata, validateModifiersForClass(modifiers));
-    } else if (matches(Keyword.TYPEDEF)) {
+    } else if (matches(Keyword.TYPEDEF) && !matches(peek(), TokenType.PERIOD)
+        && !matches(peek(), TokenType.LT)) {
       validateModifiersForTypedef(modifiers);
       return parseTypeAlias(commentAndMetadata);
     }
@@ -1762,7 +1768,8 @@ public class Parser {
           modifiers.getExternalKeyword(),
           null,
           false);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
+        && matches(peek(2), TokenType.OPEN_PAREN)) {
       // TODO(brianwilkerson) Report this error and recover.
       return null;
     } else if (!matchesIdentifier()) {
@@ -3370,7 +3377,8 @@ public class Parser {
     Modifiers modifiers = new Modifiers();
     boolean progress = true;
     while (progress) {
-      if (matches(Keyword.ABSTRACT)) {
+      if (matches(Keyword.ABSTRACT) && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)) {
         if (modifiers.getAbstractKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();
@@ -3384,14 +3392,16 @@ public class Parser {
         } else {
           modifiers.setConstKeyword(getAndAdvance());
         }
-      } else if (matches(Keyword.EXTERNAL)) {
+      } else if (matches(Keyword.EXTERNAL) && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)) {
         if (modifiers.getExternalKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();
         } else {
           modifiers.setExternalKeyword(getAndAdvance());
         }
-      } else if (matches(Keyword.FACTORY)) {
+      } else if (matches(Keyword.FACTORY) && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)) {
         if (modifiers.getFactoryKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();
@@ -3405,7 +3415,8 @@ public class Parser {
         } else {
           modifiers.setFinalKeyword(getAndAdvance());
         }
-      } else if (matches(Keyword.STATIC)) {
+      } else if (matches(Keyword.STATIC) && !matches(peek(), TokenType.PERIOD)
+          && !matches(peek(), TokenType.LT)) {
         if (modifiers.getStaticKeyword() != null) {
           reportError(ParserErrorCode.DUPLICATED_MODIFIER, currentToken.getLexeme());
           advance();
