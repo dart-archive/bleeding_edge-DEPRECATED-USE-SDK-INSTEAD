@@ -34,7 +34,7 @@ import java.util.List;
  *     {@link FormalParameterList formalParameterList}
  *
  * methodName ::=
- *     {@link SimpleIdentifier name} ('.' {@link SimpleIdentifier name})?
+ *     {@link SimpleIdentifier name}
  *   | 'operator' {@link SimpleIdentifier operator}
  * </pre>
  */
@@ -70,7 +70,7 @@ public class MethodDeclaration extends ClassMember {
   /**
    * The name of the method.
    */
-  private Identifier name;
+  private SimpleIdentifier name;
 
   /**
    * The parameters associated with the method, or {@code null} if this method declares a getter.
@@ -99,7 +99,7 @@ public class MethodDeclaration extends ClassMember {
    */
   public MethodDeclaration(Comment comment, List<Annotation> metadata, Token externalKeyword,
       Token modifierKeyword, TypeName returnType, Token propertyKeyword, Token operatorKeyword,
-      Identifier name, FormalParameterList parameters, FunctionBody body) {
+      SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) {
     super(comment, metadata);
     this.externalKeyword = externalKeyword;
     this.modifierKeyword = modifierKeyword;
@@ -168,7 +168,7 @@ public class MethodDeclaration extends ClassMember {
    * 
    * @return the name of the method
    */
-  public Identifier getName() {
+  public SimpleIdentifier getName() {
     return name;
   }
 
@@ -290,7 +290,7 @@ public class MethodDeclaration extends ClassMember {
    * 
    * @param identifier the name of the method
    */
-  public void setName(Identifier identifier) {
+  public void setName(SimpleIdentifier identifier) {
     name = becomeParentOf(identifier);
   }
 

@@ -48,12 +48,14 @@ public class ConstructorDeclaration extends ClassMember {
   private Token externalKeyword;
 
   /**
-   * The token for the 'const' keyword.
+   * The token for the 'const' keyword, or {@code null} if the constructor is not a const
+   * constructor.
    */
   private Token constKeyword;
 
   /**
-   * The token for the 'factory' keyword.
+   * The token for the 'factory' keyword, or {@code null} if the constructor is not a factory
+   * constructor.
    */
   private Token factoryKeyword;
 
