@@ -352,7 +352,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // a code that describes the situation where the method was found, but it was not
           // accessible from the current library.
           resolver.reportError(
-              StaticTypeWarningCode.UNDEFINED_METHOD,
+              StaticTypeWarningCode.UNDEFINED_SUPER_METHOD,
               methodName,
               methodName.getName(),
               targetType.getElement().getName());
@@ -512,7 +512,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
       if (memberElement == null) {
-        resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
+        resolver.reportError(
+            StaticTypeWarningCode.UNDEFINED_GETTER,
+            identifier,
+            identifier.getName(),
+            prefixElement.getName());
       } else {
 //      if (!element.isStatic()) {
 //        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
@@ -577,7 +581,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (memberElement == null) {
-      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
+      resolver.reportError(
+          StaticTypeWarningCode.UNDEFINED_GETTER,
+          identifier,
+          identifier.getName(),
+          variableTypeElement.getName());
     } else {
       recordResolution(identifier, memberElement);
       recordResolution(node, memberElement);

@@ -96,15 +96,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedGetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class T {}",
-        "f(T e) { return e.m; }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
-    verify(source);
-  }
-
   public void test_invalidAssignment_instanceVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -272,14 +263,32 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_undefinedMember() throws Exception {
+  public void test_undefinedGetter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class T {}",
+        "f(T e) { return e.m; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
+    // A call to verify(source) fails as 'e.m' isn't resolved.
+  }
+
+  public void test_undefinedGetter_static() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "var a = A.B;"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
+    // A call to verify(source) fails as 'A.B' isn't resolved.
+  }
+
+  public void test_undefinedSuperMethod() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
         "class B extends A {",
         "  m() { return super.m(); }",
         "}"));
     resolve(source);
-    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD);
     verify(source);
   }
 

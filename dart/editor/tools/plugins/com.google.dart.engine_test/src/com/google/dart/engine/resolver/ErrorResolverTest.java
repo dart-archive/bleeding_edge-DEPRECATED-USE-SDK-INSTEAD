@@ -33,16 +33,6 @@ public class ErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_cannotBeResolved_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "",
-        "var a = A.B;"));
-    resolve(source);
-    assertErrors(ResolverErrorCode.CANNOT_BE_RESOLVED);
-    // We cannot verify resolution with undefined members
-  }
-
   public void test_continueLabelOnSwitch() throws Exception {
     Source source = addSource("/a.dart", createSource(//
         "class A {",

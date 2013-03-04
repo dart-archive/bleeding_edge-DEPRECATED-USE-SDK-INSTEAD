@@ -159,7 +159,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    */
-  UNDEFINED_GETTER(""),
+  UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -170,7 +170,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param methodName the name of the method that is undefined
    * @param typeName the resolved type name that the method lookup is happening on
    */
-  UNDEFINED_METHOD("There is no such method '%s' in '%s'"),
+  UNDEFINED_SUPER_METHOD("There is no such method '%s' in '%s'"),
 
   /**
    * 15.8 Parameterized Types: It is a static type warning if <i>G</i> is not an accessible generic
