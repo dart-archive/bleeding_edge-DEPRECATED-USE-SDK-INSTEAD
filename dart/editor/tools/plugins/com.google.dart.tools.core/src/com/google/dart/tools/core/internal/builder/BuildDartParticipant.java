@@ -25,6 +25,7 @@ import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.snapshot.SnapshotCompilationServer;
 
 import static com.google.dart.tools.core.DartCore.BUILD_DART_FILE_NAME;
 
@@ -56,13 +57,16 @@ import java.util.Map;
 /**
  * This class invokes the build.dart scripts in a project's root directory.
  * <p>
- * For full builds, no arguments are passed into the dart script. For clean builds, we pass in a
- * --clean flag. For all other builds, we passed in the list of changed files using --changed and
- * --removed parameters. E.g. --changed=file1.txt --changed=file2.foo --removed=file3.bar.
+ * For full builds, --full is passed into the dart script. For clean builds, we pass in a --clean
+ * flag. For all other builds, we passed in the list of changed files using --changed and --removed
+ * parameters. E.g. --changed=file1.txt --changed=file2.foo --removed=file3.bar.
  * 
  * @see DartBuilder
  */
 public class BuildDartParticipant implements BuildParticipant {
+  // The name of the build.dart snapshot file.
+  private static final String BUILD_DART_SNAPSHOT_NAME = "build.snapshot";
+
   // The generic unix/max/bsd CLI limit is 262144.
   private static final int GENERAL_CLI_LIMIT = 262000;
 
@@ -76,6 +80,8 @@ public class BuildDartParticipant implements BuildParticipant {
   private static final String MACHINE = "--machine";
 
   private static final String BUILD_LOG_NAME = ".buildlog";
+
+  private static final boolean USE_SNAPSHOT = true;
 
   private static void createErrorMarker(IFile file, int severity, String message, int line,
       int charStart, int charEnd) throws CoreException {
@@ -259,7 +265,27 @@ public class BuildDartParticipant implements BuildParticipant {
 
     List<String> args = new ArrayList<String>();
 
+    SnapshotCompilationServer snapshotCompiler = null;
+    IStatus snapshotStatus = Status.OK_STATUS;
+
+    long startTime = System.currentTimeMillis();
+
+    if (USE_SNAPSHOT) {
+      snapshotCompiler = new SnapshotCompilationServer(builderFile.getLocation().toFile());
+
+      snapshotStatus = snapshotCompiler.compile();
+
+      if (!snapshotStatus.isOK()) {
+        snapshotCompiler = null;
+
+        DartCore.logError(snapshotStatus.toString());
+      }
+    }
+
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
+    if (snapshotCompiler != null && snapshotCompiler.getDestFile().exists()) {
+      args.add("--use-script-snapshot=" + snapshotCompiler.getDestFile().getPath());
+    }
     args.add(builderFile.getName());
     args.addAll(buildArgs);
 
@@ -275,8 +301,6 @@ public class BuildDartParticipant implements BuildParticipant {
 
     logStart(builderFile);
     log(builderFile, "---\nbuild.dart " + commandSummary);
-
-    long startTime = System.currentTimeMillis();
 
     int result;
 
@@ -354,6 +378,11 @@ public class BuildDartParticipant implements BuildParticipant {
 
           // Don't report changes to "build.dart" files
           if (resource.getName().equals(BUILD_DART_FILE_NAME)) {
+            return false;
+          }
+
+          // Don't report changes to "build.snapshot" files
+          if (resource.getName().equals(BUILD_DART_SNAPSHOT_NAME)) {
             return false;
           }
 
