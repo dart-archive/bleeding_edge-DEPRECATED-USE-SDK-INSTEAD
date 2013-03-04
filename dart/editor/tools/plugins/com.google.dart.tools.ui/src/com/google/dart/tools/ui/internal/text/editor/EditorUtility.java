@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -310,6 +313,33 @@ public class EditorUtility {
   }
 
   /**
+   * Returns the given editor's input as Dart element.
+   * <p>
+   * To replace {@link #getEditorInputDartElement(IEditorPart, boolean)}
+   * 
+   * @param editor the editor
+   * @param primaryOnly if <code>true</code> only primary working copies will be returned
+   * @return the given editor's input as Dart element or <code>null</code> if none
+   */
+  public static Element getEditorInputDartElement2(IEditorPart editor, boolean primaryOnly) {
+
+    Assert.isNotNull(editor);
+
+    IEditorInput editorInput = editor.getEditorInput();
+    if (editorInput == null) {
+      return null;
+    }
+
+    Element element = DartUI.getEditorInputDartElement2(editorInput);
+    if (element != null || primaryOnly) {
+      return element;
+    }
+
+    return null;
+
+  }
+
+  /**
    * Returns the modifier string for the given SWT modifier modifier bits.
    * 
    * @param stateMask the SWT modifier bits
@@ -424,6 +454,26 @@ public class EditorUtility {
       }
     }
 
+    if (inputElement instanceof Element) {
+
+      CompilationUnitElement cu = getCompilationUnit((Element) inputElement);
+
+      IWorkbenchPage page = DartToolsPlugin.getActivePage();
+      if (page != null) {
+        IEditorPart editor = page.getActiveEditor();
+        if (editor != null) {
+          Element editorCU = EditorUtility.getEditorInputDartElement2(editor, false);
+          if (cu.equals(editorCU)) {
+            if (activate && page.getActivePart() != editor) {
+              page.activate(editor);
+            }
+            return editor;
+          }
+        }
+      }
+
+    }
+
     IEditorInput input = getEditorInput(inputElement);
     if (input == null) {
       throwPartInitException(DartEditorMessages.EditorUtility_no_editorInput);
@@ -501,6 +551,18 @@ public class EditorUtility {
     } catch (DartModelException e) {
       // don't reveal
     }
+  }
+
+  /**
+   * Selects a Dart Element in an editor part.
+   */
+  public static void revealInEditor(IEditorPart part, Element element) {
+
+    if (part instanceof DartEditor) {
+      ((DartEditor) part).setSelection(element);
+      return;
+    }
+
   }
 
   /**
@@ -592,6 +654,20 @@ public class EditorUtility {
     }
     return Messages.format(DartEditorMessages.EditorUtility_concatModifierStrings, new String[] {
         modifierString, newModifierString});
+  }
+
+  //TODO (pquitslund): replace with appropriate call on Element when it exists
+  private static CompilationUnitElement getCompilationUnit(Element element) {
+
+    if (element instanceof CompilationUnitElement) {
+      return (CompilationUnitElement) element;
+    }
+
+    if (element instanceof LibraryElement) {
+      return ((LibraryElement) element).getDefiningCompilationUnit();
+    }
+
+    return element.getAncestor(CompilationUnitElement.class);
   }
 
   private static IEditorInput getEditorInput(DartElement element) {

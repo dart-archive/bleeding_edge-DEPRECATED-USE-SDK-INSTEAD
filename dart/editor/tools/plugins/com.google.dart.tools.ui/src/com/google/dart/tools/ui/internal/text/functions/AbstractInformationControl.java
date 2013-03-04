@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -812,8 +813,13 @@ public abstract class AbstractInformationControl extends PopupDialog implements
       try {
         dispose();
         IEditorPart part = EditorUtility.openInEditor(selectedElement, true);
-        if (part != null && selectedElement instanceof DartElement) {
-          EditorUtility.revealInEditor(part, (DartElement) selectedElement);
+        if (part != null) {
+          if (selectedElement instanceof DartElement) {
+            EditorUtility.revealInEditor(part, (DartElement) selectedElement);
+          }
+          if (selectedElement instanceof Element) {
+            EditorUtility.revealInEditor(part, (Element) selectedElement);
+          }
         }
       } catch (CoreException ex) {
         DartToolsPlugin.log(ex);

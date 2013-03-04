@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
@@ -452,6 +453,25 @@ public final class DartUI {
     return (DartElement) editorInput.getAdapter(DartElement.class);
   }
 
+  /**
+   * Returns the Dart element wrapped by the given editor input.
+   * 
+   * @param editorInput the editor input
+   * @return the Dart element wrapped by <code>editorInput</code> or <code>null</code> if none
+   */
+  public static Element getEditorInputDartElement2(IEditorInput editorInput) {
+
+    //TODO (pquitslund): add support for external compilation units
+
+//    if (editorInput instanceof ExternalCompilationUnitEditorInput) {
+//      return ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
+//    }
+
+    //TODO (pquitslund): consider doing this without going through the adapter service
+
+    return (Element) editorInput.getAdapter(Element.class);
+  }
+
   public static Color getEditorSelectionBackground(IPreferenceStore prefs, Display display) {
     return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_DEFAULT_COLOR)
         ? null : createColor(
@@ -498,15 +518,6 @@ public final class DartUI {
         ? null : createColor(
             prefs,
             AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_BACKGROUND_COLOR,
-            display);
-  }
-
-  public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
-    // TODO(messick) Use a color identifier distinct from the editor.
-    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
-        ? null : createColor(
-            prefs,
-            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
             display);
   }
 
@@ -589,6 +600,15 @@ public final class DartUI {
 //  public static void setProjectJSdocLocation(DartProject project, URL url) {
 //    JavaDocLocations.setProjectJavadocLocation(project, url);
 //  }
+
+  public static Color getViewerSelectionForeground(IPreferenceStore prefs, Display display) {
+    // TODO(messick) Use a color identifier distinct from the editor.
+    return prefs.getBoolean(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_DEFAULT_COLOR)
+        ? null : createColor(
+            prefs,
+            AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SELECTION_FOREGROUND_COLOR,
+            display);
+  }
 
   /**
    * Returns the working copy manager for the Dart UI plug-in.

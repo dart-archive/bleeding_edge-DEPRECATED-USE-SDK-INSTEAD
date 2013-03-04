@@ -71,6 +71,18 @@
             
             <adapter type="com.google.dart.tools.ui.internal.IResourceLocator"/>
       </factory>
+   
+      <factory 
+            class="com.google.dart.tools.ui.NewDartElementAdapterFactory" 
+            adaptableType="com.google.dart.engine.element.Element">
+                        
+            <adapter type="org.eclipse.ui.IPersistableElement"/>
+            <adapter type="org.eclipse.ui.ide.IContributorResourceAdapter2"/>
+            <adapter type="org.eclipse.ui.IContainmentAdapter"/>
+            <adapter type="org.eclipse.ui.model.IWorkbenchAdapter"/>
+            <adapter type="org.eclipse.ui.views.properties.IPropertySource"/>
+            <adapter type="com.google.dart.tools.ui.internal.IResourceLocator"/>
+      </factory>
       
       <factory 
             class="com.google.dart.tools.ui.DartProjectAdapterFactory" 
@@ -96,6 +108,13 @@
             <!-- adapter type="org.eclipse.search.ui.ISearchPageScoreComputer"/ -->
             <adapter type="com.google.dart.tools.core.model.DartElement"/>
       </factory>
+      
+      <factory 
+            class="com.google.dart.tools.ui.internal.text.editor.NewEditorInputAdapterFactory" 
+            adaptableType="org.eclipse.ui.IEditorInput">
+            <adapter type="com.google.dart.engine.element.Element"/>
+      </factory>
+      
       
       <factory 
             class="com.google.dart.tools.ui.internal.filesview.FileStoreAdapterFactory" 

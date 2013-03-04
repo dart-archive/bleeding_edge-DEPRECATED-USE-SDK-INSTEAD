@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -534,24 +537,39 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
     }
   }
 
+  //TODO (pquitslund): replace with appropriate call on Element when it exists
+  private static CompilationUnitElement getCompilationUnit(Element element) {
+
+    if (element instanceof CompilationUnitElement) {
+      return (CompilationUnitElement) element;
+    }
+
+    if (element instanceof LibraryElement) {
+      return ((LibraryElement) element).getDefiningCompilationUnit();
+    }
+
+    return element.getAncestor(CompilationUnitElement.class);
+  }
+
   private KeyAdapter fKeyAdapter;
+
   private OutlineContentProvider outlineContentProvider;
 
-  private DartElement fInput = null;
+  private Object /*Element*/fInput = null;
 
   private OutlineSorter fOutlineSorter;
 
-  private OutlineLabelProvider innerLabelProvider;
-
 //  private boolean fShowOnlyMainType;
 
-  private LexicalSortingAction fLexicalSortingAction;
+  private OutlineLabelProvider innerLabelProvider;
 
-  private SortByDefiningTypeAction fSortByDefiningTypeAction;
+  private LexicalSortingAction fLexicalSortingAction;
 
 //  private ShowOnlyMainTypeAction fShowOnlyMainTypeAction;
 
 //  private Map fTypeHierarchies = new HashMap();
+
+  private SortByDefiningTypeAction fSortByDefiningTypeAction;
 
   /**
    * Category filter action group. DartX.todo()
@@ -560,12 +578,7 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
   private String fPattern;
 
   /**
-   * Creates a new Java outline information control.
-   * 
-   * @param parent
-   * @param shellStyle
-   * @param treeStyle
-   * @param commandId
+   * Creates a new Dart outline information control.
    */
   public DartOutlineInformationControl(Shell parent, int shellStyle, int treeStyle, String commandId) {
     super(parent, shellStyle, treeStyle, commandId, true);
@@ -573,13 +586,21 @@ public class DartOutlineInformationControl extends AbstractInformationControl {
 
   @Override
   public void setInput(Object information) {
+
     if (information == null || information instanceof String) {
       inputChanged(null, null);
       return;
     }
-    DartElement je = (DartElement) information;
-    CompilationUnit cu = je.getAncestor(CompilationUnit.class);
-    fInput = cu;
+
+    if (information instanceof Element) {
+      Element element = (Element) information;
+      CompilationUnitElement cu = getCompilationUnit(element);
+      fInput = cu;
+    } else if (information instanceof DartElement) {
+      DartElement element = (DartElement) information;
+      CompilationUnit cu = element.getAncestor(CompilationUnit.class);
+      fInput = cu;
+    }
 
     inputChanged(fInput, information);
     DartX.todo();

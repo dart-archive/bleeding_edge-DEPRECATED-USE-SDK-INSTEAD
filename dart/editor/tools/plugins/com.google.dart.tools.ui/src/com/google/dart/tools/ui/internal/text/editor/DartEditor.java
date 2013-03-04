@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
@@ -2335,6 +2336,27 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     uninstallSemanticHighlighting();
     super.setPreferenceStore(store);
     installSemanticHighlighting();
+  }
+
+  /**
+   * To replace {@link #setSelection(DartElement)}
+   */
+  public void setSelection(com.google.dart.engine.element.Element element) {
+
+    if (element == null || element instanceof CompilationUnitElement) {
+      return;
+    }
+
+    //TODO (pquitslund): this adaptation will be removed
+
+    SourceReferenceAdapter reference = new SourceReferenceAdapter(element);
+
+    setSelection(reference, true);
+
+    if (fOutlinePage != null) {
+      fOutlinePage.select(reference);
+    }
+
   }
 
   public void setSelection(DartElement element) {

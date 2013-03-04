@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -71,6 +73,11 @@ public class DartElementProvider implements IInformationProvider, IInformationPr
           return sel.getFirstElement();
         }
       }
+
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        return NewSelectionConverter.getElementAtOffset(fEditor);
+      }
+
       DartElement element = SelectionConverter.getElementAtOffset(fEditor);
       if (element != null) {
         return element;
