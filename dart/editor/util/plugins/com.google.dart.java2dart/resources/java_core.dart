@@ -315,6 +315,10 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   void insertRange(int start, int length, [E fill]) {
     elements.insertRange(start, length, fill);
   }
+
+  Map<int, E> asMap() {
+    return elements.asMap();
+  }
 }
 
 class JavaIterator<E> {
