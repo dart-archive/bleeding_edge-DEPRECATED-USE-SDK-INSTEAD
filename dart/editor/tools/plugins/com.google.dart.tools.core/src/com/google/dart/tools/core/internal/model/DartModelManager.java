@@ -23,6 +23,7 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.DartPreferenceConstants;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.generator.DartProjectGenerator;
@@ -347,6 +348,15 @@ public class DartModelManager {
    * @return the unique instance of this class
    */
   public synchronized static DartModelManager getInstance() {
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      try {
+        throw new IllegalStateException("Inappropriate access to old model");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
     if (UniqueInstance == null) {
       UniqueInstance = new DartModelManager();
       UniqueInstance.startupImpl();
@@ -506,6 +516,7 @@ public class DartModelManager {
    * @return the Dart model element associated with the given resource
    */
   public DartElementImpl create(IResource resource) {
+
     if (!DartSdkManager.getManager().hasSdk()) {
       return null;
     }
