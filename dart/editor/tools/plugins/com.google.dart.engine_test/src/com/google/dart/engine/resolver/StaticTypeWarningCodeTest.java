@@ -45,15 +45,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_noSetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class T {}",
-        "f(T e1) { e1.m = 0; }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.NO_SETTER);
-    verify(source);
-  }
-
   public void fail_redirectWithInvalidTypeParameters() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -279,6 +270,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
     // A call to verify(source) fails as 'A.B' isn't resolved.
+  }
+
+  public void test_undefinedSetter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class T {}",
+        "f(T e1) { e1.m = 0; }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_SETTER);
+    // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
   public void test_undefinedSuperMethod() throws Exception {

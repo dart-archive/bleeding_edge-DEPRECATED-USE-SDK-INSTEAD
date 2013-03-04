@@ -24,7 +24,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 
-   * @see #NO_SETTER
+   * @see #UNDEFINED_SETTER
    */
   INACCESSIBLE_SETTER(""),
 
@@ -90,14 +90,6 @@ public enum StaticTypeWarningCode implements ErrorCode {
   INVOCATION_OF_NON_FUNCTION("'%s' is not a method or function"),
 
   /**
-   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
-   * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
-   * 
-   * @see #INACCESSIBLE_SETTER
-   */
-  NO_SETTER(""),
-
-  /**
    * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be
    * assigned to bool.
    * <p>
@@ -160,6 +152,14 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    */
   UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
+
+  /**
+   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
+   * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
+   * 
+   * @see #INACCESSIBLE_SETTER
+   */
+  UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form

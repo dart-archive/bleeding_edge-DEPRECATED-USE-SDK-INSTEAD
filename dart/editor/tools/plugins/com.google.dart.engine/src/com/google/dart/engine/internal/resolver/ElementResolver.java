@@ -65,6 +65,7 @@ import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -512,11 +513,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         }
       }
       if (memberElement == null) {
-        resolver.reportError(
-            StaticTypeWarningCode.UNDEFINED_GETTER,
-            identifier,
-            identifier.getName(),
-            prefixElement.getName());
+        reportGetterOrSetterNotFound(node, identifier, prefixElement.getName());
       } else {
 //      if (!element.isStatic()) {
 //        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
@@ -581,11 +578,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (memberElement == null) {
-      resolver.reportError(
-          StaticTypeWarningCode.UNDEFINED_GETTER,
-          identifier,
-          identifier.getName(),
-          variableTypeElement.getName());
+      reportGetterOrSetterNotFound(node, identifier, variableTypeElement.getName());
     } else {
       recordResolution(identifier, memberElement);
       recordResolution(node, memberElement);
@@ -1152,6 +1145,24 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (element != null) {
       node.setElement(element);
     }
+  }
+
+  /**
+   * Report the {@link StaticTypeWarningCode}s <code>UNDEFINED_SETTER</code> and
+   * <code>UNDEFINED_GETTER</code>.
+   * 
+   * @param node the prefixed identifier that gives the context to determine if the error on the
+   *          undefined identifier is a getter or a setter
+   * @param identifier the identifier in the passed prefix identifier
+   * @param typeName the name of the type of the left hand side of the passed prefixed identifier
+   */
+  private void reportGetterOrSetterNotFound(PrefixedIdentifier node, SimpleIdentifier identifier,
+      String typeName) {
+    // TODO(jwren) This needs to be modified to also generate the error code StaticTypeWarningCode.INACCESSIBLE_SETTER
+    boolean isSetterContext = node.getIdentifier().inSetterContext();
+    ErrorCode errorCode = isSetterContext ? StaticTypeWarningCode.UNDEFINED_SETTER
+        : StaticTypeWarningCode.UNDEFINED_GETTER;
+    resolver.reportError(errorCode, identifier, identifier.getName(), typeName);
   }
 
   /**
