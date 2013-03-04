@@ -16,12 +16,18 @@ package com.google.dart.engine.services.completion;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Declaration;
+import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -30,6 +36,8 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
@@ -48,6 +56,7 @@ import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.internal.resolver.TypeProviderImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchListener;
@@ -72,6 +81,8 @@ import java.util.Map;
  * <p>
  * Note: During development package-private methods are used to group element-specific completion
  * utilities.
+ * 
+ * @coverage com.google.dart.engine.services.completion
  */
 public class CompletionEngine {
 
@@ -91,14 +102,6 @@ public class CompletionEngine {
     }
   }
 
-  private class CompletionVisitor extends GeneralizingASTVisitor<Void> {
-    ASTNode completionNode;
-
-    CompletionVisitor(ASTNode node) {
-      completionNode = node;
-    }
-  }
-
   private class Filter {
     String prefix;
     boolean isPrivateDisallowed = true;
@@ -106,7 +109,17 @@ public class CompletionEngine {
     Filter(SimpleIdentifier ident) {
       int loc = context.getSelectionOffset();
       int pos = ident.getOffset();
-      prefix = ident.getName().substring(0, loc - pos);
+      int len = loc - pos;
+      if (len > 0) {
+        String name = ident.getName();
+        if (len <= name.length()) {
+          prefix = name.substring(0, len);
+        } else {
+          prefix = "";
+        }
+      } else {
+        prefix = "";
+      }
       if (prefix.length() >= 1) {
         isPrivateDisallowed = !Identifier.isPrivateName(prefix);
       }
@@ -125,16 +138,23 @@ public class CompletionEngine {
     }
   }
 
-  private class ParentNodeCompleter extends CompletionVisitor {
+  private class Ident extends EphemeralIdentifier {
+    Ident(ASTNode parent) {
+      super(parent, completionLocation());
+    }
+  }
 
-    ParentNodeCompleter(ASTNode node) {
-      super(node);
+  private class IdentifierCompleter extends GeneralizingASTVisitor<Void> {
+    SimpleIdentifier completionNode;
+
+    IdentifierCompleter(SimpleIdentifier node) {
+      completionNode = node;
     }
 
     @Override
     public Void visitArgumentList(ArgumentList node) {
       if (completionNode instanceof SimpleIdentifier) {
-        analyzeLocalName((SimpleIdentifier) completionNode);
+        analyzeLocalName(completionNode);
       }
       return null;
     }
@@ -142,7 +162,7 @@ public class CompletionEngine {
     @Override
     public Void visitAssignmentExpression(AssignmentExpression node) {
       if (completionNode instanceof SimpleIdentifier) {
-        analyzeLocalName((SimpleIdentifier) completionNode);
+        analyzeLocalName(completionNode);
       }
       return null;
     }
@@ -184,7 +204,7 @@ public class CompletionEngine {
       } else if (node.getTarget() == completionNode) {
         // { x!.y() } -- only reached when node.getTarget() is a simple identifier. (TODO: verify)
         if (completionNode instanceof SimpleIdentifier) {
-          SimpleIdentifier ident = (SimpleIdentifier) completionNode;
+          SimpleIdentifier ident = completionNode;
           analyzeReceiver(ident);
         }
       }
@@ -247,15 +267,17 @@ public class CompletionEngine {
     @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
       if (node.getIdentifier() == completionNode) {
-        analyzeLocalName((SimpleIdentifier) completionNode);
+        analyzeLocalName(completionNode);
       }
       return null;
     }
 
     @Override
     public Void visitTypeName(TypeName node) {
-      if (completionNode instanceof SimpleIdentifier) {
-        analyzeLocalName((SimpleIdentifier) completionNode);
+      ASTNode parent = node.getParent();
+      if (parent != null) {
+        TypeNameCompleter visitor = new TypeNameCompleter(completionNode, node);
+        return parent.accept(visitor);
       }
       return null;
     }
@@ -271,26 +293,141 @@ public class CompletionEngine {
     }
   }
 
-  private class TerminalNodeCompleter extends CompletionVisitor {
+  private class TerminalNodeCompleter extends GeneralizingASTVisitor<Void> {
 
-    TerminalNodeCompleter(ASTNode node) {
-      super(node);
+    @Override
+    public Void visitClassDeclaration(ClassDeclaration node) {
+      if (isCompletingKeyword(node.getClassKeyword())) {
+        pKeyword(node.getClassKeyword()); // Other keywords are legal but not handled here.
+        return null;
+      }
+      if (isCompletingKeyword(node.getAbstractKeyword())) {
+        pKeyword(node.getAbstractKeyword());
+        return null;
+      }
+      // TODO { abstract ! class ! A ! extends B implements C, D ! {}}
+      return null; // visitCompilationUnitMember(node);
     }
 
     @Override
-    public Void visitIdentifier(Identifier node) {
-      ASTNode parent = node.getParent();
-      if (parent != null) {
-        ParentNodeCompleter visitor = new ParentNodeCompleter(completionNode);
-        return parent.accept(visitor);
+    public Void visitClassTypeAlias(ClassTypeAlias node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        return null;
       }
-      return null;
+      // TODO { typedef ! A ! = ! B ! with C, D !; }
+      return null; // TODO visitTypeAlias(node);
+    }
+
+    @Override
+    public Void visitExtendsClause(ExtendsClause node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        return null;
+      } else if (node.getSuperclass() == null) {
+        // { X extends ! }
+        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        return null;
+      } else {
+        // { X extends ! Y }
+        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        return null;
+      }
+    }
+
+    @Override
+    public Void visitImplementsClause(ImplementsClause node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        return null;
+      } else if (node.getInterfaces().isEmpty()) {
+        // { X implements ! }
+        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        return null;
+      } else {
+        // { X implements ! Y }
+        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        return null;
+      }
     }
 
     @Override
     public Void visitMethodInvocation(MethodInvocation node) {
       return null;
     }
+
+    @Override
+    public Void visitSimpleIdentifier(SimpleIdentifier node) {
+      ASTNode parent = node.getParent();
+      if (parent != null) {
+        IdentifierCompleter visitor = new IdentifierCompleter(node);
+        return parent.accept(visitor);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitWithClause(WithClause node) {
+      if (isCompletingKeyword(node.getWithKeyword())) {
+        pKeyword(node.getWithKeyword());
+        return null;
+      } else if (node.getMixinTypes().isEmpty()) {
+        // { X with ! }
+        analyzeTypeName(new Ident(node), true, typeDeclarationName(node));
+        return null;
+      } else {
+        // { X with ! Y }
+        analyzeTypeName(new Ident(node), true, typeDeclarationName(node));
+        return null;
+      }
+    }
+  }
+
+  private class TypeNameCompleter extends GeneralizingASTVisitor<Void> {
+    SimpleIdentifier identifier;
+    TypeName typeName;
+
+    TypeNameCompleter(SimpleIdentifier identifier, TypeName typeName) {
+      this.identifier = identifier;
+      this.typeName = typeName;
+    }
+
+    @Override
+    public Void visitClassTypeAlias(ClassTypeAlias node) {
+      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      return null;
+    }
+
+    @Override
+    public Void visitExtendsClause(ExtendsClause node) {
+      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      return null;
+    }
+
+    @Override
+    public Void visitImplementsClause(ImplementsClause node) {
+      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      return null;
+    }
+
+    @Override
+    public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
+      analyzeTypeName(identifier, false, null);
+      return null;
+    }
+
+    @Override
+    public Void visitVariableDeclarationList(VariableDeclarationList node) {
+      analyzeLocalName(identifier);
+      return null;
+    }
+
+    @Override
+    public Void visitWithClause(WithClause node) {
+      analyzeTypeName(identifier, true, typeDeclarationName(node));
+      return null;
+    }
+
   }
 
   private CompletionRequestor requestor;
@@ -314,7 +451,7 @@ public class CompletionEngine {
     requestor.beginReporting();
     ASTNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
-      TerminalNodeCompleter visitor = new TerminalNodeCompleter(completionNode);
+      TerminalNodeCompleter visitor = new TerminalNodeCompleter();
       completionNode.accept(visitor);
     }
     requestor.endReporting();
@@ -350,6 +487,27 @@ public class CompletionEngine {
     for (List<Element> uniques : uniqueNames.values()) {
       Element candidate = uniques.get(0);
       pName(candidate, identifier);
+    }
+  }
+
+  void analyzeTypeName(SimpleIdentifier identifier, boolean isMixin, SimpleIdentifier nameIdent) {
+    filter = new Filter(identifier);
+    String name = nameIdent == null ? "" : nameIdent.getName();
+    Element[] types = findAllTypes();
+    for (Element type : types) {
+      if (isMixin) {
+        if (!(type instanceof ClassElement)) {
+          continue;
+        }
+        ClassElement classElement = (ClassElement) type;
+        if (!classElement.isValidMixin()) {
+          continue;
+        }
+      }
+      if (type.getName().equals(name)) {
+        continue;
+      }
+      pName(type, identifier);
     }
   }
 
@@ -535,6 +693,17 @@ public class CompletionEngine {
     return provider;
   }
 
+  private boolean isCompletingKeyword(Token keyword) {
+    if (keyword == null) {
+      return false;
+    }
+    int completionLoc = context.getSelectionOffset();
+    if (completionLoc >= keyword.getOffset() && completionLoc <= keyword.getEnd()) {
+      return true;
+    }
+    return false;
+  }
+
   private <X extends Element> void mergedNameRemove(Map<String, List<X>> uniqueNames, X element) {
     String name = element.getName();
     List<X> list = uniqueNames.get(name);
@@ -590,6 +759,16 @@ public class CompletionEngine {
     if (container != null) { // TODO: never null ??
       prop.setDeclaringType(container.getName());
     }
+    requestor.accept(prop);
+  }
+
+  private void pKeyword(Token keyword) {
+    // This isn't as useful as it might seem. It only works in the case that completion
+    // is requested on an existing recognizable keyword.
+    CompletionProposal prop = factory.createCompletionProposal( // TODO: Add keyword proposal kind
+        ProposalKind.LIBRARY_PREFIX,
+        keyword.getOffset());
+    prop.setCompletion(keyword.getLexeme());
     requestor.accept(prop);
   }
 
@@ -683,6 +862,22 @@ public class CompletionEngine {
     prop.setParameterNames(params.toArray(new String[params.size()]));
     prop.setParameterTypes(types.toArray(new String[types.size()]));
     prop.setParameterStyle(posCount, named, positional);
+  }
+
+  private SimpleIdentifier typeDeclarationName(ASTNode node) {
+    ClassDeclaration classDecl = node.getAncestor(ClassDeclaration.class);
+    if (classDecl != null) {
+      return classDecl.getName();
+    }
+    ClassTypeAlias classType = node.getAncestor(ClassTypeAlias.class);
+    if (classType != null) {
+      return classType.getName();
+    }
+    FunctionTypeAlias funcType = node.getAncestor(FunctionTypeAlias.class);
+    if (funcType != null) {
+      return funcType.getName();
+    }
+    return null;
   }
 
   private Type typeOf(Element receiver) {

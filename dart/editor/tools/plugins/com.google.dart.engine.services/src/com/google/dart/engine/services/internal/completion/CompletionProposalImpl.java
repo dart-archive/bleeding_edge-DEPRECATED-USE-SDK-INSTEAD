@@ -13,6 +13,11 @@
  */
 package com.google.dart.engine.services.internal.completion;
 
+/**
+ * Completion proposal data.
+ * 
+ * @coverage com.google.dart.engine.services.completion
+ */
 import com.google.dart.engine.services.completion.CompletionProposal;
 import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.engine.utilities.general.StringUtilities;

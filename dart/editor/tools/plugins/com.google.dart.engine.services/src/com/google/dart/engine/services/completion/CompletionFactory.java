@@ -17,6 +17,8 @@ import com.google.dart.engine.services.internal.completion.CompletionProposalImp
 
 /**
  * The factory class used to create completion proposals.
+ * 
+ * @coverage com.google.dart.engine.services.completion
  */
 public class CompletionFactory {
 

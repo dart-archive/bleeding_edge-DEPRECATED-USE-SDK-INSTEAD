@@ -95,6 +95,39 @@ public class CompletionTests extends CompletionTestCase {
     test(source, "1+va", "1-b");
   }
 
+  public void test008() throws Exception {
+    String source = src(//
+        "!1class Aclass {}",
+        "class Bclass !2extends!3 !4Aclass {}",
+        "!5typedef Ctype = !6Bclass with !7Aclass;",
+        "class Dclass extends !8Ctype {}",
+        "!9abstract class Eclass implements Dclass,!C Ctype, Bclass {}",
+        "class Fclass extends Bclass !Awith !B Eclass {}");
+    test(
+        source,
+        "1+class",
+        "1-implements",
+        "1-extends",
+        "1-with",
+        "2+extends",
+        "3+extends",
+        "4+Aclass",
+        "4-Bclass",
+        "5+typedef",
+        "6+Bclass",
+        "6-Ctype",
+        "7+Aclass",
+        "7-Bclass",
+        "8+Ctype",
+        "9+abstract",
+        "A+with",
+        "B+Eclass",
+        "B-Dclass",
+        "B-Ctype",
+        "C+Bclass",
+        "C-Eclass");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -137,5 +170,19 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets008() throws Exception {
     test("class Date{}final num M = Dat!1", "1+Date");
+  }
+
+  public void testCommentSnippets009() throws Exception {
+    // space, char, eol are important
+    test(
+        "class Map{}class Maps{}class x extends!5 !2M!3 !4implements!6 !1\n{}",
+        "1+Map",
+        "2+Maps",
+        "3+Maps",
+        "4-Maps",
+        "4+implements",
+        "5-Maps",
+        "6-Map",
+        "6+implements");
   }
 }
