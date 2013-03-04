@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
@@ -502,5 +503,16 @@ public class RecoveryParserTest extends ParserTestCase {
     assertSize(1, declarations);
     FunctionDeclaration declaration = (FunctionDeclaration) declarations.get(0);
     assertNotNull(declaration);
+  }
+
+  public void test_typedef_eof() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "typedef n",
+        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
+    assertSize(1, declarations);
+    CompilationUnitMember member = declarations.get(0);
+    assertInstanceOf(FunctionTypeAlias.class, member);
   }
 }

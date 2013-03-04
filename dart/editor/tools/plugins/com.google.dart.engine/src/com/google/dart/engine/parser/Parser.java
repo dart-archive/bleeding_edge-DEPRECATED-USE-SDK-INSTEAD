@@ -2813,7 +2813,7 @@ public class Parser {
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
     }
-    if (matches(TokenType.SEMICOLON)) {
+    if (matches(TokenType.SEMICOLON) || matches(TokenType.EOF)) {
       reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
       FormalParameterList parameters = new FormalParameterList(
           createSyntheticToken(TokenType.OPEN_PAREN),
