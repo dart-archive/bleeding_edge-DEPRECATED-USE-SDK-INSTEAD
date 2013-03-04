@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -57,6 +58,11 @@ public class LibraryIdentifier extends Identifier {
    */
   public NodeList<SimpleIdentifier> getComponents() {
     return components;
+  }
+
+  @Override
+  public Element getElement() {
+    return null;
   }
 
   @Override

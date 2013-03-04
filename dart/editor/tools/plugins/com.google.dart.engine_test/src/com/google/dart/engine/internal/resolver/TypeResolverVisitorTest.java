@@ -171,7 +171,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     // on E catch (e, s)
     ClassElement exceptionElement = classElement("E");
     TypeName exceptionType = typeName(exceptionElement);
-    exceptionType.getName().setElement(exceptionElement);
+    ((SimpleIdentifier) exceptionType.getName()).setElement(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e", "s");
     resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
     listener.assertNoErrors();

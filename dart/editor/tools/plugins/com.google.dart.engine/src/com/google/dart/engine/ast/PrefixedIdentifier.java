@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 
 /**
@@ -62,6 +63,14 @@ public class PrefixedIdentifier extends Identifier {
   @Override
   public Token getBeginToken() {
     return prefix.getBeginToken();
+  }
+
+  @Override
+  public Element getElement() {
+    if (identifier == null) {
+      return null;
+    }
+    return identifier.getElement();
   }
 
   @Override

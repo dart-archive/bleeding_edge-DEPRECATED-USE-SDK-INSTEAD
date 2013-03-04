@@ -28,7 +28,6 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -307,7 +306,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
       Token property = node.getPropertyKeyword();
       if (property != null) {
-        Identifier propertyNameNode = node.getName();
+        SimpleIdentifier propertyNameNode = node.getName();
         if (propertyNameNode == null) {
           // TODO(brianwilkerson) Report this internal error.
           return null;
@@ -450,7 +449,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     Token property = node.getPropertyKeyword();
     if (property == null) {
-      Identifier methodName = node.getName();
+      SimpleIdentifier methodName = node.getName();
       String nameOfMethod = methodName.getName();
       if (nameOfMethod.equals(TokenType.MINUS.getLexeme())
           && node.getParameters().getParameters().size() == 0) {
@@ -468,7 +467,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       currentHolder.addMethod(element);
       methodName.setElement(element);
     } else {
-      Identifier propertyNameNode = node.getName();
+      SimpleIdentifier propertyNameNode = node.getName();
       String propertyName = propertyNameNode.getName();
       FieldElementImpl field = (FieldElementImpl) currentHolder.getField(propertyName);
       if (field == null) {

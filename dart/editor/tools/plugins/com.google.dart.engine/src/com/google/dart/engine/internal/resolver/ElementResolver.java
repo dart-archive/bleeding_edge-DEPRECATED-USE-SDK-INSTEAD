@@ -377,6 +377,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             }
 
             @Override
+            public Element getElement() {
+              return null;
+            }
+
+            @Override
             public Token getEndToken() {
               return null;
             }
@@ -487,7 +492,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return null;
       }
       recordResolution(identifier, element);
-      recordResolution(node, element);
       return null;
     }
     //
@@ -508,7 +512,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
           // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
           // type with no parameters and a return type that is equal to the function type of the method.
           recordResolution(identifier, methodElement);
-          recordResolution(node, methodElement);
           return null;
         }
       }
@@ -519,7 +522,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
 //        reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
 //      }
         recordResolution(identifier, memberElement);
-        recordResolution(node, memberElement);
       }
       return null;
     }
@@ -573,7 +575,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         // TODO(brianwilkerson) This should really be a synthetic getter whose type is a function
         // type with no parameters and a return type that is equal to the function type of the method.
         recordResolution(identifier, methodElement);
-        recordResolution(node, methodElement);
         return null;
       }
     }
@@ -581,7 +582,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       reportGetterOrSetterNotFound(node, identifier, variableTypeElement.getName());
     } else {
       recordResolution(identifier, memberElement);
-      recordResolution(node, memberElement);
     }
     return null;
   }
@@ -1141,7 +1141,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @param node the AST node that was resolved
    * @param element the element to which the AST node was resolved
    */
-  private void recordResolution(Identifier node, Element element) {
+  private void recordResolution(SimpleIdentifier node, Element element) {
     if (element != null) {
       node.setElement(element);
     }

@@ -720,8 +720,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
 
   private void setElement(Identifier typeName, Element element) {
     if (element != null) {
-      typeName.setElement(element);
-      if (typeName instanceof PrefixedIdentifier) {
+      if (typeName instanceof SimpleIdentifier) {
+        ((SimpleIdentifier) typeName).setElement(element);
+      } else if (typeName instanceof PrefixedIdentifier) {
         PrefixedIdentifier identifier = (PrefixedIdentifier) typeName;
         identifier.getIdentifier().setElement(element);
         SimpleIdentifier prefix = identifier.getPrefix();

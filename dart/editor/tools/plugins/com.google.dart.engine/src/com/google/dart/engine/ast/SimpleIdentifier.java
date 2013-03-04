@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 
@@ -35,6 +36,12 @@ public class SimpleIdentifier extends Identifier {
   private Token token;
 
   /**
+   * The element associated with this identifier, or {@code null} if the AST structure has not been
+   * resolved or if this identifier could not be resolved.
+   */
+  private Element element;
+
+  /**
    * Initialize a newly created identifier.
    * 
    * @param token the token representing the identifier
@@ -51,6 +58,11 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public Token getBeginToken() {
     return token;
+  }
+
+  @Override
+  public Element getElement() {
+    return element;
   }
 
   @Override
@@ -153,6 +165,15 @@ public class SimpleIdentifier extends Identifier {
   @Override
   public boolean isSynthetic() {
     return token.isSynthetic();
+  }
+
+  /**
+   * Set the element associated with this identifier to the given element.
+   * 
+   * @param element the element associated with this identifier
+   */
+  public void setElement(Element element) {
+    this.element = element;
   }
 
   /**
