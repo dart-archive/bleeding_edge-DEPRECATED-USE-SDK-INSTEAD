@@ -212,6 +212,16 @@ public class MethodDeclaration extends ClassMember {
   }
 
   /**
+   * Return {@code true} if this method is declared to be an abstract method.
+   * 
+   * @return {@code true} if this method is declared to be an abstract method
+   */
+  public boolean isAbstract() {
+    return modifierKeyword != null
+        && ((KeywordToken) modifierKeyword).getKeyword() == Keyword.ABSTRACT;
+  }
+
+  /**
    * Return {@code true} if this method declares a getter.
    * 
    * @return {@code true} if this method declares a getter
@@ -236,6 +246,16 @@ public class MethodDeclaration extends ClassMember {
    */
   public boolean isSetter() {
     return propertyKeyword != null && ((KeywordToken) propertyKeyword).getKeyword() == Keyword.SET;
+  }
+
+  /**
+   * Return {@code true} if this method is declared to be a static method.
+   * 
+   * @return {@code true} if this method is declared to be a static method
+   */
+  public boolean isStatic() {
+    return modifierKeyword != null
+        && ((KeywordToken) modifierKeyword).getKeyword() == Keyword.STATIC;
   }
 
   /**
