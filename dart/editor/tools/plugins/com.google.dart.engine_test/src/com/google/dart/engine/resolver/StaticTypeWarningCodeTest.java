@@ -281,6 +281,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     // A call to verify(source) fails as 'e.m' isn't resolved.
   }
 
+  public void test_undefinedSetter_static() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "f() { A.B = 0;}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_SETTER);
+    //A call to verify(source) fails as 'A.B' isn't resolved.
+  }
+
   public void test_undefinedSuperMethod() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
