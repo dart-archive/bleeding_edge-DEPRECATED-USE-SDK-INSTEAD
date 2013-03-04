@@ -59,6 +59,24 @@ public final class FileUtilities {
   }
 
   /**
+   * Return the extension from the given file name, or an empty string if the file name has no
+   * extension. The extension is the portion of the name that occurs after the final period when a
+   * file name is assumed to be of the form <code>baseName '.' extension</code>.
+   * 
+   * @return the extension from the given file name
+   */
+  public static String getExtension(String fileName) {
+    if (fileName == null) {
+      return "";
+    }
+    int index = fileName.lastIndexOf('.');
+    if (index >= 0) {
+      return fileName.substring(index + 1);
+    }
+    return "";
+  }
+
+  /**
    * Attempt to make the given file executable.
    * 
    * @param file the file to be made executable

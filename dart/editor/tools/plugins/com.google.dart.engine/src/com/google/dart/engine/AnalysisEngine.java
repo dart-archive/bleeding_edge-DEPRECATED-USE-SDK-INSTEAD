@@ -15,6 +15,7 @@ package com.google.dart.engine;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.logging.Logger;
 
 /**
@@ -22,6 +23,21 @@ import com.google.dart.engine.utilities.logging.Logger;
  * functionality provided by the analysis engine.
  */
 public final class AnalysisEngine {
+  /**
+   * The suffix used for Dart source files.
+   */
+  public static final String SUFFIX_DART = "dart";
+
+  /**
+   * The short suffix used for HTML files.
+   */
+  public static final String SUFFIX_HTM = "htm";
+
+  /**
+   * The long suffix used for HTML files.
+   */
+  public static final String SUFFIX_HTML = "html";
+
   /**
    * The unique instance of this class.
    */
@@ -34,6 +50,33 @@ public final class AnalysisEngine {
    */
   public static AnalysisEngine getInstance() {
     return UniqueInstance;
+  }
+
+  /**
+   * Return {@code true} if the given file name is assumed to contain Dart source code.
+   * 
+   * @param fileName the name of the file being tested
+   * @return {@code true} if the given file name is assumed to contain Dart source code
+   */
+  public static boolean isDartFileName(String fileName) {
+    if (fileName == null) {
+      return false;
+    }
+    return FileUtilities.getExtension(fileName).equalsIgnoreCase(SUFFIX_DART);
+  }
+
+  /**
+   * Return {@code true} if the given file name is assumed to contain HTML.
+   * 
+   * @param fileName the name of the file being tested
+   * @return {@code true} if the given file name is assumed to contain HTML
+   */
+  public static boolean isHtmlFileName(String fileName) {
+    if (fileName == null) {
+      return false;
+    }
+    String extension = FileUtilities.getExtension(fileName);
+    return extension.equalsIgnoreCase(SUFFIX_HTML) || extension.equalsIgnoreCase(SUFFIX_HTM);
   }
 
   /**

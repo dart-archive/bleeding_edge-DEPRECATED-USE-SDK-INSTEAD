@@ -36,4 +36,32 @@ public class AnalysisEngineTest extends EngineTestCase {
     engine.setLogger(null);
     assertEquals(defaultLogger, engine.getLogger());
   }
+
+  public void test_isDartFileName_false() {
+    assertFalse(AnalysisEngine.isDartFileName("foo.css"));
+  }
+
+  public void test_isDartFileName_null() {
+    assertFalse(AnalysisEngine.isDartFileName(null));
+  }
+
+  public void test_isDartFileName_true() {
+    assertTrue(AnalysisEngine.isDartFileName("foo.dart"));
+  }
+
+  public void test_isHtmlFileName_false() {
+    assertFalse(AnalysisEngine.isHtmlFileName("foo.css"));
+  }
+
+  public void test_isHtmlFileName_null() {
+    assertFalse(AnalysisEngine.isHtmlFileName(null));
+  }
+
+  public void test_isHtmlFileName_true_long() {
+    assertTrue(AnalysisEngine.isHtmlFileName("foo.html"));
+  }
+
+  public void test_isHtmlFileName_true_short() {
+    assertTrue(AnalysisEngine.isHtmlFileName("foo.htm"));
+  }
 }
