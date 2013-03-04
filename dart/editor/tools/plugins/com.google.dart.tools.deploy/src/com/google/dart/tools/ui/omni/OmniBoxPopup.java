@@ -912,6 +912,10 @@ public class OmniBoxPopup extends BasePopupDialog {
         needsRefresh = !((TypeProvider) provider).isSearchComplete();
         provider.reset();
       }
+      if (provider instanceof ClassProvider) {
+        needsRefresh = !((ClassProvider) provider).isSearchComplete();
+        provider.reset();
+      }
     }
 
     // perfect match, to be selected in the table if not null
