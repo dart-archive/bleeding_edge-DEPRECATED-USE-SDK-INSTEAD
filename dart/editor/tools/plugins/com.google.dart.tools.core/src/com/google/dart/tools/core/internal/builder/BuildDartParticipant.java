@@ -283,9 +283,18 @@ public class BuildDartParticipant implements BuildParticipant {
     }
 
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
+
+    // --package-root
+    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    if (packageRoot != null) {
+      args.add("--package-root=" + packageRoot);
+    }
+
+    // --use-script-snapshot
     if (snapshotCompiler != null && snapshotCompiler.getDestFile().exists()) {
       args.add("--use-script-snapshot=" + snapshotCompiler.getDestFile().getPath());
     }
+
     args.add(builderFile.getName());
     args.addAll(buildArgs);
 
