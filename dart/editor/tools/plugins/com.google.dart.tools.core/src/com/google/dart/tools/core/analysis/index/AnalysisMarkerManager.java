@@ -21,7 +21,6 @@ import com.google.dart.tools.core.analysis.AnalysisError;
 import com.google.dart.tools.core.analysis.AnalysisEvent;
 import com.google.dart.tools.core.analysis.AnalysisListener;
 import com.google.dart.tools.core.analysis.AnalysisServer;
-import com.google.dart.tools.core.html.HtmlAnalyzeHelper;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 
 import org.eclipse.core.resources.IMarker;
@@ -59,7 +58,6 @@ class AnalysisMarkerManager implements AnalysisListener {
       if (file == null || error == null) {
         return;
       }
-      file = HtmlAnalyzeHelper.getSourceHtmlFile(file);
       IResource res = ResourceUtil.getResource(file);
       if (res == null || !res.exists() || !DartCore.isAnalyzed(res)) {
         return;

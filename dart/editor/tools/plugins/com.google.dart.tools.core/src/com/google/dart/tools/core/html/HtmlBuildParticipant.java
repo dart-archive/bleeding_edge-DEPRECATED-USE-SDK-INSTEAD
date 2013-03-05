@@ -86,8 +86,6 @@ public class HtmlBuildParticipant implements BuildParticipant, BuildVisitor {
     } catch (IOException ioe) {
 
     }
-
-    HtmlAnalyzeHelper.analyze(file);
   }
 
   private void validate(XmlDocument document, IFile file) throws CoreException {

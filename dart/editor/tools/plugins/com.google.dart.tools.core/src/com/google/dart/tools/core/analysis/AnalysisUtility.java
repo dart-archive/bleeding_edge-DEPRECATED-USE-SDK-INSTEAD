@@ -29,7 +29,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartPrefixParser;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.html.HtmlAnalyzeHelper;
 import com.google.dart.tools.core.internal.builder.CachingArtifactProvider;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -211,31 +210,8 @@ class AnalysisUtility {
    * 
    * @return the library source (not <code>null</code>)
    */
-  static UrlLibrarySource toLibrarySource(Context context, final File libraryFile) {
-    final URI libUri = toLibraryUri(context, libraryFile);
-    // may be this library is actually Dart script extracted form HTML file
-    {
-      final File htmlFile = HtmlAnalyzeHelper.getSourceHtmlFile(libraryFile);
-      if (htmlFile != libraryFile) {
-        return new UrlLibrarySource(
-            libUri,
-            PackageLibraryManagerProvider.getPackageLibraryManager(htmlFile)) {
-          @Override
-          public DartSource getSourceFor(String relPath) {
-            if (libraryFile.getName().equals(relPath)) {
-              return createDartSource(libUri, relPath, this, packageLibraryManager);
-            }
-            return super.getSourceFor(relPath);
-          }
-
-          @Override
-          protected URI getImportBaseUri() {
-            return htmlFile.toURI();
-          }
-        };
-      }
-    }
-    // normal library
+  static UrlLibrarySource toLibrarySource(Context context, File libraryFile) {
+    URI libUri = toLibraryUri(context, libraryFile);
     return new UrlLibrarySource(libUri, context.getLibraryManager());
   }
 
