@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -24,12 +25,14 @@ import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
@@ -160,16 +163,45 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    TypeName typeName = node.getConstructorName().getType();
+    ConstructorName constructorName = node.getConstructorName();
+    TypeName typeName = constructorName.getType();
     Type createdType = typeName.getType();
     if (createdType instanceof InterfaceType) {
       if (((InterfaceType) createdType).getElement().isAbstract()) {
+        // CONST_WITH_ABSTRACT_CLASS & NEW_WITH_ABSTRACT_CLASS
         ConstructorElement element = node.getElement();
         if (element != null && !element.isFactory()) {
           if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {
             errorReporter.reportError(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
           } else {
             errorReporter.reportError(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+          }
+        }
+      }
+      // TODO(jwren) Should this be an else-if or if block? (Should we provide as many errors
+      // as possible, or try to be as concise as possible?)
+      if (typeName.getTypeArguments() != null) {
+        // TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+        ConstructorElement constructorElement = constructorName.getElement();
+        if (constructorElement != null) {
+          NodeList<TypeName> typeNameArgList = typeName.getTypeArguments().getArguments();
+          TypeVariableElement[] boundingElts = constructorElement.getEnclosingElement().getTypeVariables();
+          // Loop through only all of the elements of the shorter of our two arrays. (Note: This
+          // will only happen these tokens have the WRONG_NUMBER_OF_TYPE_ARGUMENTS error code too.)
+          int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
+          for (int i = 0; i < loopThroughIndex; i++) {
+            TypeName argTypeName = typeNameArgList.get(i);
+            Type argType = argTypeName.getType();
+            Type boundType = boundingElts[i].getBound();
+            if (argType != null && boundType != null) {
+              if (!argType.isSubtypeOf(boundType)) {
+                errorReporter.reportError(
+                    StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                    argTypeName,
+                    argTypeName.getName(),
+                    boundingElts[i].getName());
+              }
+            }
           }
         }
       }

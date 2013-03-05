@@ -131,8 +131,12 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * constructor of a generic type <i>G</i> invoked by a new expression or a constant object
    * expression are not subtypes of the bounds of the corresponding formal type parameters of
    * <i>G</i>.
+   * 
+   * @param boundedTypeName the name of the type used in the instance creation that should be
+   *          limited by the bound as specified in the class declaration
+   * @param boundingTypeName the name of the bounding type
    */
-  TYPE_ARGUMENT_NOT_MATCHING_BOUNDS(""),
+  TYPE_ARGUMENT_NOT_MATCHING_BOUNDS("'%s' does not extend '%s'"),
 
   /**
    * 10 Generics: It is a static type warning if a type parameter is a supertype of its upper bound.

@@ -46,6 +46,8 @@ import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.SuperExpression;
+import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -68,6 +70,7 @@ import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.LabelElementImpl;
+import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -744,6 +747,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     node.setElement(element);
     resolveNamedArguments(node.getArgumentList(), element);
+    return null;
+  }
+
+  @Override
+  public Void visitTypeParameter(TypeParameter node) {
+    TypeName bound = node.getBound();
+    if (bound != null) {
+      TypeVariableElementImpl variable = (TypeVariableElementImpl) node.getName().getElement();
+      if (variable != null) {
+        variable.setBound(bound.getType());
+      }
+    }
     return null;
   }
 

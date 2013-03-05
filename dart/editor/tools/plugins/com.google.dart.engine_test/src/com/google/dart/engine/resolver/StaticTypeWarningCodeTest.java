@@ -54,30 +54,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_typeArgumentNotMatchingBounds_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "class B {}",
-        "class G<E extends A> {",
-        "  const G() {}",
-        "}",
-        "f() { return const G<B>(); }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
-    verify(source);
-  }
-
-  public void fail_typeArgumentNotMatchingBounds_new() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "class B {}",
-        "class G<E extends A> {}",
-        "f() { return new G<B>(); }"));
-    resolve(source);
-    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
-    verify(source);
-  }
-
   public void fail_typeArgumentViolatesBounds() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -251,6 +227,30 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {",
+        "  const G() {}",
+        "}",
+        "f() { return const G<B>(); }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_new() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B {}",
+        "class G<E extends A> {}",
+        "f() { return new G<B>(); }"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS);
     verify(source);
   }
 

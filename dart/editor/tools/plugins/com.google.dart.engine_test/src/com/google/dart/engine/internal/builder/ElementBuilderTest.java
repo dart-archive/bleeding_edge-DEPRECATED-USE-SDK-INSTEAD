@@ -831,6 +831,7 @@ public class ElementBuilderTest extends EngineTestCase {
     TypeVariableElement typeVariable = typeVariables[0];
     assertNotNull(typeVariable);
     assertEquals(parameterName, typeVariable.getName());
+    assertNull(typeVariable.getBound());
     assertFalse(typeVariable.isSynthetic());
   }
 

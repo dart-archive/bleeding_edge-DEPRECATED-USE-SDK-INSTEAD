@@ -301,4 +301,28 @@ public class SimpleResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_typeArgumentNotMatchingBounds_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "class G<E extends A> {",
+        "  const G() {}",
+        "}",
+        "f() { return const G<B>(); }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_typeArgumentNotMatchingBounds_new() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {}",
+        "class G<E extends A> {}",
+        "f() { return new G<B>(); }"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }
