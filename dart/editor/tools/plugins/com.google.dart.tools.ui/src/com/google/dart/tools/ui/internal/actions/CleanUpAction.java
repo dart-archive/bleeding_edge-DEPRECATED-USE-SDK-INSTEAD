@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.actions;
 
 import com.google.common.collect.Sets;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
@@ -228,6 +229,12 @@ public class CleanUpAction extends InstrumentedSelectionDispatchAction {
   }
 
   private boolean isEnabled(IStructuredSelection selection) {
+
+    //TODO (pquitslund): add support for the new analysis engine
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return false;
+    }
+
     // TODO(scheglov) always enabled?
     CompilationUnit[] cus = getCompilationUnits(selection);
     return cus.length != 0;

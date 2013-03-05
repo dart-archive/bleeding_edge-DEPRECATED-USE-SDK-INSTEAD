@@ -15,6 +15,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartDocumentable;
 import com.google.dart.tools.core.model.DartModelException;
@@ -93,6 +94,11 @@ public class DartTextHover extends DefaultTextHover {
           return hoverText;
         }
       }
+    }
+
+    //TODO (pquitslund): add analysis engine support for hover text
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return null;
     }
 
     DartUnit unit = editor.getAST();

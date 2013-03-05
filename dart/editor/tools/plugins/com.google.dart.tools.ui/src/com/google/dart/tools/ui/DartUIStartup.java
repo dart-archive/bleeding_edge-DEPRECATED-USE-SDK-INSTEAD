@@ -141,11 +141,13 @@ public class DartUIStartup implements IStartup {
      * Initialize the Dart Tools Core plugin.
      */
     private void modelWarmup() {
-      long start = System.currentTimeMillis();
-      DartModelManager.getInstance().getDartModel();
-      if (DartCoreDebug.WARMUP) {
-        long delta = System.currentTimeMillis() - start;
-        DartCore.logInformation("Warmup Model : " + delta);
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        long start = System.currentTimeMillis();
+        DartModelManager.getInstance().getDartModel();
+        if (DartCoreDebug.WARMUP) {
+          long delta = System.currentTimeMillis() - start;
+          DartCore.logInformation("Warmup Model : " + delta);
+        }
       }
     }
 

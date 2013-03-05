@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
@@ -63,6 +64,23 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
       return null;
     }
 
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return legacyInternalDetectHyperlinks(
+          textEditor,
+          region,
+          canShowMultipleHyperlinks,
+          openAction);
+    }
+
+    //TODO (pquitslund): support hyperlink navigation for analysis engine elements
+
+    return null;
+
+  }
+
+  // To be removed when the analysis engine is live
+  private IHyperlink[] legacyInternalDetectHyperlinks(ITextEditor textEditor, IRegion region,
+      boolean canShowMultipleHyperlinks, IAction openAction) {
     int offset = region.getOffset();
 
     CompilationUnit input = (CompilationUnit) EditorUtility.getEditorInputDartElement(
