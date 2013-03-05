@@ -239,7 +239,20 @@ class ObservableList<T>
   }
 
   void copyFrom(List<T> src, int srcStart, int dstStart, int count) {
-    Arrays.copy(src, srcStart, this, dstStart, count);
+    List dst = this;
+    if (srcStart == null) srcStart = 0;
+    if (dstStart == null) dstStart = 0;
+
+    if (srcStart < dstStart) {
+      for (int i = srcStart + count - 1, j = dstStart + count - 1;
+           i >= srcStart; i--, j--) {
+        dst[j] = src[i];
+      }
+    } else {
+      for (int i = srcStart, j = dstStart; i < srcStart + count; i++, j++) {
+        dst[j] = src[i];
+      }
+    }
   }
 
   void setRange(int start, int length, List from, [int startFrom = 0]) {
