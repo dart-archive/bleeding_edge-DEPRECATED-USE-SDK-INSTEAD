@@ -290,22 +290,22 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         inFunction = wasInFunction;
       }
 
-      SimpleIdentifier functionName = node.getName();
-      FunctionElementImpl element = new FunctionElementImpl(functionName);
-      element.setFunctions(holder.getFunctions());
-      element.setLabels(holder.getLabels());
-      element.setLocalVariables(holder.getLocalVariables());
-      element.setParameters(holder.getParameters());
-
-      FunctionTypeImpl type = new FunctionTypeImpl(element);
-      element.setType(type);
-
-      currentHolder.addFunction(element);
-      expression.setElement(element);
-      functionName.setElement(element);
-
       Token property = node.getPropertyKeyword();
-      if (property != null) {
+      if (property == null) {
+        SimpleIdentifier functionName = node.getName();
+        FunctionElementImpl element = new FunctionElementImpl(functionName);
+        element.setFunctions(holder.getFunctions());
+        element.setLabels(holder.getLabels());
+        element.setLocalVariables(holder.getLocalVariables());
+        element.setParameters(holder.getParameters());
+
+        FunctionTypeImpl type = new FunctionTypeImpl(element);
+        element.setType(type);
+
+        currentHolder.addFunction(element);
+        expression.setElement(element);
+        functionName.setElement(element);
+      } else {
         SimpleIdentifier propertyNameNode = node.getName();
         if (propertyNameNode == null) {
           // TODO(brianwilkerson) Report this internal error.

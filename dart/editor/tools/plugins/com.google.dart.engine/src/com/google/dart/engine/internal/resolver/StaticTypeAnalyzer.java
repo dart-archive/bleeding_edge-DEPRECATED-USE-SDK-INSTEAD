@@ -306,6 +306,14 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return recordType(node, typeProvider.getDoubleType());
   }
 
+  @Override
+  public Void visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpression function = node.getFunctionExpression();
+    FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
+    setTypeInformation(functionType, computeReturnType(node), function.getParameters());
+    return recordType(function, functionType);
+  }
+
   /**
    * The Dart Language Specification, 12.9: <blockquote>The static type of a function literal of the
    * form <i>(T<sub>1</sub> a<sub>1</sub>, &hellip;, T<sub>n</sub> a<sub>n</sub>, [T<sub>n+1</sub>
@@ -338,6 +346,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
+    if (node.getParent() instanceof FunctionDeclaration) {
+      // The function type will be resolved and set when we visit the parent node.
+      return null;
+    }
     FunctionTypeImpl functionType = (FunctionTypeImpl) node.getElement().getType();
     setTypeInformation(functionType, computeReturnType(node), node.getParameters());
     return recordType(node, functionType);
@@ -792,6 +804,22 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
+   * Given a function declaration, compute the return type of the function. The return type of
+   * functions with a block body is {@code dynamicType}, with an expression body it is the type of
+   * the expression.
+   * 
+   * @param node the function expression whose return type is to be computed
+   * @return the return type that was computed
+   */
+  private Type computeReturnType(FunctionDeclaration node) {
+    TypeName returnType = node.getReturnType();
+    if (returnType == null) {
+      return computeReturnType(node.getFunctionExpression());
+    }
+    return returnType.getType();
+  }
+
+  /**
    * Given a function expression, compute the return type of the function. The return type of
    * functions with a block body is {@code dynamicType}, with an expression body it is the type of
    * the expression.
@@ -800,13 +828,6 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return the return type that was computed
    */
   private Type computeReturnType(FunctionExpression node) {
-    ASTNode parent = node.getParent();
-    if (parent instanceof FunctionDeclaration) {
-      TypeName returnType = ((FunctionDeclaration) parent).getReturnType();
-      if (returnType != null) {
-        return returnType.getType();
-      }
-    }
     FunctionBody body = node.getBody();
     if (body instanceof ExpressionFunctionBody) {
       return getType(((ExpressionFunctionBody) body).getExpression());

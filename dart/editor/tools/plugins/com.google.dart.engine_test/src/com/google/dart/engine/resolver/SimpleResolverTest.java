@@ -19,14 +19,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
-  public void fail_duplicateDefinition_getter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "bool get a => true;"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -62,6 +54,14 @@ public class SimpleResolverTest extends ResolverTestCase {
         "class A extends B implements C {}",
         "class B {}",
         "class C {}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_duplicateDefinition_getter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "bool get a => true;"));
     resolve(source);
     assertNoErrors();
     verify(source);
