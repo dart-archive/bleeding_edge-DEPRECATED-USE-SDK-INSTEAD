@@ -19,6 +19,14 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
+  public void fail_duplicateDefinition_getter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "bool get a => true;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
