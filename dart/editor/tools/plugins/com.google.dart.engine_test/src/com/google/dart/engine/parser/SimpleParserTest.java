@@ -614,7 +614,16 @@ public class SimpleParserTest extends ParserTestCase {
     AssignmentExpression section = parse("parseCascadeSection", "..a = 3");
     assertNotNull(section.getLeftHandSide());
     assertNotNull(section.getOperator());
-    assertNotNull(section.getRightHandSide());
+    Expression rhs = section.getRightHandSide();
+    assertNotNull(rhs);
+  }
+
+  public void test_parseCascadeSection_p_assign_withCascade() throws Exception {
+    AssignmentExpression section = parse("parseCascadeSection", "..a = 3..m()");
+    assertNotNull(section.getLeftHandSide());
+    assertNotNull(section.getOperator());
+    Expression rhs = section.getRightHandSide();
+    assertInstanceOf(IntegerLiteral.class, rhs);
   }
 
   public void test_parseCascadeSection_p_builtIn() throws Exception {

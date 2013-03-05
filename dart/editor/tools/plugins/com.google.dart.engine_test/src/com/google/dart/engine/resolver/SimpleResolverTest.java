@@ -19,25 +19,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
-  public void fail_methodCascades_withSetter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  String name;",
-        "  void m1() {}",
-        "  void m2() {}",
-        "  void m() {",
-        "    A a = new A();",
-        "    a..m1()",
-        "     ..name = 'name'",
-        "     ..m2();",
-        "  }",
-        "}"));
-    resolve(source);
-    // failing with error code: INVOCATION_OF_NON_FUNCTION
-    assertNoErrors();
-    verify(source);
-  }
-
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -223,6 +204,25 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_methodCascades_withSetter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  String name;",
+        "  void m1() {}",
+        "  void m2() {}",
+        "  void m() {",
+        "    A a = new A();",
+        "    a..m1()",
+        "     ..name = 'name'",
+        "     ..m2();",
+        "  }",
+        "}"));
+    resolve(source);
+    // failing with error code: INVOCATION_OF_NON_FUNCTION
     assertNoErrors();
     verify(source);
   }

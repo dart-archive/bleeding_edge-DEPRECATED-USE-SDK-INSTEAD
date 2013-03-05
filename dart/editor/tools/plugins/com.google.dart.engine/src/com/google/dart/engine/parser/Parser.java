@@ -1011,7 +1011,7 @@ public class Parser {
    * 
    * <pre>
    * cascadeSection ::=
-   *     '..' cascadeSelector arguments* (assignableSelector arguments*)* cascadeAssignment?
+   *     '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
    *
    * cascadeSelector ::=
    *     '[' expression ']'
@@ -1071,7 +1071,7 @@ public class Parser {
     if (currentToken.getType().isAssignmentOperator()) {
       Token operator = getAndAdvance();
       ensureAssignable(expression);
-      expression = new AssignmentExpression(expression, operator, parseExpression());
+      expression = new AssignmentExpression(expression, operator, parseExpressionWithoutCascade());
     }
     return expression;
   }
