@@ -122,7 +122,6 @@ void printMetrics(String example) {
 
 void _appendMetrics(StringBuffer sb, Element node, [String indent = '']) {
   String id = node.id;
-  final offset = rect.offset;
   num left = node.offsetLeft, top = node.offsetTop;
   num width = node.offsetWidth, height = node.offsetHeight;
   sb.add("${indent}'$id': [$left, $top, $width, $height],\n");

@@ -101,9 +101,9 @@ class GridLayout extends ViewLayout {
   /** The main entry point for layout computation. */
   void measureLayout(Future<Size> size, Completer<bool> changed) {
     _ensureAllTracks();
-    window.setImmediate(() {
-      _gridWidth = size.value.width;
-      _gridHeight = size.value.height;
+    size.then((value) {
+      _gridWidth = value.width;
+      _gridHeight = value.height;
 
       if (_rowTracks.length > 0 && _columnTracks.length > 0) {
         _measureTracks();

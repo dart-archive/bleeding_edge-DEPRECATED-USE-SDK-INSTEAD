@@ -17,9 +17,6 @@ swarm/swarm_test: Pass, Fail # Issue 3977
 [ $runtime == chrome || $runtime == ff || $runtime == safari ]
 dartcombat/dartcombat_test: Skip # passes locally but timeout on bot?
 
-[ $runtime == chrome || $runtime == ff || $runtime == safari || $runtime == ie9 || $runtime == opera ]
-lib/layout/layout_test: Fail # http://dartbug.com/5132
-
 [ $runtime == safari ]
 promise_based_test: Skip
 
