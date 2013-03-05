@@ -128,23 +128,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void fail_visitIndexExpression_getter() throws Exception {
-    // Fails because the type analyzer doesn't implement method look-up.
-    SimpleIdentifier identifier = resolvedVariable(typeProvider.getListType(), "a");
-    Expression node = indexExpression(identifier, resolvedInteger(2));
-    assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
-  public void fail_visitIndexExpression_setter() throws Exception {
-    // Fails because the type analyzer doesn't implement method look-up.
-    SimpleIdentifier identifier = resolvedVariable(typeProvider.getListType(), "a");
-    Expression node = indexExpression(identifier, resolvedInteger(2));
-    assignmentExpression(node, TokenType.EQ, resolvedInteger(0));
-    assertSame(typeProvider.getIntType(), analyze(node));
-    listener.assertNoErrors();
-  }
-
   public void fail_visitIndexExpression_typeParameters() throws Exception {
     // List<int> list = ...
     // list[0]
@@ -499,6 +482,29 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     analyze(p);
     Type resultType = analyze(node);
     assertFunctionType(typeProvider.getIntType(), null, new Type[] {dynamicType}, null, resultType);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitIndexExpression_getter() throws Exception {
+    // List a;
+    // a[2]
+    InterfaceType listType = typeProvider.getListType();
+    SimpleIdentifier identifier = resolvedVariable(listType, "a");
+    IndexExpression node = indexExpression(identifier, resolvedInteger(2));
+    node.setElement(listType.getElement().getMethods()[0]);
+    assertSame(listType.getTypeArguments()[0], analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitIndexExpression_setter() throws Exception {
+    // List a;
+    // a[2] = 0
+    InterfaceType listType = typeProvider.getListType();
+    SimpleIdentifier identifier = resolvedVariable(listType, "a");
+    IndexExpression node = indexExpression(identifier, resolvedInteger(2));
+    node.setElement(listType.getElement().getMethods()[1]);
+    assignmentExpression(node, TokenType.EQ, integer(0));
+    assertSame(listType.getTypeArguments()[0], analyze(node));
     listener.assertNoErrors();
   }
 

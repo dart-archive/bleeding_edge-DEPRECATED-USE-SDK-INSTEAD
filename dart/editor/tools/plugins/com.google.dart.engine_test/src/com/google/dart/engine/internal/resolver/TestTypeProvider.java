@@ -19,6 +19,7 @@ import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
@@ -160,7 +161,9 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl listElement = classElement("List", "E");
       listType = listElement.getType();
       Type eType = listElement.getTypeVariables()[0].getType();
-      listElement.setMethods(new MethodElement[] {methodElement("[]", eType, intType)});
+      listElement.setMethods(new MethodElement[] {
+          methodElement("[]", eType, intType),
+          methodElement("[]=", VoidTypeImpl.getInstance(), intType, eType)});
     }
     return listType;
   }

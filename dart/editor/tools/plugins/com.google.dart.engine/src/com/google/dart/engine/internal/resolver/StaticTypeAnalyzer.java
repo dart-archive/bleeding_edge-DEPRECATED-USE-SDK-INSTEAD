@@ -367,6 +367,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitIndexExpression(IndexExpression node) {
+    if (node.inSetterContext()) {
+      return recordArgumentType(node, node.getElement());
+    }
     return recordReturnType(node, node.getElement());
   }
 
@@ -880,6 +883,21 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     return parent instanceof TypeName
         || (parent instanceof PrefixedIdentifier && parent.getParent() instanceof TypeName)
         || (parent instanceof MethodInvocation && node == ((MethodInvocation) parent).getTarget());
+  }
+
+  /**
+   * Record that the static type of the given node is the type of the second argument to the method
+   * represented by the given element.
+   * 
+   * @param expression the node whose type is to be recorded
+   * @param element the element representing the method invoked by the given node
+   */
+  private Void recordArgumentType(IndexExpression expression, MethodElement element) {
+    ParameterElement[] parameters = element.getParameters();
+    if (parameters != null && parameters.length == 2) {
+      return recordType(expression, parameters[1].getType());
+    }
+    return recordType(expression, dynamicType);
   }
 
   /**
