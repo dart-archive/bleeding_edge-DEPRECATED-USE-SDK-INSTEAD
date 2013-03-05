@@ -61,17 +61,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_argumentDefinitionTestNonParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        " var v = 0;",
-        " return v?;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
-    verify(source);
-  }
-
   public void fail_builtInIdentifierAsType() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -1272,6 +1261,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS);
+    verify(source);
+  }
+
+  public void test_argumentDefinitionTestNonParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        " var v = 0;",
+        " return ?v;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
     verify(source);
   }
 

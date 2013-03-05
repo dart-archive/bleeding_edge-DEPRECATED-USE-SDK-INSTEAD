@@ -42,8 +42,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 12.33 Argument Definition Test: It is a compile time error if <i>v</i> does not denote a formal
    * parameter.
+   * 
+   * @param the name of the identifier in the argument definition test that is not a parameter
    */
-  ARGUMENT_DEFINITION_TEST_NON_PARAMETER(""),
+  ARGUMENT_DEFINITION_TEST_NON_PARAMETER("'%s' is not a parameter"),
 
   /**
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in identifier other than

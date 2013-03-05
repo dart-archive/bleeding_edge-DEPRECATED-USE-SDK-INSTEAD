@@ -34,6 +34,36 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(var v) {",
+        " return ?v;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_argumentDefinitionTestNonParameter_namedParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f({var v : 0}) {",
+        " return ?v;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_argumentDefinitionTestNonParameter_optionalParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f([var v]) {",
+        " return ?v;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_breakWithoutLabelInSwitch() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

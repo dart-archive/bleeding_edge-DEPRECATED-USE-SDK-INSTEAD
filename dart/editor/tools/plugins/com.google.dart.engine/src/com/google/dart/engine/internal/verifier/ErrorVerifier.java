@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -27,11 +28,14 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
@@ -74,6 +78,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.errorReporter = errorReporter;
     this.typeProvider = typeProvider;
     dynamicType = typeProvider.getDynamicType();
+  }
+
+  @Override
+  public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    SimpleIdentifier identifier = node.getIdentifier();
+    Element element = identifier.getElement();
+    if (element != null && !(element instanceof ParameterElement)) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
+          identifier,
+          identifier.getName());
+    }
+    return super.visitArgumentDefinitionTest(node);
   }
 
   @Override
