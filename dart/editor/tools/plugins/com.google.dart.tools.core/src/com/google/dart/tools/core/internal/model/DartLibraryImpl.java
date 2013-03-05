@@ -421,12 +421,6 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
         if (uri != null) {
           return uri.toString();
         }
-      } else {
-        String name = getCorrespondingResource().getName();
-        if (name.endsWith(Extensions.DOT_DART)) {
-          name = name.substring(0, name.length() - Extensions.DOT_DART.length());
-          return name;
-        }
       }
     }
     try {
@@ -435,9 +429,17 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
       if (name != null) {
         return name;
       }
+
     } catch (DartModelException exception) {
       // If we cannot access the info we compute the name from the file name, just like we will if
       // the library directive does not contain a literal.
+    }
+    if (getCorrespondingResource() != null) {
+      String name = getCorrespondingResource().getName();
+      if (name.endsWith(Extensions.DOT_DART)) {
+        name = name.substring(0, name.length() - Extensions.DOT_DART.length());
+        return name;
+      }
     }
     return getImplicitLibraryName();
   }
