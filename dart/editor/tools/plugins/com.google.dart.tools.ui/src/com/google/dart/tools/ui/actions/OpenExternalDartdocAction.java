@@ -94,35 +94,38 @@ public class OpenExternalDartdocAction extends InstrumentedSelectionDispatchActi
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-
+  protected void doRun(ITextSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
     selectedElement = getDartElementToOpen(selection);
+
     if (selectedElement == null) {
       instrumentation.metric("Problem", "selectedElement was null");
       return;
     }
+
     Type type = getTypeParent(selectedElement);
     DartLibrary library = getDartLibraryParent(selectedElement);
+
     if (library == null) {
       instrumentation.metric("Problem", "library was null");
       return;
     }
+
     String libraryName = library.getElementName();
     libraryName = libraryName.replace(':', '_');
 
     if (type != null) {
       String classNameHTML = type.getElementName();
       classNameHTML = classNameHTML.substring(0, classNameHTML.length()) + ".html";
-      String url = "http://api.dartlang.org/docs/continuous/" + libraryName + '/' + classNameHTML;
+      String url = "http://api.dartlang.org/" + libraryName + '/' + classNameHTML;
 
       instrumentation.metric("ClickTarget", "type");
       instrumentation.data("LibraryName", libraryName).data("ClassNameHtml", classNameHTML);
       instrumentation.data("Url", url);
 
       ExternalBrowserUtil.openInExternalBrowser(url);
-
     } else {
-      String url = "http://api.dartlang.org/docs/continuous/" + libraryName + ".html";
+      String url = "http://api.dartlang.org/" + libraryName + ".html";
 
       instrumentation.metric("ClickTarget", "library");
       instrumentation.data("LibraryName", libraryName).data("ClassNameHtml", "null");
@@ -130,7 +133,6 @@ public class OpenExternalDartdocAction extends InstrumentedSelectionDispatchActi
 
       ExternalBrowserUtil.openInExternalBrowser(url);
     }
-
   }
 
   /**
