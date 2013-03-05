@@ -92,6 +92,29 @@ public class StatementAnalyzerTest extends AbstractDartTest {
     }
   }
 
+  public void test_ForStatement_variableInitializer() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  for (int i = 0; i < 10; i++) {",
+        "    print(i);",
+        "  } // marker",
+        "}",
+        "");
+    // initialization + condition
+    {
+      SourceRange selection = rangeStartEnd(findOffset("int i = 0"), findEnd("i < 10"));
+      StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);
+      testUnit.accept(analyzer);
+      // FATAL
+      RefactoringStatus status = analyzer.getStatus();
+      assertTrue(status.hasFatalError());
+      assertEquals(
+          "Operation not applicable to a 'for' statement's initializer and condition.",
+          status.getMessage());
+    }
+  }
+
   public void test_OK() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -262,7 +285,7 @@ public class StatementAnalyzerTest extends AbstractDartTest {
     }
   }
 
-  public void test_WhileStatement() throws Exception {
+  public void test_WhileStatement_selectionCoveredBy() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -272,6 +295,27 @@ public class StatementAnalyzerTest extends AbstractDartTest {
         "");
     // analyze selection
     SourceRange selection = rangeStartEnd(findOffset("true"), findOffset(" // marker"));
+    StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);
+    testUnit.accept(analyzer);
+    // FATAL
+    RefactoringStatus status = analyzer.getStatus();
+    assertTrue(status.hasFatalError());
+    assertEquals(
+        "Operation not applicable to a while statement's expression and body.",
+        status.getMessage());
+    assertFalse(analyzer.hasSelectedNodes());
+  }
+
+  public void test_WhileStatement_selectionEndsAfter() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  while (true) {",
+        "  }",
+        "} // marker",
+        "");
+    // analyze selection
+    SourceRange selection = rangeStartEnd(findOffset("true"), findOffset("} // marker"));
     StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);
     testUnit.accept(analyzer);
     // FATAL

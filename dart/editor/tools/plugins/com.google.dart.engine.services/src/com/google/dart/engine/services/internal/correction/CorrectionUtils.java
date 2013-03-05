@@ -33,13 +33,16 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
@@ -225,6 +228,34 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the {@link LocalVariableElement} or {@link ParameterElement} if given
+   *         {@link SimpleIdentifier} is the reference to local variable or parameter, or
+   *         <code>null</code> in the other case.
+   */
+  public static VariableElement getLocalOrParameterVariableElement(SimpleIdentifier node) {
+    Element element = node.getElement();
+    if (element instanceof LocalVariableElement) {
+      return (LocalVariableElement) element;
+    }
+    if (element instanceof ParameterElement) {
+      return (ParameterElement) element;
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link LocalVariableElement} if given {@link SimpleIdentifier} is the reference to
+   *         local variable, or <code>null</code> in the other case.
+   */
+  public static LocalVariableElement getLocalVariableElement(SimpleIdentifier node) {
+    Element element = node.getElement();
+    if (element instanceof LocalVariableElement) {
+      return (LocalVariableElement) element;
+    }
+    return null;
+  }
+
+  /**
    * @return the nearest common ancestor {@link ASTNode} of the given {@link ASTNode}s.
    */
   public static ASTNode getNearestCommonAncestor(List<ASTNode> nodes) {
@@ -402,6 +433,26 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return <code>true</code> if given {@link ASTNode} is the name of some declaration.
+   */
+  public static boolean isNameOfDeclaration(ASTNode node) {
+    // TODO(scheglov) may be Brian will add Declaration.getName()
+    if (node.getParent() instanceof FunctionDeclaration
+        && ((FunctionDeclaration) node.getParent()).getName() == node) {
+      return true;
+    }
+    if (node.getParent() instanceof MethodDeclaration
+        && ((MethodDeclaration) node.getParent()).getName() == node) {
+      return true;
+    }
+    if (node.getParent() instanceof VariableDeclaration
+        && ((VariableDeclaration) node.getParent()).getName() == node) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Adds "toAdd" items which are not excluded.
    */
   private static void addAll(Set<String> excluded, Set<String> result, Collection<String> toAdd) {
@@ -576,6 +627,7 @@ public class CorrectionUtils {
   private final CompilationUnit unit;
 
   private String buffer;
+
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
@@ -649,55 +701,6 @@ public class CorrectionUtils {
     return getIndentSource(oldSource, oldIndent, newIndent);
   }
 
-  /**
-   * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
-   *         indentation of the lines relative to each other.
-   */
-  public String getIndentSource(String source, String oldIndent, String newIndent) {
-    StringBuilder sb = new StringBuilder();
-    String eol = getEndOfLine();
-    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
-    for (int i = 0; i < lines.length; i++) {
-      String line = lines[i];
-      // last line, stop if empty
-      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
-        break;
-      }
-      // line should have new indent
-      line = newIndent + StringUtils.removeStart(line, oldIndent);
-      // append line
-      sb.append(line);
-      sb.append(eol);
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Skips whitespace characters and single EOL on the right from the given position. If from
-   * statement or method end, then this is in the most cases start of the next line.
-   */
-  public int getLineContentEnd(int index) {
-    int length = buffer.length();
-    // skip whitespace characters
-    while (index < length) {
-      char c = buffer.charAt(index);
-      if (!Character.isWhitespace(c) || c == '\r' || c == '\n') {
-        break;
-      }
-      index++;
-    }
-    // skip single \r
-    if (index < length && buffer.charAt(index) == '\r') {
-      index++;
-    }
-    // skip single \n
-    if (index < length && buffer.charAt(index) == '\n') {
-      index++;
-    }
-    // done
-    return index;
-  }
-
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -756,18 +759,26 @@ public class CorrectionUtils {
 //  }
 
   /**
-   * @return the index of the last space or tab on the left from the given one, if from statement or
-   *         method start, then this is in most cases start of the line.
+   * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
+   *         indentation of the lines relative to each other.
    */
-  public int getLineContentStart(int index) {
-    while (index > 0) {
-      char c = buffer.charAt(index - 1);
-      if (c != ' ' && c != '\t') {
+  public String getIndentSource(String source, String oldIndent, String newIndent) {
+    StringBuilder sb = new StringBuilder();
+    String eol = getEndOfLine();
+    String[] lines = StringUtils.splitByWholeSeparatorPreserveAllTokens(source, eol);
+    for (int i = 0; i < lines.length; i++) {
+      String line = lines[i];
+      // last line, stop if empty
+      if (i == lines.length - 1 && StringUtils.isEmpty(line)) {
         break;
       }
-      index--;
+      // line should have new indent
+      line = newIndent + StringUtils.removeStart(line, oldIndent);
+      // append line
+      sb.append(line);
+      sb.append(eol);
     }
-    return index;
+    return sb.toString();
   }
 
 //  /**
@@ -783,6 +794,47 @@ public class CorrectionUtils {
 //    }
 //    return tokens.get(0).getOffset();
 //  }
+
+  /**
+   * Skips whitespace characters and single EOL on the right from the given position. If from
+   * statement or method end, then this is in the most cases start of the next line.
+   */
+  public int getLineContentEnd(int index) {
+    int length = buffer.length();
+    // skip whitespace characters
+    while (index < length) {
+      char c = buffer.charAt(index);
+      if (!Character.isWhitespace(c) || c == '\r' || c == '\n') {
+        break;
+      }
+      index++;
+    }
+    // skip single \r
+    if (index < length && buffer.charAt(index) == '\r') {
+      index++;
+    }
+    // skip single \n
+    if (index < length && buffer.charAt(index) == '\n') {
+      index++;
+    }
+    // done
+    return index;
+  }
+
+  /**
+   * @return the index of the last space or tab on the left from the given one, if from statement or
+   *         method start, then this is in most cases start of the line.
+   */
+  public int getLineContentStart(int index) {
+    while (index > 0) {
+      char c = buffer.charAt(index - 1);
+      if (c != ' ' && c != '\t') {
+        break;
+      }
+      index--;
+    }
+    return index;
+  }
 
   /**
    * @return the start index of the next line after the line which contains given index.

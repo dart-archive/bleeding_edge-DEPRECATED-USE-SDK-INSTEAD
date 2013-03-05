@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.ASTFactory;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -51,6 +52,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -537,6 +539,46 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals(15, utils.getLineThis(17));
     assertEquals(15, utils.getLineThis(18));
     assertEquals(15, utils.getLineThis(19));
+  }
+
+  public void test_getLocalOrParameterVariableElement_local() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(element, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
+  }
+
+  public void test_getLocalOrParameterVariableElement_method() throws Exception {
+    Element element = mock(MethodElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(null, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
+  }
+
+  public void test_getLocalOrParameterVariableElement_parameter() throws Exception {
+    ParameterElement element = mock(ParameterElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(element, CorrectionUtils.getLocalOrParameterVariableElement(identifier));
+  }
+
+  public void test_getLocalVariableElement_local() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(element, CorrectionUtils.getLocalVariableElement(identifier));
+  }
+
+  public void test_getLocalVariableElement_parameter() throws Exception {
+    ParameterElement element = mock(ParameterElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(null, CorrectionUtils.getLocalVariableElement(identifier));
   }
 
   public void test_getNearestCommonAncestor_innerBlock() throws Exception {
@@ -1145,6 +1187,48 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // not whitespace
     assertFalse(utils.isJustWhitespaceOrComment(rangeStartLength(0, 1)));
     assertFalse(utils.isJustWhitespaceOrComment(rangeStartLength(3, 2)));
+  }
+
+  public void test_isNameOfDeclaration_function() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test() {}",
+        "");
+    SimpleIdentifier node = findIdentifier("test() {}");
+    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
+  }
+
+  public void test_isNameOfDeclaration_method() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  test() {}",
+        "}");
+    SimpleIdentifier node = findIdentifier("test() {}");
+    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
+  }
+
+  public void test_isNameOfDeclaration_reference() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 0;",
+        "  print(test);",
+        "}",
+        "");
+    SimpleIdentifier node = findIdentifier("test);");
+    assertFalse(CorrectionUtils.isNameOfDeclaration(node));
+  }
+
+  public void test_isNameOfDeclaration_variable() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int test = 0;",
+        "}",
+        "");
+    SimpleIdentifier node = findIdentifier("test = 0");
+    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
   }
 
   public void test_new_withCharBuffer() throws Exception {

@@ -28,6 +28,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
@@ -35,6 +36,7 @@ import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactori
 import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefactoringImpl;
 
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractLocalRefactoring;
+import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractMethodRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createInlineLocalRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createRenameRefactoring;
 
@@ -53,6 +55,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
     ExtractLocalRefactoring refactoring = createExtractLocalRefactoring(context);
     assertThat(refactoring).isInstanceOf(ExtractLocalRefactoringImpl.class);
+  }
+
+  public void test_createExtractMethodRefactoring() throws Exception {
+    parseTestUnit("");
+    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    ExtractMethodRefactoring refactoring = createExtractMethodRefactoring(context);
+    assertThat(refactoring).isInstanceOf(ExtractMethodRefactoringImpl.class);
   }
 
   public void test_createInlineLocalRefactoring() throws Exception {

@@ -24,6 +24,7 @@ public class TestAll {
     suite.addTestSuite(SubProgressMonitorTest.class);
     suite.addTestSuite(RefactoringImplTest.class);
     suite.addTestSuite(RefactoringFactoryTest.class);
+    suite.addTestSuite(ParameterInfoTest.class);
     return suite;
   }
 }

@@ -112,9 +112,11 @@ public class SelectionAnalyzer extends GeneralizingASTVisitor<Void> {
       return null;
     } else if (selection.startsIn(nodeRange)) {
       handleSelectionStartsIn(node);
+      node.visitChildren(this);
       return null;
     } else if (selection.endsIn(nodeRange)) {
       handleSelectionEndsIn(node);
+      node.visitChildren(this);
       return null;
     }
     // no intersection

@@ -630,8 +630,13 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
     // create refactoring
     setSelectionString("1 + 2 ");
     createRefactoring();
-    // failed
-    assert_fatalError_selection();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var res = 1 + 2 ;",
+        "  int a = res; // marker",
+        "}");
   }
 
   public void test_stringLiteral() throws Exception {

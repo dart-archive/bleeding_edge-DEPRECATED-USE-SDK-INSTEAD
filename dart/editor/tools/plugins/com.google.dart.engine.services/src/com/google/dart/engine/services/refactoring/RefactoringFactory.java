@@ -27,6 +27,7 @@ import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
@@ -44,6 +45,15 @@ public class RefactoringFactory {
   public static ExtractLocalRefactoring createExtractLocalRefactoring(AssistContext context)
       throws Exception {
     return new ExtractLocalRefactoringImpl(context);
+  }
+
+  /**
+   * @return the {@link ExtractMethodRefactoring} to extract {@link Expression} selected in given
+   *         {@link AssistContext}.
+   */
+  public static ExtractMethodRefactoring createExtractMethodRefactoring(AssistContext context)
+      throws Exception {
+    return new ExtractMethodRefactoringImpl(context);
   }
 
   /**

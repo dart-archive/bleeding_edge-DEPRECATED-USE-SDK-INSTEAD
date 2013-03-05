@@ -123,7 +123,8 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitForStatement(ForStatement node) {
     super.visitForStatement(node);
     List<ASTNode> selectedNodes = getSelectedNodes();
-    boolean containsInit = contains(selectedNodes, node.getInitialization());
+    boolean containsInit = contains(selectedNodes, node.getInitialization())
+        || contains(selectedNodes, node.getVariables());
     boolean containsCondition = contains(selectedNodes, node.getCondition());
     boolean containsUpdaters = contains(selectedNodes, node.getUpdaters());
     boolean containsBody = contains(selectedNodes, node.getBody());
