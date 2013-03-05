@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
@@ -35,6 +36,8 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
@@ -86,6 +89,21 @@ import java.util.Map;
  */
 public class CompletionEngine {
 
+  static class CompletionState {
+    boolean isForMixin;
+    boolean isVoidAllowed;
+    boolean isDynamicAllowed;
+
+    void includesUndefinedTypes() {
+      isVoidAllowed = true;
+      isDynamicAllowed = true;
+    }
+
+    void mustBeMIxin() {
+      isForMixin = true;
+    }
+  }
+
   static class SearchCollector implements SearchListener {
     ArrayList<Element> results = new ArrayList<Element>();
     boolean isComplete = false;
@@ -126,9 +144,12 @@ public class CompletionEngine {
     }
 
     boolean match(Element elem) {
+      return match(elem.getName());
+    }
+
+    boolean match(String name) {
       // Return true if the filter passes. Return false for private elements that should not be visible
       // in the current context, or for library elements that are not accessible in the context (NYI).
-      String name = elem.getName();
       if (isPrivateDisallowed) {
         if (name.length() > 0 && Identifier.isPrivateName(name)) {
           return false;
@@ -189,6 +210,18 @@ public class CompletionEngine {
             ClassElement classElement = (ClassElement) typeElement;
             constructorReference(classElement, node.getName());
           }
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+      if (node.getName() == completionNode) {
+        if (node.getReturnType() == null) {
+          // This may be an incomplete class type alias
+          state.includesUndefinedTypes();
+          analyzeTypeName(node.getName(), typeDeclarationName(node));
         }
       }
       return null;
@@ -283,6 +316,15 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitTypeParameter(TypeParameter node) {
+      // { X<!Y> }
+      if (isCompletionBetween(node.getOffset(), node.getEnd())) {
+        analyzeTypeName(completionNode, typeDeclarationName(node));
+      }
+      return null;
+    }
+
+    @Override
     public Void visitVariableDeclaration(VariableDeclaration node) {
       if (node.getName() == completionNode) {
         analyzeLocalName(node.getName());
@@ -320,19 +362,34 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitCompilationUnit(CompilationUnit node) {
+      // This is not a good terminal node...
+      return null;
+    }
+
+    @Override
     public Void visitExtendsClause(ExtendsClause node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
         return null;
       } else if (node.getSuperclass() == null) {
         // { X extends ! }
-        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       } else {
         // { X extends ! Y }
-        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       }
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        return null;
+      }
+      return null;
     }
 
     @Override
@@ -342,11 +399,11 @@ public class CompletionEngine {
         return null;
       } else if (node.getInterfaces().isEmpty()) {
         // { X implements ! }
-        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       } else {
         // { X implements ! Y }
-        analyzeTypeName(new Ident(node), false, typeDeclarationName(node));
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       }
     }
@@ -367,17 +424,44 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitTypeParameter(TypeParameter node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        return null;
+      } else if (node.getName().getName().isEmpty()
+          && isCompletionBefore(node.getKeyword().getOffset())) {
+        // { < ! extends X>
+        analyzeTypeName(node.getName(), typeDeclarationName(node));
+        return null;
+      }
+      // { <! X ! extends ! Y !>
+      return null;
+    }
+
+    @Override
+    public Void visitTypeParameterList(TypeParameterList node) {
+      // { <X extends A,! B,! >
+      if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
+        return null;
+      }
+      return null;
+    }
+
+    @Override
     public Void visitWithClause(WithClause node) {
       if (isCompletingKeyword(node.getWithKeyword())) {
         pKeyword(node.getWithKeyword());
         return null;
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
-        analyzeTypeName(new Ident(node), true, typeDeclarationName(node));
+        state.mustBeMIxin();
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       } else {
         // { X with ! Y }
-        analyzeTypeName(new Ident(node), true, typeDeclarationName(node));
+        state.mustBeMIxin();
+        analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       }
     }
@@ -394,50 +478,74 @@ public class CompletionEngine {
 
     @Override
     public Void visitClassTypeAlias(ClassTypeAlias node) {
-      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
 
     @Override
     public Void visitExtendsClause(ExtendsClause node) {
-      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      analyzeTypeName(identifier, typeDeclarationName(node));
+      return null;
+    }
+
+    @Override
+    public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+      state.includesUndefinedTypes();
+      analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
 
     @Override
     public Void visitImplementsClause(ImplementsClause node) {
-      analyzeTypeName(identifier, false, typeDeclarationName(node));
+      analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
 
     @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-      analyzeTypeName(identifier, false, null);
+      state.includesUndefinedTypes();
+      analyzeTypeName(identifier, null);
+      return null;
+    }
+
+    @Override
+    public Void visitTypeParameter(TypeParameter node) {
+      if (node.getBound() == typeName) {
+        // { X<A extends !Y> }
+        analyzeTypeName(identifier, typeDeclarationName(node));
+      }
       return null;
     }
 
     @Override
     public Void visitVariableDeclarationList(VariableDeclarationList node) {
+      state.includesUndefinedTypes();
       analyzeLocalName(identifier);
       return null;
     }
 
     @Override
     public Void visitWithClause(WithClause node) {
-      analyzeTypeName(identifier, true, typeDeclarationName(node));
+      state.mustBeMIxin();
+      analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
 
   }
 
+  private static final String C_DYNAMIC = "dynamic";
+  private static final String C_VOID = "void";
+
   private CompletionRequestor requestor;
   private CompletionFactory factory;
   private AssistContext context;
   private Filter filter;
+  private CompletionState state;
 
   public CompletionEngine(CompletionRequestor requestor, CompletionFactory factory) {
     this.requestor = requestor;
     this.factory = factory;
+    this.state = new CompletionState();
   }
 
   /**
@@ -490,12 +598,12 @@ public class CompletionEngine {
     }
   }
 
-  void analyzeTypeName(SimpleIdentifier identifier, boolean isMixin, SimpleIdentifier nameIdent) {
+  void analyzeTypeName(SimpleIdentifier identifier, SimpleIdentifier nameIdent) {
     filter = new Filter(identifier);
     String name = nameIdent == null ? "" : nameIdent.getName();
     Element[] types = findAllTypes();
     for (Element type : types) {
-      if (isMixin) {
+      if (state.isForMixin) {
         if (!(type instanceof ClassElement)) {
           continue;
         }
@@ -508,6 +616,12 @@ public class CompletionEngine {
         continue;
       }
       pName(type, identifier);
+    }
+    if (state.isDynamicAllowed) {
+      pDynamic(identifier);
+    }
+    if (state.isVoidAllowed) {
+      pVoid(identifier);
     }
   }
 
@@ -657,6 +771,10 @@ public class CompletionEngine {
     return !filter.match(element);
   }
 
+  private boolean filterDisallows(String name) {
+    return !filter.match(name);
+  }
+
   private Element[] findAllFunctions() {
     SearchEngine engine = context.getSearchEngine();
     SearchScope scope = SearchScopeFactory.createUniverseScope();
@@ -704,6 +822,18 @@ public class CompletionEngine {
     return false;
   }
 
+  private boolean isCompletionAfter(int loc) {
+    return loc <= completionLocation();
+  }
+
+  private boolean isCompletionBefore(int loc) {
+    return completionLocation() <= loc;
+  }
+
+  private boolean isCompletionBetween(int firstLoc, int secondLoc) {
+    return isCompletionAfter(firstLoc) && isCompletionBefore(secondLoc);
+  }
+
   private <X extends Element> void mergedNameRemove(Map<String, List<X>> uniqueNames, X element) {
     String name = element.getName();
     List<X> list = uniqueNames.get(name);
@@ -726,6 +856,17 @@ public class CompletionEngine {
       }
       dups.add(element);
     }
+  }
+
+  private void pDynamic(SimpleIdentifier identifier) {
+    if (filterDisallows(C_DYNAMIC)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        identifier.getOffset());
+    prop.setCompletion(C_DYNAMIC);
+    requestor.accept(prop);
   }
 
   private void pExecutable(ExecutableElement element, SimpleIdentifier identifier,
@@ -837,6 +978,17 @@ public class CompletionEngine {
     return kind;
   }
 
+  private void pVoid(SimpleIdentifier identifier) {
+    if (filterDisallows(C_VOID)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        identifier.getOffset());
+    prop.setCompletion(C_VOID);
+    requestor.accept(prop);
+  }
+
   private void setParameterInfo(ExecutableElement cons, CompletionProposal prop) {
     List<String> params = new ArrayList<String>();
     List<String> types = new ArrayList<String>();
@@ -864,6 +1016,7 @@ public class CompletionEngine {
     prop.setParameterStyle(posCount, named, positional);
   }
 
+  // Find the parent declaration of the given node and extract the name of the type it is defining.
   private SimpleIdentifier typeDeclarationName(ASTNode node) {
     ClassDeclaration classDecl = node.getAncestor(ClassDeclaration.class);
     if (classDecl != null) {

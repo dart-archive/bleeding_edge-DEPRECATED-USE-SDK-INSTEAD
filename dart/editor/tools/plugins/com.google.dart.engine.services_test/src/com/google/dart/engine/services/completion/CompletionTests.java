@@ -14,7 +14,7 @@
 package com.google.dart.engine.services.completion;
 
 /**
- * Short, specific code completion tests. 29 ATM.
+ * Short, specific code completion tests.
  */
 public class CompletionTests extends CompletionTestCase {
 
@@ -128,6 +128,54 @@ public class CompletionTests extends CompletionTestCase {
         "C-Eclass");
   }
 
+  public void test009() throws Exception {
+    String source = src(//
+        "class num{}",
+        "typedef !1dy!2namic TestFn1();",
+        "typedef !3vo!4id TestFn2();",
+        "typ!7edef !5n!6");
+    test(
+        source,
+        "1+void",
+        "1+TestFn2",
+        "2+dynamic",
+        "2-void",
+        "3+dynamic",
+        "4+void",
+        "4-dynamic",
+        "5+TestFn2",
+        "6+num",
+        "7+typedef");
+  }
+
+  public void test010() throws Exception {
+    String source = src(//
+        "class String{}class List{}",
+        "class test !8<!1t !2 !3extends String,!4 List,!5 !6>!7 {}",
+        "class tezetst !9<!BString,!C !DList>!A {}");
+    test(
+        source,
+        "1+String",
+        "1+List",
+        "1-test",
+        "2-String",
+        "2-test",
+        "3+extends",
+        "4+tezetst",
+        "4-test",
+        "5+String",
+        "6+List",
+        "7-List",
+        "8-List",
+        "9-String",
+        "A-String",
+        "B+String",
+        "C+List",
+        "C-tezetst",
+        "D+List",
+        "D+test");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -184,5 +232,18 @@ public class CompletionTests extends CompletionTestCase {
         "5-Maps",
         "6-Map",
         "6+implements");
+  }
+
+  public void testCommentSnippets014() throws Exception {
+    // trailing space is important
+    test("class num{}typedef n!1 ;", "1+num");
+  }
+
+  public void testCommentSnippets027() throws Exception {
+    test(
+        "class String{}class List{}class test <X extends !1String!2> {}",
+        "1+List",
+        "2+String",
+        "2-List");
   }
 }
