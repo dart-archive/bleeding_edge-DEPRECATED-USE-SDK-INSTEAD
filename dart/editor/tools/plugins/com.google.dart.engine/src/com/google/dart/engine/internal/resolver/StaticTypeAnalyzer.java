@@ -893,9 +893,11 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param element the element representing the method invoked by the given node
    */
   private Void recordArgumentType(IndexExpression expression, MethodElement element) {
-    ParameterElement[] parameters = element.getParameters();
-    if (parameters != null && parameters.length == 2) {
-      return recordType(expression, parameters[1].getType());
+    if (element != null) {
+      ParameterElement[] parameters = element.getParameters();
+      if (parameters != null && parameters.length == 2) {
+        return recordType(expression, parameters[1].getType());
+      }
     }
     return recordType(expression, dynamicType);
   }
