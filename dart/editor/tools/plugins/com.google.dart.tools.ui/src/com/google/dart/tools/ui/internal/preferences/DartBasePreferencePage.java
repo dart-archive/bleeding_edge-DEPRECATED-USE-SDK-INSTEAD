@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -22,6 +23,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.layout.PixelConverter;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.osgi.service.prefs.BackingStoreException;
@@ -67,13 +70,15 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
   private Button runPubAutoCheck;
 
+  private Button newAnalyzer;
+
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
 
     noDefaultAndApplyButton();
 
     if (DartCore.isPluginsBuild()) {
-      setDescription("Dart Editor version " + DartToolsPlugin.getVersionString());
+      setDescription("Dart Editor version " + DartToolsPlugin.getVersionString()); //$NON-NLS-1$
     }
   }
 
@@ -222,6 +227,39 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_pub_auto_details);
     GridDataFactory.fillDefaults().applyTo(runPubAutoCheck);
 
+    // Temporary experimental settings
+
+    Group experimentalGroup = new Group(composite, SWT.NONE);
+    experimentalGroup.setText("Experimental"); //$NON-NLS-1$
+    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
+        experimentalGroup);
+    GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(experimentalGroup);
+
+    newAnalyzer = createCheckBox(
+        experimentalGroup,
+        "Enable experimental analyzer (not for the faint of heart)", //$NON-NLS-1$
+        "Enable experimental analyzer"); //$NON-NLS-1$
+    GridDataFactory.fillDefaults().applyTo(newAnalyzer);
+
+    newAnalyzer.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        boolean confirmRestart = MessageDialog.openConfirm(getShell(), "Confirm restart", //$NON-NLS-1$
+            "The editor will restart NOW for this setting to take effect. " + //$NON-NLS-1$
+                "If you need to save your work, please click Cancel, save your work, " + //$NON-NLS-1$
+                "and return to this preference page to change the preference."); //$NON-NLS-1$
+        if (confirmRestart) {
+          DartCore.setUserDefinedProperty(
+              DartCoreDebug.ENABLE_NEW_ANALYSIS_USER_FLAG,
+              Boolean.toString(newAnalyzer.getSelection()));
+          PlatformUI.getWorkbench().restart();
+        } else {
+          // Cancel
+          newAnalyzer.setSelection(!newAnalyzer.getSelection());
+        }
+      }
+    });
+
     initFromPrefs();
 
     return composite;
@@ -332,6 +370,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
+
+    newAnalyzer.setSelection(DartCoreDebug.ENABLE_NEW_ANALYSIS);
 
   }
 

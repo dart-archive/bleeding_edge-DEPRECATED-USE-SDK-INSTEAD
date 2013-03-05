@@ -82,6 +82,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -1293,6 +1294,38 @@ public class DartCore extends Plugin implements DartSdkListener {
     } catch (CoreException e) {
       DartCore.logError(e);
     }
+  }
+
+  /**
+   * Sets the value of the string-valued user-defined property for the given key.
+   * <p>
+   * User-defined properties are defined in the <code>editor.properties</code> file located in the
+   * eclipse installation directory.
+   * 
+   * @see DartCore#getEclipseInstallationDirectory()
+   * @param key the name of the property
+   * @param value the string-valued property
+   */
+  public static void setUserDefinedProperty(String key, String value) {
+
+    Properties properties = new Properties();
+
+    File installDirectory = getEclipseInstallationDirectory();
+    File file = new File(installDirectory, "editor.properties");
+
+    try {
+      if (!file.exists()) {
+        file.createNewFile();
+      }
+      properties.load(new FileReader(file));
+      properties.setProperty(key, value);
+      properties.store(new FileWriter(file), null);
+    } catch (FileNotFoundException e) {
+      logError(e);
+    } catch (IOException e) {
+      logError(e);
+    }
+
   }
 
   private static File getEclipseInstallationDirectory() {

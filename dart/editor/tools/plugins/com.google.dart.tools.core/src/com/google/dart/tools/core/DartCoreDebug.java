@@ -21,7 +21,12 @@ import org.eclipse.core.runtime.Platform;
  * Debug/Tracing options for the {@link DartCore} plugin.
  */
 public class DartCoreDebug {
-  // Debugging / Tracing options
+
+  // User flags
+
+  public static final String ENABLE_NEW_ANALYSIS_USER_FLAG = "new_analyzer";
+
+  // Debugging / Tracing options  
 
   public static final boolean DEBUG_ANALYSIS = isOptionTrue("debug/analysis/server");
   public static final boolean DEBUG_INDEX_CONTRIBUTOR = isOptionTrue("debug/index/contributor");
@@ -53,7 +58,8 @@ public class DartCoreDebug {
   public static final boolean ENABLE_THEMES = true; //isOptionTrue("experimental/themes");
   public static final boolean ENABLE_TAB_COLORING = isOptionTrue("experimental/tabColors");
   public static final boolean ENABLE_HTML_VALIDATION = isOptionTrue("experimental/validateHtml");
-  public static final boolean ENABLE_NEW_ANALYSIS = isOptionTrue("experimental/analysis/engine");
+  public static final boolean ENABLE_NEW_ANALYSIS = isOptionTrue("experimental/analysis/engine")
+      || "true".equals(DartCore.getUserDefinedProperty(ENABLE_NEW_ANALYSIS_USER_FLAG));
 
   // Persistent developer settings
 
