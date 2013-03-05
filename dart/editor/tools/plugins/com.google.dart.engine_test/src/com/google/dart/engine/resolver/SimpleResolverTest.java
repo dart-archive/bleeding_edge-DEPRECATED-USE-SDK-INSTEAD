@@ -140,6 +140,21 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_invocationOfNonFunction_dynamic() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  var f;",
+        "}",
+        "class B extends A {",
+        "  g() {",
+        "    f();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invocationOfNonFunction_getter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

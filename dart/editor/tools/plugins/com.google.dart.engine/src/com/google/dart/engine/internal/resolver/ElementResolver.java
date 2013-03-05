@@ -330,6 +330,26 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       element = resolver.getNameScope().lookup(methodName, resolver.getDefiningLibrary());
       if (element == null) {
         element = lookUpMethod(resolver.getEnclosingClass(), methodName.getName());
+        if (element == null) {
+          PropertyAccessorElement getter = lookUpGetter(
+              resolver.getEnclosingClass(),
+              methodName.getName());
+          if (getter != null) {
+            FunctionType getterType = getter.getType();
+            if (getterType != null) {
+              Type returnType = getterType.getReturnType();
+              if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
+                  && !returnType.isDartCoreFunction()) {
+                resolver.reportError(
+                    StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+                    methodName,
+                    methodName.getName());
+              }
+            }
+            recordResolution(methodName, getter);
+            return null;
+          }
+        }
       }
     } else {
       Type targetType = getType(target);
@@ -341,7 +361,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
               methodName.getName());
           if (accessor != null) {
             Type returnType = accessor.getType().getReturnType();
-            if (!returnType.isDynamic() && !(returnType instanceof FunctionType)) {
+            if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
+                && !returnType.isDartCoreFunction()) {
               resolver.reportError(
                   StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
                   methodName,
@@ -421,7 +442,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         FunctionType getterType = getter.getType();
         if (getterType != null) {
           Type returnType = getterType.getReturnType();
-          if (!returnType.isDynamic() && !(returnType instanceof FunctionType)) {
+          if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
+              && !returnType.isDartCoreFunction()) {
             resolver.reportError(
                 StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
                 methodName,
@@ -432,7 +454,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return null;
       } else if (element instanceof VariableElement) {
         Type variableType = ((VariableElement) element).getType();
-        if (!variableType.isDynamic() && !(variableType instanceof FunctionType)) {
+        if (!variableType.isDynamic() && !(variableType instanceof FunctionType)
+            && !variableType.isDartCoreFunction()) {
           resolver.reportError(
               StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
               methodName,
