@@ -16,12 +16,30 @@ package com.google.dart.engine.ast;
 import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.scanner.TokenType;
 
+import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
 import static com.google.dart.engine.ast.ASTFactory.assignmentExpression;
 import static com.google.dart.engine.ast.ASTFactory.binaryExpression;
+import static com.google.dart.engine.ast.ASTFactory.catchClause;
+import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
+import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
+import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
+import static com.google.dart.engine.ast.ASTFactory.integer;
+import static com.google.dart.engine.ast.ASTFactory.label;
+import static com.google.dart.engine.ast.ASTFactory.labeledStatement;
+import static com.google.dart.engine.ast.ASTFactory.list;
+import static com.google.dart.engine.ast.ASTFactory.methodDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.namedExpression;
 import static com.google.dart.engine.ast.ASTFactory.postfixExpression;
 import static com.google.dart.engine.ast.ASTFactory.prefixExpression;
 import static com.google.dart.engine.ast.ASTFactory.propertyAccess;
+import static com.google.dart.engine.ast.ASTFactory.simpleFormalParameter;
+import static com.google.dart.engine.ast.ASTFactory.typeAlias;
+import static com.google.dart.engine.ast.ASTFactory.typeName;
+import static com.google.dart.engine.ast.ASTFactory.typeParameter;
+import static com.google.dart.engine.ast.ASTFactory.variableDeclaration;
 
 public class SimpleIdentifierTest extends ParserTestCase {
   private enum AssignmentKind {
@@ -43,6 +61,86 @@ public class SimpleIdentifierTest extends ParserTestCase {
     PROPERTY_LEFT,
     PROPERTY_RIGHT,
     NONE;
+  }
+
+  public void test_inDeclarationContext_argumentDefinition() {
+    SimpleIdentifier identifier = argumentDefinitionTest("p").getIdentifier();
+    assertFalse(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_catch_exception() {
+    SimpleIdentifier identifier = catchClause("e").getExceptionParameter();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_catch_stack() {
+    SimpleIdentifier identifier = catchClause("e", "s").getStackTraceParameter();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_classDeclaration() {
+    SimpleIdentifier identifier = classDeclaration(null, "C", null, null, null, null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_classTypeAlias() {
+    SimpleIdentifier identifier = classTypeAlias("C", null, null, null, null, null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_constructorDeclaration() {
+    SimpleIdentifier identifier = constructorDeclaration(identifier("C"), "c", null, null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_functionDeclaration() {
+    SimpleIdentifier identifier = functionDeclaration(null, null, "f", null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_functionTypeAlias() {
+    SimpleIdentifier identifier = typeAlias(null, "F", null, null).getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_label_false() {
+    SimpleIdentifier identifier = namedExpression("l", integer(0)).getName().getLabel();
+    assertFalse(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_label_true() {
+    Label label = label("l");
+    SimpleIdentifier identifier = label.getLabel();
+    labeledStatement(list(label), emptyStatement());
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_methodDeclaration() {
+    SimpleIdentifier identifier = identifier("m");
+    methodDeclaration(null, null, null, null, identifier, null, null);
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_normalFormalParameter() {
+    SimpleIdentifier identifier = simpleFormalParameter("p").getIdentifier();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_typeParameter_bound() {
+    TypeName bound = typeName("A");
+    SimpleIdentifier identifier = (SimpleIdentifier) bound.getName();
+    typeParameter("E", bound);
+    assertFalse(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_typeParameter_name() {
+    SimpleIdentifier identifier = typeParameter("E").getName();
+    assertTrue(identifier.inDeclarationContext());
+  }
+
+  public void test_inDeclarationContext_variableDeclaration() {
+    SimpleIdentifier identifier = variableDeclaration("v").getName();
+    assertTrue(identifier.inDeclarationContext());
   }
 
   public void test_inGetterContext() throws Exception {

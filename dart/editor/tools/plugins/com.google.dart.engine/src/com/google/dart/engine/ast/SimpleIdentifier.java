@@ -85,6 +85,41 @@ public class SimpleIdentifier extends Identifier {
   }
 
   /**
+   * Return {@code true} if this identifier is the name being declared in a declaration.
+   * 
+   * @return {@code true} if this identifier is the name being declared in a declaration
+   */
+  public boolean inDeclarationContext() {
+    ASTNode parent = getParent();
+    if (parent instanceof CatchClause) {
+      CatchClause clause = (CatchClause) parent;
+      return this == clause.getExceptionParameter() || this == clause.getStackTraceParameter();
+    } else if (parent instanceof ClassDeclaration) {
+      return this == ((ClassDeclaration) parent).getName();
+    } else if (parent instanceof ClassTypeAlias) {
+      return this == ((ClassTypeAlias) parent).getName();
+    } else if (parent instanceof ConstructorDeclaration) {
+      return this == ((ConstructorDeclaration) parent).getName();
+    } else if (parent instanceof FunctionDeclaration) {
+      return this == ((FunctionDeclaration) parent).getName();
+    } else if (parent instanceof FunctionTypeAlias) {
+      return this == ((FunctionTypeAlias) parent).getName();
+    } else if (parent instanceof Label) {
+      return this == ((Label) parent).getLabel()
+          && (parent.getParent() instanceof LabeledStatement);
+    } else if (parent instanceof MethodDeclaration) {
+      return this == ((MethodDeclaration) parent).getName();
+    } else if (parent instanceof NormalFormalParameter) {
+      return this == ((NormalFormalParameter) parent).getIdentifier();
+    } else if (parent instanceof TypeParameter) {
+      return this == ((TypeParameter) parent).getName();
+    } else if (parent instanceof VariableDeclaration) {
+      return this == ((VariableDeclaration) parent).getName();
+    }
+    return false;
+  }
+
+  /**
    * Return {@code true} if this expression is computing a right-hand value.
    * <p>
    * Note that {@link #inGetterContext()} and {@link #inSetterContext()} are not opposites, nor are
