@@ -35,7 +35,8 @@ public enum TokenType {
   SLASH_GT("/>"),
 
   COMMENT(null),
-  DIRECTIVE(null),
+  DECLARATION(null), // e.g. <!DOCTYPE ...>
+  DIRECTIVE(null), // e.g. <?xml ... ?>
   STRING(null),
   TAG(null),
   TEXT(null);

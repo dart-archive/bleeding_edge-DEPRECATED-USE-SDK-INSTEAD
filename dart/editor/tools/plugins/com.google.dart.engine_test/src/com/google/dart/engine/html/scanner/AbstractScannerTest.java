@@ -14,6 +14,7 @@
 package com.google.dart.engine.html.scanner;
 
 import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
+import static com.google.dart.engine.html.scanner.TokenType.DECLARATION;
 import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
 import static com.google.dart.engine.html.scanner.TokenType.EOF;
 import static com.google.dart.engine.html.scanner.TokenType.EQ;
@@ -45,8 +46,12 @@ public abstract class AbstractScannerTest extends TestCase {
     tokenize("<!-- foo > -> -->", new Object[] {"<!-- foo > -> -->"});
   }
 
-  public void test_tokenize_directive() {
-    tokenize("<! foo >", new Object[] {"<! foo >"});
+  public void test_tokenize_declaration() {
+    tokenize("<! foo ><html>", new Object[] {"<! foo >", LT, "html", GT});
+  }
+
+  public void test_tokenize_declaration_malformed() {
+    tokenize("<! foo /><html>", new Object[] {"<! foo />", LT, "html", GT});
   }
 
   public void test_tokenize_directive_incomplete() {
@@ -160,7 +165,10 @@ public abstract class AbstractScannerTest extends TestCase {
       if (lexeme.startsWith("<!--")) {
         return COMMENT;
       }
-      if (lexeme.startsWith("<!") || lexeme.startsWith("<?")) {
+      if (lexeme.startsWith("<!")) {
+        return DECLARATION;
+      }
+      if (lexeme.startsWith("<?")) {
         return DIRECTIVE;
       }
       if (isTag(lexeme)) {

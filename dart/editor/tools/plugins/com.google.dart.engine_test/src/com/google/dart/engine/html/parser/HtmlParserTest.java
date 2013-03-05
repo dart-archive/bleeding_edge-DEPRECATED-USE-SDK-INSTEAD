@@ -50,6 +50,24 @@ public class HtmlParserTest extends EngineTestCase {
     validate(htmlUnit, t("html", t("body", a("foo", "\"sdfsdf\""), "")));
   }
 
+  public void test_parse_comment_embedded() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<html <!-- comment -->></html>").getHtmlUnit();
+    validate(htmlUnit, t("html", ""));
+  }
+
+  public void test_parse_comment_first() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<!-- comment --><html></html>").getHtmlUnit();
+    validate(htmlUnit, t("html", ""));
+  }
+
+  public void test_parse_comment_in_content() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<html><!-- comment --></html>").getHtmlUnit();
+    validate(htmlUnit, t("html", "<!-- comment -->"));
+  }
+
   public void test_parse_content() throws Exception {
     HtmlUnit htmlUnit = parse(//
         "<html>\n<p a=\"b\">blat \n </p>\n</html>").getHtmlUnit();
@@ -63,9 +81,15 @@ public class HtmlParserTest extends EngineTestCase {
     validate(htmlUnit, t("html", "<p/>blat<p/>", t("p", ""), t("p", "")));
   }
 
+  public void test_parse_declaration() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<!DOCTYPE html>\n\n<html><p></p></html>").getHtmlUnit();
+    validate(htmlUnit, t("html", t("p", "")));
+  }
+
   public void test_parse_directive() throws Exception {
     HtmlUnit htmlUnit = parse(//
-        "<!DOCTYPE html/>\n\n<html><p></p></html>").getHtmlUnit();
+        "<?xml ?>\n\n<html><p></p></html>").getHtmlUnit();
     validate(htmlUnit, t("html", t("p", "")));
   }
 

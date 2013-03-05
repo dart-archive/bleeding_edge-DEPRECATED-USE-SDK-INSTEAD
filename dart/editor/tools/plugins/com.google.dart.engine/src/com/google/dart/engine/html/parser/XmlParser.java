@@ -92,6 +92,7 @@ public class XmlParser {
           tagNodes.add(parseTagNode());
           break;
 
+        case DECLARATION:
         case DIRECTIVE:
         case COMMENT:
           // ignored tokens

@@ -17,6 +17,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
 
 import static com.google.dart.engine.html.scanner.TokenType.COMMENT;
+import static com.google.dart.engine.html.scanner.TokenType.DECLARATION;
 import static com.google.dart.engine.html.scanner.TokenType.DIRECTIVE;
 import static com.google.dart.engine.html.scanner.TokenType.EOF;
 import static com.google.dart.engine.html.scanner.TokenType.EQ;
@@ -231,7 +232,7 @@ public abstract class AbstractScanner {
             }
 
           } else {
-            // handle a directive
+            // handle a declaration
             while (c >= 0) {
               if (c == '>') {
                 c = advance();
@@ -239,7 +240,7 @@ public abstract class AbstractScanner {
               }
               c = recordStartOfLineAndAdvance(c);
             }
-            emit(DIRECTIVE, start, -1);
+            emit(DECLARATION, start, -1);
             if (!tail.getLexeme().endsWith(">")) {
               // TODO (danrubel): Report missing '>' in directive
             }
