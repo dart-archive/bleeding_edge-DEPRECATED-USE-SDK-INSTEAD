@@ -86,4 +86,11 @@ public interface LibraryElement extends Element {
    * @return {@code true} if this library is an application that can be run in the browser
    */
   public boolean isBrowserApplication();
+
+  /**
+   * Return {@code true} if this library is the dart:core library.
+   * 
+   * @return {@code true} if this library is the dart:core library
+   */
+  public boolean isDartCore();
 }

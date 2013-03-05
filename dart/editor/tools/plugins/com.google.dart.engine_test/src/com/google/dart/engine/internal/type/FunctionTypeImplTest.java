@@ -75,6 +75,18 @@ public class FunctionTypeImplTest extends EngineTestCase {
     type.hashCode();
   }
 
+  public void test_isSubtypeOf_baseCase_classFunction() {
+    ClassElementImpl functionElement = classElement("Function");
+    InterfaceTypeImpl functionType = new InterfaceTypeImpl(functionElement) {
+      @Override
+      public boolean isDartCoreFunction() {
+        return true;
+      }
+    };
+    FunctionType f = functionElement("f").getType();
+    assertTrue(f.isSubtypeOf(functionType));
+  }
+
   public void test_isSubtypeOf_baseCase_notFunctionType() {
     FunctionType f = functionElement("f").getType();
     InterfaceType t = classElement("C").getType();

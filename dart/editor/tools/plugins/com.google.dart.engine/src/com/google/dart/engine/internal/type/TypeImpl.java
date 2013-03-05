@@ -90,6 +90,11 @@ public abstract class TypeImpl implements Type {
   }
 
   @Override
+  public boolean isDartCoreFunction() {
+    return false;
+  }
+
+  @Override
   public boolean isDynamic() {
     return false;
   }

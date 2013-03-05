@@ -56,7 +56,7 @@ public final class AnalysisContextFactory {
         provider.getNumType().getElement(), provider.getObjectType().getElement(),
         provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
         provider.getTypeType().getElement()});
-    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("core"));
+    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("dart", "core"));
     library.setDefiningCompilationUnit(unit);
 
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();

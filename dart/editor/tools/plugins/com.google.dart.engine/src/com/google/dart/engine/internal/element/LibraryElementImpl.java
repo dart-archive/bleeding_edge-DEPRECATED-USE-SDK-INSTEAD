@@ -186,6 +186,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     return entryPoint != null && isOrImportsBrowserLibrary();
   }
 
+  @Override
+  public boolean isDartCore() {
+    return getName().equals("dart.core");
+  }
+
   /**
    * Set the compilation unit that defines this library to the given compilation unit.
    * 

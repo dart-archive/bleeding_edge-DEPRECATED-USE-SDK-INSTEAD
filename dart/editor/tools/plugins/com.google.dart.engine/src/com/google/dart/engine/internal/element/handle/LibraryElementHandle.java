@@ -86,6 +86,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public boolean isDartCore() {
+    return getActualElement().isDartCore();
+  }
+
+  @Override
   protected LibraryElement getActualElement() {
     return (LibraryElement) super.getActualElement();
   }

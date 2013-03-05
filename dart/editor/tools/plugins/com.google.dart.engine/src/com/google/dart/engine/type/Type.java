@@ -57,6 +57,15 @@ public interface Type {
   public boolean isAssignableTo(Type type);
 
   /**
+   * Return {@code true} if this type represents the type 'Function' defined in the dart:core
+   * library.
+   * 
+   * @return {@code true} if this type represents the type 'Function' defined in the dart:core
+   *         library
+   */
+  public boolean isDartCoreFunction();
+
+  /**
    * Return {@code true} if this type represents the type 'dynamic'.
    * 
    * @return {@code true} if this type represents the type 'dynamic'

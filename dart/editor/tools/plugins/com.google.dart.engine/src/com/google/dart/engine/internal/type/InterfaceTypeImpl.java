@@ -256,6 +256,15 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public boolean isDartCoreFunction() {
+    ClassElement element = getElement();
+    if (element == null) {
+      return false;
+    }
+    return element.getName().equals("Function") && element.getLibrary().isDartCore();
+  }
+
+  @Override
   public boolean isDirectSupertypeOf(InterfaceType type) {
     ClassElement i = getElement();
     ClassElement j = type.getElement();
