@@ -20,6 +20,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.scanner.Token;
@@ -126,6 +128,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
     GatheringErrorListener listener = new GatheringErrorListener();
     CompilationUnit compilationUnit = context.parse(source, listener);
     assertNotNull(compilationUnit);
+  }
+
+  public void test_parseHtml_no_errors() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    String content = createSource("<!DOCTYPE html/>", "<html><h1>Foo</h1><p>bar</p></html>");
+    Source source = new TestSource(sourceFactory, createFile("/lib.html"), content);
+    HtmlParseResult result = context.parseHtml(source);
+    assertNotNull(result);
+    HtmlUnit unit = result.getHtmlUnit();
+    assertNotNull(unit);
+    assertEquals("h1", unit.getTagNodes().get(0).getTagNodes().get(0).getTag().getLexeme());
+    assertEquals(3, result.getLineStarts().length);
+    assertNotNull(result.getToken());
   }
 
   public void test_resolve() throws Exception {

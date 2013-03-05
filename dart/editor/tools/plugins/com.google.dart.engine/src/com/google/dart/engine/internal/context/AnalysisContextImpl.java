@@ -27,6 +27,8 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.parser.HtmlParseResult;
+import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
@@ -91,6 +93,13 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   // TODO(brianwilkerson) Replace this with a real cache.
   private HashMap<Source, CompilationUnit> parseCache = new HashMap<Source, CompilationUnit>();
+
+  /**
+   * A cache mapping sources to the html parse results that were produced for the contents of the
+   * source.
+   */
+  // TODO (danrubel): Replace this with a real cache.
+  private HashMap<Source, HtmlParseResult> htmlParseCache = new HashMap<Source, HtmlParseResult>();
 
   /**
    * A cache mapping sources (of the defining compilation units of libraries) to the library
@@ -169,6 +178,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     synchronized (cacheLock) {
       // TODO (danrubel): Optimize to only discard resolution information
       parseCache.clear();
+      htmlParseCache.clear();
       libraryElementCache.clear();
       publicNamespaceCache.clear();
     }
@@ -180,6 +190,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
       sourceMap.clear();
       parseCache.clear();
+      htmlParseCache.clear();
       libraryElementCache.clear();
       publicNamespaceCache.clear();
     }
@@ -431,6 +442,18 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
+  @Override
+  public HtmlParseResult parseHtml(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      HtmlParseResult result = htmlParseCache.get(source);
+      if (result == null) {
+        result = new HtmlParser(source).parse(scanHtml(source));
+        htmlParseCache.put(source, result);
+      }
+      return result;
+    }
+  }
+
   /**
    * Given a table mapping the source for the libraries represented by the corresponding elements to
    * the elements representing the libraries, record those mappings.
@@ -553,6 +576,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       return;
     }
     parseCache.remove(source);
+    htmlParseCache.remove(source);
     // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
     libraryElementCache.remove(source);
     publicNamespaceCache.remove(source);

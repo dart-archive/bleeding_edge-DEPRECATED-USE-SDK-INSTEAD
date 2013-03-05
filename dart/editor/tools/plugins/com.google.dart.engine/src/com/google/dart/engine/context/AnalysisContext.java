@@ -20,6 +20,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
@@ -214,6 +215,17 @@ public interface AnalysisContext {
    * @throws AnalysisException if the analysis could not be performed
    */
   public CompilationUnit parse(Source source) throws AnalysisException;
+
+  /**
+   * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
+   * may not be resolved, and may have a slightly different structure depending upon whether it is
+   * resolved.
+   * 
+   * @param source the HTML source to be parsed
+   * @return the parse result (not {@code null})
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public HtmlParseResult parseHtml(Source source) throws AnalysisException;
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.

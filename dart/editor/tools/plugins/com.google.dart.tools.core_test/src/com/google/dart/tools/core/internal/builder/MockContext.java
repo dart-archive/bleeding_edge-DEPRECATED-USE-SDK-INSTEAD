@@ -11,6 +11,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
@@ -284,6 +285,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public CompilationUnit parse(Source source) throws AnalysisException {
     return null;
+  }
+
+  @Override
+  public HtmlParseResult parseHtml(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
