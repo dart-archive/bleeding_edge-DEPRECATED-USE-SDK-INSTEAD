@@ -19,7 +19,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.source.Source;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import junit.framework.Assert;
@@ -140,15 +140,15 @@ public abstract class DirectoryBasedSuiteBuilder {
           writer.print(errorList.size());
           writer.print(":");
           for (AnalysisError error : errorList) {
-            Source source = error.getSource();
+            ErrorCode code = error.getErrorCode();
             int offset = error.getOffset();
             writer.println();
             writer.printf(
-                "  %s %s (%d..%d)",
-                source == null ? "" : source.getShortName(),
-                error.getErrorCode(),
+                "  %s (%d..%d) \"%s\"",
+                code.getClass().getSimpleName() + "." + code,
                 offset,
-                offset + error.getLength());
+                offset + error.getLength(),
+                error.getMessage());
           }
           Assert.fail(writer.toString());
         }
