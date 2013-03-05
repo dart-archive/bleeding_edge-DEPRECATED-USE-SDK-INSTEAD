@@ -414,10 +414,19 @@ public class DartLibraryImpl extends OpenableElementImpl implements DartLibrary,
   public String getDisplayName() {
     // If this is a bundled library, then show "dart:<libname>" to the user
     if (sourceFile != null) {
-      PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
-      URI uri = libMgr.getShortUri(sourceFile.getUri());
-      if (uri != null) {
-        return uri.toString();
+      // fix for names of libraries in folders below package root open in the editor
+      if (getCorrespondingResource() == null) {
+        PackageLibraryManager libMgr = PackageLibraryManagerProvider.getPackageLibraryManager();
+        URI uri = libMgr.getShortUri(sourceFile.getUri());
+        if (uri != null) {
+          return uri.toString();
+        }
+      } else {
+        String name = getCorrespondingResource().getName();
+        if (name.endsWith(Extensions.DOT_DART)) {
+          name = name.substring(0, name.length() - Extensions.DOT_DART.length());
+          return name;
+        }
       }
     }
     try {
