@@ -349,7 +349,7 @@ public class DartModelManager {
    */
   public synchronized static DartModelManager getInstance() {
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && DartCoreDebug.TRACE_MODEL_ACCESS) {
       try {
         throw new IllegalStateException("Inappropriate access to old model");
       } catch (Exception e) {
