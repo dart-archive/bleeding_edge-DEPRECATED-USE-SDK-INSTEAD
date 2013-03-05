@@ -161,7 +161,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         if (node.getName() instanceof SimpleIdentifier) {
-          String name = ((SimpleIdentifier) node.getName()).getName();
+          String name = node.getName().getName();
           if (name.equals("hashCode")) {
             node.setOperatorKeyword(token(Keyword.GET));
             node.setParameters(null);
@@ -225,6 +225,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         }
         if (isMethodInClass(node, "charAt", "java.lang.String")) {
           nameNode.setToken(token("codeUnitAt"));
+          return null;
+        }
+        if (isMethodInClass(node, "equalsIgnoreCase", "java.lang.String")) {
+          replaceNode(
+              node,
+              methodInvocation("javaStringEqualsIgnoreCase", node.getTarget(), args.get(0)));
           return null;
         }
         if (isMethodInClass(node, "indexOf", "java.lang.String")) {

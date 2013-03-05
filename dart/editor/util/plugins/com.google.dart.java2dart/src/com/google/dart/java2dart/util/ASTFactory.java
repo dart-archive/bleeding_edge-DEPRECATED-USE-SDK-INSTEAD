@@ -858,7 +858,7 @@ public final class ASTFactory {
   }
 
   public static MethodDeclaration methodDeclaration(Comment comment, boolean isStatic,
-      TypeName returnType, Identifier name, FormalParameterList parameters, FunctionBody body) {
+      TypeName returnType, SimpleIdentifier name, FormalParameterList parameters, FunctionBody body) {
     return new MethodDeclaration(
         comment,
         null,
@@ -873,14 +873,14 @@ public final class ASTFactory {
   }
 
   public static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType,
-      Keyword property, Keyword operator, Identifier name, FormalParameterList parameters) {
+      Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters) {
     return new MethodDeclaration(null, null, token(Keyword.EXTERNAL), modifier == null ? null
         : token(modifier), returnType, property == null ? null : token(property), operator == null
         ? null : token(operator), name, parameters, emptyFunctionBody());
   }
 
   public static MethodDeclaration methodDeclaration(Keyword modifier, TypeName returnType,
-      Keyword property, Keyword operator, Identifier name, FormalParameterList parameters,
+      Keyword property, Keyword operator, SimpleIdentifier name, FormalParameterList parameters,
       FunctionBody body) {
     return new MethodDeclaration(
         null,
@@ -895,7 +895,7 @@ public final class ASTFactory {
         body);
   }
 
-  public static MethodDeclaration methodDeclaration(TypeName returnType, Identifier name,
+  public static MethodDeclaration methodDeclaration(TypeName returnType, SimpleIdentifier name,
       FormalParameterList parameters, FunctionBody body) {
     return methodDeclaration(null, returnType, null, null, name, parameters, body);
   }

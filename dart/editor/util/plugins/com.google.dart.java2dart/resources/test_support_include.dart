@@ -13,6 +13,9 @@ class TestSource implements Source {
   String get shortName {
     throw new UnsupportedOperationException();
   }
+  String get encoding {
+    throw new UnsupportedOperationException();
+  }
   bool exists() => true;
   bool isInSystemLibrary() {
     throw new UnsupportedOperationException();

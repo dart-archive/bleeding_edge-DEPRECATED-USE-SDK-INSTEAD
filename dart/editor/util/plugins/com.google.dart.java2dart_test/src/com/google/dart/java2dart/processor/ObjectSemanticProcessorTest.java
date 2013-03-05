@@ -607,6 +607,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_equalsIgnoreCase() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  boolean main(String a, String b) {",
+        "    return a.equalsIgnoreCase(b);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  bool main(String a, String b) => javaStringEqualsIgnoreCase(a, b);",
+        "}");
+  }
+
   public void test_String_format() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

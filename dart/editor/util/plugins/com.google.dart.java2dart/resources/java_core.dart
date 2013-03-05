@@ -263,7 +263,7 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   }
 
   void addLast(E value) {
-    elements.addLast(value);
+    elements.add(value);
   }
 
   void addAll(Iterable<E> iterable) {
@@ -385,4 +385,8 @@ void javaMapPutAll(Map target, Map source) {
   source.forEach((k, v) {
     target[k] = v;
   });
+}
+
+bool javaStringEqualsIgnoreCase(String a, String b) {
+  return a.toLowerCase() == b.toLowerCase();
 }

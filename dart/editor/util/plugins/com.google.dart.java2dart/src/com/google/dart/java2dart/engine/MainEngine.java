@@ -124,6 +124,8 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast/visitor"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/ast"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/scanner"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/parser"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
@@ -481,6 +483,7 @@ public class MainEngine {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine"));
     unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(
         importDirective("dart:collection", null, importShowCombinator("HasNextIterator")));
     unit.getDirectives().add(importDirective("error.dart", null));
@@ -506,7 +509,7 @@ public class MainEngine {
         importDirective(
             "html_scanner.dart",
             null,
-            importShowCombinator("HtmlScanner", "HtmlScanResult")));
+            importShowCombinator("HtmlScanner", "HtmlScanResult", "HtmlParser", "HtmlParseResult")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
@@ -543,7 +546,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("instrumentation.dart", null));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {
       File file = entry.getKey();
-      if (isEnginePath(file, "html/scanner/")) {
+      if (isEnginePath(file, "html/scanner/") || isEnginePath(file, "html/ast/")
+          || isEnginePath(file, "html/parser/")) {
         unit.getDeclarations().addAll(entry.getValue());
       }
     }

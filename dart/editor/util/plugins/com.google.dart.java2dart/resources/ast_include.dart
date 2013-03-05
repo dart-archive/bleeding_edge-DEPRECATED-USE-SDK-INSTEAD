@@ -31,7 +31,9 @@ class NodeList<E extends ASTNode> extends ListWrapper<E> {
   }
   bool addAll(Collection<E> nodes) {
     if (nodes != null) {
-      super.addAll(nodes);
+      for (E node in nodes) {
+        add(node);
+      }
       return true;
     }
     return false;

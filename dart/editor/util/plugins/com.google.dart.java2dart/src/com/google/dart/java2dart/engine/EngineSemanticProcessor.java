@@ -381,6 +381,13 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           replaceNode(node, methodInvocation(args.get(0), "readAsStringSync"));
           return null;
         }
+        if (isMethodInClass(
+            node,
+            "getExtension",
+            "com.google.dart.engine.utilities.io.FileUtilities")) {
+          replaceNode(node.getTarget(), identifier("FileNameUtilities"));
+          return null;
+        }
         return super.visitMethodInvocation(node);
       }
 
