@@ -99,7 +99,7 @@ public class CompletionEngine {
       isDynamicAllowed = true;
     }
 
-    void mustBeMIxin() {
+    void mustBeMixin() {
       isForMixin = true;
     }
   }
@@ -455,12 +455,12 @@ public class CompletionEngine {
         return null;
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
-        state.mustBeMIxin();
+        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       } else {
         // { X with ! Y }
-        state.mustBeMIxin();
+        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       }
@@ -526,7 +526,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitWithClause(WithClause node) {
-      state.mustBeMIxin();
+      state.mustBeMixin();
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
@@ -1018,17 +1018,18 @@ public class CompletionEngine {
 
   // Find the parent declaration of the given node and extract the name of the type it is defining.
   private SimpleIdentifier typeDeclarationName(ASTNode node) {
-    ClassDeclaration classDecl = node.getAncestor(ClassDeclaration.class);
-    if (classDecl != null) {
-      return classDecl.getName();
-    }
-    ClassTypeAlias classType = node.getAncestor(ClassTypeAlias.class);
-    if (classType != null) {
-      return classType.getName();
-    }
-    FunctionTypeAlias funcType = node.getAncestor(FunctionTypeAlias.class);
-    if (funcType != null) {
-      return funcType.getName();
+    ASTNode parent = node;
+    while (parent != null) {
+      if (parent instanceof ClassDeclaration) {
+        return ((ClassDeclaration) parent).getName();
+      }
+      if (parent instanceof ClassTypeAlias) {
+        return ((ClassTypeAlias) parent).getName();
+      }
+      if (parent instanceof FunctionTypeAlias) {
+        return ((FunctionTypeAlias) parent).getName();
+      }
+      parent = parent.getParent();
     }
     return null;
   }
