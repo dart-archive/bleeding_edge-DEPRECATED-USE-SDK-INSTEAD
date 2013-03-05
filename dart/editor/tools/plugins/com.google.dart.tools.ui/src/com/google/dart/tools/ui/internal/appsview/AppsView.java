@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.appsview;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -236,7 +237,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
     }
 
     if (ignoreListener != null) {
-      DartModelManager.getInstance().removeIgnoreListener(ignoreListener);
+      DartCore.removeIgnoreListener(ignoreListener);
     }
 
     if (propertyChangeListener != null) {
@@ -261,7 +262,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
     super.init(site, memento);
     this.memento = memento;
-    DartModelManager.getInstance().addIgnoreListener(ignoreListener);
+    DartCore.addIgnoreListener(ignoreListener);
 
   }
 

@@ -13,7 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.handlers;
 
-import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.utilities.general.AdapterUtilities;
 
@@ -40,9 +41,11 @@ public class IgnoreResourceHandler extends AbstractHandler {
         for (Object elem : ((IStructuredSelection) selection).toArray()) {
           IResource resource = AdapterUtilities.getAdapter(elem, IResource.class);
           if (resource != null) {
-            DartModelManager.getInstance().addToIgnores(resource);
-            PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(
-                resource.getLocation().toFile());
+            DartCore.addToIgnores(resource);
+            if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+              PackageLibraryManagerProvider.getDefaultAnalysisServer().discard(
+                  resource.getLocation().toFile());
+            }
           }
         }
       } catch (Throwable th) {

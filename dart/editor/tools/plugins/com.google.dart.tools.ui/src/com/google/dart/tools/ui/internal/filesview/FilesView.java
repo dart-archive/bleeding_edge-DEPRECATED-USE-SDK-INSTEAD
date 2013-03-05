@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPubUpdateListener;
 import com.google.dart.tools.core.pub.PubManager;
@@ -300,7 +299,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     }
 
     if (dartIgnoreListener != null) {
-      DartModelManager.getInstance().removeIgnoreListener(dartIgnoreListener);
+      DartCore.removeIgnoreListener(dartIgnoreListener);
     }
     if (propertyChangeListener != null) {
       getPreferences().removePropertyChangeListener(propertyChangeListener);
@@ -333,7 +332,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     };
 
-    DartModelManager.getInstance().addIgnoreListener(dartIgnoreListener);
+    DartCore.addIgnoreListener(dartIgnoreListener);
   }
 
   @Override

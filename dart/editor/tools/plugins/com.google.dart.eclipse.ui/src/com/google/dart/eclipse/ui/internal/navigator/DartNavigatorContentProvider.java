@@ -76,7 +76,7 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
 
     if (dartIgnoreListener != null) {
-      DartModelManager.getInstance().removeIgnoreListener(dartIgnoreListener);
+      DartCore.removeIgnoreListener(dartIgnoreListener);
     }
   }
 
@@ -140,7 +140,7 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
       }
     };
 
-    DartModelManager.getInstance().addIgnoreListener(dartIgnoreListener);
+    DartCore.addIgnoreListener(dartIgnoreListener);
   }
 
   @Override

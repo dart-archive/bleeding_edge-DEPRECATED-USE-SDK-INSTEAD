@@ -39,7 +39,6 @@ import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -395,16 +394,6 @@ public class DartModelManager {
    */
   public void addElementChangedListener(ElementChangedListener listener, int eventMask) {
     deltaState.addElementChangedListener(listener, eventMask);
-  }
-
-  /**
-   * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
-   * listener is already registered.
-   * 
-   * @param listener the listener to add
-   */
-  public void addIgnoreListener(DartIgnoreListener listener) {
-    DartIgnoreManager.getInstance().addListener(listener);
   }
 
   /**
@@ -1096,16 +1085,6 @@ public class DartModelManager {
     if (project != null) {
       project.recomputeLibrarySet();
     }
-  }
-
-  /**
-   * Remove the given listener for dart ignore changes from the Dart Model. Has no effect if an
-   * identical listener is not registered.
-   * 
-   * @param listener the non-<code>null</code> listener to remove
-   */
-  public void removeIgnoreListener(DartIgnoreListener listener) {
-    DartIgnoreManager.getInstance().removeListener(listener);
   }
 
   /**

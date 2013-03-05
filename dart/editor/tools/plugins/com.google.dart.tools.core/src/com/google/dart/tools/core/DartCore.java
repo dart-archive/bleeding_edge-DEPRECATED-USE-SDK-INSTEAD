@@ -35,6 +35,7 @@ import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModel;
 import com.google.dart.tools.core.model.DartModelException;
@@ -325,6 +326,35 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static void addElementChangedListener(ElementChangedListener listener, int eventMask) {
     DartModelManager.getInstance().addElementChangedListener(listener, eventMask);
+  }
+
+  /**
+   * Add the given listener for dart ignore changes to the Dart Model. Has no effect if an identical
+   * listener is already registered.
+   * 
+   * @param listener the listener to add
+   */
+  public static void addIgnoreListener(DartIgnoreListener listener) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      getProjectManager().getIgnoreManager().addListener(listener);
+    } else {
+      DartIgnoreManager.getInstance().addListener(listener);
+    }
+  }
+
+  /**
+   * Add the given resource to the set of ignored resources.
+   * 
+   * @param resource the resource to ignore
+   * @throws IOException if there was an error accessing the ignore file
+   * @throws CoreException if there was an error deleting markers
+   */
+  public static void addToIgnores(IResource resource) throws IOException, CoreException {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      getProjectManager().getIgnoreManager().addToIgnores(resource);
+    } else {
+      DartModelManager.getInstance().addToIgnores(resource);
+    }
   }
 
   /**
@@ -1113,6 +1143,34 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static void removeElementChangedListener(ElementChangedListener listener) {
     DartModelManager.getInstance().removeElementChangedListener(listener);
+  }
+
+  /**
+   * Remove the given resource from the set of ignored resources.
+   * 
+   * @param resource the resource to (un)ignore
+   * @throws IOException if there was an error accessing the ignore file
+   */
+  public static void removeFromIgnores(IResource resource) throws IOException {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      getProjectManager().getIgnoreManager().removeFromIgnores(resource);
+    } else {
+      DartModelManager.getInstance().removeFromIgnores(resource);
+    }
+  }
+
+  /**
+   * Remove the given listener for dart ignore changes from the Dart Model. Has no effect if an
+   * identical listener is not registered.
+   * 
+   * @param listener the non-<code>null</code> listener to remove
+   */
+  public static void removeIgnoreListener(DartIgnoreListener listener) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      getProjectManager().getIgnoreManager().addListener(listener);
+    } else {
+      DartIgnoreManager.getInstance().removeListener(listener);
+    }
   }
 
   /**
