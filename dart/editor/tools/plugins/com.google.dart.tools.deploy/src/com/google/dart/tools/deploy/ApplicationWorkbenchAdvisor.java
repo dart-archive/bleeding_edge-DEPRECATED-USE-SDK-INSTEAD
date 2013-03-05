@@ -330,6 +330,11 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
 
   protected boolean shouldShowWelcome() {
     try {
+
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        return DartCore.getProjectManager().getProjects().length == 0;
+      }
+
       return DartModelManager.getInstance().getDartModel().getDartProjects().length == 0;
     } catch (DartModelException e) {
       DartToolsPlugin.log(e);
