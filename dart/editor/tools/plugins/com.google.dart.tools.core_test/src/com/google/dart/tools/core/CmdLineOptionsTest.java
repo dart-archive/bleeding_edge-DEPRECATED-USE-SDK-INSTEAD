@@ -17,6 +17,16 @@ import junit.framework.TestCase;
 
 public class CmdLineOptionsTest extends TestCase {
 
+  public void test_ignore_junit_args() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {
+        "-version", "3", "-port", "60695", "-testLoaderClass",
+        "org.eclipse.jdt.internal.junit.runner.junit3.JUnit3TestLoader", "-loaderpluginname",
+        "org.eclipse.jdt.junit.runtime", "-classNames", "com.google.dart.tools.ui.TestAll",
+        "-testApplication", "com.google.dart.tools.deploy.application", "-testpluginname",
+        "com.google.dart.tools.ui_test"});
+    assertOptions(options, false, 0, false, 0, false);
+  }
+
   public void test_parse_autoExit() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--auto-exit"});
     assertOptions(options, false, 0, true, 0, false);

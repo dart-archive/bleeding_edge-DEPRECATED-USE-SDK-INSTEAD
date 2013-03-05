@@ -79,6 +79,17 @@ public class CmdLineOptions {
       } else if (arg.equals(TEST_FLAG)) {
         options.runTests = true;
 
+      } else if (arg.equals("-version") || arg.equals("-port") || arg.equals("-testLoaderClass")
+          || arg.equals("-loaderpluginname") || arg.equals("-classNames")
+          || arg.equals("-testApplication") || arg.equals("-testpluginname")) {
+        // Ignore jUnit arguments
+        if (index + 1 < args.length) {
+          String nextArg = args[index + 1];
+          if (nextArg.length() > 0 && nextArg.charAt(0) != '-') {
+            index++;
+          }
+        }
+
       } else if (arg.length() > 0) {
         if (arg.charAt(0) != '-') {
           // files to be opened by the editor regardless of whether performance is measured
