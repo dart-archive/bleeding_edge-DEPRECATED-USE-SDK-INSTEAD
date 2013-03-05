@@ -465,20 +465,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
     source = CorrectionUtils.applyReplaceEdits(source, replaceEdits);
     // change indentation
     if (selectionStatements != null) {
-      String eol = utils.getEndOfLine();
       String selectionIndent = utils.getNodePrefix(selectionStatements.get(0));
       String targetIndent = utils.getNodePrefix(parentMember) + "  ";
-      String[] lines = StringUtils.splitPreserveAllTokens(source, eol);
-      StringBuilder sb = new StringBuilder();
-      for (int i = 0; i < lines.length; i++) {
-        String line = lines[i];
-        line = targetIndent + StringUtils.removeStart(line, selectionIndent);
-        sb.append(line);
-        sb.append(eol);
-      }
-      source = sb.toString();
-      source = StringUtils.stripEnd(source, null);
-      source += eol;
+      source = utils.getIndentSource(source, selectionIndent, targetIndent);
     }
     // done
     return source;
