@@ -8,17 +8,17 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "143980",
+  "webkit_revision": "144213",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "10867",
+  "nacl_revision": "10912",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
   "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "284",
+  "libjingle_revision": "286",
   "libphonenumber_revision": "456",
   "libvpx_revision": "180104",
   "lss_revision": "17",
@@ -29,15 +29,15 @@ vars = {
   "ffmpeg_hash": "bb82a38d45e65c1fba378c15180b98ad76ebe1ca",
 
   "sfntly_revision": "134",
-  "skia_revision": "7840",
+  "skia_revision": "7869",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "13719",
+  "v8_revision": "13744",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "3501",
+  "webrtc_revision": "3561",
   "jsoncpp_revision": "248",
   "nss_revision": "182578",
   # Three lines of non-changing comments so that
@@ -66,7 +66,7 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1827",
+    (Var("googlecode_url") % "angleproject") + "/trunk@1834",
 
   "src/third_party/trace-viewer":
     (Var("googlecode_url") % "trace-viewer") + "/trunk@204",
@@ -85,7 +85,7 @@ deps = {
     "/trunk/deps/third_party/libexif/sources@146817",
 
   "src/third_party/hunspell":
-   "/trunk/deps/third_party/hunspell@177853",
+   "/trunk/deps/third_party/hunspell@184822",
 
   "src/third_party/hunspell_dictionaries":
     "/trunk/deps/third_party/hunspell_dictionaries@175986",
@@ -95,7 +95,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@273",
+    "/trunk/src@284",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@72",
@@ -107,7 +107,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@114",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1583",
+    (Var("googlecode_url") % "gyp") + "/trunk@1589",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@" + Var("swarm_revision"),
