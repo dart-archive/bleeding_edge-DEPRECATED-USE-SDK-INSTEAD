@@ -21,6 +21,7 @@
               {
                 'action_name': 'build_app',
                 'inputs': [
+                  '<(PRODUCT_DIR)/lib.target/libandroid_embedder.so'
                 ],
                 'outputs': [
                   'bin/NativeActivity-debug.apk',
