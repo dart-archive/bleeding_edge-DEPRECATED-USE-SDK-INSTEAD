@@ -16,6 +16,8 @@ package com.google.dart.engine.internal.verifier;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
@@ -23,6 +25,7 @@ import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -30,6 +33,7 @@ import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
+import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
@@ -38,12 +42,15 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
+import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -128,6 +135,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitClassDeclaration(ClassDeclaration node) {
+    checkForBuiltInIdentifierAsName(
+        node.getName(),
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    return super.visitClassDeclaration(node);
+  }
+
+  @Override
+  public Void visitClassTypeAlias(ClassTypeAlias node) {
+    checkForBuiltInIdentifierAsName(
+        node.getName(),
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    return super.visitClassTypeAlias(node);
+  }
+
+  @Override
   public Void visitConditionalExpression(ConditionalExpression node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitConditionalExpression(node);
@@ -170,6 +193,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       currentFunction = previousFunction;
     }
+  }
+
+  @Override
+  public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
+    checkForBuiltInIdentifierAsName(
+        node.getName(),
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    return super.visitFunctionTypeAlias(node);
   }
 
   @Override
@@ -258,9 +289,35 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitTypeParameter(TypeParameter node) {
+    checkForBuiltInIdentifierAsName(
+        node.getName(),
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    return super.visitTypeParameter(node);
+  }
+
+  @Override
   public Void visitWhileStatement(WhileStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitWhileStatement(node);
+  }
+
+  /**
+   * This verifies that the passed identifier is not a keyword, and generates the passed error code
+   * on the identifier if it is a keyword.
+   * 
+   * @param identifier the identifier to check to ensure that it is not a keyword
+   * @param errorCode if the passed identifier is a keyword then this error code is created on the
+   *          identifier, the error code will be one of
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME},
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME} or
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME}
+   */
+  private void checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
+    Token token = identifier.getToken();
+    if (token.getType() == TokenType.KEYWORD) {
+      errorReporter.reportError(errorCode, identifier, identifier.getName());
+    }
   }
 
   /**

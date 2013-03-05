@@ -71,14 +71,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_builtInIdentifierAsTypeName() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class typedef {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-    verify(source);
-  }
-
   public void fail_caseExpressionTypeImplementsEquals() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -1272,6 +1264,40 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsTypedefName_classTypeAlias() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B {}",
+        "typedef as = A with B;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsTypedefName_functionTypeAlias() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "typedef bool as();"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsTypeName() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class as {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsTypeVariableName() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<as> {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     verify(source);
   }
 

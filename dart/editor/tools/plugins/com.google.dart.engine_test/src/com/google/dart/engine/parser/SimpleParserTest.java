@@ -3854,7 +3854,37 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getFinallyClause());
   }
 
-  public void test_parseTypeAlias_noParameters() throws Exception {
+  public void test_parseTypeAlias_class_implementsC() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseTypeAlias",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef A = Object with B implements C;");
+    assertNotNull(typeAlias.getKeyword());
+    assertNotNull(typeAlias.getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getImplementsClause().getKeyword());
+    assertEquals(1, typeAlias.getImplementsClause().getInterfaces().size());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseTypeAlias_class_withB() throws Exception {
+    ClassTypeAlias typeAlias = parse(
+        "parseTypeAlias",
+        new Object[] {emptyCommentAndMetadata()},
+        "typedef A = Object with B;");
+    assertNotNull(typeAlias.getKeyword());
+    assertNotNull(typeAlias.getName());
+    assertNull(typeAlias.getTypeParameters());
+    assertNotNull(typeAlias.getWithClause());
+    assertNotNull(typeAlias.getWithClause().getWithKeyword());
+    assertEquals(1, typeAlias.getWithClause().getMixinTypes().size());
+    assertNull(typeAlias.getImplementsClause());
+    assertNotNull(typeAlias.getSemicolon());
+  }
+
+  public void test_parseTypeAlias_function_noParameters() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},
@@ -3867,7 +3897,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(typeAlias.getTypeParameters());
   }
 
-  public void test_parseTypeAlias_noReturnType() throws Exception {
+  public void test_parseTypeAlias_function_noReturnType() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},
@@ -3880,7 +3910,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(typeAlias.getTypeParameters());
   }
 
-  public void test_parseTypeAlias_parameterizedReturnType() throws Exception {
+  public void test_parseTypeAlias_function_parameterizedReturnType() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},
@@ -3893,7 +3923,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(typeAlias.getTypeParameters());
   }
 
-  public void test_parseTypeAlias_parameters() throws Exception {
+  public void test_parseTypeAlias_function_parameters() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},
@@ -3906,7 +3936,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(typeAlias.getTypeParameters());
   }
 
-  public void test_parseTypeAlias_typeParameters() throws Exception {
+  public void test_parseTypeAlias_function_typeParameters() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},
@@ -3919,7 +3949,7 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(typeAlias.getTypeParameters());
   }
 
-  public void test_parseTypeAlias_voidReturnType() throws Exception {
+  public void test_parseTypeAlias_function_voidReturnType() throws Exception {
     FunctionTypeAlias typeAlias = parse(
         "parseTypeAlias",
         new Object[] {emptyCommentAndMetadata()},

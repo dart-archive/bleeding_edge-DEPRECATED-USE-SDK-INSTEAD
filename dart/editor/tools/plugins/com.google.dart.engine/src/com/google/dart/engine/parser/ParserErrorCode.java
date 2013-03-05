@@ -30,11 +30,6 @@ public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_TOP_LEVEL_VARIABLE("Top-level variables cannot be declared to be 'abstract'"),
   ABSTRACT_TYPEDEF("Type aliases cannot be declared to be 'abstract'"),
   BREAK_OUTSIDE_OF_LOOP("A break statement cannot be used outside of a loop or switch statement"),
-  BUILT_IN_IDENTIFIER_AS_TYPE_NAME("The built-in identifier '%s' cannot be used as a type name"),
-  BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME(
-      "The built-in identifier '%s' cannot be used as a type alias name"),
-  BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME(
-      "The built-in identifier '%s' cannot be used as a type variable name"),
   CONST_AND_FINAL("Members cannot be declared to be both 'const' and 'final'"),
   CONST_AND_VAR("Members cannot be declared to be both 'const' and 'var'"),
   CONST_CLASS("Classes cannot be declared to be 'const'"),

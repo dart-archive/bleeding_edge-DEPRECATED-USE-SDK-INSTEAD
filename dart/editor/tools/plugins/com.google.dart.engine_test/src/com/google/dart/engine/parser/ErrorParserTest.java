@@ -198,26 +198,6 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStatement", "() {for (; x;) {break;}};");
   }
 
-  public void test_builtInIdentifierAsTypeDefName() throws Exception {
-    parse(
-        "parseTypeAlias",
-        new Object[] {emptyCommentAndMetadata()},
-        "typedef as();",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-  }
-
-  public void test_builtInIdentifierAsTypeName() throws Exception {
-    parse(
-        "parseClassDeclaration",
-        new Object[] {emptyCommentAndMetadata(), null},
-        "class as {}",
-        ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-  }
-
-  public void test_builtInIdentifierAsTypeVariableName() throws Exception {
-    parse("parseTypeParameter", "as", ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
-  }
-
   public void test_constAndFinal() throws Exception {
     parse(
         "parseClassMember",

@@ -1092,7 +1092,7 @@ public class Parser {
   private ClassDeclaration parseClassDeclaration(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword) {
     Token keyword = expect(Keyword.CLASS);
-    SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+    SimpleIdentifier name = parseSimpleIdentifier();
     String className = name.getName();
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
@@ -2808,7 +2808,7 @@ public class Parser {
     if (hasReturnTypeInTypeAlias()) {
       returnType = parseReturnType();
     }
-    SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    SimpleIdentifier name = parseSimpleIdentifier();
     TypeParameterList typeParameters = null;
     if (matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -4121,29 +4121,6 @@ public class Parser {
     return createSyntheticIdentifier();
   }
 
-  /**
-   * Parse a simple identifier and validate that it is not a built-in identifier.
-   * 
-   * <pre>
-   * identifier ::=
-   *     IDENTIFIER
-   * </pre>
-   * 
-   * @param errorCode the error code to be used to report a built-in identifier if one is found
-   * @return the simple identifier that was parsed
-   */
-  private SimpleIdentifier parseSimpleIdentifier(ParserErrorCode errorCode) {
-    if (matchesIdentifier()) {
-      Token token = getAndAdvance();
-      if (token.getType() == TokenType.KEYWORD) {
-        reportError(errorCode, token, token.getLexeme());
-      }
-      return new SimpleIdentifier(token);
-    }
-    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-    return createSyntheticIdentifier();
-  }
-
 //  /**
 //   * Parse a simple identifier.
 //   * 
@@ -4587,7 +4564,7 @@ public class Parser {
    */
   private TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
-    SimpleIdentifier name = parseSimpleIdentifier(ParserErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    SimpleIdentifier name = parseSimpleIdentifier();
     if (matches(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();
