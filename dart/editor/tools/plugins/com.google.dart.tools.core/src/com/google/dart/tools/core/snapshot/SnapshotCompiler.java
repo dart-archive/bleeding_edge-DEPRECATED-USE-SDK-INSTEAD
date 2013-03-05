@@ -97,7 +97,9 @@ public class SnapshotCompiler {
 
     refreshParentFolder(destFile);
 
-    return new Status(runner.getExitCode(), DartCore.PLUGIN_ID, runner.getStdOut());
+    int exitCode = runner.getExitCode();
+    int severity = exitCode == 0 ? IStatus.OK : IStatus.ERROR;
+    return new Status(severity, DartCore.PLUGIN_ID, exitCode, runner.getStdOut(), null);
   }
 
   public boolean isAvailable() {
