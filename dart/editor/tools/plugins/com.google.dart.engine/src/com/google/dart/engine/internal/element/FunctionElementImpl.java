@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
@@ -78,6 +79,11 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
       return null;
     }
     return new SourceRange(visibleRangeOffset, visibleRangeLength);
+  }
+
+  @Override
+  public boolean isStatic() {
+    return getEnclosingElement() instanceof CompilationUnitElement;
   }
 
   /**

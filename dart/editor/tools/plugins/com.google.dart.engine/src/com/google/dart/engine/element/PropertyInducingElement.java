@@ -48,4 +48,12 @@ public interface PropertyInducingElement extends VariableElement {
    * @return the setter associated with this variable
    */
   public PropertyAccessorElement getSetter();
+
+  /**
+   * Return {@code true} if this element is a static element. A static element is an element that is
+   * not associated with a particular instance, but rather with an entire library or class.
+   * 
+   * @return {@code true} if this executable element is a static element
+   */
+  public boolean isStatic();
 }

@@ -33,12 +33,4 @@ public interface MethodElement extends ExecutableElement {
    * @return {@code true} if this method is abstract
    */
   public boolean isAbstract();
-
-  /**
-   * Return {@code true} if this method is static. Methods are static if they have been marked as
-   * being static using the {@code static} modifier.
-   * 
-   * @return {@code true} if this method is static
-   */
-  public boolean isStatic();
 }

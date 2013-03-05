@@ -25,11 +25,4 @@ public interface FieldElement extends PropertyInducingElement {
    */
   @Override
   public ClassElement getEnclosingElement();
-
-  /**
-   * Return {@code true} if this field is a static field.
-   * 
-   * @return {@code true} if this field is a static field
-   */
-  public boolean isStatic();
 }

@@ -62,6 +62,11 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
     return hasModifier(Modifier.FACTORY);
   }
 
+  @Override
+  public boolean isStatic() {
+    return false;
+  }
+
   /**
    * Set whether this constructor represents a factory method to the given value.
    * 

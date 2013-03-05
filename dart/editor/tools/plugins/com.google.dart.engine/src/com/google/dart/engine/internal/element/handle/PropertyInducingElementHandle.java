@@ -42,6 +42,11 @@ public abstract class PropertyInducingElementHandle extends VariableElementHandl
   }
 
   @Override
+  public boolean isStatic() {
+    return getActualElement().isStatic();
+  }
+
+  @Override
   protected PropertyInducingElement getActualElement() {
     return (PropertyInducingElement) super.getActualElement();
   }

@@ -56,4 +56,9 @@ public class TopLevelVariableElementImpl extends PropertyInducingElementImpl imp
   public ElementKind getKind() {
     return ElementKind.TOP_LEVEL_VARIABLE;
   }
+
+  @Override
+  public boolean isStatic() {
+    return true;
+  }
 }

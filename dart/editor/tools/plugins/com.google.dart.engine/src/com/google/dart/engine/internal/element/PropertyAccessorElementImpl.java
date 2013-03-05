@@ -89,6 +89,11 @@ public class PropertyAccessorElementImpl extends ExecutableElementImpl implement
     return hasModifier(Modifier.SETTER);
   }
 
+  @Override
+  public boolean isStatic() {
+    return getVariable().isStatic();
+  }
+
   /**
    * Set whether this accessor is a getter to correspond to the given value.
    * 
