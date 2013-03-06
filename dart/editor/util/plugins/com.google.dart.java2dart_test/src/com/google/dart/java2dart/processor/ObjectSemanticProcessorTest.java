@@ -698,12 +698,12 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  String main() {",
-        "    StringBuffer sb = new StringBuffer();",
-        "    sb.write(\"abc\");",
-        "    sb.write(42);",
-        "    sb.writeCharCode(0x30);",
+        "    JavaStringBuilder sb = new JavaStringBuilder();",
+        "    sb.append(\"abc\");",
+        "    sb.append(42);",
+        "    sb.appendChar(0x30);",
         "    sb.length;",
-        "    sb.clear();",
+        "    sb.length = 0;",
         "    return sb.toString();",
         "  }",
         "}");

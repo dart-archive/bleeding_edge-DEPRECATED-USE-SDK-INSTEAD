@@ -39,6 +39,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
+import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
 import static com.google.dart.java2dart.util.ASTFactory.booleanLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
@@ -348,19 +349,21 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (isMethodInClass2(node, "append(char)", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, simpleIdentifier("writeCharCode"));
-          return null;
-        } else if (isMethodInClass(node, "append", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, simpleIdentifier("write"));
+          replaceNode(nameNode, simpleIdentifier("appendChar"));
           return null;
         }
         if (isMethodInClass(node, "length", "java.lang.AbstractStringBuilder")) {
           replaceNode(node, propertyAccess(node.getTarget(), nameNode));
           return null;
         }
-        if (isMethodInClass(node, "setLength", "java.lang.AbstractStringBuilder")
-            && args.size() == 1 && args.get(0).toSource().equals("0")) {
-          replaceNode(node, methodInvocation(node.getTarget(), "clear"));
+        if (isMethodInClass(node, "setLength", "java.lang.AbstractStringBuilder")) {
+          nameNode.setToken(token("length"));
+          replaceNode(
+              node,
+              assignmentExpression(
+                  propertyAccess(node.getTarget(), nameNode),
+                  TokenType.EQ,
+                  args.get(0)));
           return null;
         }
         return null;
@@ -425,9 +428,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.IndexOutOfBoundsException")) {
             replaceNode(nameNode, simpleIdentifier("RangeError"));
           }
-          // StringBuilder -> StringBuffer
+          // StringBuilder -> JavaStringBuilder
           if (name.equals("StringBuilder")) {
-            replaceNode(nameNode, simpleIdentifier("StringBuffer"));
+            replaceNode(nameNode, simpleIdentifier("JavaStringBuilder"));
           }
           // Class<T> -> Type
           if (name.equals("Class")) {
