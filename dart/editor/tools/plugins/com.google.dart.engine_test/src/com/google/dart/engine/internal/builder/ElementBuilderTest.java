@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -432,6 +433,28 @@ public class ElementBuilderTest extends EngineTestCase {
     assertNotNull(function);
     assertSame(function, expression.getElement());
     assertFalse(function.isSynthetic());
+  }
+
+  public void test_visitFunctionTypeAlias() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String aliasName = "F";
+    String parameterName = "E";
+    FunctionTypeAlias aliasNode = typeAlias(null, aliasName, typeParameterList(parameterName), null);
+    aliasNode.accept(builder);
+    TypeAliasElement[] aliases = holder.getTypeAliases();
+    assertLength(1, aliases);
+
+    TypeAliasElement alias = aliases[0];
+    assertNotNull(alias);
+    assertEquals(aliasName, alias.getName());
+    assertLength(0, alias.getParameters());
+    TypeVariableElement[] parameters = alias.getTypeVariables();
+    assertLength(1, parameters);
+
+    TypeVariableElement parameter = parameters[0];
+    assertNotNull(parameter);
+    assertEquals(parameterName, parameter.getName());
   }
 
   public void test_visitFunctionTypedFormalParameter() {

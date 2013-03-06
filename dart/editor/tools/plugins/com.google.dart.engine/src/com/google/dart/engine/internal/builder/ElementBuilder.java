@@ -132,15 +132,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
 
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    int typeVariableCount = typeVariables.length;
-    Type[] typeArguments = new Type[typeVariableCount];
-    for (int i = 0; i < typeVariableCount; i++) {
-      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
-      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
-      typeVariable.setType(typeArgument);
-      typeArguments[i] = typeArgument;
-    }
-    interfaceType.setTypeArguments(typeArguments);
+    interfaceType.setTypeArguments(createTypeVariableTypes(typeVariables));
     element.setType(interfaceType);
 
     ConstructorElement[] constructors = holder.getConstructors();
@@ -181,15 +173,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setTypeVariables(typeVariables);
 
     InterfaceTypeImpl interfaceType = new InterfaceTypeImpl(element);
-    int typeVariableCount = typeVariables.length;
-    Type[] typeArguments = new Type[typeVariableCount];
-    for (int i = 0; i < typeVariableCount; i++) {
-      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
-      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
-      typeVariable.setType(typeArgument);
-      typeArguments[i] = typeArgument;
-    }
-    interfaceType.setTypeArguments(typeArguments);
+    interfaceType.setTypeArguments(createTypeVariableTypes(typeVariables));
     element.setType(interfaceType);
 
     currentHolder.addType(element);
@@ -392,11 +376,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     SimpleIdentifier aliasName = node.getName();
     ParameterElement[] parameters = holder.getParameters();
+    TypeVariableElement[] typeVariables = holder.getTypeVariables();
     TypeAliasElementImpl element = new TypeAliasElementImpl(aliasName);
     element.setParameters(parameters);
-    element.setTypeVariables(holder.getTypeVariables());
+    element.setTypeVariables(typeVariables);
 
     FunctionTypeImpl type = new FunctionTypeImpl(element);
+    type.setTypeArguments(createTypeVariableTypes(typeVariables));
     element.setType(type);
 
     currentHolder.addTypeAlias(element);
@@ -636,6 +622,18 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       }
     }
     return super.visitVariableDeclaration(node);
+  }
+
+  private Type[] createTypeVariableTypes(TypeVariableElement[] typeVariables) {
+    int typeVariableCount = typeVariables.length;
+    Type[] typeArguments = new Type[typeVariableCount];
+    for (int i = 0; i < typeVariableCount; i++) {
+      TypeVariableElementImpl typeVariable = (TypeVariableElementImpl) typeVariables[i];
+      TypeVariableTypeImpl typeArgument = new TypeVariableTypeImpl(typeVariable);
+      typeVariable.setType(typeArgument);
+      typeArguments[i] = typeArgument;
+    }
+    return typeArguments;
   }
 
   /**
