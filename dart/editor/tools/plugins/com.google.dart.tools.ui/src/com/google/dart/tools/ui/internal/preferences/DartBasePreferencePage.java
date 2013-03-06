@@ -15,18 +15,13 @@ package com.google.dart.tools.ui.internal.preferences;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
-import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferencePage;
@@ -36,21 +31,15 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
-import org.osgi.service.prefs.BackingStoreException;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Page for setting general Dart plug-in preferences (the root of all Dart preferences).
@@ -64,8 +53,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button printMarginCheck;
   private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
-  private Text packageRootDir;
-  private Text auxDirText;
   private Button enableFolding;
 
   private Button runPubAutoCheck;
@@ -117,43 +104,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         removeTrailingWhitespaceCheck.getSelection());
     handleSave(toolsPreferenceStore);
 
-    List<File> packageRoots = new ArrayList<File>();
-    String newRoot = packageRootDir.getText().trim();
-    String extDir = auxDirText.getText().trim();
-    if (!newRoot.isEmpty()) {
-      packageRoots.add(new File(newRoot));
-    }
-    if (!extDir.isEmpty()) {
-      packageRoots.add(new File(extDir));
-    }
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
       prefs.putBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, runPubAutoCheck.getSelection());
-
-      String root = prefs.get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, ""); //$NON-NLS-1$
-      if (!root.equals(newRoot)) {
-        prefs.put(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, newRoot); //$NON-NLS-1$
-        try {
-          prefs.flush();
-        } catch (BackingStoreException e) {
-          DartToolsPlugin.log(e);
-        }
-      }
-      String extDirPref = prefs.get(DartCore.AUXILIARY_DIR_PREFERENCE, ""); //$NON-NLS-1$
-
-      if (!extDirPref.equals(extDir)) {
-        prefs.put(DartCore.AUXILIARY_DIR_PREFERENCE, extDir); //$NON-NLS-1$
-        try {
-          prefs.flush();
-        } catch (BackingStoreException e) {
-          DartToolsPlugin.log(e);
-        }
-      }
-      if (!root.equals(newRoot) || !extDir.equals(extDirPref)) {
-        PackageLibraryManagerProvider.getAnyLibraryManager().setPackageRoots(packageRoots);
-        Job job = new CleanLibrariesJob();
-        job.schedule();
-      }
     }
 
     return true;
@@ -212,8 +165,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         PreferencesMessages.DartBasePreferencePage_trailing_ws_label,
         PreferencesMessages.DartBasePreferencePage_trailing_ws_details);
     GridDataFactory.fillDefaults().applyTo(removeTrailingWhitespaceCheck);
-
-    createDirectorySettings(composite);
 
     Group pubGroup = new Group(composite, SWT.NONE);
     pubGroup.setText(PreferencesMessages.DartBasePreferencePage_pub);
@@ -274,71 +225,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     return checkBox;
   }
 
-  private void createDirectorySettings(Composite composite) {
-    // Package directory preferences
-    Group packageGroup = new Group(composite, SWT.NONE);
-    packageGroup.setText(PreferencesMessages.DartBasePreferencePage_groupTitle);
-    GridDataFactory.fillDefaults().grab(true, false).align(SWT.FILL, SWT.BEGINNING).applyTo(
-        packageGroup);
-    GridLayoutFactory.fillDefaults().numColumns(2).margins(8, 8).applyTo(packageGroup);
-
-    Label packageRootLabel = new Label(packageGroup, SWT.NONE);
-    packageRootLabel.setText(PreferencesMessages.DartBasePreferencePage_Package_Title);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).span(2, 1).grab(true, false).applyTo(
-        packageRootLabel);
-
-    packageRootDir = new Text(packageGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT).grab(
-        true,
-        false).applyTo(packageRootDir);
-
-    Button selectPackageDirButton = new Button(packageGroup, SWT.PUSH);
-    selectPackageDirButton.setText(PreferencesMessages.DartBasePreferencePage_Browse);
-    PixelConverter converter = new PixelConverter(selectPackageDirButton);
-    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectPackageDirButton);
-    selectPackageDirButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        String dirPath = handleBrowseButton();
-        if (dirPath != null) {
-          packageRootDir.setText(dirPath);
-        }
-      }
-    });
-
-    Label auxDirLabel = new Label(packageGroup, SWT.NONE);
-    auxDirLabel.setText(PreferencesMessages.DartBasePreferencePage_auxiliaryDirectory);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).span(2, 1).grab(true, false).applyTo(
-        auxDirLabel);
-
-    auxDirText = new Text(packageGroup, SWT.SINGLE | SWT.BORDER);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(350, SWT.DEFAULT).grab(
-        true,
-        false).applyTo(auxDirText);
-    Button selectAuxDirButton = new Button(packageGroup, SWT.PUSH);
-    selectAuxDirButton.setText(PreferencesMessages.DartBasePreferencePage_Browse);
-    GridDataFactory.swtDefaults().hint(widthHint, -1).applyTo(selectAuxDirButton);
-    selectAuxDirButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        handleBrowseButton();
-        String dirPath = handleBrowseButton();
-        if (dirPath != null) {
-          auxDirText.setText(dirPath);
-        }
-      }
-    });
-  }
-
-  private String handleBrowseButton() {
-
-    DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
-
-    return directoryDialog.open();
-
-  }
-
   private void handleSave(IPreferenceStore store) {
     if (store != null && store.needsSaving() && store instanceof IPersistentPreferenceStore) {
       try {
@@ -363,11 +249,6 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
     if (prefs != null) {
-      String root = prefs.get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, ""); //$NON-NLS-1$
-      packageRootDir.setText(root);
-      root = prefs.get(DartCore.AUXILIARY_DIR_PREFERENCE, ""); //$NON-NLS-1$
-      auxDirText.setText(root);
-
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 

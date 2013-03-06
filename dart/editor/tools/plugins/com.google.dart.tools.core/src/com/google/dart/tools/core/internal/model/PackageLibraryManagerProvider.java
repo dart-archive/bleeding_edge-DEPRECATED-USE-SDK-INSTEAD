@@ -17,6 +17,7 @@ import com.google.common.collect.Lists;
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.SystemLibraryProvider;
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
@@ -25,10 +26,8 @@ import com.google.dart.tools.core.model.DartSdkManager;
 
 import java.io.File;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * The class <code>PackageLibraryManagerProvider</code> manages the {@link PackageLibraryManager
@@ -104,18 +103,7 @@ public class PackageLibraryManagerProvider {
         DartCore.logInformation("Reading bundled libraries from " + sdkDir);
 
         ANY_LIBRARY_MANAGER = new PackageLibraryManager(sdkDir, "any");
-        String packageRoot = DartCore.getPlugin().getPrefs().get(
-            DartCore.PACKAGE_ROOT_DIR_PREFERENCE,
-            "");
-        if (packageRoot != null && !packageRoot.isEmpty()) {
-          String[] roots = packageRoot.split(";");
-          List<File> packageRoots = new ArrayList<File>();
-          for (String path : roots) {
-            packageRoots.add(new File(path));
-          }
-          ANY_LIBRARY_MANAGER.setPackageRoots(packageRoots);
-        }
-
+        ANY_LIBRARY_MANAGER.setPackageRoots(Arrays.asList(CmdLineOptions.getOptions().getPackageRoots()));
       }
     }
     return ANY_LIBRARY_MANAGER;

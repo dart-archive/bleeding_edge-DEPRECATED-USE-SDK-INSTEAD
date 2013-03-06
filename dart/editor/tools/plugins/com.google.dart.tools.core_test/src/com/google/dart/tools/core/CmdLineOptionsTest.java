@@ -24,53 +24,59 @@ public class CmdLineOptionsTest extends TestCase {
         "org.eclipse.jdt.junit.runtime", "-classNames", "com.google.dart.tools.ui.TestAll",
         "-testApplication", "com.google.dart.tools.deploy.application", "-testpluginname",
         "com.google.dart.tools.ui_test"});
-    assertOptions(options, false, 0, false, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 0);
   }
 
   public void test_parse_autoExit() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--auto-exit"});
-    assertOptions(options, false, 0, true, 0, false);
+    assertOptions(options, false, 0, true, 0, false, 0);
   }
 
   public void test_parse_empty() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
-    assertOptions(options, false, 0, false, 0, false);
+    assertOptions(options, false, 0, false, 0, false, 0);
   }
 
   public void test_parse_file() {
     String filePath = "does-not-exist.dart";
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {filePath});
-    assertOptions(options, false, 0, false, 1, false);
+    assertOptions(options, false, 0, false, 1, false, 0);
     assertEquals(filePath, options.getFiles().get(0).getPath());
   }
 
   public void test_parse_killAfterPerf_old() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"-kill-after-perf"});
-    assertOptions(options, false, 0, true, 0, false);
+    assertOptions(options, false, 0, true, 0, false, 0);
+  }
+
+  public void test_parse_packageRoots() {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});
+    assertOptions(options, false, 0, false, 0, false, 1);
+    assertEquals("foo", options.getPackageRoots()[0].getPath());
   }
 
   public void test_parse_perf_noStartTime() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf"});
-    assertOptions(options, true, 0, false, 0, false);
+    assertOptions(options, true, 0, false, 0, false, 0);
   }
 
   public void test_parse_perf_startTime() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--perf", "12345"});
-    assertOptions(options, true, 12345, false, 0, false);
+    assertOptions(options, true, 12345, false, 0, false, 0);
   }
 
   public void test_parse_perf_startTime_old() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"-perf", "12345"});
-    assertOptions(options, true, 12345, false, 0, false);
+    assertOptions(options, true, 12345, false, 0, false, 0);
   }
 
   public void test_parse_test() {
     CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test"});
-    assertOptions(options, false, 0, false, 0, true);
+    assertOptions(options, false, 0, false, 0, true, 0);
   }
 
   private void assertOptions(CmdLineOptions options, boolean perf, int startTime, boolean exitPerf,
-      int fileCount, boolean runTests) {
+      int fileCount, boolean runTests, int pkgRootCount) {
     assertNotNull(options);
     assertEquals(perf, options.getMeasurePerformance());
     if (startTime == 0) {
@@ -82,5 +88,6 @@ public class CmdLineOptionsTest extends TestCase {
     assertEquals(exitPerf, options.getAutoExit());
     assertEquals(fileCount, options.getFiles().size());
     assertEquals(runTests, options.getRunTests());
+    assertEquals(pkgRootCount, options.getPackageRoots().length);
   }
 }

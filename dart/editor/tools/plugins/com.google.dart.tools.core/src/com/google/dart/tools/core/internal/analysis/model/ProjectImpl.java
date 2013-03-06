@@ -10,6 +10,7 @@ import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -19,6 +20,7 @@ import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
+import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -26,6 +28,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+
+import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
 import java.util.Collection;
@@ -41,6 +45,10 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   public static class AnalysisContextFactory {
     public AnalysisContext createContext() {
       return AnalysisEngine.getInstance().createAnalysisContext();
+    }
+
+    public File[] getPackageRoots() {
+      return CmdLineOptions.getOptions().getPackageRoots();
     }
   }
 
@@ -218,6 +226,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container, sdk), sdk);
     pubFolders.put(container.getFullPath(), pubFolder);
 
+    // If this is the project, then adjust the context source factory
+    if (container.getType() == PROJECT) {
+      initContext(defaultContext, projectResource, sdk, true);
+      defaultContext.clearResolution();
+      // TODO (danrubel): discard sources in package roots from context
+    }
+
     // Merge any overlapping pub folders
     for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator(); iter.hasNext();) {
       Entry<IPath, PubFolder> entry = iter.next();
@@ -245,6 +260,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (defaultContext != pubFolder.getContext()) {
       defaultContext.mergeAnalysisContext(pubFolder.getContext());
     } else {
+      initContext(defaultContext, projectResource, sdk, false);
       defaultContext.clearResolution();
     }
 
@@ -273,7 +289,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       logNoLocation(container);
       context = factory.createContext();
     }
-    return initContext(context, container, sdk);
+    return initContext(context, container, sdk, true);
   }
 
   /**
@@ -358,25 +374,35 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @param context the context to be initialized (not {@code null})
    * @param container the container with sources to be analyzed
    * @param sdk the Dart SDK to use when initializing the context (not {@code null})
+   * @param hasPubspec {@code true} if the contaner has a pubspec file
    * @return the context (not {@code null})
    */
-  private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk) {
+  private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk,
+      boolean hasPubspec) {
     DartUriResolver dartResolver = getDartUriResolver();
 
     FileUriResolver fileResolver = new FileUriResolver();
 
-    SourceFactory factory;
-    IPath location = container.getLocation();
-    if (location != null) {
-      File packagesDir = new File(location.toFile(), PACKAGES_DIRECTORY_NAME);
-      PackageUriResolver pkgResolver = new PackageUriResolver(packagesDir);
-      factory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
+    File[] packageRoots = factory.getPackageRoots();
+    File[] packagesDirs = null;
+    if (hasPubspec || packageRoots.length == 0) {
+      IPath location = container.getLocation();
+      if (location != null) {
+        packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
+      }
+    } else {
+      packagesDirs = packageRoots;
+    }
+    SourceFactory sourceFactory;
+    if (packagesDirs != null) {
+      PackageUriResolver pkgResolver = new PackageUriResolver(packagesDirs);
+      sourceFactory = new SourceFactory(dartResolver, pkgResolver, fileResolver);
     } else {
       logNoLocation(container);
-      factory = new SourceFactory(dartResolver, fileResolver);
+      sourceFactory = new SourceFactory(dartResolver, fileResolver);
     }
 
-    context.setSourceFactory(factory);
+    context.setSourceFactory(sourceFactory);
     return context;
   }
 
@@ -388,7 +414,8 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       return;
     }
     pubFolders = new HashMap<IPath, PubFolder>();
-    defaultContext = initContext(factory.createContext(), projectResource, sdk);
+    boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
+    defaultContext = initContext(factory.createContext(), projectResource, sdk, hasPubspec);
     createPubFolders(projectResource);
   }
 

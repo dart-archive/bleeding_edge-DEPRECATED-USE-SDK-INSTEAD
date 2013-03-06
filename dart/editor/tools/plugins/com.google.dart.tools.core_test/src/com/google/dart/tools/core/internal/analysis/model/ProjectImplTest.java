@@ -33,10 +33,12 @@ import com.google.dart.tools.core.mock.MockFolder;
 import com.google.dart.tools.core.mock.MockProject;
 
 import static com.google.dart.engine.element.ElementFactory.library;
+import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
 import static org.mockito.Mockito.mock;
@@ -61,8 +63,20 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private MockFolder appContainer;
   private MockFolder subAppContainer;
   private Project project;
+  private File[] packageRoots = new File[0];
 
   private DartSdk expectedSdk;
+
+  public void assertUriResolvedToPackageRoot(IPath expectedPackageRoot) {
+    IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
+        "foo.dart") : null;
+
+    SourceFactory factory = project.getDefaultContext().getSourceFactory();
+    Source source = factory.forUri("package:foo/foo.dart");
+    IPath actual = new Path(source.getFullName());
+
+    assertEquals(expected, actual);
+  }
 
   public void test_discardContextsIn_project() {
     assertEquals(1, project.getPubFolders().length);
@@ -163,6 +177,30 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     final DartSdk sdk = project.getSdk();
     assertNotNull(sdk);
     assertSame(expectedSdk, sdk);
+  }
+
+  public void test_packageRoots_ignored() throws Exception {
+    packageRoots = new File[] {new Path("/does/not/exist").toFile()};
+
+    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+  }
+
+  public void test_packageRoots_not_set() throws Exception {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+    packageRoots = new File[] {};
+
+    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+  }
+
+  public void test_packageRoots_set() throws Exception {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    subAppContainer.remove(PUBSPEC_FILE_NAME);
+    packageRoots = new File[] {new Path("/does/not/exist").toFile()};
+
+    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
   }
 
   public void test_pubFolder_folder() {
@@ -271,6 +309,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     projectContainer.remove(PUBSPEC_FILE_NAME);
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
+    packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
     assertEquals(0, project.getPubFolders().length);
     MockContext defaultContext = (MockContext) project.getDefaultContext();
@@ -279,6 +318,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
+    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
 
     projectContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(projectContainer);
@@ -289,11 +329,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(defaultContext, project.getDefaultContext());
     assertSame(defaultContext, pubFolder.getContext());
     assertSame(projectContainer, pubFolder.getResource());
-    defaultContext.assertClearResolution(false);
+    defaultContext.assertClearResolution(true);
     defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
+    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
   }
 
   public void test_pubspecAdded_project_replacing_folder() {
@@ -322,7 +363,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(defaultContext, project.getDefaultContext());
     assertSame(defaultContext, newPubFolder.getContext());
     assertSame(projectContainer, newPubFolder.getResource());
-    defaultContext.assertClearResolution(false);
+    defaultContext.assertClearResolution(true);
     defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(oldPubFolder.getContext());
@@ -349,16 +390,19 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   public void test_pubspecRemoved_project_to_none() {
     appContainer.remove(PUBSPEC_FILE_NAME);
     subAppContainer.remove(PUBSPEC_FILE_NAME);
+    packageRoots = new File[] {new Path("/does/not/exist").toFile()};
 
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
+    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
 
     projectContainer.remove(PUBSPEC_FILE_NAME);
     project.pubspecRemoved(projectContainer);
 
     assertEquals(0, project.getPubFolders().length);
     ((MockContext) project.getDefaultContext()).assertClearResolution(true);
+    assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
   }
 
   @Override
@@ -374,6 +418,11 @@ public class ProjectImplTest extends AbstractDartCoreTest {
       @Override
       public AnalysisContext createContext() {
         return new MockContextForTest();
+      }
+
+      @Override
+      public File[] getPackageRoots() {
+        return packageRoots;
       }
     });
   }
@@ -392,9 +441,5 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals("doesNotExist4.dart", file3.getName());
     File parent3 = file3.getParentFile();
     assertEquals("doesNotExist3", parent3.getName());
-    File packages = parent3.getParentFile();
-    assertEquals("packages", packages.getName());
-    assertEquals(file1.getParent(), packages.getParent());
   }
-
 }

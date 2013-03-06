@@ -157,19 +157,9 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String EXTENSION_JS = "js";
 
   /**
-   * Preference for the packages root directory
-   */
-  public static final String PACKAGE_ROOT_DIR_PREFERENCE = "package root";
-
-  /**
    * Preference for the automatically running pub
    */
   public static final String PUB_AUTO_RUN_PREFERENCE = "pub auto run";
-
-  /**
-   * Preference for the external resources directory
-   */
-  public static final String AUXILIARY_DIR_PREFERENCE = "external resources";
 
   /**
    * Preference to control if "not a member" warnings should be reported for inferred types.
@@ -1402,13 +1392,7 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Return the package root preference
    */
   public String getPackageRootPref() {
-    String pref = DartCore.getPlugin().getPrefs().get(DartCore.PACKAGE_ROOT_DIR_PREFERENCE, null);
-
-    if (pref != null && pref.length() == 0) {
-      return null;
-    } else {
-      return pref;
-    }
+    return CmdLineOptions.getOptions().getPackageRootString();
   }
 
   public IEclipsePreferences getPrefs() {

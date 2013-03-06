@@ -32,6 +32,7 @@ public class CmdLineOptions {
 
   private static final String AUTO_EXIT_FLAG = "--auto-exit";
   private static final String KILL_AFTER_PERF_FLAG_OLD = "-kill-after-perf"; // deprecated
+  private static final String PACKAGE_ROOT_FLAG = "--package-root";
   private static final String PERF_FLAG = "--perf";
   private static final String PERF_FLAG_OLD = "-perf"; // deprecated
   private static final String TEST_FLAG = "--test";
@@ -79,6 +80,19 @@ public class CmdLineOptions {
       } else if (arg.equals(TEST_FLAG)) {
         options.runTests = true;
 
+      } else if (arg.equals(PACKAGE_ROOT_FLAG)) {
+        if (index + 1 < args.length) {
+          String nextArg = args[index + 1];
+          if (nextArg.length() > 0 && nextArg.charAt(0) != '-') {
+            options.packageRootString = nextArg.trim();
+            index++;
+          } else {
+            System.err.println("Expected path after " + PACKAGE_ROOT_FLAG + " but found " + nextArg);
+          }
+        } else {
+          System.err.println("Expected path after " + PACKAGE_ROOT_FLAG);
+        }
+
       } else if (arg.equals("-version") || arg.equals("-port") || arg.equals("-testLoaderClass")
           || arg.equals("-loaderpluginname") || arg.equals("-classNames")
           || arg.equals("-testApplication") || arg.equals("-testpluginname")) {
@@ -122,6 +136,8 @@ public class CmdLineOptions {
   private boolean measurePerformance = false;
   private boolean runTests = false;
   private long startTime = 0;
+  private String packageRootString = "";
+  private File[] packageRoots = null;
 
   // use parseCmdLine(...) to construct new options
   private CmdLineOptions() {
@@ -152,6 +168,35 @@ public class CmdLineOptions {
    */
   public boolean getMeasurePerformance() {
     return measurePerformance;
+  }
+
+  /**
+   * Answer the package roots specified on the command line or an empty list if none.
+   * 
+   * @return the package roots (not {@code null}, contains no {@code null}s)
+   */
+  public File[] getPackageRoots() {
+    if (packageRoots == null) {
+      if (packageRootString.length() == 0) {
+        packageRoots = new File[0];
+      } else {
+        String[] rootPaths = packageRootString.split(";");
+        packageRoots = new File[rootPaths.length];
+        for (int index = 0; index < packageRoots.length; index++) {
+          packageRoots[index] = new File(rootPaths[index]);
+        }
+      }
+    }
+    return packageRoots;
+  }
+
+  /**
+   * Answer a string representing the package roots specified on the command line.
+   * 
+   * @return the package roots or {@code null} if none specified
+   */
+  public String getPackageRootString() {
+    return packageRootString.length() > 0 ? packageRootString : null;
   }
 
   /**
