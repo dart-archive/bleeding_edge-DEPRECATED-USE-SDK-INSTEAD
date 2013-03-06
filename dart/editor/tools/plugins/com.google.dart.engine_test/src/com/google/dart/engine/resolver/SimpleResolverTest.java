@@ -89,6 +89,32 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_caseExpressionTypeImplementsEquals_int() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(int i) {",
+        "  switch(i) {",
+        "    case(1) : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_caseExpressionTypeImplementsEquals_String() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(String s) {",
+        "  switch(s) {",
+        "    case('1') : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_class_extends_implements() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends B implements C {}",

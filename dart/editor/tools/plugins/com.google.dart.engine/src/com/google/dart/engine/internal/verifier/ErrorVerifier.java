@@ -33,14 +33,18 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -68,6 +72,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private ErrorReporter errorReporter;
 
   /**
+   * The current library that is being analyzed.
+   */
+  private LibraryElement currentLibrary;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   private Type dynamicType;
@@ -83,8 +92,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private ExecutableElement currentFunction;
 
-  public ErrorVerifier(ErrorReporter errorReporter, TypeProvider typeProvider) {
+  public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
+      TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
+    this.currentLibrary = currentLibrary;
     this.typeProvider = typeProvider;
     dynamicType = typeProvider.getDynamicType();
   }
@@ -288,6 +299,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return super.visitReturnStatement(node);
+  }
+
+  @Override
+  public Void visitSwitchStatement(SwitchStatement node) {
+    Expression expression = node.getExpression();
+    Type type = expression.getStaticType();
+    // if the type is int or String, exit this check quickly
+    if (type != null && !type.equals(typeProvider.getIntType())
+        && !type.equals(typeProvider.getStringType())) {
+      Element element = type.getElement();
+      if (element instanceof ClassElement) {
+        ClassElement classElement = (ClassElement) element;
+        MethodElement method = classElement.lookUpMethod("==", currentLibrary);
+        if (method != null
+            && !method.getEnclosingElement().getType().equals(typeProvider.getObjectType())) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+              expression,
+              element.getName());
+        }
+      }
+    }
+    return super.visitSwitchStatement(node);
   }
 
   @Override

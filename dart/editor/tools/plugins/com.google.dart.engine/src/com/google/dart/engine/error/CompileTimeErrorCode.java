@@ -77,7 +77,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 13.9 Switch: It is a compile-time error if the class <i>C</i> implements the operator
    * <i>==</i>.
    */
-  CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS(""),
+  CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS(
+      "The switch case expression type '%s' cannot override the == operator"),
 
   /**
    * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise

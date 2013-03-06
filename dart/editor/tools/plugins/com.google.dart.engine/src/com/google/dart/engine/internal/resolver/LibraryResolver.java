@@ -630,7 +630,10 @@ public class LibraryResolver {
       ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
       CompilationUnit unit = library.getAST(source);
 
-      ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter, typeProvider);
+      ErrorVerifier errorVerifier = new ErrorVerifier(
+          errorReporter,
+          library.getLibraryElement(),
+          typeProvider);
       unit.accept(errorVerifier);
 
       ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);

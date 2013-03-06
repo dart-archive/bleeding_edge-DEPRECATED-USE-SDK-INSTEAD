@@ -63,9 +63,23 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
 
   public void fail_caseExpressionTypeImplementsEquals() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        // TODO
-        ));
+        "class IntWrapper {",
+        "  final int value;",
+        "  const IntWrapper(this.value);",
+        "  bool operator ==(IntWrapper x) {",
+        "    return value == x.value;",
+        "  }",
+        "}",
+        "",
+        "f(IntWrapper a) {",
+        "  switch(a) {",
+        "    case(const IntWrapper(1)) : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
     resolve(source);
+    // Fails since "const IntWrapper(1)" is not considered constant by the constant evaluator yet,
+    // thus, NON_CONSTANT_CASE_EXPRESSION is generated on the switch expression.
     assertErrors(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
     verify(source);
   }
