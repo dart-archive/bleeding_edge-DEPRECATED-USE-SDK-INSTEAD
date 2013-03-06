@@ -189,7 +189,8 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = getObject();
       objectType = objectElement.getType();
       if (objectElement.getMethods().length == 0) {
-        objectElement.setMethods(new MethodElement[] {methodElement("toString", getStringType())});
+        objectElement.setMethods(new MethodElement[] {
+            methodElement("toString", getStringType()), methodElement("==", boolType, objectType)});
         objectElement.setAccessors(new PropertyAccessorElement[] {getterElement(
             "hashCode",
             false,
