@@ -64,7 +64,7 @@ public class InMemoryIndexTest extends TestCase {
     assertNull(result);
   }
 
-  public void test_InMemoryIndex_getRelationships_multiple() throws Exception {
+  public void issue_7951_test_InMemoryIndex_getRelationships_multiple() throws Exception {
     Index index = getIndex();
     IndexStore store = getIndexStore(index);
     Resource resource = new Resource("resource");
