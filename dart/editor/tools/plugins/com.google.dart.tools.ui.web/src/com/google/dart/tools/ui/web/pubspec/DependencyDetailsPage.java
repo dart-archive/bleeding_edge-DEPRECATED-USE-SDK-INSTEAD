@@ -20,6 +20,7 @@ import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
@@ -28,7 +29,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -71,21 +71,18 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     parent.setLayout(layout);
 
     FormToolkit toolkit = getManagedForm().getToolkit();
-    Section section = toolkit.createSection(parent, Section.DESCRIPTION | Section.TITLE_BAR);
+    Section section = toolkit.createSection(parent, Section.TITLE_BAR);
     section.setText("Dependency Details");
 
     TableWrapData td = new TableWrapData(TableWrapData.FILL, TableWrapData.TOP);
     td.grabHorizontal = true;
     section.setLayoutData(td);
     Composite client = toolkit.createComposite(section);
-    GridLayout glayout = new GridLayout();
-    glayout.marginWidth = glayout.marginHeight = 0;
-    glayout.numColumns = 3;
-    client.setLayout(glayout);
+    GridLayoutFactory.swtDefaults().spacing(5, 5).numColumns(3).margins(0, 0).applyTo(client);
 
     GridData gd;
     toolkit.createLabel(client, "Name:");
-    nameText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
+    nameText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER); //$NON-NLS-1$
     gd = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
     nameText.setLayoutData(gd);
     nameText.addModifyListener(new ModifyListener() {
@@ -99,7 +96,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     });
 
     toolkit.createLabel(client, "Version: ");
-    versionText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
+    versionText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER); //$NON-NLS-1$
     gd = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
     versionText.setLayoutData(gd);
     versionText.addModifyListener(new ModifyListener() {
@@ -159,7 +156,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
 
     toolkit.createLabel(client, "");
     pathLabel = toolkit.createLabel(client, "Path:");
-    pathText = toolkit.createText(client, "", SWT.SINGLE); //$NON-NLS-1$
+    pathText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER); //$NON-NLS-1$
     pathText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
     pathText.addModifyListener(new ModifyListener() {
       @Override
@@ -172,7 +169,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     });
 
     gitrefLabel = toolkit.createLabel(client, "Git ref:");
-    gitrefText = toolkit.createText(client, "", SWT.SINGLE);
+    gitrefText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     gitrefText.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1));
     gitrefText.addModifyListener(new ModifyListener() {
       @Override

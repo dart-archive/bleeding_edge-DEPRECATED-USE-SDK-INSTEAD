@@ -302,13 +302,12 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     GridLayoutFactory.swtDefaults().spacing(5, 5).numColumns(2).margins(0, 0).applyTo(client);
 
     section.setClient(client);
-    toolkit.paintBordersFor(client);
     infoSectionPart = new SectionPart(section);
     form.addPart(infoSectionPart);
 
     Label nameLabel = toolkit.createLabel(client, "Name:");
     nameLabel.setToolTipText("A unique name to identify this package. The name should be a valid Dart identifier.");
-    nameText = toolkit.createText(client, "", SWT.SINGLE);
+    nameText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     nameText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     nameText.addModifyListener(new ModifyListener() {
       @Override
@@ -322,7 +321,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Label authorLabel = toolkit.createLabel(client, "Author:");
     authorLabel.setToolTipText("Name(s) of the author(s) of this package. Email address can also be included.");
-    authorText = toolkit.createText(client, "", SWT.SINGLE);
+    authorText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     authorText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     authorText.addModifyListener(new ModifyListener() {
       @Override
@@ -335,7 +334,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     Label versionLabel = toolkit.createLabel(client, "Version:");
     versionLabel.setToolTipText("A version number is three numbers separated by dots, like 0.2.43. "
         + "It can also have a build (+hotfix.oopsie) or pre-release (-alpha.12) suffix.");
-    versionText = toolkit.createText(client, "", SWT.SINGLE);
+    versionText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     versionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     versionText.addModifyListener(new ModifyListener() {
       @Override
@@ -349,7 +348,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Label homepageLabel = toolkit.createLabel(client, "Homepage: ");
     homepageLabel.setToolTipText("The homepage is the URL pointing to the website for this package.");
-    homepageText = toolkit.createText(client, "", SWT.SINGLE);
+    homepageText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     homepageText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     homepageText.addModifyListener(new ModifyListener() {
       @Override
@@ -361,7 +360,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Label documentationLabel = toolkit.createLabel(client, "Documentation: ");
     documentationLabel.setToolTipText("URL for the site that hosts documentation separate from the main homepage for this package.");
-    documentationText = toolkit.createText(client, "", SWT.SINGLE);
+    documentationText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     documentationText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     documentationText.addModifyListener(new ModifyListener() {
       @Override
@@ -373,7 +372,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
 
     Label sdkVersionLabel = toolkit.createLabel(client, "SDK version:");
     sdkVersionLabel.setToolTipText("Set SDK version contraints for this package");
-    sdkVersionText = toolkit.createText(client, "", SWT.SINGLE);
+    sdkVersionText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER);
     sdkVersionText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
     sdkVersionText.addModifyListener(new ModifyListener() {
       @Override
@@ -388,7 +387,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     Label descriptionLabel = toolkit.createLabel(client, "Description:");
     descriptionLabel.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false));
     descriptionLabel.setToolTipText("A description about this package");
-    description = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+    description = toolkit.createText(client, "", SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.BORDER);
     toolkit.adapt(description, true, true);
     GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
     gd.widthHint = 200;
