@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,16 +13,20 @@
  */
 package com.google.dart.engine.element;
 
+import com.google.dart.engine.source.Source;
+
 /**
- * The interface {@code HtmlElement} defines the behavior of elements representing an HTML file.
+ * The interface {@code ExternalHtmlScriptElement} defines the behavior of elements representing a
+ * script tag in an HTML file having a {@code source} attribute that references a Dart library
+ * source file.
  */
-public interface HtmlElement extends Element {
+public interface ExternalHtmlScriptElement extends HtmlScriptElement {
+
   /**
-   * Return an array containing all of the script elements contained in the HTML file. This includes
-   * scripts with libraries that are defined by the content of a script tag as well as libraries
-   * that are referenced in the {@core source} attribute of a script tag.
+   * Return the source referenced by this element, or {@code null} if this element does not
+   * reference a Dart library source file.
    * 
-   * @return the script elements in the HTML file (not {@code null}, contains no {@code null}s)
+   * @return the source for the external Dart library
    */
-  public HtmlScriptElement[] getScripts();
+  public Source getScriptSource();
 }

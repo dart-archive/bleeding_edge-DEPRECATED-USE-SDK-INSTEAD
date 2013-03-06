@@ -17,7 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.HtmlElement;
-import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -35,9 +35,9 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   private AnalysisContext context;
 
   /**
-   * The libraries contained in or referenced from script tags in the HTML file.
+   * The scripts contained in or referenced from script tags in the HTML file.
    */
-  private LibraryElement[] libraries = LibraryElementImpl.EMPTY_ARRAY;
+  private HtmlScriptElement[] scripts = new HtmlScriptElement[0];
 
   /**
    * The source that corresponds to this HTML file.
@@ -77,8 +77,8 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
 
   @Override
-  public LibraryElement[] getLibraries() {
-    return libraries;
+  public HtmlScriptElement[] getScripts() {
+    return scripts;
   }
 
   @Override
@@ -92,13 +92,12 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   }
 
   /**
-   * Set the libraries contained in or referenced from script tags in the HTML file to the given
-   * libraries.
+   * Set the scripts contained in the HTML file to the given scripts.
    * 
-   * @param libraries the libraries contained in or referenced from script tags in the HTML file
+   * @param scripts the scripts
    */
-  public void setLibraries(LibraryElement[] libraries) {
-    this.libraries = libraries;
+  public void setScripts(HtmlScriptElement[] scripts) {
+    this.scripts = scripts;
   }
 
   /**
@@ -113,7 +112,7 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   @Override
   public void visitChildren(ElementVisitor<?> visitor) {
     super.visitChildren(visitor);
-    safelyVisitChildren(libraries, visitor);
+    safelyVisitChildren(scripts, visitor);
   }
 
   @Override

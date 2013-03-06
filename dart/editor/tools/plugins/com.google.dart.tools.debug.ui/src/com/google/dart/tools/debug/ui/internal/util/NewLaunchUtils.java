@@ -98,10 +98,11 @@ public class NewLaunchUtils {
           return new LibraryElement[] {element};
         }
         if (DartCore.isHTMLLikeFileName(resource.getName())) {
-          HtmlElement htmlElement = manager.getHtmlElement((IFile) resource);
-          if (htmlElement != null) {
-            return htmlElement.getLibraries();
-          }
+          // TODO (danrubel): implement once html script elements are implemented
+//          HtmlElement htmlElement = manager.getHtmlElement((IFile) resource);
+//          if (htmlElement != null) {
+//            return htmlElement.getLibraries();
+//          }
         }
       } else {
         resource = resource.getParent();
