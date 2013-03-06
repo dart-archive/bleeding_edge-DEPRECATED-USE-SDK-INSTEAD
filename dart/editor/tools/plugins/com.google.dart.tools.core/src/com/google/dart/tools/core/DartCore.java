@@ -159,7 +159,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * Preference for the automatically running pub
    */
-  public static final String PUB_AUTO_RUN_PREFERENCE = "pub auto run";
+  public static final String PUB_AUTO_RUN_PREFERENCE = "pubAutoRun";
 
   /**
    * Preference to control if "not a member" warnings should be reported for inferred types.
