@@ -34,8 +34,8 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
     IOSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  File newRelative(File parent, String child) => newRelativeFile(parent, child);",
-        "  File newFromURI(Uri uri) => newFileFromUri(uri);",
+        "  JavaFile newRelative(JavaFile parent, String child) => new JavaFile.relative(parent, child);",
+        "  JavaFile newFromURI(Uri uri) => new JavaFile.fromUri(uri);",
         "}");
   }
 
@@ -56,12 +56,12 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
     IOSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  void main(File f) {",
-        "    f.fullPathSync();",
-        "    f.fullPathSync();",
-        "    getAbsoluteFile(f);",
-        "    f.path;",
-        "    f.existsSync();",
+        "  void main(JavaFile f) {",
+        "    f.getPath();",
+        "    f.getAbsolutePath();",
+        "    f.getAbsoluteFile();",
+        "    f.getName();",
+        "    f.exists();",
         "  }",
         "}");
   }
@@ -82,8 +82,8 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
     IOSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(//
         "class Test {",
-        "  int testA() => System.pathSeparatorChar;",
-        "  String testB() => System.pathSeparator;",
+        "  int testA() => JavaFile.separatorChar;",
+        "  String testB() => JavaFile.separator;",
         "}");
   }
 
@@ -109,7 +109,7 @@ public class IOSemanticProcessorTest extends SemanticProcessorTest {
         "    Uri result = new Uri.fromComponents(path: absolutePath);",
         "    return result;",
         "  }",
-        "  Uri newFromFile(File f) => newUriFromFile(f);",
+        "  Uri newFromFile(JavaFile f) => f.toURI();",
         "}");
   }
 

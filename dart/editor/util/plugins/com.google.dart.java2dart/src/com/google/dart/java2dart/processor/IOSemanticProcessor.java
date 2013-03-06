@@ -28,7 +28,6 @@ import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.util.JavaUtils;
 
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
-import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.TokenFactory.token;
@@ -66,16 +65,16 @@ public class IOSemanticProcessor extends SemanticProcessor {
             args.add(namedExpression("path", pathExpression));
             return null;
           }
-          // new File()
+          // new File(parent, child)
           if (isMethodInClass2(
               methodBinding,
               "<init>(java.io.File,java.lang.String)",
               "java.io.File")) {
-            replaceNode(node, methodInvocation("newRelativeFile", args));
+            node.getConstructorName().setName(identifier("relative"));
             return null;
           }
           if (isMethodInClass2(methodBinding, "<init>(java.net.URI)", "java.io.File")) {
-            replaceNode(node, methodInvocation("newFileFromUri", args));
+            node.getConstructorName().setName(identifier("fromUri"));
             return null;
           }
         }
@@ -110,44 +109,16 @@ public class IOSemanticProcessor extends SemanticProcessor {
           replaceNode(node, node.getTarget());
           return null;
         }
-        if (isMethodInClass(node, "getName", "java.io.File")) {
-          replaceNode(node, propertyAccess(node.getTarget(), identifier("path")));
-          return null;
-        }
-        if (isMethodInClass(node, "getPath", "java.io.File")
-            || isMethodInClass(node, "getAbsolutePath", "java.io.File")) {
-          nameNode.setToken(token("fullPathSync"));
-          return null;
-        }
-        if (isMethodInClass2(node, "getAbsoluteFile()", "java.io.File")) {
-          replaceNode(node, methodInvocation("getAbsoluteFile", node.getTarget()));
-          return null;
-        }
-        if (isMethodInClass(node, "exists", "java.io.File")) {
-          nameNode.setToken(token("existsSync"));
-          return null;
-        }
-        if (isMethodInClass(node, "toURI", "java.io.File")) {
-          replaceNode(node, methodInvocation("newUriFromFile", node.getTarget()));
-          return null;
-        }
         return null;
       }
 
       @Override
       public Void visitPropertyAccess(PropertyAccess node) {
         super.visitPropertyAccess(node);
-        ITypeBinding typeBinding = context.getNodeTypeBinding(node.getTarget());
-        String name = node.getPropertyName().getName();
-        if (JavaUtils.isTypeNamed(typeBinding, "java.io.File")) {
-          if (name.equals("separator")) {
-            replaceNode(node, propertyAccess(identifier("JavaSystemIO"), "pathSeparator"));
-            return null;
-          }
-          if (name.equals("separatorChar")) {
-            replaceNode(node, propertyAccess(identifier("JavaSystemIO"), "pathSeparatorChar"));
-            return null;
-          }
+        Expression target = node.getTarget();
+        Object targetBinding = context.getNodeBinding(target);
+        if (JavaUtils.isTypeNamed(targetBinding, "java.io.File")) {
+          replaceNode(target, identifier("JavaFile"));
         }
         return null;
       }
@@ -160,6 +131,10 @@ public class IOSemanticProcessor extends SemanticProcessor {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           if (JavaUtils.isTypeNamed(binding, "java.net.URI")) {
             nameNode.setToken(token("Uri"));
+            return null;
+          }
+          if (JavaUtils.isTypeNamed(binding, "java.io.File")) {
+            nameNode.setToken(token("JavaFile"));
             return null;
           }
         }

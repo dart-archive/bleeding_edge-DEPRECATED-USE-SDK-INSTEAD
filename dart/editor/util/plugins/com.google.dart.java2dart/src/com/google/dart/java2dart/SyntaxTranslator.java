@@ -853,9 +853,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.FieldAccess node) {
-    return done(propertyAccess(
+    PropertyAccess result = propertyAccess(
         translateExpression(node.getExpression()),
-        (SimpleIdentifier) translate(node.getName())));
+        (SimpleIdentifier) translate(node.getName()));
+    context.putNodeBinding(result, node.resolveFieldBinding());
+    return done(result);
   }
 
   @Override
@@ -1256,11 +1258,11 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.QualifiedName node) {
-    Token operator = new Token(TokenType.PERIOD, 0);
-    return done(new PropertyAccess(
+    PropertyAccess result = propertyAccess(
         translateExpression(node.getQualifier()),
-        operator,
-        translateSimpleName(node.getName())));
+        translateSimpleName(node.getName()));
+    context.putNodeBinding(result, node.resolveBinding());
+    return done(result);
   }
 
   @Override

@@ -279,6 +279,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (isMethodInClass(node, "valueOf", "java.lang.Integer")
+            || isMethodInClass(node, "valueOf", "java.lang.Long")
             || isMethodInClass(node, "valueOf", "java.lang.Double")
             || isMethodInClass(node, "valueOf", "java.math.BigInteger")) {
           replaceNode(node, args.get(0));
@@ -306,6 +307,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (isMethodInClass(node, "booleanValue", "java.lang.Boolean")
             || isMethodInClass(node, "doubleValue", "java.lang.Double")
             || isMethodInClass(node, "intValue", "java.lang.Integer")
+            || isMethodInClass(node, "longValue", "java.lang.Long")
             || isMethodInClass(node, "intValue", "java.math.BigInteger")) {
           replaceNode(node, node.getTarget());
           return null;

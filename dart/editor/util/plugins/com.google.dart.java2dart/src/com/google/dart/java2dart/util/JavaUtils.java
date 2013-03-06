@@ -20,6 +20,8 @@ import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.IPackageBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.Modifier;
 
 /**
  * Helper for JDT integration.
@@ -295,6 +297,14 @@ public class JavaUtils {
     return false;
   }
 
+  public static boolean isStaticFieldBinding(Object binding) {
+    if (binding instanceof IVariableBinding) {
+      IVariableBinding fieldBinding = (IVariableBinding) binding;
+      return fieldBinding.isField() && isStatic(fieldBinding);
+    }
+    return false;
+  }
+
   public static boolean isSubtype(ITypeBinding binding, ITypeBinding superBinding) {
     if (binding != null) {
       if (binding == superBinding) {
@@ -393,5 +403,9 @@ public class JavaUtils {
     } else {
       return null;
     }
+  }
+
+  private static boolean isStatic(IBinding binding) {
+    return Modifier.isStatic(binding.getModifiers());
   }
 }

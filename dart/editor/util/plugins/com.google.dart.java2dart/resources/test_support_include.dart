@@ -16,6 +16,9 @@ class TestSource implements Source {
   String get encoding {
     throw new UnsupportedOperationException();
   }
+  int get modificationStamp {
+    throw new UnsupportedOperationException();
+  }
   bool exists() => true;
   bool isInSystemLibrary() {
     throw new UnsupportedOperationException();

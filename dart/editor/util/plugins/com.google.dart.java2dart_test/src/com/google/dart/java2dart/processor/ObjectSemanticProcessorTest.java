@@ -264,6 +264,38 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Long_longValue() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public long main(Long p) {",
+        "    return p.longValue();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  int main(int p) => p;",
+        "}");
+  }
+
+  public void test_Long_valueOf() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public Object foo() {",
+        "    return new Object[]{Long.valueOf(42)};",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Object foo() => <Object> [42];",
+        "}");
+  }
+
   /**
    * In Dart method cannot have type parameters, so we replace them with bound.
    */
