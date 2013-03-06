@@ -223,7 +223,7 @@ class Article {
     } else {
       // TODO(jimhug): Remove this truly evil synchronoush xhr.
       final req = new HttpRequest();
-      req.open('GET', 'data/$name', async: false);
+      req.open('GET', 'data/$name', false);
       req.send();
       _htmlBody = req.responseText;
     }

@@ -168,7 +168,7 @@ class Chat {
         onError();
       }
     });
-    request.open("POST", url, async: true);
+    request.open("POST", url, true);
     request.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
     request.send(jsonlib.stringify(json));
     return request;
