@@ -277,6 +277,7 @@ public final class ElementFactory {
     for (int i = 0; i < count; i++) {
       ParameterElementImpl parameter = new ParameterElementImpl(identifier("a" + i));
       parameter.setType(argumentTypes[i]);
+      parameter.setParameterKind(ParameterKind.REQUIRED);
       parameters[i] = parameter;
     }
     method.setParameters(parameters);
