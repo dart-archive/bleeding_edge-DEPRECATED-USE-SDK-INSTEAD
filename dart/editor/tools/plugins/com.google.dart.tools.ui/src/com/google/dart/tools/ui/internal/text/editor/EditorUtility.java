@@ -184,17 +184,15 @@ public class EditorUtility {
    * @return the corresponding Dart project
    */
   public static DartProject getDartProject(IEditorInput input) {
-    DartProject jProject = null;
-    if (input instanceof IFileEditorInput) {
-      IProject project = ((IFileEditorInput) input).getFile().getProject();
-      if (project != null) {
-        jProject = DartCore.create(project);
-        if (!jProject.exists()) {
-          jProject = null;
-        }
+    DartProject dartProject = null;
+    IProject project = getProject(input);
+    if (project != null) {
+      dartProject = DartCore.create(project);
+      if (!dartProject.exists()) {
+        dartProject = null;
       }
     }
-    return jProject;
+    return dartProject;
   }
 
   /**
@@ -361,6 +359,20 @@ public class EditorUtility {
     }
 
     return modifierString;
+  }
+
+  /**
+   * Returns the project for a given editor input or <code>null</code> if no corresponding project
+   * exists.
+   * 
+   * @param input the editor input
+   * @return the corresponding project
+   */
+  public static IProject getProject(IEditorInput input) {
+    if (input instanceof IFileEditorInput) {
+      return ((IFileEditorInput) input).getFile().getProject();
+    }
+    return null;
   }
 
   /**

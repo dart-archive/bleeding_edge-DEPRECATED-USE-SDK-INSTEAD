@@ -13,6 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.actions;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
@@ -32,6 +36,25 @@ public class NewSelectionConverter {
    */
   public static Element getElementAtOffset(DartEditor editor) {
     return getElementAtOffset(editor, true);
+  }
+
+  /**
+   * Get the element associated with the selected portion of the given input element.
+   * 
+   * @param editor the editor
+   * @param offset the caret position in the editor
+   * @return the associated element
+   */
+  public static Element getElementAtOffset(DartEditor editor, int caret) {
+
+    CompilationUnit cu = editor.getInputUnit();
+
+    ASTNode node = new NodeLocator(caret).searchWithin(cu);
+    if (node == null) {
+      return null;
+    }
+
+    return ElementLocator.locate(node);
   }
 
   /**

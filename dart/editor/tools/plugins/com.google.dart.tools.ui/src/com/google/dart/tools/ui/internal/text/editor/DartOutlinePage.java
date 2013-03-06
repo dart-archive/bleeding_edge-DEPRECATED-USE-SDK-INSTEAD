@@ -1082,7 +1082,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
     }
   }
 
-  public void select(SourceReference reference) {
+  public void select(Object /* Element */reference) {
     if (fOutlineViewer != null) {
 
       ISelection s = fOutlineViewer.getSelection();

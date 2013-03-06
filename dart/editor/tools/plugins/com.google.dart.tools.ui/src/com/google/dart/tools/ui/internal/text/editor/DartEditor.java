@@ -33,7 +33,6 @@ import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
@@ -57,6 +56,7 @@ import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.FoldingActionGroup;
+import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.IProductConstants;
@@ -92,6 +92,7 @@ import com.ibm.icu.text.BreakIterator;
 import org.eclipse.core.commands.operations.IOperationApprover;
 import org.eclipse.core.commands.operations.IUndoContext;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.CoreException;
@@ -2411,7 +2412,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
           setHighlightRange(range.getOffset(), range.getLength(), true);
           if (fOutlinePage != null) {
-            fOutlinePage.select((SourceReference) element);
+            fOutlinePage.select(element);
           }
 
           return;
@@ -2481,6 +2482,39 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     result[9] = "com.google.dart.tools.ui.internal.preferences.SaveParticipantPreferencePage"; //$NON-NLS-1$
     System.arraycopy(inheritedPages, 0, result, length, inheritedPages.length);
     return result;
+  }
+
+  /**
+   * Computes and returns the source element that includes the caret and serves as provider for the
+   * outline page selection and the editor range indication.
+   * <p>
+   * to replace {@link #computeHighlightRangeSourceReference()}.
+   * 
+   * @return the computed source element
+   */
+  protected com.google.dart.engine.element.Element computeHighlightRangeSourceElement() {
+
+    ISourceViewer sourceViewer = getSourceViewer();
+    if (sourceViewer == null) {
+      return null;
+    }
+
+    StyledText styledText = sourceViewer.getTextWidget();
+    if (styledText == null) {
+      return null;
+    }
+
+    int caret = 0;
+    if (sourceViewer instanceof ITextViewerExtension5) {
+      ITextViewerExtension5 extension = (ITextViewerExtension5) sourceViewer;
+      caret = extension.widgetOffset2ModelOffset(styledText.getCaretOffset());
+    } else {
+      int offset = sourceViewer.getVisibleRegion().getOffset();
+      caret = offset + styledText.getCaretOffset();
+    }
+
+    return NewSelectionConverter.getElementAtOffset(this, caret);
+
   }
 
   /**
@@ -3560,14 +3594,29 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * React to changed selection.
    */
   protected void selectionChanged() {
+
     if (getSelectionProvider() == null) {
       return;
     }
-    SourceReference element = computeHighlightRangeSourceReference();
-    if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
-      synchronizeOutlinePage(element);
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+
+      com.google.dart.engine.element.Element element = computeHighlightRangeSourceElement();
+      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
+        synchronizeOutlinePage(element);
+      }
+      setSelection(element, false);
+
+    } else {
+
+      SourceReference element = computeHighlightRangeSourceReference();
+      if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
+        synchronizeOutlinePage(element);
+      }
+      setSelection(element, false);
+
     }
-    setSelection(element, false);
+
     if (!fSelectionChangedViaGotoAnnotation) {
       updateStatusLine();
     }
@@ -3728,7 +3777,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * 
    * @param element the dart element to select
    */
-  protected void synchronizeOutlinePage(SourceReference element) {
+  protected void synchronizeOutlinePage(Object /* Element */element) {
     synchronizeOutlinePage(element, true);
   }
 
@@ -3739,7 +3788,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param checkIfOutlinePageActive <code>true</code> if check for active outline page needs to be
    *          done
    */
-  protected void synchronizeOutlinePage(SourceReference element, boolean checkIfOutlinePageActive) {
+  protected void synchronizeOutlinePage(Object /* Element */element,
+      boolean checkIfOutlinePageActive) {
     if (fOutlinePage != null && element != null
         && !(checkIfOutlinePageActive && isOutlinePageActive())) {
       fOutlinePage.select(element);
@@ -3801,6 +3851,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param astRoot the compilation unit AST
    */
   protected void updateOccurrenceAnnotations(ITextSelection selection, DartUnit astRoot) {
+
+    //TODO (pquitslund): support occurence annotations for analysis engine elements
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return;
+    }
 
     if (fOccurrencesFinderJob != null) {
       fOccurrencesFinderJob.cancel();
@@ -4042,11 +4097,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private IPreferenceStore createCombinedPreferenceStore(IEditorInput input) {
     List<IPreferenceStore> stores = new ArrayList<IPreferenceStore>(3);
 
-    DartProject project = EditorUtility.getDartProject(input);
+    IProject project = EditorUtility.getProject(input);
     if (project != null) {
-      stores.add(new EclipsePreferencesAdapter(
-          new ProjectScope(project.getProject()),
-          DartCore.PLUGIN_ID));
+      stores.add(new EclipsePreferencesAdapter(new ProjectScope(project), DartCore.PLUGIN_ID));
     }
 
     stores.add(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -4217,6 +4270,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         DartToolsPlugin.log(e);
       }
     }
+  }
+
+  private void setSelection(com.google.dart.engine.element.Element element, boolean moveCursor) {
+    //TODO (pquitslund): implement selection for analysis engine elements
   }
 
   /**
