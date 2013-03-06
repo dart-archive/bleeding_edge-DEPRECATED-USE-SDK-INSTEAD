@@ -68,11 +68,16 @@ public class SourceFactoryTest extends TestCase {
     File file = createFile("/does/not/exist.dart");
     Source source = new FileBasedSource(factory, file);
     assertNull(factory.getContents(source));
+    assertNull(factory.getModificationStamp(source));
+
     String contents = "library lib;";
     factory.setContents(source, contents);
     assertEquals(contents, factory.getContents(source));
+    assertNotNull(factory.getModificationStamp(source));
+
     factory.setContents(source, null);
     assertNull(factory.getContents(source));
+    assertNull(factory.getModificationStamp(source));
   }
 
   public void test_sharedContents() {

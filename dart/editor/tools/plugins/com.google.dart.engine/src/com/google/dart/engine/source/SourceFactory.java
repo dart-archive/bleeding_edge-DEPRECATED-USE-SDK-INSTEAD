@@ -128,6 +128,20 @@ public class SourceFactory {
   }
 
   /**
+   * Return the modification stamp of the given source, or {@code null} if this factory does not
+   * override the contents of the source.
+   * <p>
+   * <b>Note:</b> This method is not intended to be used except by
+   * {@link FileBasedSource#getModificationStamp()}.
+   * 
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp of the given source
+   */
+  protected Long getModificationStamp(Source source) {
+    return contentCache.getModificationStamp(source);
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the

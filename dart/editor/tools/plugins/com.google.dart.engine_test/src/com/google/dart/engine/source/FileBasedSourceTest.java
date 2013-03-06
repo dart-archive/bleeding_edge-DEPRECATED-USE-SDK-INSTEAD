@@ -61,6 +61,28 @@ public class FileBasedSourceTest extends TestCase {
     assertEquals(file.getAbsolutePath(), source.getFullName());
   }
 
+  public void test_getModificationStamp() {
+    SourceFactory factory = new SourceFactory();
+    String fullPath = "/does/not/exist.dart";
+    File file = new File(createFile(fullPath).getAbsolutePath()) {
+      // Adjust the time for systems that run too quickly.
+      private long modified = System.currentTimeMillis() - 1000;
+
+      @Override
+      public long lastModified() {
+        return modified;
+      }
+    };
+    FileBasedSource source = new FileBasedSource(factory, file);
+    long firstStamp = source.getModificationStamp();
+    factory.setContents(source, "");
+    long secondStamp = source.getModificationStamp();
+    assertTrue(secondStamp != firstStamp);
+    factory.setContents(source, null);
+    long thirdStamp = source.getModificationStamp();
+    assertTrue(thirdStamp != secondStamp);
+  }
+
   public void test_getShortName() {
     SourceFactory factory = new SourceFactory();
     File file = createFile("/does/not/exist.dart");

@@ -16,15 +16,19 @@ package com.google.dart.engine.source;
 import junit.framework.TestCase;
 
 public class ContentCacheTest extends TestCase {
-
   public void test_setContents() {
     Source source = new TestSource();
     ContentCache cache = new ContentCache();
     assertNull(cache.getContents(source));
+    assertNull(cache.getModificationStamp(source));
+
     String contents = "library lib;";
     cache.setContents(source, contents);
     assertEquals(contents, cache.getContents(source));
+    assertNotNull(cache.getModificationStamp(source));
+
     cache.setContents(source, null);
     assertNull(cache.getContents(source));
+    assertNull(cache.getModificationStamp(source));
   }
 }

@@ -95,6 +95,17 @@ public interface Source {
   public String getFullName();
 
   /**
+   * Return the modification stamp for this source. A modification stamp is a non-negative integer
+   * with the property that if the contents of the source have not been modified since the last time
+   * the modification stamp was accessed then the same value will be returned, but if the contents
+   * of the source have been modified one or more times (even if the net change is zero) the stamps
+   * will be different.
+   * 
+   * @return the modification stamp for this source
+   */
+  public long getModificationStamp();
+
+  /**
    * Return a short version of the name that can be displayed to the user to denote this source. For
    * example, for a source representing a file this would typically be the name of the file.
    * 

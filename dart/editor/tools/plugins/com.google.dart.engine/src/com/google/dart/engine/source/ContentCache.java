@@ -20,12 +20,24 @@ import java.util.HashMap;
  * {@link Source}.
  */
 public class ContentCache {
-
   /**
    * A table mapping sources to the contents of those sources. This is used to override the default
    * contents of a source.
    */
   private HashMap<Source, String> contentMap = new HashMap<Source, String>();
+
+  /**
+   * A table mapping sources to the modification stamps of those sources. This is used when the
+   * default contents of a source has been overridden.
+   */
+  private HashMap<Source, Long> stampMap = new HashMap<Source, Long>();
+
+  /**
+   * Initialize a newly created cache to be empty.
+   */
+  public ContentCache() {
+    super();
+  }
 
   /**
    * Return the contents of the given source, or {@code null} if this cache does not override the
@@ -42,6 +54,20 @@ public class ContentCache {
   }
 
   /**
+   * Return the modification stamp of the given source, or {@code null} if this cache does not
+   * override the contents of the source.
+   * <p>
+   * <b>Note:</b> This method is not intended to be used except by
+   * {@link SourceFactory#getModificationStamp(com.google.dart.engine.source.Source)}.
+   * 
+   * @param source the source whose modification stamp is to be returned
+   * @return the modification stamp of the given source
+   */
+  public Long getModificationStamp(Source source) {
+    return stampMap.get(source);
+  }
+
+  /**
    * Set the contents of the given source to the given contents. This has the effect of overriding
    * the default contents of the source. If the contents are {@code null} the override is removed so
    * that the default contents will be returned.
@@ -52,8 +78,10 @@ public class ContentCache {
   public void setContents(Source source, String contents) {
     if (contents == null) {
       contentMap.remove(source);
+      stampMap.remove(source);
     } else {
       contentMap.put(source, contents);
+      stampMap.put(source, Long.valueOf(System.currentTimeMillis()));
     }
   }
 }

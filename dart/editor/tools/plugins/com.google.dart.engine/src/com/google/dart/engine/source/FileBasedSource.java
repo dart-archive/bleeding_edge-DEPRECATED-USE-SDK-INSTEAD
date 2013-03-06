@@ -133,6 +133,15 @@ public class FileBasedSource implements Source {
   }
 
   @Override
+  public long getModificationStamp() {
+    Long stamp = factory.getModificationStamp(this);
+    if (stamp != null) {
+      return stamp.longValue();
+    }
+    return file.lastModified();
+  }
+
+  @Override
   public String getShortName() {
     return file.getName();
   }
