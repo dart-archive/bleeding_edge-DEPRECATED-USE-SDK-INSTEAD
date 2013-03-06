@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.NullLiteral;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PostfixExpression;
@@ -826,6 +827,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return the type of the given expression
    */
   private Type getType(Expression expression) {
+    if (expression instanceof NullLiteral) {
+      return resolver.getTypeProvider().getObjectType();
+    }
     return expression.getStaticType();
   }
 

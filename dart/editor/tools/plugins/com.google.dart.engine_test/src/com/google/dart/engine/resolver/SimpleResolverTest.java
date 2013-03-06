@@ -22,12 +22,12 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " static int get g => (a,b) => 0;",
+        "  static int get g => (a,b) => 0;",
         "}",
         "class B {",
-        " f() {",
-        "  A.g(1,0);",
-        " }",
+        "  f() {",
+        "    A.g(1,0);",
+        "  }",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -37,7 +37,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_argumentDefinitionTestNonParameter_formalParameter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f(var v) {",
-        " return ?v;",
+        "  return ?v;",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -47,7 +47,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_argumentDefinitionTestNonParameter_namedParameter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f({var v : 0}) {",
-        " return ?v;",
+        "  return ?v;",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -57,7 +57,7 @@ public class SimpleResolverTest extends ResolverTestCase {
   public void test_argumentDefinitionTestNonParameter_optionalParameter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f([var v]) {",
-        " return ?v;",
+        "  return ?v;",
         "}"));
     resolve(source);
     assertNoErrors();
@@ -120,6 +120,20 @@ public class SimpleResolverTest extends ResolverTestCase {
         "  for (int i = 0; i < 3; i++) {",
         "  }",
         "  for (int i = 0; i < 3; i++) {",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_functionTypeAlias() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "typedef bool P(e);",
+        "class A {",
+        "  P p;",
+        "  m(e) {",
+        "    if (p(e)) {}",
         "  }",
         "}"));
     resolve(source);
@@ -192,8 +206,7 @@ public class SimpleResolverTest extends ResolverTestCase {
 
   public void test_isValidMixin_badSuperclass() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "class A extends B {",
-        "}",
+        "class A extends B {}",
         "class B {}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
@@ -242,8 +255,7 @@ public class SimpleResolverTest extends ResolverTestCase {
 
   public void test_isValidMixin_valid() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "}"));
+        "class A {}"));
     LibraryElement library = resolve(source);
     assertNotNull(library);
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
@@ -321,6 +333,16 @@ public class SimpleResolverTest extends ResolverTestCase {
         "bool makeAssertion() => true;",
         "f() {",
         "  assert(makeAssertion);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_resolveAgainstNull() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(var p) {",
+        "  return null == p;",
         "}"));
     resolve(source);
     assertNoErrors();

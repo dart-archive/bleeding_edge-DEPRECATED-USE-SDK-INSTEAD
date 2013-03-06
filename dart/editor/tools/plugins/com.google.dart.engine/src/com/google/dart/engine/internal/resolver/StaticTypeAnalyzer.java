@@ -931,7 +931,25 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param element the element representing the method or function invoked by the given node
    */
   private Void recordReturnType(Expression expression, Element element) {
-    if (element instanceof ExecutableElement) {
+    if (element instanceof PropertyAccessorElement) {
+      //
+      // This is a function invocation expression disguised as something else. We are invoking a
+      // getter and then invoking the returned function.
+      //
+      FunctionType propertyType = ((PropertyAccessorElement) element).getType();
+      if (propertyType != null) {
+        Type returnType = propertyType.getReturnType();
+        if (returnType instanceof FunctionType) {
+          Type innerReturnType = ((FunctionType) returnType).getReturnType();
+          if (innerReturnType != null) {
+            return recordType(expression, innerReturnType);
+          }
+        }
+        if (returnType != null) {
+          return recordType(expression, returnType);
+        }
+      }
+    } else if (element instanceof ExecutableElement) {
       FunctionType type = ((ExecutableElement) element).getType();
       if (type != null) {
         // TODO(brianwilkerson) Figure out the conditions under which the type is null.
