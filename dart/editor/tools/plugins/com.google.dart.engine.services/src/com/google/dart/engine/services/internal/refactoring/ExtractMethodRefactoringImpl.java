@@ -645,7 +645,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             }
           }
           // remember declaration names
-          if (CorrectionUtils.isNameOfDeclaration(node)) {
+          if (node.inDeclarationContext()) {
             usedNames.add(node.getName());
           }
         }

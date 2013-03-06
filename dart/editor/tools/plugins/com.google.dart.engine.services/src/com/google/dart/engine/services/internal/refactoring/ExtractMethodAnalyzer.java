@@ -79,7 +79,7 @@ public class ExtractMethodAnalyzer extends StatementAnalyzer {
     super.visitSimpleIdentifier(node);
     if (isFirstSelectedNode(node)) {
       // name of declaration
-      if (CorrectionUtils.isNameOfDeclaration(node)) {
+      if (node.inDeclarationContext()) {
         invalidSelection("Cannot extract the name part of a declaration.");
       }
       // method name

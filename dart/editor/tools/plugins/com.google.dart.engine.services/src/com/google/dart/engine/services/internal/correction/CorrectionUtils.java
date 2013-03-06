@@ -33,7 +33,6 @@ import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
-import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.ClassElement;
@@ -430,26 +429,6 @@ public class CorrectionUtils {
     }
     // done
     return res.toArray(new String[res.size()]);
-  }
-
-  /**
-   * @return <code>true</code> if given {@link ASTNode} is the name of some declaration.
-   */
-  public static boolean isNameOfDeclaration(ASTNode node) {
-    // TODO(scheglov) may be Brian will add Declaration.getName()
-    if (node.getParent() instanceof FunctionDeclaration
-        && ((FunctionDeclaration) node.getParent()).getName() == node) {
-      return true;
-    }
-    if (node.getParent() instanceof MethodDeclaration
-        && ((MethodDeclaration) node.getParent()).getName() == node) {
-      return true;
-    }
-    if (node.getParent() instanceof VariableDeclaration
-        && ((VariableDeclaration) node.getParent()).getName() == node) {
-      return true;
-    }
-    return false;
   }
 
   /**

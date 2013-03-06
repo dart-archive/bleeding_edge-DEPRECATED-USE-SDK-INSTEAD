@@ -717,7 +717,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     assertRefactoringStatus(
         refactoringStatus,
         RefactoringStatusSeverity.FATAL,
-        "Selection must either cover whole try statement or parts of try, catch, or finally block.");
+        "Cannot extract the name part of a declaration.");
   }
 
   public void test_bad_try_finallyBlock() throws Exception {

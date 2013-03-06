@@ -156,14 +156,16 @@ public class StatementAnalyzer extends SelectionAnalyzer {
   public Void visitTryStatement(TryStatement node) {
     super.visitTryStatement(node);
     ASTNode firstSelectedNode = getFirstSelectedNode();
-    if (firstSelectedNode == node.getBody() || firstSelectedNode == node.getFinallyClause()) {
-      invalidSelection("Selection must either cover whole try statement or parts of try, catch, or finally block.");
-    } else {
-      List<CatchClause> catchClauses = node.getCatchClauses();
-      for (CatchClause catchClause : catchClauses) {
-        if (catchClause == firstSelectedNode || catchClause.getBody() == firstSelectedNode
-            || catchClause.getExceptionParameter() == firstSelectedNode) {
-          invalidSelection("Selection must either cover whole try statement or parts of try, catch, or finally block.");
+    if (firstSelectedNode != null) {
+      if (firstSelectedNode == node.getBody() || firstSelectedNode == node.getFinallyClause()) {
+        invalidSelection("Selection must either cover whole try statement or parts of try, catch, or finally block.");
+      } else {
+        List<CatchClause> catchClauses = node.getCatchClauses();
+        for (CatchClause catchClause : catchClauses) {
+          if (firstSelectedNode == catchClause || firstSelectedNode == catchClause.getBody()
+              || firstSelectedNode == catchClause.getExceptionParameter()) {
+            invalidSelection("Selection must either cover whole try statement or parts of try, catch, or finally block.");
+          }
         }
       }
     }

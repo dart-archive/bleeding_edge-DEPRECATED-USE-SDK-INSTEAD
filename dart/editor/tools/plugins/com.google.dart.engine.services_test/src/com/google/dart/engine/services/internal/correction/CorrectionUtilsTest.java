@@ -1189,48 +1189,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertFalse(utils.isJustWhitespaceOrComment(rangeStartLength(3, 2)));
   }
 
-  public void test_isNameOfDeclaration_function() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "test() {}",
-        "");
-    SimpleIdentifier node = findIdentifier("test() {}");
-    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
-  }
-
-  public void test_isNameOfDeclaration_method() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  test() {}",
-        "}");
-    SimpleIdentifier node = findIdentifier("test() {}");
-    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
-  }
-
-  public void test_isNameOfDeclaration_reference() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  int test = 0;",
-        "  print(test);",
-        "}",
-        "");
-    SimpleIdentifier node = findIdentifier("test);");
-    assertFalse(CorrectionUtils.isNameOfDeclaration(node));
-  }
-
-  public void test_isNameOfDeclaration_variable() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  int test = 0;",
-        "}",
-        "");
-    SimpleIdentifier node = findIdentifier("test = 0");
-    assertTrue(CorrectionUtils.isNameOfDeclaration(node));
-  }
-
   public void test_new_withCharBuffer() throws Exception {
     Source source = mock(Source.class);
     CompilationUnit unit = mock(CompilationUnit.class);

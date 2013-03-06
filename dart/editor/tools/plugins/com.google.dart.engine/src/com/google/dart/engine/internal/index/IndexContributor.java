@@ -27,7 +27,6 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
-import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
@@ -37,7 +36,6 @@ import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
-import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
@@ -111,54 +109,12 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the name node of the given {@link ASTNode}.
-   */
-  private static Identifier getNameNode(ASTNode node) {
-    if (node instanceof ClassDeclaration) {
-      return ((ClassDeclaration) node).getName();
-    }
-    if (node instanceof ClassTypeAlias) {
-      return ((ClassTypeAlias) node).getName();
-    }
-    if (node instanceof FunctionTypeAlias) {
-      return ((FunctionTypeAlias) node).getName();
-    }
-    if (node instanceof FunctionDeclaration) {
-      return ((FunctionDeclaration) node).getName();
-    }
-    if (node instanceof TypeParameter) {
-      return ((TypeParameter) node).getName();
-    }
-    if (node instanceof ConstructorDeclaration) {
-      return ((ConstructorDeclaration) node).getName();
-    }
-    if (node instanceof MethodDeclaration) {
-      return ((MethodDeclaration) node).getName();
-    }
-    if (node instanceof VariableDeclaration) {
-      return ((VariableDeclaration) node).getName();
-    }
-    if (node instanceof SimpleFormalParameter) {
-      return ((SimpleFormalParameter) node).getIdentifier();
-    }
-    return null;
-  }
-
-  /**
    * @return <code>true</code> if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
    */
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
     return parent instanceof PrefixedIdentifier
         && ((PrefixedIdentifier) parent).getIdentifier() == node;
-  }
-
-  /**
-   * @return <code>true</code> if the given identifier is the name in a declaration
-   */
-  private static boolean isNameInDeclaration(SimpleIdentifier node) {
-    ASTNode parent = node.getParent();
-    return getNameNode(parent) == node;
   }
 
   /**
@@ -434,7 +390,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     Element nameElement = new NameElementImpl(node.getName());
     Location location = createLocation(node);
     // name in declaration
-    if (isNameInDeclaration(node)) {
+    if (node.inDeclarationContext()) {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
       return null;
     }
