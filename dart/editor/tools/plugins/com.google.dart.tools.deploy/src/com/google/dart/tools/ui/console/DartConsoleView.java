@@ -207,21 +207,16 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     this.parent = parent;
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
 
-    IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
-    clearAction = new ClearAction();
-    toolbar.add(clearAction);
-    propertiesAction = new PropertiesAction();
-    toolbar.add(propertiesAction);
-    toolbar.add(new Separator());
-    terminateAction = new TerminateAction();
-    toolbar.add(terminateAction);
-    toolbar.add(new Separator("outputGroup"));
-    getViewSite().getActionBars().updateActionBars();
-
     display = Display.getCurrent();
 
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
     getPreferences().addPropertyChangeListener(propertyChangeListener);//background
+
+    clearAction = new ClearAction();
+    propertiesAction = new PropertiesAction();
+    terminateAction = new TerminateAction();
+
+    updateToolBar();
   }
 
   @Override
@@ -231,6 +226,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       if (console instanceof ProcessConsole) {
         getPreferences().removePropertyChangeListener((ProcessConsole) this.console);//in,out,err
       }
+
       this.console = null;
     }
 
@@ -240,7 +236,13 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       page = null;
     }
 
+    // We recycle the console; remove any contributions from the previous ProcessConsole.
+    clearToolBar();
+
     this.console = inConsole;
+
+    // Add back our tolbar contributions.
+    updateToolBar();
 
     // show the new console
     if (this.console != null) {
@@ -398,6 +400,12 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
+  private void clearToolBar() {
+    IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
+
+    toolbar.removeAll();
+  }
+
   private void doPropertyChange(PropertyChangeEvent event) {
     updateColors();
   }
@@ -473,6 +481,17 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     } else {
       setTitleImage(Activator.getImage("icons/full/eview16/console_view.gif"));
     }
+  }
+
+  private void updateToolBar() {
+    IToolBarManager toolbar = getViewSite().getActionBars().getToolBarManager();
+
+    toolbar.add(clearAction);
+    toolbar.add(propertiesAction);
+    toolbar.add(new Separator());
+    toolbar.add(terminateAction);
+    toolbar.add(new Separator("outputGroup"));
+    getViewSite().getActionBars().updateActionBars();
   }
 
 }
