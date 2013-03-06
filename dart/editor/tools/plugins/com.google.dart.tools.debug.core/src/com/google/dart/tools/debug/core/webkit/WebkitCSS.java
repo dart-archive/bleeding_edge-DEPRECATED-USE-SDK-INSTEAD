@@ -44,6 +44,12 @@ import java.util.List;
 public class WebkitCSS extends WebkitDomain {
   public static interface CSSListener {
     /**
+     * Fires whenever a MediaQuery result changes (for example, after a browser window has been
+     * resized.) The current implementation considers only viewport-dependent media features.
+     */
+    public void mediaQueryResultChanged();
+
+    /**
      * Called when the given style sheet changes.
      * 
      * @param styleSheetId
@@ -52,6 +58,7 @@ public class WebkitCSS extends WebkitDomain {
   }
 
   private static final String STYLE_SHEET_CHANGED = "CSS.styleSheetChanged";
+  private static final String MEDIA_QUERY_RESULT_CHANGED = "CSS.mediaQueryResultChanged";
 
   private List<CSSListener> listeners = new ArrayList<WebkitCSS.CSSListener>();
 
@@ -193,13 +200,15 @@ public class WebkitCSS extends WebkitDomain {
   }
 
   protected void handleCssNotification(String method, JSONObject params) throws JSONException {
-    // CSS.mediaQueryResultChanged
-
     if (method.equals(STYLE_SHEET_CHANGED)) {
       String styleSheetId = params.getString("styleSheetId");
 
       for (CSSListener listener : listeners) {
         listener.styleSheetChanged(styleSheetId);
+      }
+    } else if (method.equals(MEDIA_QUERY_RESULT_CHANGED)) {
+      for (CSSListener listener : listeners) {
+        listener.mediaQueryResultChanged();
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);
