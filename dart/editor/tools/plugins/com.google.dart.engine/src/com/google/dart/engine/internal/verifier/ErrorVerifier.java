@@ -26,6 +26,7 @@ import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -34,6 +35,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ConstructorElement;
@@ -294,6 +296,27 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
     return super.visitTypeParameter(node);
+  }
+
+  @Override
+  public Void visitVariableDeclarationList(VariableDeclarationList node) {
+    TypeName typeName = node.getType();
+    if (typeName != null) {
+      Identifier identifier = typeName.getName();
+      if (identifier instanceof SimpleIdentifier) {
+        SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
+        Token token = simpleIdentifier.getToken();
+        if (token.getType() == TokenType.KEYWORD) {
+          if (((KeywordToken) token).getKeyword() != Keyword.DYNAMIC) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+                identifier,
+                identifier.getName());
+          }
+        }
+      }
+    }
+    return super.visitVariableDeclarationList(node);
   }
 
   @Override

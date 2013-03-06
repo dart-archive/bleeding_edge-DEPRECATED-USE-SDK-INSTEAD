@@ -61,16 +61,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_builtInIdentifierAsType() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  typedef x;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
-    verify(source);
-  }
-
   public void fail_caseExpressionTypeImplementsEquals() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -1264,6 +1254,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER);
+    verify(source);
+  }
+
+  public void test_builtInIdentifierAsType() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  typedef x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
     verify(source);
   }
 

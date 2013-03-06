@@ -51,7 +51,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.30 Identifier Reference: It is a compile-time error to use a built-in identifier other than
    * dynamic as a type annotation.
    */
-  BUILT_IN_IDENTIFIER_AS_TYPE(""),
+  BUILT_IN_IDENTIFIER_AS_TYPE("The built-in identifier '%s' cannot be as a type"),
 
   /**
    * 12.30 Identifier Reference: It is a compile-time error if a built-in identifier is used as the

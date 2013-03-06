@@ -79,6 +79,16 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_builtInIdentifierAsType_dynamic() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  dynamic x;",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_class_extends_implements() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends B implements C {}",
