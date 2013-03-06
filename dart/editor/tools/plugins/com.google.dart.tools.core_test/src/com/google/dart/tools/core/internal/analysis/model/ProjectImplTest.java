@@ -75,7 +75,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     Source source = factory.forUri("package:foo/foo.dart");
     IPath actual = new Path(source.getFullName());
 
-    assertEquals(expected, actual.setDevice(null));
+    assertEquals(expected.setDevice(null), actual.setDevice(null));
   }
 
   public void test_discardContextsIn_project() {
