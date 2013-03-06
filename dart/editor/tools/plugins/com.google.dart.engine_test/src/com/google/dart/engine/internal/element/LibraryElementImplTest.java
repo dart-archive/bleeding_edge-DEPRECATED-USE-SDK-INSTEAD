@@ -15,10 +15,12 @@ package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.libraryIdentifier;
@@ -64,6 +66,22 @@ public class LibraryElementImplTest extends EngineTestCase {
       assertSame(prefixB, prefixes[0]);
       assertSame(prefixA, prefixes[1]);
     }
+  }
+
+  public void test_isUpToDate() {
+    AnalysisContext context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
+    LibraryElement library = ElementFactory.library(context, "foo");
+
+    context.getSourceFactory().setContents(
+        library.getDefiningCompilationUnit().getSource(),
+        "sdfsdff");
+
+    // Assert that we are not up to date if the target has an old time stamp.
+    assertFalse(library.isUpToDate(0));
+
+    // Assert that we are up to date with a target modification time in the future.
+    assertTrue(library.isUpToDate(System.currentTimeMillis() + 1000));
   }
 
   public void test_setImports() {

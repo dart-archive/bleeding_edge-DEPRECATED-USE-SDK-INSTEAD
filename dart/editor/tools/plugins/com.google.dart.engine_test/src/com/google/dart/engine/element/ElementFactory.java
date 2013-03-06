@@ -252,7 +252,7 @@ public final class ElementFactory {
 
   public static LibraryElementImpl library(AnalysisContext context, String libraryName) {
     String fileName = libraryName + ".dart";
-    FileBasedSource source = new FileBasedSource(null, createFile(fileName));
+    FileBasedSource source = new FileBasedSource(context.getSourceFactory(), createFile(fileName));
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.setSource(source);
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));

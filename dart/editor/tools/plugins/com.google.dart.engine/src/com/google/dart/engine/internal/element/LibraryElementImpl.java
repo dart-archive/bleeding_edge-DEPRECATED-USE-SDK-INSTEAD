@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element;
 
+import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -28,6 +29,7 @@ import com.google.dart.engine.source.Source;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Instances of the class {@code LibraryElementImpl} implement a {@code LibraryElement}.
@@ -37,6 +39,48 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * An empty array of library elements.
    */
   public static final LibraryElement[] EMPTY_ARRAY = new LibraryElement[0];
+
+  /**
+   * Determine if the given library is up to date with respect to the given time stamp.
+   * 
+   * @param library the library to process
+   * @param timeStamp the time stamp to check against
+   * @param visitedLibraries the set of visited libraries
+   */
+  private static boolean isUpToDate(LibraryElement library, long timeStamp,
+      Set<LibraryElement> visitedLibraries) {
+    if (!visitedLibraries.contains(library)) {
+      visitedLibraries.add(library);
+
+      // Check the defining compilation unit.
+      if (timeStamp < library.getDefiningCompilationUnit().getSource().getModificationStamp()) {
+        return false;
+      }
+
+      // Check the parted compilation units.
+      for (CompilationUnitElement element : library.getParts()) {
+        if (timeStamp < element.getSource().getModificationStamp()) {
+          return false;
+        }
+      }
+
+      // Check the imported libraries.
+      for (LibraryElement importedLibrary : library.getImportedLibraries()) {
+        if (!isUpToDate(importedLibrary, timeStamp, visitedLibraries)) {
+          return false;
+        }
+      }
+
+      // Check the exported libraries.
+      for (LibraryElement exportedLibrary : library.getExportedLibraries()) {
+        if (!isUpToDate(exportedLibrary, timeStamp, visitedLibraries)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
 
   /**
    * The analysis context in which this library is defined.
@@ -189,6 +233,13 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @Override
   public boolean isDartCore() {
     return getName().equals("dart.core");
+  }
+
+  @Override
+  public boolean isUpToDate(long timeStamp) {
+    Set<LibraryElement> visitedLibraries = Sets.newHashSet();
+
+    return isUpToDate(this, timeStamp, visitedLibraries);
   }
 
   /**

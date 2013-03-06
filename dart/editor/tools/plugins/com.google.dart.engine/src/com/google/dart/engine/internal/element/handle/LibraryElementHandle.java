@@ -91,6 +91,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   }
 
   @Override
+  public boolean isUpToDate(long timeStamp) {
+    return getActualElement().isUpToDate(timeStamp);
+  }
+
+  @Override
   protected LibraryElement getActualElement() {
     return (LibraryElement) super.getActualElement();
   }

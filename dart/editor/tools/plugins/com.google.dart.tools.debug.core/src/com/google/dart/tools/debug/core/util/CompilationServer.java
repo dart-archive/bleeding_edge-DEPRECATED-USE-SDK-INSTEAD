@@ -14,7 +14,9 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
@@ -68,31 +70,39 @@ public class CompilationServer {
       if (resources.length > 0) {
         IFile dartResource = resources[0];
 
-        DartElement element = DartCore.create(dartResource);
+        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          LibraryElement library = DartCore.getProjectManager().getLibraryElement(dartResource);
 
-        if (element instanceof CompilationUnit) {
-          CompilationUnit compilationUnit = (CompilationUnit) element;
+          if (library != null && !library.isUpToDate(jsFile.lastModified())) {
+            // Recompile it.
+            compile(dartResource, jsFile);
+          }
+        } else {
+          DartElement element = DartCore.create(dartResource);
 
-          // Is the .dart.js file older then any of the .dart files?
-          if (needsRecompilation(compilationUnit, jsFile)) {
-            // If so, recompile it.
-            compile(compilationUnit, jsFile);
+          if (element instanceof CompilationUnit) {
+            CompilationUnit compilationUnit = (CompilationUnit) element;
+
+            // Is the .dart.js file older then any of the .dart files?
+            if (needsRecompilation(compilationUnit, jsFile)) {
+              // If so, recompile it.
+              compile(dartResource, jsFile);
+            }
           }
         }
       }
     }
   }
 
-  private void compile(CompilationUnit compilationUnit, File outFile) {
+  private void compile(IFile dartFile, File outFile) {
     MessageConsole console = DartCore.getConsole();
     try {
-      IPath inputPath = compilationUnit.getCorrespondingResource().getLocation();
+      IPath inputPath = dartFile.getLocation();
       IPath outputPath = Path.fromOSString(outFile.getPath());
 
       Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-      console.printSeparator("Compiling "
-          + compilationUnit.getCorrespondingResource().getFullPath() + "...");
+      console.printSeparator("Compiling " + dartFile.getFullPath() + "...");
 
       CompilationResult result = compiler.compile(
           inputPath,
@@ -105,8 +115,6 @@ public class CompilationServer {
       if (output.length() > 0) {
         console.println(output);
       }
-    } catch (DartModelException ex) {
-      DartDebugCorePlugin.logError(ex);
     } catch (IOException ex) {
       console.println("Error while compiling: " + ex.toString());
 
@@ -114,6 +122,7 @@ public class CompilationServer {
     }
   }
 
+  @Deprecated
   private List<File> getFilesFor(List<CompilationUnit> compilationUnits) {
     Set<File> files = new HashSet<File>();
 
@@ -143,6 +152,7 @@ public class CompilationServer {
     return new ArrayList<File>(files);
   }
 
+  @Deprecated
   private boolean needsRecompilation(CompilationUnit compilationUnit, File outputFile) {
     if (outputFile == null || !outputFile.exists()) {
       return true;

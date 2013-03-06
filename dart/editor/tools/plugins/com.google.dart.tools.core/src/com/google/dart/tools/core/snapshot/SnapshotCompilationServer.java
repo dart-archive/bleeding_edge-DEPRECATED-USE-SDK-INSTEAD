@@ -14,7 +14,9 @@
 
 package com.google.dart.tools.core.snapshot;
 
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -104,15 +106,25 @@ public class SnapshotCompilationServer {
     if (resources.length > 0) {
       IFile file = resources[0];
 
-      // TODO: this call can take a long time
-      DartElement element = DartCore.create(file);
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        LibraryElement library = DartCore.getProjectManager().getLibraryElement(file);
 
-      if (element instanceof CompilationUnit) {
-        CompilationUnit compilationUnit = (CompilationUnit) element;
-
-        // Is the .snapshot file older then any of the .dart files?
-        if (needsRecompilation(compilationUnit, getDestFile())) {
+        if (library == null) {
           return true;
+        } else {
+          return !library.isUpToDate(getDestFile().lastModified());
+        }
+      } else {
+        // TODO: this call can take a long time
+        DartElement element = DartCore.create(file);
+
+        if (element instanceof CompilationUnit) {
+          CompilationUnit compilationUnit = (CompilationUnit) element;
+
+          // Is the .snapshot file older then any of the .dart files?
+          if (needsRecompilation(compilationUnit, getDestFile())) {
+            return true;
+          }
         }
       }
     }
@@ -126,6 +138,7 @@ public class SnapshotCompilationServer {
     return compiler.compile(getSourceFile(), getDestFile());
   }
 
+  @Deprecated
   private List<File> getFilesFor(List<CompilationUnit> compilationUnits) {
     Set<File> files = new HashSet<File>();
 
@@ -155,6 +168,7 @@ public class SnapshotCompilationServer {
     return new ArrayList<File>(files);
   }
 
+  @Deprecated
   private boolean needsRecompilation(CompilationUnit compilationUnit, File outputFile) {
     if (outputFile == null || !outputFile.exists()) {
       return true;
