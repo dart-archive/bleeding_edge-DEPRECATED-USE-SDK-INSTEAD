@@ -103,48 +103,19 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
-    SimpleIdentifier identifier = node.getIdentifier();
-    Element element = identifier.getElement();
-    if (element != null && !(element instanceof ParameterElement)) {
-      errorReporter.reportError(
-          CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
-          identifier,
-          identifier.getName());
-    }
+    checkForArgumentDefinitionTestNonParameter(node);
     return super.visitArgumentDefinitionTest(node);
   }
 
   @Override
   public Void visitAssertStatement(AssertStatement node) {
-    Expression expression = node.getCondition();
-    Type type = getType(expression);
-    if (type instanceof InterfaceType) {
-      if (!type.isAssignableTo(typeProvider.getBoolType())) {
-        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
-      }
-    } else if (type instanceof FunctionType) {
-      FunctionType functionType = (FunctionType) type;
-      if (functionType.getTypeArguments().length == 0
-          && !functionType.getReturnType().isAssignableTo(typeProvider.getBoolType())) {
-        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
-      }
-    }
+    checkForNonBoolExpression(node);
     return super.visitAssertStatement(node);
   }
 
   @Override
   public Void visitAssignmentExpression(AssignmentExpression node) {
-    Expression lhs = node.getLeftHandSide();
-    Expression rhs = node.getRightHandSide();
-    Type leftType = getType(lhs);
-    Type rightType = getType(rhs);
-    if (!rightType.isAssignableTo(leftType)) {
-      errorReporter.reportError(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          rhs,
-          leftType.getName(),
-          rightType.getName());
-    }
+    checkForInvalidAssignment(node);
     return super.visitAssignmentExpression(node);
   }
 
@@ -228,46 +199,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
     ConstructorName constructorName = node.getConstructorName();
     TypeName typeName = constructorName.getType();
-    Type createdType = typeName.getType();
-    if (createdType instanceof InterfaceType) {
-      if (((InterfaceType) createdType).getElement().isAbstract()) {
-        // CONST_WITH_ABSTRACT_CLASS & NEW_WITH_ABSTRACT_CLASS
-        ConstructorElement element = node.getElement();
-        if (element != null && !element.isFactory()) {
-          if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {
-            errorReporter.reportError(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
-          } else {
-            errorReporter.reportError(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
-          }
-        }
-      }
-      // TODO(jwren) Should this be an else-if or if block? (Should we provide as many errors
-      // as possible, or try to be as concise as possible?)
-      if (typeName.getTypeArguments() != null) {
-        // TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
-        ConstructorElement constructorElement = constructorName.getElement();
-        if (constructorElement != null) {
-          NodeList<TypeName> typeNameArgList = typeName.getTypeArguments().getArguments();
-          TypeVariableElement[] boundingElts = constructorElement.getEnclosingElement().getTypeVariables();
-          // Loop through only all of the elements of the shorter of our two arrays. (Note: This
-          // will only happen these tokens have the WRONG_NUMBER_OF_TYPE_ARGUMENTS error code too.)
-          int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
-          for (int i = 0; i < loopThroughIndex; i++) {
-            TypeName argTypeName = typeNameArgList.get(i);
-            Type argType = argTypeName.getType();
-            Type boundType = boundingElts[i].getBound();
-            if (argType != null && boundType != null) {
-              if (!argType.isSubtypeOf(boundType)) {
-                errorReporter.reportError(
-                    StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
-                    argTypeName,
-                    argTypeName.getName(),
-                    boundingElts[i].getName());
-              }
-            }
-          }
-        }
-      }
+    Type type = typeName.getType();
+    if (type instanceof InterfaceType) {
+      InterfaceType interfaceType = (InterfaceType) type;
+      checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
+      // TODO(jwren) Email Luke to make this determination: Should this be an else-if or if block?
+      // (Should we provide as many errors as possible, or try to be as concise as possible?)
+      checkForTypeArgumentNotMatchingBounds(node, constructorName.getElement(), typeName);
     } else {
       errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, typeName);
     }
@@ -287,24 +225,117 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitReturnStatement(ReturnStatement node) {
-    FunctionType functionType = currentFunction == null ? null : currentFunction.getType();
-    Type expectedReturnType = functionType == null ? null : functionType.getReturnType();
-    Expression returnExpression = node.getExpression();
-    if (expectedReturnType != null && !expectedReturnType.isVoid() && returnExpression != null) {
-      Type actualReturnType = getType(returnExpression);
-      if (!actualReturnType.isAssignableTo(expectedReturnType)) {
-        errorReporter.reportError(
-            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-            returnExpression,
-            actualReturnType.getName(),
-            expectedReturnType.getName());
-      }
-    }
+    checkForReturnOfInvalidType(node);
     return super.visitReturnStatement(node);
   }
 
   @Override
   public Void visitSwitchStatement(SwitchStatement node) {
+    checkForCaseExpressionTypeImplementsEquals(node);
+    return super.visitSwitchStatement(node);
+  }
+
+  @Override
+  public Void visitTypeParameter(TypeParameter node) {
+    checkForBuiltInIdentifierAsName(
+        node.getName(),
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    return super.visitTypeParameter(node);
+  }
+
+  @Override
+  public Void visitVariableDeclarationList(VariableDeclarationList node) {
+    checkForBuiltInIdentifierAsName(node);
+    return super.visitVariableDeclarationList(node);
+  }
+
+  @Override
+  public Void visitWhileStatement(WhileStatement node) {
+    checkForNonBoolCondition(node.getCondition());
+    return super.visitWhileStatement(node);
+  }
+
+  /**
+   * This verifies that the passed argument definition test identifier is a parameter.
+   * 
+   * @param node the {@link ArgumentDefinitionTest} to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#ARGUMENT_DEFINITION_TEST_NON_PARAMETER
+   */
+  private boolean checkForArgumentDefinitionTestNonParameter(ArgumentDefinitionTest node) {
+    SimpleIdentifier identifier = node.getIdentifier();
+    Element element = identifier.getElement();
+    if (element != null && !(element instanceof ParameterElement)) {
+      errorReporter.reportError(
+          CompileTimeErrorCode.ARGUMENT_DEFINITION_TEST_NON_PARAMETER,
+          identifier,
+          identifier.getName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed identifier is not a keyword, and generates the passed error code
+   * on the identifier if it is a keyword.
+   * 
+   * @param identifier the identifier to check to ensure that it is not a keyword
+   * @param errorCode if the passed identifier is a keyword then this error code is created on the
+   *          identifier, the error code will be one of
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME},
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME} or
+   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME}
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME
+   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME
+   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME
+   */
+  private boolean checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
+    Token token = identifier.getToken();
+    if (token.getType() == TokenType.KEYWORD) {
+      errorReporter.reportError(errorCode, identifier, identifier.getName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed variable declaration list does not have a built-in identifier.
+   * 
+   * @param node the variable declaration list to check
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE
+   */
+  private boolean checkForBuiltInIdentifierAsName(VariableDeclarationList node) {
+    TypeName typeName = node.getType();
+    if (typeName != null) {
+      Identifier identifier = typeName.getName();
+      if (identifier instanceof SimpleIdentifier) {
+        SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
+        Token token = simpleIdentifier.getToken();
+        if (token.getType() == TokenType.KEYWORD) {
+          if (((KeywordToken) token).getKeyword() != Keyword.DYNAMIC) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+                identifier,
+                identifier.getName());
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed switch statement does not have a case expression with the
+   * operator '==' overridden.
+   * 
+   * @param node the switch statement to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS
+   */
+  private boolean checkForCaseExpressionTypeImplementsEquals(SwitchStatement node) {
     Expression expression = node.getExpression();
     Type type = expression.getStaticType();
     // if the type is int or String, exit this check quickly
@@ -320,67 +351,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
               expression,
               element.getName());
+          return true;
         }
       }
     }
-    return super.visitSwitchStatement(node);
-  }
-
-  @Override
-  public Void visitTypeParameter(TypeParameter node) {
-    checkForBuiltInIdentifierAsName(
-        node.getName(),
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
-    return super.visitTypeParameter(node);
-  }
-
-  @Override
-  public Void visitVariableDeclarationList(VariableDeclarationList node) {
-    TypeName typeName = node.getType();
-    if (typeName != null) {
-      Identifier identifier = typeName.getName();
-      if (identifier instanceof SimpleIdentifier) {
-        SimpleIdentifier simpleIdentifier = (SimpleIdentifier) identifier;
-        Token token = simpleIdentifier.getToken();
-        if (token.getType() == TokenType.KEYWORD) {
-          if (((KeywordToken) token).getKeyword() != Keyword.DYNAMIC) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
-                identifier,
-                identifier.getName());
-          }
-        }
-      }
-    }
-    return super.visitVariableDeclarationList(node);
-  }
-
-  @Override
-  public Void visitWhileStatement(WhileStatement node) {
-    checkForNonBoolCondition(node.getCondition());
-    return super.visitWhileStatement(node);
-  }
-
-  /**
-   * This verifies that the passed identifier is not a keyword, and generates the passed error code
-   * on the identifier if it is a keyword.
-   * 
-   * @param identifier the identifier to check to ensure that it is not a keyword
-   * @param errorCode if the passed identifier is a keyword then this error code is created on the
-   *          identifier, the error code will be one of
-   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_NAME},
-   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME} or
-   *          {@link CompileTimeErrorCode#BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME}
-   */
-  private void checkForBuiltInIdentifierAsName(SimpleIdentifier identifier, ErrorCode errorCode) {
-    Token token = identifier.getToken();
-    if (token.getType() == TokenType.KEYWORD) {
-      errorReporter.reportError(errorCode, identifier, identifier.getName());
-    }
+    return false;
   }
 
   // TODO(jwren) replace this method with a generic "conflicting" error code evaluation
-  private ErrorCode checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
+  private boolean checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
     ConstructorElement constructorElement = node.getElement();
     SimpleIdentifier constructorName = node.getName();
     if (constructorName != null && constructorElement != null && !constructorName.isSynthetic()) {
@@ -393,7 +372,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
               node,
               name);
-          return CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD;
+          return true;
         }
       }
       MethodElement[] methods = classElement.getMethods();
@@ -403,25 +382,171 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
               node,
               name);
-          return CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD;
+          return true;
         }
       }
     }
-    return null;
+    return false;
+  }
+
+  /**
+   * This verifies that the passed instance creation expression is not being invoked on an abstract
+   * class.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
+   *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
+   * @param type the type being constructed with this {@link InstanceCreationExpression}
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticWarningCode#CONST_WITH_ABSTRACT_CLASS
+   * @see StaticWarningCode#NEW_WITH_ABSTRACT_CLASS
+   */
+  private boolean checkForConstOrNewWithAbstractClass(InstanceCreationExpression node,
+      TypeName typeName, InterfaceType type) {
+    if (type.getElement().isAbstract()) {
+      // CONST_WITH_ABSTRACT_CLASS & NEW_WITH_ABSTRACT_CLASS
+      ConstructorElement element = node.getElement();
+      if (element != null && !element.isFactory()) {
+        if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {
+          errorReporter.reportError(StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
+        } else {
+          errorReporter.reportError(StaticWarningCode.NEW_WITH_ABSTRACT_CLASS, typeName);
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed assignment expression represents a valid assignment.
+   * 
+   * @param node the assignment expression to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#INVALID_ASSIGNMENT
+   */
+  private boolean checkForInvalidAssignment(AssignmentExpression node) {
+    Expression lhs = node.getLeftHandSide();
+    Expression rhs = node.getRightHandSide();
+    Type leftType = getType(lhs);
+    Type rightType = getType(rhs);
+    if (!rightType.isAssignableTo(leftType)) {
+      errorReporter.reportError(
+          StaticTypeWarningCode.INVALID_ASSIGNMENT,
+          rhs,
+          leftType.getName(),
+          rightType.getName());
+      return true;
+    }
+    return false;
   }
 
   /**
    * Checks to ensure that the expressions that need to be of type bool, are. Otherwise an error is
    * reported on the expression.
    * 
-   * @see StaticTypeWarningCode#NON_BOOL_CONDITION
    * @param condition the conditional expression to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#NON_BOOL_CONDITION
    */
-  private void checkForNonBoolCondition(Expression condition) {
+  private boolean checkForNonBoolCondition(Expression condition) {
     Type conditionType = getType(condition);
     if (conditionType != null && !conditionType.isAssignableTo(typeProvider.getBoolType())) {
       errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_CONDITION, condition);
+      return true;
     }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed assert statement has either a 'bool' or '() -> bool' input.
+   * 
+   * @param node the assert statement to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#NON_BOOL_EXPRESSION
+   */
+  private boolean checkForNonBoolExpression(AssertStatement node) {
+    Expression expression = node.getCondition();
+    Type type = getType(expression);
+    if (type instanceof InterfaceType) {
+      if (!type.isAssignableTo(typeProvider.getBoolType())) {
+        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+        return true;
+      }
+    } else if (type instanceof FunctionType) {
+      FunctionType functionType = (FunctionType) type;
+      if (functionType.getTypeArguments().length == 0
+          && !functionType.getReturnType().isAssignableTo(typeProvider.getBoolType())) {
+        errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This checks that the return type matches the type of the declared return type in the enclosing
+   * method or function.
+   * 
+   * @param node the return statement to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
+   */
+  private boolean checkForReturnOfInvalidType(ReturnStatement node) {
+    FunctionType functionType = currentFunction == null ? null : currentFunction.getType();
+    Type expectedReturnType = functionType == null ? null : functionType.getReturnType();
+    Expression returnExpression = node.getExpression();
+    if (expectedReturnType != null && !expectedReturnType.isVoid() && returnExpression != null) {
+      Type actualReturnType = getType(returnExpression);
+      if (!actualReturnType.isAssignableTo(expectedReturnType)) {
+        errorReporter.reportError(
+            StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
+            returnExpression,
+            actualReturnType.getName(),
+            expectedReturnType.getName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the type arguments in the passed instance creation expression are all within
+   * their bounds as specified by the class element where the constructor [that is being invoked] is
+   * declared.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @param typeName the {@link TypeName} of the {@link ConstructorName} from the
+   *          {@link InstanceCreationExpression}, this is the AST node that the error is attached to
+   * @param constructorElement the {@link ConstructorElement} from the instance creation expression
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see StaticTypeWarningCode#TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+   */
+  private boolean checkForTypeArgumentNotMatchingBounds(InstanceCreationExpression node,
+      ConstructorElement constructorElement, TypeName typeName) {
+    if (typeName.getTypeArguments() != null && constructorElement != null) {
+      NodeList<TypeName> typeNameArgList = typeName.getTypeArguments().getArguments();
+      TypeVariableElement[] boundingElts = constructorElement.getEnclosingElement().getTypeVariables();
+      // Loop through only all of the elements of the shorter of our two arrays. (Note: This
+      // will only happen these tokens have the WRONG_NUMBER_OF_TYPE_ARGUMENTS error code too.)
+      int loopThroughIndex = Math.min(typeNameArgList.size(), boundingElts.length);
+      for (int i = 0; i < loopThroughIndex; i++) {
+        TypeName argTypeName = typeNameArgList.get(i);
+        Type argType = argTypeName.getType();
+        Type boundType = boundingElts[i].getBound();
+        if (argType != null && boundType != null) {
+          if (!argType.isSubtypeOf(boundType)) {
+            errorReporter.reportError(
+                StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+                argTypeName,
+                argTypeName.getName(),
+                boundingElts[i].getName());
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**
