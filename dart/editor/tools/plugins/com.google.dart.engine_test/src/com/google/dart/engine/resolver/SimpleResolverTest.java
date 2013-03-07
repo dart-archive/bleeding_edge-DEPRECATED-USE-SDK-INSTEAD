@@ -19,6 +19,26 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
+  public void fail_caseExpressionTypeImplementsEquals_Object() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class IntWrapper {",
+        "  final int value;",
+        "  const IntWrapper(this.value);",
+        "}",
+        "",
+        "f(IntWrapper intWrapper) {",
+        "  switch(intWrapper) {",
+        "    case(const IntWrapper(1)) : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    // Fails since "const IntWrapper(1)" is not considered constant by the constant evaluator yet,
+    // thus, NON_CONSTANT_CASE_EXPRESSION is generated on the switch expression.
+    assertNoErrors();
+    verify(source);
+  }
+
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
