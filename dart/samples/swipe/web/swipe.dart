@@ -28,7 +28,7 @@ void main() {
     event.preventDefault();
 
     if (event.touches.length > 0) {
-      touchStartX = event.touches[0].pageX;
+      touchStartX = event.touches[0].page.x;
     }
   });
 
@@ -36,7 +36,7 @@ void main() {
     event.preventDefault();
 
     if (touchStartX != null && event.touches.length > 0) {
-      int newTouchX = event.touches[0].pageX;
+      int newTouchX = event.touches[0].page.x;
 
       if (newTouchX > touchStartX) {
         spinFigure(target, (newTouchX - touchStartX) ~/ 20 + 1);

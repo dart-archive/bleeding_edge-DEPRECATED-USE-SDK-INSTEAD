@@ -239,8 +239,8 @@ class TouchHandler {
       return;
     }
     Touch touch = _getLastTouch();
-    int clientX = touch.clientX;
-    int clientY = touch.clientY;
+    int clientX = touch.client.x;
+    int clientY = touch.client.y;
     if (_dragging) {
       _endTime = timeStamp;
       _endTouchX = clientX;
@@ -264,8 +264,8 @@ class TouchHandler {
       return;
     }
     final touch = e.touches[0];
-    int clientX = touch.clientX;
-    int clientY = touch.clientY;
+    int clientX = touch.client.x;
+    int clientY = touch.client.y;
     int moveX = _lastTouchX - clientX;
     int moveY = _lastTouchY - clientY;
     _totalMoveX += moveX.abs();
@@ -316,15 +316,15 @@ class TouchHandler {
       return;
     }
     final touch = e.touches[0];
-    _startTouchX = _lastTouchX = touch.clientX;
-    _startTouchY = _lastTouchY = touch.clientY;
+    _startTouchX = _lastTouchX = touch.client.x;
+    _startTouchY = _lastTouchY = touch.client.y;
     _startTime = e.timeStamp;
     // TODO(jacobr): why don't we just clear the lists?
     _recentTouchesX = new List<int>();
     _recentTouchesY = new List<int>();
-    _recentTouchesX.add(touch.clientX);
+    _recentTouchesX.add(touch.client.x);
     _recentTouchesX.add(e.timeStamp);
-    _recentTouchesY.add(touch.clientY);
+    _recentTouchesY.add(touch.client.y);
     _recentTouchesY.add(e.timeStamp);
     _lastEvent = e;
     _beginTracking();

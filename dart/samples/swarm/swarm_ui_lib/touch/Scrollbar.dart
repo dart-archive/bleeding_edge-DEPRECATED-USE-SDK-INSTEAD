@@ -161,10 +161,10 @@ class Scrollbar implements ScrollListener {
         elementOver == _horizontalElement) {
       _currentScrollVertical = elementOver == _verticalElement;
       if (_currentScrollVertical) {
-        _currentScrollStartMouse = e.pageY;
+        _currentScrollStartMouse = e.page.y;
         _currentScrollStartOffset = _scroller.getVerticalOffset();
       } else {
-        _currentScrollStartMouse = e.pageX;
+        _currentScrollStartMouse = e.page.x;
         _currentScrollStartOffset = _scroller.getHorizontalOffset();
       }
       _refreshScrollRatio();
@@ -201,7 +201,7 @@ class Scrollbar implements ScrollListener {
       return;
     }
     _refreshScrollRatio();
-    int coordinate = _currentScrollVertical ? e.pageY : e.pageX;
+    int coordinate = _currentScrollVertical ? e.page.y : e.page.x;
     num delta = (coordinate - _currentScrollStartMouse) * _currentScrollRatio;
     if (delta != 0) {
       num x;

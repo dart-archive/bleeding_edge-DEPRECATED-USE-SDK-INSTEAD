@@ -39,8 +39,8 @@ class ColorPicker {
   }
 
   void onMouseMove(MouseEvent event) {
-    int x = event.offsetX;
-    int y = event.offsetY - 40;
+    int x = event.offset.x;
+    int y = event.offset.y - 40;
     if (( y < 0) || (x >= width)) {
       return;
     }
@@ -51,8 +51,8 @@ class ColorPicker {
   void onMouseDown(MouseEvent event) {
     Element elt = event.target;
     event.cancelBubble = true;
-    int x = event.offsetX;
-    int y = event.offsetY - 40;
+    int x = event.offset.x;
+    int y = event.offset.y - 40;
     if ((y < 0) || (x >= width)) {
       return;
     }

@@ -168,19 +168,19 @@ class MockTouch implements Touch {
 
   MockTouch(MouseEvent this.wrapped) {}
 
-  int get clientX => wrapped.clientX;
+  int get clientX => wrapped.client.x;
 
-  int get clientY => wrapped.clientY;
+  int get clientY => wrapped.client.y;
 
   int get identifier => 0;
 
-  int get pageX => wrapped.pageX;
+  int get pageX => wrapped.page.x;
 
-  int get pageY => wrapped.pageY;
+  int get pageY => wrapped.page.y;
 
-  int get screenX => wrapped.screenX;
+  int get screenX => wrapped.screen.x;
 
-  int get screenY {return wrapped.screenY; }
+  int get screenY {return wrapped.screen.y; }
 
   EventTarget get target => wrapped.target;
 
@@ -236,13 +236,13 @@ class MockTouchEvent implements TouchEvent {
 
   int get keyCode => wrapped.keyCode;
 
-  int get layerX => wrapped.layerX;
+  int get layerX => wrapped.layer.x;
 
-  int get layerY => wrapped.layerY;
+  int get layerY => wrapped.layer.y;
 
-  int get pageX => wrapped.pageX;
+  int get pageX => wrapped.page.x;
 
-  int get pageY => wrapped.pageY;
+  int get pageY => wrapped.page.y;
 
   Window get view => wrapped.view;
 

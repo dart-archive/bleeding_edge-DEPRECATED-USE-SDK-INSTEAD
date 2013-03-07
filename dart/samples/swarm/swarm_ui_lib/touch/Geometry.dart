@@ -26,7 +26,7 @@ class Coordinate {
    * Gets the coordinates of a touch's location relative to the window's
    * viewport. [input] is either a touch object or an event object.
    */
-  Coordinate.fromClient(var input) : this(input.clientX, input.clientY);
+  Coordinate.fromClient(var input) : this(input.client.x, input.client.y);
 
   static Coordinate difference(Coordinate a, Coordinate b) {
     return new Coordinate(a.x - b.x, a.y - b.y);

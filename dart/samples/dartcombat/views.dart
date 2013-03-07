@@ -280,8 +280,8 @@ class ViewUtil {
   static Future<List<int>> positionFromEvent(Element gridNode, MouseEvent e) {
     final completer = new Completer<List<int>>();
     window.setImmediate(() {
-      int x = (e.pageX - gridNode.offsetLeft) ~/ 50;
-      int y = (e.pageY - gridNode.offsetTop) ~/ 50;
+      int x = (e.page.x - gridNode.offsetLeft) ~/ 50;
+      int y = (e.page.y - gridNode.offsetTop) ~/ 50;
       completer.complete([x, y]);
     });
     return completer.future;

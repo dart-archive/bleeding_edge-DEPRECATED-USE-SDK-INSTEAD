@@ -173,7 +173,7 @@ class Solar3DApplication {
       // We don't rotate the view if we don't own the mouse
       return;
     }
-    controller.accumScroll += event.movementY;
+    controller.accumScroll += event.movement.y;
     event.preventDefault();
   }
 
