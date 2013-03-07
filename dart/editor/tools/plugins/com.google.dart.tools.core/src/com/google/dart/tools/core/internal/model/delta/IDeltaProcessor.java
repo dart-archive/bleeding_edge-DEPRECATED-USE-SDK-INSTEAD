@@ -17,8 +17,8 @@ package com.google.dart.tools.core.internal.model.delta;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The public interface to the delta processor.
@@ -40,7 +40,7 @@ public interface IDeltaProcessor {
    * Queue of reconcile deltas on working copies that have yet to be fired. This is a mapping from
    * IWorkingCopy to DartElementDelta
    */
-  public HashMap<CompilationUnit, DartElementDelta> getReconcileDeltas();
+  public Map<CompilationUnit, DartElementDelta> getReconcileDeltas();
 
   /**
    * Registers the given delta with this delta processor.

@@ -54,6 +54,7 @@ import org.eclipse.text.edits.TextEdit;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The class <code>DartModelOperation</code> defines the behavior common to all Dart Model
@@ -524,7 +525,7 @@ public abstract class DartModelOperation implements IWorkspaceRunnable, IProgres
    * @param delta the delta to be added
    */
   protected void addReconcileDelta(CompilationUnit workingCopy, DartElementDeltaImpl delta) {
-    HashMap<CompilationUnit, DartElementDelta> reconcileDeltas = DartModelManager.getInstance().getDeltaProcessor().getReconcileDeltas();
+    Map<CompilationUnit, DartElementDelta> reconcileDeltas = DartModelManager.getInstance().getDeltaProcessor().getReconcileDeltas();
     DartElementDeltaImpl previousDelta = (DartElementDeltaImpl) reconcileDeltas.get(workingCopy);
     if (previousDelta != null) {
       DartElementDelta[] children = delta.getAffectedChildren();

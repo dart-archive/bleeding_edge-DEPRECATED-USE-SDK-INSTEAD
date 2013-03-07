@@ -30,6 +30,7 @@ import com.google.dart.tools.core.generator.DartProjectGenerator;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
 import com.google.dart.tools.core.internal.model.delta.DeltaProcessingState;
 import com.google.dart.tools.core.internal.model.delta.IDeltaProcessor;
+import com.google.dart.tools.core.internal.model.delta.MockDeltaProcessor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
 import com.google.dart.tools.core.internal.model.info.DartProjectInfo;
 import com.google.dart.tools.core.internal.util.Extensions;
@@ -653,7 +654,12 @@ public class DartModelManager {
   }
 
   public IDeltaProcessor getDeltaProcessor() {
-    return deltaState.getDeltaProcessor();
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // TODO(devoncarew): eventually we'll want to throw an exception here on access
+      return MockDeltaProcessor.getInstance();
+    } else {
+      return deltaState.getDeltaProcessor();
+    }
   }
 
   /**
@@ -1727,7 +1733,9 @@ public class DartModelManager {
       DartCore.logError("Could not save DartCore preferences", e); //$NON-NLS-1$
     }
 
-    deltaState.dispose();
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      deltaState.dispose();
+    }
 
     ResourcesPlugin.getWorkspace().removeSaveParticipant(DartCore.PLUGIN_ID);
 
@@ -1806,7 +1814,9 @@ public class DartModelManager {
 
       // listen for resource changes
       // deltaState.initializeRootsWithPreviousSession();
-      deltaState = new DeltaProcessingState();
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        deltaState = new DeltaProcessingState();
+      }
 
       ResourceUtil.startup();
       DartCore.notYetImplemented();
