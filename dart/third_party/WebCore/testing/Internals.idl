@@ -34,6 +34,7 @@
     boolean isLoadingFromMemoryCache(in DOMString url);
 
     unsigned long numberOfScopedHTMLStyleChildren(in Node scope) raises(DOMException);
+    CSSStyleDeclaration computedStyleIncludingVisitedInfo(in Node node) raises(DOMException);
 
 #if defined(ENABLE_SHADOW_DOM) && ENABLE_SHADOW_DOM
     ShadowRoot ensureShadowRoot(in Element host) raises (DOMException);
@@ -246,12 +247,14 @@
     // Returns a string with information about the mouse cursor used at the specified client location.
     DOMString getCurrentCursorInfo(in Document document) raises (DOMException);
 
+    DOMString markerTextForListItem(in Element element) raises (DOMException);
+
     SerializedScriptValue deserializeBuffer(in ArrayBuffer buffer);
     ArrayBuffer serializeObject(in SerializedScriptValue obj);
 
     void setUsesOverlayScrollbars(in boolean enabled);
 
     [Conditional=ENCRYPTED_MEDIA_V2] void initializeMockCDM();
-    
+
     [Conditional=SPEECH_SYNTHESIS] void enableMockSpeechSynthesizer();
 };
