@@ -65,14 +65,22 @@ public class CompletionTests extends CompletionTestCase {
         "}");
     test(
         source,
-        "1+A",
-        "1+vim",
-        "1-vq",
+        "1-A",
+        "1-vim",
+        "1+vq",
         "1-vf",
+        "1-this",
+        "1-void",
+        "1-null",
+        "1-false",
         "2-A",
         "2+vim",
         "2-vf",
         "2-vq",
+        "2-this",
+        "2-void",
+        "2-null",
+        "2-false",
         "3+vf",
         "3+vq",
         "3+vim",
@@ -203,6 +211,14 @@ public class CompletionTests extends CompletionTestCase {
         "6+x");
   }
 
+  public void testCommentSnippets005() throws Exception {
+    test(
+        "class Date { static Date JUN, JUL;}class X { m() { return Da!1te.JU!2L; }}",
+        "1+Date",
+        "2+JUN",
+        "2+JUL");
+  }
+
   public void testCommentSnippets006() throws Exception {
     test("class B1 {B1();x(){}}class B2 extends B1 {B2() { super.!2x();}}", "2+x");
   }
@@ -234,9 +250,40 @@ public class CompletionTests extends CompletionTestCase {
         "6+implements");
   }
 
+  public void testCommentSnippets010() throws Exception {
+    // space, char, eol are important
+    test("class Map{}class x implements !1{}", "1+Map");
+  }
+
+  public void testCommentSnippets011() throws Exception {
+    // space, char, eol are important
+    test("class Map{}class x implements M!1{}", "1+Map");
+  }
+
+  public void testCommentSnippets012() throws Exception {
+    // space, char, eol are important
+    test("class Map{}class x implements M!1\n{}", "1+Map");
+  }
+
+  public void testCommentSnippets013() throws Exception {
+    test("class num{}class x !2{!1}!3", "1+num", "2-num", "3-num");
+  }
+
   public void testCommentSnippets014() throws Exception {
     // trailing space is important
     test("class num{}typedef n!1 ;", "1+num");
+  }
+
+  public void testCommentSnippets015() throws Exception {
+    test("class D {f(){} g(){f!1(f!2);}}", "1+f", "2+f");
+  }
+
+  public void testCommentSnippets016() throws Exception {
+    test("class F {m() { m(); !1}}", "1+m");
+  }
+
+  public void testCommentSnippets017() throws Exception {
+    test("class F {var x = !1false;}", "1+true");
   }
 
   public void testCommentSnippets027() throws Exception {

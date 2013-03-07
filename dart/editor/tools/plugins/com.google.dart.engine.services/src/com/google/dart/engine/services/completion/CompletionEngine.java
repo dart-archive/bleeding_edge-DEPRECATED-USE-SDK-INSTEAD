@@ -16,6 +16,8 @@ package com.google.dart.engine.services.completion;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -75,6 +77,7 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,18 +92,57 @@ import java.util.Map;
  */
 public class CompletionEngine {
 
-  static class CompletionState {
-    boolean isForMixin;
-    boolean isVoidAllowed;
-    boolean isDynamicAllowed;
+  /*private*/class NameCollector {
+    Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
 
-    void includesUndefinedTypes() {
-      isVoidAllowed = true;
-      isDynamicAllowed = true;
+    void addNamesDefinedByExecutable(ExecutableElement execElement) {
+      mergeNames(execElement.getParameters());
+      mergeNames(execElement.getLocalVariables());
     }
 
-    void mustBeMixin() {
-      isForMixin = true;
+    void addNamesDefinedByType(InterfaceType type) {
+      mergeNames(type.getElement().getAccessors());
+      mergeNames(type.getElement().getMethods());
+    }
+
+    void addNamesDefinedByTypes(InterfaceType[] types) {
+      for (InterfaceType type : types) {
+        addNamesDefinedByType(type);
+      }
+    }
+
+    void addTopLevelNames() {
+      mergeNames(findAllTypes());
+      mergeNames(findAllFunctions());
+      mergeNames(findAllVariables());
+    }
+
+    Collection<List<Element>> getNames() {
+      return uniqueNames.values();
+    }
+
+    void remove(Element element) {
+      String name = element.getName();
+      List<Element> list = uniqueNames.get(name);
+      if (list == null) {
+        return;
+      }
+      list.remove(element);
+      if (list.isEmpty()) {
+        uniqueNames.remove(name);
+      }
+    }
+
+    private void mergeNames(Element[] elements) {
+      for (Element element : elements) {
+        String name = element.getName();
+        List<Element> dups = uniqueNames.get(name);
+        if (dups == null) {
+          dups = new ArrayList<Element>();
+          uniqueNames.put(name, dups);
+        }
+        dups.add(element);
+      }
     }
   }
 
@@ -232,8 +274,14 @@ public class CompletionEngine {
       if (node.getMethodName() == completionNode) {
         // { x.!y() }
         Expression expr = node.getTarget();
-        Type receiverType = typeOf(expr);
-        analyzePrefixedAccess(receiverType, node.getMethodName());
+        Type receiverType;
+        if (expr == null) { // use this
+          receiverType = typeOfContainingClass(node);
+          analyzeDirectAccess(receiverType, node.getMethodName());
+        } else {
+          receiverType = typeOf(expr);
+          analyzePrefixedAccess(receiverType, node.getMethodName());
+        }
       } else if (node.getTarget() == completionNode) {
         // { x!.y() } -- only reached when node.getTarget() is a simple identifier. (TODO: verify)
         if (completionNode instanceof SimpleIdentifier) {
@@ -248,7 +296,8 @@ public class CompletionEngine {
     public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
       if (node.getPrefix() == completionNode) {
         // { x!.y }
-        node.getIdentifier(); // TODO: verify that this case occurs
+//        state.sourceDeclarationIsStatic(isDefinedInStaticMethod(node));
+        analyzeLocalName(node.getPrefix());
       } else {
         // { v.! }
         SimpleIdentifier receiverName = node.getPrefix();
@@ -327,7 +376,8 @@ public class CompletionEngine {
     @Override
     public Void visitVariableDeclaration(VariableDeclaration node) {
       if (node.getName() == completionNode) {
-        analyzeLocalName(node.getName());
+        analyzeDeclarationName(node.getName());
+        return null;
       } else if (node.getInitializer() == completionNode) {
         analyzeLocalName((SimpleIdentifier) node.getInitializer());
       }
@@ -338,6 +388,22 @@ public class CompletionEngine {
   private class TerminalNodeCompleter extends GeneralizingASTVisitor<Void> {
 
     @Override
+    public Void visitBlock(Block node) {
+      if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
+        // { {! stmt; !} }
+        analyzeLocalName(new Ident(node));
+        return null;
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitBooleanLiteral(BooleanLiteral node) {
+      analyzeLiteralReference(node);
+      return null;
+    }
+
+    @Override
     public Void visitClassDeclaration(ClassDeclaration node) {
       if (isCompletingKeyword(node.getClassKeyword())) {
         pKeyword(node.getClassKeyword()); // Other keywords are legal but not handled here.
@@ -346,6 +412,15 @@ public class CompletionEngine {
       if (isCompletingKeyword(node.getAbstractKeyword())) {
         pKeyword(node.getAbstractKeyword());
         return null;
+      }
+      if (!node.getLeftBracket().isSynthetic()) {
+        if (isCompletionAfter(node.getLeftBracket().getEnd())) {
+          if (node.getRightBracket().isSynthetic()
+              || isCompletionBefore(node.getRightBracket().getOffset())) {
+            analyzeLocalName(new Ident(node));
+            return null;
+          }
+        }
       }
       // TODO { abstract ! class ! A ! extends B implements C, D ! {}}
       return null; // visitCompilationUnitMember(node);
@@ -455,12 +530,12 @@ public class CompletionEngine {
         return null;
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
-        state.mustBeMixin();
+//        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       } else {
         // { X with ! Y }
-        state.mustBeMixin();
+//        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
       }
@@ -490,7 +565,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
-      state.includesUndefinedTypes();
+//      state.includesUndefinedTypes();
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
@@ -503,7 +578,7 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-      state.includesUndefinedTypes();
+//      state.includesUndefinedTypes();
       analyzeTypeName(identifier, null);
       return null;
     }
@@ -519,22 +594,27 @@ public class CompletionEngine {
 
     @Override
     public Void visitVariableDeclarationList(VariableDeclarationList node) {
-      state.includesUndefinedTypes();
+//      state.includesUndefinedTypes();
       analyzeLocalName(identifier);
       return null;
     }
 
     @Override
     public Void visitWithClause(WithClause node) {
-      state.mustBeMixin();
+//      state.mustBeMixin();
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
 
   }
 
+  // Review note: It may look like literals (pNull, etc) are coded redundantly, but that's because
+  // all the code hasn't been written yet.
   private static final String C_DYNAMIC = "dynamic";
   private static final String C_VOID = "void";
+  private static final String C_TRUE = "true";
+  private static final String C_FALSE = "false";
+  private static final String C_NULL = "null";
 
   private CompletionRequestor requestor;
   private CompletionFactory factory;
@@ -559,10 +639,41 @@ public class CompletionEngine {
     requestor.beginReporting();
     ASTNode completionNode = context.getCoveredNode();
     if (completionNode != null) {
+      state.setContext(completionNode);
       TerminalNodeCompleter visitor = new TerminalNodeCompleter();
       completionNode.accept(visitor);
     }
     requestor.endReporting();
+  }
+
+  void analyzeDeclarationName(SimpleIdentifier identifier) {
+    // We might want to propose multiple names for a declaration based on types someday.
+    // For now, just use whatever is already there.
+    filter = new Filter(identifier);
+    if (identifier.getLength() > 0) {
+      pName(identifier);
+    }
+  }
+
+  void analyzeDirectAccess(Type receiverType, SimpleIdentifier completionNode) {
+    if (receiverType != null) {
+      // Complete this.!y where this is absent
+      Element rcvrTypeElem = receiverType.getElement();
+      if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
+        rcvrTypeElem = getObjectClassElement();
+      }
+      if (rcvrTypeElem instanceof ClassElement) {
+        directAccess((ClassElement) rcvrTypeElem, completionNode);
+      }
+    }
+  }
+
+  void analyzeLiteralReference(BooleanLiteral literal) {
+//    state.setContext(literal);
+    Ident ident = new Ident(literal.getParent());
+    ident.setToken(literal.getLiteral());
+    filter = new Filter(ident);
+    analyzeLocalName(ident);
   }
 
   void analyzeLocalName(SimpleIdentifier identifier) {
@@ -571,7 +682,19 @@ public class CompletionEngine {
     Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
     for (List<Element> uniques : uniqueNames.values()) {
       Element candidate = uniques.get(0);
-      pName(candidate, identifier);
+      if (state.isSourceDeclarationStatic) {
+        if (candidate instanceof FieldElement) {
+          if (!((FieldElement) candidate).isStatic()) {
+            continue;
+          }
+        }
+      }
+      pName(candidate);
+    }
+    if (state.areLiteralsAllowed) {
+      pNull();
+      pTrue();
+      pFalse();
     }
   }
 
@@ -594,7 +717,7 @@ public class CompletionEngine {
     Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
     for (List<Element> uniques : uniqueNames.values()) {
       Element candidate = uniques.get(0);
-      pName(candidate, identifier);
+      pName(candidate);
     }
   }
 
@@ -615,13 +738,13 @@ public class CompletionEngine {
       if (type.getName().equals(name)) {
         continue;
       }
-      pName(type, identifier);
+      pName(type);
     }
     if (state.isDynamicAllowed) {
-      pDynamic(identifier);
+      pDynamic();
     }
     if (state.isVoidAllowed) {
-      pVoid(identifier);
+      pVoid();
     }
   }
 
@@ -633,6 +756,16 @@ public class CompletionEngine {
         pExecutable(cons, identifier, classElement);
       }
     }
+  }
+
+  void directAccess(ClassElement classElement, SimpleIdentifier identifier) {
+    // TODO Rewrite collectIdentifiersVisibleAt() in this style.
+    filter = new Filter(identifier);
+    NameCollector names = new NameCollector();
+    names.addNamesDefinedByTypes(allSuperTypes(classElement));
+    names.addNamesDefinedByTypes(allSubtypes(classElement));
+    names.addTopLevelNames();
+    proposeNames(names, classElement, identifier);
   }
 
   void fieldReference(ClassElement classElement, SimpleIdentifier identifier) {
@@ -648,21 +781,10 @@ public class CompletionEngine {
   void prefixedAccess(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to field or method in classElement.
     filter = new Filter(identifier);
-    InterfaceType[] allTypes = allTypes(classElement);
-    Map<String, List<ExecutableElement>> uniqueNames = new HashMap<String, List<ExecutableElement>>();
-    for (InterfaceType type : allTypes) {
-      mergeNames(uniqueNames, type.getElement().getAccessors());
-      mergeNames(uniqueNames, type.getElement().getMethods());
-    }
-    allTypes = allSubtypes(classElement);
-    for (InterfaceType type : allTypes) {
-      mergeNames(uniqueNames, type.getElement().getAccessors());
-      mergeNames(uniqueNames, type.getElement().getMethods());
-    }
-    for (List<ExecutableElement> uniques : uniqueNames.values()) {
-      ExecutableElement candidate = uniques.get(0);
-      pExecutable(candidate, identifier, classElement);
-    }
+    NameCollector names = new NameCollector();
+    names.addNamesDefinedByTypes(allSuperTypes(classElement));
+    names.addNamesDefinedByTypes(allSubtypes(classElement));
+    proposeNames(names, classElement, identifier);
   }
 
   void prefixedAccess(ImportElement libElement, SimpleIdentifier identifier) {
@@ -690,7 +812,7 @@ public class CompletionEngine {
     return subtypes;
   }
 
-  private InterfaceType[] allTypes(ClassElement classElement) {
+  private InterfaceType[] allSuperTypes(ClassElement classElement) {
     InterfaceType[] supertypes = classElement.getAllSupertypes();
     InterfaceType[] allTypes = new InterfaceType[supertypes.length + 1];
     allTypes[0] = classElement.getType();
@@ -734,6 +856,7 @@ public class CompletionEngine {
         ClassElement classElement = (ClassElement) element;
         // TODO: inherited fields
         mergeNames(uniqueNames, classElement.getAccessors());
+        mergeNames(uniqueNames, classElement.getMethods());
         decl = decl.getAncestor(Declaration.class);
         if (decl != null) {
           element = decl.getElement();
@@ -748,6 +871,10 @@ public class CompletionEngine {
 
   private int completionLocation() {
     return context.getSelectionOffset();
+  }
+
+  private int completionTokenOffset() {
+    return completionLocation() - filter.prefix.length();
   }
 
   private CompletionProposal createProposal(ProposalKind kind) {
@@ -858,13 +985,13 @@ public class CompletionEngine {
     }
   }
 
-  private void pDynamic(SimpleIdentifier identifier) {
+  private void pDynamic() {
     if (filterDisallows(C_DYNAMIC)) {
       return;
     }
     CompletionProposal prop = factory.createCompletionProposal(
         ProposalKind.VARIABLE,
-        identifier.getOffset());
+        completionTokenOffset());
     prop.setCompletion(C_DYNAMIC);
     requestor.accept(prop);
   }
@@ -884,6 +1011,17 @@ public class CompletionEngine {
     if (container != null) { // TODO: may be null for functions ??
       prop.setDeclaringType(container.getName());
     }
+    requestor.accept(prop);
+  }
+
+  private void pFalse() {
+    if (filterDisallows(C_FALSE)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        completionTokenOffset());
+    prop.setCompletion(C_FALSE);
     requestor.accept(prop);
   }
 
@@ -913,7 +1051,7 @@ public class CompletionEngine {
     requestor.accept(prop);
   }
 
-  private void pName(Element element, SimpleIdentifier identifier) {
+  private void pName(Element element) {
     // Create a completion proposal for the element: variable, field, class, function.
     String name = element.getName();
     if (filterDisallows(element)) {
@@ -926,6 +1064,29 @@ public class CompletionEngine {
     if (container != null) { // TODO: may be null for functions ??
       prop.setDeclaringType(container.getName());
     }
+    requestor.accept(prop);
+  }
+
+  private void pName(SimpleIdentifier element) {
+    // Create a completion proposal for the name.
+    String name = element.getName();
+    if (filterDisallows(element.getName())) {
+      return;
+    }
+    ProposalKind kind = ProposalKind.VARIABLE;
+    CompletionProposal prop = createProposal(kind);
+    prop.setCompletion(name);
+    requestor.accept(prop);
+  }
+
+  private void pNull() {
+    if (filterDisallows(C_NULL)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        completionTokenOffset());
+    prop.setCompletion(C_NULL);
     requestor.accept(prop);
   }
 
@@ -978,13 +1139,48 @@ public class CompletionEngine {
     return kind;
   }
 
-  private void pVoid(SimpleIdentifier identifier) {
+  private void proposeNames(NameCollector names, ClassElement classElement,
+      SimpleIdentifier identifier) {
+    for (List<Element> uniques : names.getNames()) {
+      Element element = uniques.get(0);
+      switch (element.getKind()) {
+        case PARAMETER:
+        case FUNCTION:
+        case GETTER:
+        case LOCAL_VARIABLE:
+        case METHOD:
+        case SETTER:
+        case TOP_LEVEL_VARIABLE:
+          ExecutableElement candidate = (ExecutableElement) uniques.get(0);
+          pExecutable(candidate, identifier, classElement);
+          break;
+        case CLASS:
+          pName(element);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  private void pTrue() {
+    if (filterDisallows(C_TRUE)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        completionTokenOffset());
+    prop.setCompletion(C_TRUE);
+    requestor.accept(prop);
+  }
+
+  private void pVoid() {
     if (filterDisallows(C_VOID)) {
       return;
     }
     CompletionProposal prop = factory.createCompletionProposal(
         ProposalKind.VARIABLE,
-        identifier.getOffset());
+        completionTokenOffset());
     prop.setCompletion(C_VOID);
     requestor.accept(prop);
   }
@@ -1088,5 +1284,16 @@ public class CompletionEngine {
       type = DynamicTypeImpl.getInstance();
     }
     return type;
+  }
+
+  private Type typeOfContainingClass(ASTNode node) {
+    ASTNode parent = node;
+    while (parent != null) {
+      if (parent instanceof ClassDeclaration) {
+        return ((ClassDeclaration) parent).getElement().getType();
+      }
+      parent = parent.getParent();
+    }
+    return DynamicTypeImpl.getInstance();
   }
 }
