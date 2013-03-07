@@ -43,6 +43,7 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -174,6 +175,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = currentFunction;
     try {
       currentFunction = node.getElement();
+      checkForConflictingConstructorNameAndMember(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       currentFunction = previousFunction;
@@ -375,6 +377,37 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     if (token.getType() == TokenType.KEYWORD) {
       errorReporter.reportError(errorCode, identifier, identifier.getName());
     }
+  }
+
+  // TODO(jwren) replace this method with a generic "conflicting" error code evaluation
+  private ErrorCode checkForConflictingConstructorNameAndMember(ConstructorDeclaration node) {
+    ConstructorElement constructorElement = node.getElement();
+    SimpleIdentifier constructorName = node.getName();
+    if (constructorName != null && constructorElement != null && !constructorName.isSynthetic()) {
+      String name = constructorName.getName();
+      ClassElement classElement = constructorElement.getEnclosingElement();
+      FieldElement[] fields = classElement.getFields();
+      for (FieldElement field : fields) {
+        if (field.getName().equals(name)) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD,
+              node,
+              name);
+          return CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD;
+        }
+      }
+      MethodElement[] methods = classElement.getMethods();
+      for (MethodElement method : methods) {
+        if (method.getName().equals(name)) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD,
+              node,
+              name);
+          return CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD;
+        }
+      }
+    }
+    return null;
   }
 
   /**

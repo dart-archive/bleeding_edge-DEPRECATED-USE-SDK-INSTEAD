@@ -93,17 +93,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_conflictingConstructorNameAndMember() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  int x;",
-        "  const A.x() {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_MEMBER);
-    verify(source);
-  }
-
   public void fail_constConstructorWithNonFinalField() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1319,6 +1308,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "const int INF = 0 / 0;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO);
+    verify(source);
+  }
+
+  public void test_conflictingConstructorNameAndMember_field() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  const A.x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD);
+    verify(source);
+  }
+
+  public void test_conflictingConstructorNameAndMember_method() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  const A.x() {}",
+        "  void x() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD);
     verify(source);
   }
 

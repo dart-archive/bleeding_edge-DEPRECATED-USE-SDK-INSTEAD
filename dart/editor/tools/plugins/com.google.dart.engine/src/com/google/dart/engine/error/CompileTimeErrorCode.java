@@ -98,7 +98,17 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * compile-time error if <i>id</i> is the name of a member declared in the immediately enclosing
    * class.
    */
-  CONFLICTING_CONSTRUCTOR_NAME_AND_MEMBER(""),
+  CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD(
+      "'%s' cannot be used to name a constructor and a method in this class"),
+
+  /**
+   * 7.6 Constructors: A constructor name always begins with the name of its immediately enclosing
+   * class, and may optionally be followed by a dot and an identifier <i>id</i>. It is a
+   * compile-time error if <i>id</i> is the name of a member declared in the immediately enclosing
+   * class.
+   */
+  CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD(
+      "'%s' cannot be used to name a constructor and a field in this class"),
 
   /**
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
