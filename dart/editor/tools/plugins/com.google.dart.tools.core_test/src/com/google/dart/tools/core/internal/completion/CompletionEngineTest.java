@@ -81,7 +81,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets005() throws Exception {
-    test("class X { m() { return Da!1te.JU!2L; }}", "1+Date", "2+JUN", "2+JUL");
+    test("class X { m() { return Da!1teTime.JU!2L; }}", "1+DateTime", "2+JUN", "2+JUL");
   }
 
   public void testCommentSnippets006() throws Exception {
@@ -97,8 +97,8 @@ public class CompletionEngineTest extends TestCase {
         "4+Arrays");
   }
 
-  public void testCommentSnippets008() throws Exception {
-    test("final num M = Dat!1", "1+Date");
+  public void issuetestCommentSnippets008() throws Exception {
+    test("final num M = Dat!1", "1+DateTime");
   }
 
   public void testCommentSnippets009() throws Exception {
@@ -196,11 +196,11 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets028() throws Exception {
-    test("typedef T Y<T extends !1>(List input);", "1+Date", "1+String");
+    test("typedef T Y<T extends !1>(List input);", "1+DateTime", "1+String");
   }
 
   public void testCommentSnippets029() throws Exception {
-    test("interface A<X> default B<X extends !1List!2> {}", "1+Date", "2+List");
+    test("interface A<X> default B<X extends !1List!2> {}", "1+DateTime", "2+List");
   }
 
   public void testCommentSnippets030() throws Exception {
@@ -858,7 +858,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCompletion_topLevelField_init2() throws Exception {
-    test("final num M = Dat!1e.JUN;", "1+Date", "1-void");
+    test("final num M = Dat!1eTime.JUN;", "1+DateTime", "1-void");
   }
 
   public void testCompletion_while() throws Exception {
