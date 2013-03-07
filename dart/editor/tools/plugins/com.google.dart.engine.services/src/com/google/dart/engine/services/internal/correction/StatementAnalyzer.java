@@ -86,22 +86,20 @@ public class StatementAnalyzer extends SelectionAnalyzer {
     if (!hasSelectedNodes()) {
       return null;
     }
-    // TODO(scheglov)
     // check that selection does not begin/end in comment
-//    {
-//      int selectionStart = selection.getOffset();
-//      int selectionEnd = selection.getEnd() - 1;
-//      List<Comment> comments = node.getComments();
-//      for (DartComment comment : comments) {
-//        SourceRange commentRange = SourceRangeFactory.create(comment);
-//        if (SourceRangeUtils.contains(commentRange, selectionStart)) {
-//          invalidSelection(RefactoringCoreMessages.CommentAnalyzer_starts_inside_comment);
-//        }
-//        if (SourceRangeUtils.contains(commentRange, selectionEnd)) {
-//          invalidSelection(RefactoringCoreMessages.CommentAnalyzer_ends_inside_comment);
-//        }
-//      }
-//    }
+    {
+      int selectionStart = selection.getOffset();
+      int selectionEnd = selection.getEnd();
+      List<SourceRange> commentRanges = utils.getCommentRanges();
+      for (SourceRange commentRange : commentRanges) {
+        if (commentRange.contains(selectionStart)) {
+          invalidSelection("Selection begins inside a comment.");
+        }
+        if (commentRange.contains(selectionEnd)) {
+          invalidSelection("Selection ends inside a comment.");
+        }
+      }
+    }
     // more checks
     if (!status.hasFatalError()) {
       checkSelectedNodes(node);

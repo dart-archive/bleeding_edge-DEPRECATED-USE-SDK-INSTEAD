@@ -134,9 +134,53 @@ public class StatementAnalyzerTest extends AbstractDartTest {
     assertThat(analyzer.getSelectedNodes()).containsExactly(statementA);
   }
 
+  public void test_selectionEndsInComment() throws Exception {
+    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
+    parseTestUnit(
+//        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "/*",
+        " end",
+        "*/",
+        "}",
+        "");
+    // analyze selection
+    SourceRange selection = rangeStartEnd(findOffset("print(0)"), findEnd("end"));
+    StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);
+    testUnit.accept(analyzer);
+    // FATAL
+    RefactoringStatus status = analyzer.getStatus();
+    assertTrue(status.hasFatalError());
+    assertEquals("Selection ends inside a comment.", status.getMessage());
+    assertFalse(analyzer.hasSelectedNodes());
+  }
+
+  public void test_selectionStartsInComment() throws Exception {
+    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
+    parseTestUnit(
+//        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "/*",
+        " start",
+        "*/",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    // analyze selection
+    SourceRange selection = rangeStartEnd(findOffset("start"), findEnd("print(0);"));
+    StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);
+    testUnit.accept(analyzer);
+    // FATAL
+    RefactoringStatus status = analyzer.getStatus();
+    assertTrue(status.hasFatalError());
+    assertEquals("Selection begins inside a comment.", status.getMessage());
+    assertFalse(analyzer.hasSelectedNodes());
+  }
+
   public void test_SwitchStatement() throws Exception {
-    // TODO(scheglov) remove this after Engine fix
-    verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",

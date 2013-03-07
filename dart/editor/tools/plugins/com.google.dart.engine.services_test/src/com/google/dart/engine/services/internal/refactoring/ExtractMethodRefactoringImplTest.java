@@ -55,50 +55,47 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Cannot extract the left-hand side of an assignment.");
   }
 
-  // TODO(scheglov) I don't know how to get all comments
-//  public void test_bad_comment_selectionEndsInside() throws Exception {
-//    parseTestUnit(
+  public void test_bad_comment_selectionEndsInside() throws Exception {
+    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
+    parseTestUnit(
 //        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "// start",
-//        "  print(0);",
-//        "/*",
-//        "// end",
-//        "*/",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    // check conditions
-//    assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.FATAL, "");
-////    assertTrue(refactoringStatus.hasFatalError());
-////    {
-////      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
-////      assertEquals(RefactoringCoreMessages.CommentAnalyzer_ends_inside_comment, msg);
-////    }
-//  }
-//
-//  public void test_bad_comment_selectionStartsInside() throws Exception {
-//    parseTestUnit(
+        "main() {",
+        "// start",
+        "  print(0);",
+        "/*",
+        "// end",
+        "*/",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Selection ends inside a comment.");
+  }
+
+  public void test_bad_comment_selectionStartsInside() throws Exception {
+    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
+    parseTestUnit(
 //        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "/*",
-//        "// start",
-//        "*/",
-//        "  print(0);",
-//        "// end",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    // check conditions
-//    assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.FATAL, "");
-////    assertTrue(refactoringStatus.hasFatalError());
-////    {
-////      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.FATAL);
-////      assertEquals(RefactoringCoreMessages.CommentAnalyzer_starts_inside_comment, msg);
-////    }
-//  }
+        "main() {",
+        "/*",
+        "// start",
+        "*/",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.FATAL,
+        "Selection begins inside a comment.");
+  }
 
   public void test_bad_constructor_initializer() throws Exception {
     parseTestUnit(

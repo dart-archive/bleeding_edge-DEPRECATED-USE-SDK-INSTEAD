@@ -59,6 +59,7 @@ import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartLength;
@@ -212,6 +213,30 @@ public class CorrectionUtilsTest extends AbstractDartTest {
       MethodElement child = (MethodElement) Iterables.get(children, 0);
       assertEquals("myMethod", child.getName());
     }
+  }
+
+  public void test_getCommentRanges() throws Exception {
+    parseTestUnit(
+        "main() {",
+        "  print(1);",
+        "  /* marker-1",
+        "    print(2);",
+        "  marker-2 */",
+        "  print(3);",
+        "  /* marker-3",
+        "    print(4);",
+        "  marker-4 */",
+        "}",
+        "");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    List<SourceRange> commentRanges = utils.getCommentRanges();
+    assertThat(commentRanges).hasSize(2);
+    assertEquals(
+        SourceRangeFactory.rangeStartEnd(findOffset("/* marker-1"), findEnd("marker-2 */")),
+        commentRanges.get(0));
+    assertEquals(
+        SourceRangeFactory.rangeStartEnd(findOffset("/* marker-3"), findEnd("marker-4 */")),
+        commentRanges.get(1));
   }
 
   public void test_getDeltaOffset() throws Exception {

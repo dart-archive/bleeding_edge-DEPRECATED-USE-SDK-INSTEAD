@@ -44,6 +44,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
@@ -52,6 +53,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
+import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEndStart;
@@ -642,6 +644,25 @@ public class CorrectionUtils {
       return node.getAncestor(clazz);
     }
     return null;
+  }
+
+  /**
+   * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
+   * 
+   * @return the {@link SourceRange}s of all comments in {@link CompilationUnit}.
+   */
+  public List<SourceRange> getCommentRanges() {
+    List<SourceRange> ranges = Lists.newArrayList();
+    Token token = unit.getBeginToken();
+    while (token != null && token.getType() != TokenType.EOF) {
+      Token commentToken = token.getPrecedingComments();
+      while (commentToken != null) {
+        ranges.add(SourceRangeFactory.rangeToken(commentToken));
+        commentToken = commentToken.getNext();
+      }
+      token = token.getNext();
+    }
+    return ranges;
   }
 
   /**
