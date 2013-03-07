@@ -14,6 +14,10 @@
 
 package com.google.dart.engine.index;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.source.Source;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,16 +30,18 @@ public interface MemoryIndexStore extends IndexStore {
   /**
    * Read the contents of this index from the given {@link InputStream}.
    * 
+   * @param context the {@link AnalysisContext} to read {@link Element}s and {@link Source}s.
    * @param input the {@link InputStream} from which this index will be read
    * @return {@code true} if the file was correctly read
    */
-  boolean readIndex(InputStream input);
+  boolean readIndex(AnalysisContext context, InputStream input);
 
   /**
    * Write the contents of this index to the given {@link OutputStream}.
    * 
+   * @param context the {@link AnalysisContext} to write {@link Element}s and {@link Source}s.
    * @param output the {@link OutputStream} to which this index will be written
    * @throws IOException if the index could not be written
    */
-  void writeIndex(OutputStream output) throws IOException;
+  void writeIndex(AnalysisContext context, OutputStream output) throws IOException;
 }

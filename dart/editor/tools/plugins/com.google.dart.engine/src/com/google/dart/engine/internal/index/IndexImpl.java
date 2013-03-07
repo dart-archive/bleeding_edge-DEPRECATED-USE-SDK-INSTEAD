@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexStore;
@@ -23,6 +24,7 @@ import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation
 import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.internal.index.operation.RemoveContextOperation;
 import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
 import com.google.dart.engine.internal.index.operation.RemoveSourcesOperation;
 import com.google.dart.engine.source.Source;
@@ -49,18 +51,23 @@ public class IndexImpl implements Index {
   }
 
   @Override
-  public void indexUnit(CompilationUnit unit) {
-    queue.enqueue(new IndexUnitOperation(store, unit));
+  public void indexUnit(AnalysisContext context, CompilationUnit unit) {
+    queue.enqueue(new IndexUnitOperation(store, context, unit));
   }
 
   @Override
-  public void removeSource(Source source) {
-    queue.enqueue(new RemoveSourceOperation(store, source));
+  public void removeContext(AnalysisContext context) {
+    queue.enqueue(new RemoveContextOperation(store, context));
   }
 
   @Override
-  public void removeSources(SourceContainer container) {
-    queue.enqueue(new RemoveSourcesOperation(store, container));
+  public void removeSource(AnalysisContext context, Source source) {
+    queue.enqueue(new RemoveSourceOperation(store, context, source));
+  }
+
+  @Override
+  public void removeSources(AnalysisContext context, SourceContainer container) {
+    queue.enqueue(new RemoveSourcesOperation(store, context, container));
   }
 
   @Override

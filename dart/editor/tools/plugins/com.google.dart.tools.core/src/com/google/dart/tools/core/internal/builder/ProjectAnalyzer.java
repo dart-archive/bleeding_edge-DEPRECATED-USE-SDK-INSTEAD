@@ -184,7 +184,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
         return;
       }
       results.put(res, new Result(unit, unit.getResolutionErrors()));
-      index.indexUnit(unit);
+      index.indexUnit(context, unit);
     }
 
     /**
@@ -312,12 +312,12 @@ public class ProjectAnalyzer extends DeltaAdapter {
 
   @Override
   public void packageSourceContainerRemoved(SourceContainerDeltaEvent event) {
-    index.removeSources(event.getSourceContainer());
+    index.removeSources(event.getContext(), event.getSourceContainer());
   }
 
   @Override
   public void packageSourceRemoved(SourceDeltaEvent event) {
-    index.removeSource(event.getSource());
+    index.removeSource(event.getContext(), event.getSource());
   }
 
   @Override
@@ -332,12 +332,12 @@ public class ProjectAnalyzer extends DeltaAdapter {
 
   @Override
   public void sourceContainerRemoved(SourceContainerDeltaEvent event) {
-    index.removeSources(event.getSourceContainer());
+    index.removeSources(event.getContext(), event.getSourceContainer());
   }
 
   @Override
   public void sourceRemoved(SourceDeltaEvent event) {
-    index.removeSource(event.getSource());
+    index.removeSource(event.getContext(), event.getSource());
   }
 
   /**

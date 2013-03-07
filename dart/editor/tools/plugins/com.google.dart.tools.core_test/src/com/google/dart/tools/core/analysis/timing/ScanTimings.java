@@ -94,17 +94,22 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public void indexUnit(CompilationUnit unit) {
+    public void indexUnit(AnalysisContext context, CompilationUnit unit) {
       // ignored
     }
 
     @Override
-    public void removeSource(Source source) {
+    public void removeContext(AnalysisContext context) {
       // ignored
     }
 
     @Override
-    public void removeSources(SourceContainer container) {
+    public void removeSource(AnalysisContext context, Source source) {
+      // ignored
+    }
+
+    @Override
+    public void removeSources(AnalysisContext context, SourceContainer container) {
       // ignored
     }
 

@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.index;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -55,13 +56,6 @@ public interface IndexStore {
   Location[] getRelationships(Element element, Relationship relationship);
 
   /**
-   * Return the number of sources that are currently recorded in this index.
-   * 
-   * @return the number of sources that are currently recorded in this index
-   */
-  int getSourceCount();
-
-  /**
    * Record that the given element and location have the given relationship. For example, if the
    * relationship is the is-referenced-by relationship, then the element would be the element being
    * referenced and the location would be the point at which it is referenced. Each element can have
@@ -88,15 +82,25 @@ public interface IndexStore {
   void recordRelationship(Element element, Relationship relationship, Location location);
 
   /**
+   * Remove from the index all of the information associated with {@link AnalysisContext}.
+   * <p>
+   * This method should be invoked when a context is disposed.
+   * 
+   * @param the {@link AnalysisContext} being removed
+   */
+  void removeContext(AnalysisContext context);
+
+  /**
    * Remove from the index all of the information associated with elements or locations in the given
    * source. This includes relationships between an element in the given source and any other
    * locations, relationships between any other elements and a location within the given source.
    * <p>
    * This method should be invoked when a source is no longer part of the code base.
    * 
+   * @param the {@link AnalysisContext} in which {@link Source} being removed
    * @param source the source being removed
    */
-  void removeSource(Source source);
+  void removeSource(AnalysisContext context, Source source);
 
   /**
    * Remove from the index all of the information associated with elements or locations in the given
@@ -105,7 +109,8 @@ public interface IndexStore {
    * <p>
    * This method should be invoked when multiple sources are no longer part of the code base.
    * 
+   * @param the {@link AnalysisContext} in which {@link Source}s being removed
    * @param container the {@link SourceContainer} holding the sources being removed
    */
-  void removeSources(SourceContainer container);
+  void removeSources(AnalysisContext context, SourceContainer container);
 }

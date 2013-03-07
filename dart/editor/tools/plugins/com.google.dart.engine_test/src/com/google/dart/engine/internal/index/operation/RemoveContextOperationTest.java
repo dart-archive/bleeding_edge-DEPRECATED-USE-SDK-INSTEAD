@@ -18,40 +18,38 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.source.Source;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-public class RemoveSourceOperationTest extends EngineTestCase {
+public class RemoveContextOperationTest extends EngineTestCase {
   private IndexStore store = mock(IndexStore.class);
   private AnalysisContext context = mock(AnalysisContext.class);
-  private Source source = mock(Source.class);
 
-  public void test_getSource() throws Exception {
-    RemoveSourceOperation operation = new RemoveSourceOperation(store, context, source);
-    assertSame(source, operation.getSource());
+  public void test_getContext() throws Exception {
+    RemoveContextOperation operation = new RemoveContextOperation(store, context);
+    assertSame(context, operation.getContext());
   }
 
   public void test_isQuery() throws Exception {
-    RemoveSourceOperation operation = new RemoveSourceOperation(store, context, source);
+    RemoveContextOperation operation = new RemoveContextOperation(store, context);
     assertFalse(operation.isQuery());
   }
 
   public void test_performOperation() throws Exception {
-    RemoveSourceOperation operation = new RemoveSourceOperation(store, context, source);
+    RemoveContextOperation operation = new RemoveContextOperation(store, context);
     operation.performOperation();
-    verify(store).removeSource(context, source);
+    verify(store).removeContext(context);
   }
 
   public void test_removeWhenSourceRemoved() throws Exception {
-    RemoveSourceOperation operation = new RemoveSourceOperation(store, context, null);
+    RemoveContextOperation operation = new RemoveContextOperation(store, context);
     Source source = mock(Source.class);
     assertFalse(operation.removeWhenSourceRemoved(source));
   }
 
   public void test_toString() throws Exception {
-    RemoveSourceOperation operation = new RemoveSourceOperation(store, context, source);
-    when(source.getFullName()).thenReturn("mySource");
-    assertEquals("RemoveSource(mySource)", operation.toString());
+    RemoveContextOperation operation = new RemoveContextOperation(store, context);
+    assertThat(operation.toString()).startsWith("RemoveContext(");
   }
 }

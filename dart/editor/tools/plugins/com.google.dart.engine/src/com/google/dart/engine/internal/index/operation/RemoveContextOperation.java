@@ -13,48 +13,40 @@
  */
 package com.google.dart.engine.internal.index.operation;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.source.Source;
 
 /**
- * Instances of the {@link RemoveSourceOperation} implement an operation that removes from the index
- * any data based on the content of a specified source.
+ * Instances of the {@link RemoveContextOperation} implement an operation that removes from the
+ * index any data based on the specified {@link AnalysisContext}.
  */
-public class RemoveSourceOperation implements IndexOperation {
+public class RemoveContextOperation implements IndexOperation {
   /**
    * The index store against which this operation is being run.
    */
   private IndexStore indexStore;
 
   /**
-   * The context in which source being removed.
+   * The context being removed.
    */
   private final AnalysisContext context;
-
-  /**
-   * The source being removed.
-   */
-  private final Source source;
 
   /**
    * Initialize a newly created operation that will remove the specified resource.
    * 
    * @param indexStore the index store against which this operation is being run
-   * @param context the {@link AnalysisContext} to remove source in
-   * @param source the {@link Source} to remove from index
+   * @param context the {@link AnalysisContext} to remove
    */
-  public RemoveSourceOperation(IndexStore indexStore, AnalysisContext context, Source source) {
+  public RemoveContextOperation(IndexStore indexStore, AnalysisContext context) {
     this.indexStore = indexStore;
     this.context = context;
-    this.source = source;
   }
 
-  /**
-   * @return the {@link Source} that was removed.
-   */
-  public Source getSource() {
-    return source;
+  @VisibleForTesting
+  public AnalysisContext getContext() {
+    return context;
   }
 
   @Override
@@ -65,7 +57,7 @@ public class RemoveSourceOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeSource(context, source);
+      indexStore.removeContext(context);
     }
   }
 
@@ -76,6 +68,6 @@ public class RemoveSourceOperation implements IndexOperation {
 
   @Override
   public String toString() {
-    return "RemoveSource(" + source.getFullName() + ")";
+    return "RemoveContext(" + context + ")";
   }
 }

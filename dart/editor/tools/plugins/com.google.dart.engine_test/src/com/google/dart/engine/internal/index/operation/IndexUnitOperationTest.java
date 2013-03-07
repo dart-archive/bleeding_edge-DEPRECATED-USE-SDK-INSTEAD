@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.index.operation;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.internal.index.IndexContributor;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IndexUnitOperationTest extends EngineTestCase {
+  private AnalysisContext context = mock(AnalysisContext.class);
   private final IndexStore store = mock(IndexStore.class);
   private final Source unitSource = mock(Source.class);
   private final CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
@@ -50,6 +52,7 @@ public class IndexUnitOperationTest extends EngineTestCase {
 
   public void test_performOperation() throws Exception {
     operation.performOperation();
+    verify(store).removeSource(context, unitSource);
     verify(unit).accept(isA(IndexContributor.class));
   }
 
@@ -86,6 +89,6 @@ public class IndexUnitOperationTest extends EngineTestCase {
     super.setUp();
     when(unit.getElement()).thenReturn(unitElement);
     when(unitElement.getSource()).thenReturn(unitSource);
-    operation = new IndexUnitOperation(store, unit);
+    operation = new IndexUnitOperation(store, context, unit);
   }
 }

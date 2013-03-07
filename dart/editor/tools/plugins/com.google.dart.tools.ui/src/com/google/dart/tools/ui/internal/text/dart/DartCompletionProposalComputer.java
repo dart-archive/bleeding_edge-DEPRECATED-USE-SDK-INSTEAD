@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngineFactory;
@@ -489,7 +490,8 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       String path = context.getCompilationUnit().getPath().toOSString();
       compilationUnit = resolve(path, context.getInputUnit());
       Index index = TemporaryResolver.getIndex();
-      index.indexUnit(compilationUnit);
+      AnalysisContext analysisContext = compilationUnit.getElement().getContext();
+      index.indexUnit(analysisContext, compilationUnit);
       engine.complete(new AssistContext(
           SearchEngineFactory.createSearchEngine(index),
           compilationUnit,

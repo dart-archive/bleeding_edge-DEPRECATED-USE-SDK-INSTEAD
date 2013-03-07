@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.index;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -52,6 +53,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   }
 
   private MemoryIndexStoreImpl store = new MemoryIndexStoreImpl();
+  private AnalysisContext contextA = mock(AnalysisContext.class);
+  private AnalysisContext contextB = mock(AnalysisContext.class);
+  private AnalysisContext contextC = mock(AnalysisContext.class);
   private ElementLocation elementLocationA = mock(ElementLocation.class);
   private ElementLocation elementLocationB = mock(ElementLocation.class);
   private ElementLocation elementLocationC = mock(ElementLocation.class);
@@ -160,22 +164,29 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertThat(locations).isEmpty();
   }
 
-  public void test_getSourceCount() throws Exception {
-    // no relationships
-    assertEquals(0, store.getSourceCount());
-    // add relationship in "sourceA"
+  public void test_getRelationships_twoContexts_oneSource() throws Exception {
+    when(unitElementB.getSource()).thenReturn(sourceB);
+    when(unitElementC.getSource()).thenReturn(sourceB);
+    when(elementA.getContext()).thenReturn(contextA);
+    when(elementB.getContext()).thenReturn(contextB);
+    Location locationA = mock(Location.class);
+    Location locationB = mock(Location.class);
+    when(locationA.getElement()).thenReturn(elementA);
+    when(locationB.getElement()).thenReturn(elementB);
+    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(elementB, relationship, locationB);
+    // separate contexts
+    assertEquals(1, store.getLocationCount(contextA));
+    assertEquals(1, store.getLocationCount(contextB));
+    // "elementA"
     {
-      Location location = mock(Location.class);
-      when(location.getElement()).thenReturn(elementA);
-      store.recordRelationship(elementA, relationship, location);
-      assertEquals(1, store.getSourceCount());
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationA);
     }
-    // add relationship in "sourceB" to "sourceC"
+    // "elementB"
     {
-      Location location = mock(Location.class);
-      when(location.getElement()).thenReturn(elementC);
-      store.recordRelationship(elementB, relationship, location);
-      assertEquals(3, store.getSourceCount());
+      Location[] locations = store.getRelationships(elementB, relationship);
+      assertThat(locations).containsOnly(locationB);
     }
   }
 
@@ -197,6 +208,78 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(0, store.getRelationshipCount());
   }
 
+  public void test_removeContext_withDeclaration() throws Exception {
+    when(elementB.getContext()).thenReturn(contextB);
+    when(elementC.getContext()).thenReturn(contextC);
+    // configure B and C
+    Location locationB = mock(Location.class);
+    Location locationC = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(locationC.getElement()).thenReturn(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.getRelationshipCount());
+      assertEquals(2, store.getDeclarationCount(contextA));
+      assertEquals(1, store.getLocationCount(contextB));
+      assertEquals(1, store.getLocationCount(contextC));
+      // we get locations from all contexts
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationB, locationC);
+    }
+    // remove A, so no relations anymore
+    // remove B, 1 relation and 1 location left
+    store.removeContext(contextA);
+    assertEquals(0, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextB));
+    assertEquals(0, store.getLocationCount(contextC));
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).isEmpty();
+    }
+  }
+
+  public void test_removeContext_withRelationship() throws Exception {
+    when(elementB.getContext()).thenReturn(contextB);
+    when(elementC.getContext()).thenReturn(contextC);
+    // configure B and C
+    Location locationB = mock(Location.class);
+    Location locationC = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(locationC.getElement()).thenReturn(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.getRelationshipCount());
+      assertEquals(2, store.getDeclarationCount(contextA));
+      assertEquals(1, store.getLocationCount(contextB));
+      assertEquals(1, store.getLocationCount(contextC));
+      // we get locations from all contexts
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationB, locationC);
+    }
+    // remove B, 1 relation and 1 location left
+    store.removeContext(contextB);
+    assertEquals(1, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextB));
+    assertEquals(1, store.getLocationCount(contextC));
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationC);
+    }
+    // now remove C, empty
+    store.removeContext(contextC);
+    assertEquals(0, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextB));
+    assertEquals(0, store.getLocationCount(contextC));
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).isEmpty();
+    }
+  }
+
   public void test_removeSource_withDeclaration() throws Exception {
     Location locationB = mock(Location.class);
     Location locationC = mock(Location.class);
@@ -211,9 +294,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       assertThat(locations).containsOnly(locationB, locationC);
     }
     // remove A, no relations and locations
-    store.removeSource(sourceA);
+    store.removeSource(contextA, sourceA);
     assertEquals(0, store.getRelationshipCount());
-    assertEquals(0, store.getLocationCount());
+    assertEquals(0, store.getLocationCount(contextA));
   }
 
   public void test_removeSource_withRelationship() throws Exception {
@@ -230,11 +313,52 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       assertThat(locations).containsOnly(locationB, locationC);
     }
     // remove B, 1 relation and 1 location left
-    store.removeSource(sourceB);
+    store.removeSource(contextA, sourceB);
     assertEquals(1, store.getRelationshipCount());
-    assertEquals(1, store.getLocationCount());
+    assertEquals(1, store.getLocationCount(contextA));
     Location[] locations = store.getRelationships(elementA, relationship);
     assertThat(locations).containsOnly(locationC);
+  }
+
+  public void test_removeSource_withRelationship_twoContexts_oneSource() throws Exception {
+    when(unitElementB.getSource()).thenReturn(sourceB);
+    when(unitElementC.getSource()).thenReturn(sourceB);
+    when(elementB.getContext()).thenReturn(contextB);
+    when(elementC.getContext()).thenReturn(contextC);
+    // configure B and C
+    Location locationB = mock(Location.class);
+    Location locationC = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(locationC.getElement()).thenReturn(elementC);
+    // record: [B -> A] and [C -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(elementA, relationship, locationC);
+      assertEquals(2, store.getRelationshipCount());
+      assertEquals(1, store.getLocationCount(contextB));
+      assertEquals(1, store.getLocationCount(contextC));
+      // we get locations from all contexts
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationB, locationC);
+    }
+    // remove "B" in B, 1 relation and 1 location left
+    store.removeSource(contextB, sourceB);
+    assertEquals(1, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextB));
+    assertEquals(1, store.getLocationCount(contextC));
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).containsOnly(locationC);
+    }
+    // now remove "B" in C, empty
+    store.removeSource(contextC, sourceB);
+    assertEquals(0, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextB));
+    assertEquals(0, store.getLocationCount(contextC));
+    {
+      Location[] locations = store.getRelationships(elementA, relationship);
+      assertThat(locations).isEmpty();
+    }
   }
 
   public void test_removeSources_withDeclaration() throws Exception {
@@ -253,9 +377,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
     // remove container with [A], only [B -> D] left
     SourceContainer containerA = mockSourceContainer(sourceA);
-    store.removeSources(containerA);
+    store.removeSources(contextA, containerA);
     assertEquals(1, store.getRelationshipCount());
-    assertEquals(1, store.getLocationCount());
+    assertEquals(1, store.getLocationCount(contextA));
     {
       Location[] locations = store.getRelationships(elementC, relationship);
       assertThat(locations).containsOnly(locationB);
@@ -277,9 +401,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
     // remove container with [B], 1 relation and 1 location left
     SourceContainer containerB = mockSourceContainer(sourceB);
-    store.removeSources(containerB);
+    store.removeSources(contextA, containerB);
     assertEquals(1, store.getRelationshipCount());
-    assertEquals(1, store.getLocationCount());
+    assertEquals(1, store.getLocationCount(contextA));
     Location[] locations = store.getRelationships(elementA, relationship);
     assertThat(locations).containsOnly(locationC);
   }
@@ -288,6 +412,10 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     when(location.getElement()).thenReturn(elementC);
+    when(elementA.getContext()).thenReturn(contextA);
+    when(elementB.getContext()).thenReturn(contextA);
+    when(elementC.getContext()).thenReturn(contextA);
+    when(elementD.getContext()).thenReturn(contextA);
     when(elementA.getLocation()).thenReturn(elementLocationA);
     when(elementB.getLocation()).thenReturn(elementLocationB);
     when(elementC.getLocation()).thenReturn(elementLocationC);

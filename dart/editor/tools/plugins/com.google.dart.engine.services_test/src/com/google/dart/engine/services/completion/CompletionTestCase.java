@@ -60,7 +60,7 @@ public class CompletionTestCase extends ResolverTestCase {
             + " denoting the position at which code completion should occur",
         !completionTests.isEmpty());
     CompilationUnit compilationUnit = analyze(completionTests.iterator().next().source);
-    index.indexUnit(compilationUnit);
+    index.indexUnit(getAnalysisContext(), compilationUnit);
     CompletionFactory factory = new CompletionFactory();
     for (LocationSpec test : completionTests) {
       MockCompletionRequestor requestor = new MockCompletionRequestor();

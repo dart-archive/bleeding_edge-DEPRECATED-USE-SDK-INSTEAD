@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.index;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.IndexStore;
@@ -24,6 +25,7 @@ import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation
 import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
+import com.google.dart.engine.internal.index.operation.RemoveContextOperation;
 import com.google.dart.engine.internal.index.operation.RemoveSourceOperation;
 import com.google.dart.engine.internal.index.operation.RemoveSourcesOperation;
 import com.google.dart.engine.source.Source;
@@ -36,6 +38,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IndexImplTest extends EngineTestCase {
+  private AnalysisContext context = mock(AnalysisContext.class);
   private IndexStore store = mock(IndexStore.class);
   private OperationQueue queue = mock(OperationQueue.class);
   private OperationProcessor processor = mock(OperationProcessor.class);
@@ -61,16 +64,24 @@ public class IndexImplTest extends EngineTestCase {
     when(unit.getElement()).thenReturn(unitElement);
     when(unitElement.getSource()).thenReturn(unitSource);
     // call index
-    index.indexUnit(unit);
+    index.indexUnit(context, unit);
     // verify
     ArgumentCaptor<IndexUnitOperation> argument = ArgumentCaptor.forClass(IndexUnitOperation.class);
     verify(queue).enqueue(argument.capture());
     assertSame(unit, argument.getValue().getUnit());
   }
 
+  public void test_removeContext() throws Exception {
+    index.removeContext(context);
+    // verify
+    ArgumentCaptor<RemoveContextOperation> argument = ArgumentCaptor.forClass(RemoveContextOperation.class);
+    verify(queue).enqueue(argument.capture());
+    assertSame(context, argument.getValue().getContext());
+  }
+
   public void test_removeSource() throws Exception {
     Source source = mock(Source.class);
-    index.removeSource(source);
+    index.removeSource(context, source);
     // verify
     ArgumentCaptor<RemoveSourceOperation> argument = ArgumentCaptor.forClass(RemoveSourceOperation.class);
     verify(queue).enqueue(argument.capture());
@@ -79,7 +90,7 @@ public class IndexImplTest extends EngineTestCase {
 
   public void test_removeSources() throws Exception {
     SourceContainer container = mock(SourceContainer.class);
-    index.removeSources(container);
+    index.removeSources(context, container);
     // verify
     ArgumentCaptor<RemoveSourcesOperation> argument = ArgumentCaptor.forClass(RemoveSourcesOperation.class);
     verify(queue).enqueue(argument.capture());

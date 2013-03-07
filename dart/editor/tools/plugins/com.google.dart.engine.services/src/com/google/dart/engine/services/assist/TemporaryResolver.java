@@ -535,8 +535,8 @@ public class TemporaryResolver {
     };
     LibraryResolver resolver = new LibraryResolver(analysisContext, listener);
     resolver.resolveLibrary(librarySource, true);
-    index.removeSource(librarySource);
-    index.indexUnit(getAnalysisContext().parse(librarySource));
+    index.removeSource(analysisContext, librarySource);
+    index.indexUnit(analysisContext, getAnalysisContext().parse(librarySource));
   }
 
 }

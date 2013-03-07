@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.index.operation;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -28,6 +29,11 @@ public class RemoveSourcesOperation implements IndexOperation {
   private IndexStore indexStore;
 
   /**
+   * The context to remove container.
+   */
+  private final AnalysisContext context;
+
+  /**
    * The source container to remove.
    */
   private SourceContainer container;
@@ -36,10 +42,13 @@ public class RemoveSourcesOperation implements IndexOperation {
    * Initialize a newly created operation that will remove the specified resource.
    * 
    * @param indexStore the index store against which this operation is being run
+   * @param context the {@link AnalysisContext} to remove container in
    * @param container the {@link SourceContainer} to remove from index
    */
-  public RemoveSourcesOperation(IndexStore indexStore, SourceContainer container) {
+  public RemoveSourcesOperation(IndexStore indexStore, AnalysisContext context,
+      SourceContainer container) {
     this.indexStore = indexStore;
+    this.context = context;
     this.container = container;
   }
 
@@ -58,7 +67,7 @@ public class RemoveSourcesOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeSources(container);
+      indexStore.removeSources(context, container);
     }
   }
 

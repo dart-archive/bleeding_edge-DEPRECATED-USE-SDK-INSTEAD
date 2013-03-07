@@ -63,7 +63,7 @@ public class ProjectAnalyzerTest extends TestCase {
     analyzer.analyze(new NullProgressMonitor());
     // TODO (danrubel): don't show error markers on packages
 //    verifyNoMarkersCreated();
-    verify(index).indexUnit(unit);
+    verify(index).indexUnit(context, unit);
   }
 
   public void test_packageSourceChanged() throws Exception {
@@ -72,19 +72,19 @@ public class ProjectAnalyzerTest extends TestCase {
     analyzer.analyze(new NullProgressMonitor());
     // TODO (danrubel): don't show error markers on packages
 //  verifyNoMarkersCreated();
-    verify(index).indexUnit(unit);
+    verify(index).indexUnit(context, unit);
   }
 
   public void test_packageSourceContainerRemoved() throws Exception {
     SourceContainerDeltaEvent event = mockSourceContainerEvent();
     analyzer.packageSourceContainerRemoved(event);
     verifyNoMarkersCreated();
-    verify(index).removeSources(event.getSourceContainer());
+    verify(index).removeSources(context, event.getSourceContainer());
   }
 
   public void test_packageSourceRemoved() throws Exception {
     analyzer.packageSourceRemoved(mockSourceEvent());
-    verify(index).removeSource(source);
+    verify(index).removeSource(context, source);
   }
 
   public void test_sourceAdded() throws Exception {
@@ -92,7 +92,7 @@ public class ProjectAnalyzerTest extends TestCase {
     verifyZeroInteractions(resource);
     analyzer.analyze(new NullProgressMonitor());
     verifyMarkersCreated();
-    verify(index).indexUnit(unit);
+    verify(index).indexUnit(context, unit);
   }
 
   public void test_sourceChanged() throws Exception {
@@ -100,20 +100,20 @@ public class ProjectAnalyzerTest extends TestCase {
     verifyZeroInteractions(resource);
     analyzer.analyze(new NullProgressMonitor());
     verifyMarkersCreated();
-    verify(index).indexUnit(unit);
+    verify(index).indexUnit(context, unit);
   }
 
   public void test_sourceContainerRemoved() throws Exception {
     SourceContainerDeltaEvent event = mockSourceContainerEvent();
     analyzer.sourceContainerRemoved(event);
     verifyNoMarkersCreated();
-    verify(index).removeSources(event.getSourceContainer());
+    verify(index).removeSources(context, event.getSourceContainer());
   }
 
   public void test_sourceRemoved() throws Exception {
     analyzer.sourceRemoved(mockSourceEvent());
     verifyNoMarkersCreated();
-    verify(index).removeSource(source);
+    verify(index).removeSource(context, source);
   }
 
   @Override

@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.index.Index;
@@ -61,7 +62,8 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
    */
   protected final void indexTestUnit(String... lines) throws Exception {
     parseTestUnit(lines);
-    index.indexUnit(testUnit);
+    AnalysisContext context = testUnit.getElement().getContext();
+    index.indexUnit(context, testUnit);
   }
 
   /**

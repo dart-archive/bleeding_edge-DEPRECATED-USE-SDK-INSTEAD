@@ -14,6 +14,7 @@
 package com.google.dart.engine.index;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -46,9 +47,19 @@ public interface Index {
   /**
    * Asynchronously process the given {@link CompilationUnit} in order to record the relationships.
    * 
+   * @param context the {@link AnalysisContext} in compilation unit was resolved
    * @param unit the compilation unit being indexed
    */
-  void indexUnit(CompilationUnit unit);
+  void indexUnit(AnalysisContext context, CompilationUnit unit);
+
+  /**
+   * Asynchronously remove from the index all of the information associated with the given context.
+   * <p>
+   * This method should be invoked when a context is disposed.
+   * 
+   * @param context the {@link AnalysisContext} to remove
+   */
+  void removeContext(AnalysisContext context);
 
   /**
    * Asynchronously remove from the index all of the information associated with elements or
@@ -58,9 +69,10 @@ public interface Index {
    * <p>
    * This method should be invoked when a source is no longer part of the code base.
    * 
+   * @param context the {@link AnalysisContext} in which {@link Source} being removed
    * @param source the {@link Source} being removed
    */
-  void removeSource(Source source);
+  void removeSource(AnalysisContext context, Source source);
 
   /**
    * Asynchronously remove from the index all of the information associated with elements or
@@ -70,9 +82,10 @@ public interface Index {
    * <p>
    * This method should be invoked when multiple sources are no longer part of the code base.
    * 
+   * @param the {@link AnalysisContext} in which {@link Source}s being removed
    * @param container the {@link SourceContainer} holding the sources being removed
    */
-  void removeSources(SourceContainer container);
+  void removeSources(AnalysisContext context, SourceContainer container);
 
   /**
    * Should be called in separate {@link Thread} to process request in this {@link Index}.

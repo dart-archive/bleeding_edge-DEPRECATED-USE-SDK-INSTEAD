@@ -17,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.internal.index.IndexContributor;
 import com.google.dart.engine.source.Source;
@@ -32,6 +33,11 @@ public class IndexUnitOperation implements IndexOperation {
   private IndexStore indexStore;
 
   /**
+   * The context in which compilation unit was resolved.
+   */
+  private final AnalysisContext context;
+
+  /**
    * The compilation unit being indexed.
    */
   private CompilationUnit unit;
@@ -45,10 +51,12 @@ public class IndexUnitOperation implements IndexOperation {
    * Initialize a newly created operation that will index the specified unit.
    * 
    * @param indexStore the index store against which this operation is being run
+   * @param context the context in which compilation unit was resolved
    * @param unit the fully resolved AST structure
    */
-  public IndexUnitOperation(IndexStore indexStore, CompilationUnit unit) {
+  public IndexUnitOperation(IndexStore indexStore, AnalysisContext context, CompilationUnit unit) {
     this.indexStore = indexStore;
+    this.context = context;
     this.unit = unit;
     this.source = unit.getElement().getSource();
   }
@@ -76,7 +84,7 @@ public class IndexUnitOperation implements IndexOperation {
   @Override
   public void performOperation() {
     synchronized (indexStore) {
-      indexStore.removeSource(source);
+      indexStore.removeSource(context, source);
       try {
         IndexContributor contributor = new IndexContributor(indexStore);
         unit.accept(contributor);

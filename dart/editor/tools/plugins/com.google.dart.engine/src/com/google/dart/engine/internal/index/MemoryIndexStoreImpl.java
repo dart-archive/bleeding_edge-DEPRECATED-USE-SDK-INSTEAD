@@ -17,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
@@ -63,26 +64,38 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
    */
-  private Map<Element, Map<Relationship, List<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
+  final Map<Element, Map<Relationship, List<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
 
   /**
    * A set of all {@link Source}s with elements or relationships.
    */
-  private Set<Source> sources = Sets.newHashSetWithExpectedSize(1024);
+  final Map<AnalysisContext, Set<Source>> sources = Maps.newHashMapWithExpectedSize(64);
 
   /**
    * {@link Element}s by {@link Source} where they are declared.
    */
-  private Map<Source, List<Element>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(1024);
+  final Map<AnalysisContext, Map<Source, List<Element>>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(64);
 
   /**
    * {@link ContributedLocation}s by {@link Source} where they are contributed.
    */
-  private Map<Source, List<ContributedLocation>> sourceToLocations = Maps.newHashMapWithExpectedSize(1024);
+  final Map<AnalysisContext, Map<Source, List<ContributedLocation>>> sourceToLocations = Maps.newHashMapWithExpectedSize(64);
 
   @Override
   public void clear() {
     relationshipMap.clear();
+  }
+
+  @VisibleForTesting
+  public int getDeclarationCount(AnalysisContext context) {
+    int count = 0;
+    Map<Source, List<Element>> contextDeclarations = sourceToDeclarations.get(context);
+    if (contextDeclarations != null) {
+      for (List<Element> sourceDeclarations : contextDeclarations.values()) {
+        count += sourceDeclarations.size();
+      }
+    }
+    return count;
   }
 
   @Override
@@ -91,10 +104,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @VisibleForTesting
-  public int getLocationCount() {
+  public int getLocationCount(AnalysisContext context) {
     int count = 0;
-    for (List<ContributedLocation> contributedLocations : sourceToLocations.values()) {
-      count += contributedLocations.size();
+    Map<Source, List<ContributedLocation>> contextLocations = sourceToLocations.get(context);
+    if (contextLocations != null) {
+      for (List<ContributedLocation> contributedLocations : contextLocations.values()) {
+        count += contributedLocations.size();
+      }
     }
     return count;
   }
@@ -128,12 +144,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public int getSourceCount() {
-    return sources.size();
-  }
-
-  @Override
-  public boolean readIndex(InputStream input) {
+  public boolean readIndex(AnalysisContext context, InputStream input) {
     // TODO(scheglov)
     throw new UnsupportedOperationException();
   }
@@ -144,17 +155,25 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       return;
     }
     // prepare information
+    AnalysisContext elementContext = element.getContext();
+    AnalysisContext locationContext = location.getElement().getContext();
     Source elementSource = findSource(element);
     Source locationSource = findSource(location.getElement());
     // remember sources
-    sources.add(elementSource);
-    sources.add(locationSource);
-    recordSourceToDeclarations(elementSource, element);
+    addSource(elementContext, elementSource);
+    addSource(locationContext, locationSource);
+    recordSourceToDeclarations(elementContext, elementSource, element);
     //
-    List<ContributedLocation> locationsOfLocationSource = sourceToLocations.get(locationSource);
-    if (locationsOfLocationSource == null) {
-      locationsOfLocationSource = Lists.newArrayList();
-      sourceToLocations.put(locationSource, locationsOfLocationSource);
+    Map<Source, List<ContributedLocation>> contextLocations = sourceToLocations.get(locationContext);
+    if (contextLocations == null) {
+      contextLocations = Maps.newHashMapWithExpectedSize(1024);
+      sourceToLocations.put(locationContext, contextLocations);
+    }
+    //
+    List<ContributedLocation> sourceLocations = contextLocations.get(locationSource);
+    if (sourceLocations == null) {
+      sourceLocations = Lists.newArrayList();
+      contextLocations.put(locationSource, sourceLocations);
     }
     // add ContributedLocation for "element"
     {
@@ -168,382 +187,116 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
         locations = Lists.newArrayList();
         elementRelMap.put(relationship, locations);
       }
-      new ContributedLocation(locationsOfLocationSource, locations, location);
+      new ContributedLocation(sourceLocations, locations, location);
     }
   }
 
   @Override
-  public void removeSource(Source source) {
+  public void removeContext(AnalysisContext context) {
+    // remove elements declared in Source(s) of removed context
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.remove(context);
+    if (contextElements != null) {
+      for (List<Element> sourceElements : contextElements.values()) {
+        removeSourceDeclaredElements(sourceElements);
+      }
+    }
+    // remove relationships in Source(s) of removed context
+    Map<Source, List<ContributedLocation>> contextLocations = sourceToLocations.remove(context);
+    if (contextLocations != null) {
+      for (List<ContributedLocation> sourceLocations : contextLocations.values()) {
+        removeSourceContributedLocations(sourceLocations);
+      }
+    }
+  }
+
+  @Override
+  public void removeSource(AnalysisContext context, Source source) {
     sources.remove(source);
-    // remove relationships with elements in removed source
-    List<Element> declaredElements = sourceToDeclarations.remove(source);
-    if (declaredElements != null) {
-      for (Element declaredElement : declaredElements) {
-        Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(declaredElement);
-        if (elementRelationshipMap != null) {
-          for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
-            for (ContributedLocation contributedLocation : contributedLocations) {
-              contributedLocation.getDeclarationOwner().remove(contributedLocation);
-            }
+    // remove relationships with elements declared in removed source
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
+    if (contextElements != null) {
+      List<Element> sourceElements = contextElements.remove(source);
+      if (sourceElements != null) {
+        removeSourceDeclaredElements(sourceElements);
+      }
+    }
+    // remove relationships in removed source
+    Map<Source, List<ContributedLocation>> contextLocations = sourceToLocations.get(context);
+    if (contextLocations != null) {
+      List<ContributedLocation> sourceLocations = contextLocations.remove(source);
+      if (sourceLocations != null) {
+        removeSourceContributedLocations(sourceLocations);
+      }
+    }
+  }
+
+  @Override
+  public void removeSources(AnalysisContext context, SourceContainer container) {
+    // prepare sources to remove
+    Set<Source> sourcesToRemove = Sets.newHashSet();
+    {
+      Set<Source> contextSources = sources.get(context);
+      if (contextSources != null) {
+        for (Source source : contextSources) {
+          if (container.contains(source)) {
+            sourcesToRemove.add(source);
           }
         }
       }
     }
-    // remove relationships in removed source
-    List<ContributedLocation> contributedLocations = sourceToLocations.remove(source);
-    if (contributedLocations != null) {
-      for (ContributedLocation contributedLocation : contributedLocations) {
-        contributedLocation.getLocationOwner().remove(contributedLocation);
-      }
-    }
-  }
-
-  @Override
-  public void removeSources(SourceContainer container) {
-    // prepare sources to remove
-    Set<Source> sourcesToRemove = Sets.newHashSet();
-    for (Source source : sources) {
-      if (container.contains(source)) {
-        sourcesToRemove.add(source);
-      }
-    }
     // do remove sources
     for (Source source : sourcesToRemove) {
-      removeSource(source);
+      removeSource(context, source);
     }
   }
 
   @Override
-  public void writeIndex(OutputStream output) throws IOException {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+  public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
+    new MemoryIndexWriter(this, context, output).write();
   }
 
-  private void recordSourceToDeclarations(Source elementSource, Element declaredElement) {
-    List<Element> declaredElements = sourceToDeclarations.get(elementSource);
-    if (declaredElements == null) {
-      declaredElements = Lists.newArrayList();
-      sourceToDeclarations.put(elementSource, declaredElements);
+  private void addSource(AnalysisContext context, Source source) {
+    Set<Source> contextSources = sources.get(context);
+    if (contextSources == null) {
+      contextSources = Sets.newHashSetWithExpectedSize(256);
+      sources.put(context, contextSources);
     }
-    declaredElements.add(declaredElement);
+    contextSources.add(source);
   }
 
-//  /**
-//   * Initialize a newly created index to be empty.
-//   */
-//  public MemoryIndexStoreImpl() {
-//    super();
-//  }
-//
-////  /**
-////   * Return a reader that can read the contents of this index from a stream.
-////   * 
-////   * @return a reader that can read the contents of this index from a stream
-////   */
-////  public IndexReader createIndexReader() {
-////    return new IndexReader(this);
-////  }
-////
-////  /**
-////   * Return a writer that can write the contents of this index to a stream.
-////   * 
-////   * @return a writer that can write the contents of this index to a stream
-////   */
-////  public IndexWriter createIndexWriter() {
-////    return new IndexWriter(attributeMap, relationshipMap);
-////  }
-//
-//  /**
-//   * Remove all data from this index.
-//   */
-//  @Override
-//  public void clear() {
-//    sourceToElementsMap.clear();
-//    relationshipMap.clear();
-//  }
-//
-//  /**
-//   * Return the number of elements that are currently recorded in this index.
-//   * 
-//   * @return the number of elements that are currently recorded in this index
-//   */
-//  @Override
-//  public int getElementCount() {
-//    int count = 0;
-//    for (Set<Element> elementSet : sourceToElementsMap.values()) {
-//      count += elementSet.size();
-//    }
-//    return count;
-//  }
-//
-//  /**
-//   * Return the number of relationships that are currently recorded in this index.
-//   * 
-//   * @return the number of relationships that are currently recorded in this index
-//   */
-//  @Override
-//  public int getRelationshipCount() {
-//    int count = 0;
-//    for (Map<Relationship, List<ContributedLocation>> elementRelationshipMap : relationshipMap.values()) {
-//      for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
-//        count += contributedLocations.size();
-//      }
-//    }
-//    return count;
-//  }
-//
-//  /**
-//   * Return the locations of the elements that have the given relationship with the given element.
-//   * For example, if the element represents a method and the relationship is the is-referenced-by
-//   * relationship, then the returned locations will be all of the places where the method is
-//   * invoked.
-//   * 
-//   * @param element the element that has the relationship with the locations to be returned
-//   * @param relationship the relationship between the given element and the locations to be returned
-//   * @return the locations of the elements that have the given relationship with the given element
-//   */
-//  @Override
-//  public Location[] getRelationships(Element element, Relationship relationship) {
-//    Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
-//    if (elementRelationshipMap != null) {
-//      List<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
-//      if (contributedLocations != null) {
-//        int count = contributedLocations.size();
-//        Location[] locations = new Location[count];
-//        for (int i = 0; i < count; i++) {
-//          locations[i] = contributedLocations.get(i).getLocation();
-//        }
-//        return locations;
-//      }
-//    }
-//    return Location.EMPTY_ARRAY;
-//  }
-//
-//  /**
-//   * Return the number of resources that are currently recorded in this index.
-//   * 
-//   * @return the number of resources that are currently recorded in this index
-//   */
-//  @Override
-//  public int getResourceCount() {
-//    return sourceToElementsMap.size();
-//  }
-//
-//  /**
-//   * Record that the given element and location have the given relationship. For example, if the
-//   * relationship is the is-referenced-by relationship, then the element would be the element being
-//   * referenced and the location would be the point at which it is referenced. Each element can have
-//   * the same relationship with multiple locations. In other words, if the following code were
-//   * executed
-//   * 
-//   * <pre>
-//   *   recordRelationship(element, isReferencedBy, location1);
-//   *   recordRelationship(element, isReferencedBy, location2);
-//   * </pre>
-//   * 
-//   * then both relationships would be maintained in the index and the result of executing
-//   * 
-//   * <pre>
-//   *   getRelationship(element, isReferencedBy);
-//   * </pre>
-//   * 
-//   * would be an array containing both <code>location1</code> and <code>location2</code>.
-//   * 
-//   * @param contributor the source that was being analyzed when this relationship was contributed
-//   * @param element the element that is related to the location
-//   * @param relationship the relationship between the element and the location
-//   * @param location the location that is related to the element
-//   */
-//  @Override
-//  public void recordRelationship(Source contributor, Element element, Relationship relationship,
-//      Location location) {
-//    if (contributor == null || element == null || location == null) {
-//      return;
-//    }
-//    recordElement(element);
-//    recordElement(location.getElement());
-//    // add ContributedLocation for "element"
-//    ContributedLocation contributedLocation;
-//    {
-//      Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
-//      if (elementRelationshipMap == null) {
-//        elementRelationshipMap = Maps.newHashMap();
-//        relationshipMap.put(element, elementRelationshipMap);
-//      }
-//      List<ContributedLocation> locations = elementRelationshipMap.get(relationship);
-//      if (locations == null) {
-//        locations = Lists.newArrayList();
-//        elementRelationshipMap.put(relationship, locations);
-//      }
-//      contributedLocation = new ContributedLocation(locations, contributor, location);
-//    }
-//    // add to "contributor" -> "locations" map
-//    recordContributorToLocation(contributor, contributedLocation);
-//  }
-//
-//  /**
-//   * Remove from the index all of the information associated that was contribute as a result of
-//   * analyzing the given source. This includes relationships between an element in the given source
-//   * and any other locations and relationships between any other elements and a location within the
-//   * given source.
-//   * <p>
-//   * This method should be invoked when a source is about to be re-analyzed.
-//   * 
-//   * @param source the source being re-analyzed
-//   */
-//  @Override
-//  public void regenerateResource(Source source) {
-//    sourceToElementsMap.remove(source);
-//
-//    List<ContributedLocation> locations = contributorToContributedLocations.remove(source);
-//    if (locations != null) {
-//      for (ContributedLocation location : locations) {
-//        location.getOwner().remove(location);
-//      }
-//    }
-//  }
-//
-//  /**
-//   * Remove from the index all of the information associated with elements or locations in the given
-//   * source. This includes relationships between an element in the given source and any other
-//   * locations, relationships between any other elements and a location within the given source.
-//   * <p>
-//   * This method should be invoked when a source is no longer part of the code base.
-//   * 
-//   * @param source the source being removed
-//   */
-//  @Override
-//  public void removeResource(Source source) {
-//    Set<Element> elements = sourceToElementsMap.remove(source);
-//    if (elements != null) {
-//      for (Element element : elements) {
-//        removeElement(element);
-//      }
-//    }
-//
-//    Set<Entry<Element, Map<Relationship, List<ContributedLocation>>>> relationshipSet = relationshipMap.entrySet();
-//    Iterator<Entry<Element, Map<Relationship, List<ContributedLocation>>>> relationshipSetIterator = relationshipSet.iterator();
-//    while (relationshipSetIterator.hasNext()) {
-//      Set<Entry<Relationship, List<ContributedLocation>>> elementRelationshipMap = relationshipSetIterator.next().getValue().entrySet();
-//      Iterator<Entry<Relationship, List<ContributedLocation>>> relationshipIterator = elementRelationshipMap.iterator();
-//      while (relationshipIterator.hasNext()) {
-//        List<ContributedLocation> locations = relationshipIterator.next().getValue();
-//        Iterator<ContributedLocation> locationIterator = locations.iterator();
-//        while (locationIterator.hasNext()) {
-//          ContributedLocation location = locationIterator.next();
-//          if (location.getContributor().equals(source)
-//              || Objects.equal(getSource(location.getLocation().getElement()), source)) {
-//            locationIterator.remove();
-//          }
-//        }
-//        if (locations.isEmpty()) {
-//          relationshipIterator.remove();
-//        }
-//      }
-//      if (elementRelationshipMap.isEmpty()) {
-//        relationshipSetIterator.remove();
-//      }
-//    }
-//  }
-//
-////  private int getRelationshipCount() {
-////    int count = 0;
-////    for (HashMap<Relationship, ArrayList<Location>> elementMap : relationshipMap.values()) {
-////      for (ArrayList<Location> locationList : elementMap.values()) {
-////        count += locationList.size();
-////      }
-////    }
-////    return count;
-////  }
-//
-//  @Override
-//  public String toString() {
-//    PrintStringWriter writer = new PrintStringWriter();
-//    writeIndex(writer);
-//    return writer.toString();
-//  }
-//
-//  private void recordContributorToLocation(Source contributor,
-//      ContributedLocation contributedLocation) {
-//    List<ContributedLocation> locations = contributorToContributedLocations.get(contributor);
-//    if (locations == null) {
-//      locations = Lists.newArrayList();
-//      contributorToContributedLocations.put(contributor, locations);
-//    }
-//    locations.add(contributedLocation);
-//  }
-//
-//  /**
-//   * Add the given element to the source-to-element map.
-//   * 
-//   * @param contributor the source which contributes the element
-//   * @param element the element to be added to the map
-//   */
-//  private void recordElement(Element element) {
-//    Source contributor = getSource(element);
-//    Set<Element> elementSet = sourceToElementsMap.get(contributor);
-//    if (elementSet == null) {
-//      elementSet = Sets.newHashSet();
-//      sourceToElementsMap.put(contributor, elementSet);
-//    }
-//    elementSet.add(element);
-//  }
-//
-//  /**
-//   * Remove from the index all of the information associated with the given element. This includes
-//   * relationships between the element and any locations, relationships between any other elements
-//   * and a location within the given element, and any values of any attributes defined the element.
-//   * 
-//   * @param element the element being removed
-//   */
-//  private void removeElement(Element element) {
-//    relationshipMap.remove(element);
-//  }
-//
-//  /**
-//   * Write the contents of this index to the given print writer. This is intended to be used for
-//   * debugging purposes, not as something that would be displayed to users.
-//   * 
-//   * @param writer the writer to which the contents of the index will be written
-//   */
-//  private void writeIndex(PrintWriter writer) {
-//    writer.println("Relationship Map");
-//    writer.println();
-//    if (relationshipMap.isEmpty()) {
-//      writer.println("  -- empty --");
-//    } else {
-//      for (Map.Entry<Element, Map<Relationship, List<ContributedLocation>>> elementEntry : relationshipMap.entrySet()) {
-//        writer.print("  ");
-//        writer.println(elementEntry.getKey());
-//        for (Map.Entry<Relationship, List<ContributedLocation>> relationshipEntry : elementEntry.getValue().entrySet()) {
-//          String relationship = relationshipEntry.getKey().toString();
-//          for (ContributedLocation location : relationshipEntry.getValue()) {
-//            writer.print("    ");
-//            writer.print(relationship);
-//            writer.print(" ");
-//            writer.print(location.getLocation());
-//            writer.print(" (contributed by ");
-//            writer.print(location.getContributor());
-//            writer.print(")");
-//          }
-//        }
-//      }
-//    }
-//
-//    writer.println();
-//    writer.println("Resource to Element Map");
-//    writer.println();
-//    if (sourceToElementsMap.isEmpty()) {
-//      writer.println("  -- empty --");
-//    } else {
-//      for (Map.Entry<Source, Set<Element>> resourceEntry : sourceToElementsMap.entrySet()) {
-//        writer.print("  ");
-//        writer.println(resourceEntry.getKey());
-//        for (Element element : resourceEntry.getValue()) {
-//          writer.print("    ");
-//          writer.println(element);
-//        }
-//      }
-//    }
-//  }
+  private void recordSourceToDeclarations(AnalysisContext context, Source elementSource,
+      Element declaredElement) {
+    // prepare AnalysisContext declarations
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
+    if (contextElements == null) {
+      contextElements = Maps.newHashMapWithExpectedSize(1024);
+      sourceToDeclarations.put(context, contextElements);
+    }
+    // remember Element in Source
+    List<Element> sourceElements = contextElements.get(elementSource);
+    if (sourceElements == null) {
+      sourceElements = Lists.newArrayList();
+      contextElements.put(elementSource, sourceElements);
+    }
+    sourceElements.add(declaredElement);
+  }
+
+  private void removeSourceContributedLocations(List<ContributedLocation> sourceLocations) {
+    for (ContributedLocation contributedLocation : sourceLocations) {
+      contributedLocation.getLocationOwner().remove(contributedLocation);
+    }
+  }
+
+  private void removeSourceDeclaredElements(List<Element> sourceElements) {
+    for (Element declaredElement : sourceElements) {
+      Map<Relationship, List<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(declaredElement);
+      if (elementRelationshipMap != null) {
+        for (List<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
+          for (ContributedLocation contributedLocation : contributedLocations) {
+            contributedLocation.getDeclarationOwner().remove(contributedLocation);
+          }
+        }
+      }
+    }
+  }
 }
