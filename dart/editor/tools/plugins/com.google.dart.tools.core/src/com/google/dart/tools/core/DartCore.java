@@ -291,8 +291,13 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener being added
    */
   public static void addElementChangedListener(ElementChangedListener listener) {
-    addElementChangedListener(listener, ElementChangedEvent.POST_CHANGE
-        | ElementChangedEvent.POST_RECONCILE);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // TODO(devoncarew): this needs to be converted to fast-fail
+
+    } else {
+      addElementChangedListener(listener, ElementChangedEvent.POST_CHANGE
+          | ElementChangedEvent.POST_RECONCILE);
+    }
   }
 
   /**
@@ -1133,7 +1138,12 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param listener the listener to be removed
    */
   public static void removeElementChangedListener(ElementChangedListener listener) {
-    DartModelManager.getInstance().removeElementChangedListener(listener);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // TODO(devoncarew): this needs to be converted to fast-fail
+
+    } else {
+      DartModelManager.getInstance().removeElementChangedListener(listener);
+    }
   }
 
   /**
