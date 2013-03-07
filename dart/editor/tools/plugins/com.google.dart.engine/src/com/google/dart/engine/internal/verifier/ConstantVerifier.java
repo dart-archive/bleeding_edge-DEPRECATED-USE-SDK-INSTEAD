@@ -57,7 +57,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    */
   public ConstantVerifier(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    evaluator = new ConstantEvaluator();
+    evaluator = new ConstantEvaluator(errorReporter);
   }
 
   @Override

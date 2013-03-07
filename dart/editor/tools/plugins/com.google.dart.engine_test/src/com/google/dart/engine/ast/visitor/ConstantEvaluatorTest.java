@@ -333,6 +333,6 @@ public class ConstantEvaluatorTest extends ParserTestCase {
   }
 
   private Object getConstantValue(String source) throws Exception {
-    return parseExpression(source).accept(new ConstantEvaluator());
+    return parseExpression(source).accept(new ConstantEvaluator(null));
   }
 }

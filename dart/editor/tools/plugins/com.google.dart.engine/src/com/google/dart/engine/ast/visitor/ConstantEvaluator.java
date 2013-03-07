@@ -38,6 +38,8 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.internal.error.ErrorReporter;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -88,6 +90,20 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
    * expressions.
    */
   public static final Object NOT_A_CONSTANT = new Object();
+
+  /**
+   * The error reporter by which errors will be reported.
+   */
+  private ErrorReporter errorReporter;
+
+  /**
+   * Initialize a newly created constant evaluator.
+   * 
+   * @param errorReporter the error reporter by which errors will be reported
+   */
+  public ConstantEvaluator(ErrorReporter errorReporter) {
+    this.errorReporter = errorReporter;
+  }
 
   @Override
   public Object visitAdjacentStrings(AdjacentStrings node) {
@@ -246,19 +262,39 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
       case SLASH:
         // numeric or {@code null}
         if (leftOperand instanceof BigInteger && rightOperand instanceof BigInteger) {
-          return ((BigInteger) leftOperand).divide((BigInteger) rightOperand);
+          if (!rightOperand.equals(BigInteger.ZERO)) {
+            return ((BigInteger) leftOperand).divide((BigInteger) rightOperand);
+          } else {
+            reportDivideByZeroError(node);
+            return BigInteger.ZERO;
+          }
         } else if (leftOperand instanceof Double && rightOperand instanceof Double) {
-          return ((Double) leftOperand).doubleValue() / ((Double) rightOperand).doubleValue();
+          if (!rightOperand.equals(0L)) {
+            return ((Double) leftOperand).doubleValue() / ((Double) rightOperand).doubleValue();
+          } else {
+            reportDivideByZeroError(node);
+            return BigInteger.ZERO;
+          }
         }
         break;
       case TILDE_SLASH:
         // numeric or {@code null}
         if (leftOperand instanceof BigInteger && rightOperand instanceof BigInteger) {
-          return ((BigInteger) leftOperand).divide((BigInteger) rightOperand);
+          if (!rightOperand.equals(BigInteger.ZERO)) {
+            return ((BigInteger) leftOperand).divide((BigInteger) rightOperand);
+          } else {
+            reportDivideByZeroError(node);
+            return BigInteger.ZERO;
+          }
         } else if (leftOperand instanceof Double && rightOperand instanceof Double) {
-          return BigInteger.valueOf(Double.valueOf(
-              Math.floor(((Double) leftOperand).doubleValue()
-                  / ((Double) rightOperand).doubleValue())).longValue());
+          if (!rightOperand.equals(0L)) {
+            return BigInteger.valueOf(Double.valueOf(
+                Math.floor(((Double) leftOperand).doubleValue()
+                    / ((Double) rightOperand).doubleValue())).longValue());
+          } else {
+            reportDivideByZeroError(node);
+            return BigInteger.ZERO;
+          }
         }
         break;
     }
@@ -433,5 +469,11 @@ public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
 //      }
     }
     return NOT_A_CONSTANT;
+  }
+
+  private void reportDivideByZeroError(BinaryExpression node) {
+    errorReporter.reportError(
+        CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO,
+        node);
   }
 }
