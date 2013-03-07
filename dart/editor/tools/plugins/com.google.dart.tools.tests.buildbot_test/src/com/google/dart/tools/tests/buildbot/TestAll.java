@@ -62,6 +62,9 @@ public class TestAll {
     // UI
     //suite.addTest(com.google.dart.tools.ui.TestAll.suite());
 
+    // Web
+    suite.addTest(com.google.dart.tools.ui.web.TestAll.suite());
+
     return suite;
   }
 

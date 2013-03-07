@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Localization: plugin
+Bundle-Name: %pluginName
+Bundle-SymbolicName: com.google.dart.tools.ui.web_test;singleton:=true
+Bundle-Version: 0.0.0.qualifier
+Bundle-Vendor: %providerName
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ActivationPolicy: lazy
+Require-Bundle: com.google.dart.tools.ui.web,
+ com.google.dart.tools.core_test,
+ org.eclipse.jface.text
+Export-Package: com.google.dart.tools.ui.web
