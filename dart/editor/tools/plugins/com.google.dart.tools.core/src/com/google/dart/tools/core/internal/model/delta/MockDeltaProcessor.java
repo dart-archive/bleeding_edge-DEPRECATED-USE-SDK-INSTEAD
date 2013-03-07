@@ -17,7 +17,8 @@ package com.google.dart.tools.core.internal.model.delta;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElementDelta;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,12 +43,12 @@ public class MockDeltaProcessor implements IDeltaProcessor {
 
   @Override
   public List<DartElementDelta> getDartModelDeltas() {
-    return Collections.emptyList();
+    return new ArrayList<DartElementDelta>();
   }
 
   @Override
   public Map<CompilationUnit, DartElementDelta> getReconcileDeltas() {
-    return Collections.emptyMap();
+    return new HashMap<CompilationUnit, DartElementDelta>();
   }
 
   @Override
