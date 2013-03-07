@@ -5,7 +5,7 @@
 tests/samples/*: Pass, Crash  # Issue 8973
 third_party/dromaeo/*: Pass, Crash  # Issue 8973
 third_party/todomvc/web/main: Pass, Crash  # Issue 8973
-swarm/swarm_ui_lib/*: Pass, Crash  # Issue 8973
+swarm/*: Pass, Crash  # Issue 8973
 
 [ $runtime == vm ]
 *: Skip
