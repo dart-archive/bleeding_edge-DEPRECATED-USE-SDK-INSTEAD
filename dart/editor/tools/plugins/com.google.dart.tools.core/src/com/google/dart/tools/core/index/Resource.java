@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.index;
 
+import com.google.dart.compiler.util.StringInterner;
+
 /**
  * Instances of the class <code>Resource</code> represent a resource that contains elements.
  * Resources conceptually correspond to files, but are not required to be actual files in a file
@@ -30,7 +32,7 @@ public final class Resource {
    * @param resourceId the globally unique identifier for this resource
    */
   public Resource(String resourceId) {
-    this.resourceId = resourceId;
+    this.resourceId = StringInterner.intern(resourceId);
   }
 
   @Override

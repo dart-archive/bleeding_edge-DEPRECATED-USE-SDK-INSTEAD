@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.util.StringInterner;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.info.DartVariableInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -41,7 +42,7 @@ public class DartVariableImpl extends SourceReferenceImpl implements DartVariabl
    */
   public DartVariableImpl(DartElementImpl parent, String name) {
     super(parent);
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   @Override

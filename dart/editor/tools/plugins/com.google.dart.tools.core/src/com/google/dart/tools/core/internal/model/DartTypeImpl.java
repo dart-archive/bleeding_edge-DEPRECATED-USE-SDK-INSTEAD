@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.util.StringInterner;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.completion.CompletionRequestor;
 import com.google.dart.tools.core.internal.model.info.DartElementInfo;
@@ -55,7 +56,7 @@ public class DartTypeImpl extends SourceReferenceImpl implements Type {
    */
   public DartTypeImpl(CompilationUnitImpl parent, String name) {
     super(parent);
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   @Override

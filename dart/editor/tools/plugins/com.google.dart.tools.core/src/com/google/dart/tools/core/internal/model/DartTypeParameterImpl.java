@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.internal.model;
 
+import com.google.dart.compiler.util.StringInterner;
 import com.google.dart.tools.core.internal.model.info.DartTypeParameterInfo;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
 import com.google.dart.tools.core.model.DartElement;
@@ -29,7 +30,7 @@ public class DartTypeParameterImpl extends SourceReferenceImpl implements DartTy
 
   public DartTypeParameterImpl(DartElementImpl parent, String name) {
     super(parent);
-    this.name = name;
+    this.name = StringInterner.intern(name);
   }
 
   @Override
