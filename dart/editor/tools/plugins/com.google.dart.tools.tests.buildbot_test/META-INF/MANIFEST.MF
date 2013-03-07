@@ -14,7 +14,6 @@ Require-Bundle: org.junit,
  com.google.dart.engine.services_test,
  com.google.dart.tools.core,
  org.eclipse.core.runtime,
- org.eclipse.ui,
- com.google.dart.tools.ui.web_test
+ org.eclipse.ui
 Bundle-ClassPath: .
 Bundle-Activator: com.google.dart.tools.tests.buildbot.BuildbotPlugin
