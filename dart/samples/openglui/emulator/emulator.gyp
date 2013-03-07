@@ -82,6 +82,7 @@
                  '-lskia_skgr',
                  '-lskia_utils',
                  '-Wl,--end-group',
+                 '-lfontconfig',
                  '-lfreetype',
                  '-lGL',
                  '-lglut',
