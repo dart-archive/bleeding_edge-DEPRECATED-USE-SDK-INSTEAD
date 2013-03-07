@@ -857,25 +857,27 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
   private Type getType(PropertyAccessorElement accessor) {
-    if (accessor.isSetter()) {
-      PropertyAccessorElement getter = accessor.getVariable().getGetter();
-      if (getter == null) {
-        Type[] parameterTypes = accessor.getType().getNormalParameterTypes();
-        if (parameterTypes.length > 0) {
-          return parameterTypes[0];
-        } else {
-          // TODO(brianwilkerson) Report this internal error.
-          return dynamicType;
-        }
-      }
-      accessor = getter;
-    }
-    if (accessor.getType() == null) {
+    FunctionType functionType = accessor.getType();
+    if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. I think this can go away when everything
       // is done because the type of the accessor should never be null.
       return dynamicType;
     }
-    return accessor.getType().getReturnType();
+    if (accessor.isSetter()) {
+      Type[] parameterTypes = functionType.getNormalParameterTypes();
+      if (parameterTypes != null && parameterTypes.length > 0) {
+        return parameterTypes[0];
+      }
+      PropertyAccessorElement getter = accessor.getVariable().getGetter();
+      if (getter != null) {
+        functionType = getter.getType();
+        if (functionType != null) {
+          return functionType.getReturnType();
+        }
+      }
+      return dynamicType;
+    }
+    return functionType.getReturnType();
   }
 
   /**

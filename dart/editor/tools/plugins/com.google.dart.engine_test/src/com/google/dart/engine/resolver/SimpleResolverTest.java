@@ -199,6 +199,20 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_getterAndSetterWithDifferentTypes() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int get f => 0;",
+        "  void set f(String s) {}",
+        "}",
+        "g (A a) {",
+        "  a.f = a.f.toString();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_invalidAssignment() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
