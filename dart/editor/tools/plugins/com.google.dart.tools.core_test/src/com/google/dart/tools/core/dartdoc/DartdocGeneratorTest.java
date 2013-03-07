@@ -15,7 +15,7 @@
 package com.google.dart.tools.core.dartdoc;
 
 import com.google.dart.tools.core.dartdoc.DartdocGenerator.CompilationResult;
-import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.core.test.util.PlainTestProject;
 
 import junit.framework.TestCase;
 
@@ -35,7 +35,7 @@ public class DartdocGeneratorTest extends TestCase {
   public void test_dartdoc_compile1() throws Exception {
     DartdocGenerator dartdocGen = new DartdocGenerator();
 
-    TestProject project = new TestProject("fooBar");
+    PlainTestProject project = new PlainTestProject("fooBar");
 
     try {
       IFile file = project.setFileContent("foo.dart", "/**\n" + " ** Some dartdoc.\n" + " */\n"

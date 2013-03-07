@@ -14,7 +14,7 @@
 
 package com.google.dart.tools.core.snapshot;
 
-import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.core.test.util.PlainTestProject;
 
 import junit.framework.TestCase;
 
@@ -28,7 +28,7 @@ public class SnapshotCompilerTest extends TestCase {
   public void testCompile() throws Exception {
     SnapshotCompiler compiler = new SnapshotCompiler();
 
-    TestProject project = new TestProject("fooBar");
+    PlainTestProject project = new PlainTestProject("fooBar");
 
     try {
       IFile file = project.setFileContent("foo.dart", "void main() { print('foo'); }");

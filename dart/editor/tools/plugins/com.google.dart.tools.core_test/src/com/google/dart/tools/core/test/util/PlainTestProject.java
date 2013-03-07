@@ -16,6 +16,8 @@ package com.google.dart.tools.core.test.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.core.resources.IContainer;
@@ -30,6 +32,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
@@ -119,6 +124,39 @@ public class PlainTestProject {
    */
   public IProject getProject() {
     return project;
+  }
+
+  /**
+   * Creates or updates {@link IFile} with content of the given {@link InputStream}.
+   */
+  public IFile setFileContent(String path, InputStream stream) throws Exception {
+    IFile file = getFile(path);
+    if (file.exists()) {
+      file.setContents(stream, true, false, null);
+    } else {
+      file.create(stream, true, null);
+      file.setCharset("UTF-8", null);
+    }
+    // notify AnalysisServer
+    {
+      AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+      File javaFile = file.getLocation().toFile();
+      server.scan(javaFile, 5000);
+      server.changed(javaFile);
+    }
+    // wait for changes
+    TestUtilities.processAllDeltaChanges();
+    // done
+    return file;
+  }
+
+  /**
+   * Creates or updates with {@link String} content of the {@link IFile}.
+   */
+  public IFile setFileContent(String path, String content) throws Exception {
+    byte[] bytes = content.getBytes("UTF-8");
+    InputStream stream = new ByteArrayInputStream(bytes);
+    return setFileContent(path, stream);
   }
 
 }

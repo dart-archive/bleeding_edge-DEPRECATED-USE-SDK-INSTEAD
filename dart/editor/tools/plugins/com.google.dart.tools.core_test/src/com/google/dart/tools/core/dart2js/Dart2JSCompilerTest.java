@@ -15,7 +15,7 @@
 package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler.CompilationResult;
-import com.google.dart.tools.core.test.util.TestProject;
+import com.google.dart.tools.core.test.util.PlainTestProject;
 
 import junit.framework.TestCase;
 
@@ -33,7 +33,7 @@ public class Dart2JSCompilerTest extends TestCase {
   public void test_dart2js_compile1() throws Exception {
     Dart2JSCompiler compiler = new Dart2JSCompiler();
 
-    TestProject project = new TestProject("fooBar");
+    PlainTestProject project = new PlainTestProject("fooBar");
 
     try {
       IFile file = project.setFileContent("foo.dart", "void main() { print('foo'); }");
