@@ -24,7 +24,11 @@ public interface ElementVisitor<R> {
 
   public R visitConstructorElement(ConstructorElement element);
 
+  public R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
+
   public R visitExportElement(ExportElement element);
+
+  public R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
 
   public R visitFieldElement(FieldElement element);
 

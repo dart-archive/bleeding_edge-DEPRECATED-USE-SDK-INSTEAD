@@ -17,7 +17,9 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.EmbeddedHtmlScriptElement;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlElement;
@@ -57,7 +59,17 @@ public class SimpleElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
+  public R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
+    return null;
+  }
+
+  @Override
   public R visitExportElement(ExportElement element) {
+    return null;
+  }
+
+  @Override
+  public R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     return null;
   }
 

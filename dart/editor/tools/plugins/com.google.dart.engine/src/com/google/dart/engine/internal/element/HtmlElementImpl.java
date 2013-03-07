@@ -37,7 +37,7 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * The scripts contained in or referenced from script tags in the HTML file.
    */
-  private HtmlScriptElement[] scripts = new HtmlScriptElement[0];
+  private HtmlScriptElement[] scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
 
   /**
    * The source that corresponds to this HTML file.
@@ -97,6 +97,9 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * @param scripts the scripts
    */
   public void setScripts(HtmlScriptElement[] scripts) {
+    for (HtmlScriptElement script : scripts) {
+      ((HtmlScriptElementImpl) script).setEnclosingElement(this);
+    }
     this.scripts = scripts;
   }
 

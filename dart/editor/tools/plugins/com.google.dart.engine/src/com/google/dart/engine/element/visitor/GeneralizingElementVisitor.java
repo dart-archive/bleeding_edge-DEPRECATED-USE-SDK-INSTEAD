@@ -18,11 +18,14 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.EmbeddedHtmlScriptElement;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.HtmlElement;
+import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -114,6 +117,11 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
     return null;
   }
 
+  @Override
+  public R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
+    return visitHtmlScriptElement(element);
+  }
+
   public R visitExecutableElement(ExecutableElement element) {
     return visitElement(element);
   }
@@ -121,6 +129,11 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @Override
   public R visitExportElement(ExportElement element) {
     return visitElement(element);
+  }
+
+  @Override
+  public R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
+    return visitHtmlScriptElement(element);
   }
 
   @Override
@@ -135,6 +148,10 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitHtmlElement(HtmlElement element) {
+    return visitElement(element);
+  }
+
+  public R visitHtmlScriptElement(HtmlScriptElement element) {
     return visitElement(element);
   }
 
