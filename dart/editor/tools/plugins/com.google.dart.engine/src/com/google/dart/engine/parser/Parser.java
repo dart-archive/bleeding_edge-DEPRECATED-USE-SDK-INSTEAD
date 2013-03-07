@@ -1612,10 +1612,7 @@ public class Parser {
    * @return the compilation unit that was parsed
    */
   private CompilationUnit parseCompilationUnit() {
-    Token firstToken = currentToken.getPrecedingComments();
-    if (firstToken == null) {
-      firstToken = currentToken;
-    }
+    Token firstToken = currentToken;
     ScriptTag scriptTag = null;
     if (matches(TokenType.SCRIPT_TAG)) {
       scriptTag = new ScriptTag(getAndAdvance());

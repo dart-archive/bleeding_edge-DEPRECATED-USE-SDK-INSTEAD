@@ -34,6 +34,15 @@ public class SourceRangeTest extends TestCase {
     assertFalse(r.contains(15));
   }
 
+  public void test_containsExclusive() throws Exception {
+    SourceRange r = new SourceRange(5, 10);
+    assertFalse(r.containsExclusive(5));
+    assertTrue(r.containsExclusive(10));
+    assertTrue(r.containsExclusive(14));
+    assertFalse(r.containsExclusive(0));
+    assertFalse(r.containsExclusive(15));
+  }
+
   public void test_coveredBy() throws Exception {
     SourceRange r = new SourceRange(5, 10);
     // ends before

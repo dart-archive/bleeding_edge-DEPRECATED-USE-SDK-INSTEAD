@@ -95,7 +95,7 @@ public class StatementAnalyzer extends SelectionAnalyzer {
         if (commentRange.contains(selectionStart)) {
           invalidSelection("Selection begins inside a comment.");
         }
-        if (commentRange.contains(selectionEnd)) {
+        if (commentRange.containsExclusive(selectionEnd)) {
           invalidSelection("Selection ends inside a comment.");
         }
       }

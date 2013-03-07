@@ -185,7 +185,7 @@ public class CompilationUnit extends ASTNode {
     if (endToken == null) {
       return 0;
     }
-    return endToken.getOffset() + endToken.getLength() - getBeginToken().getOffset();
+    return endToken.getOffset() + endToken.getLength();
   }
 
   /**
@@ -199,11 +199,7 @@ public class CompilationUnit extends ASTNode {
 
   @Override
   public int getOffset() {
-    Token beginToken = getBeginToken();
-    if (beginToken == null) {
-      return 0;
-    }
-    return beginToken.getOffset();
+    return 0;
   }
 
   /**

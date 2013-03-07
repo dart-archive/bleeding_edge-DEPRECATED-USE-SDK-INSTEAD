@@ -1168,7 +1168,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   }
 
   private void setSelectionFromStartEndComments() throws Exception {
-    selectionOffset = findEnd("// start");
+    selectionOffset = findEnd("// start") + lineSeparator.length();
     selectionLength = findOffset("// end") - selectionOffset;
   }
 }

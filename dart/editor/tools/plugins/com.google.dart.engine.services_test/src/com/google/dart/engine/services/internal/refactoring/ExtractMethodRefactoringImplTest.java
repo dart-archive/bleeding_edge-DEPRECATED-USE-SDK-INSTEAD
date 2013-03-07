@@ -56,9 +56,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   }
 
   public void test_bad_comment_selectionEndsInside() throws Exception {
-    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
     parseTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
+        "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "// start",
         "  print(0);",
@@ -77,9 +76,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   }
 
   public void test_bad_comment_selectionStartsInside() throws Exception {
-    // TODO(scheglov) restore "filler" when CompilationUnit.getBeginToken() will be fixed
     parseTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
+        "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "/*",
         "// start",
@@ -1863,7 +1861,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   }
 
   private void setSelectionFromStartEndComments() throws Exception {
-    selectionStart = findOffset("// start") + "// start".length() + lineSeparator.length();
+    selectionStart = findEnd("// start") + lineSeparator.length();
     selectionEnd = findOffset("// end");
   }
 

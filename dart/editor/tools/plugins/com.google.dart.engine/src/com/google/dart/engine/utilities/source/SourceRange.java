@@ -51,6 +51,13 @@ public final class SourceRange {
   }
 
   /**
+   * @return <code>true</code> if <code>x</code> is in (offset, offset + length) interval.
+   */
+  public boolean containsExclusive(int x) {
+    return offset < x && x < offset + length;
+  }
+
+  /**
    * @return <code>true</code> if <code>otherRange</code> covers this {@link SourceRange}.
    */
   public boolean coveredBy(SourceRange otherRange) {
