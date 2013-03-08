@@ -28,6 +28,8 @@ import java.text.MessageFormat;
 
 /**
  * Helper to read {@link MemoryIndexStoreImpl} from {@link InputStream}.
+ * 
+ * @coverage dart.engine.index
  */
 class MemoryIndexReader {
   static int FILE_VERSION_NUMBER = 1;

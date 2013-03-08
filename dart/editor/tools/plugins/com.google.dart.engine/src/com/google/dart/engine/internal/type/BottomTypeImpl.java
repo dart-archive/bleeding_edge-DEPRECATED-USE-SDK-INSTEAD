@@ -17,6 +17,8 @@ import com.google.dart.engine.type.Type;
 
 /**
  * The unique instance of the class {@code BottomTypeImpl} implements the type {@code bottom}.
+ * 
+ * @coverage dart.engine.type
  */
 public class BottomTypeImpl extends TypeImpl {
   /**

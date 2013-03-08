@@ -20,6 +20,8 @@ import com.google.dart.engine.search.SearchPattern;
 /**
  * Instances of the class <code>OrSearchPattern</code> implement a search pattern that matches
  * elements that match any one of several other search patterns.
+ * 
+ * @coverage dart.engine.search
  */
 public class OrSearchPattern implements SearchPattern {
   /**

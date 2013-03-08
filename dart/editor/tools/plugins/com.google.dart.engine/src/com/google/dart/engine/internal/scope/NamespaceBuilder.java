@@ -37,6 +37,8 @@ import java.util.Map;
 /**
  * Instances of the class {@code NamespaceBuilder} are used to build a {@code Namespace}. Namespace
  * builders are thread-safe and re-usable.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class NamespaceBuilder {
   /**

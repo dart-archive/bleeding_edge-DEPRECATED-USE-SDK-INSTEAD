@@ -37,6 +37,8 @@ import java.util.List;
  *     '/**' (CHARACTER | {@link CommentReference commentReference})* '&#42;/'
  *   | ('///' (CHARACTER - EOL)* EOL)+
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class Comment extends ASTNode {
   /**

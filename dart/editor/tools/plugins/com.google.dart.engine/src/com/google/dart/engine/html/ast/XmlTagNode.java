@@ -24,6 +24,8 @@ import java.util.List;
 /**
  * Instances of {@code XmlTagNode} represent XML or HTML elements such as {@code <p>} and
  * {@code <body foo="bar"> ... </body>}.
+ * 
+ * @coverage dart.engine.html
  */
 public class XmlTagNode extends XmlNode {
 

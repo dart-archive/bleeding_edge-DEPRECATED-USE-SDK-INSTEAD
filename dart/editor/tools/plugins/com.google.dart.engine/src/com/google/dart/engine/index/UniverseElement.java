@@ -19,6 +19,8 @@ import com.google.dart.engine.internal.index.UniverseElementImpl;
 /**
  * The interface {@code UniverseElement} defines element to use when we want to request "defines"
  * relations without specifying exact library.
+ * 
+ * @coverage dart.engine.index
  */
 public interface UniverseElement extends Element {
   UniverseElement INSTANCE = UniverseElementImpl.INSTANCE;

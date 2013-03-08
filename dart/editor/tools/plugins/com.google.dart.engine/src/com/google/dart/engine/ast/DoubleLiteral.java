@@ -26,6 +26,8 @@ import com.google.dart.engine.scanner.Token;
  * exponent ::=
  *     ('e' | 'E') ('+' | '-')? decimalDigit+
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class DoubleLiteral extends Literal {
   /**

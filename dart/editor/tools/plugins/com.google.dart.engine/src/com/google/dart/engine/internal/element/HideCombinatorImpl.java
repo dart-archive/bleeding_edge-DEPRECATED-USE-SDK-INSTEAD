@@ -19,6 +19,8 @@ import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
  * Instances of the class {@code ShowCombinatorImpl} implement a {@link ShowCombinator}.
+ * 
+ * @coverage dart.engine.element
  */
 public class HideCombinatorImpl implements HideCombinator {
   /**

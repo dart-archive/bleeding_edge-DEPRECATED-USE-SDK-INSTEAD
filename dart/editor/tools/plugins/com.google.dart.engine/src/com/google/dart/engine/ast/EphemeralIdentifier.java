@@ -18,6 +18,8 @@ import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Ephemeral identifiers are created as needed to mimic the presence of an empty identifier.
+ * 
+ * @coverage dart.engine.ast
  */
 public class EphemeralIdentifier extends SimpleIdentifier {
 

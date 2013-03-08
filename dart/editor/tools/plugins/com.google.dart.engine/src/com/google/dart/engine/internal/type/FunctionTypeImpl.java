@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 /**
  * Instances of the class {@code FunctionTypeImpl} defines the behavior common to objects
  * representing the type of a function, method, constructor, getter, or setter.
+ * 
+ * @coverage dart.engine.type
  */
 public class FunctionTypeImpl extends TypeImpl implements FunctionType {
   /**

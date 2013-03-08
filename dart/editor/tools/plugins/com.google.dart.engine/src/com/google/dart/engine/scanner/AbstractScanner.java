@@ -30,6 +30,8 @@ import java.util.List;
  * should be scanned as a single left-shift operator or as two left angle brackets. This scanner
  * does not have any context, so it always resolves such conflicts by scanning the longest possible
  * token.
+ * 
+ * @coverage dart.engine.parser
  */
 public abstract class AbstractScanner {
   /**

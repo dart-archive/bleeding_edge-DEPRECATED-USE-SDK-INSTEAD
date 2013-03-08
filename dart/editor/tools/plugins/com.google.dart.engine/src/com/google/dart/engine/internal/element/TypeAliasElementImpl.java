@@ -25,6 +25,8 @@ import com.google.dart.engine.type.FunctionType;
 
 /**
  * Instances of the class {@code TypeAliasElementImpl} implement a {@code TypeAliasElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
   /**

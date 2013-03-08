@@ -27,6 +27,7 @@ import java.util.List;
  * 
  * @param <D> the document type
  * @param <R> an (optional) return result type
+ * @coverage dart.engine.formatter
  */
 public abstract class EditRecorder<D, R> {
 

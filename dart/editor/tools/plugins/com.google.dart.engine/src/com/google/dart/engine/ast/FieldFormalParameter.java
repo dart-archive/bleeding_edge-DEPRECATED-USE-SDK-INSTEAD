@@ -26,6 +26,8 @@ import java.util.List;
  * fieldFormalParameter ::=
  *     ('final' {@link TypeName type} | 'const' {@link TypeName type} | 'var' | {@link TypeName type})? 'this' '.' {@link SimpleIdentifier identifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FieldFormalParameter extends NormalFormalParameter {
   /**

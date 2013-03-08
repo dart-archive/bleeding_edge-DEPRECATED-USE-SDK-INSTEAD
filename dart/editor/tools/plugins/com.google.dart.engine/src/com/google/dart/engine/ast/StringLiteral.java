@@ -22,6 +22,8 @@ package com.google.dart.engine.ast;
  *   | {@link AdjacentStrings adjacentStrings}
  *   | {@link StringInterpolation stringInterpolation}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class StringLiteral extends Literal {
 }

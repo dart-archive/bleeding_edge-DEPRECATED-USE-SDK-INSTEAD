@@ -19,6 +19,7 @@ package com.google.dart.engine.element;
  * 
  * @see EmbeddedHtmlScriptElement
  * @see ExternalHtmlScriptElement
+ * @coverage dart.engine.element
  */
 public interface HtmlScriptElement extends Element {
 

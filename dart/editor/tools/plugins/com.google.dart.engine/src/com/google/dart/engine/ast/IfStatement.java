@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * ifStatement ::=
  *     'if' '(' {@link Expression expression} ')' {@link Statement thenStatement} ('else' {@link Statement elseStatement})?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class IfStatement extends Statement {
   /**

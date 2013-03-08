@@ -21,6 +21,8 @@ import com.google.dart.engine.source.SourceContainer;
 
 /**
  * Container of information computed by the index - relationships between elements.
+ * 
+ * @coverage dart.engine.index
  */
 public interface IndexStore {
   /**

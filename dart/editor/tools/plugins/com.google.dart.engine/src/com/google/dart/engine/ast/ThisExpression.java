@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * thisExpression ::=
  *     'this'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ThisExpression extends Expression {
   /**

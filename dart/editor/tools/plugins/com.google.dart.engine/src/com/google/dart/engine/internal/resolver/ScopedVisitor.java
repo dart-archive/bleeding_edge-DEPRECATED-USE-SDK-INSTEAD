@@ -59,6 +59,8 @@ import com.google.dart.engine.source.Source;
 /**
  * The abstract class {@code ScopedVisitor} maintains name and label scopes as an AST structure is
  * being visited.
+ * 
+ * @coverage dart.engine.resolver
  */
 public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   /**

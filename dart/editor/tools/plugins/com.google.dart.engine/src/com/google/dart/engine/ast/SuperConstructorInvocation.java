@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.Token;
  * superInvocation ::=
  *     'super' ('.' {@link SimpleIdentifier name})? {@link ArgumentList argumentList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SuperConstructorInvocation extends ConstructorInitializer {
   /**

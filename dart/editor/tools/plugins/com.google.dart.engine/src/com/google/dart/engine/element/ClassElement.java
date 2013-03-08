@@ -17,6 +17,8 @@ import com.google.dart.engine.type.InterfaceType;
 
 /**
  * The interface {@code ClassElement} defines the behavior of elements that represent a class.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ClassElement extends Element {
   /**

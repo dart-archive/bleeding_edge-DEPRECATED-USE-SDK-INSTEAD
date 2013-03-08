@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * Instances of the {@link OperationQueue} represent a queue of operations against the index that
  * are waiting to be performed.
+ * 
+ * @coverage dart.engine.index
  */
 public class OperationQueue {
   /**

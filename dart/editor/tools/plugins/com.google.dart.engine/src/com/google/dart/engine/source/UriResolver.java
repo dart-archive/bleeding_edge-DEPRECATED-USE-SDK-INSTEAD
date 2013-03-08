@@ -19,6 +19,8 @@ import java.net.URI;
  * The abstract class {@code UriResolver} defines the behavior of objects that are used to resolve
  * URI's for a source factory. Subclasses of this class are expected to resolve a single scheme of
  * absolute URI.
+ * 
+ * @coverage dart.engine.source
  */
 public abstract class UriResolver {
   /**

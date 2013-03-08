@@ -29,6 +29,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code CompilationUnitElementImpl} implement a
  * {@link CompilationUnitElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class CompilationUnitElementImpl extends ElementImpl implements CompilationUnitElement {
   /**

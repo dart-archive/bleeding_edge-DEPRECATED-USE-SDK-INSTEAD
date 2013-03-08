@@ -20,6 +20,8 @@ import com.google.dart.engine.search.SearchPattern;
 /**
  * Instances of the class <code>NameMatchingSearchListener</code> implement a search listener that
  * delegates to another search listener after removing matches that do not match a given pattern.
+ * 
+ * @coverage dart.engine.search
  */
 public class NameMatchingSearchListener extends WrappedSearchListener {
   /**

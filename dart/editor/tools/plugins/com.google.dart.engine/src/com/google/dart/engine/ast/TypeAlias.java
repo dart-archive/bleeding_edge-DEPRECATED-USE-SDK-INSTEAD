@@ -28,6 +28,8 @@ import java.util.List;
  *     classTypeAlias
  *   | functionTypeAlias
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class TypeAlias extends CompilationUnitMember {
   /**

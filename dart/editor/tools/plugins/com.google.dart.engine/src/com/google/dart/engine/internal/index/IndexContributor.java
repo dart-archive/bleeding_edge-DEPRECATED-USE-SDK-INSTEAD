@@ -74,6 +74,8 @@ import java.util.LinkedList;
 
 /**
  * Visits resolved AST and adds relationships into {@link IndexStore}.
+ * 
+ * @coverage dart.engine.index
  */
 public class IndexContributor extends GeneralizingASTVisitor<Void> {
 

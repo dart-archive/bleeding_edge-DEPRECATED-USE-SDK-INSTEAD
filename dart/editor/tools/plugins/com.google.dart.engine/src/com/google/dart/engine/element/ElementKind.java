@@ -15,6 +15,8 @@ package com.google.dart.engine.element;
 
 /**
  * The enumeration {@code ElementKind} defines the various kinds of elements in the element model.
+ * 
+ * @coverage dart.engine.element
  */
 public enum ElementKind {
   CLASS("class"),

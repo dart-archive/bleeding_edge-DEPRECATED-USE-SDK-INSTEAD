@@ -24,6 +24,8 @@ import java.util.List;
  * switchCase ::=
  *     {@link SimpleIdentifier label}* 'case' {@link Expression expression} ':' {@link Statement statement}*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SwitchCase extends SwitchMember {
   /**

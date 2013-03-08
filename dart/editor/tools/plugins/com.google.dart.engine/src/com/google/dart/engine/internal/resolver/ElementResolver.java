@@ -137,6 +137,8 @@ import java.util.HashSet;
  * anything. This includes such things as references to undeclared variables (which is an error) and
  * names in hide and show combinators that are not defined in the imported library (which is not an
  * error).
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ElementResolver extends SimpleASTVisitor<Void> {
   /**

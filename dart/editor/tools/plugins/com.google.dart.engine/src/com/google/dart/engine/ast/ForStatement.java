@@ -31,6 +31,8 @@ import java.util.List;
  *     {@link DefaultFormalParameter initializedVariableDeclaration}
  *   | {@link Expression expression}?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ForStatement extends Statement {
   /**

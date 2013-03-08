@@ -19,6 +19,8 @@ import com.google.dart.engine.element.MethodElement;
 
 /**
  * Instances of the class {@code MethodElementHandle} implement a handle to a {@code MethodElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class MethodElementHandle extends ExecutableElementHandle implements MethodElement {
   /**

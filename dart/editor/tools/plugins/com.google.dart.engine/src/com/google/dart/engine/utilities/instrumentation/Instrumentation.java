@@ -41,6 +41,8 @@ package com.google.dart.engine.utilities.instrumentation;
  * arguments and records the time at which the method is called so that the time to complete the
  * save operation can be calculated. The {@code log} method tells the builder that all of the data
  * has been collected and that the resulting information should be logged.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class Instrumentation {
 

@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * conditionalExpression ::=
  *     {@link Expression condition} '?' {@link Expression thenExpression} ':' {@link Expression elseExpression}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ConditionalExpression extends Expression {
   /**

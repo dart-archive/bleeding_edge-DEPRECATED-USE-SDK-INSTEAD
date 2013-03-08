@@ -30,6 +30,8 @@ import java.util.List;
  *     {@link NamedExpression namedArgument} (',' {@link NamedExpression namedArgument})*
  *   | {@link Expression expressionList} (',' {@link NamedExpression namedArgument})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ArgumentList extends ASTNode {
   /**

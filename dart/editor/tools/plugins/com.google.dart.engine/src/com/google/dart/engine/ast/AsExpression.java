@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * asExpression ::=
  *     {@link Expression expression} 'as' {@link TypeName type}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class AsExpression extends Expression {
   /**

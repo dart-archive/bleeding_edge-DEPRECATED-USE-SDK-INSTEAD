@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * commentReference ::=
  *     '[' 'new'? {@link Identifier identifier} ']'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class CommentReference extends ASTNode {
   /**

@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * scriptTag ::=
  *     '#!' (~NEWLINE)* NEWLINE
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ScriptTag extends ASTNode {
   /**

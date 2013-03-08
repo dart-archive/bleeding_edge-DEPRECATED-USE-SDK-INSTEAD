@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * emptyStatement ::=
  *     ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class EmptyStatement extends Statement {
   /**

@@ -21,6 +21,8 @@ import com.google.dart.engine.element.ElementVisitor;
 
 /**
  * Instances of the class {@code ConstructorElementImpl} implement a {@code ConstructorElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ConstructorElementImpl extends ExecutableElementImpl implements ConstructorElement {
   /**

@@ -21,6 +21,8 @@ import com.google.dart.engine.element.MethodElement;
 
 /**
  * Instances of the class {@code MethodElementImpl} implement a {@code MethodElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /**

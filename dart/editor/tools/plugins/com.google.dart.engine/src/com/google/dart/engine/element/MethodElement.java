@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code MethodElement} defines the behavior of elements that represent a method
  * defined within a type.
+ * 
+ * @coverage dart.engine.element
  */
 public interface MethodElement extends ExecutableElement {
   /**

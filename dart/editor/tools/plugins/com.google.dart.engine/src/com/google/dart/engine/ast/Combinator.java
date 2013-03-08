@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.Token;
  *     {@link HideCombinator hideCombinator}
  *   | {@link ShowCombinator showCombinator}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Combinator extends ASTNode {
   /**

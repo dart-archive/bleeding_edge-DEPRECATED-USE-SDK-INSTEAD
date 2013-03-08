@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code ElementVisitor} defines the behavior of objects that can be used to visit an
  * element structure.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ElementVisitor<R> {
   public R visitClassElement(ClassElement element);

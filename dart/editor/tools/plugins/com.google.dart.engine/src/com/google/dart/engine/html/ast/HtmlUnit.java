@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * Instances of the class {@code HtmlUnit} represent the contents of an HTML file.
+ * 
+ * @coverage dart.engine.html
  */
 public class HtmlUnit extends XmlNode {
 

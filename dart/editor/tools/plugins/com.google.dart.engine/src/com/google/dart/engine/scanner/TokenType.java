@@ -33,6 +33,8 @@ import static com.google.dart.engine.scanner.TokenClass.UNARY_PREFIX_OPERATOR;
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
+ * 
+ * @coverage dart.engine.parser
  */
 public enum TokenType {
   /**

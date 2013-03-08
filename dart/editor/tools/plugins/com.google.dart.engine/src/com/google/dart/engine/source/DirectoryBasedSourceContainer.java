@@ -18,6 +18,8 @@ import java.io.File;
 /**
  * Instances of the class {@link DirectoryBasedSourceContainer} represent a source container that
  * contains all sources within a given directory.
+ * 
+ * @coverage dart.engine.source
  */
 public class DirectoryBasedSourceContainer implements SourceContainer {
   /**

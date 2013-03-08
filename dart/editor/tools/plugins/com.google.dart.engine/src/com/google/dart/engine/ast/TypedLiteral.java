@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.Token;
  *     {@link ListLiteral listLiteral}
  *   | {@link MapLiteral mapLiteral}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class TypedLiteral extends Literal {
   /**

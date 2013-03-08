@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * interpolationString ::=
  *     characters
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class InterpolationString extends InterpolationElement {
   /**

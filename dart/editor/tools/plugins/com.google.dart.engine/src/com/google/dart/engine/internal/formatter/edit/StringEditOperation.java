@@ -20,6 +20,8 @@ import java.util.List;
 
 /**
  * A simple un-optimized string edit operation implementation.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class StringEditOperation implements EditOperation<String, String> {
 

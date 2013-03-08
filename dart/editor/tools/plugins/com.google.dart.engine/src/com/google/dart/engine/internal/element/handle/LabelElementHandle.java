@@ -19,6 +19,8 @@ import com.google.dart.engine.element.LabelElement;
 
 /**
  * Instances of the class {@code LabelElementHandle} implement a handle to a {@code LabelElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LabelElementHandle extends ElementHandle implements LabelElement {
   /**

@@ -22,6 +22,8 @@ import java.io.PrintWriter;
 /**
  * Instances of the class {@code ToSourceVisitor} write a source representation of a visited AST
  * node (and all of it's children) to a writer.
+ * 
+ * @coverage dart.engine.ast
  */
 public class ToSourceVisitor implements ASTVisitor<Void> {
   /**

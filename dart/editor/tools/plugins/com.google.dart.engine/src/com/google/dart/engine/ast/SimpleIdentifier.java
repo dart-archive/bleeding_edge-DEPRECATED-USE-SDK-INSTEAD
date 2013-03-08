@@ -28,6 +28,8 @@ import com.google.dart.engine.scanner.TokenType;
  *
  * internalCharacter ::= '_' | '$' | letter | digit
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SimpleIdentifier extends Identifier {
   /**

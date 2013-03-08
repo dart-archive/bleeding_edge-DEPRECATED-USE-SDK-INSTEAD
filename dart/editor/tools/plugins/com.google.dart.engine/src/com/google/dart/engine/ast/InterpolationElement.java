@@ -22,6 +22,8 @@ package com.google.dart.engine.ast;
  *     {@link InterpolationExpression interpolationExpression}
  *   | {@link InterpolationString interpolationString}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class InterpolationElement extends ASTNode {
 }

@@ -19,6 +19,7 @@ package com.google.dart.engine.formatter.edit;
  * 
  * @param <D> the document type
  * @param <R> an optional result
+ * @coverage dart.engine.formatter
  */
 public interface EditOperation<D, R> {
 

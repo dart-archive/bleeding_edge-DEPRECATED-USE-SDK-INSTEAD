@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code LabelElement} defines the behavior of elements representing a label
  * associated with a statement.
+ * 
+ * @coverage dart.engine.element
  */
 public interface LabelElement extends Element {
   /**

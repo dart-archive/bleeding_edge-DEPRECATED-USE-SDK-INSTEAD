@@ -28,6 +28,8 @@ package com.google.dart.engine.element;
  * <li>Every explicit getter or setter (or pair thereof if they have the same name) induces a
  * variable that is represented by a synthetic {@link PropertyInducingElement}.
  * </ul>
+ * 
+ * @coverage dart.engine.element
  */
 public interface PropertyInducingElement extends VariableElement {
   /**

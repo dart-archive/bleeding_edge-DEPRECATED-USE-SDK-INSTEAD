@@ -28,6 +28,8 @@ import java.util.HashMap;
 /**
  * The abstract class {@code Scope} defines the behavior common to name scopes used by the resolver
  * to determine which names are visible at any given point in the code.
+ * 
+ * @coverage dart.engine.resolver
  */
 public abstract class Scope {
   /**

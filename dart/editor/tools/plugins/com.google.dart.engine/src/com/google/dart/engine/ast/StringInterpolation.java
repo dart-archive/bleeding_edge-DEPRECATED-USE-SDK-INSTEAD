@@ -25,6 +25,8 @@ import java.util.List;
  *     ''' {@link InterpolationElement interpolationElement}* '''
  *   | '"' {@link InterpolationElement interpolationElement}* '"'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class StringInterpolation extends StringLiteral {
   /**

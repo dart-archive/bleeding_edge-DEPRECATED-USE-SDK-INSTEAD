@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * binaryExpression ::=
  *     {@link Expression leftOperand} {@link Token operator} {@link Expression rightOperand}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class BinaryExpression extends Expression {
   /**

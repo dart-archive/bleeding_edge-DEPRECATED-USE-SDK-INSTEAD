@@ -20,6 +20,8 @@ import com.google.dart.engine.internal.element.ElementImpl;
 
 /**
  * Implementation of {@link UniverseElement}.
+ * 
+ * @coverage dart.engine.index
  */
 public class UniverseElementImpl extends ElementImpl implements UniverseElement {
   public static final UniverseElementImpl INSTANCE = new UniverseElementImpl();

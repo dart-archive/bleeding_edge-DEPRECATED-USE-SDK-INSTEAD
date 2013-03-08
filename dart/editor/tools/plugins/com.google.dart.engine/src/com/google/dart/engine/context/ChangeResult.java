@@ -16,6 +16,8 @@ package com.google.dart.engine.context;
 /**
  * Instances of {@code ChangeResult} are returned by {@link AnalysisContext#changed(ChangeSet)} to
  * indicate what operations need to be performed as a result of the change.
+ * 
+ * @coverage dart.engine
  */
 public class ChangeResult {
 

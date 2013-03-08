@@ -18,6 +18,8 @@ import java.util.EmptyStackException;
 /**
  * Instances of the class <code>IntStack</code> implement a stack whole elements are
  * <code>int</code> values rather than objects.
+ * 
+ * @coverage dart.engine.utilities
  */
 public class IntStack {
   /**

@@ -19,6 +19,8 @@ import java.net.URISyntaxException;
 /**
  * Instances of the class {@code SourceFactory} resolve possibly relative URI's against an existing
  * {@link Source source}.
+ * 
+ * @coverage dart.engine.source
  */
 public class SourceFactory {
   /**

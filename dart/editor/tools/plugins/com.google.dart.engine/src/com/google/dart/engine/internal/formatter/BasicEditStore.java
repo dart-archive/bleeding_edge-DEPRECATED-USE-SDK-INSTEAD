@@ -22,6 +22,8 @@ import java.util.List;
 
 /**
  * Basic un-optimized edit store suitable for subclassing.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class BasicEditStore implements EditStore {
 

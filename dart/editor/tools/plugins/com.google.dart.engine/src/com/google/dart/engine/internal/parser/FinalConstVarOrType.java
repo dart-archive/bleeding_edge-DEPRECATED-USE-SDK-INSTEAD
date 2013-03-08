@@ -19,6 +19,8 @@ import com.google.dart.engine.scanner.Token;
 /**
  * Instances of the class {@code FinalConstVarOrType} implement a simple data-holder for a method
  * that needs to return multiple values.
+ * 
+ * @coverage dart.engine.parser
  */
 public class FinalConstVarOrType {
   /**

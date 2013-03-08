@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * postfixExpression ::=
  *     {@link Expression operand} {@link Token operator}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PostfixExpression extends Expression {
   /**

@@ -16,6 +16,8 @@ package com.google.dart.engine.search;
 /**
  * Instances of the enum <code>MatchQuality</code> represent the quality of a match by representing
  * the conditions under which a match is valid.
+ * 
+ * @coverage dart.engine.search
  */
 public enum MatchQuality {
   /**

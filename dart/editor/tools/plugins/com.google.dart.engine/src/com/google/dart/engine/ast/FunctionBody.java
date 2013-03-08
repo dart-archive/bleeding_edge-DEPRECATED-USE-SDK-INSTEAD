@@ -23,6 +23,8 @@ package com.google.dart.engine.ast;
  *   | {@link EmptyFunctionBody emptyFunctionBody}
  *   | {@link ExpressionFunctionBody expressionFunctionBody}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class FunctionBody extends ASTNode {
 }

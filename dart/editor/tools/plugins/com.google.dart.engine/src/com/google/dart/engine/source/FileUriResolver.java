@@ -18,6 +18,8 @@ import java.net.URI;
 
 /**
  * Instances of the class {@code FileUriResolver} resolve {@code file} URI's.
+ * 
+ * @coverage dart.engine.source
  */
 public class FileUriResolver extends UriResolver {
   /**

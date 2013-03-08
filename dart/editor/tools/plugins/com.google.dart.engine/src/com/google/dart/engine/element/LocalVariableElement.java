@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code LocalVariableElement} defines the behavior common to elements that represent
  * a local variable.
+ * 
+ * @coverage dart.engine.element
  */
 public interface LocalVariableElement extends LocalElement, VariableElement {
 }

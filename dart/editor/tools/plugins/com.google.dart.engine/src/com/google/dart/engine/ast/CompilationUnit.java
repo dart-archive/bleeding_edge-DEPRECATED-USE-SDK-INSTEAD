@@ -46,6 +46,8 @@ import java.util.List;
  * declarations ::=
  *     {@link CompilationUnitMember compilationUnitMember}*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class CompilationUnit extends ASTNode {
   /**

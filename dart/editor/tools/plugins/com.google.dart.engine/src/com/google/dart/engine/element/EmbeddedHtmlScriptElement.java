@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code EmbeddedHtmlScriptElement} defines the behavior of elements representing a
  * script tag in an HTML file having content that defines a Dart library.
+ * 
+ * @coverage dart.engine.element
  */
 public interface EmbeddedHtmlScriptElement extends HtmlScriptElement {
 

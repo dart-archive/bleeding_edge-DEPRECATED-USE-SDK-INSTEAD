@@ -25,6 +25,8 @@ import com.google.dart.engine.type.InterfaceType;
 
 /**
  * Instances of the class {@code ClassElementHandle} implement a handle to a {@code ClassElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ClassElementHandle extends ElementHandle implements ClassElement {
   /**

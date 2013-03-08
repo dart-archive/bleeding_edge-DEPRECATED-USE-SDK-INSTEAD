@@ -28,6 +28,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class {@code MultiplyDefinedElementImpl} represent a collection of elements that
  * have the same name within the same scope.
+ * 
+ * @coverage dart.engine.element
  */
 public class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   /**

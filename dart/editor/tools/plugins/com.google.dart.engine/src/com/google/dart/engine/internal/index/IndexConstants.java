@@ -19,6 +19,8 @@ import com.google.dart.engine.index.UniverseElement;
 
 /**
  * Constants used when populating and accessing the index.
+ * 
+ * @coverage dart.engine.index
  */
 public interface IndexConstants {
 //  /**

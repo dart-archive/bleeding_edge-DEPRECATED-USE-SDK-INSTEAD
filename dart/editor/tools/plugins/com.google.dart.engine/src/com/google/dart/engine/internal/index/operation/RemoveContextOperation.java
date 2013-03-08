@@ -21,6 +21,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the {@link RemoveContextOperation} implement an operation that removes from the
  * index any data based on the specified {@link AnalysisContext}.
+ * 
+ * @coverage dart.engine.index
  */
 public class RemoveContextOperation implements IndexOperation {
   /**

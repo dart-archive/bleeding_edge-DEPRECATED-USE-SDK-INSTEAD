@@ -21,6 +21,8 @@ import com.google.dart.engine.source.SourceContainer;
 /**
  * Instances of the {@link RemoveSourcesOperation} implement an operation that removes from the
  * index any data based on the content of source belonging to a {@link SourceContainer}.
+ * 
+ * @coverage dart.engine.index
  */
 public class RemoveSourcesOperation implements IndexOperation {
   /**

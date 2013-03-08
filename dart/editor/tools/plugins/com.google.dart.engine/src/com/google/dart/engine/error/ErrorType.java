@@ -15,6 +15,8 @@ package com.google.dart.engine.error;
 
 /**
  * Instances of the enumeration {@code ErrorType} represent the type of an {@link ErrorCode}.
+ * 
+ * @coverage dart.engine.error
  */
 public enum ErrorType {
   /**

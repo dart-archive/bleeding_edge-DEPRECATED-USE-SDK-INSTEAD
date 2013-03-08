@@ -95,6 +95,8 @@ import com.google.dart.engine.element.VariableElement;
  * explicitly invoke the more general visit method. Failure to do so will cause the visit methods
  * for superclasses of the element to not be invoked and will cause the children of the visited node
  * to not be visited.
+ * 
+ * @coverage dart.engine.element
  */
 public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @Override

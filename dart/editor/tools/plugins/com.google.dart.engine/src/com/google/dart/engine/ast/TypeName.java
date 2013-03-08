@@ -24,6 +24,8 @@ import com.google.dart.engine.type.Type;
  * typeName ::=
  *     {@link Identifier identifier} typeArguments?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TypeName extends ASTNode {
   /**

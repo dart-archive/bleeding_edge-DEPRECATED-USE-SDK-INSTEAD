@@ -27,6 +27,8 @@ import java.util.List;
  *     ('final' | 'const') type? staticFinalDeclarationList ';'
  *   | variableDeclaration ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TopLevelVariableDeclaration extends CompilationUnitMember {
   /**

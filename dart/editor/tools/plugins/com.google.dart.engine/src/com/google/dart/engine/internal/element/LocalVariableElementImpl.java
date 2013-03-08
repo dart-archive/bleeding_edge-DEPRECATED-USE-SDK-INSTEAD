@@ -21,6 +21,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code LocalVariableElementImpl} implement a {@code LocalVariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LocalVariableElementImpl extends VariableElementImpl implements LocalVariableElement {
   /**

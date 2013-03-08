@@ -19,6 +19,8 @@ import com.google.dart.engine.type.TypeVariableType;
 /**
  * The interface {@code TypeVariableElement} defines the behavior of elements representing a type
  * variable.
+ * 
+ * @coverage dart.engine.element
  */
 public interface TypeVariableElement extends Element {
   /**

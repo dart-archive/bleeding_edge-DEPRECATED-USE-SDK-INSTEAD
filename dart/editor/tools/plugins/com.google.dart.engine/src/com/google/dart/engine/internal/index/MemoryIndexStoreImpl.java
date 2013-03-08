@@ -37,6 +37,8 @@ import java.util.Set;
 
 /**
  * {@link IndexStore} which keeps full index in memory.
+ * 
+ * @coverage dart.engine.index
  */
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
 

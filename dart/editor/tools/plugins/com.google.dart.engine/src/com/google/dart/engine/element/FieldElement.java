@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code FieldElement} defines the behavior of elements representing a field defined
  * within a type.
+ * 
+ * @coverage dart.engine.element
  */
 public interface FieldElement extends PropertyInducingElement {
   /**

@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * Factory for creating instances of {@link SourceRange} using {@link ASTNode}s, {@link Token}s and
  * values.
+ * 
+ * @coverage dart.engine.utilities
  */
 public class SourceRangeFactory {
   /**

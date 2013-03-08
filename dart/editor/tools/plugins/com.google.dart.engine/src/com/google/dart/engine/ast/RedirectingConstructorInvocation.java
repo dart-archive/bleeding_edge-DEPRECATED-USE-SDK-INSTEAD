@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.Token;
  * redirectingConstructorInvocation ::=
  *     'this' ('.' identifier)? arguments
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class RedirectingConstructorInvocation extends ConstructorInitializer {
   /**

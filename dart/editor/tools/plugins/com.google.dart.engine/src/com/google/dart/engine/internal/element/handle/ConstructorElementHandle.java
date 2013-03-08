@@ -20,6 +20,8 @@ import com.google.dart.engine.element.ElementKind;
 /**
  * Instances of the class {@code ConstructorElementHandle} implement a handle to a
  * {@code ConstructorElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ConstructorElementHandle extends ExecutableElementHandle implements ConstructorElement {
   /**

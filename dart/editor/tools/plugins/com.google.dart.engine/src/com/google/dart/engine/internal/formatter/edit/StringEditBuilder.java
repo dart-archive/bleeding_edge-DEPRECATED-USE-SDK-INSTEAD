@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * An edit builder that produces simple string edit operations.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class StringEditBuilder implements EditBuilder<String, String> {
 

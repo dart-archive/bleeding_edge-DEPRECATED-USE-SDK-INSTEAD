@@ -34,6 +34,8 @@ import java.util.List;
 /**
  * Instances of the class {@code XmlParser} are used to parse tokens into a AST structure comprised
  * of {@link XmlNode}s.
+ * 
+ * @coverage dart.engine.html
  */
 public class XmlParser {
 

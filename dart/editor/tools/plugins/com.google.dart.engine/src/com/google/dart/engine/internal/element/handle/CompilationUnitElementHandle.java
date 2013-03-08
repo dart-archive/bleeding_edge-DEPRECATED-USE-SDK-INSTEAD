@@ -26,6 +26,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code CompilationUnitElementHandle} implements a handle to a
  * {@link CompilationUnitElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class CompilationUnitElementHandle extends ElementHandle implements CompilationUnitElement {
   /**

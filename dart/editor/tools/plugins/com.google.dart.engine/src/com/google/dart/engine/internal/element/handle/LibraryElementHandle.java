@@ -24,6 +24,8 @@ import com.google.dart.engine.element.PrefixElement;
 /**
  * Instances of the class {@code LibraryElementHandle} implement a handle to a
  * {@code LibraryElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LibraryElementHandle extends ElementHandle implements LibraryElement {
   /**

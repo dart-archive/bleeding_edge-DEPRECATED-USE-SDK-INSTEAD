@@ -23,6 +23,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code ErrorReporter} wrap an error listener with utility methods used to
  * create the errors being reported.
+ * 
+ * @coverage dart.engine.error
  */
 public class ErrorReporter {
   /**

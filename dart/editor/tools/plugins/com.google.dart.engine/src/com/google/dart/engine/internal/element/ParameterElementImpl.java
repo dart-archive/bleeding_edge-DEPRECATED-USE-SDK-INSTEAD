@@ -22,6 +22,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code ParameterElementImpl} implement a {@code ParameterElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**

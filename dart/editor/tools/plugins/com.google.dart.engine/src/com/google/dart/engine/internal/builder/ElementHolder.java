@@ -32,6 +32,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class {@code ElementHolder} hold on to elements created while traversing an AST
  * structure so that they can be accessed when creating their enclosing element.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ElementHolder {
   private ArrayList<PropertyAccessorElement> accessors = new ArrayList<PropertyAccessorElement>();

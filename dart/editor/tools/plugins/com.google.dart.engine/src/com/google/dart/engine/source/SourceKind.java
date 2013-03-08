@@ -16,6 +16,8 @@ package com.google.dart.engine.source;
 /**
  * The enumeration {@code SourceKind} defines the different kinds of sources that are known to the
  * analysis engine.
+ * 
+ * @coverage dart.engine.source
  */
 public enum SourceKind {
   /**

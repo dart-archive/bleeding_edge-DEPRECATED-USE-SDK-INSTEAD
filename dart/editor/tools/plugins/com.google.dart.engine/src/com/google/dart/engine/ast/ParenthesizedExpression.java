@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * parenthesizedExpression ::=
  *     '(' {@link Expression expression} ')'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ParenthesizedExpression extends Expression {
   /**

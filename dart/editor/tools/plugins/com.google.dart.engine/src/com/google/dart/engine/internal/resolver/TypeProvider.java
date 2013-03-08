@@ -19,6 +19,8 @@ import com.google.dart.engine.type.Type;
 /**
  * The interface {@code TypeProvider} defines the behavior of objects that provide access to types
  * defined by the language.
+ * 
+ * @coverage dart.engine.resolver
  */
 public interface TypeProvider {
   /**

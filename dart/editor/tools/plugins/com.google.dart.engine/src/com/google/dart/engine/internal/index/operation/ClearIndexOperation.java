@@ -19,6 +19,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the {@code ClearIndexOperation} implement an operation that removes all of the data
  * from the index.
+ * 
+ * @coverage dart.engine.index
  */
 public class ClearIndexOperation implements IndexOperation {
   /**

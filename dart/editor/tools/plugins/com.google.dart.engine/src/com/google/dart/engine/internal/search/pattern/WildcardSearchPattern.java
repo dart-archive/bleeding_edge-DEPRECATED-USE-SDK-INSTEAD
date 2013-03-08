@@ -23,6 +23,8 @@ import com.google.dart.engine.utilities.general.CharOperation;
  * elements whose name matches a pattern with wildcard characters. The wildcard characters that are
  * currently supported are '?' (to match any single character) and '*' (to match zero or more
  * characters).
+ * 
+ * @coverage dart.engine.search
  */
 public class WildcardSearchPattern implements SearchPattern {
   /**

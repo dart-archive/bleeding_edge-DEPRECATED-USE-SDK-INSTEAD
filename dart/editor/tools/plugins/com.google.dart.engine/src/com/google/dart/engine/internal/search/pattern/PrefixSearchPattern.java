@@ -23,6 +23,8 @@ import static org.apache.commons.lang3.StringUtils.startsWithIgnoreCase;
 /**
  * Instances of the class <code>PrefixSearchPattern</code> implement a search pattern that matches
  * elements whose name has a given prefix.
+ * 
+ * @coverage dart.engine.search
  */
 public class PrefixSearchPattern implements SearchPattern {
   /**

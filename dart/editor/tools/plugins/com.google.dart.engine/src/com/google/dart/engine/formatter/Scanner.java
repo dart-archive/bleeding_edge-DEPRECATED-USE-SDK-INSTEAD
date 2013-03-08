@@ -18,6 +18,8 @@ package com.google.dart.engine.formatter;
  * <p>
  * NOTE: this is a temporary interface; to be replaced by direct access to an
  * {@code AbstractScanner}.
+ * 
+ * @coverage dart.engine.formatter
  */
 public interface Scanner {
 

@@ -18,6 +18,8 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
 /**
  * The interface {@code ParameterElement} defines the behavior of elements representing a parameter
  * defined within an executable element.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ParameterElement extends LocalElement, VariableElement {
   /**

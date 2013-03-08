@@ -21,6 +21,8 @@ import com.google.dart.engine.element.NamespaceCombinator;
 /**
  * Instances of the class {@code ExportElementHandle} implement a handle to an {@code ExportElement}
  * .
+ * 
+ * @coverage dart.engine.element
  */
 public class ExportElementHandle extends ElementHandle implements ExportElement {
   /**

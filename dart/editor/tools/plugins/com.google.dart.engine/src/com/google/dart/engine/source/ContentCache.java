@@ -18,6 +18,8 @@ import java.util.HashMap;
 /**
  * Instances of class {@code ContentCache} hold content used to override the default content of a
  * {@link Source}.
+ * 
+ * @coverage dart.engine.source
  */
 public class ContentCache {
   /**

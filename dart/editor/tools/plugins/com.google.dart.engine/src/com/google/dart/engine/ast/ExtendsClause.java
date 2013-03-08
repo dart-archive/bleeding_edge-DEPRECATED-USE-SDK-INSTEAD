@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * extendsClause ::=
  *     'extends' {@link TypeName superclass}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ExtendsClause extends ASTNode {
   /**

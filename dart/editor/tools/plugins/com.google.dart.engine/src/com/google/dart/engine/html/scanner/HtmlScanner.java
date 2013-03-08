@@ -26,6 +26,8 @@ import java.nio.CharBuffer;
  *   source.getContents(scanner);
  *   return scanner.getResult();
  * </pre>
+ * 
+ * @coverage dart.engine.html
  */
 public class HtmlScanner implements Source.ContentReceiver {
   private final String[] SCRIPT_TAG = new String[] {"script"};

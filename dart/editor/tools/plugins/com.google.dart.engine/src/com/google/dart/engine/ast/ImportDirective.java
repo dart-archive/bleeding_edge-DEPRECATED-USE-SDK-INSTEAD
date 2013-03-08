@@ -24,6 +24,8 @@ import java.util.List;
  * importDirective ::=
  *     {@link Annotation metadata} 'import' {@link StringLiteral libraryUri} ('as' identifier)? {@link Combinator combinator}* ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ImportDirective extends NamespaceDirective {
   /**

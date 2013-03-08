@@ -24,6 +24,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class {@code LibraryImportScope} represent the scope containing all of the names
  * available from imported libraries.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class LibraryImportScope extends Scope {
   /**

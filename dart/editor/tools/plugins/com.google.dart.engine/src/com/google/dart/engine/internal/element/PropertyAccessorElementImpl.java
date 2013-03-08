@@ -22,6 +22,8 @@ import com.google.dart.engine.element.PropertyInducingElement;
 /**
  * Instances of the class {@code PropertyAccessorElementImpl} implement a
  * {@code PropertyAccessorElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class PropertyAccessorElementImpl extends ExecutableElementImpl implements
     PropertyAccessorElement {

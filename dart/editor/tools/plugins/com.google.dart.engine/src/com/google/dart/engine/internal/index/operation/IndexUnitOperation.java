@@ -25,6 +25,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the {@link IndexUnitOperation} implement an operation that adds data to the index
  * based on the content of a specified resource.
+ * 
+ * @coverage dart.engine.index
  */
 public class IndexUnitOperation implements IndexOperation {
   /**

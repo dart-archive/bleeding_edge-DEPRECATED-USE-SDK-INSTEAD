@@ -27,6 +27,8 @@ import java.util.List;
  * finallyClause ::=
  *     'finally' {@link Block block}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TryStatement extends Statement {
   /**

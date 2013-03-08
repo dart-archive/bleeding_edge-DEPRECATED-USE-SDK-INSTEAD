@@ -15,6 +15,8 @@ package com.google.dart.engine.element;
 
 /**
  * The interface {@code LibraryElement} defines the behavior of elements representing a library.
+ * 
+ * @coverage dart.engine.element
  */
 public interface LibraryElement extends Element {
   /**

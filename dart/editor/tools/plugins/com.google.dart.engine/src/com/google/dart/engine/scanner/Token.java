@@ -16,6 +16,8 @@ package com.google.dart.engine.scanner;
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
+ * 
+ * @coverage dart.engine.parser
  */
 public class Token {
   /**

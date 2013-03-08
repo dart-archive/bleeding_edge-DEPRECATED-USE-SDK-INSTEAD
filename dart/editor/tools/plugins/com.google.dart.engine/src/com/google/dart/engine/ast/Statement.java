@@ -34,6 +34,8 @@ package com.google.dart.engine.ast;
  *   | {@link ExpressionStatement expressionStatement}
  *   | {@link FunctionDeclarationStatement functionSignature functionBody}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Statement extends ASTNode {
 }

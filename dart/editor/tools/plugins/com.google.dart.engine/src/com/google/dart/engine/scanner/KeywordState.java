@@ -18,6 +18,8 @@ import java.util.Arrays;
 /**
  * Instances of the abstract class {@code KeywordState} represent a state in a state machine used to
  * scan keywords.
+ * 
+ * @coverage dart.engine.parser
  */
 public final class KeywordState {
   /**

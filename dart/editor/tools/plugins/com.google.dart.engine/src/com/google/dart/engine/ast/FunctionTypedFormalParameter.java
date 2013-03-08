@@ -25,6 +25,8 @@ import java.util.List;
  * functionSignature ::=
  *     {@link TypeName returnType}? {@link SimpleIdentifier identifier} {@link FormalParameterList formalParameterList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**

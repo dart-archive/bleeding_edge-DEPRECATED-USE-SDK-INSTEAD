@@ -27,6 +27,8 @@ import com.google.dart.engine.scanner.TokenType;
  * methodInvoction ::=
  *     ({@link Expression target} '.')? {@link SimpleIdentifier methodName} {@link ArgumentList argumentList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class MethodInvocation extends Expression {
   /**

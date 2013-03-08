@@ -18,6 +18,8 @@ import com.google.dart.engine.element.Element;
 /**
  * The interface <code>RelationshipCallback</code> defines the behavior of objects that are invoked
  * with the results of a query about a given relationship.
+ * 
+ * @coverage dart.engine.index
  */
 public interface RelationshipCallback {
   /**

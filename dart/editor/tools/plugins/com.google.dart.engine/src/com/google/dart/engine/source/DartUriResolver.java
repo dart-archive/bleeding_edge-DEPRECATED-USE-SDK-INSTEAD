@@ -20,6 +20,8 @@ import java.net.URI;
 
 /**
  * Instances of the class {@code DartUriResolver} resolve {@code dart} URI's.
+ * 
+ * @coverage dart.engine.source
  */
 public class DartUriResolver extends UriResolver {
   /**

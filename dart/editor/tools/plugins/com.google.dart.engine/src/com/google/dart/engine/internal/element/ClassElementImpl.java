@@ -31,6 +31,8 @@ import java.util.HashSet;
 
 /**
  * Instances of the class {@code ClassElementImpl} implement a {@code ClassElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ClassElementImpl extends ElementImpl implements ClassElement {
   /**

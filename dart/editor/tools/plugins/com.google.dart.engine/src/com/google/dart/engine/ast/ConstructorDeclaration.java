@@ -40,6 +40,8 @@ import java.util.List;
  * initializerList ::=
  *     ':' {@link ConstructorInitializer initializer} (',' {@link ConstructorInitializer initializer})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ConstructorDeclaration extends ClassMember {
   /**

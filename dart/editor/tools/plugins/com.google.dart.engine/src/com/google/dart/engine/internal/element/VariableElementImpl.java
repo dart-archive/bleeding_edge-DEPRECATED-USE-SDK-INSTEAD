@@ -21,6 +21,8 @@ import com.google.dart.engine.type.Type;
 
 /**
  * Instances of the class {@code VariableElementImpl} implement a {@code VariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class VariableElementImpl extends ElementImpl implements VariableElement {
   /**

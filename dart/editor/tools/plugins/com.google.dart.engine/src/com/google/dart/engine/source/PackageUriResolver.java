@@ -19,6 +19,8 @@ import java.net.URI;
 /**
  * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
  * an application.
+ * 
+ * @coverage dart.engine.source
  */
 public class PackageUriResolver extends UriResolver {
   /**

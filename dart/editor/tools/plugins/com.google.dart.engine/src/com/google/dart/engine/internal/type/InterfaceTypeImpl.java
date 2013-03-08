@@ -29,6 +29,8 @@ import java.util.Set;
  * Instances of the class {@code InterfaceTypeImpl} defines the behavior common to objects
  * representing the type introduced by either a class or an interface, or a reference to such a
  * type.
+ * 
+ * @coverage dart.engine.type
  */
 public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**

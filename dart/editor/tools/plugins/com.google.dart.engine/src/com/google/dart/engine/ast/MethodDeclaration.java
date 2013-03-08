@@ -37,6 +37,8 @@ import java.util.List;
  *     {@link SimpleIdentifier name}
  *   | 'operator' {@link SimpleIdentifier operator}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class MethodDeclaration extends ClassMember {
   /**

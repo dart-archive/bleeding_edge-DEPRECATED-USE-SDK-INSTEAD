@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * Thrown when an error occurs in formatting.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class FormatterException extends Exception {
 

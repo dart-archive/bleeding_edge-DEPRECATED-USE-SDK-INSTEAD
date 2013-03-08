@@ -30,6 +30,8 @@ import java.util.List;
  *   | {@link PartDirective partDirective}
  *   | {@link PartOfDirective partOfDirective}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Directive extends AnnotatedNode {
   /**

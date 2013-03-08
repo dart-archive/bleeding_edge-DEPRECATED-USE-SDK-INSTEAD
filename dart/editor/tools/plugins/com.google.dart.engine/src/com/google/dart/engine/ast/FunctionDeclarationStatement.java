@@ -18,6 +18,8 @@ import com.google.dart.engine.scanner.Token;
 /**
  * Instances of the class {@code FunctionDeclarationStatement} wrap a {@link FunctionDeclaration
  * function declaration} as a statement.
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionDeclarationStatement extends Statement {
   /**

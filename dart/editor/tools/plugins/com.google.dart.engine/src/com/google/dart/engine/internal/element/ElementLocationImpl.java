@@ -21,6 +21,8 @@ import java.util.Arrays;
 
 /**
  * Instances of the class {@code ElementLocationImpl} implement an {@link ElementLocation}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ElementLocationImpl implements ElementLocation {
   /**

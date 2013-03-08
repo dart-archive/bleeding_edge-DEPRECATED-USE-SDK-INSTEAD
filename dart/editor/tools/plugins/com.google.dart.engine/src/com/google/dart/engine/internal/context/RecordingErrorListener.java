@@ -30,6 +30,8 @@ import java.util.Set;
  * Instances of the class {@code RecordingErrorListener} implement an error listener that will
  * record the errors that are reported to it in a way that is appropriate for caching those errors
  * within an analysis context.
+ * 
+ * @coverage dart.engine
  */
 public class RecordingErrorListener implements AnalysisErrorListener {
 

@@ -16,6 +16,8 @@ package com.google.dart.engine.scanner;
 /**
  * Instances of the class {@code BeginTokenWithComment} represent a begin token that is preceded by
  * comments.
+ * 
+ * @coverage dart.engine.parser
  */
 public class BeginTokenWithComment extends BeginToken {
   /**

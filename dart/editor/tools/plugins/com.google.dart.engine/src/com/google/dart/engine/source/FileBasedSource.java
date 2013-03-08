@@ -23,6 +23,8 @@ import java.nio.charset.Charset;
 
 /**
  * Instances of the class {@code FileBasedSource} implement a source that represents a file.
+ * 
+ * @coverage dart.engine.source
  */
 public class FileBasedSource implements Source {
   /**

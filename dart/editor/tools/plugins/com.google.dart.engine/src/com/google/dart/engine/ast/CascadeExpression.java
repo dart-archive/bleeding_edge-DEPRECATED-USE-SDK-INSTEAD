@@ -34,6 +34,8 @@ import java.util.List;
  *     '[ ' expression '] '
  *   | identifier
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class CascadeExpression extends Expression {
   /**

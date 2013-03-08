@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * superExpression ::=
  *     'super'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SuperExpression extends Expression {
   /**

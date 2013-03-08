@@ -17,8 +17,10 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 /**
- * Instances of the class {@code PrintStringWriter} are a {@link PrintWriter} that stores the
- * text written to it in such a way that it can be returned as a {@link String}.
+ * Instances of the class {@code PrintStringWriter} are a {@link PrintWriter} that stores the text
+ * written to it in such a way that it can be returned as a {@link String}.
+ * 
+ * @coverage dart.engine.utilities
  */
 public class PrintStringWriter extends PrintWriter {
   /**

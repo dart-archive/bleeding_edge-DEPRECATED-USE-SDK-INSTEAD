@@ -19,6 +19,8 @@ import com.google.dart.engine.element.PropertyInducingElement;
 /**
  * The abstract class {@code PropertyInducingElementHandle} implements the behavior common to
  * objects that implement a handle to an {@code PropertyInducingElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class PropertyInducingElementHandle extends VariableElementHandle implements
     PropertyInducingElement {

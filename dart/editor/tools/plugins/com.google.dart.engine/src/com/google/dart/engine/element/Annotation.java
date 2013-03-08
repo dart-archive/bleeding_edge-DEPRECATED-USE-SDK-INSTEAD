@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code Annotation} defines the behavior of objects representing a single annotation
  * associated with an element.
+ * 
+ * @coverage dart.engine.element
  */
 public interface Annotation {
   /**

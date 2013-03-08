@@ -18,6 +18,8 @@ import com.google.dart.engine.search.SearchScope;
 
 /**
  * The {@link SearchScope} that encompasses everything in the universe.
+ * 
+ * @coverage dart.engine.search
  */
 public class UniverseSearchScope implements SearchScope {
   @Override

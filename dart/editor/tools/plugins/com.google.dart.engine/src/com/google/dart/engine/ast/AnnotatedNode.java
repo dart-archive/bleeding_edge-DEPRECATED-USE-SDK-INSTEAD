@@ -22,6 +22,8 @@ import java.util.List;
 /**
  * The abstract class {@code AnnotatedNode} defines the behavior of nodes that can be annotated with
  * both a comment and metadata.
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class AnnotatedNode extends ASTNode {
   /**

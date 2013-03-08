@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * argumentDefinitionTest ::=
  *     '?' {@link SimpleIdentifier identifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ArgumentDefinitionTest extends Expression {
   /**

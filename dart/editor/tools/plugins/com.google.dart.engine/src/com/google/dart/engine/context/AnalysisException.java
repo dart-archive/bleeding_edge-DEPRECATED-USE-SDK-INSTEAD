@@ -16,6 +16,8 @@ package com.google.dart.engine.context;
 /**
  * Instances of the class {@code AnalysisException} represent an exception that occurred during the
  * analysis of one or more sources.
+ * 
+ * @coverage dart.engine
  */
 public class AnalysisException extends Exception {
   /**

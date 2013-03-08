@@ -25,6 +25,8 @@ import java.util.List;
  *   | {@link ImportDirective importDirective}
  *   | {@link PartDirective partDirective}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class UriBasedDirective extends Directive {
   /**

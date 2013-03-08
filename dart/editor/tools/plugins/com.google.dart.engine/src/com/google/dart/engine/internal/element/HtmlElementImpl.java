@@ -22,6 +22,8 @@ import com.google.dart.engine.source.Source;
 
 /**
  * Instances of the class {@code HtmlElementImpl} implement an {@link HtmlElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**

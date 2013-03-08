@@ -28,6 +28,8 @@ import java.util.Map;
  * <i>(T<sub>1</sub>, &hellip;, T<sub>n</sub>, {T<sub>x1</sub> x1, &hellip;, T<sub>xk</sub> xk})
  * &rarr; T</i>.</li>
  * </ol>
+ * 
+ * @coverage dart.engine.type
  */
 public interface FunctionType extends Type {
   /**

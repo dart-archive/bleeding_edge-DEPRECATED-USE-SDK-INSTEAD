@@ -52,6 +52,8 @@ import java.util.List;
 
 /**
  * Implementation of {@link SearchEngine}.
+ * 
+ * @coverage dart.engine.search
  */
 public class SearchEngineImpl implements SearchEngine {
 

@@ -46,6 +46,8 @@ import java.util.List;
  * namedFormalParameters ::=
  *     '{' {@link DefaultFormalParameter namedFormalParameter} (',' {@link DefaultFormalParameter namedFormalParameter})* '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FormalParameterList extends ASTNode {
   /**

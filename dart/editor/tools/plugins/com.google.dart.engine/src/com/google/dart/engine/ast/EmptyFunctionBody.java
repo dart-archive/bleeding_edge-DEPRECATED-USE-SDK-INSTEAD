@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * emptyFunctionBody ::=
  *     ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class EmptyFunctionBody extends FunctionBody {
   /**

@@ -33,6 +33,8 @@ import java.util.Set;
 
 /**
  * Instances of the class {@code LibraryElementImpl} implement a {@code LibraryElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   /**

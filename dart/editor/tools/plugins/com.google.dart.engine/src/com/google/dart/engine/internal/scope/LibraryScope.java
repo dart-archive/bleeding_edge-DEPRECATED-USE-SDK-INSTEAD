@@ -25,6 +25,8 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 /**
  * Instances of the class {@code LibraryScope} implement a scope containing all of the names defined
  * in a given library.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class LibraryScope extends EnclosedScope {
   /**

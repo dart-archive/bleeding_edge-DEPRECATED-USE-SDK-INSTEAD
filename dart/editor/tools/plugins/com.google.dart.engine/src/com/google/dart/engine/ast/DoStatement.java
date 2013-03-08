@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * doStatement ::=
  *     'do' {@link Statement body} 'while' '(' {@link Expression condition} ')' ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class DoStatement extends Statement {
   /**

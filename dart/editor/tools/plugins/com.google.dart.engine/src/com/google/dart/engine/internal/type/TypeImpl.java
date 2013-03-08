@@ -19,6 +19,8 @@ import com.google.dart.engine.type.Type;
 /**
  * The abstract class {@code TypeImpl} implements the behavior common to objects representing the
  * declared type of elements in the element model.
+ * 
+ * @coverage dart.engine.type
  */
 public abstract class TypeImpl implements Type {
   /**

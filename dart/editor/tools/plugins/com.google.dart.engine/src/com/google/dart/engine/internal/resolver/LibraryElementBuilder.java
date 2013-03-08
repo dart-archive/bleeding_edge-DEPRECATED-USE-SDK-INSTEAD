@@ -37,6 +37,8 @@ import java.util.ArrayList;
 
 /**
  * Instances of the class {@code LibraryElementBuilder} build an element model for a single library.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class LibraryElementBuilder {
   /**

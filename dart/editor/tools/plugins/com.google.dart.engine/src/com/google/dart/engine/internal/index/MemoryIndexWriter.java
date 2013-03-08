@@ -30,6 +30,8 @@ import java.util.Map.Entry;
 
 /**
  * Helper to write {@link MemoryIndexStoreImpl} to {@link OutputStream}.
+ * 
+ * @coverage dart.engine.index
  */
 class MemoryIndexWriter {
   static int FILE_VERSION_NUMBER = 1;

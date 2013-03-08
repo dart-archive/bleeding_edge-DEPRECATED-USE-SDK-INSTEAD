@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * isExpression ::=
  *     {@link Expression expression} 'is' '!'? {@link TypeName type}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class IsExpression extends Expression {
   /**

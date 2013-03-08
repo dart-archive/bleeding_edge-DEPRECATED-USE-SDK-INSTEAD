@@ -20,6 +20,8 @@ import com.google.dart.engine.element.PropertyInducingElement;
 /**
  * Instances of the class {@code PropertyInducingElementImpl} implement a
  * {@code PropertyInducingElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class PropertyInducingElementImpl extends VariableElementImpl implements
     PropertyInducingElement {

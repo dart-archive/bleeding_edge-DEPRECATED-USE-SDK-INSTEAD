@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * assignmentExpression ::=
  *     {@link Expression leftHandSide} {@link Token operator} {@link Expression rightHandSide}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class AssignmentExpression extends Expression {
   /**

@@ -24,6 +24,8 @@ import java.util.List;
  * exportDirective ::=
  *     {@link Annotation metadata} 'export' {@link StringLiteral libraryUri} {@link Combinator combinator}* ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ExportDirective extends NamespaceDirective {
   /**

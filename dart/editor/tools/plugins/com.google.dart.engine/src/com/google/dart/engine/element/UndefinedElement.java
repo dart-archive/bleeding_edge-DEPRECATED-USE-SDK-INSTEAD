@@ -18,6 +18,8 @@ package com.google.dart.engine.element;
  * names that are undefined. This situation is not allowed by the language, so objects implementing
  * this interface always represent an error. As a result, most of the normal operations on elements
  * do not make sense and will return useless results.
+ * 
+ * @coverage dart.engine.element
  */
 public interface UndefinedElement extends Element {
 }

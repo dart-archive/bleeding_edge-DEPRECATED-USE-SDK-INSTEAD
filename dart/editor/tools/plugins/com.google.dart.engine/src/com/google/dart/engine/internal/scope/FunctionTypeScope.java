@@ -19,6 +19,8 @@ import com.google.dart.engine.element.TypeVariableElement;
 /**
  * Instances of the class {@code FunctionTypeScope} implement the scope defined by a function type
  * alias.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class FunctionTypeScope extends EnclosedScope {
   /**

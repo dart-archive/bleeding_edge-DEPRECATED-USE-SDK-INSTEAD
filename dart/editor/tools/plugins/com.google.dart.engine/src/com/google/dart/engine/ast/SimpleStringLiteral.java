@@ -39,6 +39,8 @@ import com.google.dart.engine.scanner.Token;
  *     "'" characters "'"
  *     '"' characters '"'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SimpleStringLiteral extends StringLiteral {
   /**

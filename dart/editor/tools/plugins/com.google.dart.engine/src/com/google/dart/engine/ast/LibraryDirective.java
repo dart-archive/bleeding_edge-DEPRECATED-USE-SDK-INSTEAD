@@ -24,6 +24,8 @@ import java.util.List;
  * libraryDirective ::=
  *     {@link Annotation metadata} 'library' {@link Identifier name} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class LibraryDirective extends Directive {
   /**

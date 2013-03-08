@@ -21,6 +21,8 @@ import com.google.dart.engine.element.LabelElement;
 
 /**
  * Instances of the class {@code LabelElementImpl} implement a {@code LabelElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LabelElementImpl extends ElementImpl implements LabelElement {
   /**

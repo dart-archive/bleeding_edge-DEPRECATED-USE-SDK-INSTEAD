@@ -18,6 +18,8 @@ package com.google.dart.engine.error;
  * errors. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
+ * 
+ * @coverage dart.engine.error
  */
 public enum CompileTimeErrorCode implements ErrorCode {
   /**

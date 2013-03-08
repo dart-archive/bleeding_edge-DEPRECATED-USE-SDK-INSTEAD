@@ -20,6 +20,8 @@ import com.google.dart.engine.internal.index.operation.OperationQueue;
 
 /**
  * Factory for {@link Index} and {@link IndexStore}.
+ * 
+ * @coverage dart.engine.index
  */
 public class IndexFactory {
   /**

@@ -18,6 +18,8 @@ import com.google.dart.engine.element.Element;
 /**
  * The interface {@code Type} defines the behavior of objects representing the declared type of
  * elements in the element model.
+ * 
+ * @coverage dart.engine.type
  */
 public interface Type {
   /**

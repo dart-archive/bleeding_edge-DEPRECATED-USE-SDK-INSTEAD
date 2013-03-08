@@ -18,6 +18,8 @@ package com.google.dart.engine.internal.formatter;
  * documents or strings. A text region is defined by its offset into the text store and its length.
  * <p>
  * A text region is considered a value object. Its offset and length do not change over time.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class TextRegion {
 

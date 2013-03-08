@@ -53,6 +53,8 @@ import java.util.Map;
 /**
  * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
  * context}.
+ * 
+ * @coverage dart.engine
  */
 public class AnalysisContextImpl implements AnalysisContext {
   /**

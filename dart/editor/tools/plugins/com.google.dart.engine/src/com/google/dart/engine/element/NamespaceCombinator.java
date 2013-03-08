@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code NamespaceCombinator} defines the behavior common to objects that control how
  * namespaces are combined.
+ * 
+ * @coverage dart.engine.element
  */
 public interface NamespaceCombinator {
   /**

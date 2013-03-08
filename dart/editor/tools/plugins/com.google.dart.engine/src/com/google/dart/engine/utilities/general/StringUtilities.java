@@ -15,6 +15,8 @@ package com.google.dart.engine.utilities.general;
 
 /**
  * The class {@code StringUtilities} defines utility methods for strings.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class StringUtilities {
   public static final String[] EMPTY_ARRAY = new String[0];

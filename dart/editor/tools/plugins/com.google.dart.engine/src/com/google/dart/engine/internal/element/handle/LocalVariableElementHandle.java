@@ -20,6 +20,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 /**
  * Instances of the class {@code LocalVariableElementHandle} implement a handle to a
  * {@code LocalVariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class LocalVariableElementHandle extends VariableElementHandle implements
     LocalVariableElement {

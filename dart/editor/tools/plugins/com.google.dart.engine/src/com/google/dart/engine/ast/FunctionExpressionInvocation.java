@@ -27,6 +27,8 @@ import com.google.dart.engine.scanner.Token;
  * functionExpressionInvoction ::=
  *     {@link Expression function} {@link ArgumentList argumentList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionExpressionInvocation extends Expression {
   /**

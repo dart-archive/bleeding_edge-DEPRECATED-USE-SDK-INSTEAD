@@ -23,6 +23,8 @@ import com.google.dart.engine.type.FunctionType;
 /**
  * Instances of the class {@code TypeAliasElementHandle} implement a handle to a
  * {@code TypeAliasElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class TypeAliasElementHandle extends ElementHandle implements TypeAliasElement {
   /**

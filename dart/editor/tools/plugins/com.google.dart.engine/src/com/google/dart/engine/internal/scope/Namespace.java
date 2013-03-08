@@ -21,6 +21,8 @@ import java.util.Map;
 /**
  * Instances of the class {@code Namespace} implement a mapping of identifiers to the elements
  * represented by those identifiers. Namespaces are the building blocks for scopes.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class Namespace {
   /**

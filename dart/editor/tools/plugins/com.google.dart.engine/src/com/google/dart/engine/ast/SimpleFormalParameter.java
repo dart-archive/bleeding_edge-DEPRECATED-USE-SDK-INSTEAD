@@ -26,6 +26,8 @@ import java.util.List;
  * simpleFormalParameter ::=
  *     ('final' {@link TypeName type} | 'var' | {@link TypeName type})? {@link SimpleIdentifier identifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SimpleFormalParameter extends NormalFormalParameter {
   /**

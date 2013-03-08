@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * label ::=
  *     {@link SimpleIdentifier label} ':'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class Label extends ASTNode {
   /**

@@ -15,6 +15,8 @@ package com.google.dart.engine.element;
 
 /**
  * The interface {@code FunctionElement} defines the behavior of elements representing a function.
+ * 
+ * @coverage dart.engine.element
  */
 public interface FunctionElement extends ExecutableElement, LocalElement {
 }

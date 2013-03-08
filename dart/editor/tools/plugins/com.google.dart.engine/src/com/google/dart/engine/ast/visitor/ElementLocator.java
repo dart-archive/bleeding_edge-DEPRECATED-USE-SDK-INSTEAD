@@ -29,6 +29,8 @@ import com.google.dart.engine.element.Element;
 /**
  * Instances of the class {@code ElementLocator} locate the {@link Element Dart model element}
  * associated with a given {@link ASTNode AST node}.
+ * 
+ * @coverage dart.engine.ast
  */
 public class ElementLocator {
 

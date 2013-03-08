@@ -22,6 +22,8 @@ import java.util.List;
 
 /**
  * Instances of the class {@code NodeList} represent a list of AST nodes that have a common parent.
+ * 
+ * @coverage dart.engine.ast
  */
 public class NodeList<E extends ASTNode> extends AbstractList<E> {
   /**

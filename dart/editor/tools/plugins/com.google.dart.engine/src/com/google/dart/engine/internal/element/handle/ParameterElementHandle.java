@@ -21,6 +21,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 /**
  * Instances of the class {@code ParameterElementHandle} implement a handle to a
  * {@code ParameterElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ParameterElementHandle extends VariableElementHandle implements ParameterElement {
   /**

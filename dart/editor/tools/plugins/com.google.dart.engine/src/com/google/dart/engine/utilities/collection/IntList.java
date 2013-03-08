@@ -15,6 +15,8 @@ package com.google.dart.engine.utilities.collection;
 
 /**
  * Instances of the class {@code IntList} implement an extensible list of integer values.
+ * 
+ * @coverage dart.engine.utilities
  */
 public class IntList {
   /**

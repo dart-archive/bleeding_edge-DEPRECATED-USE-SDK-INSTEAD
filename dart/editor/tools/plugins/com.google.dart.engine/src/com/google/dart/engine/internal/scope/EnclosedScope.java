@@ -20,6 +20,8 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 /**
  * Instances of the class {@code EnclosedScope} implement a scope that is lexically enclosed in
  * another scope.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class EnclosedScope extends Scope {
   /**

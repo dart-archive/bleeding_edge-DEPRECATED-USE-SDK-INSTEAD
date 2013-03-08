@@ -19,6 +19,8 @@ import com.google.dart.engine.search.SearchMatch;
 /**
  * Instances of the class <code>ScopedSearchListener</code> implement a search listener that
  * delegates to another search listener after removing matches that are outside a given scope.
+ * 
+ * @coverage dart.engine.search
  */
 public abstract class WrappedSearchListener implements SearchListener {
   /**

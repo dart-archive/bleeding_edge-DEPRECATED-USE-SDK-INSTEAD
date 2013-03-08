@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * returnStatement ::=
  *     'return' {@link Expression expression}? ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ReturnStatement extends Statement {
   /**

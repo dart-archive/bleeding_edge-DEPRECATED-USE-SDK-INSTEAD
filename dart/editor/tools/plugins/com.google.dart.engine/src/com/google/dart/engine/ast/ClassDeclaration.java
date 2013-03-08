@@ -28,6 +28,8 @@ import java.util.List;
  *     {@link ImplementsClause implementsClause}?
  *     '{' {@link ClassMember classMember}* '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ClassDeclaration extends CompilationUnitMember {
   /**

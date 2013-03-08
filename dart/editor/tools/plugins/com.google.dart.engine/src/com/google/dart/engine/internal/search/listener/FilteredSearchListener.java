@@ -20,6 +20,8 @@ import com.google.dart.engine.search.SearchMatch;
 /**
  * Instances of the class <code>FilteredSearchListener</code> implement a search listener that
  * delegates to another search listener after removing matches that do not pass a given filter.
+ * 
+ * @coverage dart.engine.search
  */
 public class FilteredSearchListener extends WrappedSearchListener {
   /**

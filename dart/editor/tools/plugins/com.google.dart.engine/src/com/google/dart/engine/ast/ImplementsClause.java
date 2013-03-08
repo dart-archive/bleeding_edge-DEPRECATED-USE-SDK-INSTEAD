@@ -25,6 +25,8 @@ import java.util.List;
  * implementsClause ::=
  *     'implements' {@link TypeName superclass} (',' {@link TypeName superclass})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ImplementsClause extends ASTNode {
   /**

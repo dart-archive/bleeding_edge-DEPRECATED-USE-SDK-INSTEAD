@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * variableDeclarationStatement ::=
  *     {@link VariableDeclarationList variableList} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class VariableDeclarationStatement extends Statement {
   /**

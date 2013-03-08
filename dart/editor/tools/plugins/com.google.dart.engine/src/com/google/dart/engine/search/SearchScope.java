@@ -20,6 +20,8 @@ import com.google.dart.engine.element.Element;
  * search result should be found by a {@link SearchEngine}. Clients must pass an instance of this
  * interface to the <code>search(...)</code> methods. Such an instance can be created using the
  * {@link SearchScopeFactory}.
+ * 
+ * @coverage dart.engine.search
  */
 public interface SearchScope {
   /**

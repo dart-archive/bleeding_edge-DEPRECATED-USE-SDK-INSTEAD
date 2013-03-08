@@ -25,6 +25,8 @@ import com.google.dart.engine.scanner.Token;
  * namedExpression ::=
  *     {@link Label name} {@link Expression expression}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class NamedExpression extends Expression {
   /**

@@ -25,6 +25,8 @@ import java.util.List;
  * showCombinator ::=
  *     'show' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ShowCombinator extends Combinator {
   /**

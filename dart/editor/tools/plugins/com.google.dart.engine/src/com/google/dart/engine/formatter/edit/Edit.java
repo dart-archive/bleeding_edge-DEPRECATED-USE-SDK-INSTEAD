@@ -30,6 +30,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
  * <p>
  * results of edits might be a formatted document or an abstraction supporting the edit (such as an
  * undo operation).
+ * 
+ * @coverage dart.engine.formatter
  */
 public class Edit {
 

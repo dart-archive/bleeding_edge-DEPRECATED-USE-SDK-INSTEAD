@@ -18,6 +18,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 /**
  * The interface {@code LocalElement} defines the behavior of elements that can be (but are not
  * required to be) defined within a method or function (an {@link ExecutableElement}).
+ * 
+ * @coverage dart.engine.element
  */
 public interface LocalElement extends Element {
   /**

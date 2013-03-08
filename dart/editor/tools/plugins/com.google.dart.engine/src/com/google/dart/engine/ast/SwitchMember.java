@@ -26,6 +26,8 @@ import java.util.List;
  *     switchCase
  *   | switchDefault
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class SwitchMember extends ASTNode {
   /**

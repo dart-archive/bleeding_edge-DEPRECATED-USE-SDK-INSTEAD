@@ -21,6 +21,8 @@ import com.google.dart.engine.type.TypeVariableType;
 /**
  * Instances of the class {@code TypeVariableElementHandle} implement a handle to a
  * {@code TypeVariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class TypeVariableElementHandle extends ElementHandle implements TypeVariableElement {
   /**

@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * constructorName:
  *     type ('.' identifier)?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ConstructorName extends ASTNode {
   /**

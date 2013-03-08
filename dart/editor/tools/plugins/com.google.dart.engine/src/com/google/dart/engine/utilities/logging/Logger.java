@@ -18,6 +18,8 @@ package com.google.dart.engine.utilities.logging;
  * information about errors within the analysis engine. Implementations usually write this
  * information to a file, but can also record the information for later use (such as during testing)
  * or even ignore the information.
+ * 
+ * @coverage dart.engine.utilities
  */
 public interface Logger {
   /**

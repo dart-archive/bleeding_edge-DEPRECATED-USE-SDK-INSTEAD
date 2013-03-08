@@ -19,6 +19,8 @@ import com.google.dart.engine.html.scanner.Token;
 
 /**
  * Instances of {@code HtmlParseResult} hold the result of parsing an HTML file.
+ * 
+ * @coverage dart.engine.html
  */
 public class HtmlParseResult extends HtmlScanResult {
 

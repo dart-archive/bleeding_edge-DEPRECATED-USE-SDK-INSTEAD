@@ -21,6 +21,8 @@ import java.io.Reader;
 
 /**
  * The class {@code FileUtilities} implements utility methods used to create and manipulate files.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class FileUtilities {
   /**

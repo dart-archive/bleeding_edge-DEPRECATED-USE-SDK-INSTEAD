@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * prefixExpression ::=
  *     {@link Token operator} {@link Expression operand}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PrefixExpression extends Expression {
   /**

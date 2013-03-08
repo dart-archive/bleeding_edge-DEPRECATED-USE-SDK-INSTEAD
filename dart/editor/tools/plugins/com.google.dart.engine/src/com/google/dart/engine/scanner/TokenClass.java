@@ -15,6 +15,8 @@ package com.google.dart.engine.scanner;
 
 /**
  * The enumeration {@code TokenClass} represents classes (or groups) of tokens with a similar use.
+ * 
+ * @coverage dart.engine.parser
  */
 public enum TokenClass {
   /**

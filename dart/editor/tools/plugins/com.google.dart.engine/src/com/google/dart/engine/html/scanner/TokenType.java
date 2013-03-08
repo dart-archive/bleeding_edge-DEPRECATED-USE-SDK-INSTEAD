@@ -16,6 +16,8 @@ package com.google.dart.engine.html.scanner;
 /**
  * The enumeration {@code TokenType} defines the types of tokens that can be returned by the
  * scanner.
+ * 
+ * @coverage dart.engine.html
  */
 public enum TokenType {
   /**

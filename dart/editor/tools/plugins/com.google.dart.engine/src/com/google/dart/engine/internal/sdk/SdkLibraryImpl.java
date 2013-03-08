@@ -18,6 +18,8 @@ import com.google.dart.engine.sdk.SdkLibrary;
 /**
  * Instances of the class {@code SdkLibrary} represent the information known about a single library
  * within the SDK.
+ * 
+ * @coverage dart.engine.sdk
  */
 public class SdkLibraryImpl implements SdkLibrary {
   /**

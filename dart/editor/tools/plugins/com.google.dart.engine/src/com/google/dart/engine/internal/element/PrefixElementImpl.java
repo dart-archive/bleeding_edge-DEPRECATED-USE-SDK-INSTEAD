@@ -21,6 +21,8 @@ import com.google.dart.engine.element.PrefixElement;
 
 /**
  * Instances of the class {@code PrefixElementImpl} implement a {@code PrefixElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**

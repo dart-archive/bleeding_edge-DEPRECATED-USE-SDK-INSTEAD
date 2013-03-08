@@ -14,12 +14,19 @@
 package com.google.dart.engine.internal.search.listener;
 
 import com.google.common.collect.Lists;
+import com.google.dart.engine.internal.search.SearchEngineImpl;
 import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
 
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * {@link SearchListener} used by {@link SearchEngineImpl} internally to gather asynchronous results
+ * and return them synchronously.
+ * 
+ * @coverage dart.engine.search
+ */
 public class GatheringSearchListener implements SearchListener {
   /**
    * A list containing the matches that have been found so far.

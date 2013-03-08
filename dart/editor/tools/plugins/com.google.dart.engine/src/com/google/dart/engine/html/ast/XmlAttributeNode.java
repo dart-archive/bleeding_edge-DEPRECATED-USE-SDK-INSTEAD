@@ -18,6 +18,8 @@ import com.google.dart.engine.html.scanner.Token;
 
 /**
  * Instances of {@code XmlAttributeNode} represent name/value pairs owned by an {@link XmlTagNode}.
+ * 
+ * @coverage dart.engine.html
  */
 public class XmlAttributeNode extends XmlNode {
 

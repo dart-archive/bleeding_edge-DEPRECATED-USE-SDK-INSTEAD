@@ -25,6 +25,8 @@ import java.util.List;
  * libraryIdentifier ::=
  *     {@link SimpleIdentifier component} ('.' {@link SimpleIdentifier component})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class LibraryIdentifier extends Identifier {
   /**

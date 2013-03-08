@@ -20,6 +20,8 @@ import java.util.List;
 /**
  * The abstract class {@code Declaration} defines the behavior common to nodes that represent the
  * declaration of a name. Each declared name is visible within a name scope.
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Declaration extends AnnotatedNode {
   /**

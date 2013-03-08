@@ -28,6 +28,8 @@ import java.util.List;
  *   | {@link VariableDeclaration constantsDeclaration}
  *   | {@link VariableDeclaration variablesDeclaration}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class CompilationUnitMember extends Declaration {
   /**

@@ -25,6 +25,8 @@ import java.util.List;
  * typeParameter ::=
  *     {@link SimpleIdentifier name} ('extends' {@link TypeName bound})?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TypeParameter extends Declaration {
   /**

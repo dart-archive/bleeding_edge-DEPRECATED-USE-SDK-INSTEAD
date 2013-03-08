@@ -26,6 +26,8 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
  *   | {@link DefaultFormalParameter namedFormalParameter}
  *   | {@link DefaultFormalParameter optionalFormalParameter}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class FormalParameter extends ASTNode {
   /**

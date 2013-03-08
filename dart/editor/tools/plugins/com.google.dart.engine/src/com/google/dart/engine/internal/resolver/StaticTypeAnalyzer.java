@@ -81,6 +81,8 @@ import java.util.LinkedHashMap;
  * <li>Every element that refers to types should be fully populated.
  * <li>Every node representing an expression should be resolved to the Type of the expression.</li>
  * </ol>
+ * 
+ * @coverage dart.engine.resolver
  */
 public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   /**

@@ -16,6 +16,8 @@ package com.google.dart.engine.utilities.source;
 /**
  * Instances of the class {@code LineInfo} encapsulate information about line and column information
  * within a source file.
+ * 
+ * @coverage dart.engine.utilities
  */
 public class LineInfo {
   /**

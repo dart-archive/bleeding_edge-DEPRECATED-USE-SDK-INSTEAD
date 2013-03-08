@@ -25,6 +25,8 @@ import java.io.OutputStream;
 /**
  * {@link IndexStore} which keeps all information in memory, but can write it to stream and read
  * later.
+ * 
+ * @coverage dart.engine.index
  */
 public interface MemoryIndexStore extends IndexStore {
   /**

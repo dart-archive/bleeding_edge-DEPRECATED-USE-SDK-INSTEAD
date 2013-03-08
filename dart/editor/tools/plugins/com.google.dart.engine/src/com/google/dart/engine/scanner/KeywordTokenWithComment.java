@@ -16,6 +16,8 @@ package com.google.dart.engine.scanner;
 /**
  * Instances of the class {@code KeywordTokenWithComment} implement a keyword token that is preceded
  * by comments.
+ * 
+ * @coverage dart.engine.parser
  */
 public class KeywordTokenWithComment extends KeywordToken {
   /**

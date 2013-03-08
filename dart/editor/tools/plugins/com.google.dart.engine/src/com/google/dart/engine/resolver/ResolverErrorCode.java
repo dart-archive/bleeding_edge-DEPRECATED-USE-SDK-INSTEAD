@@ -25,6 +25,8 @@ import static com.google.dart.engine.error.ErrorType.STATIC_WARNING;
  * resolver. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
+ * 
+ * @coverage dart.engine.resolver
  */
 public enum ResolverErrorCode implements ErrorCode {
   // TODO(brianwilkerson) Reword this message.

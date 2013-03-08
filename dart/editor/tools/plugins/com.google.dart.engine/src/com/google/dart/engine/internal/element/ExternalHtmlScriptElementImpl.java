@@ -22,6 +22,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code ExternalHtmlScriptElementImpl} implement an
  * {@link ExternalHtmlScriptElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl implements
     ExternalHtmlScriptElement {

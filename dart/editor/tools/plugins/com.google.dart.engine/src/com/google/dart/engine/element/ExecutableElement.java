@@ -18,6 +18,8 @@ import com.google.dart.engine.type.FunctionType;
 /**
  * The interface {@code ExecutableElement} defines the behavior of elements representing an
  * executable object, including functions, methods, constructors, getters, and setters.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ExecutableElement extends Element {
   /**

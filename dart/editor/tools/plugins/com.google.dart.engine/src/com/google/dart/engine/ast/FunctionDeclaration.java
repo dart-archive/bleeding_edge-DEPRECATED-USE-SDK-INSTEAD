@@ -30,6 +30,8 @@ import java.util.List;
  * functionSignature ::=
  *     {@link Type returnType}? ('get' | 'set')? {@link SimpleIdentifier functionName} {@link FormalParameterList formalParameterList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionDeclaration extends CompilationUnitMember {
   /**

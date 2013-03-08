@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * blockFunctionBody ::=
  *     {@link Block block}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class BlockFunctionBody extends FunctionBody {
   /**

@@ -14,6 +14,9 @@
 
 package com.google.dart.engine.utilities.general;
 
+/**
+ * @coverage dart.engine.utilities
+ */
 public class CharOperation {
   /**
    * Return true if the pattern matches the given name using CamelCase rules, or false otherwise.

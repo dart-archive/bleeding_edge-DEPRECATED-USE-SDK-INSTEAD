@@ -22,6 +22,8 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 /**
  * Instances of the class {@code EmbeddedHtmlScriptElementImpl} implement an
  * {@link EmbeddedHtmlScriptElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl implements
     EmbeddedHtmlScriptElement {

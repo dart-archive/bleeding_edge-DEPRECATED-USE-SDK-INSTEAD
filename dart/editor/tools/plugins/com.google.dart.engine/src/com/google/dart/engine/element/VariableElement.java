@@ -18,6 +18,8 @@ import com.google.dart.engine.type.Type;
 /**
  * The interface {@code VariableElement} defines the behavior common to elements that represent a
  * variable.
+ * 
+ * @coverage dart.engine.element
  */
 public interface VariableElement extends Element {
   /**

@@ -22,6 +22,8 @@ import com.google.dart.engine.utilities.general.CharOperation;
  * Instances of the class <code>CamelCaseSearchPattern</code> implement a search pattern that
  * matches elements whose name matches a partial identifier where camel case conventions are used to
  * perform what is essentially multiple prefix matches.
+ * 
+ * @coverage dart.engine.search
  */
 public class CamelCaseSearchPattern implements SearchPattern {
   /**

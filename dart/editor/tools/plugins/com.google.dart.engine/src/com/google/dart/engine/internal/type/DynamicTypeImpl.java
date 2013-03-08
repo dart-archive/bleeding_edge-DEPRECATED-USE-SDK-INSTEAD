@@ -19,6 +19,8 @@ import com.google.dart.engine.type.Type;
 
 /**
  * The unique instance of the class {@code DynamicTypeImpl} implements the type {@code dynamic}.
+ * 
+ * @coverage dart.engine.type
  */
 public class DynamicTypeImpl extends TypeImpl {
   /**

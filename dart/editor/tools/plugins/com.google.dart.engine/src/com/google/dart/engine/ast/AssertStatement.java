@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * assertStatement ::=
  *     'assert' '(' {@link Expression conditionalExpression} ')' ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class AssertStatement extends Statement {
   /**

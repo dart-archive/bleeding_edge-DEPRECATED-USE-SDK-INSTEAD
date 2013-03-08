@@ -20,6 +20,8 @@ import java.util.HashMap;
 /**
  * Instances of the class {@code LibraryMap} map Dart library URI's to the {@link SdkLibraryImpl
  * library}.
+ * 
+ * @coverage dart.engine.sdk
  */
 public class LibraryMap {
   /**

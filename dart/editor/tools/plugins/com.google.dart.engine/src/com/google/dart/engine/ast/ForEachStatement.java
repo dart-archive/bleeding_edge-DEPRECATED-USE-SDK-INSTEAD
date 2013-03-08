@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * forEachStatement ::=
  *     'for' '(' {@link SimpleFormalParameter loopParameter} 'in' {@link Expression iterator} ')' {@link Block body}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ForEachStatement extends Statement {
   /**

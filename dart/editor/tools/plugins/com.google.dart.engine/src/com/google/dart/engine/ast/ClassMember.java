@@ -18,6 +18,8 @@ import java.util.List;
 /**
  * The abstract class {@code ClassMember} defines the behavior common to nodes that declare a name
  * within the scope of a class.
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class ClassMember extends Declaration {
   /**

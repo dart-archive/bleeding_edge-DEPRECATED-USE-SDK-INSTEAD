@@ -21,6 +21,8 @@ import com.google.dart.engine.internal.element.ElementImpl;
 /**
  * Special {@link Element} which is used to index references to the name without specifying concrete
  * kind of this name - field, method or something else.
+ * 
+ * @coverage dart.engine.index
  */
 public class NameElementImpl extends ElementImpl {
 

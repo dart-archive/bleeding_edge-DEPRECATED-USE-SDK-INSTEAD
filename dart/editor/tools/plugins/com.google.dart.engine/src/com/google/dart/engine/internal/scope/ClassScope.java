@@ -20,6 +20,8 @@ import com.google.dart.engine.element.TypeVariableElement;
 
 /**
  * Instances of the class {@code ClassScope} implement the scope defined by a class.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ClassScope extends EnclosedScope {
   // TODO(brianwilkerson) This does not yet distinguish between static and instance scopes. It isn't

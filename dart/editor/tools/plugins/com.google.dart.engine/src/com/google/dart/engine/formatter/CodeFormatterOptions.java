@@ -15,6 +15,8 @@ package com.google.dart.engine.formatter;
 
 /**
  * Formatter options.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class CodeFormatterOptions {
 

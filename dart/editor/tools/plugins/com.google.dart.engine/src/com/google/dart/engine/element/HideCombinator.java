@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code HideCombinator} defines the behavior of combinators that cause some of the
  * names in a namespace to be hidden when being imported.
+ * 
+ * @coverage dart.engine.element
  */
 public interface HideCombinator extends NamespaceCombinator {
   /**

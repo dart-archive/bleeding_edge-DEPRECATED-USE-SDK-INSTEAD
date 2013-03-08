@@ -24,6 +24,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the {@link GetRelationshipsOperation} implement an operation used to access the
  * locations that have a specified relationship with a specified element.
+ * 
+ * @coverage dart.engine.index
  */
 public class GetRelationshipsOperation implements IndexOperation {
   private final IndexStore indexStore;

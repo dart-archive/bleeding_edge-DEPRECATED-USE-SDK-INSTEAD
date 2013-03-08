@@ -32,6 +32,8 @@ import java.math.BigInteger;
  *     '0x' hexidecimalDigit+
  *   | '0X' hexidecimalDigit+
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class IntegerLiteral extends Literal {
   /**

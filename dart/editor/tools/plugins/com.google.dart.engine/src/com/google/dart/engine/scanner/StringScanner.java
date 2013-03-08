@@ -19,6 +19,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code StringScanner} implement a scanner that reads from a string. The
  * scanning logic is in the superclass.
+ * 
+ * @coverage dart.engine.parser
  */
 public class StringScanner extends AbstractScanner {
   /**

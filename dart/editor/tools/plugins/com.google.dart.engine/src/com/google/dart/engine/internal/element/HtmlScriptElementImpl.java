@@ -18,6 +18,8 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 
 /**
  * Instances of the class {@code HtmlScriptElementImpl} implement an {@link HtmlScriptElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class HtmlScriptElementImpl extends ElementImpl implements HtmlScriptElement {
 

@@ -23,6 +23,8 @@ import com.google.dart.engine.ast.*;
  * Subclasses that override a visit method must either invoke the overridden visit method or must
  * explicitly ask the visited node to visit its children. Failure to do so will cause the children
  * of the visited node to not be visited.
+ * 
+ * @coverage dart.engine.ast
  */
 public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   @Override

@@ -26,6 +26,8 @@ import java.util.List;
  *     {@link ExportDirective exportDirective}
  *   | {@link ImportDirective importDirective}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class NamespaceDirective extends UriBasedDirective {
   /**

@@ -18,6 +18,8 @@ import com.google.dart.engine.source.Source;
 
 /**
  * A source range defines an {@link Element}'s source coordinates relative to its {@link Source}.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class SourceRange {
   /**

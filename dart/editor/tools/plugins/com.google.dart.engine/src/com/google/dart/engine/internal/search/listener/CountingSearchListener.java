@@ -20,6 +20,8 @@ import com.google.dart.engine.search.SearchMatch;
  * Instances of the class {@code CountingSearchListener} listen for search results, passing those
  * results on to a wrapped listener, but ensure that the wrapped search listener receives only one
  * notification that the search is complete.
+ * 
+ * @coverage dart.engine.search
  */
 public class CountingSearchListener implements SearchListener {
   /**

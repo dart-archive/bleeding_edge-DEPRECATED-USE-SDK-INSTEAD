@@ -20,6 +20,8 @@ import com.google.dart.engine.type.Type;
 /**
  * The abstract class {@code VariableElementHandle} implements the behavior common to objects that
  * implement a handle to an {@code VariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class VariableElementHandle extends ElementHandle implements VariableElement {
   /**

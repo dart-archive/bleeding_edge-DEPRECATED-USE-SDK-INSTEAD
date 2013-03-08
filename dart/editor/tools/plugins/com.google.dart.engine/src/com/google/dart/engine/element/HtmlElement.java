@@ -15,6 +15,8 @@ package com.google.dart.engine.element;
 
 /**
  * The interface {@code HtmlElement} defines the behavior of elements representing an HTML file.
+ * 
+ * @coverage dart.engine.element
  */
 public interface HtmlElement extends Element {
   /**

@@ -16,6 +16,8 @@ package com.google.dart.engine.scanner;
 /**
  * Instances of the class {@code TokenWithComment} represent a normal token that is preceded by
  * comments.
+ * 
+ * @coverage dart.engine.parser
  */
 public class TokenWithComment extends Token {
   /**

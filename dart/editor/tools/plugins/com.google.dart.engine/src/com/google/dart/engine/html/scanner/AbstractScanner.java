@@ -32,6 +32,8 @@ import static com.google.dart.engine.html.scanner.TokenType.TEXT;
 /**
  * The abstract class {@code AbstractScanner} implements a scanner for HTML code. Subclasses are
  * required to implement the interface used to access the characters being scanned.
+ * 
+ * @coverage dart.engine.html
  */
 public abstract class AbstractScanner {
   private static final String[] NO_PASS_THROUGH_ELEMENTS = new String[] {};

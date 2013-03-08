@@ -81,6 +81,8 @@ import java.util.LinkedHashMap;
  * the elements in the element model. This includes the types of superclasses, mixins, interfaces,
  * fields, methods, parameters, and local variables. As a side-effect, this also finishes building
  * the type hierarchy.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class TypeResolverVisitor extends ScopedVisitor {
   /**

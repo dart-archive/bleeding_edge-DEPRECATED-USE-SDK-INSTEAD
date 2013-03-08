@@ -24,6 +24,8 @@ import java.util.List;
  * partDirective ::=
  *     {@link Annotation metadata} 'part' {@link StringLiteral partUri} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PartDirective extends UriBasedDirective {
   /**

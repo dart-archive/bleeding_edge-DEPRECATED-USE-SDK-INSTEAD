@@ -27,6 +27,8 @@ import com.google.dart.engine.type.Type;
 /**
  * Instances of the class {@code TypeProviderImpl} provide access to types defined by the language
  * by looking for those types in the element model for the core library.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class TypeProviderImpl implements TypeProvider {
   /**

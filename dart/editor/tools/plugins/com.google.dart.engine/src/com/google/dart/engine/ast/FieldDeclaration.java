@@ -26,6 +26,8 @@ import java.util.List;
  * fieldDeclaration ::=
  *     'static'? {@link VariableDeclarationList fieldList} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FieldDeclaration extends ClassMember {
   /**

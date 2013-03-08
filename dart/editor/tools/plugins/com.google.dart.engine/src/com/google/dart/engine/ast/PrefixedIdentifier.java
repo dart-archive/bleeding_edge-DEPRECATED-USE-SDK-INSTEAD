@@ -25,6 +25,8 @@ import com.google.dart.engine.scanner.Token;
  * prefixedIdentifier ::=
  *     {@link SimpleIdentifier prefix} '.' {@link SimpleIdentifier identifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PrefixedIdentifier extends Identifier {
   /**

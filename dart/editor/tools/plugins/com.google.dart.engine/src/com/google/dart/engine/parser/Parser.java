@@ -37,6 +37,8 @@ import java.util.List;
 
 /**
  * Instances of the class {@code Parser} are used to parse tokens into an AST structure.
+ * 
+ * @coverage dart.engine.parser
  */
 public class Parser {
   /**

@@ -28,6 +28,8 @@ import java.util.List;
  * mixinApplication ::=
  *     {@link TypeName superclass} {@link WithClause withClause} {@link ImplementsClause implementsClause}? ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ClassTypeAlias extends TypeAlias {
   /**

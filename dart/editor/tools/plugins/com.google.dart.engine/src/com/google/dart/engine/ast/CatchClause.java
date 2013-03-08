@@ -26,6 +26,8 @@ import com.google.dart.engine.scanner.Token;
  * catchPart ::=
  *     'catch' '(' {@link SimpleIdentifier exceptionParameter} (',' {@link SimpleIdentifier stackTraceParameter})? ')'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class CatchClause extends ASTNode {
   /**

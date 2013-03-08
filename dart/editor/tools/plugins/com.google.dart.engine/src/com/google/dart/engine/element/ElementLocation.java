@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code ElementLocation} defines the behavior of objects that represent the location
  * of an element within the element model.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ElementLocation {
   /**

@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code ExportElement} defines the behavior of objects representing information
  * about a single export directive within a library.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ExportElement extends Element {
   /**

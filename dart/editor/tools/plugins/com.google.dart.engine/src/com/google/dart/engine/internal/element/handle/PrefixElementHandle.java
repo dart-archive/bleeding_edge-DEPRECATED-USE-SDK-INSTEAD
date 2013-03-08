@@ -19,6 +19,8 @@ import com.google.dart.engine.element.PrefixElement;
 
 /**
  * Instances of the class {@code PrefixElementHandle} implement a handle to a {@code PrefixElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class PrefixElementHandle extends ElementHandle implements PrefixElement {
   /**

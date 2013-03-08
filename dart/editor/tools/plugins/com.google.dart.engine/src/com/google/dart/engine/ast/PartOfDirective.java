@@ -24,6 +24,8 @@ import java.util.List;
  * partOfDirective ::=
  *     {@link Annotation metadata} 'part' 'of' {@link Identifier libraryName} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PartOfDirective extends Directive {
   /**

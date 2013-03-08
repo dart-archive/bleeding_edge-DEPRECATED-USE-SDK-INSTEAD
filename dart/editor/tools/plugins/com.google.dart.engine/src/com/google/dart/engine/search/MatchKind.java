@@ -20,6 +20,8 @@ import com.google.dart.engine.element.LibraryElement;
 /**
  * Instances of the enum <code>MatchKind</code> represent the kind of reference that was found when
  * a match represents a reference to an element.
+ * 
+ * @coverage dart.engine.search
  */
 public enum MatchKind {
   /**

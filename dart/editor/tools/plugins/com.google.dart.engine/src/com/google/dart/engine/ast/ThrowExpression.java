@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * throwExpression ::=
  *     'throw' {@link Expression expression}? ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ThrowExpression extends Expression {
   /**

@@ -35,6 +35,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code ResolverVisitor} are used to resolve the nodes within a single
  * compilation unit.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ResolverVisitor extends ScopedVisitor {
   /**

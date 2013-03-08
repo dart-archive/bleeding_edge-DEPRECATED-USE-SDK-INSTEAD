@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Instances of the {@link OperationProcessor} process the operations on a single
  * {@link OperationQueue operation queue}. Each processor can be run one time on a single thread.
+ * 
+ * @coverage dart.engine.index
  */
 public class OperationProcessor {
   /**

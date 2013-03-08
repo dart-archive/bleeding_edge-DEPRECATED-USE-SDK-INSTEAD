@@ -23,6 +23,8 @@ import com.google.dart.engine.type.FunctionType;
 /**
  * The abstract class {@code ExecutableElementHandle} implements the behavior common to objects that
  * implement a handle to an {@link ExecutableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class ExecutableElementHandle extends ElementHandle implements ExecutableElement {
   /**

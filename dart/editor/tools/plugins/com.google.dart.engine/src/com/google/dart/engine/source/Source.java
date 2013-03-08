@@ -19,6 +19,8 @@ import java.nio.CharBuffer;
 /**
  * The interface {@code Source} defines the behavior of objects representing source code that can be
  * compiled.
+ * 
+ * @coverage dart.engine.source
  */
 public interface Source {
   /**

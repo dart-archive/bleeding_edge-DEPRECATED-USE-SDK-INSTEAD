@@ -24,6 +24,8 @@ import com.google.dart.engine.internal.search.pattern.WildcardSearchPattern;
 /**
  * The class <code>SearchPatternFactory</code> defines utility methods that can be used to create
  * search patterns.
+ * 
+ * @coverage dart.engine.search
  */
 public final class SearchPatternFactory {
   /**

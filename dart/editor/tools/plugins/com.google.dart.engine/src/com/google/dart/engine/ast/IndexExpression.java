@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.TokenType;
  * indexExpression ::=
  *     {@link Expression target} '[' {@link Expression index} ']'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class IndexExpression extends Expression {
   /**

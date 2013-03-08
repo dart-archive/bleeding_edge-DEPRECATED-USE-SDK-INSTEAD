@@ -32,6 +32,8 @@ import java.util.List;
 /**
  * The interface <code>SearchEngine</code> defines the behavior of objects that can be used to
  * search for various pieces of information.
+ * 
+ * @coverage dart.engine.search
  */
 public interface SearchEngine {
 

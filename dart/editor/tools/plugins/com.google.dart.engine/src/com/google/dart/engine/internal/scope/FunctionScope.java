@@ -18,6 +18,8 @@ import com.google.dart.engine.element.ParameterElement;
 
 /**
  * Instances of the class {@code FunctionScope} implement the scope defined by a function.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class FunctionScope extends EnclosedScope {
   /**

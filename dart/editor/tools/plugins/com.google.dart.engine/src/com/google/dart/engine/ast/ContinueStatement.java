@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * continueStatement ::=
  *     'continue' {@link SimpleIdentifier label}? ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ContinueStatement extends Statement {
   /**

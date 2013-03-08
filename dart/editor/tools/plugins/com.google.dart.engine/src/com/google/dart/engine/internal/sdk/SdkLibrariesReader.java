@@ -54,6 +54,8 @@ import java.util.List;
  *     platforms: 0),
  * };
  * </pre>
+ * 
+ * @coverage dart.engine.sdk
  */
 public class SdkLibrariesReader {
   private static class LibraryBuilder extends RecursiveASTVisitor<Void> {

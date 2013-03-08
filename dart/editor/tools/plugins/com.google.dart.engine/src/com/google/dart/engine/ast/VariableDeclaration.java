@@ -27,6 +27,8 @@ import java.util.List;
  * variableDeclaration ::=
  *     {@link SimpleIdentifier identifier} ('=' {@link Expression initialValue})?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class VariableDeclaration extends Declaration {
   /**

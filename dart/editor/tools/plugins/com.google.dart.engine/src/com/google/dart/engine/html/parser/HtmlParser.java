@@ -29,6 +29,8 @@ import java.util.Set;
 /**
  * Instances of the class {@code HtmlParser} are used to parse tokens into a AST structure comprised
  * of {@link XmlNode}s.
+ * 
+ * @coverage dart.engine.html
  */
 public class HtmlParser extends XmlParser {
 

@@ -37,6 +37,8 @@ import java.util.Set;
  * Instances of the class {@code Library} represent the data about a single library during the
  * resolution of some (possibly different) library. They are not intended to be used except during
  * the resolution process.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class Library {
   /**

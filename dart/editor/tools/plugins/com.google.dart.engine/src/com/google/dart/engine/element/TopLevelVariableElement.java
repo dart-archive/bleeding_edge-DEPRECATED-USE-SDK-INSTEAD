@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code TopLevelVariableElement} defines the behavior of elements representing a
  * top-level variable.
+ * 
+ * @coverage dart.engine.element
  */
 public interface TopLevelVariableElement extends PropertyInducingElement {
 }

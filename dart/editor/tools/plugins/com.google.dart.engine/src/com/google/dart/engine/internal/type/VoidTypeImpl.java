@@ -19,6 +19,8 @@ import com.google.dart.engine.type.VoidType;
 
 /**
  * The unique instance of the class {@code VoidTypeImpl} implements the type {@code void}.
+ * 
+ * @coverage dart.engine.type
  */
 public class VoidTypeImpl extends TypeImpl implements VoidType {
   /**

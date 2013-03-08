@@ -68,6 +68,8 @@ import com.google.dart.engine.type.Type;
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
  * errors and warnings not covered by the parser and resolver.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   /**

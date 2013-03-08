@@ -16,6 +16,8 @@ package com.google.dart.engine.search;
 /**
  * The interface <code>SearchFilter</code> defines the behavior of objects that can be used to
  * filter search results.
+ * 
+ * @coverage dart.engine.search
  */
 public interface SearchFilter {
   /**

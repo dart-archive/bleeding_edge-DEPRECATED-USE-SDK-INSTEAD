@@ -29,6 +29,8 @@ import com.google.dart.engine.scanner.Token;
 
 /**
  * An AST visitor that drives formatting heuristics.
+ * 
+ * @coverage dart.engine.formatter
  */
 public class FormattingEngine extends RecursiveASTVisitor<Void> {
 

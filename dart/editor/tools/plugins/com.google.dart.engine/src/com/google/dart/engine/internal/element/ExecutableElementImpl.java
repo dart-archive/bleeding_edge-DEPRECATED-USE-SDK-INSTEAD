@@ -26,6 +26,8 @@ import com.google.dart.engine.type.FunctionType;
 /**
  * The abstract class {@code ExecutableElementImpl} implements the behavior common to
  * {@code ExecutableElement}s.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class ExecutableElementImpl extends ElementImpl implements ExecutableElement {
   /**

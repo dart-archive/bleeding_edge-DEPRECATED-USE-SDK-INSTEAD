@@ -19,6 +19,8 @@ import com.google.dart.engine.element.FieldElement;
 
 /**
  * Instances of the class {@code FieldElementHandle} implement a handle to a {@code FieldElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class FieldElementHandle extends PropertyInducingElementHandle implements FieldElement {
   /**

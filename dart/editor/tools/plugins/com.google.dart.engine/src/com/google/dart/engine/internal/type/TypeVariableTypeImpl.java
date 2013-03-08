@@ -21,6 +21,8 @@ import com.google.dart.engine.utilities.general.ObjectUtilities;
 /**
  * Instances of the class {@code TypeVariableTypeImpl} defines the behavior of objects representing
  * the type introduced by a type variable.
+ * 
+ * @coverage dart.engine.type
  */
 public class TypeVariableTypeImpl extends TypeImpl implements TypeVariableType {
   /**

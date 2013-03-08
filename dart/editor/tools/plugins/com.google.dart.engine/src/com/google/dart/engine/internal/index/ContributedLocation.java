@@ -21,6 +21,8 @@ import java.util.List;
 /**
  * Instances of the class {@link ContributedLocation} record the {@link Source} that was being
  * analyzed when a relationship was recorded.
+ * 
+ * @coverage dart.engine.index
  */
 public class ContributedLocation {
   private final List<ContributedLocation> locationOwner;
@@ -33,6 +35,7 @@ public class ContributedLocation {
 
   /**
    * Initialize a newly created contributed location with the given information.
+   * 
    * @param declarationOwner {@link List} to remove from when declaration {@link Source} is removed
    * @param locationOwner {@link List} to remove from when location {@link Source} is removed
    * @param location the location that is part of the relationship contributed by the contributor

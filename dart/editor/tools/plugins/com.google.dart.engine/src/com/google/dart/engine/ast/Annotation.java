@@ -26,6 +26,8 @@ import com.google.dart.engine.scanner.Token;
  * annotation ::=
  *     '@' {@link Identifier qualified} (‘.’ {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class Annotation extends ASTNode {
   /**

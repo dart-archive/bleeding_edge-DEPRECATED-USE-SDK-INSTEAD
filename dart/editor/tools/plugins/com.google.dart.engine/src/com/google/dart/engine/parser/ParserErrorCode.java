@@ -22,6 +22,8 @@ import com.google.dart.engine.error.ErrorType;
  * parser. The convention for this class is for the name of the error code to indicate the problem
  * that caused the error to be generated and for the error message to explain what is wrong and,
  * when appropriate, how the problem can be corrected.
+ * 
+ * @coverage dart.engine.parser
  */
 public enum ParserErrorCode implements ErrorCode {
   ABSTRACT_CLASS_MEMBER("Members of classes cannot be declared to be 'abstract'"),

@@ -17,6 +17,8 @@ package com.google.dart.engine.utilities.dart;
  * The enumeration {@code ParameterKind} defines the different kinds of parameters. There are two
  * basic kinds of parameters: required and optional. Optional parameters are further divided into
  * two kinds: positional optional and named optional.
+ * 
+ * @coverage dart.engine.utilities
  */
 public enum ParameterKind {
   REQUIRED(false),

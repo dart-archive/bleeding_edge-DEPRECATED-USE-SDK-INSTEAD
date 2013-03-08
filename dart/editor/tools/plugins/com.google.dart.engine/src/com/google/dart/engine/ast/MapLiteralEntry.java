@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * mapLiteralEntry ::=
  *     {@link StringLiteral key} ':' {@link Expression value}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class MapLiteralEntry extends ASTNode {
   /**

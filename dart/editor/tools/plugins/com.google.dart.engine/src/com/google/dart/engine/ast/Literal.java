@@ -27,6 +27,8 @@ package com.google.dart.engine.ast;
  *   | {@link NullLiteral nullLiteral}
  *   | {@link StringLiteral stringLiteral}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Literal extends Expression {
 }

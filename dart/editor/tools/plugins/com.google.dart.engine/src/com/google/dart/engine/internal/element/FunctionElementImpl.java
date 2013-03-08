@@ -22,6 +22,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 
 /**
  * Instances of the class {@code FunctionElementImpl} implement a {@code FunctionElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class FunctionElementImpl extends ExecutableElementImpl implements FunctionElement {
   /**

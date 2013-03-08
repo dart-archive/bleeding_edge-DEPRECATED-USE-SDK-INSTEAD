@@ -21,6 +21,8 @@ import com.google.dart.engine.ast.ASTNode;
  * source range, given the AST structure built from the source. More specifically, they will return
  * the {@link ASTNode AST node} with the shortest length whose source range completely encompasses
  * the specified range.
+ * 
+ * @coverage dart.engine.ast
  */
 public class NodeLocator extends GeneralizingASTVisitor<Void> {
   /**

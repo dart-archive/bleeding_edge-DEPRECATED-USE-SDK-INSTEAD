@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * expressionFunctionBody ::=
  *     '=>' {@link Expression expression} ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ExpressionFunctionBody extends FunctionBody {
   /**

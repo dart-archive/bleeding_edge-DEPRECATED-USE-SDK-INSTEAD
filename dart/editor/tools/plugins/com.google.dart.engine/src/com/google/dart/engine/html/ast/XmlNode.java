@@ -21,6 +21,8 @@ import java.util.List;
 
 /**
  * The abstract class {@code XmlNode} defines behavior common to all XML/HTML nodes.
+ * 
+ * @coverage dart.engine.html
  */
 public abstract class XmlNode {
 

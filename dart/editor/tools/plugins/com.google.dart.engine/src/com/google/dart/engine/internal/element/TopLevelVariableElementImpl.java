@@ -21,6 +21,8 @@ import com.google.dart.engine.element.TopLevelVariableElement;
 /**
  * Instances of the class {@code TopLevelVariableElementImpl} implement a
  * {@code TopLevelVariableElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class TopLevelVariableElementImpl extends PropertyInducingElementImpl implements
     TopLevelVariableElement {

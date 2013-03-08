@@ -16,6 +16,8 @@ package com.google.dart.engine.error;
 /**
  * The interface {@code ErrorCode} defines the behavior common to objects representing error codes
  * associated with {@link AnalysisError analysis errors}.
+ * 
+ * @coverage dart.engine.error
  */
 public interface ErrorCode {
   /**

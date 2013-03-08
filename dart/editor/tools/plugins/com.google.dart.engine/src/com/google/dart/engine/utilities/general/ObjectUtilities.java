@@ -16,6 +16,8 @@ package com.google.dart.engine.utilities.general;
 /**
  * The class {@code ObjectUtilities} defines general utility methods that are useful across all
  * objects.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class ObjectUtilities {
   /**

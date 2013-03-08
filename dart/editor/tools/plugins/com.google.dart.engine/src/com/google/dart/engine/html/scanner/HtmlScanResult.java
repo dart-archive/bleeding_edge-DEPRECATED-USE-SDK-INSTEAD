@@ -15,6 +15,8 @@ package com.google.dart.engine.html.scanner;
 
 /**
  * Instances of {@code HtmlScanResult} hold the result of scanning an HTML file.
+ * 
+ * @coverage dart.engine.html
  */
 public class HtmlScanResult {
 

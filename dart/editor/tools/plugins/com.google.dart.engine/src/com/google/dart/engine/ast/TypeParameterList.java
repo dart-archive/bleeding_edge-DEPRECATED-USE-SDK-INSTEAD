@@ -24,6 +24,8 @@ import java.util.List;
  * typeParameterList ::=
  *     '<' {@link TypeParameter typeParameter} (',' {@link TypeParameter typeParameter})* '>'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TypeParameterList extends ASTNode {
   /**

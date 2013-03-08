@@ -18,6 +18,8 @@ import com.google.dart.engine.internal.search.SearchEngineImpl;
 
 /**
  * Factory for {@link SearchEngine}.
+ * 
+ * @coverage dart.engine.search
  */
 public final class SearchEngineFactory {
   /**

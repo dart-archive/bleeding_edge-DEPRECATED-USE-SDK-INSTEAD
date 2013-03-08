@@ -24,6 +24,8 @@ import java.io.IOException;
 
 /**
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
+ * 
+ * @coverage dart.engine.sdk
  */
 public class DartSdk {
   /**

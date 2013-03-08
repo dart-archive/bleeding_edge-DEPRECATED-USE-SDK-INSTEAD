@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code PrefixElement} defines the behavior common to elements that represent a
  * prefix used to import one or more libraries into another library.
+ * 
+ * @coverage dart.engine.element
  */
 public interface PrefixElement extends Element {
   /**

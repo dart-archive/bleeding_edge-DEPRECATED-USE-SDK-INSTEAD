@@ -24,6 +24,8 @@ import com.google.dart.engine.element.Element;
  *     {@link SimpleIdentifier simpleIdentifier}
  *   | {@link PrefixedIdentifier prefixedIdentifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Identifier extends Expression {
   /**

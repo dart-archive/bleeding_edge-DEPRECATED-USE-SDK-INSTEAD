@@ -24,6 +24,8 @@ import java.util.List;
  * mapLiteral ::=
  *     'const'? ('<' {@link TypeName type} '>')? '{' ({@link MapLiteralEntry entry} (',' {@link MapLiteralEntry entry})* ','?)? '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class MapLiteral extends TypedLiteral {
   /**

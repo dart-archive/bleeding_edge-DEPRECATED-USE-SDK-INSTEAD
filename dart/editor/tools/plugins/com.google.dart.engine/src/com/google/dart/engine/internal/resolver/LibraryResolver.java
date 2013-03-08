@@ -51,6 +51,8 @@ import java.util.Set;
 /**
  * Instances of the class {@code LibraryResolver} are used to resolve one or more mutually dependent
  * libraries within a single context.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class LibraryResolver {
   /**

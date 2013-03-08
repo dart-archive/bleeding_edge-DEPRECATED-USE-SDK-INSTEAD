@@ -29,6 +29,8 @@ import java.util.List;
  *   | {@link FieldFormalParameter fieldFormalParameter}
  *   | {@link SimpleFormalParameter simpleFormalParameter}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class NormalFormalParameter extends FormalParameter {
   /**

@@ -20,6 +20,7 @@ import com.google.dart.engine.source.Source;
  * some Dart code.
  * 
  * @see AnalysisErrorListener
+ * @coverage dart.engine.error
  */
 public class AnalysisError {
   /**

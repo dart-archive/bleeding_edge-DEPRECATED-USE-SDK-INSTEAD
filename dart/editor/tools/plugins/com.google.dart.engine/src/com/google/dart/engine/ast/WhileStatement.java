@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * whileStatement ::=
  *     'while' '(' {@link Expression condition} ')' {@link Statement body}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class WhileStatement extends Statement {
   /**

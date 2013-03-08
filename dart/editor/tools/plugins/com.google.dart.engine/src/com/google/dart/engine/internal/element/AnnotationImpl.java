@@ -18,6 +18,8 @@ import com.google.dart.engine.element.Element;
 
 /**
  * Instances of the class {@code AnnotationImpl} implement an {@link Annotation}.
+ * 
+ * @coverage dart.engine.element
  */
 public class AnnotationImpl implements Annotation {
   /**

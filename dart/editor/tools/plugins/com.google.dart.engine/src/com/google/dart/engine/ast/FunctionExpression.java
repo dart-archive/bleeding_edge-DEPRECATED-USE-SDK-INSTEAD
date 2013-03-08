@@ -23,6 +23,8 @@ import com.google.dart.engine.scanner.Token;
  * functionExpression ::=
  *     {@link FormalParameterList formalParameterList} {@link FunctionBody functionBody}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionExpression extends Expression {
   /**

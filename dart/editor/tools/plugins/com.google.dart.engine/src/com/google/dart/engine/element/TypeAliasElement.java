@@ -18,6 +18,8 @@ import com.google.dart.engine.type.FunctionType;
 /**
  * The interface {@code TypeAliasElement} defines the behavior of elements representing a type alias
  * ({@code typedef}).
+ * 
+ * @coverage dart.engine.element
  */
 public interface TypeAliasElement extends Element {
   /**

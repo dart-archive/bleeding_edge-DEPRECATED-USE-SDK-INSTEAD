@@ -42,6 +42,8 @@ import java.lang.ref.WeakReference;
 /**
  * The abstract class {@code ElementHandle} implements the behavior common to objects that implement
  * a handle to an {@link Element}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class ElementHandle implements Element {
   /**

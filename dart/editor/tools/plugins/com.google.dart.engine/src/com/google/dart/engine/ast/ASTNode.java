@@ -24,6 +24,8 @@ import java.util.Map;
 /**
  * The abstract class {@code ASTNode} defines the behavior common to all nodes in the AST structure
  * for a Dart program.
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class ASTNode {
   /**

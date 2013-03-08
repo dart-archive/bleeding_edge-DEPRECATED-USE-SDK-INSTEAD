@@ -24,6 +24,8 @@ import java.util.List;
  * listLiteral ::=
  *     'const'? ('<' {@link TypeName type} '>')? '[' ({@link Expression expressionList} ','?)? ']'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class ListLiteral extends TypedLiteral {
   /**

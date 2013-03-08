@@ -26,6 +26,8 @@ import com.google.dart.engine.type.Type;
  *   | {@link ConditionalExpression conditionalExpression} cascadeSection*
  *   | {@link ThrowExpression throwExpression}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class Expression extends ASTNode {
   /**

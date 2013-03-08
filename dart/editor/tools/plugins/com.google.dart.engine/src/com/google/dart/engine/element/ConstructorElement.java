@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code ConstructorElement} defines the behavior of elements representing a
  * constructor or a factory method defined within a type.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ConstructorElement extends ExecutableElement {
   /**

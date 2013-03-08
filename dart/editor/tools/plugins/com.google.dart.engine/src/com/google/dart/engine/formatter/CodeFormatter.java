@@ -21,6 +21,7 @@ import com.google.dart.engine.formatter.edit.EditRecorder;
  * 
  * @param <D> the document type
  * @param <R> an (optional) return result type
+ * @coverage dart.engine.formatter
  */
 public abstract class CodeFormatter<D, R> {
 

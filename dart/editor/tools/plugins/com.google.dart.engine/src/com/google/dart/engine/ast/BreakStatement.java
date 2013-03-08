@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * breakStatement ::=
  *     'break' {@link SimpleIdentifier label}? ';'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class BreakStatement extends Statement {
   /**

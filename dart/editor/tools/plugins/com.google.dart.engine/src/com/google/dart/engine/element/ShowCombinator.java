@@ -16,6 +16,8 @@ package com.google.dart.engine.element;
 /**
  * The interface {@code ShowCombinator} defines the behavior of combinators that cause some of the
  * names in a namespace to be visible (and the rest hidden) when being imported.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ShowCombinator extends NamespaceCombinator {
   /**

@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * booleanLiteral ::=
  *     'false' | 'true'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class BooleanLiteral extends Literal {
   /**

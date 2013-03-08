@@ -28,6 +28,8 @@ import java.util.List;
  * functionPrefix ::=
  *     {@link TypeName returnType}? {@link SimpleIdentifier name}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class FunctionTypeAlias extends TypeAlias {
   /**

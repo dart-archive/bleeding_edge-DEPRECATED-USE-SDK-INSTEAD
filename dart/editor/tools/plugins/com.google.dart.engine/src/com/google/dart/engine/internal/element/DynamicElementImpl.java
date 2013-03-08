@@ -21,6 +21,8 @@ import com.google.dart.engine.scanner.Keyword;
 /**
  * Instances of the class {@code DynamicElementImpl} represent the synthetic element representing
  * the declaration of the type {@code dynamic}.
+ * 
+ * @coverage dart.engine.element
  */
 public class DynamicElementImpl extends ElementImpl {
   /**

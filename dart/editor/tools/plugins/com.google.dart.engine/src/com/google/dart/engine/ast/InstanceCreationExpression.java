@@ -26,6 +26,8 @@ import com.google.dart.engine.scanner.Token;
  * newExpression ::=
  *     ('new' | 'const') {@link TypeName type} ('.' {@link SimpleIdentifier identifier})? {@link ArgumentList argumentList}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class InstanceCreationExpression extends Expression {
   /**

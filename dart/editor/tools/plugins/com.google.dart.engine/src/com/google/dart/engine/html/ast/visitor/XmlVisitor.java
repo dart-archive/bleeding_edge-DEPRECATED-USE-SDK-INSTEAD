@@ -21,6 +21,8 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 /**
  * The interface {@code XmlVisitor} defines the behavior of objects that can be used to visit an
  * {@link XmlNode} structure.
+ * 
+ * @coverage dart.engine.html
  */
 public interface XmlVisitor<R> {
 

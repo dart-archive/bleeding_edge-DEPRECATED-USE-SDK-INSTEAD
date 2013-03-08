@@ -24,6 +24,8 @@ import java.util.List;
  * withClause ::=
  *     'with' {@link TypeName mixin} (',' {@link TypeName mixin})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class WithClause extends ASTNode {
   /**

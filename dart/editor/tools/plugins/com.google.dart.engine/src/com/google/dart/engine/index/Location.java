@@ -20,6 +20,8 @@ import com.google.dart.engine.element.Element;
  * Instances of the class <code>Location</code> represent a location related to an element. The
  * location is expressed as an offset and length, but the offset is relative to the resource
  * containing the element rather than the start of the element within that resource.
+ * 
+ * @coverage dart.engine.index
  */
 public class Location {
 

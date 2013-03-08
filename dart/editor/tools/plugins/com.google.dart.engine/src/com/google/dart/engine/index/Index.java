@@ -29,6 +29,8 @@ import com.google.dart.engine.source.SourceContainer;
  * the expectation that operations are performed in the order in which they are requested.
  * Modification operations are executed before any read operation. There is no guarantee about the
  * order in which the callbacks for read operations will be invoked.
+ * 
+ * @coverage dart.engine.index
  */
 public interface Index {
   /**

@@ -24,6 +24,8 @@ import java.util.List;
  * switchDefault ::=
  *     {@link SimpleIdentifier label}* 'default' ':' {@link Statement statement}*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SwitchDefault extends SwitchMember {
   /**

@@ -23,6 +23,8 @@ import com.google.dart.engine.source.Source;
 /**
  * Instances of the class {@code CompilationUnitBuilder} build an element model for a single
  * compilation unit.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class CompilationUnitBuilder {
   /**

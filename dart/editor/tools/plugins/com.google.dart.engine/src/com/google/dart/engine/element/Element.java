@@ -37,6 +37,8 @@ import java.util.Comparator;
  * Second, there are elements in the element model that do not have a name. These correspond to
  * unnamed functions and exist in order to more accurately represent the semantic structure of the
  * program.
+ * 
+ * @coverage dart.engine.element
  */
 public interface Element {
   /**

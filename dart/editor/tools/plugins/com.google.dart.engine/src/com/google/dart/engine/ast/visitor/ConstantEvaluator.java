@@ -83,6 +83,8 @@ import java.util.HashMap;
  * In addition, this class defines several values that can be returned to indicate various
  * conditions encountered during evaluation. These are documented with the static field that define
  * those values.
+ * 
+ * @coverage dart.engine.ast
  */
 public class ConstantEvaluator extends GeneralizingASTVisitor<Object> {
   /**

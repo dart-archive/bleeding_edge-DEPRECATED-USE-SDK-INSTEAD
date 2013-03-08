@@ -20,6 +20,8 @@ import java.util.Map;
 /**
  * Relationship between an element and a location. Relationships are identified by a globally unique
  * identifier.
+ * 
+ * @coverage dart.engine.index
  */
 public class Relationship {
   /**

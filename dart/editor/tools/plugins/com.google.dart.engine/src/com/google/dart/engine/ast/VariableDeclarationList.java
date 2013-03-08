@@ -33,6 +33,8 @@ import java.util.List;
  *   | 'var'
  *   | {@link TypeName type}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class VariableDeclarationList extends ASTNode {
   /**

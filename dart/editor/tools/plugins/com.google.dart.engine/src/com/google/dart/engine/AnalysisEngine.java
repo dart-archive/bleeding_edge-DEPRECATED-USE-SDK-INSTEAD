@@ -21,6 +21,8 @@ import com.google.dart.engine.utilities.logging.Logger;
 /**
  * The unique instance of the class {@code AnalysisEngine} serves as the entry point for the
  * functionality provided by the analysis engine.
+ * 
+ * @coverage dart.engine
  */
 public final class AnalysisEngine {
   /**

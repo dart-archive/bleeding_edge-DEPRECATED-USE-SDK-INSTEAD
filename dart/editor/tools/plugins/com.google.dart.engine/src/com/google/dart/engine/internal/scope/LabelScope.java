@@ -21,6 +21,8 @@ import com.google.dart.engine.scanner.TokenType;
 
 /**
  * Instances of the class {@code LabelScope} represent a scope in which a single label is defined.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class LabelScope {
   /**

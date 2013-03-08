@@ -16,6 +16,8 @@ package com.google.dart.engine.error;
 /**
  * Instances of the enumeration {@code ErrorSeverity} represent the severity of an {@link ErrorCode}
  * .
+ * 
+ * @coverage dart.engine.error
  */
 public enum ErrorSeverity {
   /**

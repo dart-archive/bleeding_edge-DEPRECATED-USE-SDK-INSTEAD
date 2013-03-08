@@ -22,6 +22,8 @@ import com.google.dart.engine.scanner.Token;
  * nullLiteral ::=
  *     'null'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class NullLiteral extends Literal {
   /**

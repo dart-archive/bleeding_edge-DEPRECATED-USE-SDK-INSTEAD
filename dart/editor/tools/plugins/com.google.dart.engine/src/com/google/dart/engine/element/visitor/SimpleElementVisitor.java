@@ -41,6 +41,8 @@ import com.google.dart.engine.element.TypeVariableElement;
  * nothing when visiting an element. It is intended to be a superclass for classes that use the
  * visitor pattern primarily as a dispatch mechanism (and hence don't need to recursively visit a
  * whole structure) and that only need to visit a small number of element types.
+ * 
+ * @coverage dart.engine.element
  */
 public class SimpleElementVisitor<R> implements ElementVisitor<R> {
   @Override

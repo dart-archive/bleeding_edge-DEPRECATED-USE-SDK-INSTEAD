@@ -27,6 +27,8 @@ import com.google.dart.engine.scanner.TokenType;
  * propertyAccess ::=
  *     {@link Expression target} '.' {@link SimpleIdentifier propertyName}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class PropertyAccess extends Expression {
   /**

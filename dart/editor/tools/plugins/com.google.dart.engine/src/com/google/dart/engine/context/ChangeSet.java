@@ -24,6 +24,8 @@ import java.util.Map;
 /**
  * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
  * removed.
+ * 
+ * @coverage dart.engine
  */
 public class ChangeSet {
   /**

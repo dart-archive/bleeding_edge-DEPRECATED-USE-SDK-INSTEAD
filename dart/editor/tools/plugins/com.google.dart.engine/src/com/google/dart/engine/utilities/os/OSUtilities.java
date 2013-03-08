@@ -16,6 +16,8 @@ package com.google.dart.engine.utilities.os;
 /**
  * The class {@code OSUtilities} implements utility methods used to determine which operating system
  * we are running on.
+ * 
+ * @coverage dart.engine.utilities
  */
 public final class OSUtilities {
   /**

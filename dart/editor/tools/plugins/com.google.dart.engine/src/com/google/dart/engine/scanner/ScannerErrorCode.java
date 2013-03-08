@@ -20,6 +20,8 @@ import com.google.dart.engine.error.ErrorType;
 /**
  * The enumeration {@code ScannerErrorCode} defines the error codes used for errors detected by the
  * scanner.
+ * 
+ * @coverage dart.engine.parser
  */
 public enum ScannerErrorCode implements ErrorCode {
   ILLEGAL_CHARACTER("Illegal character %x"), //

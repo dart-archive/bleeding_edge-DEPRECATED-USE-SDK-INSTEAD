@@ -18,6 +18,8 @@ import com.google.dart.engine.element.TypeVariableElement;
 /**
  * The interface {@code TypeVariableType} defines the behavior of objects representing the type
  * introduced by a type variable.
+ * 
+ * @coverage dart.engine.type
  */
 public interface TypeVariableType extends Type {
   @Override

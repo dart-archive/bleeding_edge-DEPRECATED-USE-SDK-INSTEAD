@@ -28,6 +28,8 @@ import java.util.List;
  * declaredIdentifier ::=
  *     ({@link Annotation metadata} finalConstVarOrType {@link SimpleIdentifier identifier}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class DeclaredIdentifier extends Declaration {
   /**

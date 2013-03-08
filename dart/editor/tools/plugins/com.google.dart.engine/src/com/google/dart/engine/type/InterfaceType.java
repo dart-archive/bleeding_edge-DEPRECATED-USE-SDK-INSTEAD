@@ -18,6 +18,8 @@ import com.google.dart.engine.element.ClassElement;
 /**
  * The interface {@code InterfaceType} defines the behavior common to objects representing the type
  * introduced by either a class or an interface, or a reference to such a type.
+ * 
+ * @coverage dart.engine.type
  */
 public interface InterfaceType extends Type {
   @Override

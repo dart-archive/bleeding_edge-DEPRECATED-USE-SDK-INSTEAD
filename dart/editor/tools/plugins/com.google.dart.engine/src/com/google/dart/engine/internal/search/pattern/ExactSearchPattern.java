@@ -20,6 +20,8 @@ import com.google.dart.engine.search.SearchPattern;
 /**
  * Instances of the class <code>ExactSearchPattern</code> implement a search pattern that matches
  * elements whose name matches a specified identifier exactly.
+ * 
+ * @coverage dart.engine.search
  */
 public class ExactSearchPattern implements SearchPattern {
   /**

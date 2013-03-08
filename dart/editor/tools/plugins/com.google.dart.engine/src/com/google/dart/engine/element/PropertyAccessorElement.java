@@ -27,6 +27,8 @@ package com.google.dart.engine.element;
  * <li>Every explicit getter or setter (or pair thereof if they have the same name) induces a field
  * that is represented by a synthetic {@link FieldElement}.
  * </ul>
+ * 
+ * @coverage dart.engine.element
  */
 public interface PropertyAccessorElement extends ExecutableElement {
   /**

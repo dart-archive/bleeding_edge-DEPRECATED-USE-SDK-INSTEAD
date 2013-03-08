@@ -27,6 +27,8 @@ import java.util.EnumSet;
 /**
  * The abstract class {@code ElementImpl} implements the behavior common to objects that implement
  * an {@link Element}.
+ * 
+ * @coverage dart.engine.element
  */
 public abstract class ElementImpl implements Element {
   /**

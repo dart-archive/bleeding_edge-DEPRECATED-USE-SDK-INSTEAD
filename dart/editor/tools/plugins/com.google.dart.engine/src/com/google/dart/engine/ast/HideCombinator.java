@@ -25,6 +25,8 @@ import java.util.List;
  * hideCombinator ::=
  *     'hide' {@link SimpleIdentifier identifier} (',' {@link SimpleIdentifier identifier})*
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class HideCombinator extends Combinator {
   /**

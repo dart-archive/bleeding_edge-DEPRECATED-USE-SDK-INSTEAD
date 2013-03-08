@@ -28,6 +28,8 @@ import com.google.dart.engine.utilities.dart.ParameterKind;
  * defaultNamedParameter ::=
  *     {@link NormalFormalParameter normalFormalParameter} (':' {@link Expression defaultValue})?
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class DefaultFormalParameter extends FormalParameter {
   /**

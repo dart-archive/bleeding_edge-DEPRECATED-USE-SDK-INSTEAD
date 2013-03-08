@@ -18,6 +18,8 @@ package com.google.dart.engine.utilities.instrumentation;
  * instrumentation data.
  * <p>
  * For an example of using objects that implement this interface, see {@link Instrumentation}.
+ * 
+ * @coverage dart.engine.utilities
  */
 public interface InstrumentationLogger {
   /**

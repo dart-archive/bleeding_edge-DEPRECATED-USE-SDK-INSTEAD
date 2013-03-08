@@ -18,6 +18,8 @@ import java.util.Map;
 
 /**
  * The enumeration {@code Keyword} defines the keywords in the Dart programming language.
+ * 
+ * @coverage dart.engine.parser
  */
 public enum Keyword {
   ASSERT("assert"),

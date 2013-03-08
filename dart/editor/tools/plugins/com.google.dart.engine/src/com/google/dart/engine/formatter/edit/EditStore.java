@@ -17,6 +17,8 @@ import java.util.List;
 
 /**
  * Manages stored edits.
+ * 
+ * @coverage dart.engine.formatter
  */
 public interface EditStore {
 

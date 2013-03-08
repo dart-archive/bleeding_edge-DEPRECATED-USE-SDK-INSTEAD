@@ -20,6 +20,8 @@ import com.google.dart.engine.utilities.source.SourceRange;
 /**
  * Instances of the class {@code FunctionElementHandle} implement a handle to a
  * {@code FunctionElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class FunctionElementHandle extends ExecutableElementHandle implements FunctionElement {
   /**

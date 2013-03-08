@@ -18,6 +18,8 @@ import com.google.dart.engine.source.Source;
 /**
  * The interface {@link IndexOperation} defines the behavior of objects used to perform operations
  * on an index.
+ * 
+ * @coverage dart.engine.index
  */
 public interface IndexOperation {
   /**

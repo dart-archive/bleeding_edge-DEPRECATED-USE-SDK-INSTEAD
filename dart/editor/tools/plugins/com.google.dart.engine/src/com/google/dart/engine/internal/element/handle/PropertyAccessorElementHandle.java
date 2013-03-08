@@ -20,6 +20,8 @@ import com.google.dart.engine.element.PropertyInducingElement;
 /**
  * Instances of the class {@code PropertyAccessorElementHandle} implement a handle to a
  * {@code PropertyAccessorElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class PropertyAccessorElementHandle extends ExecutableElementHandle implements
     PropertyAccessorElement {
@@ -33,17 +35,17 @@ public class PropertyAccessorElementHandle extends ExecutableElementHandle imple
   }
 
   @Override
-  public PropertyInducingElement getVariable() {
-    return getActualElement().getVariable();
-  }
-
-  @Override
   public ElementKind getKind() {
     if (isGetter()) {
       return ElementKind.GETTER;
     } else {
       return ElementKind.SETTER;
     }
+  }
+
+  @Override
+  public PropertyInducingElement getVariable() {
+    return getActualElement().getVariable();
   }
 
   @Override

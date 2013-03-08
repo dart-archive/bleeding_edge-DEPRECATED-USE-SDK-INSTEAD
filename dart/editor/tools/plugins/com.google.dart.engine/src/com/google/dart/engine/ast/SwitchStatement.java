@@ -24,6 +24,8 @@ import java.util.List;
  * switchStatement ::=
  *     'switch' '(' {@link Expression expression} ')' '{' {@link SwitchCase switchCase}* {@link SwitchDefault defaultCase}? '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class SwitchStatement extends Statement {
   /**

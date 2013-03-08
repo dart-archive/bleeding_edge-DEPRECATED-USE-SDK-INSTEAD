@@ -72,6 +72,8 @@ import com.google.dart.engine.type.Type;
 /**
  * Instances of the class {@code ElementBuilder} traverse an AST structure and build the element
  * model representing the AST structure.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ElementBuilder extends RecursiveASTVisitor<Void> {
   /**

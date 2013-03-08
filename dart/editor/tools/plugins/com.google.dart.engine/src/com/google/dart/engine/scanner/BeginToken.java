@@ -16,6 +16,8 @@ package com.google.dart.engine.scanner;
 /**
  * Instances of the class {@code BeginToken} represent the opening half of a grouping pair of
  * tokens. This is used for curly brackets ('{'), parentheses ('('), and square brackets ('[').
+ * 
+ * @coverage dart.engine.parser
  */
 public class BeginToken extends Token {
   /**

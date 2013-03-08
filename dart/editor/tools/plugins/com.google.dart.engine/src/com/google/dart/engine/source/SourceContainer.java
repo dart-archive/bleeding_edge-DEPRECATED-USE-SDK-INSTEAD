@@ -20,6 +20,8 @@ package com.google.dart.engine.source;
  * sources for the purposes of accessing composite dependency information. For example, the Eclipse
  * client uses source containers to represent Eclipse projects, which allows it to easily compute
  * project-level dependencies.
+ * 
+ * @coverage dart.engine.source
  */
 public interface SourceContainer {
 

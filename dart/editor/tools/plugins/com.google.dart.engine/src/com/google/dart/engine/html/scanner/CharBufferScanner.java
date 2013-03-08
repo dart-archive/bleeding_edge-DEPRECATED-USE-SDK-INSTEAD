@@ -20,6 +20,8 @@ import java.nio.CharBuffer;
 /**
  * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
+ * 
+ * @coverage dart.engine.html
  */
 public class CharBufferScanner extends AbstractScanner {
   /**

@@ -16,6 +16,8 @@ package com.google.dart.engine.type;
 /**
  * The interface {@code VoidType} defines the behavior of the unique object representing the type
  * {@code void}.
+ * 
+ * @coverage dart.engine.type
  */
 public interface VoidType extends Type {
   @Override

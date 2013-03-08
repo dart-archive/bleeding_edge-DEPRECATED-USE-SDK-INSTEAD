@@ -21,6 +21,8 @@ import java.util.ArrayList;
 /**
  * Instances of the class {@code SourceInfo} maintain the information known by an analysis context
  * about an individual source.
+ * 
+ * @coverage dart.engine
  */
 public class SourceInfo {
   /**

@@ -22,6 +22,8 @@ package com.google.dart.engine.ast;
  *     {@link SuperConstructorInvocation superInvocation}
  *   | {@link ConstructorFieldInitializer fieldInitializer}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public abstract class ConstructorInitializer extends ASTNode {
 }

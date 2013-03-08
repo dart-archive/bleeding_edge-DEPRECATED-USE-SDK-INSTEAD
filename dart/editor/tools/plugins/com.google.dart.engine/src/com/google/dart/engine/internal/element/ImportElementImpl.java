@@ -22,6 +22,8 @@ import com.google.dart.engine.element.PrefixElement;
 
 /**
  * Instances of the class {@code ImportElementImpl} implement an {@link ImportElement}.
+ * 
+ * @coverage dart.engine.element
  */
 public class ImportElementImpl extends ElementImpl implements ImportElement {
   /**

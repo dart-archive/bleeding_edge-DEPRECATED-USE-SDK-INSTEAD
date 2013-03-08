@@ -16,6 +16,8 @@ package com.google.dart.engine.error;
 /**
  * The interface {@code AnalysisErrorListener} defines the behavior of objects that listen for
  * {@link AnalysisError analysis errors} being produced by the analysis engine.
+ * 
+ * @coverage dart.engine.error
  */
 public interface AnalysisErrorListener {
   /**

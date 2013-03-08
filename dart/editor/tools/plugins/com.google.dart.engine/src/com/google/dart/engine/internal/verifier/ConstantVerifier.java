@@ -38,6 +38,8 @@ import java.util.HashSet;
  * Instances of the class {@code ConstantVerifier} traverse an AST structure looking for additional
  * errors and warnings not covered by the parser and resolver. In particular, it looks for errors
  * and warnings related to constant expressions.
+ * 
+ * @coverage dart.engine.resolver
  */
 public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   /**

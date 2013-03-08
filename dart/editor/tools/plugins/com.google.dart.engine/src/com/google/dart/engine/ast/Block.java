@@ -24,6 +24,8 @@ import java.util.List;
  * block ::=
  *     '{' statement* '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class Block extends Statement {
   /**

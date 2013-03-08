@@ -24,6 +24,8 @@ import java.util.List;
  * typeArguments ::=
  *     '<' typeName (',' typeName)* '>'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class TypeArgumentList extends ASTNode {
   /**

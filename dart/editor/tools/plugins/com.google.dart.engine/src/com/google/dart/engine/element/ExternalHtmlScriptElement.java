@@ -19,6 +19,8 @@ import com.google.dart.engine.source.Source;
  * The interface {@code ExternalHtmlScriptElement} defines the behavior of elements representing a
  * script tag in an HTML file having a {@code source} attribute that references a Dart library
  * source file.
+ * 
+ * @coverage dart.engine.element
  */
 public interface ExternalHtmlScriptElement extends HtmlScriptElement {
 

@@ -25,6 +25,8 @@ import java.util.List;
  * labeledStatement ::=
  *    {@link Label label}+ {@link Statement statement}
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class LabeledStatement extends Statement {
   /**

@@ -24,6 +24,8 @@ import com.google.dart.engine.scanner.Token;
  *     '$' {@link SimpleIdentifier identifier}
  *   | '$' '{' {@link Expression expression} '}'
  * </pre>
+ * 
+ * @coverage dart.engine.ast
  */
 public class InterpolationExpression extends InterpolationElement {
   /**

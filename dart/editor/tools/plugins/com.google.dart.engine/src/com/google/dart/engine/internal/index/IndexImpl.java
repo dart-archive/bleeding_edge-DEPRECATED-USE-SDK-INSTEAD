@@ -32,6 +32,8 @@ import com.google.dart.engine.source.SourceContainer;
 
 /**
  * Implementation of {@link Index}.
+ * 
+ * @coverage dart.engine.index
  */
 public class IndexImpl implements Index {
   private final IndexStore store;
