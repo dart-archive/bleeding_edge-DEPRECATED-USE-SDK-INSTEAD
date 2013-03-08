@@ -2554,7 +2554,7 @@ public class Parser {
           initialization = parseExpression();
         }
         if (matches(Keyword.IN)) {
-          SimpleFormalParameter loopParameter = null;
+          DeclaredIdentifier loopVariable = null;
           if (variableList == null) {
             // We found: <expression> 'in'
             reportError(ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH);
@@ -2569,7 +2569,7 @@ public class Parser {
             if (variable.getInitializer() != null) {
               reportError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
             }
-            loopParameter = new SimpleFormalParameter(
+            loopVariable = new DeclaredIdentifier(
                 null,
                 null,
                 variableList.getKeyword(),
@@ -2583,7 +2583,7 @@ public class Parser {
           return new ForEachStatement(
               forKeyword,
               leftParenthesis,
-              loopParameter,
+              loopVariable,
               inKeyword,
               iterator,
               rightParenthesis,

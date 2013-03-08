@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
@@ -56,6 +57,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
@@ -189,6 +191,31 @@ public class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+    Type declaredType;
+    TypeName typeName = node.getType();
+    if (typeName == null) {
+      declaredType = dynamicType;
+    } else {
+      declaredType = getType(typeName);
+    }
+    LocalVariableElementImpl element = (LocalVariableElementImpl) node.getElement();
+    element.setType(declaredType);
+    return null;
+  }
+
+//  @Override
+//  public Void visitFunctionExpression(FunctionExpression node) {
+//    super.visitFunctionExpression(node);
+//    ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
+//    FunctionTypeImpl type = new FunctionTypeImpl(element);
+//    setTypeInformation(type, null, element.getParameters());
+//    element.setType(type);
+//    return null;
+//  }
+
+  @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
 //    Expression defaultValue = node.getDefaultValue();
@@ -204,16 +231,6 @@ public class TypeResolverVisitor extends ScopedVisitor {
 //    }
     return null;
   }
-
-//  @Override
-//  public Void visitFunctionExpression(FunctionExpression node) {
-//    super.visitFunctionExpression(node);
-//    ExecutableElementImpl element = (ExecutableElementImpl) node.getElement();
-//    FunctionTypeImpl type = new FunctionTypeImpl(element);
-//    setTypeInformation(type, null, element.getParameters());
-//    element.setType(type);
-//    return null;
-//  }
 
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {

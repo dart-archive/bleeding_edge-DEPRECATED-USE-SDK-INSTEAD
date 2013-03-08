@@ -143,6 +143,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitDeclaredIdentifier(DeclaredIdentifier node) {
+    return null;
+  }
+
+  @Override
   public R visitDefaultFormalParameter(DefaultFormalParameter node) {
     return null;
   }

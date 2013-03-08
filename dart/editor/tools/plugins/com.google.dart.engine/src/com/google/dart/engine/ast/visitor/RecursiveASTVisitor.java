@@ -170,6 +170,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitDeclaredIdentifier(DeclaredIdentifier node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitDefaultFormalParameter(DefaultFormalParameter node) {
     node.visitChildren(this);
     return null;

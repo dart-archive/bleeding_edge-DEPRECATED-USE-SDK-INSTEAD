@@ -37,7 +37,7 @@ public class ForEachStatement extends Statement {
   /**
    * The declaration of the loop variable.
    */
-  private SimpleFormalParameter loopParameter;
+  private DeclaredIdentifier loopVariable;
 
   /**
    * The token representing the 'in' keyword.
@@ -64,17 +64,16 @@ public class ForEachStatement extends Statement {
    * 
    * @param forKeyword the token representing the 'for' keyword
    * @param leftParenthesis the left parenthesis
-   * @param loopParameter the declaration of the loop variable
+   * @param loopVariable the declaration of the loop variable
    * @param iterator the expression evaluated to produce the iterator
    * @param rightParenthesis the right parenthesis
    * @param body the body of the loop
    */
-  public ForEachStatement(Token forKeyword, Token leftParenthesis,
-      SimpleFormalParameter loopParameter, Token inKeyword, Expression iterator,
-      Token rightParenthesis, Statement body) {
+  public ForEachStatement(Token forKeyword, Token leftParenthesis, DeclaredIdentifier loopVariable,
+      Token inKeyword, Expression iterator, Token rightParenthesis, Statement body) {
     this.forKeyword = forKeyword;
     this.leftParenthesis = leftParenthesis;
-    this.loopParameter = becomeParentOf(loopParameter);
+    this.loopVariable = becomeParentOf(loopVariable);
     this.inKeyword = inKeyword;
     this.iterator = becomeParentOf(iterator);
     this.rightParenthesis = rightParenthesis;
@@ -146,8 +145,8 @@ public class ForEachStatement extends Statement {
    * 
    * @return the declaration of the loop variable
    */
-  public SimpleFormalParameter getLoopParameter() {
-    return loopParameter;
+  public DeclaredIdentifier getLoopVariable() {
+    return loopVariable;
   }
 
   /**
@@ -205,12 +204,12 @@ public class ForEachStatement extends Statement {
   }
 
   /**
-   * Set the declaration of the loop variable to the given parameter.
+   * Set the declaration of the loop variable to the given variable.
    * 
-   * @param parameter the declaration of the loop variable
+   * @param variable the declaration of the loop variable
    */
-  public void setLoopParameter(SimpleFormalParameter parameter) {
-    loopParameter = becomeParentOf(parameter);
+  public void setLoopVariable(DeclaredIdentifier variable) {
+    loopVariable = becomeParentOf(variable);
   }
 
   /**
@@ -224,7 +223,7 @@ public class ForEachStatement extends Statement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    safelyVisitChild(loopParameter, visitor);
+    safelyVisitChild(loopVariable, visitor);
     safelyVisitChild(iterator, visitor);
     safelyVisitChild(body, visitor);
   }

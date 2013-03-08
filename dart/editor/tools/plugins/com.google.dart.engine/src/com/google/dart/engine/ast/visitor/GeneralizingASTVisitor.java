@@ -177,6 +177,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitDeclaredIdentifier(DeclaredIdentifier node) {
+    return visitDeclaration(node);
+  }
+
+  @Override
   public R visitDefaultFormalParameter(DefaultFormalParameter node) {
     return visitFormalParameter(node);
   }

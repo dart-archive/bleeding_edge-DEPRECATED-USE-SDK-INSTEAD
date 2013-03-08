@@ -19,9 +19,11 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -203,6 +205,24 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       constructorName.setElement(element);
     }
     return null;
+  }
+
+  @Override
+  public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    SimpleIdentifier variableName = node.getIdentifier();
+    Token keyword = node.getKeyword();
+
+    LocalVariableElementImpl element = new LocalVariableElementImpl(variableName);
+    ForEachStatement statement = (ForEachStatement) node.getParent();
+    int declarationEnd = node.getOffset() + node.getLength();
+    int statementEnd = statement.getOffset() + statement.getLength();
+    element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
+    element.setConst(matches(keyword, Keyword.CONST));
+    element.setFinal(matches(keyword, Keyword.FINAL));
+
+    currentHolder.addLocalVariable(element);
+    variableName.setElement(element);
+    return super.visitDeclaredIdentifier(node);
   }
 
   @Override
@@ -568,6 +588,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       Block enclosingBlock = node.getAncestor(Block.class);
       int functionEnd = node.getOffset() + node.getLength();
       int blockEnd = enclosingBlock.getOffset() + enclosingBlock.getLength();
+      // TODO(brianwilkerson) This isn't right for variables declared in a for loop.
       ((LocalVariableElementImpl) element).setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
 
       currentHolder.addLocalVariable((LocalVariableElementImpl) element);

@@ -66,6 +66,8 @@ public interface ASTVisitor<R> {
 
   public R visitContinueStatement(ContinueStatement node);
 
+  public R visitDeclaredIdentifier(DeclaredIdentifier node);
+
   public R visitDefaultFormalParameter(DefaultFormalParameter node);
 
   public R visitDoStatement(DoStatement node);

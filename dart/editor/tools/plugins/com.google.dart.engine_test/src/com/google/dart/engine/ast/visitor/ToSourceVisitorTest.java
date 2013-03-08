@@ -594,10 +594,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitExportDirective_combinators() {
     assertSource(
         "export 'a.dart' show A hide B;",
-        exportDirective(
-            "a.dart",
-            showCombinator(identifier("A")),
-            hideCombinator(identifier("B"))));
+        exportDirective("a.dart", showCombinator(identifier("A")), hideCombinator(identifier("B"))));
   }
 
   public void test_visitExportDirective_minimal() {
@@ -639,7 +636,7 @@ public class ToSourceVisitorTest extends EngineTestCase {
   public void test_visitForEachStatement() {
     assertSource(
         "for (a in b) {}",
-        forEachStatement(simpleFormalParameter("a"), identifier("b"), block()));
+        forEachStatement(declaredIdentifier("a"), identifier("b"), block()));
   }
 
   public void test_visitFormalParameterList_empty() {
