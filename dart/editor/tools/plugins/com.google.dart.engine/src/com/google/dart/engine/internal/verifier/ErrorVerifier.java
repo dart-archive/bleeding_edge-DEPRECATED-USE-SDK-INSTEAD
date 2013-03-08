@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -31,7 +32,9 @@ import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.NormalFormalParameter;
 import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TypeName;
@@ -161,6 +164,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitFieldFormalParameter(FieldFormalParameter node) {
+    checkForConstFormalParameter(node);
+    return super.visitFieldFormalParameter(node);
+  }
+
+  @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement previousFunction = currentFunction;
     try {
@@ -228,6 +237,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitReturnStatement(ReturnStatement node) {
     checkForReturnOfInvalidType(node);
     return super.visitReturnStatement(node);
+  }
+
+  @Override
+  public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    checkForConstFormalParameter(node);
+    return super.visitSimpleFormalParameter(node);
   }
 
   @Override
@@ -414,6 +429,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed normal formal parameter is not 'const'.
+   * 
+   * @param node the normal formal parameter to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_FORMAL_PARAMETER
+   */
+  private boolean checkForConstFormalParameter(NormalFormalParameter node) {
+    if (node.isConst()) {
+      errorReporter.reportError(CompileTimeErrorCode.CONST_FORMAL_PARAMETER, node);
+      return true;
     }
     return false;
   }

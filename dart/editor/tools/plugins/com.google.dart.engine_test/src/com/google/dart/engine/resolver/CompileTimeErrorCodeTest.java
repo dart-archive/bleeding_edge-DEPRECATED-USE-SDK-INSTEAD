@@ -104,14 +104,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constFormalParameter() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(const x) {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
-    verify(source);
-  }
-
   public void fail_constWithNonConst() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {",
@@ -1330,6 +1322,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    verify(source);
+  }
+
+  public void test_constFormalParameter_fieldFormalParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  var x;",
+        "  A(const this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
+    verify(source);
+  }
+
+  public void test_constFormalParameter_simpleFormalParameter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(const x) {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_FORMAL_PARAMETER);
     verify(source);
   }
 

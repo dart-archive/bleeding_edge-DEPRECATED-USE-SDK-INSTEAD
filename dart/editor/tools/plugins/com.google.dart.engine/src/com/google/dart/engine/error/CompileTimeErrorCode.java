@@ -121,7 +121,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is declared as a
    * constant variable.
    */
-  CONST_FORMAL_PARAMETER(""),
+  CONST_FORMAL_PARAMETER("Parameters cannot be 'const'"),
 
   /**
    * 5 Variables: A constant variable must be initialized to a compile-time constant or a
