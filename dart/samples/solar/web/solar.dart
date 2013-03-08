@@ -35,12 +35,6 @@ void showFps(num fps) {
   query("#notes").text = "${fpsAverage.round().toInt()} fps";
 }
 
-class Point {
-  num x, y;
-
-  Point(this.x, this.y);
-}
-
 /**
  * A representation of the solar system.
  *
