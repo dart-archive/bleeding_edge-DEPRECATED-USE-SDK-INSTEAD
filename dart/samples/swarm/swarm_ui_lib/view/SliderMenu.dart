@@ -158,8 +158,8 @@ class SliderMenu extends View {
     if (selectedItem != null) {
       // calculate where we want to put the triangle
       window.setImmediate(() {
-        num x = selectedItem.offsetLeft +
-            selectedItem.offsetWidth / 2 - TRIANGLE_WIDTH / 2;
+        num x = selectedItem.offset.left +
+            selectedItem.offset.width / 2 - TRIANGLE_WIDTH / 2;
         _moveIndicator(x, animate);
       });
     } else {

@@ -184,7 +184,7 @@ class PagedColumnView extends View {
     // flow to the right correctly. So we copy our own height and set the height
     // of the content.
     window.setImmediate(() {
-      contentView.node.style.height = '${node.offsetHeight}px';
+      contentView.node.style.height = '${node.offset.height}px';
     });
     _updatePageCount(null);
   }
@@ -192,7 +192,7 @@ class PagedColumnView extends View {
   bool _updatePageCount(Callback callback) {
     int pageLength = 1;
     window.setImmediate(() {
-      if (_container.scrollWidth > _container.offsetWidth) {
+      if (_container.scrollWidth > _container.offset.width) {
         pageLength = (_container.scrollWidth / _computePageSize(_container))
             .ceil().toInt();
       }
@@ -263,7 +263,7 @@ class PagedColumnView extends View {
     // Hacky: we need to duplicate the way the columns are being computed,
     // including rounding, to figure out how far to translate the div.
     // See http://www.w3.org/TR/css3-multicol/#column-width
-    _viewportSize = element.offsetWidth;
+    _viewportSize = element.offset.width;
 
     // Figure out how many columns we're rendering.
     // The algorithm ensures we're bigger than the specified min size.

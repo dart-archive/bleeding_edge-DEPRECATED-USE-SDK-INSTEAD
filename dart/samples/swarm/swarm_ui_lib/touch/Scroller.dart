@@ -560,8 +560,8 @@ class Scroller implements Draggable, MomentumDelegate {
         _contentSize = new Size(_element.scrollWidth, _element.scrollHeight);
       }
 
-      _scrollSize = new Size(_frame.offsetWidth,
-                             _frame.offsetHeight);
+      _scrollSize = new Size(_frame.offset.width,
+                             _frame.offset.height);
       Size adjusted = _getAdjustedContentSize();
       _maxPoint = new Coordinate(-_maxOffset.x, -_maxOffset.y);
       _minPoint = new Coordinate(

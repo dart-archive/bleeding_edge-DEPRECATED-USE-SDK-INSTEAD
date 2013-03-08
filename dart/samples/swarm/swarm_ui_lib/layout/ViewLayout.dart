@@ -108,8 +108,8 @@ class ViewLayout {
   CssStyleDeclaration get _style => layoutParams.style;
 
   void cacheExistingBrowserLayout() {
-    _offsetWidth = view.node.offsetWidth;
-    _offsetHeight = view.node.offsetHeight;
+    _offsetWidth = view.node.offset.width;
+    _offsetHeight = view.node.offset.height;
   }
 
   int get currentWidth {

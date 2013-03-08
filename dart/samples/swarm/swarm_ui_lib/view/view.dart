@@ -355,7 +355,7 @@ class View implements Positionable {
       Completer sizeCompleter = new Completer<Size>();
       window.setImmediate(() {
         sizeCompleter.complete(
-            new Size(_node.clientWidth, _node.clientHeight));
+            new Size(_node.client.width, _node.client.height));
       });
       layout.measureLayout(sizeCompleter.future, changed);
     } else {
