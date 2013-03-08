@@ -416,7 +416,10 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null, importShowCombinator("Keyword")));
-    unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(
+        importDirective("ast.dart", null, importShowCombinator("Identifier", "LibraryIdentifier")));
+    unit.getDirectives().add(
+        importDirective("html_scanner.dart", null, importShowCombinator("XmlTagNode")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));

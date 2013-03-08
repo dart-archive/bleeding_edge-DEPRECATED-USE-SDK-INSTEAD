@@ -91,6 +91,7 @@ import static com.google.dart.java2dart.util.ASTFactory.classDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.compilationUnit;
 import static com.google.dart.java2dart.util.ASTFactory.conditionalExpression;
 import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.declaredIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.doStatement;
 import static com.google.dart.java2dart.util.ASTFactory.doubleLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.emptyFunctionBody;
@@ -710,8 +711,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.EnhancedForStatement node) {
+    SimpleFormalParameter sfp = (SimpleFormalParameter) translate(node.getParameter());
     return done(forEachStatement(
-        (SimpleFormalParameter) translate(node.getParameter()),
+        declaredIdentifier(sfp.getType(), sfp.getIdentifier()),
         translateExpression(node.getExpression()),
         (Statement) translate(node.getBody())));
   }

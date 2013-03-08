@@ -51,6 +51,10 @@ public class GuavaSemanticProcessor extends SemanticProcessor {
           replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Map")));
           return null;
         }
+        if (isMethodInClass(node, "newHashSet", "com.google.common.collect.Sets")) {
+          replaceNode(node, instanceCreationExpression(Keyword.NEW, typeName("Set")));
+          return null;
+        }
         return null;
       }
 

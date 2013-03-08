@@ -67,4 +67,29 @@ public class GuavaSemanticProcessorTest extends SemanticProcessorTest {
         "  bool run_equal(Object a, Object b) => a == b;",
         "}");
   }
+
+  public void test_Sets_newHashSet() throws Exception {
+    setFileLines(
+        "com/google/common/collect/Sets.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package com.google.common.collect;",
+            "import java.util.Set;",
+            "public class Sets {",
+            "  public static <T> Set<T> newHashSet() { return null; }",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.util.Set;",
+        "import com.google.common.collect.Sets;",
+        "public class Test {",
+        "  Set<String> m = Sets.newHashSet();",
+        "}");
+    GuavaSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  Set<String> m = new Set();",
+        "}");
+  }
 }

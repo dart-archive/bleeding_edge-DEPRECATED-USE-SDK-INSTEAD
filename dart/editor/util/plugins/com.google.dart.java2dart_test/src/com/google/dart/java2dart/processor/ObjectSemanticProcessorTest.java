@@ -17,6 +17,23 @@ package com.google.dart.java2dart.processor;
  * Test for {@link ObjectSemanticProcessor}.
  */
 public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
+  public void test_BigInteger_ZERO() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "import java.math.BigInteger;",
+        "public class Test {",
+        "  public BigInteger main() {",
+        "    return BigInteger.ZERO;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  int main() => 0;",
+        "}");
+  }
+
   public void test_Boolean_TRUE() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

@@ -373,8 +373,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
 
       @Override
       public Void visitPropertyAccess(PropertyAccess node) {
-        if (node.getTarget() instanceof SimpleIdentifier) {
-          String targetName = ((SimpleIdentifier) node.getTarget()).getName();
+        Expression target = node.getTarget();
+        ITypeBinding targetTypeBinding = context.getNodeTypeBinding(target);
+        if (target instanceof SimpleIdentifier) {
+          String targetName = ((SimpleIdentifier) target).getName();
           if (targetName.equals("Boolean")) {
             boolean value = node.getPropertyName().getName().equals("TRUE");
             replaceNode(node, booleanLiteral(value));
@@ -389,6 +391,12 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             }
             replaceNode(node, integer(value));
             return null;
+          }
+          if (JavaUtils.isTypeNamed(targetTypeBinding, "java.math.BigInteger")) {
+            if (node.getPropertyName().getName().equals("ZERO")) {
+              replaceNode(node, integer(0));
+              return null;
+            }
           }
         }
         return super.visitPropertyAccess(node);

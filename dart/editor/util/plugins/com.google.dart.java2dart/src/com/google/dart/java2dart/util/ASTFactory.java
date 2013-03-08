@@ -396,6 +396,37 @@ public final class ASTFactory {
         token(TokenType.SEMICOLON));
   }
 
+  public static DeclaredIdentifier declaredIdentifier(Keyword keyword, String identifier) {
+    return declaredIdentifier(keyword, null, identifier);
+  }
+
+  public static DeclaredIdentifier declaredIdentifier(Keyword keyword, TypeName type,
+      SimpleIdentifier identifier) {
+    return new DeclaredIdentifier(
+        null,
+        null,
+        keyword == null ? null : token(keyword),
+        type,
+        identifier);
+  }
+
+  public static DeclaredIdentifier declaredIdentifier(Keyword keyword, TypeName type,
+      String identifier) {
+    return declaredIdentifier(keyword, type, identifier(identifier));
+  }
+
+  public static DeclaredIdentifier declaredIdentifier(String identifier) {
+    return declaredIdentifier(null, null, identifier);
+  }
+
+  public static DeclaredIdentifier declaredIdentifier(TypeName type, SimpleIdentifier identifier) {
+    return declaredIdentifier(null, type, identifier);
+  }
+
+  public static DeclaredIdentifier declaredIdentifier(TypeName type, String identifier) {
+    return declaredIdentifier(null, type, identifier);
+  }
+
   public static DoStatement doStatement(Statement body, Expression condition) {
     return new DoStatement(
         token(Keyword.DO),
@@ -506,7 +537,7 @@ public final class ASTFactory {
     return fieldFormalParameter(keyword, type, identifier(identifier));
   }
 
-  public static ForEachStatement forEachStatement(SimpleFormalParameter loopParameter,
+  public static ForEachStatement forEachStatement(DeclaredIdentifier loopParameter,
       Expression iterator, Statement body) {
     return new ForEachStatement(
         token(Keyword.FOR),

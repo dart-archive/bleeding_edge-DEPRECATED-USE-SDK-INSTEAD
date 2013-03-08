@@ -297,6 +297,14 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    visit(node.getKeyword(), " ");
+    visit(node.getType(), " ");
+    visit(node.getIdentifier());
+    return null;
+  }
+
+  @Override
   public Void visitDefaultFormalParameter(DefaultFormalParameter node) {
     visit(node.getParameter());
     if (node.getSeparator() != null) {
@@ -389,7 +397,7 @@ public class ToFormattedSourceVisitor implements ASTVisitor<Void> {
   @Override
   public Void visitForEachStatement(ForEachStatement node) {
     writer.print("for (");
-    visit(node.getLoopParameter());
+    visit(node.getLoopVariable());
     writer.print(" in ");
     visit(node.getIterator());
     writer.print(") ");
