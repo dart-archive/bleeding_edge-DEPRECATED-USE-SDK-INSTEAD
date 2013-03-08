@@ -45,7 +45,6 @@ import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
 import com.google.dart.tools.ui.internal.text.dart.IDartReconcilingListener;
 import com.google.dart.tools.ui.internal.text.functions.ContentAssistPreference;
 import com.google.dart.tools.ui.internal.text.functions.DartHeuristicScanner;
-import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.SmartBackspaceManager;
 import com.google.dart.tools.ui.internal.text.functions.Symbols;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
@@ -96,6 +95,7 @@ import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.text.reconciler.IReconciler;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -1947,7 +1947,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
               // kick reconciler
               ISourceViewer sourceViewer = getSourceViewer();
               IReconciler reconciler = configuration.getReconciler(sourceViewer);
-              IReconcilingStrategy reconcilingStrategy = ((DartReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
+              IReconcilingStrategy reconcilingStrategy = ((MonoReconciler) reconciler).getReconcilingStrategy(IDocument.DEFAULT_CONTENT_TYPE);
               reconcilingStrategy.reconcile(null);
             }
           }

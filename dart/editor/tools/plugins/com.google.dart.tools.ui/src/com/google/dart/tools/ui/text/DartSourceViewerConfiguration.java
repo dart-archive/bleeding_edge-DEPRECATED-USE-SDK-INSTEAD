@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -45,6 +46,8 @@ import com.google.dart.tools.ui.internal.text.functions.DartOutlineInformationCo
 import com.google.dart.tools.ui.internal.text.functions.DartPresentationReconciler;
 import com.google.dart.tools.ui.internal.text.functions.DartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.HTMLAnnotationHover;
+import com.google.dart.tools.ui.internal.text.functions.LegacyDartCompositeReconcilingStrategy;
+import com.google.dart.tools.ui.internal.text.functions.LegacyDartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
@@ -77,6 +80,7 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.reconciler.IReconciler;
+import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.rules.DefaultDamagerRepairer;
 import org.eclipse.jface.text.rules.RuleBasedScanner;
 import org.eclipse.jface.text.source.Annotation;
@@ -590,11 +594,22 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
     final ITextEditor editor = getEditor();
     if (editor != null) {
 
-      DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
-          sourceViewer,
-          editor,
-          getConfiguredDocumentPartitioning(sourceViewer));
-      DartReconciler reconciler = new DartReconciler(editor, strategy, false);
+      MonoReconciler reconciler = null;
+
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        DartCompositeReconcilingStrategy strategy = new DartCompositeReconcilingStrategy(
+            sourceViewer,
+            editor,
+            getConfiguredDocumentPartitioning(sourceViewer));
+        reconciler = new DartReconciler(editor, strategy, false);
+      } else {
+        LegacyDartCompositeReconcilingStrategy strategy = new LegacyDartCompositeReconcilingStrategy(
+            sourceViewer,
+            editor,
+            getConfiguredDocumentPartitioning(sourceViewer));
+        reconciler = new LegacyDartReconciler(editor, strategy, false);
+      }
+
       reconciler.setIsIncrementalReconciler(false);
       reconciler.setIsAllowedToModifyDocument(false);
       reconciler.setProgressMonitor(new NullProgressMonitor());
