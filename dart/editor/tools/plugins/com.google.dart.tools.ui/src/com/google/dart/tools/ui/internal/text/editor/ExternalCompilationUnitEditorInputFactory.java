@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 
 import org.eclipse.core.filesystem.EFS;
@@ -63,8 +63,8 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
    */
   static void saveState(IMemento memento, ExternalCompilationUnitEditorInput input) {
     memento.putString(KEY_FILE_URI, input.getURI().toString());
-    memento.putString(KEY_UNIT_URI, input.getCompilationUnit().getUri().toString());
-    memento.putString(KEY_UNIT_ID, input.getCompilationUnit().getHandleIdentifier());
+    memento.putString(KEY_UNIT_URI, input.getUnitURI().toString());
+    memento.putString(KEY_UNIT_ID, input.getUnitHandleIdentifier());
   }
 
   @Override
@@ -81,6 +81,9 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
       URI fileUri = new URI(fileUriString);
       URI unitUri = new URI(unitUriString);
       try {
+
+        //TODO (pquitslund): fix this to be new-world ready
+
         ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
             unitUri);
         // if we can't find a bundled compilation unit, attempt to reconstitue the external CU from its handle
@@ -89,11 +92,17 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
           String id = memento.getString(KEY_UNIT_ID);
 
           if (id != null) {
-            DartElement element = DartCore.create(id);
+
+            Object element = null;
+            if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+              //TODO (pquitslund): create element from encoding
+
+            } else {
+              element = DartCore.create(id);
+            }
+
             if (element instanceof ExternalCompilationUnitImpl) {
-              return new ExternalCompilationUnitEditorInput(
-                  EFS.getStore(fileUri),
-                  (ExternalCompilationUnitImpl) element);
+              return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), element, unitUri);
             }
 
           }
@@ -101,7 +110,7 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
           //if we have no handle, fall back on a filestore
           return new FileStoreEditorInput(EFS.getStore(fileUri));
         }
-        return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit);
+        return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit, unitUri);
       } catch (DartModelException exception) {
         return new FileStoreEditorInput(EFS.getStore(fileUri));
       }

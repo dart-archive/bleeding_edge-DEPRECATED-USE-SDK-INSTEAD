@@ -42,7 +42,7 @@ public class NewSelectionConverter {
    * Get the element associated with the selected portion of the given input element.
    * 
    * @param editor the editor
-   * @param offset the caret position in the editor
+   * @param caret the caret position in the editor
    * @return the associated element
    */
   public static Element getElementAtOffset(DartEditor editor, int caret) {
@@ -50,6 +50,26 @@ public class NewSelectionConverter {
     CompilationUnit cu = editor.getInputUnit();
 
     ASTNode node = new NodeLocator(caret).searchWithin(cu);
+    if (node == null) {
+      return null;
+    }
+
+    return ElementLocator.locate(node);
+  }
+
+  /**
+   * Get the element associated with the selected portion of the given input element.
+   * 
+   * @param editor the editor
+   * @param offset the beginning of the selection
+   * @param length the length of the selection
+   * @return the associated element
+   */
+  public static Element getElementAtOffset(DartEditor editor, int offset, int length) {
+
+    CompilationUnit cu = editor.getInputUnit();
+
+    ASTNode node = new NodeLocator(offset, offset + length).searchWithin(cu);
     if (node == null) {
       return null;
     }

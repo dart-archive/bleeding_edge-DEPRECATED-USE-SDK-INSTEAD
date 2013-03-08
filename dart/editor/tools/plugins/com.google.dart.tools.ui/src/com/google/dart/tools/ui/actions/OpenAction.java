@@ -14,10 +14,10 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.utilities.ast.DartElementLocator;
@@ -102,10 +102,9 @@ public class OpenAction extends InstrumentedSelectionDispatchAction {
    * 
    * @param object the element to open
    * @return the real element to open
-   * @throws DartModelException if an error occurs while accessing the Dart model
    * @noreference This method is not intended to be referenced by clients.
    */
-  public Object getElementToOpen(Object object) throws DartModelException {
+  public Object getElementToOpen(Object object) {
     return object;
   }
 
@@ -114,9 +113,6 @@ public class OpenAction extends InstrumentedSelectionDispatchAction {
     if (selection instanceof DartElementSelection) {
       DartElementSelection sel = (DartElementSelection) selection;
       setEnabled(checkEnabled(sel));
-//      if (isEnabled()) {
-//        setText(ActionUtil.constructMenuText(ActionMessages.OpenAction_label, false, sel));
-//      }
     } else {
       selectionChanged((ITextSelection) selection);
     }
@@ -221,8 +217,12 @@ public class OpenAction extends InstrumentedSelectionDispatchAction {
         element = getElementToOpen(element);
         boolean activateOnOpen = fEditor != null ? true : OpenStrategy.activateOnOpen();
         IEditorPart part = EditorUtility.openInEditor(element, activateOnOpen);
-        if (part != null && element instanceof DartElement) {
-          selectInEditor(part, (DartElement) element);
+        if (part != null) {
+          if (element instanceof Element) {
+            selectInEditor(part, (Element) element);
+          } else if (element instanceof DartElement) {
+            selectInEditor(part, (DartElement) element);
+          }
         }
       } catch (PartInitException e) {
         ActionInstrumentationUtilities.record(e, instrumentation);
@@ -357,12 +357,19 @@ public class OpenAction extends InstrumentedSelectionDispatchAction {
     }
   }
 
+  protected void selectInEditor(IEditorPart part, Element element) {
+    EditorUtility.revealInEditor(part, element);
+  }
+
   private boolean checkEnabled(IStructuredSelection selection) {
     if (selection.isEmpty()) {
       return false;
     }
     for (Iterator<?> iter = selection.iterator(); iter.hasNext();) {
       Object element = iter.next();
+      if (element instanceof Element) {
+        continue;
+      }
       if (element instanceof SourceReference) {
         continue;
       }

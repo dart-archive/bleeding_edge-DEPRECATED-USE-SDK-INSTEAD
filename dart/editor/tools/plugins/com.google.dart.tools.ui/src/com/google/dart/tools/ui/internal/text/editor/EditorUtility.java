@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -78,6 +79,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -270,6 +272,11 @@ public class EditorUtility {
   }
 
   public static IEditorInput getEditorInput(Object input) {
+
+    if (input instanceof Element) {
+      return getEditorInput((Element) input);
+    }
+
     if (input instanceof DartElement) {
       return getEditorInput((DartElement) input);
     }
@@ -697,7 +704,7 @@ public class EditorUtility {
             return new JarEntryEditorInput(new JarEntryStorage(uri));
           }
           IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-          return new ExternalCompilationUnitEditorInput(fileStore, cu);
+          return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
         }
 //      } else if (element instanceof LibraryConfigurationFileImpl) {
 //        // external libraries
@@ -717,6 +724,23 @@ public class EditorUtility {
       element = element.getParent();
     }
     return null;
+  }
+
+  private static IEditorInput getEditorInput(Element element) {
+
+    CompilationUnitElement cu = getCompilationUnit(element);
+    IResource resource = DartCore.getProjectManager().getResource(cu.getSource());
+
+    if (resource instanceof IFile) {
+      return new FileEditorInput((IFile) resource);
+    }
+
+    Source source = cu.getSource();
+    URI uri = new File(source.getFullName()).toURI();
+
+    IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
+    return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
+
   }
 
   private static void initializeHighlightRange(IEditorPart editorPart) {

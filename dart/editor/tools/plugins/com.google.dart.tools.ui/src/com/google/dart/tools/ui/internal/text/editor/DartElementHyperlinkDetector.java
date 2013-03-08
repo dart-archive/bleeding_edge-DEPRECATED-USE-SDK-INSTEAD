@@ -14,6 +14,10 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -27,6 +31,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.AbstractHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.IEditorPart;
@@ -54,25 +59,35 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
 
   private IHyperlink[] internalDetectHyperlinks(ITextViewer textViewer, IRegion region,
       boolean canShowMultipleHyperlinks) {
-    ITextEditor textEditor = (ITextEditor) getAdapter(ITextEditor.class);
-    if (region == null || !(textEditor instanceof DartEditor)) {
+    DartEditor editor = (DartEditor) getAdapter(ITextEditor.class);
+    if (region == null || !(editor instanceof DartEditor)) {
       return null;
     }
 
-    IAction openAction = textEditor.getAction("OpenEditor"); //$NON-NLS-1$
+    IAction openAction = editor.getAction("OpenEditor"); //$NON-NLS-1$
     if (!(openAction instanceof InstrumentedSelectionDispatchAction)) {
       return null;
     }
 
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return legacyInternalDetectHyperlinks(
-          textEditor,
-          region,
-          canShowMultipleHyperlinks,
-          openAction);
+      return legacyInternalDetectHyperlinks(editor, region, canShowMultipleHyperlinks, openAction);
     }
 
-    //TODO (pquitslund): support hyperlink navigation for analysis engine elements
+    com.google.dart.engine.ast.CompilationUnit cu = editor.getInputUnit();
+
+    int offset = region.getOffset();
+
+    ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
+    if (node == null) {
+      return null;
+    }
+
+    Element element = ElementLocator.locate(node);
+
+    if (element != null) {
+      IRegion wordRegion = new Region(node.getOffset(), node.getLength());
+      return new IHyperlink[] {new DartElementHyperlink(element, wordRegion, new OpenAction(editor))};
+    }
 
     return null;
 

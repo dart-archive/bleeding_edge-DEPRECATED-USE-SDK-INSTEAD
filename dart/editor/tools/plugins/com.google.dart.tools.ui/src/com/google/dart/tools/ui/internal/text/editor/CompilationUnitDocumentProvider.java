@@ -1638,7 +1638,7 @@ public class CompilationUnitDocumentProvider extends TextFileDocumentProvider im
    */
   private CompilationUnit findCompilationUnit(IURIEditorInput editorInput) {
     if (editorInput instanceof ExternalCompilationUnitEditorInput) {
-      return ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
+      return (CompilationUnit) ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
     }
     try {
       URI uri = editorInput.getURI();

@@ -442,7 +442,7 @@ public final class DartUI {
    */
   public static DartElement getEditorInputDartElement(IEditorInput editorInput) {
     if (editorInput instanceof ExternalCompilationUnitEditorInput) {
-      return ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
+      return (DartElement) ((ExternalCompilationUnitEditorInput) editorInput).getCompilationUnit();
     }
     // Performance: check working copy manager first: this is faster
     DartElement de = DartToolsPlugin.getDefault().getWorkingCopyManager().getWorkingCopy(

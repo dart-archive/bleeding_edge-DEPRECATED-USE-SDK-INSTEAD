@@ -13,21 +13,26 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 
+import java.net.URI;
+
 /**
  * Instances of the class <code>ExternalCompilationUnitEditorInput</code> represent an editor input
  * on an external compilation unit.
  */
 public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
+
   /**
    * The external compilation unit being edited.
    */
-  private ExternalCompilationUnitImpl compilationUnit;
+  private final Object /*CompilationUnitElement*/compilationUnit;
+  private final URI uri;
 
   /**
    * Initialize a newly created editor input to represent the given external compilation unit.
@@ -36,12 +41,13 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
    * @param compilationUnit the external compilation unit being edited
    */
   public ExternalCompilationUnitEditorInput(IFileStore fileStore,
-      ExternalCompilationUnitImpl compilationUnit) {
+      Object /*CompilationUnitElement*/compilationUnit, URI uri) {
     super(fileStore);
     if (compilationUnit == null) {
       throw new IllegalArgumentException("compilationUnit");
     }
     this.compilationUnit = compilationUnit;
+    this.uri = uri;
   }
 
   @Override
@@ -54,13 +60,27 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
    * 
    * @return the external compilation unit being edited
    */
-  public ExternalCompilationUnitImpl getCompilationUnit() {
+  public Object /*CompilationUnitElement*/getCompilationUnit() {
     return compilationUnit;
   }
 
   @Override
   public String getFactoryId() {
     return ExternalCompilationUnitEditorInputFactory.ID;
+  }
+
+  public String getUnitHandleIdentifier() {
+    if (compilationUnit instanceof ExternalCompilationUnitImpl) {
+      return ((ExternalCompilationUnitImpl) compilationUnit).getHandleIdentifier();
+    }
+    if (compilationUnit instanceof Element) {
+      return ((Element) compilationUnit).getLocation().getEncoding();
+    }
+    return null;
+  }
+
+  public URI getUnitURI() {
+    return uri;
   }
 
   /**
