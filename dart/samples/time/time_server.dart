@@ -28,7 +28,7 @@ void requestReceivedHandler(HttpRequest request) {
 
   request.response.headers.set(
       HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
-  request.response.addString(text);
+  request.response.write(text);
   request.response.close();
 }
 
