@@ -75,7 +75,6 @@ import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.LibraryPrefixElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.MethodNodeElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.Scope;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.type.FunctionAliasType;
@@ -685,7 +684,7 @@ public class CompletionEngine {
       return elements;
     }
 
-    private void add(NodeElement element) {
+    private void add(Element element) {
       if (filter(element.getName())) {
         elements.add(element);
       }
@@ -3274,7 +3273,7 @@ public class CompletionEngine {
 
   private void proposeInlineFunction(DartMethodInvocation completionNode) {
     // Argument: locals, params, fields, statics, globals; if arg type is fn, construct it
-    NodeElement nodeElem = completionNode.getElement();
+    Element nodeElem = completionNode.getElement();
     if (nodeElem != null) {
       Type nodeType = nodeElem.getType();
       if (nodeType != null) {

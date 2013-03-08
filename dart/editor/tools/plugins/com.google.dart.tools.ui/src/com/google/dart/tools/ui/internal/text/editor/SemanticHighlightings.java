@@ -44,7 +44,6 @@ import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.model.SourceRange;
@@ -493,7 +492,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       boolean isField = ElementKind.of(element) == ElementKind.FIELD;
       if (isField) {
         /*
@@ -609,7 +608,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       return ElementKind.of(element) == ElementKind.VARIABLE;
     }
 
@@ -690,7 +689,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       return ElementKind.of(element) == ElementKind.METHOD;
     }
 
@@ -816,7 +815,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       if (element == null || element.isDynamic()) {
         return false;
       }
@@ -884,7 +883,7 @@ public class SemanticHighlightings {
     @Override
     public boolean consumesIdentifier(SemanticToken token) {
       DartIdentifier node = token.getNodeIdentifier();
-      NodeElement element = node.getElement();
+      Element element = node.getElement();
       return ElementKind.of(element) == ElementKind.METHOD && element.getModifiers().isStatic();
     }
 

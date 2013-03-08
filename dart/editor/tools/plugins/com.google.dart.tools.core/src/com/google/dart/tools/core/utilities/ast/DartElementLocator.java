@@ -36,7 +36,6 @@ import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.LibraryElement;
 import com.google.dart.compiler.resolver.MethodElement;
-import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
@@ -508,7 +507,7 @@ public class DartElementLocator extends ASTVisitor<Void> {
       int end = start + length;
       if (start <= startOffset && endOffset <= end) {
         wordRegion = new Region(start, length);
-        NodeElement invocationElement = node.getElement();
+        Element invocationElement = node.getElement();
         if (invocationElement != null && node.getTarget() != null
             && node.getTarget().getElement() != invocationElement) {
           findElementFor(invocationElement);
