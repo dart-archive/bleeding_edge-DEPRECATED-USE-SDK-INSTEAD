@@ -172,13 +172,13 @@ public class AnalysisTestUtilities {
   }
 
   static TaskQueue getServerTaskQueue(AnalysisServer server) throws Exception {
-    Field field = AnalysisServer.class.getDeclaredField("queue");
+    Field field = AnalysisServerImpl.class.getDeclaredField("queue");
     field.setAccessible(true);
     return (TaskQueue) field.get(server);
   }
 
   static File[] getTrackedLibraryFiles(AnalysisServer server) throws Exception {
-    Method method = AnalysisServer.class.getDeclaredMethod("getTrackedLibraryFiles");
+    Method method = AnalysisServerImpl.class.getDeclaredMethod("getTrackedLibraryFiles");
     method.setAccessible(true);
     Object result = method.invoke(server);
     return (File[]) result;
