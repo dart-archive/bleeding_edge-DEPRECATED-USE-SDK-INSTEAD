@@ -25,6 +25,8 @@ import java.util.Map;
 
 /**
  * Proposal for single source file change.
+ * <p>
+ * TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal?
  */
 public class CorrectionProposal {
   private final CorrectionImage image;

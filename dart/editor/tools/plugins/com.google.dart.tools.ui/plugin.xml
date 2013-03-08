@@ -3363,6 +3363,9 @@
       <quickAssistProcessor
             class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"
             id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor"/>
+      <quickAssistProcessor
+            class="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor_OLD"
+            id="com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor_OLD"/>
    </extension>
     
    <extension point="org.eclipse.ui.ide.markerResolution">

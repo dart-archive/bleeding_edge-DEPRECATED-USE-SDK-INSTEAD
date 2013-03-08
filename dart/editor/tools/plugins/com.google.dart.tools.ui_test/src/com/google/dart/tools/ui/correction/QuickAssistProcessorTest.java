@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.correction;
 import com.google.dart.tools.ui.internal.text.correction.AssistContext;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.correction.QuickAssistProcessor;
-import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -1236,7 +1236,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     String result = initialSource;
     for (IDartCompletionProposal proposal : proposals) {
       if (isProposal(proposal, proposalName)) {
-        result = ((CUCorrectionProposal) proposal).getPreviewContent();
+        result = ((CUCorrectionProposal_OLD) proposal).getPreviewContent();
       }
     }
     // assert result
@@ -1284,7 +1284,7 @@ public final class QuickAssistProcessorTest extends AbstractDartTest {
     IDartCompletionProposal[] assists = PROCESSOR.getAssists(context, problemLocations);
     for (IDartCompletionProposal proposal : assists) {
       if (proposal.getDisplayString().equals("Surround with " + surroundName)) {
-        String result = ((CUCorrectionProposal) proposal).getPreviewContent();
+        String result = ((CUCorrectionProposal_OLD) proposal).getPreviewContent();
         assertEquals(expected, result);
         return;
       }

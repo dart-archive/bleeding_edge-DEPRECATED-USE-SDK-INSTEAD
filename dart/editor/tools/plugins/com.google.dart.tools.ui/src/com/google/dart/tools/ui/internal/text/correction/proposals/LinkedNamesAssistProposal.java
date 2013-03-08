@@ -136,7 +136,7 @@ public class LinkedNamesAssistProposal implements IDartCompletionProposal,
 
       // get full ast
       DartUnit root = ASTProvider.getASTProvider().getAST(
-          fContext.getCompilationUnit(),
+          fContext.getOldCompilationUnit(),
           ASTProvider.WAIT_YES,
           null);
 

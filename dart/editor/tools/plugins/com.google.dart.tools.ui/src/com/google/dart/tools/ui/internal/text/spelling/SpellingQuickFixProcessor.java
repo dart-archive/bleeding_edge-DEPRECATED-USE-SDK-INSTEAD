@@ -181,7 +181,7 @@ public class SpellingQuickFixProcessor implements IQuickFixProcessor {
       spellingContext.setContentType(Platform.getContentTypeManager().getContentType(
           JavaScriptCore.JAVA_SOURCE_CONTENT_TYPE));
       EditorsUI.getSpellingService().check(
-          new DocumentAdapter(context.getCompilationUnit().getBuffer()),
+          new DocumentAdapter(context.getOldCompilationUnit().getBuffer()),
           regions.toArray(new IRegion[regions.size()]),
           spellingContext,
           collector,

@@ -669,6 +669,55 @@ public final class DartUI {
   }
 
   /**
+   * Opens an editor on the given Dart element in the active page. Valid elements are all Dart
+   * elements that are {@link SourceReference}. For elements inside a compilation unit, the parent
+   * is opened in the editor is opened and the element revealed. If there already is an open Dart
+   * editor for the given element, it is returned.
+   * 
+   * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
+   *          a class file ( <code>IClassFile</code>) or source references inside.
+   * @return returns the editor part of the opened editor or <code>null</code> if the element is not
+   *         a {@link SourceReference} or the file was opened in an external editor.
+   * @exception PartInitException if the editor could not be initialized or no workbench page is
+   *              active
+   * @exception DartModelException if this element does not exist or if an exception occurs while
+   *              accessing its underlying resource
+   */
+  public static IEditorPart openInEditor(Element element) throws DartModelException,
+      PartInitException {
+    return openInEditor(element, true, true);
+  }
+
+  /**
+   * Opens an editor on the given Dart element in the active page. Valid elements are all Dart
+   * elements that are {@link SourceReference}. For elements inside a compilation unit, the parent
+   * is opened in the editor is opened. If there already is an open Dart editor for the given
+   * element, it is returned.
+   * 
+   * @param element the input element; either a compilation unit ( <code>CompilationUnit</code>) or
+   *          a class file ( <code>IClassFile</code>) or source references inside.
+   * @param activate if set, the editor will be activated.
+   * @param reveal if set, the element will be revealed.
+   * @return returns the editor part of the opened editor or <code>null</code> if the element is not
+   *         a {@link SourceReference} or the file was opened in an external editor.
+   * @exception PartInitException if the editor could not be initialized or no workbench page is
+   *              active
+   * @exception DartModelException if this element does not exist or if an exception occurs while
+   *              accessing its underlying resource
+   */
+  public static IEditorPart openInEditor(Element element, boolean activate, boolean reveal)
+      throws DartModelException, PartInitException {
+    if (!(element instanceof SourceReference)) {
+      return null;
+    }
+    IEditorPart part = EditorUtility.openInEditor(element, activate);
+    if (reveal && part != null) {
+      EditorUtility.revealInEditor(part, element);
+    }
+    return part;
+  }
+
+  /**
    * Reveals the given Dart element in the given editor. If the element is not an instance of
    * <code>SourceReference</code> this method result in a NOP. If it is a source reference no
    * checking is done if the editor displays a compilation unit or class file that contains the

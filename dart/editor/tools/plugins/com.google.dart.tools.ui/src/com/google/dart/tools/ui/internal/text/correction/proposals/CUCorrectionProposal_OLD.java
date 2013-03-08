@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,12 +13,14 @@
  */
 package com.google.dart.tools.ui.internal.text.correction.proposals;
 
-import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.refactoring.CompilationUnitChange;
 import com.google.dart.tools.internal.corext.fix.LinkedProposalModel;
 import com.google.dart.tools.internal.corext.fix.LinkedProposalPositionGroup;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.StubUtility;
 import com.google.dart.tools.ui.internal.DartUiStatus;
 import com.google.dart.tools.ui.internal.text.correction.CorrectionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -26,23 +28,27 @@ import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 import com.google.dart.tools.ui.internal.viewsupport.LinkedProposalModelPresenter;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.CopyTargetEdit;
 import org.eclipse.text.edits.DeleteEdit;
 import org.eclipse.text.edits.InsertEdit;
 import org.eclipse.text.edits.MoveSourceEdit;
 import org.eclipse.text.edits.MoveTargetEdit;
+import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditVisitor;
@@ -51,18 +57,21 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
- * A proposal for quick fixes and quick assist that work on a single compilation unit.
+ * A proposal for quick fixes and quick assist that work on a single compilation unit. Either a
+ * {@link TextChange text change} is directly passed in the constructor or method
+ * {@link #addEdits(IDocument, TextEdit)} is overridden to provide the text edits that are applied
+ * to the document when the proposal is evaluated.
  * <p>
  * The proposal takes care of the preview of the changes as proposal information.
  * </p>
  * 
  * @coverage dart.editor.ui.correction
  */
-public class CUCorrectionProposal extends ChangeCorrectionProposal {
+public class CUCorrectionProposal_OLD extends ChangeCorrectionProposal {
 
-  private final CompilationUnitElement unitElement;
-  private LinkedProposalModel linkedProposalModel;
-  private boolean switchedEditor;
+  private final CompilationUnit fCompilationUnit;
+  private LinkedProposalModel fLinkedProposalModel;
+  private boolean fSwitchedEditor;
 
   private final int surroundLines = 1;
 
@@ -78,47 +87,60 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
    * @param image the image that is displayed for this proposal or <code>null</code> if no image is
    *          desired.
    */
-  public CUCorrectionProposal(String name, CompilationUnitElement cu, TextChange change,
-      int relevance, Image image) {
+  public CUCorrectionProposal_OLD(String name, CompilationUnit cu, TextChange change, int relevance,
+      Image image) {
     super(name, change, relevance, image);
     if (cu == null) {
       throw new IllegalArgumentException("Compilation unit must not be null"); //$NON-NLS-1$
     }
-    this.unitElement = cu;
-    this.linkedProposalModel = null;
+    fCompilationUnit = cu;
+    fLinkedProposalModel = null;
+  }
+
+  /**
+   * Constructs a correction proposal working on a compilation unit.
+   * <p>
+   * Users have to override {@link #addEdits(IDocument, TextEdit)} to provide the text edits or
+   * {@link #createTextChange()} to provide a text change.
+   * </p>
+   * 
+   * @param name The name that is displayed in the proposal selection dialog.
+   * @param cu The compilation unit on that the change works.
+   * @param relevance The relevance of this proposal.
+   * @param image The image that is displayed for this proposal or <code>null</code> if no image is
+   *          desired.
+   */
+  protected CUCorrectionProposal_OLD(String name, CompilationUnit cu, int relevance, Image image) {
+    this(name, cu, null, relevance, image);
   }
 
   @Override
   public void apply(IDocument document) {
     try {
-      IResource resource = DartCore.getProjectManager().getResource(unitElement.getSource());
-      if (resource != null && resource.exists()) {
-        boolean canEdit = performValidateEdit(resource);
+      CompilationUnit unit = getCompilationUnit();
+      IEditorPart part = null;
+      if (unit.getResource().exists()) {
+        boolean canEdit = performValidateEdit(unit);
         if (!canEdit) {
           return;
         }
-        // ensure DartEditor is open
-        IEditorPart part;
-        {
-          part = EditorUtility.isOpenInEditor(unitElement);
-          if (part == null) {
-            part = DartUI.openInEditor(unitElement);
-            if (part != null) {
-              switchedEditor = true;
-              document = DartUI.getDocumentProvider().getDocument(part.getEditorInput());
-            }
-          }
-          IWorkbenchPage page = DartToolsPlugin.getActivePage();
-          if (page != null && part != null) {
-            page.bringToTop(part);
-          }
+        part = EditorUtility.isOpenInEditor(unit);
+        if (part == null) {
+          part = DartUI.openInEditor(unit);
           if (part != null) {
-            part.setFocus();
+            fSwitchedEditor = true;
+            document = DartUI.getDocumentProvider().getDocument(part.getEditorInput());
           }
         }
-        // do apply change
-        performChange(part, document);
+        IWorkbenchPage page = DartToolsPlugin.getActivePage();
+        if (page != null && part != null) {
+          page.bringToTop(part);
+        }
+        if (part != null) {
+          part.setFocus();
+        }
       }
+      performChange(part, document);
     } catch (CoreException e) {
       ExceptionHandler.handle(
           e,
@@ -129,7 +151,9 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
 
   @Override
   public Object getAdditionalProposalInfo(IProgressMonitor monitor) {
+
     final StringBuffer buf = new StringBuffer();
+
     try {
       final TextChange change = getTextChange();
 
@@ -205,14 +229,14 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
     return buf.toString();
   }
 
-//  /**
-//   * The compilation unit on that the change works.
-//   * 
-//   * @return the compilation unit on that the change works.
-//   */
-//  public final CompilationUnit getCompilationUnit() {
-//    return fCompilationUnit;
-//  }
+  /**
+   * The compilation unit on that the change works.
+   * 
+   * @return the compilation unit on that the change works.
+   */
+  public final CompilationUnit getCompilationUnit() {
+    return fCompilationUnit;
+  }
 
   /**
    * Creates a preview of the content of the compilation unit after applying the change.
@@ -235,7 +259,7 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
   }
 
   public void setLinkedProposalModel(LinkedProposalModel model) {
-    linkedProposalModel = model;
+    fLinkedProposalModel = model;
   }
 
   @Override
@@ -247,68 +271,68 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
     return super.toString();
   }
 
-//  /**
-//   * Called when the {@link CompilationUnitChange} is initialized. Subclasses can override to add
-//   * text edits to the root edit of the change. Implementors must not access the proposal, e.g
-//   * getting the change.
-//   * <p>
-//   * The default implementation does not add any edits
-//   * </p>
-//   * 
-//   * @param document content of the underlying compilation unit. To be accessed read only.
-//   * @param editRoot The root edit to add all edits to
-//   * @throws CoreException can be thrown if adding the edits is failing.
-//   */
-//  protected void addEdits(IDocument document, TextEdit editRoot) throws CoreException {
-//  }
+  /**
+   * Called when the {@link CompilationUnitChange} is initialized. Subclasses can override to add
+   * text edits to the root edit of the change. Implementors must not access the proposal, e.g
+   * getting the change.
+   * <p>
+   * The default implementation does not add any edits
+   * </p>
+   * 
+   * @param document content of the underlying compilation unit. To be accessed read only.
+   * @param editRoot The root edit to add all edits to
+   * @throws CoreException can be thrown if adding the edits is failing.
+   */
+  protected void addEdits(IDocument document, TextEdit editRoot) throws CoreException {
+  }
 
-//  @Override
-//  protected final Change createChange() throws CoreException {
-//    return createTextChange(); // make sure that only text changes are allowed here
-//  }
+  @Override
+  protected final Change createChange() throws CoreException {
+    return createTextChange(); // make sure that only text changes are allowed here
+  }
 
-//  /**
-//   * Creates the text change for this proposal. This method is only called once and only when no
-//   * text change has been passed in
-//   * {@link #CUCorrectionProposal(String, CompilationUnit, TextChange, int, Image)}.
-//   * 
-//   * @return returns the created text change.
-//   * @throws CoreException thrown if the creation of the text change failed.
-//   */
-//  protected TextChange createTextChange() throws CoreException {
-//    CompilationUnit cu = getCompilationUnit();
-//    String name = getName();
-//    TextChange change;
-//    if (!cu.getResource().exists()) {
-//      String source;
-//      try {
-//        source = cu.getSource();
-//      } catch (DartModelException e) {
-//        DartToolsPlugin.log(e);
-//        source = new String(); // empty
-//      }
-//      Document document = new Document(source);
-//      document.setInitialLineDelimiter(StubUtility.getLineDelimiterUsed(cu));
-//      change = new DocumentChange(name, document);
-//    } else {
-//      CompilationUnitChange cuChange = new CompilationUnitChange(name, cu);
-//      cuChange.setSaveMode(TextFileChange.LEAVE_DIRTY);
-//      change = cuChange;
-//    }
-//    TextEdit rootEdit = new MultiTextEdit();
-//    change.setEdit(rootEdit);
-//
-//    // initialize text change
-//    IDocument document = change.getCurrentDocument(new NullProgressMonitor());
-//    addEdits(document, rootEdit);
-//    return change;
-//  }
+  /**
+   * Creates the text change for this proposal. This method is only called once and only when no
+   * text change has been passed in
+   * {@link #CUCorrectionProposal(String, CompilationUnit, TextChange, int, Image)}.
+   * 
+   * @return returns the created text change.
+   * @throws CoreException thrown if the creation of the text change failed.
+   */
+  protected TextChange createTextChange() throws CoreException {
+    CompilationUnit cu = getCompilationUnit();
+    String name = getName();
+    TextChange change;
+    if (!cu.getResource().exists()) {
+      String source;
+      try {
+        source = cu.getSource();
+      } catch (DartModelException e) {
+        DartToolsPlugin.log(e);
+        source = new String(); // empty
+      }
+      Document document = new Document(source);
+      document.setInitialLineDelimiter(StubUtility.getLineDelimiterUsed(cu));
+      change = new DocumentChange(name, document);
+    } else {
+      CompilationUnitChange cuChange = new CompilationUnitChange(name, cu);
+      cuChange.setSaveMode(TextFileChange.LEAVE_DIRTY);
+      change = cuChange;
+    }
+    TextEdit rootEdit = new MultiTextEdit();
+    change.setEdit(rootEdit);
+
+    // initialize text change
+    IDocument document = change.getCurrentDocument(new NullProgressMonitor());
+    addEdits(document, rootEdit);
+    return change;
+  }
 
   protected LinkedProposalModel getLinkedProposalModel() {
-    if (linkedProposalModel == null) {
-      linkedProposalModel = new LinkedProposalModel();
+    if (fLinkedProposalModel == null) {
+      fLinkedProposalModel = new LinkedProposalModel();
     }
-    return linkedProposalModel;
+    return fLinkedProposalModel;
   }
 
   @Override
@@ -319,17 +343,17 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
         return;
       }
 
-      if (linkedProposalModel != null) {
-        if (linkedProposalModel.hasLinkedPositions() && part instanceof DartEditor) {
+      if (fLinkedProposalModel != null) {
+        if (fLinkedProposalModel.hasLinkedPositions() && part instanceof DartEditor) {
           // enter linked mode
           ITextViewer viewer = ((DartEditor) part).getViewer();
           new LinkedProposalModelPresenter().enterLinkedMode(
               viewer,
               part,
-              switchedEditor,
-              linkedProposalModel);
+              fSwitchedEditor,
+              fLinkedProposalModel);
         } else if (part instanceof ITextEditor) {
-          LinkedProposalPositionGroup.PositionInformation endPosition = linkedProposalModel.getEndPosition();
+          LinkedProposalPositionGroup.PositionInformation endPosition = fLinkedProposalModel.getEndPosition();
           if (endPosition != null) {
             // select a result
             int pos = endPosition.getOffset() + endPosition.getLength();
@@ -406,9 +430,9 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
   }
 
   @SuppressWarnings("restriction")
-  private boolean performValidateEdit(IResource resource) {
+  private boolean performValidateEdit(CompilationUnit unit) {
     IStatus status = org.eclipse.ltk.internal.core.refactoring.Resources.makeCommittable(
-        resource,
+        unit.getResource(),
         DartToolsPlugin.getActiveWorkbenchShell());
     if (!status.isOK()) {
       String label = CorrectionMessages.CUCorrectionProposal_error_title;

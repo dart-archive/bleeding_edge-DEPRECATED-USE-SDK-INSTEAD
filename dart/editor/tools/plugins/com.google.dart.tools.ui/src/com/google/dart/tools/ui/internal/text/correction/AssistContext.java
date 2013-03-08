@@ -39,6 +39,7 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
    * The cached node finder, can be null.
    */
   private NodeFinder fNodeFinder;
+  private final com.google.dart.engine.services.assist.AssistContext context;
 
   /*
    * Constructor for CorrectionContext.
@@ -61,18 +62,43 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
     this(cu, sourceViewer, null, offset, length, waitFlag);
   }
 
+  public AssistContext(IEditorPart editor, ISourceViewer sourceViewer,
+      com.google.dart.engine.services.assist.AssistContext context) {
+    super(sourceViewer, context.getSelectionOffset(), context.getSelectionLength());
+    this.fEditor = editor;
+    this.context = context;
+    this.fCompilationUnit = null;
+    this.fWaitFlag = ASTProvider.WAIT_YES;
+  }
+
   private AssistContext(CompilationUnit cu, ISourceViewer sourceViewer, IEditorPart editor,
       int offset, int length, ASTProvider.WAIT_FLAG waitFlag) {
     super(sourceViewer, offset, length);
     Assert.isLegal(cu != null);
     Assert.isLegal(waitFlag != null);
+    this.context = null;
     fCompilationUnit = cu;
     fEditor = editor;
     fWaitFlag = waitFlag;
   }
 
   @Override
-  public DartUnit getASTRoot() {
+  public com.google.dart.engine.services.assist.AssistContext getContext() {
+    return context;
+  }
+
+  /**
+   * Returns the editor or <code>null</code> if none.
+   * 
+   * @return an <code>IEditorPart</code> or <code>null</code> if none
+   * @since 3.5
+   */
+  public IEditorPart getEditor() {
+    return fEditor;
+  }
+
+  @Override
+  public DartUnit getOldASTRoot() {
     if (fASTRoot == null) {
       fASTRoot = ASTProvider.getASTProvider().getAST(fCompilationUnit, fWaitFlag, null);
     }
@@ -85,34 +111,24 @@ public class AssistContext extends TextInvocationContext implements IInvocationC
    * @return an <code>CompilationUnit</code>
    */
   @Override
-  public CompilationUnit getCompilationUnit() {
+  public CompilationUnit getOldCompilationUnit() {
     return fCompilationUnit;
   }
 
   @Override
-  public DartNode getCoveredNode() {
+  public DartNode getOldCoveredNode() {
     if (fNodeFinder == null) {
-      fNodeFinder = NodeFinder.find(getASTRoot(), getOffset(), getLength());
+      fNodeFinder = NodeFinder.find(getOldASTRoot(), getOffset(), getLength());
     }
     return fNodeFinder.getCoveredNode();
   }
 
   @Override
-  public DartNode getCoveringNode() {
+  public DartNode getOldCoveringNode() {
     if (fNodeFinder == null) {
-      fNodeFinder = NodeFinder.find(getASTRoot(), getOffset(), getLength());
+      fNodeFinder = NodeFinder.find(getOldASTRoot(), getOffset(), getLength());
     }
     return fNodeFinder.getCoveringNode();
-  }
-
-  /**
-   * Returns the editor or <code>null</code> if none.
-   * 
-   * @return an <code>IEditorPart</code> or <code>null</code> if none
-   * @since 3.5
-   */
-  public IEditorPart getEditor() {
-    return fEditor;
   }
 
   /**

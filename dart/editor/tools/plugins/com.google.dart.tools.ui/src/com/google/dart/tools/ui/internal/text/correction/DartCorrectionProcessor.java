@@ -15,12 +15,14 @@ package com.google.dart.tools.ui.internal.text.correction;
 
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ChangeCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.MarkerResolutionProposal;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.IJavaAnnotation;
 import com.google.dart.tools.ui.text.dart.CompletionProposalComparator;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
@@ -83,7 +85,7 @@ public class DartCorrectionProcessor implements
     @Override
     public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
       IQuickAssistProcessor curr = (IQuickAssistProcessor) desc.getProcessor(
-          fContext.getCompilationUnit(),
+          fContext.getOldCompilationUnit(),
           IQuickAssistProcessor.class);
       if (curr != null) {
         IDartCompletionProposal[] res = curr.getAssists(fContext, fLocations);
@@ -109,7 +111,7 @@ public class DartCorrectionProcessor implements
     @Override
     public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
       IQuickFixProcessor curr = (IQuickFixProcessor) desc.getProcessor(
-          fContext.getCompilationUnit(),
+          fContext.getOldCompilationUnit(),
           IQuickFixProcessor.class);
       if (curr != null) {
         IDartCompletionProposal[] res = curr.getCorrections(fContext, fLocations);
@@ -191,7 +193,7 @@ public class DartCorrectionProcessor implements
     @Override
     public void safeRun(ContributedProcessorDescriptor desc) throws Exception {
       IQuickAssistProcessor processor = (IQuickAssistProcessor) desc.getProcessor(
-          fContext.getCompilationUnit(),
+          fContext.getOldCompilationUnit(),
           IQuickAssistProcessor.class);
       if (processor != null && processor.hasAssists(fContext)) {
         fHasAssists = true;
@@ -548,14 +550,17 @@ public class DartCorrectionProcessor implements
     int documentOffset = quickAssistContext.getOffset();
 
     IEditorPart part = fAssistant.getEditor();
-
-    CompilationUnit cu = DartUI.getWorkingCopyManager().getWorkingCopy(part.getEditorInput());
     IAnnotationModel model = DartUI.getDocumentProvider().getAnnotationModel(part.getEditorInput());
 
     AssistContext context = null;
-    if (cu != null) {
-      int length = viewer != null ? viewer.getSelectedRange().y : 0;
-      context = new AssistContext(cu, viewer, part, documentOffset, length);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      context = new AssistContext(part, viewer, ((DartEditor) part).getAssistContext());
+    } else {
+      CompilationUnit cu = DartUI.getWorkingCopyManager().getWorkingCopy(part.getEditorInput());
+      if (cu != null) {
+        int length = viewer != null ? viewer.getSelectedRange().y : 0;
+        context = new AssistContext(cu, viewer, part, documentOffset, length);
+      }
     }
 
     Annotation[] annotations = fAssistant.getAnnotationsAtOffset();

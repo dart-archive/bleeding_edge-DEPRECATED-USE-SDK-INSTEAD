@@ -17,12 +17,14 @@ package com.google.dart.tools.ui.internal.refactoring;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
 import com.google.dart.engine.services.status.RefactoringStatusEntry;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -30,6 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 
@@ -63,6 +66,17 @@ public class ServiceUtils {
     }
     // TODO(scheglov) edit groups
     return ltkChange;
+  }
+
+  /**
+   * @return the Editor specific {@link Image} to given {@link CorrectionImage} identifier.
+   */
+  public static Image toLTK(CorrectionImage imageId) {
+    switch (imageId) {
+      case IMG_CORRECTION_CHANGE:
+        return DartPluginImages.get(DartPluginImages.IMG_CORRECTION_CHANGE);
+    }
+    return null;
   }
 
   /**

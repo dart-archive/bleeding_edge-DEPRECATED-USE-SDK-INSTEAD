@@ -80,7 +80,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.ISharedImages;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M1_library_CleanUp;
-import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
@@ -239,9 +239,12 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   @Override
   public IDartCompletionProposal[] getCorrections(IInvocationContext context,
       IProblemLocation[] locations) throws CoreException {
+    if (context.getContext() != null) {
+      return new IDartCompletionProposal[0];
+    }
     proposals.clear();
-    unit = context.getCompilationUnit();
-    utils = new ExtractUtils(unit, context.getASTRoot());
+    unit = context.getOldCompilationUnit();
+    utils = new ExtractUtils(unit, context.getOldASTRoot());
     for (final IProblemLocation location : locations) {
       resetProposalElements();
       final ErrorCode errorCode = location.getProblemId();
@@ -964,7 +967,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   }
 
   /**
-   * Adds new {@link CUCorrectionProposal} using given "unit" and {@link #textEdits}.
+   * Adds new {@link CUCorrectionProposal_OLD} using given "unit" and {@link #textEdits}.
    */
   private void addUnitCorrectionProposal(CompilationUnit unit, int saveMode, String label,
       Image image) {
@@ -987,7 +990,7 @@ public class QuickFixProcessor implements IQuickFixProcessor {
   }
 
   /**
-   * Adds new {@link CUCorrectionProposal} using {@link #unit} and {@link #textEdits}.
+   * Adds new {@link CUCorrectionProposal_OLD} using {@link #unit} and {@link #textEdits}.
    */
   private void addUnitCorrectionProposal(String label, Image image) {
     addUnitCorrectionProposal(unit, TextFileChange.LEAVE_DIRTY, label, image);

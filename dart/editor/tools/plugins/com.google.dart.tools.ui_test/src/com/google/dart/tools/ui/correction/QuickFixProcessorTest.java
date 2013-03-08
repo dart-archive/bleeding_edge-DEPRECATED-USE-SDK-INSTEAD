@@ -20,7 +20,7 @@ import com.google.dart.tools.ui.internal.text.correction.AssistContext;
 import com.google.dart.tools.ui.internal.text.correction.ICommandAccess;
 import com.google.dart.tools.ui.internal.text.correction.ProblemLocation;
 import com.google.dart.tools.ui.internal.text.correction.QuickFixProcessor;
-import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal_OLD;
 import com.google.dart.tools.ui.refactoring.AbstractDartTest;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
@@ -47,7 +47,7 @@ public final class QuickFixProcessorTest extends AbstractDartTest {
   private static void assertQuickFix(IDartCompletionProposal proposal, String... expectedLines)
       throws Exception {
     // prepare result
-    String result = ((CUCorrectionProposal) proposal).getPreviewContent();
+    String result = ((CUCorrectionProposal_OLD) proposal).getPreviewContent();
     // assert result
     String expectedSource = makeSource(expectedLines);
     assertEquals(expectedSource, result);

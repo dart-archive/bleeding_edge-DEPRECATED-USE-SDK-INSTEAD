@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.text.dart;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.model.CompilationUnit;
 
 /**
@@ -28,6 +29,10 @@ import com.google.dart.tools.core.model.CompilationUnit;
  * that uses this API will almost certainly be broken (repeatedly) as the API evolves.
  */
 public interface IInvocationContext {
+  /**
+   * @return the Engine Services {@link AssistContext}.
+   */
+  AssistContext getContext();
 
   /**
    * Returns an AST of the compilation unit, possibly only a partial AST focused on the selection
@@ -38,26 +43,26 @@ public interface IInvocationContext {
    * 
    * @return Returns the root of the AST corresponding to the current compilation unit.
    */
-  DartUnit getASTRoot();
+  DartUnit getOldASTRoot();
 
   /**
    * @return Returns the current compilation unit.
    */
-  CompilationUnit getCompilationUnit();
+  CompilationUnit getOldCompilationUnit();
 
   /**
    * Convenience method to evaluate the AST node that is covered by the current selection.
    * 
    * @return Returns the node that is covered by the location of the problem
    */
-  DartNode getCoveredNode();
+  DartNode getOldCoveredNode();
 
   /**
    * Convenience method to evaluate the AST node covering the current selection.
    * 
    * @return Returns the node that covers the location of the problem
    */
-  DartNode getCoveringNode();
+  DartNode getOldCoveringNode();
 
   /**
    * @return Returns the length of the current selection
