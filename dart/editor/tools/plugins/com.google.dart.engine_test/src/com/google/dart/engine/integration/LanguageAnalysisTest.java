@@ -114,6 +114,16 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
    */
   private static final String[] FAILING_TESTS = {//
   "/application_test.dart", // missing a part-of directive
+      "/bit_operations_test.dart", // requires type inferencing
+      "/checked_null_test.dart", // invocation of undefined function
+      "/closure_in_initializer2_test.dart", // invocation of undefined function
+      "/compile_time_constant_k_test.dart", // duplicated keys in literal map
+      "/const_objects_are_immutable_test.dart", // undefined setter
+      "/constructor_test.dart", // references undefined method
+      "/factory_implementation_test.dart", // misuse of factory method
+      "/first_class_types_literals_test.dart", // type literals don't implement +
+      "/function_malformed_result_type_test.dart", // wrong number of type arguments
+      "/generic_instanceof.dart", // missing part-of directive
   };
 
   /**
