@@ -37,7 +37,7 @@ void _onLoad() {
   } else {
     final html = new StringBuffer();
     for (String ex in GridExamples.styles.keys) {
-      html.add('<div><a href="?q=$ex">Grid Example $ex</a></div>');
+      html.write('<div><a href="?q=$ex">Grid Example $ex</a></div>');
     }
     document.body.innerHTML = html.toString();
   }
@@ -106,16 +106,16 @@ void printMetrics(String example) {
   final node = document.body.query('#grid');
   String exampleId = example.split(' ')[0];
   final sb = new StringBuffer();
-  sb.add("test('Spec Example $exampleId', () {\n");
-  sb.add("  verifyExample('$example', {\n");
+  sb.write("test('Spec Example $exampleId', () {\n");
+  sb.write("  verifyExample('$example', {\n");
   final children = node.children;
 
   window.setImmediate(() {
     for (int i = 0; i < children.length; i++) {
       _appendMetrics(sb, children[i], '    ');
     }
-    sb.add('  });\n');
-    sb.add('});\n\n');
+    sb.write('  });\n');
+    sb.write('});\n\n');
     window.console.log(sb.toString());
   });
 }
@@ -124,5 +124,5 @@ void _appendMetrics(StringBuffer sb, Element node, [String indent = '']) {
   String id = node.id;
   num left = node.offsetLeft, top = node.offsetTop;
   num width = node.offsetWidth, height = node.offsetHeight;
-  sb.add("${indent}'$id': [$left, $top, $width, $height],\n");
+  sb.write("${indent}'$id': [$left, $top, $width, $height],\n");
 }

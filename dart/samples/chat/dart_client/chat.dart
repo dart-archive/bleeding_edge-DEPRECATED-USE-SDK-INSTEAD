@@ -217,13 +217,13 @@ class Chat {
     String from = message["from"];
     StringBuffer text = new StringBuffer("$formattedTime $from ");
     if (message["type"] == "join") {
-      text.add("joined");
+      text.write("joined");
     } else if (message["type"] == "message") {
-      text.add(message["message"]);
+      text.write(message["message"]);
     } else if (message["type"] == "leave") {
-      text.add("left");
+      text.write("left");
     } else {
-      text.add("timeout");
+      text.write("timeout");
     }
     p.text = text.toString();
     _messages.insertAdjacentElement('afterBegin', p);
@@ -235,14 +235,14 @@ class Chat {
   String formatMessageTime(String received) {
     DateTime date = DateTime.parse(received);
     StringBuffer formattedTime = new StringBuffer();
-    if (date.hour < 10) formattedTime.add("0");
-    formattedTime.add(date.hour);
-    formattedTime.add(":");
-    if (date.minute < 10) formattedTime.add("0");
-    formattedTime.add(date.minute);
-    formattedTime.add(":");
-    if (date.second < 10) formattedTime.add("0");
-    formattedTime.add(date.second);
+    if (date.hour < 10) formattedTime.write("0");
+    formattedTime.write(date.hour);
+    formattedTime.write(":");
+    if (date.minute < 10) formattedTime.write("0");
+    formattedTime.write(date.minute);
+    formattedTime.write(":");
+    if (date.second < 10) formattedTime.write("0");
+    formattedTime.write(date.second);
     return formattedTime.toString();
   }
 
@@ -254,14 +254,14 @@ class Chat {
     upTime = upTime % 60;
     int seconds = upTime;
     StringBuffer formattedTime = new StringBuffer();
-    if (hours < 10) formattedTime.add("0");
-    formattedTime.add(hours);
-    formattedTime.add(":");
-    if (minutes < 10) formattedTime.add("0");
-    formattedTime.add(minutes);
-    formattedTime.add(":");
-    if (seconds < 10) formattedTime.add("0");
-    formattedTime.add(seconds);
+    if (hours < 10) formattedTime.write("0");
+    formattedTime.write(hours);
+    formattedTime.write(":");
+    if (minutes < 10) formattedTime.write("0");
+    formattedTime.write(minutes);
+    formattedTime.write(":");
+    if (seconds < 10) formattedTime.write("0");
+    formattedTime.write(seconds);
     return formattedTime.toString();
   }
 

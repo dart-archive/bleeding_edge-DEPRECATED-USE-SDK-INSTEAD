@@ -12,10 +12,10 @@ class Version {
   
   String toString() {
     StringBuffer sb = new StringBuffer();
-    sb.add(this.major).add('.').
-       add(this.minor).add('.').
-       add(service).add('.').
-       add(this.qualifier);
+    sb..write(this.major)..write('.').
+      ..write(this.minor)..write('.').
+      ..write(service)..write('.').
+      ..write(this.qualifier);
     return sb.toString(); 
   }
 }

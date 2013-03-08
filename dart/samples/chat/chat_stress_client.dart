@@ -58,7 +58,7 @@ class ChatStressClient {
         .then((HttpClientResponse response) {
           StringBuffer body = new StringBuffer();
           response.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () => leaveResponseHandler(response, body.toString()));
         });
     }
@@ -86,7 +86,7 @@ class ChatStressClient {
         .then((HttpClientResponse response) {
           StringBuffer body = new StringBuffer();
           response.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () => receiveResponseHandler(response, body.toString()));
         });
     }
@@ -121,7 +121,7 @@ class ChatStressClient {
         .then((HttpClientResponse response) {
           StringBuffer body = new StringBuffer();
           response.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () => sendResponseHandler(response, body.toString()));
         });
     };
@@ -149,7 +149,7 @@ class ChatStressClient {
         .then((HttpClientResponse response) {
           StringBuffer body = new StringBuffer();
           response.listen(
-            (data) => body.add(new String.fromCharCodes(data)),
+            (data) => body.write(new String.fromCharCodes(data)),
             onDone: () => joinResponseHandler(response, body.toString()));
         });
     }

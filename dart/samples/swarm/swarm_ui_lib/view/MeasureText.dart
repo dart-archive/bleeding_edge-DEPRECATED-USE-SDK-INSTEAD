@@ -103,10 +103,10 @@ class MeasureText {
       }
       if (sb != null) {
         if (lines > 1) {
-          sb.add('<br>');
+          sb.write('<br>');
         }
         // TODO(jacobr): HTML escape this text.
-        sb.add(text.substring(start, end));
+        sb.write(text.substring(start, end));
       }
     });
     return lines;

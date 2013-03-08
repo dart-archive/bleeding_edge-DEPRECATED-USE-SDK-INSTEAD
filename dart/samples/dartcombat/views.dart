@@ -29,13 +29,13 @@ class PlayerGridView extends View {
     String cell = "<div class='icons water'></div>";
     StringBuffer _cells = new StringBuffer();
     for (int i = 0 ; i < state.localGrid.cells.length; i++) {
-      _cells.add(cell);
+      _cells.write(cell);
     }
     String cells = _cells.toString();
     String row = "<div class='hbox'>${cells}</div>";
     StringBuffer _rows = new StringBuffer();
     for (int i = 0 ; i < state.localGrid.cells.length; i++) {
-      _rows.add(row);
+      _rows.write(row);
     }
     String rows = _rows.toString();
     String table = "<div class='vbox'>${rows}</div>";
@@ -178,13 +178,13 @@ class EnemyGridView extends View {
     String cell = "<div class='icons water'></div>";
     StringBuffer _cells = new StringBuffer();
     for (int i = 0 ; i < state.enemyGrid.cells.length; i++) {
-      _cells.add(cell);
+      _cells.write(cell);
     }
     String cells = _cells.toString();
     String row = "<div class='hbox'>${cells}</div>";
     StringBuffer _rows = new StringBuffer();
     for (int i = 0 ; i < state.enemyGrid.cells.length; i++) {
-      _rows.add(row);
+      _rows.write(row);
     }
     String rows = _rows.toString();
     String table = "<div class='vbox'>${rows}</div>";

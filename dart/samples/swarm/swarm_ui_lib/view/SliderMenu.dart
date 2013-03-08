@@ -36,7 +36,7 @@ class SliderMenu extends View {
     // Create a div for each menu item.
     final items = new StringBuffer();
     for (final item in _menuItems) {
-      items.add('<div class="sm-item">$item</div>');
+      items.write('<div class="sm-item">$item</div>');
     }
 
     // Create a root node to hold this view.

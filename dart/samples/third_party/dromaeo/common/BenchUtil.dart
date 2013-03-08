@@ -56,11 +56,11 @@ class BenchUtil {
           _inRange(charCode, 'a', 'z') ||
           _inRange(charCode, 'A', 'Z');
       if (noEscape) {
-        sb.add(s[i]);
+        sb.write(s[i]);
       } else {
-       sb.add('%');
-       sb.add(_asDigit((charCode >> 4) & 0xF));
-       sb.add(_asDigit(charCode & 0xF));
+       sb.write('%');
+       sb.write(_asDigit((charCode >> 4) & 0xF));
+       sb.write(_asDigit(charCode & 0xF));
       }
     }
     return sb.toString();
@@ -73,11 +73,11 @@ class BenchUtil {
 
     int pos = 0;
     for (Match match in new RegExp(pattern).allMatches(s)) {
-      sb.add(s.substring(pos, match.start));
-      sb.add(replacement(match));
+      sb.write(s.substring(pos, match.start));
+      sb.write(replacement(match));
       pos = match.end;
     }
-    sb.add(s.substring(pos));
+    sb.write(s.substring(pos));
 
     return sb.toString();
   }
