@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
@@ -66,13 +66,13 @@ class ChatTestClient {
     leaveRequest["sessionId"] = sessionId;
     httpClient.post("127.0.0.1", port, "/leave")
       .then((HttpClientRequest request) {
-        request.addString(json.stringify(leaveRequest));
+        request.write(json.stringify(leaveRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
         StringBuffer body = new StringBuffer();
         response.listen(
-          (data) => body.add(new String.fromCharCodes(data)),
+          (data) => body.write(new String.fromCharCodes(data)),
           onDone: () => leaveResponseHandler(response, body.toString()));
       });
   }
@@ -122,13 +122,13 @@ class ChatTestClient {
     receiveRequest["nextMessage"] = receiveMessageNumber;
     httpClient.post("127.0.0.1", port, "/receive")
       .then((HttpClientRequest request) {
-        request.addString(json.stringify(receiveRequest));
+        request.write(json.stringify(receiveRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
         StringBuffer body = new StringBuffer();
         response.listen(
-          (data) => body.add(new String.fromCharCodes(data)),
+          (data) => body.write(new String.fromCharCodes(data)),
           onDone: () => receiveResponseHandler(response, body.toString()));
       });
   }
@@ -152,13 +152,13 @@ class ChatTestClient {
     messageRequest["message"] = "message $sendMessageNumber";
     httpClient.post("127.0.0.1", port, "/message")
       .then((HttpClientRequest request) {
-        request.addString(json.stringify(messageRequest));
+        request.write(json.stringify(messageRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
         StringBuffer body = new StringBuffer();
         response.listen(
-          (data) => body.add(new String.fromCharCodes(data)),
+          (data) => body.write(new String.fromCharCodes(data)),
           onDone: () => sendResponseHandler(response, body.toString()));
       });
   }
@@ -183,13 +183,13 @@ class ChatTestClient {
     joinRequest["handle"] = "test1";
     httpClient.post("127.0.0.1", port, "/join")
       .then((HttpClientRequest request) {
-        request.addString(json.stringify(joinRequest));
+        request.write(json.stringify(joinRequest));
         return request.close();
       })
       .then((HttpClientResponse response) {
         StringBuffer body = new StringBuffer();
         response.listen(
-          (data) => body.add(new String.fromCharCodes(data)),
+          (data) => body.write(new String.fromCharCodes(data)),
           onDone: () => joinResponseHandler(response, body.toString()));
       });
   }

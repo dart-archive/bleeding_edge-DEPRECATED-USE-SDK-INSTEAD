@@ -303,7 +303,7 @@ class IsolatedServer {
 
   void _sendJSONResponse(HttpResponse response, Map responseData) {
     response.headers.set("Content-Type", "application/json; charset=UTF-8");
-    response.addString(json.stringify(responseData));
+    response.write(json.stringify(responseData));
     response.close();
   }
 
@@ -317,7 +317,7 @@ class IsolatedServer {
     response.headers.set(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
-    response.add(_redirectPage);
+    response.writeBytes(_redirectPage);
     response.close();
   }
 
@@ -360,7 +360,7 @@ class IsolatedServer {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
-    response.add(_notFoundPage);
+    response.writeBytes(_notFoundPage);
     response.close();
   }
 
@@ -377,7 +377,7 @@ class IsolatedServer {
   void _joinHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     request.listen(
-      (data) => body.add(new String.fromCharCodes(data)),
+      (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
         if (data != null) {
@@ -411,7 +411,7 @@ class IsolatedServer {
   void _leaveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     request.listen(
-      (data) => body.add(new String.fromCharCodes(data)),
+      (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
         var requestData = json.parse(data);
@@ -441,7 +441,7 @@ class IsolatedServer {
   void _messageHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     request.listen(
-      (data) => body.add(new String.fromCharCodes(data)),
+      (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
         _messageCount++;
@@ -478,7 +478,7 @@ class IsolatedServer {
   void _receiveHandler(HttpRequest request, HttpResponse response) {
     StringBuffer body = new StringBuffer();
     request.listen(
-      (data) => body.add(new String.fromCharCodes(data)),
+      (data) => body.write(new String.fromCharCodes(data)),
       onDone: () {
         String data = body.toString();
         var requestData = json.parse(data);
