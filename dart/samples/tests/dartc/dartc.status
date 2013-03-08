@@ -2,10 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-tests/samples/*: Pass, Crash  # Issue 8973
-third_party/dromaeo/*: Pass, Crash  # Issue 8973
-third_party/todomvc/web/main: Pass, Crash  # Issue 8973
-swarm/*: Pass, Crash  # Issue 8973
+*: Pass, Crash  # Issue 8973
 
 [ $runtime == vm ]
 *: Skip
