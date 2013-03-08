@@ -345,6 +345,7 @@ void setup(canvas, int w, int h) {
   gl.clearDepth(1.0);
   initBuffers();
   resize(w, h);
+  requestAnimationFrame(update);
   log("Done setup");
 }
 
@@ -355,8 +356,9 @@ void resize(int width, int height) {
   drawScene();
 }
 
-void update() {
+void update(when) {
   drawScene();
+  requestAnimationFrame(update);
 }
 
 onMotionDown(num when, num x, num y) {

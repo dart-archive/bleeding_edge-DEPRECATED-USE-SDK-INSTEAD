@@ -21,7 +21,10 @@
               {
                 'action_name': 'build_app',
                 'inputs': [
-                  '<(PRODUCT_DIR)/lib.target/libandroid_embedder.so'
+                  '<(PRODUCT_DIR)/lib.target/libandroid_embedder.so',
+                  '../../../runtime/embedders/openglui/common/gl.dart',
+                  '../src/openglui_raytrace.dart',
+                  '../src/openglui_canvas_tests.dart'
                 ],
                 'outputs': [
                   'bin/NativeActivity-debug.apk',

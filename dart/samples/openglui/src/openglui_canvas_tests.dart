@@ -43,6 +43,7 @@ void setup(canvasp, int w, int h) {
     throw "Failed to get 2D context";
   }
   resize(w, h);
+  window.requestAnimationFrame(update);
   log("Done setup");
 }
 
@@ -499,6 +500,7 @@ void lineDash() {
 void loadImage() {
   initTest("Image loading");
   var imageObj = new ImageElement();
+  // TODO(Gram): Change gl.dart to handle to onLoad.listen.
   imageObj.on.load.add((e) {
     ctx.drawImage(e, 69, 50);
   });
@@ -655,7 +657,8 @@ void anim() {
 
 int testnum = 0; // Set this to -1 to start with last test.
 
-void update() {
+void update(num when) {
+  window.requestAnimationFrame(update);
   if (testnum == 0) {
     anim();
     return;
@@ -1002,7 +1005,4 @@ class RayTracer {
     }
   }
 }
-
-
-
 
