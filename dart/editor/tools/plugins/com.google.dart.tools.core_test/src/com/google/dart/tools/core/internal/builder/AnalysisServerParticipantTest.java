@@ -3,6 +3,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.AnalysisServerImpl;
 import com.google.dart.tools.core.analysis.ScanCallback;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.CleanEvent;
@@ -28,7 +29,7 @@ public class AnalysisServerParticipantTest extends AbstractDartCoreTest {
   /**
    * Specialized {@link AnalysisServer} that asserts specific methods are called
    */
-  private final class MockServer extends AnalysisServer {
+  private final class MockServer extends AnalysisServerImpl {
 
     private final ArrayList<Object[]> expected = new ArrayList<Object[]>();
     private int index = 0;

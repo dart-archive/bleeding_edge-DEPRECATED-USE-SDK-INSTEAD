@@ -13,11 +13,11 @@
  */
 package com.google.dart.tools.core.analysis.index;
 
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.SavedContext;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
-import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IProject;
@@ -42,7 +42,7 @@ public class AnalysisIndexManager {
   public static AnalysisServer getServer() {
     synchronized (lock) {
       if (server == null) {
-        server = new AnalysisServer(PackageLibraryManagerProvider.getAnyLibraryManager());
+        server = DartCore.createAnalysisServer();
         initServerListeners();
         AnalysisDebug.initServerDebug(server);
         initServerContent();

@@ -260,7 +260,7 @@ public class AnalysisServerTest extends TestCase {
 
   public void test_read_version_invalid() throws Exception {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServer(libraryManager);
+    server = new AnalysisServerImpl(libraryManager);
     try {
       readCache(new StringReader("vOther"));
       fail("Expected IOException because of invalid version number");
@@ -271,7 +271,7 @@ public class AnalysisServerTest extends TestCase {
 
   public void test_read_version_missing() throws Exception {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServer(libraryManager);
+    server = new AnalysisServerImpl(libraryManager);
     try {
       readCache(new StringReader(""));
       fail("Expected IOException because of missing version number");
@@ -511,7 +511,7 @@ public class AnalysisServerTest extends TestCase {
 
   private void initServer(Reader reader) throws Exception {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServer(libraryManager);
+    server = new AnalysisServerImpl(libraryManager);
     if (reader != null) {
       readCache(reader);
     }

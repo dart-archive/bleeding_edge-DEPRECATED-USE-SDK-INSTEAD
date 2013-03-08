@@ -25,7 +25,7 @@ import java.util.HashSet;
 /**
  * {@link AnalysisServer} subclass that intercepts requests to analyze context
  */
-class AnalysisServerAdapter extends AnalysisServer {
+class AnalysisServerAdapter extends AnalysisServerImpl {
   private boolean analyzeContext = false;
   private HashSet<File> analyzeFiles = new HashSet<File>();
 
@@ -52,6 +52,16 @@ class AnalysisServerAdapter extends AnalysisServer {
     }
   }
 
+  @Override
+  public void queueAnalyzeContext() {
+    analyzeContext = true;
+  }
+
+  @Override
+  public void queueAnalyzeSubTask(File libraryFile) {
+    analyzeFiles.add(libraryFile);
+  }
+
   public void resetAnalyze() {
     analyzeContext = false;
     analyzeFiles.clear();
@@ -59,16 +69,6 @@ class AnalysisServerAdapter extends AnalysisServer {
 
   public void resetAnalyzeContext() {
     analyzeContext = false;
-  }
-
-  @Override
-  protected void queueAnalyzeContext() {
-    analyzeContext = true;
-  }
-
-  @Override
-  protected void queueAnalyzeSubTask(File libraryFile) {
-    analyzeFiles.add(libraryFile);
   }
 
   private void failAnalyzed(File... expectedFiles) {

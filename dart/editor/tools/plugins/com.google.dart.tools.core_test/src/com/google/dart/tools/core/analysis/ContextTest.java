@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -61,6 +61,24 @@ public class ContextTest extends AbstractDartCoreTest {
   private AnalysisServer server;
   private SavedContext context;
   private Listener listener;
+
+  public void bug8292_test_resolve() throws Exception {
+    LibraryUnit libraryUnit = context.resolve(libraryFile, FIVE_MINUTES_MS);
+    assertEquals("Money", libraryUnit.getName());
+    assertTrue(listener.getParsedCount() > 10);
+    listener.assertResolved(libraryFile);
+    listener.assertNoErrors();
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+    listener.reset();
+    libraryUnit = context.resolve(libraryFile, FIVE_MINUTES_MS);
+    assertEquals("Money", libraryUnit.getName());
+    listener.assertParsedCount(0);
+    listener.assertResolvedCount(0);
+    listener.assertNoErrors();
+    listener.assertNoDuplicates();
+    listener.assertNoDiscards();
+  }
 
   public void test_getIdleTask() throws Exception {
     PackageLibraryManager libMgr = PackageLibraryManagerProvider.getAnyLibraryManager();
@@ -172,24 +190,6 @@ public class ContextTest extends AbstractDartCoreTest {
     assertParsed(2, 1);
   }
 
-  public void bug8292_test_resolve() throws Exception {
-    LibraryUnit libraryUnit = context.resolve(libraryFile, FIVE_MINUTES_MS);
-    assertEquals("Money", libraryUnit.getName());
-    assertTrue(listener.getParsedCount() > 10);
-    listener.assertResolved(libraryFile);
-    listener.assertNoErrors();
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-    listener.reset();
-    libraryUnit = context.resolve(libraryFile, FIVE_MINUTES_MS);
-    assertEquals("Money", libraryUnit.getName());
-    listener.assertParsedCount(0);
-    listener.assertResolvedCount(0);
-    listener.assertNoErrors();
-    listener.assertNoDuplicates();
-    listener.assertNoDiscards();
-  }
-
   public void test_resolve_doesNotExist() throws Exception {
     File doesNotExist = new File(tempDir, "doesNotExist.dart");
     assertFalse(doesNotExist.exists());
@@ -205,7 +205,7 @@ public class ContextTest extends AbstractDartCoreTest {
   @Override
   protected void setUp() throws Exception {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
-    server = new AnalysisServer(libraryManager);
+    server = new AnalysisServerImpl(libraryManager);
     context = server.getSavedContext();
     listener = new Listener(server);
     server.start();

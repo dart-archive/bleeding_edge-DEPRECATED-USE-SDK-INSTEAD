@@ -137,7 +137,8 @@ public class DiscardTaskTest extends AbstractDartAnalysisTest {
 
   // assert that discard takes priority over analysis
   public void test_discard_priority() throws Exception {
-    AnalysisServer server = new AnalysisServer(PackageLibraryManagerProvider.getAnyLibraryManager());
+    AnalysisServer server = new AnalysisServerImpl(
+        PackageLibraryManagerProvider.getAnyLibraryManager());
     listener = new Listener(server);
 
     server.analyze(moneyLibFile);

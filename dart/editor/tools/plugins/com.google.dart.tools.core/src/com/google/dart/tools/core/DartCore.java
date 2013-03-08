@@ -18,6 +18,9 @@ import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.logging.Logger;
+import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.AnalysisServerImpl;
+import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
@@ -27,6 +30,7 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.internal.model.DartModelImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
+import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
@@ -501,6 +505,18 @@ public class DartCore extends Plugin implements DartSdkListener {
     MementoTokenizer memento = new MementoTokenizer(identifier);
     DartModelImpl model = DartModelManager.getInstance().getDartModel();
     return model.getHandleFromMemento(memento, owner);
+  }
+
+  /**
+   * A factory for creating analysis server instances.
+   * 
+   * @return an analysis server
+   */
+  public static AnalysisServer createAnalysisServer() {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return new AnalysisServerMock();
+    }
+    return new AnalysisServerImpl(PackageLibraryManagerProvider.getAnyLibraryManager());
   }
 
   /**
