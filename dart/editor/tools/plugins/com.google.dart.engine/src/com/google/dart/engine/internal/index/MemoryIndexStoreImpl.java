@@ -84,6 +84,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public void clear() {
     relationshipMap.clear();
+    sources.clear();
+    sourceToDeclarations.clear();
+    sourceToLocations.clear();
   }
 
   @VisibleForTesting
@@ -144,9 +147,8 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public boolean readIndex(AnalysisContext context, InputStream input) {
-    // TODO(scheglov)
-    throw new UnsupportedOperationException();
+  public void readIndex(AnalysisContext context, InputStream input) throws IOException {
+    new MemoryIndexReader(this, context, input).read();
   }
 
   @Override

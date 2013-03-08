@@ -23,6 +23,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
@@ -31,9 +32,14 @@ import org.mockito.stubbing.Answer;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Set;
 
 public class MemoryIndexStoreImplTest extends EngineTestCase {
@@ -56,10 +62,10 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   private AnalysisContext contextA = mock(AnalysisContext.class);
   private AnalysisContext contextB = mock(AnalysisContext.class);
   private AnalysisContext contextC = mock(AnalysisContext.class);
-  private ElementLocation elementLocationA = mock(ElementLocation.class);
-  private ElementLocation elementLocationB = mock(ElementLocation.class);
-  private ElementLocation elementLocationC = mock(ElementLocation.class);
-  private ElementLocation elementLocationD = mock(ElementLocation.class);
+  private ElementLocation elementLocationA = new ElementLocationImpl("elementLocationA");
+  private ElementLocation elementLocationB = new ElementLocationImpl("elementLocationB");
+  private ElementLocation elementLocationC = new ElementLocationImpl("elementLocationC");
+  private ElementLocation elementLocationD = new ElementLocationImpl("elementLocationD");
   private Element elementA = mock(Element.class);
   private Element elementB = mock(Element.class);
   private Element elementC = mock(Element.class);
@@ -406,6 +412,60 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertEquals(1, store.getLocationCount(contextA));
     Location[] locations = store.getRelationships(elementA, relationship);
     assertThat(locations).containsOnly(locationC);
+  }
+
+  public void test_writeRead() throws Exception {
+    when(contextA.getElement(eq(elementLocationA))).thenReturn(elementA);
+    when(contextB.getElement(eq(elementLocationB))).thenReturn(elementB);
+    when(elementA.getContext()).thenReturn(contextA);
+    when(elementB.getContext()).thenReturn(contextB);
+    // fill store
+    Location locationA = new Location(elementA, 0, 0, null);
+    Location locationB = new Location(elementB, 0, 0, null);
+    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(elementB, relationship, locationB);
+    assertEquals(2, store.getElementCount());
+    assertEquals(2, store.getRelationshipCount());
+    assertThat(store.getRelationships(elementA, relationship)).containsOnly(locationA);
+    assertThat(store.getRelationships(elementB, relationship)).containsOnly(locationB);
+    // write
+    byte[] content;
+    {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      store.writeIndex(contextA, baos);
+      content = baos.toByteArray();
+    }
+    // clear
+    store.clear();
+    assertEquals(0, store.getElementCount());
+    assertEquals(0, store.getRelationshipCount());
+    // read
+    {
+      ByteArrayInputStream bais = new ByteArrayInputStream(content);
+      store.readIndex(contextA, bais);
+    }
+    // validate after read
+    assertEquals(1, store.getElementCount());
+    assertEquals(1, store.getRelationshipCount());
+    assertThat(store.getRelationships(elementA, relationship)).containsOnly(locationA);
+  }
+
+  public void test_writeRead_invalidVersion() throws Exception {
+    // write fake content with invalid version
+    byte[] content;
+    {
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+      DataOutputStream dos = new DataOutputStream(baos);
+      dos.writeInt(-1);
+      content = baos.toByteArray();
+    }
+    // read
+    try {
+      ByteArrayInputStream bais = new ByteArrayInputStream(content);
+      store.readIndex(contextA, bais);
+      fail();
+    } catch (IOException e) {
+    }
   }
 
   @Override

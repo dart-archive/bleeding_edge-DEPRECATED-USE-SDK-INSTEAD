@@ -14,32 +14,33 @@
 
 package com.google.dart.engine.internal.index;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.index.Location;
+import com.google.dart.engine.index.Relationship;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Helper to write {@link MemoryIndexStoreImpl} to {@link OutputStream}.
  */
 class MemoryIndexWriter {
-  /**
-   * The version number of the file format being generated.
-   */
-  private static int FILE_VERSION_NUMBER = 1;
+  static int FILE_VERSION_NUMBER = 1;
 
-//  private final MemoryIndexStoreImpl impl;
-//  private int nextElementId = 0;
-//  private final Map<Source, Integer> sourceToId = Maps.newHashMap();
-//  private final Map<Element, Integer> elementToId = Maps.newHashMap();
-
-//  private final AnalysisContext context;
+  private final MemoryIndexStoreImpl impl;
+  private final AnalysisContext context;
   private final DataOutputStream dos;
 
   MemoryIndexWriter(MemoryIndexStoreImpl impl, AnalysisContext context, OutputStream output) {
-//    this.impl = impl;
-//    this.context = context;
+    this.impl = impl;
+    this.context = context;
     this.dos = new DataOutputStream(output);
   }
 
@@ -48,43 +49,68 @@ class MemoryIndexWriter {
    */
   public void write() throws IOException {
     dos.writeInt(FILE_VERSION_NUMBER);
-    // TODO(scheglov)
-//    // write Source table
-//    {
-//      int nextId = 0;
-//      for (Source source : impl.sources) {
-//        int id = nextId++;
-//        sourceToId.put(source, id);
-//        String encoding = source.getEncoding();
-//        dos.writeUTF(encoding);
-//        dos.writeInt(id);
-//      }
-//    }
-//    // prepare Element table
-//    for (Entry<Element, Map<Relationship, List<ContributedLocation>>> entryRels : impl.relationshipMap.entrySet()) {
-//      addElement(entryRels.getKey());
-//      for (Entry<Relationship, List<ContributedLocation>> entryRel : entryRels.getValue().entrySet()) {
-//        for (ContributedLocation location : entryRel.getValue()) {
-//          addElement(location.getLocation().getElement());
-//        }
-//      }
-//    }
-//    for (Entry<Source, List<Element>> entry : impl.sourceToDeclarations.entrySet()) {
-//      for (Element element : entry.getValue()) {
-//        addElement(element);
-//      }
-//    }
-//    for (Entry<Source, List<ContributedLocation>> entry : impl.sourceToLocations.entrySet()) {
-//      for (ContributedLocation location : entry.getValue()) {
-//        addElement(location.getLocation().getElement());
-//      }
-//    }
+    // prepare Element(s) to write relations for
+    List<Element> elementsToWrite = Lists.newArrayList();
+    for (Element element : impl.relationshipMap.keySet()) {
+      if (!isElementOfContext(element)) {
+        continue;
+      }
+      elementsToWrite.add(element);
+    }
+    // do write Element(s)
+    dos.writeInt(elementsToWrite.size());
+    for (Element element : elementsToWrite) {
+      Map<Relationship, List<ContributedLocation>> relations = impl.relationshipMap.get(element);
+      writeElementLocation(element);
+      // write relations
+      for (Entry<Relationship, List<ContributedLocation>> relEntry : relations.entrySet()) {
+        // write relation
+        dos.writeUTF(relEntry.getKey().getIdentifier());
+        // prepare Location(s) to write
+        List<Location> locationsToWrite = Lists.newArrayList();
+        for (ContributedLocation contributedLocation : relEntry.getValue()) {
+          Location location = contributedLocation.getLocation();
+          // TODO(scheglov) restore when we will share Elements between contexts
+//          Element locationElement = location.getElement();
+//          if (!isElementOfContext(locationElement)) {
+//            continue;
+//          }
+          locationsToWrite.add(location);
+        }
+        // write Location(s)
+        dos.writeInt(locationsToWrite.size());
+        for (Location location : locationsToWrite) {
+          writeElementLocation(location.getElement());
+          dos.writeInt(location.getOffset());
+          dos.writeInt(location.getLength());
+          writeMayBeNull(location.getImportPrefix());
+        }
+      }
+    }
   }
 
-//  private void addElement(Element element) {
-//    if (!elementToId.containsKey(element)) {
-//      int id = nextElementId++;
-//      elementToId.put(element, id);
-//    }
-//  }
+  /**
+   * @return <code>true</code> if given {@link Element} belongs to the {@link AnalysisContext} which
+   *         we are currently writing.
+   */
+  private boolean isElementOfContext(Element element) {
+    return element.getContext() == context;
+  }
+
+  /**
+   * Writes {@link ElementLocation} of the given {@link Element}.
+   */
+  private void writeElementLocation(Element element) throws IOException {
+    dos.writeUTF(element.getLocation().getEncoding());
+  }
+
+  /**
+   * Write may be <code>null</code> {@link String}.
+   */
+  private void writeMayBeNull(String str) throws IOException {
+    if (str == null) {
+      str = "";
+    }
+    dos.writeUTF(str);
+  }
 }

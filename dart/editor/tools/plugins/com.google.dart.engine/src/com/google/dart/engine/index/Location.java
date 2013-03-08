@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.index;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.element.Element;
 
 /**
@@ -66,6 +67,17 @@ public class Location {
     this.importPrefix = importPrefix;
   }
 
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof Location) {
+      Location other = (Location) obj;
+      return offset == other.offset && length == other.length
+          && Objects.equal(element, other.element)
+          && Objects.equal(importPrefix, other.importPrefix);
+    }
+    return false;
+  }
+
   /**
    * @return the {@link Element} containing this location.
    */
@@ -96,6 +108,11 @@ public class Location {
    */
   public int getOffset() {
     return offset;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(element, offset, length, importPrefix);
   }
 
   @Override

@@ -28,13 +28,14 @@ import java.io.OutputStream;
  */
 public interface MemoryIndexStore extends IndexStore {
   /**
-   * Read the contents of this index from the given {@link InputStream}.
+   * Reads {@link MemoryIndexStore} for specified {@link AnalysisContext} from the given
+   * {@link InputStream}.
    * 
    * @param context the {@link AnalysisContext} to read {@link Element}s and {@link Source}s.
    * @param input the {@link InputStream} from which this index will be read
-   * @return {@code true} if the file was correctly read
+   * @throws IOException if the index could not be read (for example because of version mismatch)
    */
-  boolean readIndex(AnalysisContext context, InputStream input);
+  void readIndex(AnalysisContext context, InputStream input) throws IOException;
 
   /**
    * Write the contents of this index to the given {@link OutputStream}.
