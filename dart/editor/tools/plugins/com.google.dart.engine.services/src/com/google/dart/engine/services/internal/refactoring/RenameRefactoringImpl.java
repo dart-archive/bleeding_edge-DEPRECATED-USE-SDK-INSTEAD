@@ -15,9 +15,6 @@
 package com.google.dart.engine.services.internal.refactoring;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LocalElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -30,10 +27,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeElementName;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Abstract implementation of {@link RenameRefactoring}.
@@ -115,28 +108,5 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
    */
   protected final Edit createReferenceRenameEdit(SearchMatch reference) {
     return new Edit(reference.getSourceRange(), newName);
-  }
-
-  /**
-   * @return the {@link Set} with all direct and indirect sub {@link ClassElement}s of the given.
-   */
-  protected Set<ClassElement> getSubClassElements(ClassElement seed) {
-    Set<ClassElement> subClasses = Sets.newHashSet();
-    // prepare queue
-    LinkedList<ClassElement> subClassQueue = Lists.newLinkedList();
-    subClassQueue.add(seed);
-    // process queue
-    while (!subClassQueue.isEmpty()) {
-      ClassElement subClass = subClassQueue.removeFirst();
-      if (subClasses.add(subClass)) {
-        List<SearchMatch> subMatches = searchEngine.searchSubtypes(subClass, null, null);
-        for (SearchMatch subMatch : subMatches) {
-          ClassElement subClassNew = (ClassElement) subMatch.getElement();
-          subClassQueue.addLast(subClassNew);
-        }
-      }
-    }
-    subClasses.remove(seed);
-    return subClasses;
   }
 }

@@ -14,16 +14,12 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.common.base.Objects;
 import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeAliasElement;
-import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
@@ -33,12 +29,7 @@ import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
-import com.google.dart.engine.services.status.RefactoringStatusContext;
 
-import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
-import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
-
-import java.text.MessageFormat;
 import java.util.List;
 
 /**
@@ -46,6 +37,7 @@ import java.util.List;
  * top-level {@link FunctionElement}.
  */
 public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
+
   private final Element element;
 
   public RenameUnitMemberRefactoringImpl(SearchEngine searchEngine, Element element) {
@@ -122,91 +114,11 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   private RefactoringStatus analyzePossibleConflicts(ProgressMonitor pm) {
-    pm.beginTask("Analyze possible conflicts", 3);
-    try {
-      final RefactoringStatus result = new RefactoringStatus();
-      // check if there are top-level declarations with "newName" in the same LibraryElement
-      {
-        LibraryElement library = element.getAncestor(LibraryElement.class);
-        library.accept(new GeneralizingElementVisitor<Void>() {
-          @Override
-          public Void visitElement(Element element) {
-            // library or unit
-            if (element instanceof LibraryElement || element instanceof CompilationUnitElement) {
-              return super.visitElement(element);
-            }
-            // top-level
-            if (element.getName().equals(newName)) {
-              String message = MessageFormat.format(
-                  "Library already declares {0} with name ''{1}''.",
-                  getElementKindName(element),
-                  newName);
-              result.addError(message, RefactoringStatusContext.create(element));
-            }
-            return null;
-          }
-        });
-        pm.worked(1);
-      }
-      // may be shadowed by class member
-      {
-        List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-        for (SearchMatch reference : references) {
-          ClassElement refEnclosingClass = reference.getElement().getAncestor(ClassElement.class);
-          if (refEnclosingClass != null) {
-            refEnclosingClass.accept(new GeneralizingElementVisitor<Void>() {
-              @Override
-              public Void visitElement(Element maybeShadow) {
-                // class
-                if (maybeShadow instanceof ClassElement) {
-                  return super.visitElement(maybeShadow);
-                }
-                // class member
-                if (maybeShadow.getName().equals(newName)) {
-                  String message = MessageFormat.format(
-                      "Reference to renamed {0} will shadowed by {1} ''{2}''.",
-                      getElementKindName(element),
-                      getElementKindName(maybeShadow),
-                      getElementQualifiedName(maybeShadow));
-                  result.addError(message, RefactoringStatusContext.create(maybeShadow));
-                }
-                return null;
-              }
-            });
-          }
-        }
-        pm.worked(1);
-      }
-      // may be shadows inherited class members
-      {
-        List<SearchMatch> nameDeclarations = searchEngine.searchDeclarations(newName, null, null);
-        for (SearchMatch nameDeclaration : nameDeclarations) {
-          Element member = nameDeclaration.getElement();
-          Element declarationClass = member.getEnclosingElement();
-          if (declarationClass instanceof ClassElement) {
-            List<SearchMatch> memberReferences = searchEngine.searchReferences(member, null, null);
-            for (SearchMatch memberReference : memberReferences) {
-              if (!memberReference.isQualified()) {
-                Element referenceElement = memberReference.getElement();
-                ClassElement referenceClass = referenceElement.getAncestor(ClassElement.class);
-                if (!Objects.equal(referenceClass, declarationClass)) {
-                  String message = MessageFormat.format(
-                      "Renamed {0} will shadow {1} ''{2}''.",
-                      getElementKindName(element),
-                      getElementKindName(member),
-                      getElementQualifiedName(member));
-                  result.addError(message, RefactoringStatusContext.create(memberReference));
-                }
-              }
-            }
-          }
-        }
-        pm.worked(1);
-      }
-      // done
-      return result;
-    } finally {
-      pm.done();
-    }
+    RenameUnitMemberValidator validator = new RenameUnitMemberValidator(
+        searchEngine,
+        element,
+        element.getKind(),
+        newName);
+    return validator.validate(pm, true);
   }
 }

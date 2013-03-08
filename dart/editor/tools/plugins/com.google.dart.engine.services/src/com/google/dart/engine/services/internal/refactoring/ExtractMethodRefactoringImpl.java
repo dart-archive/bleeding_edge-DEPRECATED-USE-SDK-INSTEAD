@@ -29,6 +29,8 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.Token;
@@ -41,6 +43,7 @@ import com.google.dart.engine.services.refactoring.ExtractMethodRefactoring;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
+import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -108,23 +111,24 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   private final AssistContext context;
   private final SourceRange selectionRange;
   private final CompilationUnit unitNode;
+
   private final CorrectionUtils utils;
-
   private String methodName;
+
   private boolean replaceAllOccurrences = true;
-
   private ExtractMethodAnalyzer selectionAnalyzer;
-  private final Set<String> usedNames = Sets.newHashSet();
 
+  private final Set<String> usedNames = Sets.newHashSet();
   private VariableElement returnVariable;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
   private ASTNode parentMember;
+
   private Expression selectionExpression;
-
   private List<Statement> selectionStatements;
-  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
 
+  private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
   private final List<Occurrence> occurrences = Lists.newArrayList();
+
   private boolean staticContext;
 
   public ExtractMethodRefactoringImpl(AssistContext context) throws Exception {
@@ -146,9 +150,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
       // parameters
       result.merge(checkParameterNames());
       pm.worked(1);
-      // conflicts TODO(scheglov)
-//      result.merge(checkPossibleConflicts(new SubProgressMonitor(pm, 1)));
-//      pm.worked(1);
+      // conflicts
+      result.merge(checkPossibleConflicts(new SubProgressMonitor(pm, 1)));
       // done
       return result;
     } finally {
@@ -392,6 +395,37 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   @Override
   public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
     this.replaceAllOccurrences = replaceAllOccurrences;
+  }
+
+  /**
+   * Checks if created method will shadow or will be shadowed by other elements.
+   */
+  private RefactoringStatus checkPossibleConflicts(ProgressMonitor pm) throws Exception {
+    final RefactoringStatus result = new RefactoringStatus();
+    // top-level function
+    if (parentMember.getParent() instanceof CompilationUnit) {
+      CompilationUnit unit = (CompilationUnit) parentMember.getParent();
+      RenameUnitMemberValidator validator = new RenameUnitMemberValidator(
+          context.getSearchEngine(),
+          unit.getElement(),
+          ElementKind.FUNCTION,
+          methodName);
+      result.merge(validator.validate(pm, false));
+    }
+    // method of class
+    if (parentMember.getParent() instanceof ClassDeclaration) {
+      ClassDeclaration classDeclaration = (ClassDeclaration) parentMember.getParent();
+      final ClassElement classElement = classDeclaration.getElement();
+      RenameClassMemberValidator validator = new RenameClassMemberValidator(
+          context.getSearchEngine(),
+          ElementKind.METHOD,
+          classElement,
+          null,
+          methodName);
+      result.merge(validator.validate(pm, false));
+    }
+    // OK
+    return result;
   }
 
   /**

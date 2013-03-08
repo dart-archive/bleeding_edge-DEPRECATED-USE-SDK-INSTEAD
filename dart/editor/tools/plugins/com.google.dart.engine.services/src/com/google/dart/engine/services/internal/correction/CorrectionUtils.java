@@ -173,6 +173,13 @@ public class CorrectionUtils {
    */
   public static String getElementKindName(Element element) {
     ElementKind kind = element.getKind();
+    return getElementKindName(kind);
+  }
+
+  /**
+   * @return the display name of the {@link ElementKind}.
+   */
+  public static String getElementKindName(ElementKind kind) {
     return kind.getDisplayName();
   }
 

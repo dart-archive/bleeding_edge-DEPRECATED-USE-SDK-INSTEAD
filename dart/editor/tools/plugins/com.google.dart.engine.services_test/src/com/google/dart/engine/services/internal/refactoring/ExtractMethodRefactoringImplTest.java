@@ -95,6 +95,133 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "Selection begins inside a comment.");
   }
 
+  public void test_bad_conflict_method_alreadyDeclaresMethod() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void res() {}",
+        "  main() {",
+        "// start",
+        "    print(0);",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.ERROR,
+        "Class 'A' already declares method with name 'res'.",
+        findRangeIdentifier("res() {}"));
+  }
+
+  public void test_bad_conflict_method_shadowsSuperDeclaration() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void res() {} // marker",
+        "}",
+        "class B extends A {",
+        "  main() {",
+        "    res();",
+        "// start",
+        "    print(0);",
+        "// end",
+        "  }",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.ERROR,
+        "Created method will shadow method 'A.res'.",
+        findRangeIdentifier("res() {} // marker"));
+  }
+
+  // TODO(scheglov) waiting for "library namespace" in Engine
+//  public void test_bad_conflict_method_willHideTopLevel() throws Exception {
+//    indexTestUnit(
+//        "// filler filler filler filler filler filler filler filler filler filler",
+//        "void res() {} // marker",
+//        "class B {",
+//        "  main() {",
+//        "// start",
+//        "    print(0);",
+//        "// end",
+//        "  }",
+//        "  foo() {",
+//        "    res();",
+//        "  }",
+//        "}",
+//        "");
+//    setSelectionFromStartEndComments();
+//    createRefactoring();
+//    // check conditions
+//    assertRefactoringStatus(
+//        refactoringStatus,
+//        RefactoringStatusSeverity.ERROR,
+//        "Created method will shadow method 'A.res'.",
+//        findRangeIdentifier("res() {} // marker"));
+////    assertTrue(refactoringStatus.hasError());
+////    {
+////      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
+////      assertEquals(
+////          "Usage of function 'res' in file 'Test/Test.dart' in library 'Test' will be shadowed by created function",
+////          msg);
+////    }
+//  }
+
+  public void test_bad_conflict_topLevel_alreadyDeclaresFunction() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void res() {}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.ERROR,
+        "Library already declares function with name 'res'.",
+        findRangeIdentifier("res() {}"));
+  }
+
+  public void test_bad_conflict_topLevel_willHideInheritedMemberUsage() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  void res() {}",
+        "}",
+        "class B extends A {",
+        "  foo() {",
+        "    res(); // marker",
+        "  }",
+        "}",
+        "main() {",
+        "// start",
+        "  print(0);",
+        "// end",
+        "}",
+        "");
+    setSelectionFromStartEndComments();
+    createRefactoring();
+    // check conditions
+    assertRefactoringStatus(
+        refactoringStatus,
+        RefactoringStatusSeverity.ERROR,
+        "Created function will shadow method 'A.res'.",
+        findRangeIdentifier("res(); // marker"));
+  }
+
   public void test_bad_constructor_initializer() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -157,103 +284,6 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         RefactoringStatusSeverity.FATAL,
         "Cannot extract a constructor initializer. Select expression part of initializer.");
   }
-
-  // TODO(scheglov) add checks for conflicts
-//  public void test_bad_conflict_method_willHideTopLevel() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "void res() {}",
-//        "class B extends A {",
-//        "  foo() {",
-//        "// start",
-//        "    print(0);",
-//        "// end",
-//        "  }",
-//        "  foo() {",
-//        "    res();",
-//        "  }",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    assertTrue(refactoringStatus.hasError());
-//    {
-//      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
-//      assertEquals(
-//          "Usage of function 'res' in file 'Test/Test.dart' in library 'Test' will be shadowed by created function",
-//          msg);
-//    }
-//  }
-//
-//  public void test_bad_conflict_topLevel_alreadyDeclaresFunction() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "void res() {}",
-//        "main() {",
-//        "// start",
-//        "  print(0);",
-//        "// end",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    assertTrue(refactoringStatus.hasError());
-//    {
-//      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
-//      assertEquals(
-//          "File 'Test/Test.dart' in library 'Test' already declares top-level function 'res'",
-//          msg);
-//    }
-//  }
-//
-//  public void test_bad_conflict_topLevel_alreadyDeclaresType() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class res {}",
-//        "main() {",
-//        "// start",
-//        "  print(0);",
-//        "// end",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    assertTrue(refactoringStatus.hasError());
-//    {
-//      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
-//      assertEquals(
-//          "File 'Test/Test.dart' in library 'Test' already declares top-level type 'res'",
-//          msg);
-//    }
-//  }
-//
-//  public void test_bad_conflict_topLevel_willHideInheritedMemberUsage() throws Exception {
-//    setTestUnitContent(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "class A {",
-//        "  void res() {}",
-//        "}",
-//        "class B extends A {",
-//        "  foo() {",
-//        "    res();",
-//        "  }",
-//        "}",
-//        "main() {",
-//        "// start",
-//        "  print(0);",
-//        "// end",
-//        "}",
-//        "");
-//    setSelectionFromStartEndComments();
-//    createRefactoring();
-//    assertTrue(refactoringStatus.hasError());
-//    {
-//      String msg = refactoringStatus.getMessageMatchingSeverity(RefactoringStatus.ERROR);
-//      assertEquals(
-//          "Usage of method 'A.res' declared in 'Test/Test.dart' will be shadowed by created function",
-//          msg);
-//    }
-//  }
 
   public void test_bad_doWhile_body() throws Exception {
     parseTestUnit(
@@ -1267,31 +1297,6 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "}",
         "");
   }
-
-  // TODO(scheglov) may be
-//  /**
-//   * We should be smart enough and ignore trailing semicolon.
-//   */
-//  public void test_singleExpression_withSemicolon() throws Exception {
-//    parseTestUnit(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int a = 1 + 2;",
-//        "}",
-//        "");
-//    selectionStart = findOffset("1");
-//    selectionEnd = findOffset("2;") + "2;".length();
-//    createRefactoring();
-//    // apply refactoring
-//    assertSuccessfulRefactoring(
-//        "// filler filler filler filler filler filler filler filler filler filler",
-//        "main() {",
-//        "  int a = res();",
-//        "}",
-//        "",
-//        "int res() => 1 + 2;",
-//        "");
-//  }
 
   public void test_singleExpression_withVariables() throws Exception {
     parseTestUnit(
