@@ -22,10 +22,9 @@ package com.google.dart.engine.element;
 public interface EmbeddedHtmlScriptElement extends HtmlScriptElement {
 
   /**
-   * Return the library element defined by the content of the script tag, or {@code null} if the
-   * content does not define a library.
+   * Return the library element defined by the content of the script tag.
    * 
-   * @return the library element
+   * @return the library element (not {@code null})
    */
   public LibraryElement getScriptLibrary();
 }

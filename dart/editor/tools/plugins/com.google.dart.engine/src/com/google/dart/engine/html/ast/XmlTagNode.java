@@ -182,6 +182,7 @@ public class XmlTagNode extends XmlNode {
     if (token == contentEnd) {
       return "";
     }
+    //TODO (danrubel): handle CDATA and replace HTML character encodings with the actual characters
     String content = token.getLexeme();
     token = token.getNext();
     if (token == contentEnd) {

@@ -16,6 +16,7 @@ package com.google.dart.engine.html.ast;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
+import com.google.dart.engine.internal.element.HtmlElementImpl;
 
 import java.util.List;
 
@@ -43,6 +44,11 @@ public class HtmlUnit extends XmlNode {
   private final List<XmlTagNode> tagNodes;
 
   /**
+   * The element associated with this HTML unit or {@code null} if the receiver is not resolved.
+   */
+  private HtmlElementImpl element;
+
+  /**
    * Construct a new instance representing the content of an HTML file.
    * 
    * @param beginToken the first token in the file (not {@code null})
@@ -66,6 +72,15 @@ public class HtmlUnit extends XmlNode {
     return beginToken;
   }
 
+  /**
+   * Return the element associated with this HTML unit.
+   * 
+   * @return the element or {@code null} if the receiver is not resolved
+   */
+  public HtmlElementImpl getElement() {
+    return element;
+  }
+
   @Override
   public Token getEndToken() {
     return endToken;
@@ -79,6 +94,15 @@ public class HtmlUnit extends XmlNode {
    */
   public List<XmlTagNode> getTagNodes() {
     return tagNodes;
+  }
+
+  /**
+   * Set the element associated with this HTML unit.
+   * 
+   * @param element the element
+   */
+  public void setElement(HtmlElementImpl element) {
+    this.element = element;
   }
 
   @Override

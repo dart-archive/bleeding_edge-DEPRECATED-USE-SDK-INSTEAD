@@ -29,7 +29,7 @@ public class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl impleme
     EmbeddedHtmlScriptElement {
 
   /**
-   * The script library defined by the script tag's content.
+   * The library defined by the script tag's content.
    */
   private LibraryElement scriptLibrary;
 
@@ -60,9 +60,10 @@ public class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl impleme
   /**
    * Set the script library defined by the script tag's content.
    * 
-   * @param scriptLibrary the library
+   * @param scriptLibrary the library or {@code null} if none
    */
-  public void setScriptLibrary(LibraryElement scriptLibrary) {
+  public void setScriptLibrary(LibraryElementImpl scriptLibrary) {
+    scriptLibrary.setEnclosingElement(this);
     this.scriptLibrary = scriptLibrary;
   }
 

@@ -15,6 +15,7 @@ package com.google.dart.engine.html.parser;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.parser.XmlValidator.Attributes;
 import com.google.dart.engine.html.parser.XmlValidator.Tag;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
@@ -30,6 +31,9 @@ public class HtmlParserTest extends EngineTestCase {
     HtmlUnit htmlUnit = parse(//
         "<html><body foo=\"sdfsdf\"></body></html>").getHtmlUnit();
     validate(htmlUnit, t("html", t("body", a("foo", "\"sdfsdf\""), "")));
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    assertEquals("sdfsdf", bodyNode.getAttributes().get(0).getText());
   }
 
   public void test_parse_attribute_EOF() throws Exception {
@@ -42,12 +46,24 @@ public class HtmlParserTest extends EngineTestCase {
     HtmlUnit htmlUnit = parse(//
         "<html><body foo=\"sdfsd").getHtmlUnit();
     validate(htmlUnit, t("html", t("body", a("foo", "\"sdfsd"), "")));
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    assertEquals("sdfsd", bodyNode.getAttributes().get(0).getText());
   }
 
   public void test_parse_attribute_extra_quote() throws Exception {
     HtmlUnit htmlUnit = parse(//
         "<html><body foo=\"sdfsdf\"\"></body></html>").getHtmlUnit();
     validate(htmlUnit, t("html", t("body", a("foo", "\"sdfsdf\""), "")));
+  }
+
+  public void test_parse_attribute_single_quote() throws Exception {
+    HtmlUnit htmlUnit = parse(//
+        "<html><body foo='sdfsdf'></body></html>").getHtmlUnit();
+    validate(htmlUnit, t("html", t("body", a("foo", "'sdfsdf'"), "")));
+    XmlTagNode htmlNode = htmlUnit.getTagNodes().get(0);
+    XmlTagNode bodyNode = htmlNode.getTagNodes().get(0);
+    assertEquals("sdfsdf", bodyNode.getAttributes().get(0).getText());
   }
 
   public void test_parse_comment_embedded() throws Exception {

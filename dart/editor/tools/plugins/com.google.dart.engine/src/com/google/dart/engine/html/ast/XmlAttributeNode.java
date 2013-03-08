@@ -76,6 +76,36 @@ public class XmlAttributeNode extends XmlNode {
   }
 
   /**
+   * Answer the lexeme for the value token without the leading and trailing quotes.
+   * 
+   * @return the text or {@code null} if the value is not specified
+   */
+  public String getText() {
+    if (value == null) {
+      return null;
+    }
+    //TODO (danrubel): replace HTML character encodings with the actual characters
+    String text = value.getLexeme();
+    int len = text.length();
+    if (len > 0) {
+      if (text.charAt(0) == '"') {
+        if (len > 1 && text.charAt(len - 1) == '"') {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      } else if (text.charAt(0) == '\'') {
+        if (len > 1 && text.charAt(len - 1) == '\'') {
+          return text.substring(1, len - 1);
+        } else {
+          return text.substring(1);
+        }
+      }
+    }
+    return text;
+  }
+
+  /**
    * Answer the attribute value. A properly formed value will start and end with matching quote
    * characters, but the value returned may not be properly formed.
    * 
