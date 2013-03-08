@@ -114,7 +114,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.6.3 Constant Constructors: It is a compile-time error if a constant constructor is declared
    * by a class that has a non-final instance variable.
    */
-  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD(""),
+  CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD(
+      "Classes with non-final fields cannot define 'const' constructors"),
 
   /**
    * 6.2 Formal Parameters: It is a compile-time error if a formal parameter is declared as a

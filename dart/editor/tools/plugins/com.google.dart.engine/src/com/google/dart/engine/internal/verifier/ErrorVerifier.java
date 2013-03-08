@@ -146,6 +146,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = currentFunction;
     try {
       currentFunction = node.getElement();
+      checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
       return super.visitConstructorDeclaration(node);
     } finally {
@@ -390,6 +391,34 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   /**
+   * This verifies that the passed constructor declaration is not 'const' if it has a non-final
+   * instance variable.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
+   */
+  private boolean checkForConstConstructorWithNonFinalField(ConstructorDeclaration node) {
+    if (node.getConstKeyword() == null) {
+      return false;
+    }
+    ConstructorElement constructorElement = node.getElement();
+    if (constructorElement != null) {
+      ClassElement classElement = constructorElement.getEnclosingElement();
+      FieldElement[] elements = classElement.getFields();
+      for (FieldElement field : elements) {
+        if (!field.isFinal()) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
+              node);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
    * This verifies that the passed instance creation expression is not being invoked on an abstract
    * class.
    * 
@@ -404,7 +433,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForConstOrNewWithAbstractClass(InstanceCreationExpression node,
       TypeName typeName, InterfaceType type) {
     if (type.getElement().isAbstract()) {
-      // CONST_WITH_ABSTRACT_CLASS & NEW_WITH_ABSTRACT_CLASS
       ConstructorElement element = node.getElement();
       if (element != null && !element.isFactory()) {
         if (((KeywordToken) node.getKeyword()).getKeyword() == Keyword.CONST) {

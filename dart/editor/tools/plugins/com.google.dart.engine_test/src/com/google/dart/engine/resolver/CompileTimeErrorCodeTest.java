@@ -93,17 +93,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constConstructorWithNonFinalField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  int x;",
-        "  const A() {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
-    verify(source);
-  }
-
   public void fail_constEvalThrowsException() throws Exception { // Not compile-time constant
     Source source = addSource("/test.dart", createSource(//
         "class C {",
@@ -1315,7 +1304,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  int x;",
-        "  const A.x() {}",
+        "  A.x() {}",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_FIELD);
@@ -1330,6 +1319,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_NAME_AND_METHOD);
+    verify(source);
+  }
+
+  public void test_constConstructorWithNonFinalField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  const A() {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
     verify(source);
   }
 
