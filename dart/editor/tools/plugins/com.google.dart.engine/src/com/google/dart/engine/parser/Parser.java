@@ -1724,11 +1724,7 @@ public class Parser {
       TypeName returnType = parseReturnType();
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            null,
-            false);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
       } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
         // TODO(brianwilkerson) Report this error and recover.
         return null;
@@ -1739,11 +1735,7 @@ public class Parser {
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION)) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(
-            commentAndMetadata,
-            modifiers.getExternalKeyword(),
-            null,
-            false);
+        return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
       } else {
         // We have found an error of some kind. Try to recover.
         if (matchesIdentifier()) {
@@ -1762,11 +1754,7 @@ public class Parser {
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          null,
-          false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (matches(Keyword.OPERATOR) && peek().isOperator()
         && matches(peek(2), TokenType.OPEN_PAREN)) {
       // TODO(brianwilkerson) Report this error and recover.
@@ -1776,11 +1764,7 @@ public class Parser {
       return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
-      return parseFunctionDeclaration(
-          commentAndMetadata,
-          modifiers.getExternalKeyword(),
-          null,
-          false);
+      return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
       return new TopLevelVariableDeclaration(
           commentAndMetadata.getComment(),
@@ -1794,8 +1778,7 @@ public class Parser {
       return parseFunctionDeclaration(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
-          returnType,
-          false);
+          returnType);
     } else if (!matchesIdentifier()) {
       // TODO(brianwilkerson) Report this error and recover.
       return null;
@@ -1805,8 +1788,7 @@ public class Parser {
       return parseFunctionDeclaration(
           commentAndMetadata,
           modifiers.getExternalKeyword(),
-          returnType,
-          false);
+          returnType);
     }
     return new TopLevelVariableDeclaration(
         commentAndMetadata.getComment(),
@@ -2692,7 +2674,7 @@ public class Parser {
    * @return the function declaration that was parsed
    */
   private FunctionDeclaration parseFunctionDeclaration(CommentAndMetadata commentAndMetadata,
-      Token externalKeyword, TypeName returnType, boolean isStatement) {
+      Token externalKeyword, TypeName returnType) {
     Token keyword = null;
     boolean isGetter = false;
     if (matches(Keyword.GET) && !matches(peek(), TokenType.OPEN_PAREN)) {
@@ -2714,15 +2696,17 @@ public class Parser {
       reportError(ParserErrorCode.GETTER_WITH_PARAMETERS);
       parseFormalParameterList();
     }
-    FunctionBody body = null;
+    FunctionBody body;
     if (externalKeyword == null) {
       body = parseFunctionBody(false, false);
+    } else {
+      body = new EmptyFunctionBody(expect(TokenType.SEMICOLON));
     }
-    if (!isStatement && matches(TokenType.SEMICOLON)) {
-      // TODO(brianwilkerson) Improve this error message.
-      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
-      advance();
-    }
+//    if (!isStatement && matches(TokenType.SEMICOLON)) {
+//      // TODO(brianwilkerson) Improve this error message.
+//      reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
+//      advance();
+//    }
     return new FunctionDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
@@ -2765,8 +2749,7 @@ public class Parser {
     return new FunctionDeclarationStatement(parseFunctionDeclaration(
         commentAndMetadata,
         null,
-        returnType,
-        true));
+        returnType));
   }
 
   /**

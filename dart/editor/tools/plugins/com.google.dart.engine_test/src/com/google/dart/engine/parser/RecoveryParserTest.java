@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.NodeList;
@@ -493,16 +492,6 @@ public class RecoveryParserTest extends ParserTestCase {
   public void test_shiftExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super << <<");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
-  }
-
-  public void test_topLevelExternalFunction_extraSemicolon() throws Exception {
-    CompilationUnit unit = parseCompilationUnit(
-        "external void f(A a);",
-        ParserErrorCode.UNEXPECTED_TOKEN);
-    NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
-    assertSize(1, declarations);
-    FunctionDeclaration declaration = (FunctionDeclaration) declarations.get(0);
-    assertNotNull(declaration);
   }
 
   public void test_typedef_eof() throws Exception {

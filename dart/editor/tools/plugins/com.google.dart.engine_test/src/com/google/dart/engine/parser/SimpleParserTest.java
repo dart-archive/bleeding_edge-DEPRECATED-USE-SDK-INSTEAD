@@ -1414,7 +1414,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external f()");
+        "external f();");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNull(declaration.getPropertyKeyword());
@@ -1424,7 +1424,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external int f()");
+        "external int f();");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNull(declaration.getPropertyKeyword());
@@ -1452,7 +1452,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external get p");
+        "external get p;");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
@@ -1462,7 +1462,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external int get p");
+        "external int get p;");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
@@ -1490,7 +1490,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external set p(v)");
+        "external set p(v);");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
@@ -1500,7 +1500,7 @@ public class SimpleParserTest extends ParserTestCase {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
         new Object[] {emptyCommentAndMetadata()},
-        "external void set p(int v)");
+        "external void set p(int v);");
     assertNotNull(declaration.getExternalKeyword());
     assertNotNull(declaration.getFunctionExpression());
     assertNotNull(declaration.getPropertyKeyword());
@@ -2471,22 +2471,7 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Object[] {
-        commentAndMetadata(comment), null, returnType, false}, "f() {}");
-    assertEquals(comment, declaration.getDocumentationComment());
-    assertEquals(returnType, declaration.getReturnType());
-    assertNotNull(declaration.getName());
-    FunctionExpression expression = declaration.getFunctionExpression();
-    assertNotNull(expression);
-    assertNotNull(expression.getBody());
-    assertNotNull(expression.getParameters());
-    assertNull(declaration.getPropertyKeyword());
-  }
-
-  public void test_parseFunctionDeclaration_function_inStatement() throws Exception {
-    Comment comment = Comment.createDocumentationComment(new Token[0]);
-    TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
-    FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Object[] {
-        commentAndMetadata(comment), null, returnType, true}, "f() {};");
+        commentAndMetadata(comment), null, returnType}, "f() {}");
     assertEquals(comment, declaration.getDocumentationComment());
     assertEquals(returnType, declaration.getReturnType());
     assertNotNull(declaration.getName());
@@ -2501,7 +2486,7 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Object[] {
-        commentAndMetadata(comment), null, returnType, false}, "get p => 0;");
+        commentAndMetadata(comment), null, returnType}, "get p => 0;");
     assertEquals(comment, declaration.getDocumentationComment());
     assertEquals(returnType, declaration.getReturnType());
     assertNotNull(declaration.getName());
@@ -2516,7 +2501,7 @@ public class SimpleParserTest extends ParserTestCase {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
     FunctionDeclaration declaration = parse("parseFunctionDeclaration", new Object[] {
-        commentAndMetadata(comment), null, returnType, false}, "set p(v) {}");
+        commentAndMetadata(comment), null, returnType}, "set p(v) {}");
     assertEquals(comment, declaration.getDocumentationComment());
     assertEquals(returnType, declaration.getReturnType());
     assertNotNull(declaration.getName());
