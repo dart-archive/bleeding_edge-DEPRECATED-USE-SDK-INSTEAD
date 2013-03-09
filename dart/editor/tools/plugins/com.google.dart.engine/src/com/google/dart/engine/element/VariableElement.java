@@ -40,18 +40,18 @@ public interface VariableElement extends Element {
   public Type getType();
 
   /**
-   * Return {@code true} if this variable is a const variable. Variables are const if they have been
-   * marked as being const using the {@code const} modifier.
+   * Return {@code true} if this variable was declared with the 'const' modifier.
    * 
-   * @return {@code true} if this variable is a const variable
+   * @return {@code true} if this variable was declared with the 'const' modifier
    */
   public boolean isConst();
 
   /**
-   * Return {@code true} if this variable is a final variable. Variables are final if they have been
-   * marked as being final using either the {@code final} or {@code const} modifiers.
+   * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return {@code false} even though they are implicitly
+   * final.
    * 
-   * @return {@code true} if this variable is a final variable
+   * @return {@code true} if this variable was declared with the 'final' modifier
    */
   public boolean isFinal();
 }

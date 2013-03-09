@@ -113,11 +113,23 @@ public class DeclaredIdentifier extends Declaration {
     return type;
   }
 
+  /**
+   * Return {@code true} if this variable was declared with the 'const' modifier.
+   * 
+   * @return {@code true} if this variable was declared with the 'const' modifier
+   */
   public boolean isConst() {
     return (keyword instanceof KeywordToken)
         && ((KeywordToken) keyword).getKeyword() == Keyword.CONST;
   }
 
+  /**
+   * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return {@code false} even though they are implicitly
+   * final.
+   * 
+   * @return {@code true} if this variable was declared with the 'final' modifier
+   */
   public boolean isFinal() {
     return (keyword instanceof KeywordToken)
         && ((KeywordToken) keyword).getKeyword() == Keyword.FINAL;

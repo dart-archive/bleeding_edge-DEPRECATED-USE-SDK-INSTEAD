@@ -97,16 +97,18 @@ public abstract class NormalFormalParameter extends FormalParameter {
   }
 
   /**
-   * Return {@code true} if this parameter is a const parameter.
+   * Return {@code true} if this parameter was declared with the 'const' modifier.
    * 
-   * @return {@code true} if this parameter is a const parameter
+   * @return {@code true} if this parameter was declared with the 'const' modifier
    */
   public abstract boolean isConst();
 
   /**
-   * Return {@code true} if this parameter is a final parameter.
+   * Return {@code true} if this parameter was declared with the 'final' modifier. Parameters that
+   * are declared with the 'const' modifier will return {@code false} even though they are
+   * implicitly final.
    * 
-   * @return {@code true} if this parameter is a final parameter
+   * @return {@code true} if this parameter was declared with the 'final' modifier
    */
   public abstract boolean isFinal();
 

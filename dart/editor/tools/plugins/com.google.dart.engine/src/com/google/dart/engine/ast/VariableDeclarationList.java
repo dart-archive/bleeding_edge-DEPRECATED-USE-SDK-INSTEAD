@@ -115,10 +115,9 @@ public class VariableDeclarationList extends ASTNode {
   }
 
   /**
-   * Return {@code true} if the variable declarations in this list are declared to be const
-   * variables.
+   * Return {@code true} if the variables in this list were declared with the 'const' modifier.
    * 
-   * @return {@code true} if the variables in this list are declared to be const variables
+   * @return {@code true} if the variables in this list were declared with the 'const' modifier
    */
   public boolean isConst() {
     return keyword instanceof KeywordToken
@@ -126,10 +125,11 @@ public class VariableDeclarationList extends ASTNode {
   }
 
   /**
-   * Return {@code true} if the variable declarations in this list are declared to be final
-   * variables.
+   * Return {@code true} if the variables in this list were declared with the 'final' modifier.
+   * Variables that are declared with the 'const' modifier will return {@code false} even though
+   * they are implicitly final.
    * 
-   * @return {@code true} if the variables in this list are declared to be final variables
+   * @return {@code true} if the variables in this list were declared with the 'final' modifier
    */
   public boolean isFinal() {
     return keyword instanceof KeywordToken

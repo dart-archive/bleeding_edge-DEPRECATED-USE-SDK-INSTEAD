@@ -113,9 +113,9 @@ public class VariableDeclaration extends Declaration {
   }
 
   /**
-   * Return {@code true} if this variable declaration is declared to be a const variable.
+   * Return {@code true} if this variable was declared with the 'const' modifier.
    * 
-   * @return {@code true} if this variable is declared to be a const variable
+   * @return {@code true} if this variable was declared with the 'const' modifier
    */
   public boolean isConst() {
     ASTNode parent = getParent();
@@ -124,9 +124,11 @@ public class VariableDeclaration extends Declaration {
   }
 
   /**
-   * Return {@code true} if this variable declaration is declared to be a final variable.
+   * Return {@code true} if this variable was declared with the 'final' modifier. Variables that are
+   * declared with the 'const' modifier will return {@code false} even though they are implicitly
+   * final.
    * 
-   * @return {@code true} if this variable is declared to be a final variable
+   * @return {@code true} if this variable was declared with the 'final' modifier
    */
   public boolean isFinal() {
     ASTNode parent = getParent();
