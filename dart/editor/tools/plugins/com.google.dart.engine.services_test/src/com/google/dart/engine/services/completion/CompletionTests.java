@@ -184,6 +184,19 @@ public class CompletionTests extends CompletionTestCase {
         "D+test");
   }
 
+  public void test011() throws Exception {
+    test("r2(var object, Object object1, Object !1);", "1+object2");
+  }
+
+  public void test012() throws Exception {
+    test(src(//
+        "class X {",
+        "f() {",
+        "  g(!1var!2 z) {!3true.!4toString();};",
+        " }",
+        "}"), "1+var", "1+dynamic", "1-f", "2+var", "2-dynamic", "3+false", "3+true", "4+toString");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -284,6 +297,41 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets017() throws Exception {
     test("class F {var x = !1false;}", "1+true");
+  }
+
+  public void testCommentSnippets018() throws Exception {
+    test(
+        "class Map{}class Arrays{}class C{ m(!1){} n(!2 x, q)",
+        "1+Map",
+        "1-void",
+        "1-null",
+        "2+Arrays",
+        "2-void",
+        "2-null");
+  }
+
+  public void testCommentSnippets019() throws Exception {
+    test("class A{m(){Object x;x.!1/**/clear()", "1+toString");
+  }
+
+  public void testCommentSnippets020() throws Exception {
+    test(
+        "classMap{}class tst {var newt;void newf(){}test() {var newz;new!1/**/;}}",
+        "1+newt",
+        "1+newf",
+        "1+newz",
+        "1-Map");
+  }
+
+  public void testCommentSnippets021() throws Exception {
+    test(
+        "class Map{}class tst {var newt;void newf(){}test() {var newz;new !1/**/;}}",
+        "1+Map",
+        "1-newt");
+  }
+
+  public void testCommentSnippets026() throws Exception {
+    test("class List{}class a implements !1{}", "1+List");
   }
 
   public void testCommentSnippets027() throws Exception {

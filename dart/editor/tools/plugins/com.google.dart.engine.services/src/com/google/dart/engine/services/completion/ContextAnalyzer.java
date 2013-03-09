@@ -39,7 +39,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     if (inTypeName || node.getReturnType() == null) {
       // This may be an incomplete class type alias
-      state.includesUndefinedTypes();
+      state.includesUndefinedDeclarationTypes();
     }
     return super.visitFunctionTypeAlias(node);
   }
@@ -97,7 +97,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
-    state.includesUndefinedTypes();
+    state.includesUndefinedDeclarationTypes();
     return super.visitVariableDeclarationList(node);
   }
 

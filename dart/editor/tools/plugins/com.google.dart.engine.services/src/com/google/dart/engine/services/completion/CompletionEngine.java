@@ -28,10 +28,14 @@ import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
@@ -92,8 +96,8 @@ import java.util.Map;
  */
 public class CompletionEngine {
 
-  /*private*/class NameCollector {
-    Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+  class NameCollector {
+    private Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
 
     void addNamesDefinedByExecutable(ExecutableElement execElement) {
       mergeNames(execElement.getParameters());
@@ -202,8 +206,20 @@ public class CompletionEngine {
   }
 
   private class Ident extends EphemeralIdentifier {
+    private String name;
+
     Ident(ASTNode parent) {
       super(parent, completionLocation());
+    }
+
+    Ident(ASTNode parent, Token name) {
+      super(parent, name.getOffset());
+      this.name = name.getLexeme();
+    }
+
+    @Override
+    public String getName() {
+      return name == null ? super.getName() : name;
     }
   }
 
@@ -349,7 +365,16 @@ public class CompletionEngine {
     @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
       if (node.getIdentifier() == completionNode) {
-        analyzeLocalName(completionNode);
+        if (node.getKeyword() == null && node.getType() == null) {
+          Ident ident = new Ident(node);
+          analyzeTypeName(node.getIdentifier(), ident);
+          return null;
+        }
+      }
+      if (node.getKeyword() != null && isCompletionBefore(node.getKeyword().getEnd())) {
+        final Token token = node.getKeyword();
+        Ident ident = new Ident(node, token);
+        analyzeTypeName(ident, ident);
       }
       return null;
     }
@@ -376,7 +401,7 @@ public class CompletionEngine {
     @Override
     public Void visitVariableDeclaration(VariableDeclaration node) {
       if (node.getName() == completionNode) {
-        analyzeDeclarationName(node.getName());
+        analyzeDeclarationName(node);
         return null;
       } else if (node.getInitializer() == completionNode) {
         analyzeLocalName((SimpleIdentifier) node.getInitializer());
@@ -459,6 +484,37 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitFormalParameter(FormalParameter node) {
+      return super.visitFormalParameter(node);
+    }
+
+    @Override
+    public Void visitFormalParameterList(FormalParameterList node) {
+      if (isCompletionBetween(
+          node.getLeftParenthesis().getEnd(),
+          node.getRightParenthesis().getOffset())) {
+        NodeList<FormalParameter> params = node.getParameters();
+        if (!params.isEmpty()) {
+          FormalParameter last = params.get(params.size() - 1);
+          if (isCompletionBetween(last.getEnd(), node.getRightParenthesis().getOffset())) {
+            List<FormalParameter> newParams = copyWithout(params, last);
+            analyzeNewParameterName(newParams, last.getIdentifier(), null);
+            return null;
+          } else {
+            Ident ident = new Ident(node);
+            analyzeTypeName(ident, ident);
+            return null;
+          }
+        } else {
+          Ident ident = new Ident(node);
+          analyzeTypeName(ident, ident);
+          return null;
+        }
+      }
+      return null;
+    }
+
+    @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
@@ -484,7 +540,28 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        Ident ident = new Ident(node, node.getKeyword());
+        analyzeLocalName(ident);
+        return null;
+      } else {
+        Ident ident = new Ident(node);
+        analyzeTypeName(ident, ident);
+        return null;
+      }
+    }
+
+    @Override
     public Void visitMethodInvocation(MethodInvocation node) {
+      Token period = node.getPeriod();
+      if (period != null && isCompletionAfter(period.getEnd())) {
+        // { x.!y() }
+        Expression expr = node.getTarget();
+        Type receiverType = typeOf(expr);
+        analyzePrefixedAccess(receiverType, node.getMethodName());
+      }
       return null;
     }
 
@@ -611,10 +688,12 @@ public class CompletionEngine {
   // Review note: It may look like literals (pNull, etc) are coded redundantly, but that's because
   // all the code hasn't been written yet.
   private static final String C_DYNAMIC = "dynamic";
-  private static final String C_VOID = "void";
-  private static final String C_TRUE = "true";
   private static final String C_FALSE = "false";
   private static final String C_NULL = "null";
+  private static final String C_PARAMNAME = "arg";
+  private static final String C_TRUE = "true";
+  private static final String C_VAR = "var";
+  private static final String C_VOID = "void";
 
   private CompletionRequestor requestor;
   private CompletionFactory factory;
@@ -646,12 +725,17 @@ public class CompletionEngine {
     requestor.endReporting();
   }
 
-  void analyzeDeclarationName(SimpleIdentifier identifier) {
+  void analyzeDeclarationName(VariableDeclaration varDecl) {
     // We might want to propose multiple names for a declaration based on types someday.
     // For now, just use whatever is already there.
+    SimpleIdentifier identifier = varDecl.getName();
     filter = new Filter(identifier);
+    TypeName type = ((VariableDeclarationList) varDecl.getParent()).getType();
     if (identifier.getLength() > 0) {
       pName(identifier);
+    }
+    if (type != null) {
+      pParamName(type.getName().getName().toLowerCase());
     }
   }
 
@@ -679,8 +763,8 @@ public class CompletionEngine {
   void analyzeLocalName(SimpleIdentifier identifier) {
     // Completion x!
     filter = new Filter(identifier);
-    Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : uniqueNames.values()) {
+    Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : uniqueNames) {
       Element candidate = uniques.get(0);
       if (state.isSourceDeclarationStatic) {
         if (candidate instanceof FieldElement) {
@@ -695,6 +779,27 @@ public class CompletionEngine {
       pNull();
       pTrue();
       pFalse();
+    }
+  }
+
+  void analyzeNewParameterName(List<FormalParameter> params, SimpleIdentifier typeIdent,
+      String identifierName) {
+    String typeName = typeIdent.getName();
+    filter = new Filter(new Ident(typeIdent));
+    List<String> names = new ArrayList<String>(params.size());
+    for (FormalParameter node : params) {
+      names.add(node.getIdentifier().getName());
+    }
+    // Find name similar to typeName not in names, ditto for identifierName.
+    if (identifierName == null || identifierName.isEmpty()) {
+      String candidate = typeName == null || typeName.isEmpty() ? C_PARAMNAME
+          : typeName.toLowerCase();
+      pParamName(makeNonconflictingName(candidate, names));
+    } else {
+      pParamName(makeNonconflictingName(identifierName, names));
+      if (typeName != null && !typeName.isEmpty()) {
+        pParamName(makeNonconflictingName(typeName.toLowerCase(), names));
+      }
     }
   }
 
@@ -714,8 +819,8 @@ public class CompletionEngine {
   void analyzeReceiver(SimpleIdentifier identifier) {
     // Completion x!.y
     filter = new Filter(identifier);
-    Map<String, List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
-    for (List<Element> uniques : uniqueNames.values()) {
+    Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
+    for (List<Element> uniques : uniqueNames) {
       Element candidate = uniques.get(0);
       pName(candidate);
     }
@@ -742,6 +847,9 @@ public class CompletionEngine {
     }
     if (state.isDynamicAllowed) {
       pDynamic();
+    }
+    if (state.isVarAllowed) {
+      pVar();
     }
     if (state.isVoidAllowed) {
       pVoid();
@@ -820,31 +928,29 @@ public class CompletionEngine {
     return allTypes;
   }
 
-  private Map<String, List<Element>> collectIdentifiersVisibleAt(ASTNode ident) {
-    Map<String, List<Element>> uniqueNames = new HashMap<String, List<Element>>();
+  private Collection<List<Element>> collectIdentifiersVisibleAt(ASTNode ident) {
+    NameCollector names = new NameCollector();
     Declaration decl = ident.getAncestor(Declaration.class);
     if (decl != null) {
       Element element = decl.getElement();
       Element localDef = null;
-      if (element instanceof LocalVariableElement) { // TODO: Also applies to local functions...
+      if (element instanceof LocalVariableElement) {
         decl = decl.getParent().getAncestor(Declaration.class);
         localDef = element;
         element = decl.getElement();
       }
       if (element instanceof ExecutableElement) {
         ExecutableElement execElement = (ExecutableElement) element;
-        ParameterElement[] params = execElement.getParameters();
-        mergeNames(uniqueNames, params);
+        names.addNamesDefinedByExecutable(execElement);
         VariableElement[] vars = execElement.getLocalVariables();
-        mergeNames(uniqueNames, vars);
         for (VariableElement var : vars) {
           // Remove local vars defined after ident.
           if (var.getNameOffset() >= ident.getOffset()) {
-            mergedNameRemove(uniqueNames, var);
+            names.remove(var);
           }
           // If ident is part of the initializer for a local var, remove that local var.
           if (localDef != null) {
-            mergedNameRemove(uniqueNames, localDef);
+            names.remove(localDef);
           }
         }
         decl = decl.getParent().getAncestor(Declaration.class);
@@ -854,19 +960,16 @@ public class CompletionEngine {
       }
       if (element instanceof ClassElement) {
         ClassElement classElement = (ClassElement) element;
-        // TODO: inherited fields
-        mergeNames(uniqueNames, classElement.getAccessors());
-        mergeNames(uniqueNames, classElement.getMethods());
+        names.addNamesDefinedByTypes(allSuperTypes(classElement));
+        names.addNamesDefinedByTypes(allSubtypes(classElement));
         decl = decl.getAncestor(Declaration.class);
         if (decl != null) {
           element = decl.getElement();
         }
       }
-      mergeNames(uniqueNames, findAllTypes());
-      mergeNames(uniqueNames, findAllFunctions());
-      mergeNames(uniqueNames, findAllVariables());
+      names.addTopLevelNames();
     }
-    return uniqueNames;
+    return names.getNames();
   }
 
   private int completionLocation() {
@@ -875,6 +978,21 @@ public class CompletionEngine {
 
   private int completionTokenOffset() {
     return completionLocation() - filter.prefix.length();
+  }
+
+  private <X extends ASTNode> List<FormalParameter> copyWithout(NodeList<X> oldList,
+      final ASTNode deletion) {
+    final List<FormalParameter> newList = new ArrayList<FormalParameter>(oldList.size() - 1);
+    oldList.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitNode(ASTNode node) {
+        if (node != deletion) {
+          newList.add((FormalParameter) node);
+        }
+        return null;
+      }
+    });
+    return newList;
   }
 
   private CompletionProposal createProposal(ProposalKind kind) {
@@ -961,27 +1079,18 @@ public class CompletionEngine {
     return isCompletionAfter(firstLoc) && isCompletionBefore(secondLoc);
   }
 
-  private <X extends Element> void mergedNameRemove(Map<String, List<X>> uniqueNames, X element) {
-    String name = element.getName();
-    List<X> list = uniqueNames.get(name);
-    if (list == null) {
-      return;
-    }
-    list.remove(element);
-    if (list.isEmpty()) {
-      uniqueNames.remove(name);
-    }
-  }
-
-  private <X extends Element> void mergeNames(Map<String, List<X>> uniqueNames, X[] elements) {
-    for (X element : elements) {
-      String name = element.getName();
-      List<X> dups = uniqueNames.get(name);
-      if (dups == null) {
-        dups = new ArrayList<X>();
-        uniqueNames.put(name, dups);
+  private String makeNonconflictingName(String candidate, List<String> names) {
+    String possibility = candidate;
+    int count = 0;
+    loop : while (true) {
+      String name = count == 0 ? possibility : possibility + count;
+      for (String conflict : names) {
+        if (name.equals(conflict)) {
+          count += 1;
+          continue loop;
+        }
       }
-      dups.add(element);
+      return name;
     }
   }
 
@@ -1090,6 +1199,17 @@ public class CompletionEngine {
     requestor.accept(prop);
   }
 
+  private void pParamName(String name) {
+    if (filterDisallows(name)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.PARAMETER,
+        completionTokenOffset());
+    prop.setCompletion(name);
+    requestor.accept(prop);
+  }
+
   private ProposalKind proposalKindOf(Element element) {
     ProposalKind kind;
     switch (element.getKind()) {
@@ -1171,6 +1291,17 @@ public class CompletionEngine {
         ProposalKind.VARIABLE,
         completionTokenOffset());
     prop.setCompletion(C_TRUE);
+    requestor.accept(prop);
+  }
+
+  private void pVar() {
+    if (filterDisallows(C_VAR)) {
+      return;
+    }
+    CompletionProposal prop = factory.createCompletionProposal(
+        ProposalKind.VARIABLE,
+        completionTokenOffset());
+    prop.setCompletion(C_VAR);
     requestor.accept(prop);
   }
 

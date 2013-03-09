@@ -10,6 +10,7 @@ class CompletionState {
   boolean isVoidAllowed;
   boolean isDynamicAllowed;
   boolean isSourceDeclarationStatic;
+  boolean isVarAllowed;
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
 
@@ -19,8 +20,13 @@ class CompletionState {
     }
   }
 
-  void includesUndefinedTypes() {
+  void includesUndefinedDeclarationTypes() {
     isVoidAllowed = true;
+    isDynamicAllowed = true;
+  }
+
+  void includesUndefinedTypes() {
+    isVarAllowed = true;
     isDynamicAllowed = true;
   }
 
