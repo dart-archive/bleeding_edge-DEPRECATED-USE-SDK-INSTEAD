@@ -14,12 +14,14 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
+
 import org.eclipse.debug.core.model.IValue;
 
 /**
  * A sub-class of IValue that adds additional meta-information about the value.
  */
-public interface IDartDebugValue extends IValue {
+public interface IDartDebugValue extends IValue, IExpressionEvaluator {
 
   /**
    * @return whether this value represents a list
@@ -30,5 +32,10 @@ public interface IDartDebugValue extends IValue {
    * @return whether this value represents a null value
    */
   public boolean isNull();
+
+  /**
+   * @return whether this value represents a primitive type
+   */
+  public boolean isPrimitive();
 
 }

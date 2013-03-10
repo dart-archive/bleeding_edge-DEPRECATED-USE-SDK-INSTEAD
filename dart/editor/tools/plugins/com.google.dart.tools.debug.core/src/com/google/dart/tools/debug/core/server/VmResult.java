@@ -22,6 +22,12 @@ import org.json.JSONObject;
  */
 public class VmResult<T> {
 
+  static <T> VmResult<T> createErrorResult(String errorMessage) {
+    VmResult<T> result = new VmResult<T>();
+    result.setError(errorMessage);
+    return result;
+  }
+
   static <T> VmResult<T> createFrom(JSONObject params) throws JSONException {
     VmResult<T> result = new VmResult<T>();
 

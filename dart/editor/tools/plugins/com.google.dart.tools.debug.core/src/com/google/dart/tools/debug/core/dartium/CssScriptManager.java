@@ -85,9 +85,7 @@ class CssScriptManager implements ResourceChangeParticipant {
   }
 
   private void handleStyleSheetResults(WebkitResult<WebkitStyleSheetRef[]> result) {
-    if (result.isError()) {
-      DartDebugCorePlugin.logError("Error retrieving stylesheets: " + result);
-    } else {
+    if (!result.isError()) {
       for (WebkitStyleSheetRef ref : result.getResult()) {
         styleSheets.add(ref);
       }

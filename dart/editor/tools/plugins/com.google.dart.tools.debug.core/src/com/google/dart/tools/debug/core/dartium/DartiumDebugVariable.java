@@ -68,7 +68,7 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   /**
    * @return a user-consumable string for the variable name
    */
-  public String getDisplayName() {
+  public String getDisplayName() throws DebugException {
     if (isListMember()) {
       return "[" + getName() + "]";
     }
@@ -79,22 +79,34 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   }
 
   @Override
-  public String getName() {
-    return DebuggerUtils.demangleVmName(descriptor.getName());
+  public String getName() throws DebugException {
+    try {
+      return DebuggerUtils.demangleVmName(descriptor.getName());
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    return getValue().getReferenceTypeName();
+    try {
+      return getValue().getReferenceTypeName();
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
-  public IValue getValue() {
-    if (value == null) {
-      value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
-    }
+  public IValue getValue() throws DebugException {
+    try {
+      if (value == null) {
+        value = new DartiumDebugValue(getTarget(), this, descriptor.getValue());
+      }
 
-    return value;
+      return value;
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
@@ -110,11 +122,19 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
   }
 
   public boolean isListValue() {
-    return getDartiumValue().isListValue();
+    try {
+      return ((DartiumDebugValue) getValue()).isListValue();
+    } catch (DebugException e) {
+      return false;
+    }
   }
 
   public boolean isPrimitiveValue() {
-    return getDartiumValue().isPrimitive();
+    try {
+      return ((DartiumDebugValue) getValue()).isPrimitive();
+    } catch (DebugException e) {
+      return false;
+    }
   }
 
   @Override
@@ -124,12 +144,12 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   @Override
   public boolean isThisObject() {
-    return isSpecialObject && getName().equals("this");
+    return isSpecialObject && descriptor.getName().equals("this");
   }
 
   @Override
   public boolean isThrownException() {
-    return isSpecialObject && getName().equals("exception");
+    return isSpecialObject && descriptor.getName().equals("exception");
   }
 
   @Override
@@ -182,10 +202,6 @@ public class DartiumDebugVariable extends DartiumDebugElement implements IDartDe
 
   protected void setParent(DartiumDebugVariable parent) {
     this.parent = parent;
-  }
-
-  private DartiumDebugValue getDartiumValue() {
-    return (DartiumDebugValue) getValue();
   }
 
   private boolean isListMember() {

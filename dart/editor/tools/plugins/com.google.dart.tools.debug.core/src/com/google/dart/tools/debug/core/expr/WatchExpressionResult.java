@@ -38,6 +38,18 @@ public class WatchExpressionResult implements IWatchExpressionResult {
   }
 
   /**
+   * @return a expression result with the given error text
+   */
+  public static IWatchExpressionResult exception(String expression, DebugException exception) {
+    WatchExpressionResult result = new WatchExpressionResult(expression);
+
+    result.errors = Collections.singletonList(exception.toString());
+    result.exception = exception;
+
+    return result;
+  }
+
+  /**
    * @return an expression result with no value or errors
    */
   public static IWatchExpressionResult noOp(String expression) {

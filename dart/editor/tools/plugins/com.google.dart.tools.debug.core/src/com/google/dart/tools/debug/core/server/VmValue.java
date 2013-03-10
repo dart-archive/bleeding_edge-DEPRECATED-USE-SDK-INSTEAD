@@ -96,6 +96,10 @@ public class VmValue extends VmRef {
     return "object".equals(getKind());
   }
 
+  public boolean isPrimitive() {
+    return "integer".equals(kind) || "boolean".equals(kind) || "string".equals(kind);
+  }
+
   public boolean isString() {
     return "string".equals(getKind());
   }

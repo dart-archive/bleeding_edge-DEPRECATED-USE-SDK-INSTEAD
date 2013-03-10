@@ -16,6 +16,8 @@ package com.google.dart.tools.debug.ui.internal;
 import com.google.dart.tools.debug.ui.internal.presentation.DebugElementAdapterFactory;
 import com.google.dart.tools.debug.ui.internal.view.DebuggerViewManager;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -77,6 +79,25 @@ public class DartDebugUIPlugin extends AbstractUIPlugin {
    */
   public static Image getImage(String imagePath) {
     return getDefault().getPluginImage(imagePath);
+  }
+
+  /**
+   * Log an error message
+   * 
+   * @param message the error messsage
+   */
+  public static void logError(String message) {
+    getDefault().getLog().log(new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, message));
+  }
+
+  /**
+   * Log the specified error to the Eclipse error log
+   * 
+   * @param e the exception
+   */
+  public static void logError(Throwable e) {
+    getDefault().getLog().log(
+        new Status(IStatus.ERROR, DartDebugUIPlugin.PLUGIN_ID, e.toString(), e));
   }
 
   /**

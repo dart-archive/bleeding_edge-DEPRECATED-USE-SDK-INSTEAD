@@ -271,7 +271,11 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
       IExceptionStackFrame f = (IExceptionStackFrame) frame;
 
       if (f.hasException()) {
-        return f.getExceptionDisplayText();
+        try {
+          return f.getExceptionDisplayText();
+        } catch (DebugException e) {
+          DartUtil.logError(e);
+        }
       }
     }
 

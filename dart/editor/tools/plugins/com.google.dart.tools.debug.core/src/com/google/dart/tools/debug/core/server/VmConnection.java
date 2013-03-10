@@ -165,6 +165,45 @@ public class VmConnection {
     });
   }
 
+  public void evaluateGlobal(VmIsolate isolate, String expression,
+      final VmCallback<VmValue> callback) {
+    // TODO(devoncarew): call through to the VM implementation when available
+
+    VmResult<VmValue> result = VmResult.createErrorResult("unimplemented");
+    callback.handleResult(result);
+  }
+
+  public void evaluateObject(VmIsolate isolate, VmValue value, String expression,
+      final VmCallback<VmValue> callback) throws IOException {
+    // TODO(devoncarew): this mock implementation is _very_ temporary
+    final String ex = expression.trim();
+
+    getObjectProperties(isolate, value.getObjectId(), new VmCallback<VmObject>() {
+      @Override
+      public void handleResult(VmResult<VmObject> result) {
+        for (VmVariable variable : result.getResult().getFields()) {
+          if (variable.getName().equals(ex)) {
+            VmResult<VmValue> returnValue = new VmResult<VmValue>();
+            returnValue.setResult(variable.getValue());
+            callback.handleResult(returnValue);
+            return;
+          }
+        }
+
+        VmResult<VmValue> returnValue = VmResult.createErrorResult("error parsing expression");
+        callback.handleResult(returnValue);
+      }
+    });
+  }
+
+  public void evaluateOnCallFrame(VmIsolate isolate, VmCallFrame callFrame, String expression,
+      final VmCallback<VmValue> callback) {
+    // TODO(devoncarew): call through to the VM implementation when available
+
+    VmResult<VmValue> result = VmResult.createErrorResult("unimplemented");
+    callback.handleResult(result);
+  }
+
   public List<VmBreakpoint> getBreakpoints() {
     return breakpoints;
   }
@@ -274,6 +313,69 @@ public class VmConnection {
     }
   }
 
+//  /**
+//   * This synchronous, potentially long-running call returns the cached source for the given script
+//   * url, if any.
+//   * 
+//   * @param url
+//   * @return
+//   */
+//  public String getScriptSource(final VmIsolate isolate, final String url) {
+//    if (!sourceCache.containsKey(url)) {
+//      try {
+//        final CountDownLatch latch = new CountDownLatch(1);
+//
+//        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
+//          @Override
+//          public void handleResult(VmResult<List<VmLibraryRef>> result) {
+//            if (result.isError()) {
+//              sourceCache.put(url, null);
+//              latch.countDown();
+//            } else {
+//              for (VmLibraryRef library : result.getResult()) {
+//                if (url.equals(library.getUrl())) {
+//                  try {
+//                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
+//                      @Override
+//                      public void handleResult(VmResult<String> result) {
+//                        if (result.isError()) {
+//                          sourceCache.put(url, null);
+//                        } else {
+//                          sourceCache.put(url, result.getResult());
+//                        }
+//
+//                        latch.countDown();
+//                      }
+//                    });
+//                  } catch (IOException e) {
+//                    sourceCache.put(url, null);
+//                    latch.countDown();
+//                  }
+//
+//                  return;
+//                }
+//              }
+//
+//              // No matches found.
+//              sourceCache.put(url, null);
+//              latch.countDown();
+//            }
+//          }
+//        });
+//
+//        try {
+//          latch.await();
+//        } catch (InterruptedException e) {
+//
+//        }
+//      } catch (IOException ioe) {
+//        sourceCache.put(url, null);
+//      }
+//    }
+//
+//    return sourceCache.get(url);
+//  }
+
   public void getListElements(final VmIsolate isolate, int listObjectId, int index,
       final VmCallback<VmValue> callback) throws IOException {
     if (callback == null) {
@@ -369,69 +471,6 @@ public class VmConnection {
 
     return sourceCache.get(cacheKey);
   }
-
-//  /**
-//   * This synchronous, potentially long-running call returns the cached source for the given script
-//   * url, if any.
-//   * 
-//   * @param url
-//   * @return
-//   */
-//  public String getScriptSource(final VmIsolate isolate, final String url) {
-//    if (!sourceCache.containsKey(url)) {
-//      try {
-//        final CountDownLatch latch = new CountDownLatch(1);
-//
-//        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
-//          @Override
-//          public void handleResult(VmResult<List<VmLibraryRef>> result) {
-//            if (result.isError()) {
-//              sourceCache.put(url, null);
-//              latch.countDown();
-//            } else {
-//              for (VmLibraryRef library : result.getResult()) {
-//                if (url.equals(library.getUrl())) {
-//                  try {
-//                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
-//                      @Override
-//                      public void handleResult(VmResult<String> result) {
-//                        if (result.isError()) {
-//                          sourceCache.put(url, null);
-//                        } else {
-//                          sourceCache.put(url, result.getResult());
-//                        }
-//
-//                        latch.countDown();
-//                      }
-//                    });
-//                  } catch (IOException e) {
-//                    sourceCache.put(url, null);
-//                    latch.countDown();
-//                  }
-//
-//                  return;
-//                }
-//              }
-//
-//              // No matches found.
-//              sourceCache.put(url, null);
-//              latch.countDown();
-//            }
-//          }
-//        });
-//
-//        try {
-//          latch.await();
-//        } catch (InterruptedException e) {
-//
-//        }
-//      } catch (IOException ioe) {
-//        sourceCache.put(url, null);
-//      }
-//    }
-//
-//    return sourceCache.get(url);
-//  }
 
   public void getScriptSourceAsync(VmIsolate isolate, int libraryId, String url,
       final VmCallback<String> callback) throws IOException {

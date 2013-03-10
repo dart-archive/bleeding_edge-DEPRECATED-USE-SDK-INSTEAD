@@ -370,14 +370,6 @@
             category="com.google.dart.tools.ui.dart"
             icon="icons/full/obj16/breakpoint_view.gif">
       </view>
-      <view
-            class="com.google.dart.tools.debug.ui.internal.view.DartExpressionView"
-            id="com.google.dart.tools.debug.expressionsView"
-            name="Expressions"
-            restorable="true"
-            category="com.google.dart.tools.ui.dart"
-            icon="icons/full/obj16/watchlist_view.gif">
-      </view>
    </extension>
 
 
@@ -385,11 +377,6 @@
       <contextViewBinding
             viewId="com.google.dart.tools.debug.debuggerView"
             contextId="org.eclipse.debug.ui.debugging">
-      </contextViewBinding>
-      <contextViewBinding
-            viewId="com.google.dart.tools.debug.expressionsView"
-            contextId="org.eclipse.debug.ui.debugging"
-            autoOpen="false">
       </contextViewBinding>
       <contextViewBinding
            viewId="com.google.dart.tools.debug.breakpointsView"

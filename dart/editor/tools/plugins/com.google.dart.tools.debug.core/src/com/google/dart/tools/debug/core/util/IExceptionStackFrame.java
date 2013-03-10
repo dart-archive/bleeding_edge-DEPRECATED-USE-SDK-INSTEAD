@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.debug.core.util;
 
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IStackFrame;
 
 /**
@@ -21,7 +22,7 @@ import org.eclipse.debug.core.model.IStackFrame;
  */
 public interface IExceptionStackFrame extends IStackFrame {
 
-  public String getExceptionDisplayText();
+  public String getExceptionDisplayText() throws DebugException;
 
   public String getLongName();
 

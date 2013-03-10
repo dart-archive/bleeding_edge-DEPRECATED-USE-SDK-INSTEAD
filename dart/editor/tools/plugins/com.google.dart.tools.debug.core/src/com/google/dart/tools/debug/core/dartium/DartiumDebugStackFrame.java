@@ -169,19 +169,14 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   @Override
-  public String getExceptionDisplayText() {
-    DartiumDebugVariable variable;
-
-    try {
-      variable = (DartiumDebugVariable) variableCollector.getVariables()[0];
-    } catch (InterruptedException ie) {
-      return null;
-    }
+  public String getExceptionDisplayText() throws DebugException {
+    DartiumDebugVariable variable = (DartiumDebugVariable) getVariables()[0];
+    DartiumDebugValue exceptionValue = (DartiumDebugValue) variable.getValue();
 
     final String[] result = new String[1];
     final CountDownLatch latch = new CountDownLatch(1);
 
-    ((DartiumDebugValue) variable.getValue()).computeDetail(new ValueCallback() {
+    exceptionValue.computeDetail(new ValueCallback() {
       @Override
       public void detailComputed(String stringValue) {
         result[0] = stringValue;
@@ -193,7 +188,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     try {
       latch.await(1000, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      return "Exception: " + ((DartiumDebugValue) variable.getValue()).getDisplayString();
+      return "Exception: " + exceptionValue.getDisplayString();
     }
 
     return "Exception: " + result[0];

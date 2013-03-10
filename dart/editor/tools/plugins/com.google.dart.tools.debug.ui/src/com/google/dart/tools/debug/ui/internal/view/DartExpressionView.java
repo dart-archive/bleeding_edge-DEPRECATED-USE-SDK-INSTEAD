@@ -35,6 +35,7 @@ import org.eclipse.ui.IActionBars;
  * A custom subclass of the standard Eclipse Expressions view.
  */
 @SuppressWarnings("restriction")
+@Deprecated
 public class DartExpressionView extends ExpressionView {
 
   private class FontPropertyChangeListener implements IPropertyChangeListener {

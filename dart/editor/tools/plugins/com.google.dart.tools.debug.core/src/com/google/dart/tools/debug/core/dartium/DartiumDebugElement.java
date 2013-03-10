@@ -16,6 +16,9 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.DebugElement;
 import org.eclipse.debug.core.model.IDebugTarget;
 
@@ -38,6 +41,24 @@ public abstract class DartiumDebugElement extends DebugElement {
   @Override
   public String getModelIdentifier() {
     return DartDebugCorePlugin.DEBUG_MODEL_ID;
+  }
+
+  /**
+   * Create a new DebugException wrapping the given Throwable.
+   * 
+   * @param exception
+   * @return
+   */
+  protected DebugException createDebugException(Throwable exception) {
+    if (exception instanceof DebugException) {
+      return (DebugException) exception;
+    } else {
+      return new DebugException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          exception.getMessage(),
+          exception));
+    }
   }
 
   protected WebkitConnection getConnection() {

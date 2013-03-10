@@ -19,8 +19,6 @@ import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
 import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
@@ -269,14 +267,6 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
     expectedResumeReason = DebugEvent.UNSPECIFIED;
 
     fireResumeEvent(reason);
-  }
-
-  private DebugException createDebugException(IOException exception) {
-    return new DebugException(new Status(
-        IStatus.ERROR,
-        DartDebugCorePlugin.PLUGIN_ID,
-        exception.getMessage(),
-        exception));
   }
 
   private IStackFrame[] createFrames(List<WebkitCallFrame> webkitFrames,

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -89,7 +88,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
   private ShowBreakpointsAction showBreakpointsAction;
 
-  private ShowExpressionsAction showExpressionsAction;
   private TreeModelViewer treeViewer;
   private IPreferenceStore preferences;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
@@ -224,7 +222,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     manager.removeAll();
 
     manager.add(showBreakpointsAction);
-    manager.add(showExpressionsAction);
     manager.add(new Separator());
     manager.add(new ToggleLogicalStructureAction(variablesView));
 
@@ -237,8 +234,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
 
     showBreakpointsAction = new ShowBreakpointsAction();
     setAction("showBreakpointsAction", showBreakpointsAction);
-
-    showExpressionsAction = new ShowExpressionsAction();
   }
 
   @Override
@@ -298,16 +293,6 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
     return false;
   }
 
-  private boolean isDartiumLaunch() {
-    for (IDebugTarget debugTarget : DebugPlugin.getDefault().getLaunchManager().getDebugTargets()) {
-      if (debugTarget instanceof DartiumDebugTarget) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   private void restoreSashWeights(IMemento memento) {
     if (memento != null && memento.getString(SASH_WEIGHTS) != null) {
       String[] strs = memento.getString(SASH_WEIGHTS).split(",");
@@ -328,10 +313,8 @@ public class DebuggerView extends LaunchView implements ILaunchesListener {
   private void updateConnectionStatus() {
     if (isConnected()) {
       setTitleImage(CONNECTED_IMAGE);
-      showExpressionsAction.setEnabled(isDartiumLaunch());
     } else {
       setTitleImage(NOT_CONNECTED_IMAGE);
-      showExpressionsAction.setEnabled(false);
     }
   }
 

@@ -15,6 +15,8 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
+import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 
@@ -22,6 +24,7 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IWatchExpressionListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,7 +35,8 @@ import java.util.concurrent.CountDownLatch;
 /**
  * An IValue implementation for VM debugging.
  */
-public class ServerDebugValue extends ServerDebugElement implements IValue, IDartDebugValue {
+public class ServerDebugValue extends ServerDebugElement implements IValue, IDartDebugValue,
+    IExpressionEvaluator {
   private VmValue value;
   private IValueRetriever valueRetriever;
 
@@ -50,78 +54,126 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
     this.value = value;
   }
 
+  @Override
+  public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
+    try {
+      getConnection().evaluateObject(
+          value.getIsolate(),
+          value,
+          expression,
+          new VmCallback<VmValue>() {
+            @Override
+            public void handleResult(VmResult<VmValue> result) {
+              if (result.isError()) {
+                listener.watchEvaluationFinished(WatchExpressionResult.error(
+                    expression,
+                    result.getError()));
+              } else {
+                listener.watchEvaluationFinished(WatchExpressionResult.value(
+                    expression,
+                    new ServerDebugValue(getTarget(), result.getResult())));
+              }
+            }
+          });
+    } catch (IOException e) {
+      DebugException exception = createDebugException(e);
+
+      listener.watchEvaluationFinished(WatchExpressionResult.exception(expression, exception));
+    }
+  }
+
   public String getDetailValue() {
     if (value == null) {
       return null;
     } else if (value.isString()) {
-      return printNull(getValueString());
+      try {
+        return printNull(getValueString());
+      } catch (DebugException ex) {
+        DartDebugCorePlugin.logError(ex);
+        return null;
+      }
     } else {
       return printNull(value.getText());
     }
   }
 
-  public String getDisplayString() {
+  public String getDisplayString() throws DebugException {
     return getValueString();
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    if (value == null) {
-      return null;
-    }
-
-    if (value.isObject() && value.isNull()) {
-      return "null";
-    }
-
-    if (value.isObject()) {
-      getVariables();
-
-      if (value.getVmObject() != null) {
-        return DebuggerUtils.demangleVmName(getConnection().getClassNameSync(
-            value.getVmObject()));
+    try {
+      if (value == null) {
+        return null;
       }
-    }
 
-    return DebuggerUtils.demangleVmName(value.getKind());
+      if (value.isObject() && value.isNull()) {
+        return "null";
+      }
+
+      if (value.isObject()) {
+        getVariables();
+
+        if (value.getVmObject() != null) {
+          return DebuggerUtils.demangleVmName(getConnection().getClassNameSync(value.getVmObject()));
+        }
+      }
+
+      return DebuggerUtils.demangleVmName(value.getKind());
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
-  public String getValueString() {
-    if (value == null) {
-      return getValueString_impl();
-    } else if (value.isString()) {
-      return DebuggerUtils.printString(getValueString_impl());
-    } else if (value.isObject()) {
-      try {
-        return getReferenceTypeName();
-      } catch (DebugException e) {
+  public String getValueString() throws DebugException {
+    try {
+      if (value == null) {
+        return getValueString_impl();
+      } else if (value.isString()) {
+        return DebuggerUtils.printString(getValueString_impl());
+      } else if (value.isObject()) {
+        try {
+          return getReferenceTypeName();
+        } catch (DebugException e) {
 
+        }
+      } else if (value.isList()) {
+        return "List[" + value.getLength() + "]";
       }
-    } else if (value.isList()) {
-      return "List[" + value.getLength() + "]";
-    }
 
-    return getValueString_impl();
+      return getValueString_impl();
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    fillInFields();
+    try {
+      fillInFields();
 
-    return fields.toArray(new IVariable[fields.size()]);
+      return fields.toArray(new IVariable[fields.size()]);
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
-    if (isListValue()) {
-      return value.getLength() > 0;
-    } else if (fields != null) {
-      return fields.size() > 0;
-    } else if (valueRetriever != null) {
-      return valueRetriever.hasVariables();
-    } else {
-      return getVariables().length > 0;
+    try {
+      if (isListValue()) {
+        return value.getLength() > 0;
+      } else if (fields != null) {
+        return fields.size() > 0;
+      } else if (valueRetriever != null) {
+        return valueRetriever.hasVariables();
+      } else {
+        return getVariables().length > 0;
+      }
+    } catch (Throwable t) {
+      throw createDebugException(t);
     }
   }
 
@@ -138,6 +190,15 @@ public class ServerDebugValue extends ServerDebugElement implements IValue, IDar
   @Override
   public boolean isNull() {
     return value != null && value.isNull();
+  }
+
+  @Override
+  public boolean isPrimitive() {
+    if (value == null) {
+      return false;
+    } else {
+      return value.isPrimitive();
+    }
   }
 
   protected void fillInFieldsSync() {

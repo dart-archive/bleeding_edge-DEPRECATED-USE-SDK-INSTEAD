@@ -176,6 +176,8 @@ public final class DartUI {
    */
   public static final String ID_CONSOLE_VIEW = "com.google.dart.tools.ui.console"; //$NON-NLS-1$
 
+  public static final String ID_INSPECTOR_VIEW = "com.google.dart.tools.debug.objectInspectorView"; //$NON-NLS-1$
+
   /**
    * The view part id of the Files view (value <code>"com.google.dart.tools.ui.FilesView"</code> ).
    */

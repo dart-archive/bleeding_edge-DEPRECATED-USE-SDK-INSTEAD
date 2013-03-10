@@ -14,17 +14,18 @@
 package com.google.dart.tools.debug.core.dartium;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
+import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
 import com.google.dart.tools.debug.core.util.IDartDebugValue;
 import com.google.dart.tools.debug.core.webkit.WebkitCallback;
 import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
+import org.eclipse.debug.core.model.IWatchExpressionListener;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -32,7 +33,9 @@ import java.util.Collections;
 /**
  * The IValue implementation of Dartium Debug element
  */
-public class DartiumDebugValue extends DartiumDebugElement implements IValue, IDartDebugValue {
+public class DartiumDebugValue extends DartiumDebugElement implements IValue, IDartDebugValue,
+    IExpressionEvaluator {
+
   public static interface ValueCallback {
     public void detailComputed(String stringValue);
   }
@@ -88,6 +91,20 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     }
   }
 
+  @Override
+  public void evaluateExpression(final String expression, final IWatchExpressionListener listener) {
+    // TODO(devoncarew): implement this for dartium
+
+    Thread thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        listener.watchEvaluationFinished(WatchExpressionResult.noOp(expression));
+      }
+    });
+
+    thread.start();
+  }
+
   /**
    * @return a user-consumable string for the value object
    * @throws DebugException
@@ -101,7 +118,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
       return "null";
     }
 
-    if (isPrimitive() && value.isString()) {
+    if (value.isString()) {
       return DebuggerUtils.printString(value.getValue());
     }
 
@@ -126,41 +143,49 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    // The special property @classInfo contains this like the class name. We need to populate the
-    // variable information before we attempt to retrieve the class name.
-    getVariables();
+    try {
+      // The special property @classInfo contains this like the class name. We need to populate the
+      // variable information before we attempt to retrieve the class name.
+      getVariables();
 
-    return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
+      return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
-  public String getValueString() {
-    return getDisplayString();
+  public String getValueString() throws DebugException {
+    try {
+      return getDisplayString();
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    if (variableCollector == null) {
-      populate();
-    }
-
     try {
+      if (variableCollector == null) {
+        populate();
+      }
+
       return variableCollector.getVariables();
-    } catch (InterruptedException e) {
-      throw new DebugException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          e.toString(),
-          e));
+    } catch (Throwable t) {
+      throw createDebugException(t);
     }
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
-    if (isListValue()) {
-      return getListLength() > 0;
-    } else {
-      return value.hasObjectId();
+    try {
+      if (isListValue()) {
+        return getListLength() > 0;
+      } else {
+        return value.hasObjectId();
+      }
+    } catch (Throwable t) {
+      throw createDebugException(t);
     }
   }
 
@@ -179,6 +204,7 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     return value.isNull();
   }
 
+  @Override
   public boolean isPrimitive() {
     return value.isPrimitive();
   }

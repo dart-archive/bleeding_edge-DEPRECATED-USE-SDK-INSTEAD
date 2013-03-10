@@ -294,7 +294,11 @@ public class WebkitDebugger extends WebkitDomain {
 
       return classInfoMap.get(classInfo);
     } else {
-      return value.getClassName();
+      if (value.getClassName() == null) {
+        return value.getType();
+      } else {
+        return value.getClassName();
+      }
     }
   }
 

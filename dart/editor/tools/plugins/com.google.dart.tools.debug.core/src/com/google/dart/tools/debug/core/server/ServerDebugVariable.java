@@ -157,20 +157,28 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
     return null;
   }
 
-  public String getDisplayName() {
+  public String getDisplayName() throws DebugException {
     return getName();
   }
 
   @Override
-  public String getName() {
-    // The names of private fields are mangled by the VM.
-    // _foo@652376 ==> _foo
-    return DebuggerUtils.demangleVmName(name);
+  public String getName() throws DebugException {
+    try {
+      // The names of private fields are mangled by the VM.
+      // _foo@652376 ==> _foo
+      return DebuggerUtils.demangleVmName(name);
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    return getValue().getReferenceTypeName();
+    try {
+      return getValue().getReferenceTypeName();
+    } catch (Throwable t) {
+      throw createDebugException(t);
+    }
   }
 
   @Override
@@ -201,7 +209,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
 
   @Override
   public boolean isThisObject() {
-    return "this".equals(getName());
+    return "this".equals(name);
   }
 
   @Override
@@ -249,7 +257,7 @@ public class ServerDebugVariable extends ServerDebugElement implements IDartDebu
   }
 
   private boolean isListElement() {
-    return getName().startsWith("[");
+    return name.startsWith("[");
   }
 
 }

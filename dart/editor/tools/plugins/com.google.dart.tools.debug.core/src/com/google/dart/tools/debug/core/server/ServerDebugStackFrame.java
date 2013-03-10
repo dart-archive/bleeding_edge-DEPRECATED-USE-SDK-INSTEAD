@@ -120,8 +120,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   }
 
   @Override
-  public String getExceptionDisplayText() {
-    return "Exception: " + ((ServerDebugValue) locals.get(0).getValue()).getDisplayString();
+  public String getExceptionDisplayText() throws DebugException {
+    ServerDebugValue exceptionValue = (ServerDebugValue) locals.get(0).getValue();
+
+    return "Exception: " + exceptionValue.getDisplayString();
   }
 
   @Override
