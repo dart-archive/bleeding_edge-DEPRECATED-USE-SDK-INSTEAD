@@ -13,10 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
-import com.google.dart.tools.internal.corext.refactoring.TypeContextChecker;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring_I;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -52,7 +51,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   public static final String PAGE_NAME = "ExtractMethodInputPage";//$NON-NLS-1$
 
-  private ExtractMethodRefactoring fRefactoring;
+  private ExtractMethodRefactoring_I fRefactoring;
   private Text fTextField;
   private boolean fFirstTime;
   private DartSourceViewer fSignaturePreview;
@@ -73,7 +72,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
 
   @Override
   public void createControl(Composite parent) {
-    fRefactoring = (ExtractMethodRefactoring) getRefactoring();
+    fRefactoring = (ExtractMethodRefactoring_I) getRefactoring();
     loadSettings();
 
     Composite result = new Composite(parent, SWT.NONE);
@@ -95,6 +94,7 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
     layouter.perform(label, fTextField, 1);
 
     if (!fRefactoring.getParameters().isEmpty()) {
+      // TODO(scheglov) pass some StubTypeContext
       ChangeParametersControl cp = new ChangeParametersControl(
           result,
           SWT.NONE,
@@ -111,7 +111,8 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
             }
           },
           ChangeParametersControl.Mode.EXTRACT_METHOD,
-          new StubTypeContext(fRefactoring.getUnit(), "", ""));
+          (StubTypeContext) null // new StubTypeContext(fRefactoring.getUnit(), "", "")
+      );
       gd = new GridData(GridData.FILL_BOTH);
       gd.horizontalSpan = 2;
       cp.setLayoutData(gd);
@@ -320,9 +321,10 @@ public class ExtractMethodInputPage extends UserInputWizardPage {
         result.addFatalError(RefactoringMessages.ExtractMethodInputPage_validation_emptyParameterName);
         return result;
       }
-      result.merge(TypeContextChecker.checkParameterTypeSyntax(
-          parameter.getNewTypeName(),
-          fRefactoring.getUnit()));
+      // TODO(scheglov) test types
+//      result.merge(TypeContextChecker.checkParameterTypeSyntax(
+//          parameter.getNewTypeName(),
+//          fRefactoring.getUnit()));
     }
     result.merge(fRefactoring.checkParameterNames());
     return result;

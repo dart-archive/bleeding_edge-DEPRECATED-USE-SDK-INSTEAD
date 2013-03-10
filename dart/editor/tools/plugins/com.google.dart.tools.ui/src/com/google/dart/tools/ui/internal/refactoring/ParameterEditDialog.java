@@ -13,12 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.core.model.DartConventions;
 import com.google.dart.tools.internal.corext.refactoring.Checks;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
-import com.google.dart.tools.internal.corext.refactoring.TypeContextChecker;
-import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
@@ -27,7 +26,6 @@ import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.StatusDialog;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -243,18 +241,19 @@ public class ParameterEditDialog extends StatusDialog {
     if (fType == null) {
       return null;
     }
-    String type = fType.getText();
-
-    RefactoringStatus status = TypeContextChecker.checkParameterTypeSyntax(
-        type,
-        fContext.getCuHandle());
-    if (status == null || status.isOK()) {
-      return Status.OK_STATUS;
-    }
-    if (status.hasError()) {
-      return createErrorStatus(status.getEntryWithHighestSeverity().getMessage());
-    } else {
-      return createWarningStatus(status.getEntryWithHighestSeverity().getMessage());
-    }
+    // TODO(scheglov)
+    return Status.OK_STATUS;
+//      String type = fType.getText();
+//    RefactoringStatus status = TypeContextChecker.checkParameterTypeSyntax(
+//        type,
+//        fContext.getCuHandle());
+//    if (status == null || status.isOK()) {
+//      return Status.OK_STATUS;
+//    }
+//    if (status.hasError()) {
+//      return createErrorStatus(status.getEntryWithHighestSeverity().getMessage());
+//    } else {
+//      return createWarningStatus(status.getEntryWithHighestSeverity().getMessage());
+//    }
   }
 }

@@ -13,9 +13,9 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
-import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring_OLD;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -31,7 +31,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import java.util.List;
 
 /**
- * Test for {@link ExtractMethodRefactoring}.
+ * Test for {@link ExtractMethodRefactoring_OLD}.
  */
 public final class ExtractMethodRefactoringTest extends RefactoringTest {
   private static final IProgressMonitor pm = new NullProgressMonitor();
@@ -40,7 +40,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
   private int selectionEnd;
   private boolean replaceAllOccurences = true;
   private int expectedNumberOfDuplicates = -1;
-  private ExtractMethodRefactoring refactoring;
+  private ExtractMethodRefactoring_OLD refactoring;
   private RefactoringStatus refactoringStatus;
 
   public void test_access() throws Exception {
@@ -1819,7 +1819,7 @@ public final class ExtractMethodRefactoringTest extends RefactoringTest {
    */
   private void createRefactoring(String name) throws Exception {
     int selectionLength = selectionEnd - selectionStart;
-    refactoring = new ExtractMethodRefactoring(testUnit, selectionStart, selectionLength);
+    refactoring = new ExtractMethodRefactoring_OLD(testUnit, selectionStart, selectionLength);
     refactoring.setMethodName(name);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
     refactoringStatus = refactoring.checkAllConditions(pm);

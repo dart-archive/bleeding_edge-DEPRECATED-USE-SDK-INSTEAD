@@ -14,20 +14,21 @@
 package com.google.dart.tools.internal.corext.refactoring.code;
 
 import com.google.dart.compiler.resolver.VariableElement;
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 
 /**
  * Information about method parameter.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class ParameterInfo {
+public class ParameterInfo_OLD implements ParameterInfo {
   private final String oldName;
   private String newName;
   private String oldTypeName;
   private String newTypeName;
   private String defaultValue;
 
-  public ParameterInfo(VariableElement variable) {
+  public ParameterInfo_OLD(VariableElement variable) {
     oldName = variable.getName();
     newName = oldName;
     oldTypeName = ExtractUtils.getTypeSource(variable.getType());
@@ -35,32 +36,39 @@ public class ParameterInfo {
     defaultValue = "null";
   }
 
+  @Override
   public String getDefaultValue() {
     return defaultValue;
   }
 
+  @Override
   public String getNewName() {
     return newName;
   }
 
+  @Override
   public String getNewTypeName() {
     return newTypeName;
   }
 
+  @Override
   public String getOldName() {
     return oldName;
   }
 
+  @Override
   public boolean isAdded() {
     // TODO(scheglov)
     return false;
   }
 
+  @Override
   public boolean isDeleted() {
     // TODO(scheglov)
     return false;
   }
 
+  @Override
   public boolean isRenamed() {
     return !oldName.equals(newName);
   }
@@ -69,14 +77,17 @@ public class ParameterInfo {
     return !oldTypeName.equals(newTypeName);
   }
 
+  @Override
   public void setDefaultValue(String defaultValue) {
     this.defaultValue = defaultValue;
   }
 
+  @Override
   public void setNewName(String newName) {
     this.newName = newName;
   }
 
+  @Override
   public void setNewTypeName(String newTypeName) {
     this.newTypeName = newTypeName;
   }

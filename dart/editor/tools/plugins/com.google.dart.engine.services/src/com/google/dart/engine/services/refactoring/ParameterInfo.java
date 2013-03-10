@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,46 +11,31 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.services.refactoring;
 
-import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
+package com.google.dart.engine.services.refactoring;
 
 /**
  * Information about method parameter.
  */
-public class ParameterInfo {
-  private final String oldName;
-  private String newName;
-  private String newTypeName;
+public interface ParameterInfo {
 
-  public ParameterInfo(VariableElement variable) {
-    oldName = variable.getName();
-    newName = oldName;
-    newTypeName = CorrectionUtils.getTypeSource(variable.getType());
-  }
+  String getDefaultValue();
 
-  public String getNewName() {
-    return newName;
-  }
+  String getNewName();
 
-  public String getNewTypeName() {
-    return newTypeName;
-  }
+  String getNewTypeName();
 
-  public String getOldName() {
-    return oldName;
-  }
+  String getOldName();
 
-  public boolean isRenamed() {
-    return !oldName.equals(newName);
-  }
+  boolean isAdded();
 
-  public void setNewName(String newName) {
-    this.newName = newName;
-  }
+  boolean isDeleted();
 
-  public void setNewTypeName(String newTypeName) {
-    this.newTypeName = newTypeName;
-  }
+  boolean isRenamed();
+
+  void setDefaultValue(String defaultValue);
+
+  void setNewName(String newName);
+
+  void setNewTypeName(String newTypeName);
 }

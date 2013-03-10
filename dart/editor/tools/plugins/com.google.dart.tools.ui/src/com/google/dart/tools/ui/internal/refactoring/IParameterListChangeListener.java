@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 
 public interface IParameterListChangeListener {
 

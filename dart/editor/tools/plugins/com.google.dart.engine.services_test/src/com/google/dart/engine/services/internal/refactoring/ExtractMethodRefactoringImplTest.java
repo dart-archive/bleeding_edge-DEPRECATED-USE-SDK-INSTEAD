@@ -1861,6 +1861,8 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
     refactoring = new ExtractMethodRefactoringImpl(context);
     refactoring.setMethodName(methodName);
     refactoring.setReplaceAllOccurrences(replaceAllOccurences);
+    // just for coverage
+    assertEquals(replaceAllOccurences, refactoring.getReplaceAllOccurrences());
     // prepare status
     refactoringStatus = refactoring.checkAllConditions(pm);
   }

@@ -33,6 +33,7 @@ import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.core.dom.PropertyDescriptorHelper;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -74,7 +75,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class ExtractMethodRefactoring extends Refactoring {
+public class ExtractMethodRefactoring_OLD extends Refactoring implements ExtractMethodRefactoring_I {
   /**
    * Description of the single occurrence of the selected expression or set of statements.
    */
@@ -165,7 +166,7 @@ public class ExtractMethodRefactoring extends Refactoring {
 
   private static final String EMPTY = ""; //$NON-NLS-1$
 
-  public ExtractMethodRefactoring(CompilationUnit unit, int selectionStart, int selectionLength) {
+  public ExtractMethodRefactoring_OLD(CompilationUnit unit, int selectionStart, int selectionLength) {
     this.unit = unit;
     this.selectionStart = selectionStart;
     this.selectionLength = selectionLength;
@@ -219,6 +220,7 @@ public class ExtractMethodRefactoring extends Refactoring {
    * with the same name already exists in the hierarchy. This check is done in
    * {@link #checkPossibleConflicts()} since it is expensive.
    */
+  @Override
   public RefactoringStatus checkMethodName() {
     return Checks.checkMethodName(methodName);
   }
@@ -226,6 +228,7 @@ public class ExtractMethodRefactoring extends Refactoring {
   /**
    * Checks if the parameter names are valid.
    */
+  @Override
   public RefactoringStatus checkParameterNames() {
     RefactoringStatus result = new RefactoringStatus();
     for (ParameterInfo parameter : parameters) {
@@ -390,14 +393,17 @@ public class ExtractMethodRefactoring extends Refactoring {
    * @return the number of other occurrences of the same source as selection (but not including
    *         selection itself).
    */
+  @Override
   public int getNumberOfDuplicates() {
     return occurrences.size() - 1;
   }
 
+  @Override
   public List<ParameterInfo> getParameters() {
     return parameters;
   }
 
+  @Override
   public boolean getReplaceAllOccurrences() {
     return replaceAllOccurrences;
   }
@@ -413,6 +419,7 @@ public class ExtractMethodRefactoring extends Refactoring {
    * @param methodName the method name used for the new method
    * @return the signature of the extracted method
    */
+  @Override
   public String getSignature(String methodName) {
     StringBuilder sb = new StringBuilder();
     sb.append(methodName);
@@ -449,10 +456,12 @@ public class ExtractMethodRefactoring extends Refactoring {
   /**
    * Sets the method name to be used for the extracted method.
    */
+  @Override
   public void setMethodName(String name) {
     methodName = name;
   }
 
+  @Override
   public void setReplaceAllOccurrences(boolean replaceAllOccurrences) {
     this.replaceAllOccurrences = replaceAllOccurrences;
   }
@@ -742,8 +751,9 @@ public class ExtractMethodRefactoring extends Refactoring {
             if (!isDeclaredInSelection(variableElement)) {
               String variableName = variableElement.getName();
               // add parameter
+              // TODO(scheglov)
               if (!selectionParametersToRanges.containsKey(variableName)) {
-                parameters.add(new ParameterInfo(variableElement));
+                parameters.add(new ParameterInfo_OLD(variableElement));
               }
               // add reference to parameter
               {

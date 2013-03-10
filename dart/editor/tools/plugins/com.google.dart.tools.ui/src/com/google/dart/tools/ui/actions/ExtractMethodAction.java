@@ -13,14 +13,19 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.refactoring.RefactoringFactory;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.ExtractMethodRefactoring_OLD;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.ExtractMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.ServiceExtractMethodRefactoring;
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -56,15 +61,32 @@ public class ExtractMethodAction extends InstrumentedSelectionDispatchAction {
       instrumentation.metric("Problem", "Editor not editable");
       return;
     }
-    ExtractMethodRefactoring refactoring = new ExtractMethodRefactoring(
-        SelectionConverter.getInputAsCompilationUnit(editor),
-        selection.getOffset(),
-        selection.getLength());
-    new RefactoringStarter().activate(
-        new ExtractMethodWizard(refactoring),
-        getShell(),
-        RefactoringMessages.ExtractMethodAction_dialog_title,
-        RefactoringSaveHelper.SAVE_NOTHING);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      try {
+        AssistContext context = editor.getAssistContext();
+        com.google.dart.engine.services.refactoring.ExtractMethodRefactoring newRefactoring = RefactoringFactory.createExtractMethodRefactoring(context);
+        ServiceExtractMethodRefactoring ltkRefactoring = new ServiceExtractMethodRefactoring(
+            newRefactoring);
+        new RefactoringStarter().activate(
+            new ExtractMethodWizard(ltkRefactoring),
+            getShell(),
+            RefactoringMessages.ExtractMethodAction_dialog_title,
+            RefactoringSaveHelper.SAVE_NOTHING);
+      } catch (Throwable e) {
+        DartToolsPlugin.log(e);
+        instrumentation.metric("Problem", "Exception during activation.");
+      }
+    } else {
+      ExtractMethodRefactoring_OLD refactoring = new ExtractMethodRefactoring_OLD(
+          SelectionConverter.getInputAsCompilationUnit(editor),
+          selection.getOffset(),
+          selection.getLength());
+      new RefactoringStarter().activate(
+          new ExtractMethodWizard(refactoring),
+          getShell(),
+          RefactoringMessages.ExtractMethodAction_dialog_title,
+          RefactoringSaveHelper.SAVE_NOTHING);
+    }
   }
 
   @Override

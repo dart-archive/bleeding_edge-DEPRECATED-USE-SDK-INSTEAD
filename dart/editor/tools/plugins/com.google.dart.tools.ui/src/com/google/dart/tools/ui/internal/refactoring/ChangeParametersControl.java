@@ -13,8 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
+import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.tools.internal.corext.refactoring.StubTypeContext;
-import com.google.dart.tools.internal.corext.refactoring.code.ParameterInfo;
 import com.google.dart.tools.ui.internal.dialogs.TableTextCellEditor;
 import com.google.dart.tools.ui.internal.dialogs.TextFieldNavigationHandler;
 import com.google.dart.tools.ui.internal.refactoring.contentassist.VariableNamesProcessor;

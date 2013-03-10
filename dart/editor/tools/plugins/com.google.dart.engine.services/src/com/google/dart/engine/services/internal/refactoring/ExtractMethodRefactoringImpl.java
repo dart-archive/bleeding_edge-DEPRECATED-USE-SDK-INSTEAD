@@ -109,26 +109,26 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   private final AssistContext context;
+
   private final SourceRange selectionRange;
   private final CompilationUnit unitNode;
-
   private final CorrectionUtils utils;
+
   private String methodName;
-
   private boolean replaceAllOccurrences = true;
-  private ExtractMethodAnalyzer selectionAnalyzer;
 
+  private ExtractMethodAnalyzer selectionAnalyzer;
   private final Set<String> usedNames = Sets.newHashSet();
+
   private VariableElement returnVariable;
   private final List<ParameterInfo> parameters = Lists.newArrayList();
   private ASTNode parentMember;
-
   private Expression selectionExpression;
+
   private List<Statement> selectionStatements;
-
   private final Map<String, List<SourceRange>> selectionParametersToRanges = Maps.newHashMap();
-  private final List<Occurrence> occurrences = Lists.newArrayList();
 
+  private final List<Occurrence> occurrences = Lists.newArrayList();
   private boolean staticContext;
 
   public ExtractMethodRefactoringImpl(AssistContext context) throws Exception {
@@ -299,8 +299,8 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
               annotations += returnTypeName + " ";
             }
             // just return expression
-            declarationSource = annotations + getSignature() + " => " + returnExpressionSource
-                + ";";
+            declarationSource = annotations + getSignature(methodName) + " => "
+                + returnExpressionSource + ";";
           }
           // statements
           if (selectionStatements != null) {
@@ -312,7 +312,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
             } else {
               annotations += "void ";
             }
-            declarationSource = annotations + getSignature() + " {" + eol;
+            declarationSource = annotations + getSignature(methodName) + " {" + eol;
             declarationSource += returnExpressionSource;
             if (returnVariable != null) {
               declarationSource += prefix + "  return " + returnVariable.getName() + ";" + eol;
@@ -358,7 +358,12 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
   }
 
   @Override
-  public String getSignature() {
+  public boolean getReplaceAllOccurrences() {
+    return replaceAllOccurrences;
+  }
+
+  @Override
+  public String getSignature(String methodName) {
     StringBuilder sb = new StringBuilder();
     sb.append(methodName);
     sb.append("(");
@@ -659,7 +664,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
               String variableName = variableElement.getName();
               // add parameter
               if (!selectionParametersToRanges.containsKey(variableName)) {
-                parameters.add(new ParameterInfo(variableElement));
+                parameters.add(new ParameterInfoImpl(variableElement));
               }
               // add reference to parameter
               {

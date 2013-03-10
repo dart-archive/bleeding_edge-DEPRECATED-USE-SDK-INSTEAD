@@ -16,27 +16,37 @@ package com.google.dart.engine.services.refactoring;
 
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
+import com.google.dart.engine.services.internal.refactoring.ParameterInfoImpl;
 import com.google.dart.engine.type.Type;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Test for {@link ParameterInfo}.
+ * Test for {@link ParameterInfoImpl}.
  */
 public class ParameterInfoTest extends AbstractDartTest {
   private final Type type = mock(Type.class);
   private final VariableElement element = mock(VariableElement.class);
 
+  public void test_methodStubs() throws Exception {
+    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
+    assertSame(null, parameter.getDefaultValue());
+    assertEquals(false, parameter.isAdded());
+    assertEquals(false, parameter.isDeleted());
+    //
+    parameter.setDefaultValue("0");
+  }
+
   public void test_new() throws Exception {
-    ParameterInfo parameter = new ParameterInfo(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
     assertEquals("int", parameter.getNewTypeName());
   }
 
   public void test_setNewName() throws Exception {
-    ParameterInfo parameter = new ParameterInfo(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
     // initial state
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
@@ -49,7 +59,7 @@ public class ParameterInfoTest extends AbstractDartTest {
   }
 
   public void test_setNewTypeName() throws Exception {
-    ParameterInfo parameter = new ParameterInfo(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
     // initial state
     assertEquals("int", parameter.getNewTypeName());
     // set new name
