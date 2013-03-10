@@ -88,6 +88,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
             node.getArgumentList().getArguments().clear();
             return null;
           }
+          // new HashMap(Map) -> new Map.from(Map)
+          if (isMethodInClass2(methodBinding, "<init>(java.util.Map)", "java.util.HashMap")) {
+            node.getConstructorName().setName(identifier("from"));
+            return null;
+          }
           // new HashMap(5) -> new Map()
           if (JavaUtils.getQualifiedName(declaringClass).equals("java.util.HashMap")) {
             ((SimpleIdentifier) node.getConstructorName().getType().getName()).setToken(token("Map"));
@@ -97,6 +102,12 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           // new ArrayList(Collection) -> new List.from(Iterable)
           if (isMethodInClass2(methodBinding, "<init>(java.util.Collection)", "java.util.ArrayList")) {
             node.getConstructorName().setName(identifier("from"));
+            return null;
+          }
+          // new ArrayList(5) -> new List()
+          if (isMethodInClass2(methodBinding, "<init>(int)", "java.util.ArrayList")) {
+            node.getArgumentList().getArguments().clear();
+            return null;
           }
           // translate java.util.Comparator to function expression
           if (methodBinding.isConstructor() && declaringClass.isAnonymous()) {

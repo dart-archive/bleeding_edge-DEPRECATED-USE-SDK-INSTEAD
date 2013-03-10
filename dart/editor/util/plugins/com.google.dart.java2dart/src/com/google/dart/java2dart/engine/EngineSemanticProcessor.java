@@ -16,9 +16,12 @@ package com.google.dart.java2dart.engine;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.CompilationUnit;
@@ -26,16 +29,22 @@ import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.ListLiteral;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NormalFormalParameter;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
+import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.scanner.Keyword;
@@ -44,29 +53,44 @@ import com.google.dart.java2dart.Context;
 import com.google.dart.java2dart.processor.SemanticProcessor;
 import com.google.dart.java2dart.util.JavaUtils;
 
+import static com.google.dart.java2dart.util.ASTFactory.assignmentExpression;
 import static com.google.dart.java2dart.util.ASTFactory.binaryExpression;
+import static com.google.dart.java2dart.util.ASTFactory.block;
 import static com.google.dart.java2dart.util.ASTFactory.blockFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.constructorDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.expressionFunctionBody;
 import static com.google.dart.java2dart.util.ASTFactory.expressionStatement;
 import static com.google.dart.java2dart.util.ASTFactory.fieldDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.formalParameterList;
 import static com.google.dart.java2dart.util.ASTFactory.functionDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
+import static com.google.dart.java2dart.util.ASTFactory.ifStatement;
 import static com.google.dart.java2dart.util.ASTFactory.integer;
+import static com.google.dart.java2dart.util.ASTFactory.methodDeclaration;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.nullLiteral;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
+import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.redirectingConstructorInvocation;
+import static com.google.dart.java2dart.util.ASTFactory.returnStatement;
+import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
+import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.ASTFactory.variableDeclaration;
+import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationList;
+import static com.google.dart.java2dart.util.ASTFactory.variableDeclarationStatement;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -269,6 +293,233 @@ public class EngineSemanticProcessor extends SemanticProcessor {
     });
   }
 
+  /**
+   * Find code like:
+   * 
+   * <pre>
+   *   Field scopeField = visitor.getClass().getSuperclass().getDeclaredField("nameScope");
+   *   scopeField.setAccessible(true);
+   *   Scope outerScope = (Scope) scopeField.get(visitor);
+   * </pre>
+   * 
+   * and replaces it with direct calling of generated public accessors.
+   */
+  static void rewriteReflectionFieldsWithDirect(final Context context, CompilationUnit unit) {
+    final Map<String, String> varToField = Maps.newHashMap();
+    final Map<String, String> varToMethod = Maps.newHashMap();
+    final Set<Pair<String, String>> refClassFields = Sets.newHashSet();
+    final String accessorSuffix = "_J2DAccessor";
+    unit.accept(new RecursiveASTVisitor<Void>() {
+
+      @Override
+      public Void visitBlock(Block node) {
+        List<Statement> statements = ImmutableList.copyOf(node.getStatements());
+        for (Statement statement : statements) {
+          statement.accept(this);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitExpressionStatement(ExpressionStatement node) {
+        if (node.getExpression() instanceof MethodInvocation) {
+          MethodInvocation invocation = (MethodInvocation) node.getExpression();
+          if (JavaUtils.isMethod(
+              context.getNodeBinding(invocation),
+              "java.lang.reflect.AccessibleObject",
+              "setAccessible")) {
+            ((Block) node.getParent()).getStatements().remove(node);
+            return null;
+          }
+        }
+        return super.visitExpressionStatement(node);
+      }
+
+      @Override
+      public Void visitMethodInvocation(MethodInvocation node) {
+        List<Expression> arguments = node.getArgumentList().getArguments();
+        if (JavaUtils.isMethod(context.getNodeBinding(node), "java.lang.reflect.Field", "get")) {
+          Expression target = arguments.get(0);
+          String varName = ((SimpleIdentifier) node.getTarget()).getName();
+          String fieldName = varToField.get(varName);
+          String accessorName = fieldName + accessorSuffix;
+          SemanticProcessor.replaceNode(node, propertyAccess(target, identifier(accessorName)));
+          return null;
+        }
+        if (JavaUtils.isMethod(context.getNodeBinding(node), "java.lang.reflect.Field", "set")) {
+          Expression target = arguments.get(0);
+          String varName = ((SimpleIdentifier) node.getTarget()).getName();
+          String fieldName = varToField.get(varName);
+          String accessorName = fieldName + accessorSuffix;
+          SemanticProcessor.replaceNode(
+              node,
+              assignmentExpression(
+                  propertyAccess(target, identifier(accessorName)),
+                  TokenType.EQ,
+                  arguments.get(1)));
+          return null;
+        }
+        if (JavaUtils.isMethod(context.getNodeBinding(node), "java.lang.reflect.Method", "invoke")) {
+          Expression target = arguments.get(0);
+          String varName = ((SimpleIdentifier) node.getTarget()).getName();
+          String methodName = varToMethod.get(varName);
+          List<Expression> methodArgs;
+          if (arguments.size() == 1) {
+            methodArgs = Lists.newArrayList();
+          } else if (arguments.size() == 2 && arguments.get(1) instanceof ListLiteral) {
+            methodArgs = ((ListLiteral) arguments.get(1)).getElements();
+          } else {
+            methodArgs = Lists.newArrayList(arguments);
+            methodArgs.remove(0);
+          }
+          if (methodName != null) {
+            SemanticProcessor.replaceNode(node, methodInvocation(target, methodName, methodArgs));
+          }
+          return null;
+        }
+        return super.visitMethodInvocation(node);
+      }
+
+      @Override
+      public Void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+        super.visitVariableDeclarationStatement(node);
+        VariableDeclarationList variableList = node.getVariables();
+        ITypeBinding typeBinding = context.getNodeTypeBinding(variableList.getType());
+        List<VariableDeclaration> variables = variableList.getVariables();
+        if (JavaUtils.isTypeNamed(typeBinding, "java.lang.reflect.Field") && variables.size() == 1) {
+          VariableDeclaration variable = variables.get(0);
+          if (variable.getInitializer() instanceof MethodInvocation) {
+            MethodInvocation initializer = (MethodInvocation) variable.getInitializer();
+            if (JavaUtils.isMethod(
+                context.getNodeBinding(initializer),
+                "java.lang.Class",
+                "getDeclaredField")) {
+              Expression getFieldArgument = initializer.getArgumentList().getArguments().get(0);
+              String varName = variable.getName().getName();
+              String fieldName = ((SimpleStringLiteral) getFieldArgument).getValue();
+              varToField.put(varName, fieldName);
+              ((Block) node.getParent()).getStatements().remove(node);
+              // add (Class, Field) pair to generate accessor later
+              addClassFieldPair(initializer.getTarget(), fieldName);
+            }
+          }
+        }
+        if (JavaUtils.isTypeNamed(typeBinding, "java.lang.reflect.Method") && variables.size() == 1) {
+          VariableDeclaration variable = variables.get(0);
+          if (variable.getInitializer() instanceof MethodInvocation) {
+            MethodInvocation initializer = (MethodInvocation) variable.getInitializer();
+            if (JavaUtils.isMethod(
+                context.getNodeBinding(initializer),
+                "java.lang.Class",
+                "getDeclaredMethod")) {
+              Expression getMethodArgument = initializer.getArgumentList().getArguments().get(0);
+              String varName = variable.getName().getName();
+              String methodName = ((SimpleStringLiteral) getMethodArgument).getValue();
+              varToMethod.put(varName, methodName);
+              ((Block) node.getParent()).getStatements().remove(node);
+            }
+          }
+        }
+        return null;
+      }
+
+      private void addClassFieldPair(Expression target, String fieldName) {
+        while (target instanceof MethodInvocation) {
+          target = ((MethodInvocation) target).getTarget();
+        }
+        // we expect: object.runtimeType
+        if (target instanceof PropertyAccess) {
+          Expression classTarget = ((PropertyAccess) target).getTarget();
+          ITypeBinding classTargetBinding = context.getNodeTypeBinding(classTarget);
+          String className = classTargetBinding.getName();
+          refClassFields.add(Pair.of(className, fieldName));
+        }
+      }
+    });
+    // generate private field accessors
+    unit.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        String className = node.getName().getName();
+        for (Pair<String, String> pair : refClassFields) {
+          if (pair.getLeft().equals(className)) {
+            String fieldName = pair.getRight();
+            String accessorName = fieldName + accessorSuffix;
+            String privateFieldName = "_" + fieldName;
+            node.getMembers().add(
+                methodDeclaration(
+                    null,
+                    null,
+                    Keyword.GET,
+                    null,
+                    identifier(accessorName),
+                    null,
+                    expressionFunctionBody(identifier(privateFieldName))));
+            node.getMembers().add(
+                methodDeclaration(
+                    null,
+                    null,
+                    Keyword.SET,
+                    null,
+                    identifier(accessorName),
+                    formalParameterList(simpleFormalParameter("__v")),
+                    expressionFunctionBody(assignmentExpression(
+                        identifier(privateFieldName),
+                        TokenType.EQ,
+                        identifier("__v")))));
+          }
+        }
+        return super.visitClassDeclaration(node);
+      }
+    });
+  }
+
+  static void useImportPrefix(final Context context, final ASTNode rootNode,
+      final String prefixName, final String[] packageNames) {
+    rootNode.accept(new RecursiveASTVisitor<Void>() {
+      @Override
+      public Void visitPropertyAccess(PropertyAccess node) {
+        super.visitPropertyAccess(node);
+        Expression target = node.getTarget();
+        Object binding0 = context.getNodeBinding(target);
+        if (binding0 instanceof ITypeBinding) {
+          ITypeBinding binding = (ITypeBinding) binding0;
+          String shortName = binding.getName();
+          shortName = StringUtils.substringBefore(shortName, "<");
+          if (isPrefixPackage(binding)) {
+            SemanticProcessor.replaceNode(target, identifier(prefixName, shortName));
+            return null;
+          }
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitTypeName(TypeName node) {
+        ITypeBinding binding = context.getNodeTypeBinding(node);
+        if (binding != null) {
+          String shortName = binding.getName();
+          shortName = StringUtils.substringBefore(shortName, "<");
+          if (isPrefixPackage(binding)) {
+            node.setName(identifier(prefixName, shortName));
+            return null;
+          }
+        }
+        return super.visitTypeName(node);
+      }
+
+      private boolean isPrefixPackage(ITypeBinding binding) {
+        String typeName = binding.getQualifiedName();
+        for (String packageName : packageNames) {
+          if (typeName.startsWith(packageName)) {
+            return true;
+          }
+        }
+        return false;
+      }
+    });
+  }
+
   private static String toSource(String... lines) {
     return Joiner.on("\n").join(lines);
   }
@@ -351,10 +602,32 @@ public class EngineSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(binding, "getContents", "com.google.dart.engine.source.FileBasedSource")) {
-          node.setBody(blockFunctionBody(expressionStatement(methodInvocation(
-              node.getParameters().getParameters().get(0).getIdentifier(),
+          SimpleIdentifier receiverIdent = node.getParameters().getParameters().get(0).getIdentifier();
+          Block tryCacheBlock = block();
+          {
+            tryCacheBlock.getStatements().add(
+                variableDeclarationStatement(variableDeclarationList(
+                    null,
+                    typeName("String"),
+                    variableDeclaration(
+                        "contents",
+                        methodInvocation(identifier("_factory"), "getContents", thisExpression())))));
+            SimpleIdentifier contentsIdent = identifier("contents");
+            tryCacheBlock.getStatements().add(
+                ifStatement(
+                    binaryExpression(contentsIdent, TokenType.BANG_EQ, nullLiteral()),
+                    block(
+                        expressionStatement(methodInvocation(
+                            receiverIdent,
+                            "accept2",
+                            contentsIdent)),
+                        returnStatement())));
+          }
+          ExpressionStatement doReadStatement = expressionStatement(methodInvocation(
+              receiverIdent,
               "accept2",
-              methodInvocation(identifier("_file"), "readAsStringSync")))));
+              methodInvocation(identifier("_file"), "readAsStringSync")));
+          node.setBody(blockFunctionBody(tryCacheBlock, doReadStatement));
           return null;
         }
         return null;

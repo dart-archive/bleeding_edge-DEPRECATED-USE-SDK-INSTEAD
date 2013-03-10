@@ -817,9 +817,8 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    * @return the type associated with the expression
    */
   private Type analyze(Expression node, InterfaceType thisType) {
-    Field typeField = null;
     try {
-      typeField = analyzer.getClass().getDeclaredField("thisType");
+      Field typeField = analyzer.getClass().getDeclaredField("thisType");
       typeField.setAccessible(true);
       typeField.set(analyzer, thisType);
     } catch (Exception exception) {

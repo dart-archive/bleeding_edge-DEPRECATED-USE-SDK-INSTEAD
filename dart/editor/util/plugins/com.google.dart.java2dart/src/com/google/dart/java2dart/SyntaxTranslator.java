@@ -689,6 +689,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       arguments.add(0, simpleIdentifier("___name"));
     }
     MethodInvocation invocation = methodInvocation(nameNode, arguments);
+    context.putNodeBinding(invocation, binding);
     return done(expressionStatement(invocation));
   }
 
@@ -799,6 +800,14 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           multipleConstructors ? null : Keyword.FINAL,
           typeName("int"),
           variableDeclaration("__ordinal")));
+      members.add(methodDeclaration(
+          null,
+          typeName("int"),
+          Keyword.GET,
+          null,
+          identifier("ordinal"),
+          null,
+          expressionFunctionBody(identifier("__ordinal"))));
       boolean hasConstructor = false;
       for (Iterator<?> I = node.bodyDeclarations().iterator(); I.hasNext();) {
         org.eclipse.jdt.core.dom.BodyDeclaration javaBodyDecl = (org.eclipse.jdt.core.dom.BodyDeclaration) I.next();
@@ -1277,7 +1286,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     IBinding binding = node.resolveBinding();
     SimpleIdentifier result = identifier(node.getIdentifier());
     putReference(binding, result);
-    // may be statically imported field, generate PrefixedIdentifier
+    // may be statically imported field, generate PropertyAccess
     {
       org.eclipse.jdt.core.dom.StructuralPropertyDescriptor locationInParent = node.getLocationInParent();
       if (binding instanceof IVariableBinding) {
@@ -1297,9 +1306,9 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           ITypeBinding enclosingBinding = getEnclosingTypeBinding(node);
           if (declaringBinding != null && enclosingBinding != declaringBinding
               && org.eclipse.jdt.core.dom.Modifier.isStatic(variableBinding.getModifiers())) {
-            SimpleIdentifier prefix = identifier(declaringBinding.getName());
-            putReference(declaringBinding, prefix);
-            return done(identifier(prefix, result));
+            SimpleIdentifier target = identifier(declaringBinding.getName());
+            putReference(declaringBinding, target);
+            return done(propertyAccess(target, result));
           }
         }
       }

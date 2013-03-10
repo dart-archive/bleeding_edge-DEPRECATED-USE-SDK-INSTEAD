@@ -874,6 +874,7 @@ public class Context {
     }
   }
 
+  // XXX
   private void unwrapVarArgIfAlreadyArray(CompilationUnit unit) {
     unit.accept(new RecursiveASTVisitor<Void>() {
       @Override

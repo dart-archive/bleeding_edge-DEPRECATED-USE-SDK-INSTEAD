@@ -31,6 +31,9 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "  public List<String> test2(List<String> p) {",
         "    return new ArrayList<String>(p);",
         "  }",
+        "  public List<String> test3() {",
+        "    return new ArrayList<String>(5);",
+        "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
@@ -40,6 +43,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
         "    return result;",
         "  }",
         "  List<String> test2(List<String> p) => new List<String>.from(p);",
+        "  List<String> test3() => new List<String>();",
         "}");
   }
 
@@ -222,18 +226,23 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",
         "package test;",
+        "import java.util.Map;",
         "import java.util.HashMap;",
         "public class Test {",
-        "  void main() {",
+        "  void mainA() {",
         "    HashMap<String, Integer> map = new HashMap<String, Integer>(5);",
+        "  }",
+        "  Object mainB(Map<String, Integer> p) {",
+        "    return new HashMap<String, Integer>(p);",
         "  }",
         "}");
     CollectionSemanticProcessor.INSTANCE.process(context, unit);
     assertFormattedSource(
         "class Test {",
-        "  void main() {",
+        "  void mainA() {",
         "    Map<String, int> map = new Map<String, int>();",
         "  }",
+        "  Object mainB(Map<String, int> p) => new Map<String, int>.from(p);",
         "}");
   }
 

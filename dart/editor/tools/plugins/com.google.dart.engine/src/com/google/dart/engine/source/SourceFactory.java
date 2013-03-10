@@ -62,7 +62,7 @@ public class SourceFactory {
    */
   public Source forUri(String absoluteUri) {
     try {
-      URI uri = new URI(null, null, absoluteUri, null);
+      URI uri = new URI(absoluteUri);
       if (uri.isAbsolute()) {
         return resolveUri(null, uri);
       }

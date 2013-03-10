@@ -196,6 +196,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         if (args.isEmpty()) {
           if ("hashCode".equals(name) || isMethodInClass(node, "length", "java.lang.String")
               || isMethodInClass(node, "isEmpty", "java.lang.String")
+              || isMethodInClass(node, "ordinal", "java.lang.Enum")
               || isMethodInClass(node, "values", "java.lang.Enum")) {
             replaceNode(node, propertyAccess(node.getTarget(), nameNode));
             return null;
@@ -218,6 +219,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           } else {
             replaceNode(node, binaryExpression(node.getTarget(), TokenType.EQ_EQ, args.get(0)));
           }
+          return null;
+        }
+        if (isMethodInClass(node, "printStackTrace", "java.lang.Throwable")) {
+          replaceNode(node, methodInvocation("print", node.getTarget()));
           return null;
         }
         if (isMethodInClass(node, "isInstance", "java.lang.Class")) {

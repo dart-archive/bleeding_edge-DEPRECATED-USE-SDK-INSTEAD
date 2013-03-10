@@ -716,6 +716,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final List<Test> values = [EOF, DEF];",
             "  String __name;",
             "  int __ordinal = 0;",
+            "  int get ordinal => __ordinal;",
             "  Test.con1(String ___name, int ___ordinal) {",
             "    _jtd_constructor_0_impl(___name, ___ordinal);",
             "  }",
@@ -769,6 +770,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final List<MyEnum> values = [ONE, TWO];",
             "  final String __name;",
             "  final int __ordinal;",
+            "  int get ordinal => __ordinal;",
             "  MyEnum(this.__name, this.__ordinal) {",
             "  }",
             "  String toString() => __name;",
@@ -797,6 +799,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final List<Test> values = [ONE, TWO];",
             "  final String __name;",
             "  final int __ordinal;",
+            "  int get ordinal => __ordinal;",
             "  Test(this.__name, this.__ordinal) {",
             "  }",
             "  String toString() => __name;",
@@ -831,6 +834,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final List<Test> values = [ONE, TWO];",
             "  String __name;",
             "  int __ordinal = 0;",
+            "  int get ordinal => __ordinal;",
             "  Test.con1(String ___name, int ___ordinal) {",
             "    _jtd_constructor_0_impl(___name, ___ordinal);",
             "  }",
@@ -1420,6 +1424,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  static final List<A> values = [ONE, TWO];",
             "  final String __name;",
             "  final int __ordinal;",
+            "  int get ordinal => __ordinal;",
             "  A(this.__name, this.__ordinal) {",
             "  }",
             "  String toString() => __name;",
@@ -1699,6 +1704,49 @@ public class SemanticTest extends AbstractSemanticTest {
             "  }",
             "  void main() {",
             "    test(EMPTY);",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_varArgs_alreadyArray_constructor() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "  A(Object o, int ...args) {",
+            "  }",
+            "  A(int ...args) {",
+            "    this(args);",
+            "  }",
+            "  void main() {",
+            "    new A(null, 1, 2, 3);",
+            "    new A(1, 2, 3);",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "  A.con1(Object o, List<int> args) {",
+            "    _jtd_constructor_0_impl(o, args);",
+            "  }",
+            "  _jtd_constructor_0_impl(Object o, List<int> args) {",
+            "  }",
+            "  A.con2(List<int> args) {",
+            "    _jtd_constructor_1_impl(args);",
+            "  }",
+            "  _jtd_constructor_1_impl(List<int> args) {",
+            "    _jtd_constructor_1_impl(args);",
+            "  }",
+            "  void main() {",
+            "    new A.con1(null, [1, 2, 3]);",
+            "    new A.con1(1, [2, 3]);",
             "  }",
             "}"),
         getFormattedSource(unit));

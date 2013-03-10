@@ -276,6 +276,14 @@ public class JavaUtils {
     return signature.substring(0, dotIndex + 1) + newName;
   }
 
+  public static boolean isMethod(Object nodeBinding, String className, String methodName) {
+    if (nodeBinding instanceof IMethodBinding) {
+      IMethodBinding binding = (IMethodBinding) nodeBinding;
+      return binding.getName().equals(methodName) && isMethodInClass(binding, className);
+    }
+    return false;
+  }
+
   public static boolean isMethodDeclaredInClass(Object bindingObject, String reqClassName) {
     if (bindingObject instanceof IMethodBinding) {
       IMethodBinding binding = (IMethodBinding) bindingObject;

@@ -114,6 +114,30 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Enum_ordinal() throws Exception {
+    setFileLines(
+        "test/MyEnum.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public enum MyEnum {",
+            "  ONE, TWO;",
+            "}"));
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public int main(MyEnum p) {",
+        "    return p.ordinal();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  int main(MyEnum p) => p.ordinal;",
+        "}");
+  }
+
   public void test_Enum_values() throws Exception {
     setFileLines(
         "test/MyEnum.java",
@@ -754,6 +778,24 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    sb.length;",
         "    sb.length = 0;",
         "    return sb.toString();",
+        "  }",
+        "}");
+  }
+
+  public void test_Throwable_printStackTrace() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public main(Throwable e) {",
+        "    e.printStackTrace();",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  main(Exception e) {",
+        "    print(e);",
         "  }",
         "}");
   }
