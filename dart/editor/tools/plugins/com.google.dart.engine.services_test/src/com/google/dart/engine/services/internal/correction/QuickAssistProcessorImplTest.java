@@ -362,7 +362,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_exchangeBinaryExpressionArguments_wrong("1 + 2 + 3", "1 + 2 + 3");
   }
 
-  public void test_joinVariableDeclaration_OK() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -377,7 +377,17 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration(initial, "v ", expected);
   }
 
-  public void test_joinVariableDeclaration_wrong_notAdjacent() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_hasInitializer() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "f() {",
+        "  var v = 1;",
+        "  v = 2;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v = 2");
+  }
+
+  public void test_joinVariableDeclaration_onAssignment_wrong_notAdjacent() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -388,7 +398,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v =");
   }
 
-  public void test_joinVariableDeclaration_wrong_notAssignment() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_notAssignment() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -398,7 +408,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v +=");
   }
 
-  public void test_joinVariableDeclaration_wrong_notDeclaration() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_notDeclaration() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
@@ -407,7 +417,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v =");
   }
 
-  public void test_joinVariableDeclaration_wrong_notLeftArgument() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_notLeftArgument() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -417,7 +427,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v; // marker");
   }
 
-  public void test_joinVariableDeclaration_wrong_notOneVariable() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_notOneVariable() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -427,7 +437,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v =");
   }
 
-  public void test_joinVariableDeclaration_wrong_notSameBlock() throws Exception {
+  public void test_joinVariableDeclaration_onAssignment_wrong_notSameBlock() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
@@ -437,6 +447,123 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  }",
         "}");
     assert_joinVariableDeclaration_wrong(initial, "v =");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_OK_onName() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "}");
+    assert_joinVariableDeclaration(initial, "v;", expected);
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_OK_onType() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "}");
+    assert_joinVariableDeclaration(initial, "int v;", expected);
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_OK_onVar() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "}");
+    assert_joinVariableDeclaration(initial, "var v;", expected);
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_hasInitializer() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "  v = 2;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v = 1;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_lastStatement() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  if (true)",
+        "    var v;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_nextNotAssignmentExpression()
+      throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  print(0);",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_nextNotExpressionStatement()
+      throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  if (true) return;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_nextNotPureAssignment()
+      throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v += 0;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_notInBlock() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v;");
+  }
+
+  public void test_joinVariableDeclaration_onDeclaration_wrong_notOneVariable() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v1, v2;",
+        "  v2 = 0;",
+        "}");
+    assert_joinVariableDeclaration_wrong(initial, "v2;");
   }
 
   public void test_removeTypeAnnotation_classField_OK() throws Exception {
@@ -761,7 +888,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_splitAndCondition_wrong(initial, "&& 4");
   }
 
-  public void test_splitVariableDeclaration_OK() throws Exception {
+  public void test_splitVariableDeclaration_OK_onName() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
@@ -774,6 +901,36 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
         "  v = 1;",
         "}");
     assert_splitVariableDeclaration(initial, "v ", expected);
+  }
+
+  public void test_splitVariableDeclaration_OK_onType() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  int v;",
+        "  v = 1;",
+        "}");
+    assert_splitVariableDeclaration(initial, "int v", expected);
+  }
+
+  public void test_splitVariableDeclaration_OK_onVar() throws Exception {
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1;",
+        "}");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v;",
+        "  v = 1;",
+        "}");
+    assert_splitVariableDeclaration(initial, "var v", expected);
   }
 
   public void test_splitVariableDeclaration_wrong_notOneVariable() throws Exception {
@@ -1110,7 +1267,7 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
    */
   private void assert_runProcessor(String proposalName, String expectedSource) throws Exception {
     // XXX used to see coverage of only one quick assist
-//    if (!proposalName.equals("Convert into using function with expression body")) {
+//    if (!proposalName.equals("Join variable declaration")) {
 //      return;
 //    }
     CorrectionProposal[] proposals = getProposals();

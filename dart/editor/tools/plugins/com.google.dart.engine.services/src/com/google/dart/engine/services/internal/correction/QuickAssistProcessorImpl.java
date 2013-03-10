@@ -353,8 +353,8 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     addUnitCorrectionProposal("Exchange operands", CorrectionImage.IMG_CORRECTION_CHANGE);
   }
 
-  void addProposal_joinVariableDeclaration() throws Exception {
-    // check that node is LHS in binary expression
+  void addProposal_joinVariableDeclaration_onAssignment() throws Exception {
+    // check that node is LHS in assignment
     if (node instanceof SimpleIdentifier && node.getParent() instanceof AssignmentExpression
         && ((AssignmentExpression) node.getParent()).getLeftHandSide() == node
         && node.getParent().getParent() instanceof ExpressionStatement) {
@@ -376,7 +376,12 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     } else {
       return;
     }
-    VariableDeclarationStatement declStatement = (VariableDeclarationStatement) declNode.getParent().getParent().getParent();
+    VariableDeclaration decl = (VariableDeclaration) declNode.getParent();
+    VariableDeclarationStatement declStatement = (VariableDeclarationStatement) decl.getParent().getParent();
+    // may be has initializer
+    if (decl.getInitializer() != null) {
+      return;
+    }
     // check that "declaration" statement declared only one variable
     if (declStatement.getVariables().getVariables().size() != 1) {
       return;
@@ -399,6 +404,63 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     {
       int assignOffset = assignExpression.getOperator().getOffset();
       addReplaceEdit(rangeEndStart(declNode, assignOffset), " ");
+    }
+    // add proposal
+    addUnitCorrectionProposal("Join variable declaration", CorrectionImage.IMG_CORRECTION_CHANGE);
+  }
+
+  void addProposal_joinVariableDeclaration_onDeclaration() throws Exception {
+    // prepare enclosing VariableDeclarationList
+    VariableDeclarationList declList = node.getAncestor(VariableDeclarationList.class);
+    if (declList != null && declList.getVariables().size() == 1) {
+    } else {
+      return;
+    }
+    VariableDeclaration decl = declList.getVariables().get(0);
+    // already initialized
+    if (decl.getInitializer() != null) {
+      return;
+    }
+    // prepare VariableDeclarationStatement in Block
+    if (declList.getParent() instanceof VariableDeclarationStatement
+        && declList.getParent().getParent() instanceof Block) {
+    } else {
+      return;
+    }
+    VariableDeclarationStatement declStatement = (VariableDeclarationStatement) declList.getParent();
+    Block block = (Block) declStatement.getParent();
+    List<Statement> statements = block.getStatements();
+    // prepare assignment
+    AssignmentExpression assignExpression;
+    {
+      // declaration should not be last Statement
+      int declIndex = statements.indexOf(declStatement);
+      if (declIndex < statements.size() - 1) {
+      } else {
+        return;
+      }
+      // next Statement should be assignment
+      Statement assignStatement = statements.get(declIndex + 1);
+      if (assignStatement instanceof ExpressionStatement) {
+      } else {
+        return;
+      }
+      ExpressionStatement expressionStatement = (ExpressionStatement) assignStatement;
+      // expression should be assignment
+      if (expressionStatement.getExpression() instanceof AssignmentExpression) {
+      } else {
+        return;
+      }
+      assignExpression = (AssignmentExpression) expressionStatement.getExpression();
+    }
+    // check that pure assignment
+    if (assignExpression.getOperator().getType() != TokenType.EQ) {
+      return;
+    }
+    // add edits
+    {
+      int assignOffset = assignExpression.getOperator().getOffset();
+      addReplaceEdit(rangeEndStart(decl.getName(), assignOffset), " ");
     }
     // add proposal
     addUnitCorrectionProposal("Join variable declaration", CorrectionImage.IMG_CORRECTION_CHANGE);
