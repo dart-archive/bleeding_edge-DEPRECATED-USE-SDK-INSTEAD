@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -103,6 +104,24 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public Index getIndex() {
     return index;
+  }
+
+  @Override
+  public Source[] getLaunchableClientLibrarySources() {
+    List<Source> sources = new ArrayList<Source>();
+    for (Project project : getProjects()) {
+      sources.addAll(Arrays.asList(project.getLaunchableClientLibrarySources()));
+    }
+    return sources.toArray(new Source[sources.size()]);
+  }
+
+  @Override
+  public Source[] getLaunchableServerLibrarySources() {
+    List<Source> sources = new ArrayList<Source>();
+    for (Project project : getProjects()) {
+      sources.addAll(Arrays.asList(project.getLaunchableServerLibrarySources()));
+    }
+    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override

@@ -155,6 +155,31 @@ public class ProjectManagerImplTest extends TestCase {
     assertSame(index, manager.getIndex());
   }
 
+  public void test_getLaunchableClientLibrarySources() {
+    // TODO(keertip): complete implementation when API is available 
+    Source[] sources = manager.getLaunchableClientLibrarySources();
+    assertTrue(sources.length == 0);
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile clientfile = new MockFile(
+        folder,
+        "client.dart",
+        "library client;\nimport 'dart:html'\n\n main(){}");
+    folder.add(clientfile);
+    sources = manager.getLaunchableClientLibrarySources();
+//    assertTrue(sources.length == 1);
+  }
+
+  public void test_getLaunchableServerLibrarySources() {
+    // TODO(keertip): complete implementation when API is available
+    Source[] sources = manager.getLaunchableServerLibrarySources();
+    assertTrue(sources.length == 0);
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(folder, "server.dart", "library server;\n\n main(){}");
+    folder.add(file);
+    sources = manager.getLaunchableServerLibrarySources();
+//    assertTrue(sources.length == 1);
+  }
+
   public void test_getLibraries() {
     Project actual = manager.getProject(projectContainer);
     MockFolder mockFolder = projectContainer.getMockFolder("web");

@@ -115,6 +115,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public Source[] getLaunchableClientLibrarySources() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source[] getLaunchableServerLibrarySources() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public LibraryElement[] getLibraries(IContainer container) {
       throw new UnsupportedOperationException();
     }
@@ -218,6 +228,16 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     @Override
     public Index getIndex() {
       return index;
+    }
+
+    @Override
+    public Source[] getLaunchableClientLibrarySources() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source[] getLaunchableServerLibrarySources() {
+      throw new UnsupportedOperationException();
     }
 
     @Override

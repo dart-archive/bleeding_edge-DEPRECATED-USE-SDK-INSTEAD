@@ -140,6 +140,31 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertFactoryInitialized(projectContainer, context1);
   }
 
+  public void test_getLaunchableClientLibrarySources() {
+    // TODO(keertip): complete implementation when API is available 
+    Source[] sources = project.getLaunchableClientLibrarySources();
+    assertTrue(sources.length == 0);
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile clientfile = new MockFile(
+        folder,
+        "client.dart",
+        "library client;\nimport 'dart:html'\n\n main(){}");
+    folder.add(clientfile);
+    sources = project.getLaunchableClientLibrarySources();
+//    assertTrue(sources.length == 1);
+  }
+
+  public void test_getLaunchableServerLibrarySources() {
+    // TODO(keertip): complete implementation when API is available
+    Source[] sources = project.getLaunchableServerLibrarySources();
+    assertTrue(sources.length == 0);
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(folder, "server.dart", "library server;\n\n main(){}");
+    folder.add(file);
+    sources = project.getLaunchableServerLibrarySources();
+//    assertTrue(sources.length == 1);
+  }
+
   public void test_getLibraries() {
     IContainer container = projectContainer.getFolder("web");
     LibraryElement[] libraries = project.getLibraries(container);

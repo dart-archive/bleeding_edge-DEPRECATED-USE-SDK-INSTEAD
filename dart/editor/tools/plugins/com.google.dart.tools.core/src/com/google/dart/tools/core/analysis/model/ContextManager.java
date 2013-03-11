@@ -48,6 +48,20 @@ public interface ContextManager {
   HtmlElement getHtmlElement(IFile file);
 
   /**
+   * Answer with all the library sources that can be launched on the browser
+   * 
+   * @return library sources that can be launched on the browser
+   */
+  Source[] getLaunchableClientLibrarySources();
+
+  /**
+   * Answer with all the library sources that can be launched on the VM
+   * 
+   * @return library sources that can be launched on the VM
+   */
+  Source[] getLaunchableServerLibrarySources();
+
+  /**
    * Answer all the libraries in the container
    * 
    * @param container the container

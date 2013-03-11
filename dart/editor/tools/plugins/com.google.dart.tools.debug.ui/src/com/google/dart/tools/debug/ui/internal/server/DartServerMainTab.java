@@ -14,7 +14,10 @@
 
 package com.google.dart.tools.debug.ui.internal.server;
 
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.DartLibrary;
@@ -68,20 +71,33 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     private Set<IResource> serverLibraries = new HashSet<IResource>();
 
     public ServerAppResourceFilter() {
-      try {
-        List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
-        List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
-
-        libraries.removeAll(bundledLibraries);
-
-        for (DartLibrary library : libraries) {
-          if (library instanceof DartLibraryImpl
-              && ((DartLibraryImpl) library).isServerApplication()) {
-            serverLibraries.add(library.getCorrespondingResource());
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        ProjectManager manager = DartCore.getProjectManager();
+        Source[] librarySources = manager.getLaunchableServerLibrarySources();
+        for (Source source : librarySources) {
+          IResource resource = manager.getResource(source);
+          if (resource != null) {
+            serverLibraries.add(resource);
           }
         }
-      } catch (DartModelException e) {
-        DartDebugCorePlugin.logError(e);
+
+      } else {
+        try {
+
+          List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
+          List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
+
+          libraries.removeAll(bundledLibraries);
+
+          for (DartLibrary library : libraries) {
+            if (library instanceof DartLibraryImpl
+                && ((DartLibraryImpl) library).isServerApplication()) {
+              serverLibraries.add(library.getCorrespondingResource());
+            }
+          }
+        } catch (DartModelException e) {
+          DartDebugCorePlugin.logError(e);
+        }
       }
     }
 

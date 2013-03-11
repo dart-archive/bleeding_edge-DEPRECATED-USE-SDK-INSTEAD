@@ -32,10 +32,14 @@ import org.eclipse.core.runtime.Path;
 import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Represents an Eclipse project that has a Dart nature
@@ -167,6 +171,28 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   public AnalysisContext getDefaultContext() {
     initialize();
     return defaultContext;
+  }
+
+  @Override
+  public Source[] getLaunchableClientLibrarySources() {
+    AnalysisContext[] contexts = getAnalysisContexts();
+    List<Source> sources = new ArrayList<Source>();
+    // TODO(keertip): implement when context has API
+//    for (AnalysisContext context : contexts){
+//      sources.addAll(Arrays.asList(context.getLaunchableClientLibrarySources));
+//    }
+    return sources.toArray(new Source[sources.size()]);
+  }
+
+  @Override
+  public Source[] getLaunchableServerLibrarySources() {
+    AnalysisContext[] contexts = getAnalysisContexts();
+    List<Source> sources = new ArrayList<Source>();
+    // TODO(keertip): implement when context has API
+//    for (AnalysisContext context : contexts){
+//      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources));
+//    }
+    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
@@ -325,6 +351,20 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
         iter.remove();
       }
     }
+  }
+
+  /**
+   * Answer all the {@link AnalysisContext} for this project
+   * 
+   * @return all the analysis contexts in the project
+   */
+  private AnalysisContext[] getAnalysisContexts() {
+    Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
+    for (PubFolder folder : getPubFolders()) {
+      contexts.add(folder.getContext());
+    }
+    contexts.add(getDefaultContext());
+    return contexts.toArray(new AnalysisContext[contexts.size()]);
   }
 
   /**
