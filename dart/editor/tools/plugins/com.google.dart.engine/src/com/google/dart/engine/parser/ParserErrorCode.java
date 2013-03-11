@@ -48,7 +48,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
   EXPECTED_LIST_OR_MAP_LITERAL("Expected a list or map literal"),
   EXPECTED_STRING_LITERAL("Expected a string literal"),
-  EXPECTED_TOKEN("Expected to find: %s"),
+  EXPECTED_TOKEN("Expected to find '%s'"),
   EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE("Export directives must preceed part directives"),
   EXTERNAL_AFTER_CONST("The modifier 'external' should be before the modifier 'const'"),
   EXTERNAL_AFTER_FACTORY("The modifier 'external' should be before the modifier 'factory'"),

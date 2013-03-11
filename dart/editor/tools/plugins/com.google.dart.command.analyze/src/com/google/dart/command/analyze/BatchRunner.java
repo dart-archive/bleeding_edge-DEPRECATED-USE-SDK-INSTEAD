@@ -13,16 +13,18 @@
  */
 package com.google.dart.command.analyze;
 
+import com.google.dart.engine.error.ErrorSeverity;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 /**
  * Provides a framework to read command line options from stdin and feed them to a callback.
  */
-public class BatchRunner {
+class BatchRunner {
 
-  public interface Invocation {
-    public boolean invoke(String[] args) throws Throwable;
+  interface BatchRunnerInvocation {
+    public ErrorSeverity invoke(String[] args) throws Throwable;
   }
 
   /**
@@ -31,7 +33,8 @@ public class BatchRunner {
    * 
    * @param batchArgs command line arguments forwarded from main().
    */
-  public static void runAsBatch(String[] batchArgs, Invocation toolInvocation) throws Throwable {
+  public static void runAsBatch(String[] batchArgs, BatchRunnerInvocation toolInvocation)
+      throws Throwable {
     System.out.println(">>> BATCH START");
 
     // Read command lines in from stdin and create a new compiler for each one.
@@ -39,22 +42,23 @@ public class BatchRunner {
     long startTime = System.currentTimeMillis();
     int testsFailed = 0;
     int totalTests = 0;
+
     try {
       String line;
+
       for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
         long testStart = System.currentTimeMillis();
-        // TODO(zundel): These are shell script cmdlines: be smarter about
-        // quoted strings.
         String[] args = line.trim().split("\\s+");
-        boolean result = toolInvocation.invoke(args);
-        if (!result) {
+        ErrorSeverity result = toolInvocation.invoke(args);
+        if (result.equals(ErrorSeverity.ERROR)) {
           testsFailed++;
         }
+
         // Write stderr end token and flush.
         System.err.println(">>> EOF STDERR");
         System.err.flush();
-        System.out.println(">>> TEST " + (result ? "PASS" : "FAIL") + " "
-            + (System.currentTimeMillis() - testStart) + "ms");
+        System.out.println(">>> TEST " + (result.equals(ErrorSeverity.ERROR) ? "FAIL" : "PASS")
+            + " " + (System.currentTimeMillis() - testStart) + "ms");
         System.out.flush();
       }
     } catch (Throwable e) {
@@ -64,9 +68,12 @@ public class BatchRunner {
       System.out.flush();
       throw e;
     }
+
     long elapsed = System.currentTimeMillis() - startTime;
+
     System.out.println(">>> BATCH END (" + (totalTests - testsFailed) + "/" + totalTests + ") "
         + elapsed + "ms");
     System.out.flush();
   }
+
 }

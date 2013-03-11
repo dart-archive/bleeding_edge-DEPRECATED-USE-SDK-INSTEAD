@@ -13,16 +13,16 @@
  */
 package com.google.dart.command.analyze;
 
-import com.google.dart.command.analyze.BatchRunner.Invocation;
-import com.google.dart.command.analyze.CommandLineOptions.AnalyzerOptions;
-import com.google.dart.command.metrics.Tracer;
-
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
+import com.google.dart.command.analyze.BatchRunner.BatchRunnerInvocation;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.error.ErrorSeverity;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +30,100 @@ import java.util.List;
  * Entry point for the Dart command line analyzer.
  */
 public class AnalyzerMain {
-  private static final String PROGRAM_NAME = "dart-analyzer";
+  public static final String PROGRAM_NAME = "dartanalyzer";
+
+  /**
+   * @return the version of the dart-analyzer tool
+   */
+  public static String getBuildVersion() {
+    final String fallbackVersion = "0.0.0";
+
+    Package analyzerPackage = AnalyzerMain.class.getPackage();
+
+    if (analyzerPackage.getImplementationVersion() == null) {
+      return fallbackVersion;
+    } else {
+      return analyzerPackage.getImplementationVersion();
+    }
+  }
+
+  public static void main(final String[] args) {
+    final AnalyzerOptions options = AnalyzerOptions.createFromArgs(args);
+
+    options.initializeSdkPath();
+
+    if (args.length == 0 || options.showHelp()) {
+      showVersion(options, System.out);
+      System.out.println();
+      showUsage(options, System.out);
+      System.exit(0);
+    }
+
+    if (options.getShowVersion()) {
+      showVersion(options, System.out);
+      System.exit(0);
+    }
+
+    if (options.getDartSdkPath() == null) {
+      System.out.println(PROGRAM_NAME + ": no Dart SDK found.");
+      showUsage(options, System.out);
+      System.exit(1);
+    }
+
+    if (options.getSdkIndexLocation() != null) {
+      AnalyzerImpl analyzer = new AnalyzerImpl(options);
+      if (analyzer.createSdkIndex()) {
+        System.exit(0);
+      } else {
+        System.exit(1);
+      }
+    }
+
+    if (options.getRunTests()) {
+      runTests(options);
+      System.exit(0);
+    }
+
+    String sourceFilePath = options.getSourceFile();
+
+    if (sourceFilePath == null) {
+      System.out.println(PROGRAM_NAME + ": no source files were specified.");
+      showUsage(options, System.out);
+      System.exit(1);
+    }
+
+    try {
+      if (options.shouldBatch()) {
+        BatchRunner.runAsBatch(args, new BatchRunnerInvocation() {
+          @Override
+          public ErrorSeverity invoke(String[] lineArgs) throws Throwable {
+            AnalyzerOptions compilerOptions = AnalyzerOptions.createFromArgs(lineArgs);
+
+            if (compilerOptions.getDartSdkPath() == null) {
+              compilerOptions.setDartSdkPath(options.getDartSdkPath());
+            }
+
+            return runAnalyzer(compilerOptions);
+          }
+        });
+      } else {
+        ErrorSeverity result = runAnalyzer(options);
+
+        if (result != ErrorSeverity.NONE) {
+          System.exit(result.ordinal());
+        }
+      }
+    } catch (Throwable t) {
+      t.printStackTrace();
+      crashAndExit();
+    }
+  }
+
+  protected static void crashAndExit() {
+    // Our test scripts look for 253 to signal a "crash".
+
+    System.exit(253);
+  }
 
   /**
    * Invoke the compiler to build all of the files passed on the command line
@@ -38,110 +131,81 @@ public class AnalyzerMain {
    * @param analyzerOptions parsed command line arguments
    * @return {@code  true} on success, {@code false} on failure.
    */
-  public static boolean analyzerMain(AnalyzerOptions analyzerOptions) throws IOException {
-    List<String> sourceFiles = analyzerOptions.getSourceFiles();
-    if (sourceFiles.size() == 0) {
-      System.err.println(PROGRAM_NAME + ": no source files were specified.");
-      showUsage(null, System.err);
-      return false;
+  protected static ErrorSeverity runAnalyzer(AnalyzerOptions options) throws IOException,
+      AnalysisException {
+    AnalyzerImpl analyzer = new AnalyzerImpl(options);
+
+    File sourceFile = new File(options.getSourceFile());
+
+    if (!sourceFile.exists()) {
+      System.out.println(PROGRAM_NAME + ": file not found: " + sourceFile);
+      System.out.println();
+      showUsage(options, System.out);
+      return ErrorSeverity.ERROR;
     }
 
-    Analyzer analyzer = new Analyzer();
+    ErrorFormatter formatter = new ErrorFormatter(System.out, options);
 
-    for (String sourceFilePath : sourceFiles) {
-      File sourceFile = new File(sourceFilePath);
-      if (!sourceFile.exists()) {
-        System.err.println(PROGRAM_NAME + ": file not found: " + sourceFile);
-        showUsage(null, System.err);
-        return false;
-      }
-      CommandLineErrorListener listener = new CommandLineErrorListener(analyzerOptions);
+    List<AnalysisError> errors = new ArrayList<AnalysisError>();
 
-      AnalysisConfiguration config = new CommandLineAnalysisConfiguration(analyzerOptions);
-      String errorMessage = analyzer.analyze(sourceFile, config, listener);
-      if (errorMessage != null) {
-        System.err.println(errorMessage);
-        return false;
-      }
-      listener.printFormattedErrors(System.out);
-      listener.clearErrors();
-    }
-    return true;
+    formatter.startAnalysis();
+
+    ErrorSeverity status = analyzer.analyze(sourceFile, errors);
+
+    formatter.formatErrors(errors);
+
+    return status;
   }
 
-  public static void crash() {
-    // Our test scripts look for 253 to signal a "crash".
-    System.exit(253);
-  }
+  /**
+   * If the unit tests are on our classpath, run them and exit with an appropriate status code
+   * 
+   * @param options
+   */
+  private static void runTests(AnalyzerOptions options) {
+    // org.junit.runner.JUnitCore.main("com.google.dart.command.analyze.CombinedEngineTestSuite");
 
-  public static void main(final String[] topArgs) {
-    Tracer.init();
-
-    AnalyzerOptions topCompilerOptions = processCommandLineOptions(topArgs);
-    boolean result = false;
     try {
-      if (topCompilerOptions.shouldBatch()) {
-        if (topArgs.length > 1) {
-          System.err.println("(Extra arguments specified with -batch ignored.)");
-        }
-        BatchRunner.runAsBatch(topArgs, new Invocation() {
-          @Override
-          public boolean invoke(String[] lineArgs) throws Throwable {
-            List<String> allArgs = new ArrayList<String>();
-            for (String arg : topArgs) {
-              if (!arg.equals("-batch")) {
-                allArgs.add(arg);
-              }
-            }
-            for (String arg : lineArgs) {
-              allArgs.add(arg);
-            }
+      Class<?> junitRunner = Class.forName("org.junit.runner.JUnitCore");
 
-            AnalyzerOptions compilerOptions = processCommandLineOptions(allArgs.toArray(new String[allArgs.size()]));
-            if (compilerOptions.shouldBatch()) {
-              System.err.println("-batch ignored: Already in batch mode.");
-            }
-            return analyzerMain(compilerOptions);
-          }
-        });
-      } else {
-        result = analyzerMain(topCompilerOptions);
-      }
-    } catch (Throwable t) {
-      t.printStackTrace();
-      crash();
-    }
-    if (!result) {
+      Method mainMethod = junitRunner.getMethod("main", String[].class);
+
+      mainMethod.invoke(null, "com.google.dart.command.analyze.CombinedEngineTestSuite");
+    } catch (ClassNotFoundException ex) {
+      System.out.println("Test classes not available in this build.");
+      System.exit(1);
+    } catch (SecurityException e) {
+      System.out.println("Test classes not available in this build.");
+      System.exit(1);
+    } catch (NoSuchMethodException e) {
+      System.out.println("Test classes not available in this build.");
+      System.exit(1);
+    } catch (IllegalArgumentException e) {
+      e.printStackTrace();
+      System.exit(1);
+    } catch (IllegalAccessException e) {
+      e.printStackTrace();
+      System.exit(1);
+    } catch (InvocationTargetException e) {
+      e.printStackTrace();
       System.exit(1);
     }
   }
 
-  private static AnalyzerOptions processCommandLineOptions(String[] args) {
-    CmdLineParser cmdLineParser = null;
-    AnalyzerOptions compilerOptions = null;
-    try {
-      compilerOptions = new AnalyzerOptions();
-      cmdLineParser = CommandLineOptions.parse(args, compilerOptions);
-      if (args.length == 0 || compilerOptions.showHelp()) {
-        showUsage(cmdLineParser, System.err);
-        System.exit(1);
-      }
-    } catch (CmdLineException e) {
-      System.err.println(e.getLocalizedMessage());
-      showUsage(cmdLineParser, System.err);
-      System.exit(1);
-    }
-
-    assert compilerOptions != null;
-    return compilerOptions;
+  private static void showUsage(AnalyzerOptions options, PrintStream out) {
+    out.println("Usage: " + PROGRAM_NAME + " [<options>] <dart-script>");
+    out.println();
+    out.println("Options:");
+    options.printUsage(out);
+    out.println();
+    out.println("Exit codes:");
+    out.println(" 0: No analysis issues found");
+    out.println(" 1: Analysis warnings encountered");
+    out.println(" 2: Analysis errors encountered");
   }
 
-  private static void showUsage(CmdLineParser cmdLineParser, PrintStream out) {
-    out.println("Usage: " + PROGRAM_NAME + " [<options>] <dart-script> [script-arguments]");
-    out.println("Available options:");
-    if (cmdLineParser == null) {
-      cmdLineParser = new CmdLineParser(new AnalyzerOptions());
-    }
-    cmdLineParser.printUsage(out);
+  private static void showVersion(AnalyzerOptions options, PrintStream out) {
+    out.println(PROGRAM_NAME + " version " + getBuildVersion());
   }
+
 }
