@@ -87,6 +87,8 @@ public class MethodInvocation extends Expression {
   public Token getBeginToken() {
     if (target != null) {
       return target.getBeginToken();
+    } else if (period != null) {
+      return period;
     }
     return methodName.getBeginToken();
   }
