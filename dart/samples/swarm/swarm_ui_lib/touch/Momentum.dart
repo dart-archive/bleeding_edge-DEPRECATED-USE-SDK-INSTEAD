@@ -479,9 +479,8 @@ class TimeoutMomentum implements Momentum {
   void _stepWithoutAnimation() {
     physicsX.step();
     physicsY.step();
-    // TODO(jacobr): double.round() should return an int, see b/5121907
-    _nextX = physicsX._currentOffset.round().toInt();
-    _nextY = physicsY._currentOffset.round().toInt();
+    _nextX = physicsX._currentOffset.round();
+    _nextY = physicsY._currentOffset.round();
   }
 
   /**

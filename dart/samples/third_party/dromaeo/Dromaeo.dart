@@ -155,8 +155,8 @@ class Dromaeo {
 
     // TODO(jat): Remove void type below. Bug 5269037.
     void _updateTime() {
-      final mins = (estimatedTimeSecs / 60).floor().toInt();
-      final secs = (estimatedTimeSecs - mins * 60).round().toInt();
+      final mins = (estimatedTimeSecs / 60).floor();
+      final secs = (estimatedTimeSecs - mins * 60).round();
       final secsAsString = '${(secs < 10 ? "0" : "")}$secs';
       _byId('left').innerHtml = '${mins}:${secsAsString}';
 

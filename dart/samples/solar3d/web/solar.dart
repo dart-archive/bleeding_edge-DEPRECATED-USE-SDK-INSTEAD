@@ -265,7 +265,7 @@ void showFps(num fps) {
 
   fpsAverage = fps * 0.05 + fpsAverage * 0.95;
 
-  query("#notes").text = "${fpsAverage.round().toInt()} fps";
+  query("#notes").text = "${fpsAverage.round()} fps";
 }
 
 /**

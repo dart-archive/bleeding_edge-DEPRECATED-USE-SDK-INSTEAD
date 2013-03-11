@@ -91,7 +91,7 @@ class GridItemAlignment {
         size = Math.min(size, span.length);
         num center = span.start + span.length / 2;
         num left = center - size / 2;
-        return new _GridLocation(left.round().toInt(), size);
+        return new _GridLocation(left.round(), size);
       case 'stretch':
         return span;
     }

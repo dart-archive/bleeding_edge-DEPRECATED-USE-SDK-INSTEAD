@@ -27,11 +27,11 @@ class Math2 {
   }
 
   static int round(double d) {
-    return d.round().toInt();
+    return d.round();
   }
 
   static int floor(double d) {
-    return d.floor().toInt();
+    return d.floor();
   }
 
   // TODO (olonho): use d.toStringAsFixed(precision) when implemented by DartVM

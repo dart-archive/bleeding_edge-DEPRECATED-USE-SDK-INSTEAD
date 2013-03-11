@@ -232,10 +232,10 @@ class GridLayout extends ViewLayout {
       int startEdge = tracks[i].start;
       int endEdge;
       if (i < tracks.length - 1) {
-        endEdge = tracks[i + 1].start.round().toInt();
+        endEdge = tracks[i + 1].start.round();
         tracks[i + 1].start = endEdge;
       } else {
-        endEdge = finalPosition.round().toInt();
+        endEdge = finalPosition.round();
       }
       int breadth = endEdge - startEdge;
 

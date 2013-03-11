@@ -173,7 +173,7 @@ class PagedColumnView extends View {
     if (value.endsWith('px')) {
       value = value.substring(0, value.length - 2);
     }
-    return double.parse(value).round().toInt();
+    return double.parse(value).round();
   }
 
   /** Watch for resize and update page count. */
@@ -194,7 +194,7 @@ class PagedColumnView extends View {
     window.setImmediate(() {
       if (_container.scrollWidth > _container.offset.width) {
         pageLength = (_container.scrollWidth / _computePageSize(_container))
-            .ceil().toInt();
+            .ceil();
       }
       pageLength = Math.max(pageLength, 1);
 
@@ -219,7 +219,7 @@ class PagedColumnView extends View {
     window.setImmediate(() {
       num current = scroller.contentOffset.x;
       int pageSize = _computePageSize(_container);
-      pages.current.value = -(current / pageSize).round().toInt();
+      pages.current.value = -(current / pageSize).round();
     });
   }
 
@@ -247,7 +247,6 @@ class PagedColumnView extends View {
           pageNumber = pageNumber.round();
         }
       }
-      pageNumber = pageNumber.toInt();
       num translate = -pageNumber * pageSize;
       pages.current.value = pageNumber;
       if (currentTarget != translate) {

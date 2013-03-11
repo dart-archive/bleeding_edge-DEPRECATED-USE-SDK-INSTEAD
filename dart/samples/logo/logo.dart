@@ -43,7 +43,7 @@ class Color {
       s = d/(2 - 2*l);
     }
 
-    return new Color((h.round() % 360).toInt(), s, l);
+    return new Color(h.round() % 360, s, l);
   }
 
   factory Color.fromHex(String hex) => new Color.rgb(

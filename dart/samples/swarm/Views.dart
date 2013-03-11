@@ -669,20 +669,20 @@ class FixedSizeListViewLayout<D> implements ListViewLayout<D> {
   }
 
   int getPageLength(int viewLength) {
-    final itemsPerPage = (viewLength / _itemLength).floor();
-    return (Math.max(1, itemsPerPage) * _itemLength).toInt();
+    final itemsPerPage = viewLength ~/ _itemLength;
+    return Math.max(1, itemsPerPage) * _itemLength;
   }
 
   int getPage(int index, int viewLength) {
-    return (getOffset(index) / getPageLength(viewLength)).floor().toInt();
+    return getOffset(index) ~/ getPageLength(viewLength);
   }
 
   int getPageStartIndex(int page, int viewLength) {
-    return (getPageLength(viewLength) / _itemLength).toInt() * page;
+    return getPageLength(viewLength) ~/ _itemLength * page;
   }
 
   int getSnapIndex(num offset, int viewLength) {
-    int index = (-offset / _itemLength).round().toInt();
+    int index = (-offset / _itemLength).round();
     if (_paginate) {
       index = getPageStartIndex(getPage(index, viewLength), viewLength);
     }
