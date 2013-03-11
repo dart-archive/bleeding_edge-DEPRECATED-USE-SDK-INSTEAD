@@ -196,7 +196,7 @@ public class NewApplicationCreationPage extends WizardPage {
     samplesViewer.setInput(samples);
     GridDataFactory.fillDefaults().hint(-1, 60).grab(true, false).align(SWT.FILL, SWT.CENTER).applyTo(
         samplesViewer.getControl());
-    samplesViewer.setSelection(new StructuredSelection(samples.get(0)));
+    samplesViewer.setSelection(new StructuredSelection(getDefaultSample(samples)));
     samplesViewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
@@ -289,6 +289,16 @@ public class NewApplicationCreationPage extends WizardPage {
     File file = path.toFile();
 
     return file.exists();
+  }
+
+  private AbstractSample getDefaultSample(List<AbstractSample> samples) {
+    for (AbstractSample sample : samples) {
+      if (sample.shouldBeDefault()) {
+        return sample;
+      }
+    }
+
+    return samples.get(0);
   }
 
   private boolean getGenerateContentPreference() {

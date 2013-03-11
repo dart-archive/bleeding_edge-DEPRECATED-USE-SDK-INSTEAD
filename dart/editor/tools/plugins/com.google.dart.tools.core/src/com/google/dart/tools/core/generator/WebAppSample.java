@@ -38,4 +38,9 @@ public class WebAppSample extends AbstractSample {
     setMainFile("web/{name.lower}.dart");
   }
 
+  @Override
+  public boolean shouldBeDefault() {
+    return true;
+  }
+
 }

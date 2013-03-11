@@ -46,10 +46,10 @@ public class AbstractSample {
 
   public static List<AbstractSample> getAllSamples() {
     return Arrays.asList(
+        new ChromePackagedAppSample(),
         new CommandLineSample(),
         new WebAppSample(),
-        new WebUiSample(),
-        new ChromePackagedAppSample());
+        new WebUiSample());
   }
 
   private String title;
@@ -107,6 +107,10 @@ public class AbstractSample {
 
   public String getTitle() {
     return title;
+  }
+
+  public boolean shouldBeDefault() {
+    return false;
   }
 
   @Override
