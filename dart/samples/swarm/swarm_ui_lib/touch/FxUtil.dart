@@ -47,10 +47,10 @@ class FxUtil {
     // consider using CSSMatrix although that may be overkill.
     String transform = '${TRANSLATE_3D}(${x}px,${y}px,${z}px)';
     if (rotation != null) {
-      transform = transform.concat(' ${ROTATE}(${rotation}deg)');
+      transform += ' ${ROTATE}(${rotation}deg)';
     }
     if (scale != null) {
-      transform = transform.concat(' ${SCALE}(${scale})');
+      transform += ' ${SCALE}(${scale})';
     }
     style.transform = transform;
     if (originX != null || originY != null) {
