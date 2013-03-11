@@ -347,6 +347,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INITIALIZER_FOR_NON_EXISTANT_FIELD(""),
 
   /**
+   * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
+   * constants. Until then, this acts as a placeholder for more informative errors.
+   */
+  INVALID_CONSTANT(""),
+
+  /**
    * 7.6 Constructors: It is a compile-time error if the name of a constructor is not a constructor
    * name.
    */
