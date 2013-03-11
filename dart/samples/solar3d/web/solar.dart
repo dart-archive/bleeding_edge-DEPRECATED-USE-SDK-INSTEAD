@@ -61,7 +61,7 @@ class Solar3DApplication {
     orbitPath = new OrbitPath(glContext);
     // Measure the canvas element.
     window.setImmediate(() {
-      canvas.width = (canvas.parent as Element).clientWidth;
+      canvas.width = (canvas.parent as Element).client.width;
       canvas.height = 400;
 
       Future f = setupAssets();
@@ -192,8 +192,8 @@ class Solar3DApplication {
   }
 
   void fullscreenChange(Event event) {
-    canvas.width = (canvas.parent as Element).clientWidth;
-    canvas.height = (canvas.parent as Element).clientHeight;
+    canvas.width = (canvas.parent as Element).client.width;
+    canvas.height = (canvas.parent as Element).client.height;
     camera.aspectRatio = canvas.width / canvas.height;
   }
 

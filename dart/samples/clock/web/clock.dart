@@ -45,7 +45,7 @@ class CountDownClock {
   CountDownClock() {
     var parent = query("#canvas-content");
 
-    createNumbers(parent, parent.clientWidth, parent.clientHeight);
+    createNumbers(parent, parent.client.width, parent.client.height);
 
     updateTime(new DateTime.now());
 

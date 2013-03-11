@@ -27,8 +27,8 @@ void _processFile(String file) {
   String contents = new File(file).readAsStringSync();
 
   if (contents != null) {
-    var out = new File("${file}bar").openWrite();
-    out.addString("// processed from ${file}:\n${contents}");
+    IOSink<File> out = new File("${file}bar").openWrite();
+    out.write("// processed from ${file}:\n${contents}");
     out.close();
   }
 }

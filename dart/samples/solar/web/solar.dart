@@ -63,8 +63,8 @@ class SolarSystem {
   start() {
     // Measure the canvas element.
     window.setImmediate(() {
-      _width = (canvas.parent as Element).clientWidth;
-      _height = (canvas.parent as Element).clientHeight;
+      _width = (canvas.parent as Element).client.width;
+      _height = (canvas.parent as Element).client.height;
 
       canvas.width = _width;
 

@@ -118,10 +118,10 @@ void _processFile(String arg) {
 
     File outFile = new File("${arg}bar");
 
-    var out = outFile.openWrite();
-    out.addString("// processed from ${file.path}:\n");
+    IOSink<File> out = outFile.openWrite();
+    out.writeln("// processed from ${file.path}:");
     if (contents != null) {
-      out.addString(contents);
+      out.write(contents);
     }
     out.close();
 

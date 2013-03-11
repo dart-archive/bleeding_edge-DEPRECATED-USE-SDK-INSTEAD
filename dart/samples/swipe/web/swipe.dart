@@ -75,7 +75,7 @@ void initialize3D() {
   num childCount = target.children.length;
 
   window.setImmediate(() {
-    num width = query("#target").clientWidth;
+    num width = query("#target").client.width;
     figureWidth = (width / 2) ~/ tan(PI / childCount);
 
     target.style.transform = "translateZ(-${figureWidth}px)";
