@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.omni;
 
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -45,15 +44,17 @@ public class OmniBoxImages {
    *         found
    */
   public static ImageDescriptor getFileImageDescriptor(IFile file) {
-    DartElement element = DartCore.create(file);
-    if (element != null) {
-      switch (element.getElementType()) {
-        case DartElement.HTML_FILE:
-          return DartPluginImages.DESC_DART_HTML_FILE;
-        case DartElement.COMPILATION_UNIT:
-          return DartPluginImages.DESC_DART_COMP_UNIT;
+
+    if (file != null) {
+      String name = file.getName();
+      if (DartCore.isHTMLLikeFileName(name)) {
+        return DartPluginImages.DESC_DART_HTML_FILE;
+      }
+      if (DartCore.isDartLikeFileName(name)) {
+        return DartPluginImages.DESC_DART_COMP_UNIT;
       }
     }
+
     return getGenericFileDescriptor();
   }
 
