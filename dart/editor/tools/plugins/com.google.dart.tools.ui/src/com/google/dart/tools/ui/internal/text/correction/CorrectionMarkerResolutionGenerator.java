@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.text.correction;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.CorrectionEngine;
@@ -208,6 +209,10 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
 
   @Override
   public boolean hasResolutions(IMarker marker) {
+    //TODO (pquitslund): add new world support for resolutions
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return false;
+    }
     return internalHasResolutions(marker);
   }
 

@@ -325,6 +325,12 @@ public class DartCorrectionProcessor implements
   }
 
   public static boolean hasCorrections(Annotation annotation) {
+
+    //TODO (pquitslund): add new world support for corrections
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return false;
+    }
+
     if (annotation instanceof IJavaAnnotation) {
       IJavaAnnotation dartAnnotation = (IJavaAnnotation) annotation;
       ErrorCode problemId = dartAnnotation.getId();
