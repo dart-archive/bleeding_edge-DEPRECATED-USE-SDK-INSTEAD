@@ -424,7 +424,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       ClassElement classElement = constructorElement.getEnclosingElement();
       FieldElement[] elements = classElement.getFields();
       for (FieldElement field : elements) {
-        if (!field.isFinal() && !field.isConst()) {
+        if (!field.isFinal() && !field.isConst() && !field.isSynthetic()) {
           errorReporter.reportError(
               CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD,
               node);

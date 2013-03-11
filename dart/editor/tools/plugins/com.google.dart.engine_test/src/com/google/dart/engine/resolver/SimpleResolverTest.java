@@ -167,6 +167,18 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_constConstructorWithNonFinalField_syntheticField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  const A();",
+        "  set x(value) {}",
+        "  get x {return 0;}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_duplicateDefinition_getter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "bool get a => true;"));
