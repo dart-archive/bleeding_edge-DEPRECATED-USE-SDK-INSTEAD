@@ -61,7 +61,7 @@ void main() {
     })
     .test('appendChild', () {
       for (int i = 0; i < elems.length; i++)
-        document.body.$dom_appendChild(elems[i]);
+        document.body.append(elems[i]);
     })
     .test('insertBefore', () {
       for (int i = 0; i < elems.length; i++)

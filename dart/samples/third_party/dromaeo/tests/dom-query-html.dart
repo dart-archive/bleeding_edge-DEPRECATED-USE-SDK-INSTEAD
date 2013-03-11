@@ -29,7 +29,7 @@ void main() {
       });
       final div = new Element.tag('div');
       div.innerHtml = html;
-      document.body.$dom_appendChild(div);
+      document.body.append(div);
     })
     .test('getElementById', () {
       for (int i = 0; i < num * 30; i++) {

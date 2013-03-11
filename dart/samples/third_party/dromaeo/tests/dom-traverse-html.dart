@@ -32,7 +32,7 @@ void main() {
 
       final div = new Element.tag('div');
       div.innerHtml = html;
-      document.body.$dom_appendChild(div);
+      document.body.append(div);
     })
     .test('firstChild', () {
       final nodes = document.body.$dom_childNodes;
