@@ -18,6 +18,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartElementDelta;
@@ -665,12 +666,18 @@ public class DefaultDartFoldingStructureProvider implements IDartFoldingStructur
 
     @Override
     public void projectionDisabled() {
-      handleProjectionDisabled();
+      //TODO (pquitslund): support projection for new model elements
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        handleProjectionDisabled();
+      }
     }
 
     @Override
     public void projectionEnabled() {
-      handleProjectionEnabled();
+      //TODO (pquitslund): support projection for new model elements
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        handleProjectionEnabled();
+      }
     }
   }
 

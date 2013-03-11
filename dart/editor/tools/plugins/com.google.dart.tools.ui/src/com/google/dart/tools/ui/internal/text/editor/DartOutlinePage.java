@@ -135,7 +135,11 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
           PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE,
           isChecked);
       if (isChecked && fEditor != null) {
-        fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
+        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceElement(), false);
+        } else {
+          fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
+        }
       }
       fOpenAndLinkWithEditorHelper.setLinkWithEditor(isChecked);
     }
@@ -1211,7 +1215,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, IAdapt
         if (sel instanceof ITextSelection) {
           ITextSelection tsel = (ITextSelection) sel;
           int offset = tsel.getOffset();
-          DartElement element = fEditor.getElementAt(offset);
+          Object element = fEditor.getElementAt(offset);
           if (element != null) {
             setSelection(new StructuredSelection(element));
             return true;

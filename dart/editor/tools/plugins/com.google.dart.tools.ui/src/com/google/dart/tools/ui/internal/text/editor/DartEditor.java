@@ -752,21 +752,26 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           if (type.equals(IDocument.DEFAULT_CONTENT_TYPE) && selection.y == 0) {
 
             try {
-              final DartElement element = getElementAt(selection.x, true);
-              if (element != null && element.exists()) {
+              final Object elem = getElementAt(selection.x, true);
 
-                final int kind = element.getElementType();
-                if (kind == DartElement.TYPE || kind == DartElement.METHOD) {
+              if (elem instanceof DartElement) {
+                DartElement element = (DartElement) elem;
+                if (element.exists()) {
 
-                  final SourceReference reference = (SourceReference) element;
-                  final SourceRange range = reference.getSourceRange();
+                  final int kind = element.getElementType();
+                  if (kind == DartElement.TYPE || kind == DartElement.METHOD) {
 
-                  if (range != null) {
-                    viewer.setSelectedRange(range.getOffset(), range.getLength());
-                    viewer.doOperation(ISourceViewer.FORMAT);
+                    final SourceReference reference = (SourceReference) element;
+                    final SourceRange range = reference.getSourceRange();
+
+                    if (range != null) {
+                      viewer.setSelectedRange(range.getOffset(), range.getLength());
+                      viewer.doOperation(ISourceViewer.FORMAT);
+                    }
                   }
                 }
               }
+
             } catch (DartModelException exception) {
               // Should not happen
             }
@@ -2386,7 +2391,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * Synchronizes the outliner selection with the actual cursor position in the editor.
    */
   public void synchronizeOutlinePageSelection() {
-    synchronizeOutlinePage(computeHighlightRangeSourceReference());
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      synchronizeOutlinePage(computeHighlightRangeSourceElement());
+    } else {
+      synchronizeOutlinePage(computeHighlightRangeSourceReference());
+    }
   }
 
   public void updatedTitleImage(Image image) {
@@ -2396,32 +2405,63 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   protected void adjustHighlightRange(int offset, int length) {
 
-    try {
+    Object element = getElementAt(offset, false);
 
-      DartElement element = getElementAt(offset, false);
-      while (element instanceof SourceReference) {
-        SourceRange range = ((SourceReference) element).getSourceRange();
-        if (range != null && offset < range.getOffset() + range.getLength()
-            && range.getOffset() < offset + length) {
+    if (element instanceof com.google.dart.engine.element.Element) {
 
-          ISourceViewer viewer = getSourceViewer();
-          if (viewer instanceof ITextViewerExtension5) {
-            ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
-            extension.exposeModelRange(new Region(range.getOffset(), range.getLength()));
-          }
+      com.google.dart.engine.element.Element sourceElement = (com.google.dart.engine.element.Element) element;
 
-          setHighlightRange(range.getOffset(), range.getLength(), true);
-          if (fOutlinePage != null) {
-            fOutlinePage.select(element);
-          }
+      int elementOffset = sourceElement.getNameOffset();
 
-          return;
-        }
-        element = element.getParent();
+      String elementName = sourceElement.getName();
+      if (elementOffset == -1 || elementName == null) {
+        DartToolsPlugin.log("Unable to retrieve source range information (to highlight) "
+            + sourceElement);
+        return;
       }
 
-    } catch (DartModelException x) {
-      DartToolsPlugin.log(x.getStatus());
+      int elementLength = sourceElement.getName().length();
+
+      ISourceViewer viewer = getSourceViewer();
+      if (viewer instanceof ITextViewerExtension5) {
+        ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
+        extension.exposeModelRange(new Region(elementOffset, elementLength));
+      }
+
+      setHighlightRange(elementOffset, elementLength, true);
+      if (fOutlinePage != null) {
+        fOutlinePage.select(element);
+      }
+
+    } else {
+
+      try {
+
+        while (element instanceof SourceReference) {
+          SourceRange range = ((SourceReference) element).getSourceRange();
+          if (range != null && offset < range.getOffset() + range.getLength()
+              && range.getOffset() < offset + length) {
+
+            ISourceViewer viewer = getSourceViewer();
+            if (viewer instanceof ITextViewerExtension5) {
+              ITextViewerExtension5 extension = (ITextViewerExtension5) viewer;
+              extension.exposeModelRange(new Region(range.getOffset(), range.getLength()));
+            }
+
+            setHighlightRange(range.getOffset(), range.getLength(), true);
+            if (fOutlinePage != null) {
+              fOutlinePage.select(element);
+            }
+
+            return;
+          }
+          element = ((DartElement) element).getParent();
+        }
+
+      } catch (DartModelException x) {
+        DartToolsPlugin.log(x.getStatus());
+      }
+
     }
 
     ISourceViewer viewer = getSourceViewer();
@@ -2543,7 +2583,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       caret = offset + styledText.getCaretOffset();
     }
 
-    DartElement element = getElementAt(caret, false);
+    Object element = getElementAt(caret, false);
 
     if (!(element instanceof SourceReference)) {
       return null;
@@ -3110,7 +3150,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param offset the offset inside of the requested element
    * @return the most narrow Dart element
    */
-  abstract protected DartElement getElementAt(int offset);
+  abstract protected Object /*Element*/getElementAt(int offset);
 
   /**
    * Returns the most narrow Dart element including the given offset.
@@ -3119,7 +3159,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param reconcile <code>true</code> if editor input should be reconciled in advance
    * @return the most narrow element
    */
-  protected DartElement getElementAt(int offset, boolean reconcile) {
+  protected Object /*Element*/getElementAt(int offset, boolean reconcile) {
     return getElementAt(offset);
   }
 
@@ -3678,6 +3718,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (getSourceViewer() instanceof DartSourceViewer) {
       ((DartSourceViewer) getSourceViewer()).setPreferenceStore(store);
     }
+  }
+
+  protected void setSelection(com.google.dart.engine.element.Element element, boolean moveCursor) {
+    //TODO (pquitslund): implement selection for analysis engine elements
   }
 
   protected void setSelection(SourceReference reference, boolean moveCursor) {
@@ -4270,10 +4314,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         DartToolsPlugin.log(e);
       }
     }
-  }
-
-  private void setSelection(com.google.dart.engine.element.Element element, boolean moveCursor) {
-    //TODO (pquitslund): implement selection for analysis engine elements
   }
 
   /**
