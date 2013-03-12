@@ -15,13 +15,16 @@ package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.HTMLFile;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.dartium.DartiumLaunchShortcut;
@@ -426,7 +429,8 @@ public class LaunchUtils {
     IResource appResource = launchWrapper.getApplicationResource();
 
     if (ObjectUtils.equals(appResource, resource)) {
-      return true;
+      DartLibrary[] testLibraries = LaunchUtils.getDartLibraries(resource);
+      return isCorrectLaunchConfigType(config, testLibraries[0]);
     }
 
     // TODO: this does not use the launch configurations correctly
@@ -437,11 +441,36 @@ public class LaunchUtils {
     if (testLibraries.length > 0 & existingLibrary.length > 0) {
       for (DartLibrary testLibrary : testLibraries) {
         if (testLibrary.equals(existingLibrary[0])) {
-          return true;
+          return isCorrectLaunchConfigType(config, testLibrary);
         }
       }
     }
 
+    return false;
+  }
+
+  /**
+   * Check if the given launch configuration - server/client can launch the library specified. This
+   * check will catch changes made to library client <=> server after configuration has been
+   * created.
+   */
+  private static boolean isCorrectLaunchConfigType(ILaunchConfiguration config,
+      DartLibrary testLibrary) {
+
+    try {
+      if (config.getType().getIdentifier().equals(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID)
+          && testLibrary != null) {
+        if (((DartLibraryImpl) testLibrary).isServerApplication()) {
+          return true;
+        }
+      } else {
+        if (((DartLibraryImpl) testLibrary).isBrowserApplication()) {
+          return true;
+        }
+      }
+    } catch (Exception e) {
+      DartDebugUIPlugin.logError(e);
+    }
     return false;
   }
 

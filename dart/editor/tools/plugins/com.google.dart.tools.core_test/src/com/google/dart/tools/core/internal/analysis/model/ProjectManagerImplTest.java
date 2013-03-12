@@ -165,8 +165,11 @@ public class ProjectManagerImplTest extends TestCase {
         "client.dart",
         "library client;\nimport 'dart:html'\n\n main(){}");
     folder.add(clientfile);
+    Project project = manager.getProject(projectContainer);
+    Source[] libSources = project.getLaunchableClientLibrarySources();
     sources = manager.getLaunchableClientLibrarySources();
-//    assertTrue(sources.length == 1);
+//  assertSame(sources.length, libSources.length);
+//  assertTrue(sources[0].equals(libSources[0]));
   }
 
   public void test_getLaunchableServerLibrarySources() {
@@ -176,8 +179,11 @@ public class ProjectManagerImplTest extends TestCase {
     MockFolder folder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(folder, "server.dart", "library server;\n\n main(){}");
     folder.add(file);
+    Project project = manager.getProject(projectContainer);
+    Source[] libSources = project.getLaunchableServerLibrarySources();
     sources = manager.getLaunchableServerLibrarySources();
-//    assertTrue(sources.length == 1);
+//    assertSame(sources.length, libSources.length);
+//    assertTrue(sources[0].equals(libSources[0]));
   }
 
   public void test_getLibraries() {

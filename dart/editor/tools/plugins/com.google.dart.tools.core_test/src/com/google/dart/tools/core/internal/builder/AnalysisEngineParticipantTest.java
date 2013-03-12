@@ -236,7 +236,17 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public Source[] getLaunchableClientLibrarySources(IProject project) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Source[] getLaunchableServerLibrarySources() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source[] getLaunchableServerLibrarySources(IProject project) {
       throw new UnsupportedOperationException();
     }
 

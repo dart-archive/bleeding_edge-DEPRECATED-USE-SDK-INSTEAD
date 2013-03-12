@@ -116,12 +116,24 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   }
 
   @Override
+  public Source[] getLaunchableClientLibrarySources(IProject project) {
+    Project prj = getProject(project);
+    return prj.getLaunchableClientLibrarySources();
+  }
+
+  @Override
   public Source[] getLaunchableServerLibrarySources() {
     List<Source> sources = new ArrayList<Source>();
     for (Project project : getProjects()) {
       sources.addAll(Arrays.asList(project.getLaunchableServerLibrarySources()));
     }
     return sources.toArray(new Source[sources.size()]);
+  }
+
+  @Override
+  public Source[] getLaunchableServerLibrarySources(IProject project) {
+    Project prj = getProject(project);
+    return prj.getLaunchableServerLibrarySources();
   }
 
   @Override

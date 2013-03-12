@@ -123,7 +123,14 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       res = ((IAdaptable) elem).getAdapter(IResource.class);
     }
     try {
-      return getLaunchableResource(res);
+      IResource resource = getLaunchableResource(res);
+      if (resource == null) {
+        MessageDialog.openInformation(
+            null,
+            "Unable to Run " + launchTypeLabel,
+            "Unable to run the current selection: could not find an associated html file");
+      }
+      return resource;
 
     } catch (DartModelException e) {
       DebugErrorHandler.errorDialog(

@@ -20,14 +20,18 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -150,7 +154,8 @@ public class NewLaunchUtils {
     IResource appResource = launchWrapper.getApplicationResource();
 
     if (ObjectUtils.equals(appResource, resource)) {
-      return true;
+      Source[] testLibraries = getLibrariesSource(resource);
+      return isCorrectLaunchConfigType(config, Arrays.asList(testLibraries));
     }
 
     Source[] testLibraries = getLibrariesSource(resource);
@@ -159,11 +164,39 @@ public class NewLaunchUtils {
     if (testLibraries.length > 0 & existingLibrary.length > 0) {
       for (Source testLibrary : testLibraries) {
         if (testLibrary.equals(existingLibrary[0])) {
-          return true;
+          return isCorrectLaunchConfigType(config, Arrays.asList(new Source[] {testLibrary}));
         }
       }
     }
 
+    return false;
+  }
+
+  /**
+   * Check if the given launch configuration - server/client can launch the library specified. This
+   * check will catch changes made to library client <=> server after configuration has been
+   * created.
+   */
+  private static boolean isCorrectLaunchConfigType(ILaunchConfiguration config,
+      List<Source> testLibraries) {
+
+    try {
+      ProjectManager projectManager = DartCore.getProjectManager();
+      if (config.getType().getIdentifier().equals(DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID)
+          && !testLibraries.isEmpty()) {
+        Source[] serverLibraries = projectManager.getLaunchableServerLibrarySources();
+        if (Arrays.asList(serverLibraries).containsAll(testLibraries)) {
+          return true;
+        }
+      } else {
+        Source[] clientLibraries = projectManager.getLaunchableClientLibrarySources();
+        if (Arrays.asList(clientLibraries).containsAll(testLibraries)) {
+          return true;
+        }
+      }
+    } catch (CoreException e) {
+      DartDebugUIPlugin.logError(e);
+    }
     return false;
   }
 
