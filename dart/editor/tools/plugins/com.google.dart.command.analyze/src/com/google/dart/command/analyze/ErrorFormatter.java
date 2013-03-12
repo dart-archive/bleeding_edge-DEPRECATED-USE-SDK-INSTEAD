@@ -169,6 +169,8 @@ public class ErrorFormatter {
 
   private void calculateLineInfo(final Source source) {
     try {
+      // TODO(devoncarew): we should get the source and line information when we retrieve the errors
+
       source.getContents(new Source.ContentReceiver() {
         @Override
         public void accept(CharBuffer contents) {

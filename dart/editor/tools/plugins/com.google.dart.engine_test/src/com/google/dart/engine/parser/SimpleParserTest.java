@@ -4390,7 +4390,7 @@ public class SimpleParserTest extends ParserTestCase {
    */
   private boolean isFunctionDeclaration(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return invokeParserMethod("isFunctionDeclaration", source, listener);
+    return (Boolean) invokeParserMethod("isFunctionDeclaration", source, listener);
   }
 
   /**
@@ -4429,7 +4429,7 @@ public class SimpleParserTest extends ParserTestCase {
    */
   private boolean isInitializedVariableDeclaration(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return invokeParserMethod("isInitializedVariableDeclaration", source, listener);
+    return (Boolean) invokeParserMethod("isInitializedVariableDeclaration", source, listener);
   }
 
   /**
@@ -4442,7 +4442,7 @@ public class SimpleParserTest extends ParserTestCase {
    */
   private boolean isSwitchMember(String source) throws Exception {
     GatheringErrorListener listener = new GatheringErrorListener();
-    return invokeParserMethod("isSwitchMember", source, listener);
+    return (Boolean) invokeParserMethod("isSwitchMember", source, listener);
   }
 
   /**

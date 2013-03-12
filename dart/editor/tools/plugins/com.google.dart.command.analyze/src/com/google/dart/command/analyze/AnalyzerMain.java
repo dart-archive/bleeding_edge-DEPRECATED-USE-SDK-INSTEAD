@@ -170,7 +170,11 @@ public class AnalyzerMain {
 
       Method mainMethod = junitRunner.getMethod("main", String[].class);
 
-      mainMethod.invoke(null, "com.google.dart.command.analyze.CombinedEngineTestSuite");
+      System.setProperty("com.google.dart.sdk", options.getDartSdkPath().toString());
+
+      Object mainArgs = new String[] {"com.google.dart.command.analyze.CombinedEngineTestSuite"};
+
+      mainMethod.invoke(null, mainArgs);
     } catch (ClassNotFoundException ex) {
       System.out.println("Test classes not available in this build.");
       System.exit(1);
@@ -202,6 +206,7 @@ public class AnalyzerMain {
     out.println(" 0: No analysis issues found");
     out.println(" 1: Analysis warnings encountered");
     out.println(" 2: Analysis errors encountered");
+    out.println();
   }
 
   private static void showVersion(AnalyzerOptions options, PrintStream out) {

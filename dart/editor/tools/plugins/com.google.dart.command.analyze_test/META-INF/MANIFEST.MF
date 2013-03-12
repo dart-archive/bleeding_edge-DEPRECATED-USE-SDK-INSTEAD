@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: %pluginName
+Bundle-Localization: plugin
+Bundle-SymbolicName: com.google.dart.command.analyze_test
+Bundle-Version: 0.0.0.qualifier
+Bundle-Vendor: %providerName
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Require-Bundle: com.google.dart.command.analyze,
+ com.google.dart.thirdparty_test,
+ com.google.dart.engine_test
