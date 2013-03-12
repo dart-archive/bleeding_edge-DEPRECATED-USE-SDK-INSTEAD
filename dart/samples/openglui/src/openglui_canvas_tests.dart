@@ -500,9 +500,10 @@ void lineDash() {
 void loadImage() {
   initTest("Image loading");
   var imageObj = new ImageElement();
-  // TODO(Gram): Change gl.dart to handle to onLoad.listen.
-  imageObj.on.load.add((e) {
-    ctx.drawImage(e, 69, 50);
+  var sub;
+  sub = imageObj.onLoad.listen((e) {
+    ctx.drawImage(e.target, 69, 50);
+    sub.cancel();
   });
   imageObj.src = 'chrome.png';
 }
@@ -741,8 +742,7 @@ void update(num when) {
       } else {
         testnum = 0;
       }
-      update();
-      break;
+      return;
   }
   isDirty = false;
 }
