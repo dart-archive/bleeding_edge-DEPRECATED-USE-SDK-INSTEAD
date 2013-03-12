@@ -214,8 +214,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     Type type = typeName.getType();
     if (type instanceof InterfaceType) {
       InterfaceType interfaceType = (InterfaceType) type;
+      checkForConstWithNonConst(node);
       checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
-      // TODO(jwren) Email Luke to make this determination: Should this be an else-if or if block?
+      // TODO(jwren) Email Luke to make this determination: Should we always call all checks, if not,
+      // which order should they be called in?
       // (Should we provide as many errors as possible, or try to be as concise as possible?)
       checkForTypeArgumentNotMatchingBounds(node, constructorName.getElement(), typeName);
     }
@@ -472,6 +474,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that if the passed instance creation expression is 'const', then it is not being
+   * invoked on a constructor that is not 'const'.
+   * 
+   * @param node the instance creation expression to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_WITH_NON_CONST
+   */
+  private boolean checkForConstWithNonConst(InstanceCreationExpression node) {
+    if (node.isConst() && !node.getElement().isConst()) {
+      errorReporter.reportError(CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      return true;
     }
     return false;
   }

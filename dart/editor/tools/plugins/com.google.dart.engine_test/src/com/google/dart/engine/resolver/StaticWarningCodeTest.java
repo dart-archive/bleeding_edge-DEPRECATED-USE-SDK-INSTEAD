@@ -504,7 +504,9 @@ public class StaticWarningCodeTest extends ResolverTestCase {
 
   public void test_constWithAbstractClass() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "abstract class A {}",
+        "abstract class A {",
+        "  const A() {}",
+        "}",
         "void f() {",
         "  A a = const A();",
         "}"));

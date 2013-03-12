@@ -155,7 +155,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * compile-time error if the type <i>T</i> does not declare a constant constructor with the same
    * name as the declaration of <i>T</i>.
    */
-  CONST_WITH_NON_CONST(""),
+  CONST_WITH_NON_CONST("The constructor being called is not a 'const' constructor"),
 
   /**
    * 12.11.2 Const: In all of the above cases, it is a compile-time error if <i>a<sub>i</sub>, 1

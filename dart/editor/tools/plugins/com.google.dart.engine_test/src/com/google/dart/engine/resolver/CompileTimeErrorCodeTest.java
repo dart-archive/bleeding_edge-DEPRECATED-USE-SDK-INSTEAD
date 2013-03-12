@@ -81,17 +81,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constWithNonConst() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class T {",
-        "  T(a, b, {c, d}) {};",
-        "}",
-        "f() { return const T(0, 1, c: 2, d: 3); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
-    verify(source);
-  }
-
   public void fail_constWithNonConstantArgument() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {",
@@ -1347,6 +1336,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return const A<A>(); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_constWithNonConst() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class T {",
+        "  T(a, b, {c, d}) {}",
+        "}",
+        "f() { return const T(0, 1, c: 2, d: 3); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
     verify(source);
   }
 
