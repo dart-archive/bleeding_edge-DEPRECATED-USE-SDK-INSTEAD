@@ -86,7 +86,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
 
   @Override
   public boolean equals(Object object) {
-    return getClass() == object.getClass()
+    return object != null && getClass() == object.getClass()
         && source.equals(((CompilationUnitElementImpl) object).getSource());
   }
 
