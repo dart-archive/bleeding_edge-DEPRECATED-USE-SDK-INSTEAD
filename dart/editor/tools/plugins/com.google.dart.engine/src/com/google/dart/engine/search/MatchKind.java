@@ -113,6 +113,11 @@ public enum MatchKind {
   NOT_A_REFERENCE,
 
   /**
+   * A reference to a property accessor.
+   */
+  PROPERTY_ACCESSOR_REFERENCE,
+
+  /**
    * A reference to a type.
    */
   TYPE_REFERENCE,

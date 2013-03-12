@@ -23,6 +23,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -336,6 +337,10 @@ public class SearchEngineImpl implements SearchEngine {
         case FUNCTION:
           searchReferences((FunctionElement) element, scope, filter, listener);
           return;
+        case GETTER:
+        case SETTER:
+          searchReferences((PropertyAccessorElement) element, scope, filter, listener);
+          return;
         case IMPORT:
           searchReferences((ImportElement) element, scope, filter, listener);
           return;
@@ -509,6 +514,33 @@ public class SearchEngineImpl implements SearchEngine {
         parameter,
         IndexConstants.IS_REFERENCED_BY,
         newCallback(MatchKind.NAMED_PARAMETER_REFERENCE, scope, listener));
+  }
+
+  @Override
+  public List<SearchMatch> searchReferences(final PropertyAccessorElement accessor,
+      final SearchScope scope, final SearchFilter filter) {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) {
+        searchReferences(accessor, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchReferences(PropertyAccessorElement accessor, SearchScope scope,
+      SearchFilter filter, SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(2, listener);
+    index.getRelationships(
+        accessor,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        newCallback(MatchKind.PROPERTY_ACCESSOR_REFERENCE, scope, listener));
+    index.getRelationships(
+        accessor,
+        IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+        newCallback(MatchKind.PROPERTY_ACCESSOR_REFERENCE, scope, listener));
   }
 
   @Override

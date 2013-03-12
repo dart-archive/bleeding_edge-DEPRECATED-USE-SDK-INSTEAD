@@ -179,7 +179,11 @@ class RenameClassMemberValidator {
     // prepare elements to rename
     renameElements.clear();
     for (ClassElement superClass : hierarchyClasses) {
-      renameElements.addAll(getChildren(superClass, oldName));
+      for (Element child : getChildren(superClass, oldName)) {
+        if (!child.isSynthetic()) {
+          renameElements.add(child);
+        }
+      }
     }
     // prepare references
     for (Element renameElement : renameElements) {

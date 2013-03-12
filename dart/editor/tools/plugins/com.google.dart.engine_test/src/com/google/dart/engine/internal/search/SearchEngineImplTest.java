@@ -542,6 +542,52 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementD, MatchKind.NAMED_PARAMETER_REFERENCE, 4, 40));
   }
 
+  public void test_searchReferences_PropertyAccessorElement_getter() throws Exception {
+    PropertyAccessorElement accessor = mock(PropertyAccessorElement.class);
+    when(accessor.getKind()).thenReturn(ElementKind.GETTER);
+    {
+      Location location = new Location(elementA, 1, 10, null);
+      indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
+      indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(PropertyAccessorElement.class, accessor);
+    assertEquals(matches, searchReferencesSync(Element.class, accessor));
+    // verify
+    assertMatches(matches, new ExpectedMatch(
+        elementA,
+        MatchKind.PROPERTY_ACCESSOR_REFERENCE,
+        1,
+        10,
+        false), new ExpectedMatch(elementB, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 2, 20, true));
+  }
+
+  public void test_searchReferences_PropertyAccessorElement_setter() throws Exception {
+    PropertyAccessorElement accessor = mock(PropertyAccessorElement.class);
+    when(accessor.getKind()).thenReturn(ElementKind.SETTER);
+    {
+      Location location = new Location(elementA, 1, 10, null);
+      indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_UNQUALIFIED, location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
+      indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(PropertyAccessorElement.class, accessor);
+    assertEquals(matches, searchReferencesSync(Element.class, accessor));
+    // verify
+    assertMatches(matches, new ExpectedMatch(
+        elementA,
+        MatchKind.PROPERTY_ACCESSOR_REFERENCE,
+        1,
+        10,
+        false), new ExpectedMatch(elementB, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 2, 20, true));
+  }
+
   public void test_searchReferences_String() throws Exception {
     Element referencedElement = new NameElementImpl("test");
     {

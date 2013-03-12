@@ -22,6 +22,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -352,6 +353,35 @@ public interface SearchEngine {
    */
   public void searchReferences(ParameterElement parameter, SearchScope scope, SearchFilter filter,
       SearchListener listener);
+
+  /**
+   * Synchronously search for references to the given property accessor within the given scope.
+   * Return all matches that pass the optional filter.
+   * 
+   * @param accessor the property accessor being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be returned, or
+   *          <code>null</code> if all of the matches should be returned @ if the results could not
+   *          be computed
+   */
+  public List<SearchMatch> searchReferences(PropertyAccessorElement accessor, SearchScope scope,
+      SearchFilter filter);
+
+  /**
+   * Search for references to the given property accessor within the given scope.
+   * 
+   * @param accessor the property accessor being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be <code>null</code> if
+   *          all references should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or <code>null</code> if all of the matches should be
+   *          passed to the listener
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
+   */
+  public void searchReferences(PropertyAccessorElement accessor, SearchScope scope,
+      SearchFilter filter, SearchListener listener);
 
   /**
    * Synchronously search for references to the given field within the given scope. Return all
