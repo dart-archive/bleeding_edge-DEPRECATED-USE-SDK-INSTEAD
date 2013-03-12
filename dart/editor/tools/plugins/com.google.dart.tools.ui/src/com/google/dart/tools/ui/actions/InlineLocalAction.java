@@ -1,8 +1,12 @@
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
+import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -10,6 +14,7 @@ import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -57,15 +62,14 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
 //    }
 //  }
 
-  // TODO(scheglov) may be
-//  @Override
-//  public void selectionChanged(DartTextSelection selection) {
-//    try {
-//      setEnabled(RefactoringAvailabilityTester.isInlineTempAvailable(selection));
-//    } catch (DartModelException e) {
-//      setEnabled(false);
-//    }
-//  }
+  @Override
+  public void selectionChanged(DartTextSelection selection) {
+    try {
+      setEnabled(RefactoringAvailabilityTester.isInlineTempAvailable(selection));
+    } catch (DartModelException e) {
+      setEnabled(false);
+    }
+  }
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
@@ -74,7 +78,17 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    setEnabled(true);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      try {
+        AssistContext assistContext = fEditor.getAssistContext();
+        InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(assistContext);
+        setEnabled(!refactoring.checkAllConditions(null).hasError());
+      } catch (Throwable e) {
+        setEnabled(false);
+      }
+    } else {
+      setEnabled(false);
+    }
   }
 
   public boolean tryInlineTemp(Shell shell) {

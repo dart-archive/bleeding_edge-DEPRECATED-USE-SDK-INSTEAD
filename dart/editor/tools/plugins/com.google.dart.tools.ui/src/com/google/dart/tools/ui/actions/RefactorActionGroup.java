@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.IContextMenuConstants;
@@ -543,12 +544,17 @@ public class RefactorActionGroup extends ActionGroup {
       if (element != null && ActionUtil.isOnBuildPath(element)) {
         // TODO(messick): Change to use the selection set in setContext(), and define setContext().
         ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-        ISelection selection = new DartTextSelection(
-            fEditor,
-            getEditorInput(),
-            getDocument(),
-            textSelection.getOffset(),
-            textSelection.getLength());
+        ISelection selection;
+        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          selection = textSelection;
+        } else {
+          selection = new DartTextSelection(
+              fEditor,
+              getEditorInput(),
+              getDocument(),
+              textSelection.getOffset(),
+              textSelection.getLength());
+        }
 //        refactorSubmenu.addMenuListener(new IMenuListener() {
 //          @Override
 //          public void menuAboutToShow(IMenuManager manager) {

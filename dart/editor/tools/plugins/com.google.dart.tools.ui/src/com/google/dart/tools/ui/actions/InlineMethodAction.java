@@ -1,5 +1,6 @@
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -111,7 +112,12 @@ public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    setEnabled(true);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // TODO(scheglov)
+      setEnabled(false);
+    } else {
+      setEnabled(true);
+    }
   }
 
   public boolean tryInlineMethod(CompilationUnit unit, ITextSelection selection, Shell shell) {

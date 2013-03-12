@@ -837,7 +837,13 @@ public class RefactoringAvailabilityTester {
 
   public static boolean isInlineTempAvailable(DartVariableDeclaration variable)
       throws DartModelException {
-    return Checks.isAvailable(variable);
+    if (variable == null) {
+      return false;
+    }
+    if (!Checks.isAvailable(variable)) {
+      return false;
+    }
+    return variable.isLocal();
   }
 
   public static boolean isRenameAvailable(CompilationUnit unit) {
