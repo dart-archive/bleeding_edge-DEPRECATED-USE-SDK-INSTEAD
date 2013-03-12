@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.feedback.FeedbackUtils.Stats;
 
@@ -96,6 +97,10 @@ public class FeedbackReport {
     if (DartSdkManager.getManager().hasSdk()) {
       msg.append("Dartium installed: " + DartSdkManager.getManager().getSdk().isDartiumInstalled()
           + "\n");
+    }
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      msg.append("New analysis enabled\n");
     }
 
     return msg.toString().trim();
