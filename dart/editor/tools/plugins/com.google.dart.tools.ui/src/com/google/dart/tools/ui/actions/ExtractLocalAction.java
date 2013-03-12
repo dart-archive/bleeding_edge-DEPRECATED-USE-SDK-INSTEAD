@@ -61,6 +61,9 @@ public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       try {
         AssistContext context = editor.getAssistContext();
+        if (context == null) {
+          return;
+        }
         com.google.dart.engine.services.refactoring.ExtractLocalRefactoring newRefactoring = RefactoringFactory.createExtractLocalRefactoring(context);
         ServiceExtractLocalRefactoring ltkRefactoring = new ServiceExtractLocalRefactoring(
             newRefactoring);

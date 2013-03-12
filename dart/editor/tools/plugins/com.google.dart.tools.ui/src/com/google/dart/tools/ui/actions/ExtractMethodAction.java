@@ -64,6 +64,9 @@ public class ExtractMethodAction extends InstrumentedSelectionDispatchAction {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       try {
         AssistContext context = editor.getAssistContext();
+        if (context == null) {
+          return;
+        }
         com.google.dart.engine.services.refactoring.ExtractMethodRefactoring newRefactoring = RefactoringFactory.createExtractMethodRefactoring(context);
         ServiceExtractMethodRefactoring ltkRefactoring = new ServiceExtractMethodRefactoring(
             newRefactoring);

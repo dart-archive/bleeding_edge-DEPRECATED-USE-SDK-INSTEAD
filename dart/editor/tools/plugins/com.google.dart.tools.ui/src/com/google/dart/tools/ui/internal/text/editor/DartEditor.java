@@ -2053,18 +2053,23 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /**
    * @return the {@link AssistContext} with resolved {@link CompilationUnit}, selection and
-   *         {@link SearchEngine}.
+   *         {@link SearchEngine}. May be <code>null</code>.
    */
   public AssistContext getAssistContext() {
     try {
+      // prepare input IFile
       IFile file = getInputFile();
       if (file == null) {
         return null;
       }
+      // prepare input CompilationUnit
       com.google.dart.tools.core.analysis.model.Project project = DartCore.getProjectManager().getProject(
           file.getProject());
       AnalysisContext context = project.getContext(file);
       com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+      if (unit == null) {
+        return null;
+      }
       // prepare selection
       int selectionOffset = 0;
       int selectionLength = 0;

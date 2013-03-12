@@ -560,13 +560,19 @@ public class DartCorrectionProcessor implements
 
     AssistContext context = null;
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      context = new AssistContext(part, viewer, ((DartEditor) part).getAssistContext());
+      com.google.dart.engine.services.assist.AssistContext enginecontext = ((DartEditor) part).getAssistContext();
+      if (enginecontext != null) {
+        context = new AssistContext(part, viewer, enginecontext);
+      }
     } else {
       CompilationUnit cu = DartUI.getWorkingCopyManager().getWorkingCopy(part.getEditorInput());
       if (cu != null) {
         int length = viewer != null ? viewer.getSelectedRange().y : 0;
         context = new AssistContext(cu, viewer, part, documentOffset, length);
       }
+    }
+    if (context == null) {
+      return new ICompletionProposal[0];
     }
 
     Annotation[] annotations = fAssistant.getAnnotationsAtOffset();

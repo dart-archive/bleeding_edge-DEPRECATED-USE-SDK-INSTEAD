@@ -80,8 +80,12 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
   public void selectionChanged(ITextSelection selection) {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       try {
-        AssistContext assistContext = fEditor.getAssistContext();
-        InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(assistContext);
+        AssistContext context = fEditor.getAssistContext();
+        if (context == null) {
+          setEnabled(false);
+          return;
+        }
+        InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
         setEnabled(!refactoring.checkAllConditions(null).hasError());
       } catch (Throwable e) {
         setEnabled(false);
@@ -94,8 +98,11 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
   public boolean tryInlineTemp(Shell shell) {
     try {
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        AssistContext assistContext = fEditor.getAssistContext();
-        return RefactoringExecutionStarter.startInlineTempRefactoring(assistContext, getShell());
+        AssistContext context = fEditor.getAssistContext();
+        if (context == null) {
+          return false;
+        }
+        return RefactoringExecutionStarter.startInlineTempRefactoring(context, getShell());
       } else {
         CompilationUnit unit = SelectionConverter.getInputAsCompilationUnit(fEditor);
         ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
