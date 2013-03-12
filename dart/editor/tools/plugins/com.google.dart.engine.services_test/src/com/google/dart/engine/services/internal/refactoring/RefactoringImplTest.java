@@ -22,6 +22,7 @@ import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.correction.CorrectionUtils;
@@ -52,6 +53,20 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
    * @return the result of applying given {@link SourceChange} (casted) to the {@link #testCode}.
    */
   protected final String getTestSourceChangeResult(Change change) {
+    // may be CompositeChange
+    if (change instanceof CompositeChange) {
+      CompositeChange compositeChange = (CompositeChange) change;
+      for (Change child : compositeChange.getChildren()) {
+        if (child instanceof SourceChange) {
+          SourceChange sourceChange = (SourceChange) child;
+          if (sourceChange.getSource() == testUnit.getElement().getSource()) {
+            List<Edit> sourceEdits = sourceChange.getEdits();
+            return CorrectionUtils.applyReplaceEdits(testCode, sourceEdits);
+          }
+        }
+      }
+    }
+    // expect SourceChange
     SourceChange sourceChange = (SourceChange) change;
     List<Edit> sourceEdits = sourceChange.getEdits();
     return CorrectionUtils.applyReplaceEdits(testCode, sourceEdits);

@@ -30,6 +30,7 @@ import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
@@ -38,6 +39,7 @@ import com.google.dart.engine.services.internal.refactoring.RenameUnitMemberRefa
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractLocalRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createExtractMethodRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createInlineLocalRefactoring;
+import static com.google.dart.engine.services.refactoring.RefactoringFactory.createInlineMethodRefactoring;
 import static com.google.dart.engine.services.refactoring.RefactoringFactory.createRenameRefactoring;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -69,6 +71,13 @@ public class RefactoringFactoryTest extends AbstractDartTest {
     AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
     InlineLocalRefactoring refactoring = createInlineLocalRefactoring(context);
     assertThat(refactoring).isInstanceOf(InlineLocalRefactoringImpl.class);
+  }
+
+  public void test_createInlineMethodRefactoring() throws Exception {
+    parseTestUnit("");
+    AssistContext context = new AssistContext(searchEngine, testUnit, 0, 0);
+    InlineMethodRefactoring refactoring = createInlineMethodRefactoring(context);
+    assertThat(refactoring).isInstanceOf(InlineMethodRefactoringImpl.class);
   }
 
   public void test_createRenameRefactoring_classMember_FieldElement() throws Exception {

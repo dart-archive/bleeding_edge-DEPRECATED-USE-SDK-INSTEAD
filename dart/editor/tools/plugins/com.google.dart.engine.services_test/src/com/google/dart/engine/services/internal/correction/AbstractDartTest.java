@@ -211,6 +211,13 @@ public class AbstractDartTest extends TestCase {
   }
 
   /**
+   * @return the {@link SourceRange} for given sub-strings. Fails test if not found.
+   */
+  protected final SourceRange findRange(String search) {
+    return SourceRangeFactory.rangeStartLength(findOffset(search), search.length());
+  }
+
+  /**
    * @return the {@link SourceRange} for given start/end search strings. Fails test if not found.
    */
   protected final SourceRange findRangeIdentifier(String search) {

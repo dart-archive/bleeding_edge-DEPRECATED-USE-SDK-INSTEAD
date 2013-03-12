@@ -42,6 +42,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -50,9 +51,11 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -494,6 +497,14 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("  ", utils.getLinePrefix(19));
   }
 
+  public void test_getLinesPrefix() throws Exception {
+    assertEquals("", CorrectionUtils.getLinesPrefix(""));
+    assertEquals("", CorrectionUtils.getLinesPrefix("noPrefix"));
+    assertEquals("  ", CorrectionUtils.getLinesPrefix("  space2"));
+    assertEquals(" \t ", CorrectionUtils.getLinesPrefix(" \t space-tab-space"));
+    assertEquals("  ", CorrectionUtils.getLinesPrefix("  space2-NS-space "));
+  }
+
   public void test_getLinesRange_SourceRange() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -714,6 +725,28 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assert_getNodePrefix("var a;", "");
   }
 
+  public void test_getNodeQualifier() throws Exception {
+    SimpleIdentifier name = ASTFactory.identifier("");
+    // no parent
+    assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    // not PropertyAccess
+    {
+      ASTFactory.namedExpression("label", name);
+      assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    }
+    // not "name" in PropertyAccess
+    {
+      ASTFactory.propertyAccess(name, "otherName");
+      assertSame(null, CorrectionUtils.getNodeQualifier(name));
+    }
+    // OK, "name" in PropertyAccess
+    {
+      Expression target = ASTFactory.thisExpression();
+      ASTFactory.propertyAccess(target, name);
+      assertSame(target, CorrectionUtils.getNodeQualifier(name));
+    }
+  }
+
   public void test_getNonWhitespaceForward() throws Exception {
     String code = " \t//0123456789  ";
     parseTestUnit(code);
@@ -723,6 +756,42 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals(2, utils.getNonWhitespaceForward(2));
     assertEquals(3, utils.getNonWhitespaceForward(3));
     assertEquals(code.length(), utils.getNonWhitespaceForward(code.indexOf("9") + 1));
+  }
+
+  public void test_getParameterElement_local() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(null, CorrectionUtils.getParameterElement(identifier));
+  }
+
+  public void test_getParameterElement_parameter() throws Exception {
+    ParameterElement element = mock(ParameterElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(element, CorrectionUtils.getParameterElement(identifier));
+  }
+
+  public void test_getParameterIndex() throws Exception {
+    ParameterElement parameter = mock(ParameterElement.class);
+    // no enclosing
+    assertEquals(-1, CorrectionUtils.getParameterIndex(parameter));
+    // enclose into MethodElement
+    {
+      MethodElement method = mock(MethodElement.class);
+      when(parameter.getEnclosingElement()).thenReturn(method);
+      // 0
+      when(method.getParameters()).thenReturn(new ParameterElement[] {parameter, null});
+      assertEquals(0, CorrectionUtils.getParameterIndex(parameter));
+      // 1
+      when(method.getParameters()).thenReturn(new ParameterElement[] {null, parameter});
+      assertEquals(1, CorrectionUtils.getParameterIndex(parameter));
+      // 1
+      when(method.getParameters()).thenReturn(new ParameterElement[] {null, null, parameter});
+      assertEquals(2, CorrectionUtils.getParameterIndex(parameter));
+    }
   }
 
   public void test_getParents() throws Exception {
@@ -746,6 +815,36 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertThat(parents.get(4)).isInstanceOf(Block.class);
     assertThat(parents.get(5)).isInstanceOf(ExpressionStatement.class);
     assertThat(parents.get(6)).isInstanceOf(MethodInvocation.class);
+  }
+
+  public void test_getPropertyAccessorElement_accessor() throws Exception {
+    PropertyAccessorElement element = mock(PropertyAccessorElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(element, CorrectionUtils.getPropertyAccessorElement(identifier));
+  }
+
+  public void test_getPropertyAccessorElement_local() throws Exception {
+    LocalVariableElement element = mock(LocalVariableElement.class);
+    SimpleIdentifier identifier = ASTFactory.identifier("name");
+    identifier.setElement(element);
+    // check
+    assertSame(null, CorrectionUtils.getPropertyAccessorElement(identifier));
+  }
+
+  public void test_getResolvedUnit() throws Exception {
+    Source source = mock(Source.class);
+    CompilationUnit compilationUnit = mock(CompilationUnit.class);
+    Element element = mock(Element.class);
+    LibraryElement library = mock(LibraryElement.class);
+    AnalysisContext analysisContext = mock(AnalysisContext.class);
+    when(element.getContext()).thenReturn(analysisContext);
+    when(element.getSource()).thenReturn(source);
+    when(element.getLibrary()).thenReturn(library);
+    when(analysisContext.resolve(source, library)).thenReturn(compilationUnit);
+    //
+    assertSame(compilationUnit, CorrectionUtils.getResolvedUnit(element));
   }
 
   public void test_getSingleStatement() throws Exception {

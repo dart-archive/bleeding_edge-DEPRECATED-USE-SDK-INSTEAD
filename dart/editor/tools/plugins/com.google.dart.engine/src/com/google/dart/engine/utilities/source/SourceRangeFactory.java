@@ -220,6 +220,15 @@ public class SourceRangeFactory {
     return rangeStartEnd(start, end);
   }
 
+  /**
+   * @return the {@link SourceRange} which start at start of "a" and ends at end of "b".
+   */
+  public static SourceRange rangeStartEnd(Token a, ASTNode b) {
+    int start = a.getOffset();
+    int end = b.getEnd();
+    return rangeStartEnd(start, end);
+  }
+
   public static SourceRange rangeStartEnd(Token a, Token b) {
     int start = a.getOffset();
     int end = b.getEnd();

@@ -21,6 +21,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompositeChangeTest.class);
     suite.addTestSuite(SourceChangeTest.class);
+    suite.addTestSuite(SourceChangeManagerTest.class);
     return suite;
   }
 }

@@ -30,17 +30,20 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -62,6 +65,7 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeNo
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartEnd;
 import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeStartStart;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.CharBuffer;
@@ -236,6 +240,18 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the line prefix from the given source, i.e. basically just whitespace prefix of the
+   *         given {@link String}.
+   */
+  public static String getLinesPrefix(String linesSource) {
+    int index = CharMatcher.WHITESPACE.negate().indexIn(linesSource);
+    if (index == -1) {
+      return linesSource;
+    }
+    return linesSource.substring(0, index);
+  }
+
+  /**
    * @return the {@link LocalVariableElement} or {@link ParameterElement} if given
    *         {@link SimpleIdentifier} is the reference to local variable or parameter, or
    *         <code>null</code> in the other case.
@@ -292,6 +308,41 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the {@link Expression} qualified if given node is name part of {@link PropertyAccess}.
+   *         May be <code>null</code>.
+   */
+  public static Expression getNodeQualifier(SimpleIdentifier node) {
+    if (node.getParent() instanceof PropertyAccess) {
+      PropertyAccess propertyAccess = (PropertyAccess) node.getParent();
+      if (propertyAccess.getPropertyName() == node) {
+        return propertyAccess.getTarget();
+      }
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link ParameterElement} if given {@link SimpleIdentifier} is the reference to
+   *         parameter, or <code>null</code> in the other case.
+   */
+  public static ParameterElement getParameterElement(SimpleIdentifier node) {
+    Element element = node.getElement();
+    if (element instanceof ParameterElement) {
+      return (ParameterElement) element;
+    }
+    return null;
+  }
+
+  public static int getParameterIndex(ParameterElement parameter) {
+    Element enclosingElement = parameter.getEnclosingElement();
+    if (enclosingElement instanceof ExecutableElement) {
+      ExecutableElement executableElement = (ExecutableElement) enclosingElement;
+      return ArrayUtils.indexOf(executableElement.getParameters(), parameter);
+    }
+    return -1;
+  }
+
+  /**
    * @return parent {@link ASTNode}s from {@link CompilationUnit} (at index "0") to the given one.
    */
   public static List<ASTNode> getParents(ASTNode node) {
@@ -302,6 +353,25 @@ public class CorrectionUtils {
       current = current.getParent();
     } while (current.getParent() != null);
     return parents;
+  }
+
+  /**
+   * @return the {@link PropertyAccessorElement} if given {@link SimpleIdentifier} is the reference
+   *         to property, or <code>null</code> in the other case.
+   */
+  public static PropertyAccessorElement getPropertyAccessorElement(SimpleIdentifier node) {
+    Element element = node.getElement();
+    if (element instanceof PropertyAccessorElement) {
+      return (PropertyAccessorElement) element;
+    }
+    return null;
+  }
+
+  /**
+   * @return the resolved {@link CompilationUnit} which declares given {@link Element}.
+   */
+  public static CompilationUnit getResolvedUnit(Element element) throws AnalysisException {
+    return element.getContext().resolve(element.getSource(), element.getLibrary());
   }
 
   /**
@@ -521,6 +591,7 @@ public class CorrectionUtils {
     }
     // positional argument
     {
+      // TODO(scheglov) not implemented yet in Resolver 
       ParameterElement parameter = expression.getParameterElement();
       if (parameter != null) {
         return parameter.getName();
@@ -653,61 +724,6 @@ public class CorrectionUtils {
     return null;
   }
 
-  /**
-   * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
-   * 
-   * @return the {@link SourceRange}s of all comments in {@link CompilationUnit}.
-   */
-  public List<SourceRange> getCommentRanges() {
-    List<SourceRange> ranges = Lists.newArrayList();
-    Token token = unit.getBeginToken();
-    while (token != null && token.getType() != TokenType.EOF) {
-      Token commentToken = token.getPrecedingComments();
-      while (commentToken != null) {
-        ranges.add(SourceRangeFactory.rangeToken(commentToken));
-        commentToken = commentToken.getNext();
-      }
-      token = token.getNext();
-    }
-    return ranges;
-  }
-
-  /**
-   * @return the EOL to use for this {@link CompilationUnit}.
-   */
-  public String getEndOfLine() {
-    if (endOfLine == null) {
-      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
-        @Override
-        public String runObject() throws Exception {
-          // try to find Windows
-          if (buffer.contains("\r\n")) {
-            return "\r\n";
-          }
-          // use default
-          return "\n";
-        }
-      }, "\n");
-    }
-    return endOfLine;
-  }
-
-  /**
-   * @return the default indentation with given level.
-   */
-  public String getIndent(int level) {
-    return StringUtils.repeat("  ", level);
-  }
-
-  /**
-   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
-   *         to "newIndent", keeping indentation of the lines relative to each other.
-   */
-  public String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
-    String oldSource = getText(range);
-    return getIndentSource(oldSource, oldIndent, newIndent);
-  }
-
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -766,6 +782,61 @@ public class CorrectionUtils {
 //  }
 
   /**
+   * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
+   * 
+   * @return the {@link SourceRange}s of all comments in {@link CompilationUnit}.
+   */
+  public List<SourceRange> getCommentRanges() {
+    List<SourceRange> ranges = Lists.newArrayList();
+    Token token = unit.getBeginToken();
+    while (token != null && token.getType() != TokenType.EOF) {
+      Token commentToken = token.getPrecedingComments();
+      while (commentToken != null) {
+        ranges.add(SourceRangeFactory.rangeToken(commentToken));
+        commentToken = commentToken.getNext();
+      }
+      token = token.getNext();
+    }
+    return ranges;
+  }
+
+  /**
+   * @return the EOL to use for this {@link CompilationUnit}.
+   */
+  public String getEndOfLine() {
+    if (endOfLine == null) {
+      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
+        @Override
+        public String runObject() throws Exception {
+          // try to find Windows
+          if (buffer.contains("\r\n")) {
+            return "\r\n";
+          }
+          // use default
+          return "\n";
+        }
+      }, "\n");
+    }
+    return endOfLine;
+  }
+
+  /**
+   * @return the default indentation with given level.
+   */
+  public String getIndent(int level) {
+    return StringUtils.repeat("  ", level);
+  }
+
+  /**
+   * @return the source of the given {@link SourceRange} with indentation changed from "oldIndent"
+   *         to "newIndent", keeping indentation of the lines relative to each other.
+   */
+  public String getIndentSource(SourceRange range, String oldIndent, String newIndent) {
+    String oldSource = getText(range);
+    return getIndentSource(oldSource, oldIndent, newIndent);
+  }
+
+  /**
    * @return the source with indentation changed from "oldIndent" to "newIndent", keeping
    *         indentation of the lines relative to each other.
    */
@@ -787,20 +858,6 @@ public class CorrectionUtils {
     }
     return sb.toString();
   }
-
-//  /**
-//   * @return the offset of the token on the right from given "offset" on the same line or offset of
-//   *         the next line.
-//   */
-//  public int getTokenOrNextLineOffset(int offset) {
-//    int nextOffset = getLineContentEnd(offset);
-//    String sourceToNext = getText(offset, nextOffset - offset);
-//    List<Token> tokens = TokenUtils.getTokens(sourceToNext);
-//    if (tokens.isEmpty()) {
-//      return nextOffset;
-//    }
-//    return tokens.get(0).getOffset();
-//  }
 
   /**
    * Skips whitespace characters and single EOL on the right from the given position. If from
@@ -1077,4 +1134,5 @@ public class CorrectionUtils {
     // only whitespace in selection around range
     return false;
   }
+
 }

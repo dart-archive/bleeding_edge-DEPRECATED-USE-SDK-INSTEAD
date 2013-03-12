@@ -22,13 +22,16 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.internal.refactoring.ExtractLocalRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.ExtractMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.InlineLocalRefactoringImpl;
+import com.google.dart.engine.services.internal.refactoring.InlineMethodRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameClassMemberRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameConstructorRefactoringImpl;
 import com.google.dart.engine.services.internal.refactoring.RenameLocalRefactoringImpl;
@@ -62,6 +65,14 @@ public class RefactoringFactory {
   public static InlineLocalRefactoring createInlineLocalRefactoring(AssistContext context)
       throws Exception {
     return new InlineLocalRefactoringImpl(context);
+  }
+
+  /**
+   * @return the {@link Refactoring} to inline {@link MethodElement} or {@link FunctionElement}.
+   */
+  public static InlineMethodRefactoring createInlineMethodRefactoring(AssistContext context)
+      throws Exception {
+    return new InlineMethodRefactoringImpl(context);
   }
 
   /**

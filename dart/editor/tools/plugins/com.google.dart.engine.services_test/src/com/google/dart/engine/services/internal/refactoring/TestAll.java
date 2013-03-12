@@ -27,6 +27,7 @@ public class TestAll {
     suite.addTestSuite(ExtractLocalRefactoringImplTest.class);
     suite.addTestSuite(InlineLocalRefactoringImplTest.class);
     suite.addTestSuite(ExtractMethodRefactoringImplTest.class);
+    suite.addTestSuite(InlineMethodRefactoringImplTest.class);
     return suite;
   }
 }

@@ -212,6 +212,13 @@ public class SourceRangeFactoryTest extends TestCase {
     assertRangeEnd(range, 10, 20 + 2);
   }
 
+  public void test_rangeStartEnd_TN() throws Exception {
+    Token a = mockToken(10, 1);
+    ASTNode b = mockNode(20, 2);
+    SourceRange range = SourceRangeFactory.rangeStartEnd(a, b);
+    assertRangeEnd(range, 10, 20 + 2);
+  }
+
   public void test_rangeStartEnd_TT() throws Exception {
     Token a = mockToken(10, 1);
     Token b = mockToken(20, 2);
