@@ -736,19 +736,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_nonConstCaseExpression() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f(int p) {",
-        "  switch (p) {",
-        "    case 3 + 4:",
-        "      break;",
-        "  }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-    verify(source);
-  }
-
   public void fail_nonConstMapAsExpressionStatement() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -1451,6 +1438,19 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return new A<A>(); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NEW_WITH_INVALID_TYPE_PARAMETERS);
+    verify(source);
+  }
+
+  public void test_nonConstCaseExpression() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f(int p, int q) {",
+        "  switch (p) {",
+        "    case 3 + q:",
+        "      break;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
     verify(source);
   }
 
