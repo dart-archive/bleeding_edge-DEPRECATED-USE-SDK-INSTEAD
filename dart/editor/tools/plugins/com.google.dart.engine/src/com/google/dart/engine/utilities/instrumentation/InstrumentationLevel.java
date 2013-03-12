@@ -16,5 +16,41 @@ public enum InstrumentationLevel {
   METRICS,
 
   /** Nothing recorded */
-  OFF
+  OFF;
+
+  public static InstrumentationLevel fromString(String str) {
+
+    if (str.equals("EVERYTHING")) {
+      return InstrumentationLevel.EVERYTHING;
+    }
+
+    if (str.equals("METRICS")) {
+      return InstrumentationLevel.METRICS;
+    }
+
+    if (str.equals("OFF")) {
+      return InstrumentationLevel.OFF;
+    }
+
+    throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
+  }
+
+  @Override
+  public String toString() {
+    if (this == InstrumentationLevel.EVERYTHING) {
+      return "EVERYTHING";
+    }
+
+    if (this == InstrumentationLevel.METRICS) {
+      return "METRICS";
+    }
+
+    if (this == InstrumentationLevel.OFF) {
+      return "OFF";
+    }
+
+    throw new IllegalStateException("InstrumentationLevel is in an invalid state");
+
+  }
+
 }
