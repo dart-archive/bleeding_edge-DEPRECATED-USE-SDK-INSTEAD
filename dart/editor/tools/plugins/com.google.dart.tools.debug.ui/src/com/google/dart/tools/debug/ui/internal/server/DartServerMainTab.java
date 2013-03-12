@@ -273,8 +273,8 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
     dartLauncher.setApplicationName(scriptPath.toPortableString());
-    dartLauncher.setWorkingDirectory(workingDirText.getText());
-    dartLauncher.setArguments(argsText.getText());
+    dartLauncher.setWorkingDirectory(workingDirText.getText().trim());
+    dartLauncher.setArguments(argsText.getText().trim());
     dartLauncher.setCheckedMode(checkedModeButton.getSelection());
   }
 
