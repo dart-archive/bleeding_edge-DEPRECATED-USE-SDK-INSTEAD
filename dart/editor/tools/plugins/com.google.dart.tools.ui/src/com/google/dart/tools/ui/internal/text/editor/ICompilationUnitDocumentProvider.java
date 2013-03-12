@@ -21,6 +21,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ILineTracker;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.IDocumentProviderExtension;
 import org.eclipse.ui.texteditor.IDocumentProviderExtension2;
 import org.eclipse.ui.texteditor.IDocumentProviderExtension3;
 import org.eclipse.ui.texteditor.IDocumentProviderExtension5;
@@ -29,7 +30,8 @@ import org.eclipse.ui.texteditor.IDocumentProviderExtension5;
  * 
  */
 public interface ICompilationUnitDocumentProvider extends IDocumentProvider,
-    IDocumentProviderExtension2, IDocumentProviderExtension3, IDocumentProviderExtension5 {
+    IDocumentProviderExtension, IDocumentProviderExtension2, IDocumentProviderExtension3,
+    IDocumentProviderExtension5 {
 
   /**
    * Adds a listener that reports changes from all compilation unit annotation models.

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -30,6 +31,11 @@ public class EditorInputAdapterFactory implements IAdapterFactory {
 
   @Override
   public Object getAdapter(Object element, Class key) {
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return null;
+    }
+
     if (DartElement.class.equals(key) && element instanceof IEditorInput) {
       DartElement dartElement = DartUI.getWorkingCopyManager().getWorkingCopy(
           (IEditorInput) element);

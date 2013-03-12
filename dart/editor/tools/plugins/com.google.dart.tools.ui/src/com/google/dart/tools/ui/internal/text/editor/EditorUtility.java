@@ -18,6 +18,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -304,6 +305,11 @@ public class EditorUtility {
    */
   public static DartElement getEditorInputDartElement(IEditorPart editor, boolean primaryOnly) {
     Assert.isNotNull(editor);
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return null;
+    }
+
     IEditorInput editorInput = editor.getEditorInput();
     if (editorInput == null) {
       return null;

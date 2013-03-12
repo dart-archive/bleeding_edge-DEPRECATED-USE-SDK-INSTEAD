@@ -4272,9 +4272,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (!isEditableStateKnown) {
       IDocumentProvider p = getDocumentProvider();
       if (p instanceof ICompilationUnitDocumentProvider) {
-        ICompilationUnitDocumentProvider prov = (ICompilationUnitDocumentProvider) getDocumentProvider();
-        CompilationUnit unit = prov.getWorkingCopy(getEditorInput());
-        isEditable = !unit.isReadOnly();
+        ICompilationUnitDocumentProvider provider = (ICompilationUnitDocumentProvider) getDocumentProvider();
+        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          isEditable = !provider.isReadOnly(getInputElement());
+        } else {
+          CompilationUnit unit = provider.getWorkingCopy(getEditorInput());
+          isEditable = !unit.isReadOnly();
+        }
       } else {
         isEditable = true;
       }
