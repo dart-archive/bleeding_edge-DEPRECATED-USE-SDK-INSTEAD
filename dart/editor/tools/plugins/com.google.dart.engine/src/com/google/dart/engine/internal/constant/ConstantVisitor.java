@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.DoubleLiteral;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
 import com.google.dart.engine.ast.InterpolationElement;
 import com.google.dart.engine.ast.InterpolationExpression;
@@ -39,11 +40,14 @@ import com.google.dart.engine.ast.StringInterpolation;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.VariableElementImpl;
 
 /**
  * Instances of the class {@code ConstantVisitor} evaluate constant expressions to produce their
@@ -155,6 +159,17 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
   @Override
   public EvaluationResultImpl visitDoubleLiteral(DoubleLiteral node) {
     return new ValidResult(Double.valueOf(node.getValue()));
+  }
+
+  @Override
+  public EvaluationResultImpl visitInstanceCreationExpression(InstanceCreationExpression node) {
+    ConstructorElement constructor = node.getElement();
+    if (constructor != null && constructor.isConst()) {
+      node.getArgumentList().accept(this);
+      return ValidResult.RESULT_OBJECT;
+    }
+    // TODO(brianwilkerson) Figure out which error to report.
+    return error(node, null);
   }
 
   @Override
@@ -305,11 +320,15 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
    * @return the constant value of the static constant
    */
   private EvaluationResultImpl getConstantValue(ASTNode node, Element element) {
-    // TODO(brianwilkerson) Implement this.
-//    EvaluationResultImpl value = element.getEvaluationResult();
-//    if (value != null) {
-//      return value;
-//    }
+    if (element instanceof PropertyAccessorElementImpl) {
+      element = ((PropertyAccessorElementImpl) element).getVariable();
+    }
+    if (element instanceof VariableElementImpl) {
+      EvaluationResultImpl value = ((VariableElementImpl) element).getEvaluationResult();
+      if (value != null) {
+        return value;
+      }
+    }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
   }

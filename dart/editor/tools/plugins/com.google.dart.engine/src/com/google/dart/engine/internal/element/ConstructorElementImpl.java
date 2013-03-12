@@ -70,6 +70,15 @@ public class ConstructorElementImpl extends ExecutableElementImpl implements Con
   }
 
   /**
+   * Set whether this constructor represents a 'const' constructor to the given value.
+   * 
+   * @param isConst {@code true} if this constructor represents a 'const' constructor
+   */
+  public void setConst(boolean isConst) {
+    setModifier(Modifier.CONST, isConst);
+  }
+
+  /**
    * Set whether this constructor represents a factory method to the given value.
    * 
    * @param isFactory {@code true} if this constructor represents a factory method

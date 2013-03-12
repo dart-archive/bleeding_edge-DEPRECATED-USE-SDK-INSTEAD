@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
 import com.google.dart.engine.type.Type;
 
 /**
@@ -61,6 +62,17 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
     super(name, nameOffset);
   }
 
+  /**
+   * Return the result of evaluating this variable's initializer as a compile-time constant
+   * expression, or {@code null} if this variable is not a 'const' variable or does not have an
+   * initializer.
+   * 
+   * @return the result of evaluating this variable's initializer
+   */
+  public EvaluationResultImpl getEvaluationResult() {
+    return null;
+  }
+
   @Override
   public FunctionElement getInitializer() {
     return initializer;
@@ -88,6 +100,16 @@ public abstract class VariableElementImpl extends ElementImpl implements Variabl
    */
   public void setConst(boolean isConst) {
     setModifier(Modifier.CONST, isConst);
+  }
+
+  /**
+   * Set the result of evaluating this variable's initializer as a compile-time constant expression
+   * to the given result.
+   * 
+   * @param result the result of evaluating this variable's initializer
+   */
+  public void setEvaluationResult(EvaluationResultImpl result) {
+    throw new IllegalStateException("Invalid attempt to set a compile-time constant result");
   }
 
   /**

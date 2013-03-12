@@ -47,6 +47,10 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ConstFieldElementImpl;
+import com.google.dart.engine.internal.element.ConstLocalVariableElementImpl;
+import com.google.dart.engine.internal.element.ConstParameterElementImpl;
+import com.google.dart.engine.internal.element.ConstTopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -200,6 +204,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     element.setLabels(holder.getLabels());
     element.setLocalVariables(holder.getLocalVariables());
     element.setParameters(holder.getParameters());
+    element.setConst(node.getConstKeyword() != null);
 
     currentHolder.addConstructor(element);
     node.setElement(element);
@@ -239,8 +244,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     initializer.setParameters(holder.getParameters());
 
     SimpleIdentifier parameterName = node.getParameter().getIdentifier();
-    ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
-    parameter.setConst(node.isConst());
+    ParameterElementImpl parameter;
+    if (node.isConst()) {
+      parameter = new ConstParameterElementImpl(parameterName);
+      parameter.setConst(true);
+    } else {
+      parameter = new ParameterElementImpl(parameterName);
+    }
     parameter.setFinal(node.isFinal());
     parameter.setInitializer(initializer);
     parameter.setParameterKind(node.getKind());
@@ -576,38 +586,58 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitVariableDeclaration(VariableDeclaration node) {
+    Token keyword = ((VariableDeclarationList) node.getParent()).getKeyword();
+    boolean isConst = matches(keyword, Keyword.CONST);
+    boolean isFinal = matches(keyword, Keyword.FINAL);
+    boolean hasInitializer = node.getInitializer() != null;
+
     VariableElementImpl element;
     if (inFieldContext) {
       SimpleIdentifier fieldName = node.getName();
-      FieldElementImpl field = new FieldElementImpl(fieldName);
+      FieldElementImpl field;
+      if (isConst && hasInitializer) {
+        field = new ConstFieldElementImpl(fieldName);
+      } else {
+        field = new FieldElementImpl(fieldName);
+      }
       element = field;
 
       currentHolder.addField(field);
       fieldName.setElement(field);
     } else if (inFunction) {
       SimpleIdentifier variableName = node.getName();
-      element = new LocalVariableElementImpl(variableName);
+      LocalVariableElementImpl variable;
+      if (isConst && hasInitializer) {
+        variable = new ConstLocalVariableElementImpl(variableName);
+      } else {
+        variable = new LocalVariableElementImpl(variableName);
+      }
+      element = variable;
       Block enclosingBlock = node.getAncestor(Block.class);
       int functionEnd = node.getOffset() + node.getLength();
       int blockEnd = enclosingBlock.getOffset() + enclosingBlock.getLength();
       // TODO(brianwilkerson) This isn't right for variables declared in a for loop.
-      ((LocalVariableElementImpl) element).setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
+      variable.setVisibleRange(functionEnd, blockEnd - functionEnd - 1);
 
-      currentHolder.addLocalVariable((LocalVariableElementImpl) element);
+      currentHolder.addLocalVariable(variable);
       variableName.setElement(element);
     } else {
       SimpleIdentifier variableName = node.getName();
-      element = new TopLevelVariableElementImpl(variableName);
+      TopLevelVariableElementImpl variable;
+      if (isConst && hasInitializer) {
+        variable = new ConstTopLevelVariableElementImpl(variableName);
+      } else {
+        variable = new TopLevelVariableElementImpl(variableName);
+      }
+      element = variable;
 
-      currentHolder.addTopLevelVariable((TopLevelVariableElementImpl) element);
+      currentHolder.addTopLevelVariable(variable);
       variableName.setElement(element);
     }
 
-    Token keyword = ((VariableDeclarationList) node.getParent()).getKeyword();
-    boolean isFinal = matches(keyword, Keyword.FINAL);
-    element.setConst(matches(keyword, Keyword.CONST));
+    element.setConst(isConst);
     element.setFinal(isFinal);
-    if (node.getInitializer() != null) {
+    if (hasInitializer) {
       ElementHolder holder = new ElementHolder();
       boolean wasInFieldContext = inFieldContext;
       inFieldContext = false;

@@ -25,11 +25,15 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SwitchCase;
 import com.google.dart.engine.ast.VariableDeclaration;
-import com.google.dart.engine.ast.visitor.ConstantEvaluator;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.constant.ConstantVisitor;
+import com.google.dart.engine.internal.constant.ErrorResult;
+import com.google.dart.engine.internal.constant.EvaluationResultImpl;
+import com.google.dart.engine.internal.constant.ValidResult;
+import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 
 import java.util.HashSet;
@@ -48,18 +52,12 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   private ErrorReporter errorReporter;
 
   /**
-   * The constant evaluator used to evaluate constants.
-   */
-  private ConstantEvaluator evaluator;
-
-  /**
    * Initialize a newly created constant verifier.
    * 
    * @param errorReporter the error reporter by which errors will be reported
    */
   public ConstantVerifier(ErrorReporter errorReporter) {
     this.errorReporter = errorReporter;
-    evaluator = new ConstantEvaluator(errorReporter);
   }
 
   @Override
@@ -87,15 +85,14 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     HashSet<String> keys = new HashSet<String>();
     for (MapLiteralEntry entry : node.getEntries()) {
       StringLiteral key = entry.getKey();
-      Object value = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
-      if (value instanceof String) {
+      EvaluationResultImpl result = validate(key, CompileTimeErrorCode.NON_CONSTANT_MAP_KEY);
+      if (result instanceof ValidResult && ((ValidResult) result).getValue() instanceof String) {
+        String value = (String) ((ValidResult) result).getValue();
         if (keys.contains(value)) {
           errorReporter.reportError(StaticWarningCode.EQUAL_KEYS_IN_MAP, key);
         } else {
-          keys.add((String) value);
+          keys.add(value);
         }
-      } else if (value != null) {
-        // TODO(brianwilkerson) If this can ever happen, report this error.
       }
       if (isConst) {
         validate(entry.getValue(), CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
@@ -123,7 +120,11 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     super.visitVariableDeclaration(node);
     Expression initializer = node.getInitializer();
     if (initializer != null && node.isConst()) {
-      validate(initializer, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      EvaluationResultImpl result = validate(
+          initializer,
+          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      VariableElementImpl element = (VariableElementImpl) node.getElement();
+      element.setEvaluationResult(result);
     }
     return null;
   }
@@ -136,27 +137,18 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    * @param errorCode the error code to be used if the expression is not a compile time constant
    * @return the value of the compile time constant
    */
-  private Object validate(Expression expression, ErrorCode errorCode) {
-    Object value = expression.accept(evaluator);
-    if (value == ConstantEvaluator.NOT_A_CONSTANT) {
-      errorReporter.reportError(errorCode, expression);
-      return null;
+  private EvaluationResultImpl validate(Expression expression, ErrorCode errorCode) {
+    EvaluationResultImpl result = expression.accept(new ConstantVisitor());
+    if (result instanceof ErrorResult) {
+      for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
+        if (data.getErrorCode() == CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO) {
+          errorReporter.reportError(data.getErrorCode(), data.getNode());
+        } else {
+          errorReporter.reportError(errorCode, data.getNode());
+        }
+      }
     }
-    // TODO(brianwilkerson) Decide what value will be returned to represent that the expression
-    // would throw an exception and test for it.
-    if (value == errorCode) {
-      errorReporter.reportError(
-          CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION,
-          expression);
-      return null;
-    }
-    // TODO(brianwilkerson) Decide what value will be returned to represent that the expression
-    // is recursively defined in terms of itself.
-    if (value == errorCode) {
-      errorReporter.reportError(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, expression);
-      return null;
-    }
-    return value;
+    return result;
   }
 
   /**
@@ -171,9 +163,16 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     }
     for (FormalParameter parameter : parameters.getParameters()) {
       if (parameter instanceof DefaultFormalParameter) {
-        Expression defaultValue = ((DefaultFormalParameter) parameter).getDefaultValue();
+        DefaultFormalParameter defaultParameter = (DefaultFormalParameter) parameter;
+        Expression defaultValue = defaultParameter.getDefaultValue();
         if (defaultValue != null) {
-          validate(defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+          EvaluationResultImpl result = validate(
+              defaultValue,
+              CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
+          if (defaultParameter.isConst()) {
+            VariableElementImpl element = (VariableElementImpl) parameter.getElement();
+            element.setEvaluationResult(result);
+          }
         }
       }
     }

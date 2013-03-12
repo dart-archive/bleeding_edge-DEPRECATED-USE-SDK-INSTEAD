@@ -42,7 +42,7 @@ public class LocalVariableElementImpl extends VariableElementImpl implements Loc
   public static final LocalVariableElement[] EMPTY_ARRAY = new LocalVariableElement[0];
 
   /**
-   * Initialize a newly created parameter element to have the given name.
+   * Initialize a newly created local variable element to have the given name.
    * 
    * @param name the name of this element
    */
