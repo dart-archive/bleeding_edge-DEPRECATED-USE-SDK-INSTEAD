@@ -124,6 +124,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       "/first_class_types_literals_test.dart", // type literals don't implement +
       "/function_malformed_result_type_test.dart", // wrong number of type arguments
       "/generic_instanceof.dart", // missing part-of directive
+      "/implicit_scope_test.dart", //test implies that some statements create their own scope
   };
 
   /**
