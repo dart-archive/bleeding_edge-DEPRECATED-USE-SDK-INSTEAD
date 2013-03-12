@@ -133,7 +133,8 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @Override
   public boolean equals(Object object) {
-    return getClass() == object.getClass()
+    return object != null
+        && getClass() == object.getClass()
         && definingCompilationUnit.equals(((LibraryElementImpl) object).getDefiningCompilationUnit());
   }
 
