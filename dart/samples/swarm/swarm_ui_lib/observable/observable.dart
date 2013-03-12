@@ -294,14 +294,14 @@ class ObservableList<T>
   bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
   String join([String separator]) => _internal.join(separator);
-  T firstMatching(bool test(T value), {T orElse()}) {
-    return _internal.firstMatching(test, orElse: orElse);
+  T firstWhere(bool test(T value), {T orElse()}) {
+    return _internal.firstWhere(test, orElse: orElse);
   }
-  T lastMatching(bool test(T value), {T orElse()}) {
-    return _internal.lastMatching(test, orElse: orElse);
+  T lastWhere(bool test(T value), {T orElse()}) {
+    return _internal.lastWhere(test, orElse: orElse);
   }
-  T singleMatching(bool test(T value)) {
-    return _internal.singleMatching(test);
+  T singleWhere(bool test(T value)) {
+    return _internal.singleWhere(test);
   }
   T elementAt(int index) {
     return _internal.elementAt(index);
