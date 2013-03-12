@@ -120,7 +120,7 @@ public class AnalyzerOptions {
   usage = "The path to the package root")
   private File packageRootPath = null;
 
-  @Option(name = "--batch")
+  @Option(name = "--batch", aliases = {"-batch"})
   private boolean batch = false;
 
   @Option(name = "--show-sdk-warnings")
