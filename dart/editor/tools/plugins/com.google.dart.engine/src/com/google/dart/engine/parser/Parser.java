@@ -3576,6 +3576,9 @@ public class Parser {
       return parseVariableDeclarationStatement();
     } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
+    } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+      reportError(ParserErrorCode.MISSING_STATEMENT);
+      return new EmptyStatement(createSyntheticToken(TokenType.SEMICOLON));
     } else {
       return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
     }
@@ -3948,7 +3951,7 @@ public class Parser {
    * 
    * <pre>
    * relationalExpression ::=
-   *     shiftExpression ('is' type | 'as' type | relationalOperator shiftExpression)?
+   *     shiftExpression ('is' '!'? type | 'as' type | relationalOperator shiftExpression)?
    *   | 'super' relationalOperator shiftExpression
    * </pre>
    * 

@@ -16,12 +16,17 @@ package com.google.dart.engine.parser;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.BlockFunctionBody;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.EmptyStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -314,6 +319,26 @@ public class RecoveryParserTest extends ParserTestCase {
     Expression syntheticExpression = result.get(3);
     assertInstanceOf(SimpleIdentifier.class, syntheticExpression);
     assertTrue(syntheticExpression.isSynthetic());
+  }
+
+  public void test_isExpression_noType() throws Exception {
+    CompilationUnit unit = parseCompilationUnit(
+        "class Bar<T extends Foo> {m(x){if (x is ) return;if (x is !)}}",
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_IDENTIFIER,
+        ParserErrorCode.MISSING_STATEMENT);
+    ClassDeclaration declaration = (ClassDeclaration) unit.getDeclarations().get(0);
+    MethodDeclaration method = (MethodDeclaration) declaration.getMembers().get(0);
+    BlockFunctionBody body = (BlockFunctionBody) method.getBody();
+    IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(1);
+    IsExpression expression = (IsExpression) ifStatement.getCondition();
+    assertNotNull(expression.getExpression());
+    assertNotNull(expression.getIsOperator());
+    assertNotNull(expression.getNotOperator());
+    TypeName type = expression.getType();
+    assertNotNull(type);
+    assertTrue(type.getName().isSynthetic());
+    assertInstanceOf(EmptyStatement.class, ifStatement.getThenStatement());
   }
 
   public void test_logicalAndExpression_missing_LHS() throws Exception {

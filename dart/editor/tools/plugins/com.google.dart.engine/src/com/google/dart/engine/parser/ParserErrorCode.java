@@ -95,6 +95,7 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_IDENTIFIER("Expected an identifier"),
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
   MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
+  MISSING_STATEMENT("Expected a statement"),
   MISSING_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to close the parameter group"),
   MISSING_TYPEDEF_PARAMETERS("Type aliases for functions must have an explicit list of parameters"),
   MISSING_VARIABLE_IN_FOR_EACH(
