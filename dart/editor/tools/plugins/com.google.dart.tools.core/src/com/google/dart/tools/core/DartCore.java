@@ -24,6 +24,7 @@ import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
+import com.google.dart.tools.core.internal.OptionManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -690,7 +691,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    *         <code>String</code>)
    */
   public static HashMap<String, String> getOptions() {
-    return DartModelManager.getInstance().getOptions();
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return OptionManager.getInstance().getOptions();
+    } else {
+      return DartModelManager.getInstance().getOptions();
+    }
   }
 
   /**
