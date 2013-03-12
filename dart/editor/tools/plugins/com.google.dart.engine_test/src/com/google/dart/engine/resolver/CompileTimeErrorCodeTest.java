@@ -61,29 +61,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_caseExpressionTypeImplementsEquals() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class IntWrapper {",
-        "  final int value;",
-        "  const IntWrapper(this.value);",
-        "  bool operator ==(IntWrapper x) {",
-        "    return value == x.value;",
-        "  }",
-        "}",
-        "",
-        "f(IntWrapper a) {",
-        "  switch(a) {",
-        "    case(const IntWrapper(1)) : return 1;",
-        "    default: return 0;",
-        "  }",
-        "}"));
-    resolve(source);
-    // Fails since "const IntWrapper(1)" is not considered constant by the constant evaluator yet,
-    // thus, NON_CONSTANT_CASE_EXPRESSION is generated on the switch expression.
-    assertErrors(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
-    verify(source);
-  }
-
   public void fail_compileTimeConstantRaisesException() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO Find an expression that would raise an exception
@@ -1281,6 +1258,27 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A<as> {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_VARIABLE_NAME);
+    verify(source);
+  }
+
+  public void test_caseExpressionTypeImplementsEquals() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class IntWrapper {",
+        "  final int value;",
+        "  const IntWrapper(this.value);",
+        "  bool operator ==(IntWrapper x) {",
+        "    return value == x.value;",
+        "  }",
+        "}",
+        "",
+        "f(IntWrapper a) {",
+        "  switch(a) {",
+        "    case(const IntWrapper(1)) : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS);
     verify(source);
   }
 

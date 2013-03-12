@@ -76,6 +76,7 @@ import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -162,7 +163,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       operator = operatorFromCompoundAssignment(operator);
       Expression leftNode = node.getLeftHandSide();
       if (leftNode != null) {
-        Type leftType = leftNode.getStaticType();
+        Type leftType = getType(leftNode);
         if (leftType != null) {
           Element leftElement = leftType.getElement();
           if (leftElement != null) {
@@ -341,8 +342,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
             FunctionType getterType = getter.getType();
             if (getterType != null) {
               Type returnType = getterType.getReturnType();
-              if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
-                  && !returnType.isDartCoreFunction()) {
+              // TODO(brianwilkerson) Should we also allow type parameters at this point (because
+              // they might be resolved to an executable type)?
+              if (!isExecutableType(returnType)) {
                 resolver.reportError(
                     StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
                     methodName,
@@ -359,13 +361,13 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       if (targetType instanceof InterfaceType) {
         element = lookUpMethod(targetType.getElement(), methodName.getName());
         if (element == null) {
-          PropertyAccessorElement accessor = lookUpGetterInType(
-              (ClassElement) targetType.getElement(),
-              methodName.getName());
+          ClassElement targetClass = (ClassElement) targetType.getElement();
+          PropertyAccessorElement accessor = lookUpGetterInType(targetClass, methodName.getName());
           if (accessor != null) {
-            Type returnType = accessor.getType().getReturnType();
-            if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
-                && !returnType.isDartCoreFunction()) {
+            Type returnType = accessor.getType().getReturnType().substitute(
+                ((InterfaceType) targetType).getTypeArguments(),
+                TypeVariableTypeImpl.getTypes(targetClass.getTypeVariables()));
+            if (!isExecutableType(returnType)) {
               resolver.reportError(
                   StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
                   methodName,
@@ -445,8 +447,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         FunctionType getterType = getter.getType();
         if (getterType != null) {
           Type returnType = getterType.getReturnType();
-          if (!returnType.isDynamic() && !(returnType instanceof FunctionType)
-              && !returnType.isDartCoreFunction()) {
+          if (!isExecutableType(returnType)) {
             resolver.reportError(
                 StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
                 methodName,
@@ -457,8 +458,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return null;
       } else if (element instanceof VariableElement) {
         Type variableType = ((VariableElement) element).getType();
-        if (!variableType.isDynamic() && !(variableType instanceof FunctionType)
-            && !variableType.isDartCoreFunction()) {
+        if (!isExecutableType(variableType)) {
           resolver.reportError(
               StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
               methodName,
@@ -833,6 +833,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return resolver.getTypeProvider().getObjectType();
     }
     return expression.getStaticType();
+  }
+
+  /**
+   * Return {@code true} if the given type represents an object that could be invoked using the call
+   * operator '()'.
+   * 
+   * @param type the type being tested
+   * @return {@code true} if the given type represents an object that could be invoked
+   */
+  private boolean isExecutableType(Type type) {
+    return type.isDynamic() || (type instanceof FunctionType) || type.isDartCoreFunction();
   }
 
   /**

@@ -19,26 +19,6 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
-  public void fail_caseExpressionTypeImplementsEquals_Object() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class IntWrapper {",
-        "  final int value;",
-        "  const IntWrapper(this.value);",
-        "}",
-        "",
-        "f(IntWrapper intWrapper) {",
-        "  switch(intWrapper) {",
-        "    case(const IntWrapper(1)) : return 1;",
-        "    default: return 0;",
-        "  }",
-        "}"));
-    resolve(source);
-    // Fails since "const IntWrapper(1)" is not considered constant by the constant evaluator yet,
-    // thus, NON_CONSTANT_CASE_EXPRESSION is generated on the switch expression.
-    assertNoErrors();
-    verify(source);
-  }
-
   public void fail_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -114,6 +94,24 @@ public class SimpleResolverTest extends ResolverTestCase {
         "f(int i) {",
         "  switch(i) {",
         "    case(1) : return 1;",
+        "    default: return 0;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_caseExpressionTypeImplementsEquals_Object() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class IntWrapper {",
+        "  final int value;",
+        "  const IntWrapper(this.value);",
+        "}",
+        "",
+        "f(IntWrapper intWrapper) {",
+        "  switch(intWrapper) {",
+        "    case(const IntWrapper(1)) : return 1;",
         "    default: return 0;",
         "  }",
         "}"));
@@ -304,6 +302,19 @@ public class SimpleResolverTest extends ResolverTestCase {
         "f() {",
         "  var g;",
         "  g();",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_invoke_dynamicThroughGetter() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  List get X => [() => 0];",
+        "  m(A a) {",
+        "    X.last();",
+        "  }",
         "}"));
     resolve(source);
     assertNoErrors();

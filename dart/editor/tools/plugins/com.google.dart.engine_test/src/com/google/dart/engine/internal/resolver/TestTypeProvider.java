@@ -161,6 +161,9 @@ public class TestTypeProvider implements TypeProvider {
       ClassElementImpl listElement = classElement("List", "E");
       listType = listElement.getType();
       Type eType = listElement.getTypeVariables()[0].getType();
+      listElement.setAccessors(new PropertyAccessorElement[] {//
+      getterElement("last", false, eType), // defined in Iterable
+      });
       listElement.setMethods(new MethodElement[] {
           methodElement("[]", eType, intType),
           methodElement("[]=", VoidTypeImpl.getInstance(), intType, eType)});
