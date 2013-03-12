@@ -218,8 +218,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       // TODO(jwren) Email Luke to make this determination: Should this be an else-if or if block?
       // (Should we provide as many errors as possible, or try to be as concise as possible?)
       checkForTypeArgumentNotMatchingBounds(node, constructorName.getElement(), typeName);
-    } else {
-      errorReporter.reportError(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, typeName);
     }
     return super.visitInstanceCreationExpression(node);
   }

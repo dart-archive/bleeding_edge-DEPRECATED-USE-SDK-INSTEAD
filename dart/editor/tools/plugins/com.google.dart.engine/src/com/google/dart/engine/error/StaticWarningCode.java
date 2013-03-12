@@ -138,12 +138,12 @@ public enum StaticWarningCode implements ErrorCode {
    * &hellip; a<sub>n</sub>)</i> it is a static warning if <i>q</i> is the constructor of an
    * abstract class but <i>q</i> is not a factory constructor.
    */
-  CONST_WITH_ABSTRACT_CLASS(""),
+  CONST_WITH_ABSTRACT_CLASS("Abstract classes cannot be created with a 'const' expression"),
 
   /**
    * 12.7 Maps: It is a static warning if the values of any two keys in a map literal are equal.
    */
-  EQUAL_KEYS_IN_MAP(""),
+  EQUAL_KEYS_IN_MAP("Keys in a map cannot be equal"),
 
   /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
@@ -206,7 +206,7 @@ public enum StaticWarningCode implements ErrorCode {
    * 12.11.1 New: It is a static warning if <i>q</i> is a constructor of an abstract class and
    * <i>q</i> is not a factory constructor.
    */
-  NEW_WITH_ABSTRACT_CLASS(""),
+  NEW_WITH_ABSTRACT_CLASS("Abstract classes cannot be created with a 'new' expression"),
 
   /**
    * 12.11.1 New: It is a static warning if <i>T</i> is not a class accessible in the current scope,

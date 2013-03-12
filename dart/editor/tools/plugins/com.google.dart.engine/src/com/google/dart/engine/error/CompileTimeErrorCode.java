@@ -129,7 +129,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 5 Variables: A constant variable must be initialized to a compile-time constant or a
    * compile-time error occurs.
    */
-  CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE(""),
+  CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE("'const' variables must be constant value"),
 
   /**
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
@@ -226,8 +226,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
    * a type expression that does not denote a class available in the lexical scope of <i>C</i>.
+   * 
+   * @param typeName the name of the superclass that was not found
    */
-  EXTENDS_NON_CLASS(""),
+  EXTENDS_NON_CLASS("Classes can only extend other classes"),
 
   /**
    * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
@@ -307,8 +309,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
    * includes a type expression that does not denote a class available in the lexical scope of
    * <i>C</i>.
+   * 
+   * @param typeName the name of the interface that was not found
    */
-  IMPLEMENTS_NON_CLASS(""),
+  IMPLEMENTS_NON_CLASS("Classes can only implement other classes"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears more than once in
@@ -466,8 +470,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 9.1 Mixin Application: It is a compile-time error if <i>M</i> does not denote a class or mixin
    * available in the immediately enclosing scope.
+   * 
+   * @param typeName the name of the mixin that was not found
    */
-  MIXIN_OF_NON_CLASS(""),
+  MIXIN_OF_NON_CLASS("Classes can only mixin other classes"),
 
   /**
    * 9.1 Mixin Application: If <i>M</i> is a class, it is a compile time error if a well formed
@@ -518,31 +524,31 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * s<sub>n</sub>}</i>, it is a compile-time error if the expressions <i>e<sub>k</sub></i> are not
    * compile-time constants, for all <i>1 &lt;= k &lt;= n</i>.
    */
-  NON_CONSTANT_CASE_EXPRESSION(""),
+  NON_CONSTANT_CASE_EXPRESSION("Case expressions must be constant"),
 
   /**
    * 6.2.2 Optional Formals: It is a compile-time error if the default value of an optional
    * parameter is not a compile-time constant.
    */
-  NON_CONSTANT_DEFAULT_VALUE(""),
+  NON_CONSTANT_DEFAULT_VALUE("Default values of an optional parameter must be constant"),
 
   /**
    * 12.6 Lists: It is a compile time error if an element of a constant list literal is not a
    * compile-time constant.
    */
-  NON_CONSTANT_LIST_ELEMENT(""),
+  NON_CONSTANT_LIST_ELEMENT("'const' lists must have all constant values"),
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  NON_CONSTANT_MAP_KEY(""),
+  NON_CONSTANT_MAP_KEY("The key of a 'const' map must be constant"),
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  NON_CONSTANT_MAP_VALUE(""),
+  NON_CONSTANT_MAP_VALUE("The value of a const map must be constant"),
 
   /**
    * 7.6.3 Constant Constructors: Any expression that appears within the initializer list of a

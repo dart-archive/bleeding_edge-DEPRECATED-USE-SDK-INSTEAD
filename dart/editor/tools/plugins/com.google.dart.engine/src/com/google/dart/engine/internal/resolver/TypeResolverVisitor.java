@@ -694,7 +694,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Element element = getNameScope().lookup(name, getDefiningLibrary());
     if (element == null) {
       // TODO(brianwilkerson) Handle the case where a prefixed identifier is not referencing a prefix.
-      reportError(undefinedError, name);
+      reportError(undefinedError, name, name.getName());
     } else if (element instanceof ClassElement) {
       Type classType = ((ClassElement) element).getType();
       // TODO(brianwilkerson) This does not handle the type arguments.
@@ -702,7 +702,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
       if (classType instanceof InterfaceType) {
         return (InterfaceType) classType;
       }
-      reportError(nonInterfaceType, name);
+      reportError(nonInterfaceType, name, name.getName());
     } else if (element instanceof MultiplyDefinedElement) {
       Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
       InterfaceType type = getType(elements);
@@ -710,7 +710,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
         typeName.setType(type);
       }
     } else {
-      reportError(nonTypeError, name);
+      reportError(nonTypeError, name, name.getName());
     }
     return null;
   }
