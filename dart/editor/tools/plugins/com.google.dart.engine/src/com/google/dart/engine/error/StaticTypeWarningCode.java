@@ -89,7 +89,7 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 
    * @param nonFunctionIdentifier the name of the identifier that is not a function type
    */
-  INVOCATION_OF_NON_FUNCTION("'%s' is not a method or function"),
+  INVOCATION_OF_NON_FUNCTION("'%s' is not a method"),
 
   /**
    * 12.19 Conditional: It is a static type warning if the type of <i>e<sub>1</sub></i> may not be

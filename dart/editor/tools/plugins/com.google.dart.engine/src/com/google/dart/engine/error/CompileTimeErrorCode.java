@@ -436,7 +436,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param labelName the name of the unresolvable label
    */
-  LABEL_IN_OUTER_SCOPE("Cannot reference label '%s' declared in an outer method or function"),
+  LABEL_IN_OUTER_SCOPE("Cannot reference label '%s' declared in an outer method"),
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
