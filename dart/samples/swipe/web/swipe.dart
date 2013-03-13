@@ -113,7 +113,7 @@ void startSpin(Element figure, int direction) {
   if (timer == null) {
     spinFigure(figure, direction);
 
-    timer = new Timer.repeating(const Duration(milliseconds: 100),
+    timer = new Timer.periodic(const Duration(milliseconds: 100),
         (Timer t) => spinFigure(figure, direction));
   }
 }

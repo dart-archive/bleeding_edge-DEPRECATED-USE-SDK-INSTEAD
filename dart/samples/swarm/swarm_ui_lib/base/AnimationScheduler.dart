@@ -93,7 +93,7 @@ class AnimationScheduler {
     // Assert that we never schedule multiple frames at once.
     assert(__timer == null);
     if (USE_INTERVALS) {
-      _timer = new Timer.repeating(const Duration(milliseconds: MS_PER_FRAME),
+      _timer = new Timer.periodic(const Duration(milliseconds: MS_PER_FRAME),
           (_) { _step(); });
     } else {
       if (_webkitAnimationFrameMaybeAvailable) {
