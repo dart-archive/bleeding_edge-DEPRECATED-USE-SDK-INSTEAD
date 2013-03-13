@@ -123,6 +123,7 @@ public class MainEngine {
         "com/google/dart/engine/utilities/dart/ParameterKind.java"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/ast/visitor"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/constant"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/error"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/html/ast"));
@@ -133,6 +134,7 @@ public class MainEngine {
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/resolver"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/scanner"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/type"));
+    context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/constant"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/element"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/builder"));
     context.addSourceFiles(new File(engineFolder, "com/google/dart/engine/internal/error"));
@@ -264,6 +266,13 @@ public class MainEngine {
     {
       CompilationUnit library = buildSdkLibrary();
       Files.write(getFormattedSource(library), new File(targetFolder + "/sdk.dart"), Charsets.UTF_8);
+    }
+    {
+      CompilationUnit library = buildConstantLibrary();
+      Files.write(
+          getFormattedSource(library),
+          new File(targetFolder + "/constant.dart"),
+          Charsets.UTF_8);
     }
     {
       CompilationUnit library = buildElementLibrary();
@@ -412,6 +421,29 @@ public class MainEngine {
     return unit;
   }
 
+  private static CompilationUnit buildConstantLibrary() throws Exception {
+    CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
+    unit.getDirectives().add(libraryDirective("engine", "constant"));
+    unit.getDirectives().add(importDirective("java_core.dart", null));
+    unit.getDirectives().add(importDirective("source.dart", null, importShowCombinator("Source")));
+    unit.getDirectives().add(
+        importDirective(
+            "error.dart",
+            null,
+            importShowCombinator("AnalysisError", "ErrorCode", "CompileTimeErrorCode")));
+    unit.getDirectives().add(
+        importDirective("scanner.dart", null, importShowCombinator("TokenType")));
+    unit.getDirectives().add(importDirective("ast.dart", null));
+    unit.getDirectives().add(importDirective("element.dart", null));
+    for (CompilationUnitMember member : dartUnit.getDeclarations()) {
+      File file = context.getMemberToFile().get(member);
+      if (isEnginePath(file, "constant/") || isEnginePath(file, "internal/constant/")) {
+        unit.getDeclarations().add(member);
+      }
+    }
+    return unit;
+  }
+
   private static CompilationUnit buildElementLibrary() throws Exception {
     CompilationUnit unit = new CompilationUnit(null, null, null, null, null);
     unit.getDirectives().add(libraryDirective("engine", "element"));
@@ -425,6 +457,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("html.dart", null, importShowCombinator("XmlTagNode")));
     unit.getDirectives().add(
         importDirective("engine.dart", null, importShowCombinator("AnalysisContext")));
+    unit.getDirectives().add(
+        importDirective("constant.dart", null, importShowCombinator("EvaluationResultImpl")));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
@@ -649,6 +683,7 @@ public class MainEngine {
             importHideCombinator("HideCombinator", "ShowCombinator")));
     unit.getDirectives().add(importDirective("html.dart", "ht"));
     unit.getDirectives().add(importDirective("engine.dart", null));
+    unit.getDirectives().add(importDirective("constant.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "resolver/") || isEnginePath(file, "internal/resolver/")

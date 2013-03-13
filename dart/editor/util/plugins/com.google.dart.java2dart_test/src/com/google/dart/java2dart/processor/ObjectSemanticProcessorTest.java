@@ -497,6 +497,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    print(a.shiftRight(b));",
         "    print(a.not());",
         "    print(a.negate());",
+        "    print(a.doubleValue());",
         "  }",
         "  public void testString(String a, String b) {",
         "    print(a.equals(b));",
@@ -534,6 +535,7 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "    print(a >> b);",
         "    print(~a);",
         "    print(-a);",
+        "    print(a.toDouble());",
         "  }",
         "  void testString(String a, String b) {",
         "    print(a == b);",
@@ -555,8 +557,11 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  public void mainLong(long p) {",
         "    Long.toString(p);",
         "  }",
-        "  public void mainInteger(double p) {",
+        "  public void mainDouble(double p) {",
         "    Double.toString(p);",
+        "  }",
+        "  public void mainDouble2(Double p) {",
+        "    return p.toString();",
         "  }",
         "}");
     ObjectSemanticProcessor.INSTANCE.process(context, unit);
@@ -568,9 +573,10 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "  void mainLong(int p) {",
         "    p.toString();",
         "  }",
-        "  void mainInteger2(double p) {",
+        "  void mainDouble(double p) {",
         "    p.toString();",
         "  }",
+        "  void mainDouble2(double p) => p.toString();",
         "}");
   }
 

@@ -303,9 +303,9 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("parse"));
           return null;
         }
-        if (isMethodInClass(node, "toString", "java.lang.Double")
-            || isMethodInClass(node, "toString", "java.lang.Integer")
-            || isMethodInClass(node, "toString", "java.lang.Long")) {
+        if (isMethodInClass2(node, "toString(double)", "java.lang.Double")
+            || isMethodInClass2(node, "toString(int)", "java.lang.Integer")
+            || isMethodInClass2(node, "toString(long)", "java.lang.Long")) {
           replaceNode(node, methodInvocation(args.get(0), "toString"));
           return null;
         }
@@ -315,6 +315,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             || isMethodInClass(node, "longValue", "java.lang.Long")
             || isMethodInClass(node, "intValue", "java.math.BigInteger")) {
           replaceNode(node, node.getTarget());
+          return null;
+        }
+        if (isMethodInClass(node, "doubleValue", "java.math.BigInteger")) {
+          nameNode.setToken(token("toDouble"));
           return null;
         }
         {
@@ -461,6 +465,16 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
         return Objects.equal(name, reqName)
             && JavaUtils.isMethodInClass(context.getNodeBinding(node), reqClassName);
       }
+
+//      private boolean isMethodInClass2(ASTNode node, String reqSignature, String reqClassName) {
+//        Object nodeBinding = context.getNodeBinding(node);
+//        if (nodeBinding instanceof IMethodBinding) {
+//          IMethodBinding binding = (IMethodBinding) nodeBinding;
+//          return JavaUtils.getMethodDeclarationSignature(binding).equals(reqSignature)
+//              && JavaUtils.isMethodInClass(binding, reqClassName);
+//        }
+//        return false;
+//      }
 
       private boolean isMethodInClass2(IMethodBinding binding, String reqSignature,
           String reqClassName) {

@@ -35,22 +35,22 @@ public enum InstrumentationLevel {
     throw new IllegalArgumentException("Unrecognised InstrumentationLevel");
   }
 
-  @Override
-  public String toString() {
-    if (this == InstrumentationLevel.EVERYTHING) {
-      return "EVERYTHING";
-    }
-
-    if (this == InstrumentationLevel.METRICS) {
-      return "METRICS";
-    }
-
-    if (this == InstrumentationLevel.OFF) {
-      return "OFF";
-    }
-
-    throw new IllegalStateException("InstrumentationLevel is in an invalid state");
-
-  }
+//  @Override
+//  public String toString() {
+//    if (this == InstrumentationLevel.EVERYTHING) {
+//      return "EVERYTHING";
+//    }
+//
+//    if (this == InstrumentationLevel.METRICS) {
+//      return "METRICS";
+//    }
+//
+//    if (this == InstrumentationLevel.OFF) {
+//      return "OFF";
+//    }
+//
+//    throw new IllegalStateException("InstrumentationLevel is in an invalid state");
+//
+//  }
 
 }
