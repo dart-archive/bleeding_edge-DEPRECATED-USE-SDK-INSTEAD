@@ -36,7 +36,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
@@ -260,7 +260,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
 
   public void test_definesFunctionType() throws Exception {
     parseTestUnit("typedef MyFunction(int p);");
-    TypeAliasElement typeAliasElement = getElement("MyFunction");
+    FunctionTypeAliasElement typeAliasElement = getElement("MyFunction");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1006,7 +1006,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}");
     // prepare elements
     Element mainElement = getElement("main2(");
-    TypeAliasElement classElementA = getElement("A();");
+    FunctionTypeAliasElement classElementA = getElement("A();");
     // index
     index.visitCompilationUnit(testUnit);
     // verify

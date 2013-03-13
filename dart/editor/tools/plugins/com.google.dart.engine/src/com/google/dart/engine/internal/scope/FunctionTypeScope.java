@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.internal.scope;
 
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -29,7 +29,7 @@ public class FunctionTypeScope extends EnclosedScope {
    * @param enclosingScope the scope in which this scope is lexically enclosed
    * @param typeElement the element representing the type alias represented by this scope
    */
-  public FunctionTypeScope(Scope enclosingScope, TypeAliasElement typeElement) {
+  public FunctionTypeScope(Scope enclosingScope, FunctionTypeAliasElement typeElement) {
     super(new EnclosedScope(enclosingScope));
     defineTypeParameters(typeElement);
   }
@@ -39,7 +39,7 @@ public class FunctionTypeScope extends EnclosedScope {
    * 
    * @param typeElement the element representing the type represented by this scope
    */
-  private void defineTypeParameters(TypeAliasElement typeElement) {
+  private void defineTypeParameters(FunctionTypeAliasElement typeElement) {
     Scope parameterScope = getEnclosingScope();
     for (TypeVariableElement parameter : typeElement.getTypeVariables()) {
       parameterScope.define(parameter);

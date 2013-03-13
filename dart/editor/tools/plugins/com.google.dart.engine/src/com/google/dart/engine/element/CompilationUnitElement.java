@@ -51,11 +51,11 @@ public interface CompilationUnitElement extends Element {
   public TopLevelVariableElement[] getTopLevelVariables();
 
   /**
-   * Return an array containing all of the type aliases contained in this compilation unit.
+   * Return an array containing all of the function type aliases contained in this compilation unit.
    * 
-   * @return the type aliases contained in this compilation unit
+   * @return the function type aliases contained in this compilation unit
    */
-  public TypeAliasElement[] getTypeAliases();
+  public FunctionTypeAliasElement[] getFunctionTypeAliases();
 
   /**
    * Return an array containing all of the classes contained in this compilation unit.

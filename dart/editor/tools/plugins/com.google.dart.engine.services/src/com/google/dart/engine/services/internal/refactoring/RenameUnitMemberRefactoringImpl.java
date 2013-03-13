@@ -19,7 +19,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
@@ -73,7 +73,7 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element instanceof FunctionElement) {
       result.merge(NamingConventions.validateFunctionName(newName));
     }
-    if (element instanceof TypeAliasElement) {
+    if (element instanceof FunctionTypeAliasElement) {
       result.merge(NamingConventions.validateFunctionTypeAliasName(newName));
     }
     if (element instanceof ClassElement) {
@@ -107,7 +107,7 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     if (element instanceof FunctionElement) {
       return "Rename Top-Level Function";
     }
-    if (element instanceof TypeAliasElement) {
+    if (element instanceof FunctionTypeAliasElement) {
       return "Rename Function Type Alias";
     }
     return "Rename Class";

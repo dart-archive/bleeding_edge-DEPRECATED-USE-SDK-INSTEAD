@@ -17,18 +17,19 @@ import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.type.FunctionType;
 
 /**
- * Instances of the class {@code TypeAliasElementImpl} implement a {@code TypeAliasElement}.
+ * Instances of the class {@code FunctionTypeAliasElementImpl} implement a
+ * {@code FunctionTypeAliasElement}.
  * 
  * @coverage dart.engine.element
  */
-public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElement {
+public class FunctionTypeAliasElementImpl extends ElementImpl implements FunctionTypeAliasElement {
   /**
    * An array containing all of the parameters defined by this type alias.
    */
@@ -47,20 +48,20 @@ public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElemen
   /**
    * An empty array of type alias elements.
    */
-  public static final TypeAliasElement[] EMPTY_ARRAY = new TypeAliasElement[0];
+  public static final FunctionTypeAliasElement[] EMPTY_ARRAY = new FunctionTypeAliasElement[0];
 
   /**
    * Initialize a newly created type alias element to have the given name.
    * 
    * @param name the name of this element
    */
-  public TypeAliasElementImpl(Identifier name) {
+  public FunctionTypeAliasElementImpl(Identifier name) {
     super(name);
   }
 
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
-    return visitor.visitTypeAliasElement(this);
+    return visitor.visitFunctionTypeAliasElement(this);
   }
 
   @Override
@@ -85,7 +86,7 @@ public class TypeAliasElementImpl extends ElementImpl implements TypeAliasElemen
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.TYPE_ALIAS;
+    return ElementKind.FUNCTION_TYPE_ALIAS;
   }
 
   @Override

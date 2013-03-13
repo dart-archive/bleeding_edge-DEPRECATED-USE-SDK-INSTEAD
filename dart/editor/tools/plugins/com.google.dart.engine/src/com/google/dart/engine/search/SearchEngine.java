@@ -24,7 +24,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 
@@ -451,7 +451,7 @@ public interface SearchEngine {
    *          <code>null</code> if all of the matches should be returned @ if the results could not
    *          be computed
    */
-  public List<SearchMatch> searchReferences(TypeAliasElement alias, SearchScope scope,
+  public List<SearchMatch> searchReferences(FunctionTypeAliasElement alias, SearchScope scope,
       SearchFilter filter);
 
   /**
@@ -466,7 +466,7 @@ public interface SearchEngine {
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
-  public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
+  public void searchReferences(FunctionTypeAliasElement alias, SearchScope scope, SearchFilter filter,
       SearchListener listener);
 
   /**

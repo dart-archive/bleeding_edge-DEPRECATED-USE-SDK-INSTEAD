@@ -23,7 +23,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 
@@ -43,7 +43,7 @@ public class ElementHolder {
   private ArrayList<LabelElement> labels = new ArrayList<LabelElement>();
   private ArrayList<VariableElement> localVariables = new ArrayList<VariableElement>();
   private ArrayList<MethodElement> methods = new ArrayList<MethodElement>();
-  private ArrayList<TypeAliasElement> typeAliases = new ArrayList<TypeAliasElement>();
+  private ArrayList<FunctionTypeAliasElement> typeAliases = new ArrayList<FunctionTypeAliasElement>();
   private ArrayList<ParameterElement> parameters = new ArrayList<ParameterElement>();
   private ArrayList<VariableElement> topLevelVariables = new ArrayList<VariableElement>();
   private ArrayList<ClassElement> types = new ArrayList<ClassElement>();
@@ -96,7 +96,7 @@ public class ElementHolder {
     types.add(element);
   }
 
-  public void addTypeAlias(TypeAliasElement element) {
+  public void addTypeAlias(FunctionTypeAliasElement element) {
     typeAliases.add(element);
   }
 
@@ -149,8 +149,8 @@ public class ElementHolder {
     return topLevelVariables.toArray(new TopLevelVariableElement[topLevelVariables.size()]);
   }
 
-  public TypeAliasElement[] getTypeAliases() {
-    return typeAliases.toArray(new TypeAliasElement[typeAliases.size()]);
+  public FunctionTypeAliasElement[] getTypeAliases() {
+    return typeAliases.toArray(new FunctionTypeAliasElement[typeAliases.size()]);
   }
 
   public ClassElement[] getTypes() {

@@ -61,7 +61,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -737,8 +737,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return recordType(node, ((TypeVariableElement) element).getType());
 //      }
 //      return recordType(node, typeProvider.getTypeType());
-    } else if (element instanceof TypeAliasElement) {
-      return recordType(node, ((TypeAliasElement) element).getType());
+    } else if (element instanceof FunctionTypeAliasElement) {
+      return recordType(node, ((FunctionTypeAliasElement) element).getType());
     } else if (element instanceof VariableElement) {
       return recordType(node, ((VariableElement) element).getType());
     } else if (element instanceof MethodElement) {

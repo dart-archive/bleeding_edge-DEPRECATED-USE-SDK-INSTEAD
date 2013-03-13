@@ -33,7 +33,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -164,7 +164,7 @@ public class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
-  public R visitTypeAliasElement(TypeAliasElement element) {
+  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }

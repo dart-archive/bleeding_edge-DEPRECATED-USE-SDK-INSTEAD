@@ -13,7 +13,7 @@
  */
 package com.google.dart.engine.ast;
 
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.scanner.Token;
 
 import java.util.List;
@@ -82,8 +82,8 @@ public class FunctionTypeAlias extends TypeAlias {
   }
 
   @Override
-  public TypeAliasElement getElement() {
-    return name != null ? (TypeAliasElement) name.getElement() : null;
+  public FunctionTypeAliasElement getElement() {
+    return name != null ? (FunctionTypeAliasElement) name.getElement() : null;
   }
 
   /**

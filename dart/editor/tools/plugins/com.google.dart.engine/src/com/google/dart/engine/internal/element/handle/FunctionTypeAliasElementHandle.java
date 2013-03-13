@@ -15,24 +15,24 @@ package com.google.dart.engine.internal.element.handle;
 
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ParameterElement;
-import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.type.FunctionType;
 
 /**
- * Instances of the class {@code TypeAliasElementHandle} implement a handle to a
- * {@code TypeAliasElement}.
+ * Instances of the class {@code FunctionTypeAliasElementHandle} implement a handle to a
+ * {@code FunctionTypeAliasElement}.
  * 
  * @coverage dart.engine.element
  */
-public class TypeAliasElementHandle extends ElementHandle implements TypeAliasElement {
+public class FunctionTypeAliasElementHandle extends ElementHandle implements FunctionTypeAliasElement {
   /**
    * Initialize a newly created element handle to represent the given element.
    * 
    * @param element the element being represented
    */
-  public TypeAliasElementHandle(TypeAliasElement element) {
+  public FunctionTypeAliasElementHandle(FunctionTypeAliasElement element) {
     super(element);
   }
 
@@ -43,7 +43,7 @@ public class TypeAliasElementHandle extends ElementHandle implements TypeAliasEl
 
   @Override
   public ElementKind getKind() {
-    return ElementKind.TYPE_ALIAS;
+    return ElementKind.FUNCTION_TYPE_ALIAS;
   }
 
   @Override
@@ -62,7 +62,7 @@ public class TypeAliasElementHandle extends ElementHandle implements TypeAliasEl
   }
 
   @Override
-  protected TypeAliasElement getActualElement() {
-    return (TypeAliasElement) super.getActualElement();
+  protected FunctionTypeAliasElement getActualElement() {
+    return (FunctionTypeAliasElement) super.getActualElement();
   }
 }

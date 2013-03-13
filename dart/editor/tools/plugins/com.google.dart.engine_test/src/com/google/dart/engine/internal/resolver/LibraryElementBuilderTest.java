@@ -63,7 +63,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertEquals(element, unit.getLibrary());
     assertLength(0, unit.getAccessors());
     assertLength(0, unit.getFunctions());
-    assertLength(0, unit.getTypeAliases());
+    assertLength(0, unit.getFunctionTypeAliases());
     assertLength(0, unit.getTypes());
     assertLength(0, unit.getTopLevelVariables());
   }

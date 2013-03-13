@@ -60,7 +60,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
@@ -403,7 +403,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     }
     // record specific relations
     Element element = node.getElement();
-    if (element instanceof ClassElement || element instanceof TypeAliasElement
+    if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
         || element instanceof FunctionElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);

@@ -20,7 +20,7 @@ import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -70,8 +70,8 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
-  public TypeAliasElement[] getTypeAliases() {
-    return getActualElement().getTypeAliases();
+  public FunctionTypeAliasElement[] getFunctionTypeAliases() {
+    return getActualElement().getFunctionTypeAliases();
   }
 
   @Override

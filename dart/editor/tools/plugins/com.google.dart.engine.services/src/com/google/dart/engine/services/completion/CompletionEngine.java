@@ -59,7 +59,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -1243,7 +1243,7 @@ public class CompletionEngine {
       case PREFIX:
         kind = ProposalKind.LIBRARY_PREFIX;
         break;
-      case TYPE_ALIAS:
+      case FUNCTION_TYPE_ALIAS:
         kind = ProposalKind.CLASS_ALIAS;
         break;
       case TYPE_VARIABLE:
@@ -1392,8 +1392,8 @@ public class CompletionEngine {
         receiverType = receiverElement.getType();
         break;
       }
-      case TYPE_ALIAS: {
-        TypeAliasElement receiverElement = (TypeAliasElement) receiver;
+      case FUNCTION_TYPE_ALIAS: {
+        FunctionTypeAliasElement receiverElement = (FunctionTypeAliasElement) receiver;
         FunctionType funType = receiverElement.getType();
         receiverType = funType.getReturnType();
         break;

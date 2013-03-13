@@ -16,12 +16,12 @@ package com.google.dart.engine.element;
 import com.google.dart.engine.type.FunctionType;
 
 /**
- * The interface {@code TypeAliasElement} defines the behavior of elements representing a type alias
- * ({@code typedef}).
+ * The interface {@code FunctionTypeAliasElement} defines the behavior of elements representing a
+ * function type alias ({@code typedef}).
  * 
  * @coverage dart.engine.element
  */
-public interface TypeAliasElement extends Element {
+public interface FunctionTypeAliasElement extends Element {
   /**
    * Return the compilation unit in which this type alias is defined.
    * 

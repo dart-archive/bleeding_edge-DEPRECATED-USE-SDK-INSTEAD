@@ -56,7 +56,7 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
@@ -290,8 +290,8 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_getElementKindName_TypeAliasElement() throws Exception {
-    TypeAliasElement element = mock(TypeAliasElement.class);
-    when(element.getKind()).thenReturn(ElementKind.TYPE_ALIAS);
+    FunctionTypeAliasElement element = mock(FunctionTypeAliasElement.class);
+    when(element.getKind()).thenReturn(ElementKind.FUNCTION_TYPE_ALIAS);
     assertEquals("function type alias", CorrectionUtils.getElementKindName(element));
   }
 

@@ -19,10 +19,10 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.source.Source;
 
@@ -55,9 +55,9 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   private Source source;
 
   /**
-   * An array containing all of the type aliases contained in this compilation unit.
+   * An array containing all of the function type aliases contained in this compilation unit.
    */
-  private TypeAliasElement[] typeAliases = TypeAliasElementImpl.EMPTY_ARRAY;
+  private FunctionTypeAliasElement[] typeAliases = FunctionTypeAliasElementImpl.EMPTY_ARRAY;
 
   /**
    * An array containing all of the types contained in this compilation unit.
@@ -112,9 +112,9 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
         return (ExecutableElementImpl) function;
       }
     }
-    for (TypeAliasElement typeAlias : typeAliases) {
-      if (((TypeAliasElementImpl) typeAlias).getIdentifier().equals(identifier)) {
-        return (TypeAliasElementImpl) typeAlias;
+    for (FunctionTypeAliasElement typeAlias : typeAliases) {
+      if (((FunctionTypeAliasElementImpl) typeAlias).getIdentifier().equals(identifier)) {
+        return (FunctionTypeAliasElementImpl) typeAlias;
       }
     }
     for (ClassElement type : types) {
@@ -136,6 +136,11 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   @Override
+  public FunctionTypeAliasElement[] getFunctionTypeAliases() {
+    return typeAliases;
+  }
+
+  @Override
   public String getIdentifier() {
     return getSource().getFullName();
   }
@@ -153,11 +158,6 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   @Override
   public TopLevelVariableElement[] getTopLevelVariables() {
     return variables;
-  }
-
-  @Override
-  public TypeAliasElement[] getTypeAliases() {
-    return typeAliases;
   }
 
   @Override
@@ -217,13 +217,13 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
   }
 
   /**
-   * Set the type aliases contained in this compilation unit to the given type aliases.
+   * Set the function type aliases contained in this compilation unit to the given type aliases.
    * 
-   * @param typeAliases the type aliases contained in this compilation unit
+   * @param typeAliases the function type aliases contained in this compilation unit
    */
-  public void setTypeAliases(TypeAliasElement[] typeAliases) {
-    for (TypeAliasElement typeAlias : typeAliases) {
-      ((TypeAliasElementImpl) typeAlias).setEnclosingElement(this);
+  public void setTypeAliases(FunctionTypeAliasElement[] typeAliases) {
+    for (FunctionTypeAliasElement typeAlias : typeAliases) {
+      ((FunctionTypeAliasElementImpl) typeAlias).setEnclosingElement(this);
     }
     this.typeAliases = typeAliases;
   }

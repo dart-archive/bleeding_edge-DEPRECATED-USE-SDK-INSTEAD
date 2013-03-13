@@ -58,7 +58,7 @@ public interface ElementVisitor<R> {
 
   public R visitTopLevelVariableElement(TopLevelVariableElement element);
 
-  public R visitTypeAliasElement(TypeAliasElement element);
+  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
   public R visitTypeVariableElement(TypeVariableElement element);
 }

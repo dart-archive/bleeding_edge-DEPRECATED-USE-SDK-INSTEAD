@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.type;
 import com.google.common.collect.ImmutableMap;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
@@ -129,7 +129,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * 
    * @param element the element representing the declaration of the function type
    */
-  public FunctionTypeImpl(TypeAliasElement element) {
+  public FunctionTypeImpl(FunctionTypeAliasElement element) {
     super(element, element == null ? null : element.getName());
   }
 
@@ -319,7 +319,7 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     Element element = getElement();
     FunctionTypeImpl newType = (element instanceof ExecutableElement) ? new FunctionTypeImpl(
-        (ExecutableElement) element) : new FunctionTypeImpl((TypeAliasElement) element);
+        (ExecutableElement) element) : new FunctionTypeImpl((FunctionTypeAliasElement) element);
     newType.setReturnType(returnType.substitute(argumentTypes, parameterTypes));
     newType.setNormalParameterTypes(substitute(normalParameterTypes, argumentTypes, parameterTypes));
     newType.setOptionalParameterTypes(substitute(

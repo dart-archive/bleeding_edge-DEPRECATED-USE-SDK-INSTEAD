@@ -41,7 +41,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
@@ -442,10 +442,10 @@ public class ElementBuilderTest extends EngineTestCase {
     String parameterName = "E";
     FunctionTypeAlias aliasNode = typeAlias(null, aliasName, typeParameterList(parameterName), null);
     aliasNode.accept(builder);
-    TypeAliasElement[] aliases = holder.getTypeAliases();
+    FunctionTypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
 
-    TypeAliasElement alias = aliases[0];
+    FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
     assertLength(0, alias.getParameters());
@@ -772,10 +772,10 @@ public class ElementBuilderTest extends EngineTestCase {
     String aliasName = "F";
     TypeAlias typeAlias = typeAlias(null, aliasName, null, null);
     typeAlias.accept(builder);
-    TypeAliasElement[] aliases = holder.getTypeAliases();
+    FunctionTypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
 
-    TypeAliasElement alias = aliases[0];
+    FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());
@@ -796,10 +796,10 @@ public class ElementBuilderTest extends EngineTestCase {
             simpleFormalParameter(firstParameterName),
             simpleFormalParameter(secondParameterName)));
     typeAlias.accept(builder);
-    TypeAliasElement[] aliases = holder.getTypeAliases();
+    FunctionTypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
 
-    TypeAliasElement alias = aliases[0];
+    FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());
@@ -825,10 +825,10 @@ public class ElementBuilderTest extends EngineTestCase {
         typeParameterList(firstTypeParameterName, secondTypeParameterName),
         formalParameterList());
     typeAlias.accept(builder);
-    TypeAliasElement[] aliases = holder.getTypeAliases();
+    FunctionTypeAliasElement[] aliases = holder.getTypeAliases();
     assertLength(1, aliases);
 
-    TypeAliasElement alias = aliases[0];
+    FunctionTypeAliasElement alias = aliases[0];
     assertNotNull(alias);
     assertEquals(aliasName, alias.getName());
     assertNotNull(alias.getType());

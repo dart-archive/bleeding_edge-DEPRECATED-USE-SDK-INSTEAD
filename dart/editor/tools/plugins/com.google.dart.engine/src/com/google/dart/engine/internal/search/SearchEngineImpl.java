@@ -25,7 +25,7 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
@@ -356,8 +356,8 @@ public class SearchEngineImpl implements SearchEngine {
         case PARAMETER:
           searchReferences((ParameterElement) element, scope, filter, listener);
           return;
-        case TYPE_ALIAS:
-          searchReferences((TypeAliasElement) element, scope, filter, listener);
+        case FUNCTION_TYPE_ALIAS:
+          searchReferences((FunctionTypeAliasElement) element, scope, filter, listener);
           return;
         case TYPE_VARIABLE:
           searchReferences((TypeVariableElement) element, scope, filter, listener);
@@ -618,7 +618,7 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public List<SearchMatch> searchReferences(final TypeAliasElement alias, final SearchScope scope,
+  public List<SearchMatch> searchReferences(final FunctionTypeAliasElement alias, final SearchScope scope,
       final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
       @Override
@@ -629,7 +629,7 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
-  public void searchReferences(TypeAliasElement alias, SearchScope scope, SearchFilter filter,
+  public void searchReferences(FunctionTypeAliasElement alias, SearchScope scope, SearchFilter filter,
       SearchListener listener) {
     assert listener != null;
     listener = applyFilter(filter, listener);

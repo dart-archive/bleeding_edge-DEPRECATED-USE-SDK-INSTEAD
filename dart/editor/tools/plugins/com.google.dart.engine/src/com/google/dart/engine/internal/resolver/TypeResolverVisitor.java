@@ -49,7 +49,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -61,7 +61,7 @@ import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
-import com.google.dart.engine.internal.element.TypeAliasElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -268,7 +268,7 @@ public class TypeResolverVisitor extends ScopedVisitor {
   @Override
   public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
     super.visitFunctionTypeAlias(node);
-    TypeAliasElementImpl element = (TypeAliasElementImpl) node.getElement();
+    FunctionTypeAliasElementImpl element = (FunctionTypeAliasElementImpl) node.getElement();
     FunctionTypeImpl type = (FunctionTypeImpl) element.getType();
     setTypeInformation(type, node.getReturnType(), element.getParameters());
     return null;
@@ -400,9 +400,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     if (element instanceof ClassElement) {
       setElement(typeName, element);
       type = ((ClassElement) element).getType();
-    } else if (element instanceof TypeAliasElement) {
+    } else if (element instanceof FunctionTypeAliasElement) {
       setElement(typeName, element);
-      type = ((TypeAliasElement) element).getType();
+      type = ((FunctionTypeAliasElement) element).getType();
     } else if (element instanceof TypeVariableElement) {
       setElement(typeName, element);
       type = ((TypeVariableElement) element).getType();

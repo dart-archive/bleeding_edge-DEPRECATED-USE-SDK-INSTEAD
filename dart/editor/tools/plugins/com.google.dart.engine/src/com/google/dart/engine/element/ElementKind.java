@@ -41,7 +41,7 @@ public enum ElementKind {
   PREFIX("import prefix"),
   SETTER("setter"),
   TOP_LEVEL_VARIABLE("top level variable"),
-  TYPE_ALIAS("function type alias"),
+  FUNCTION_TYPE_ALIAS("function type alias"),
   TYPE_VARIABLE("type variable"),
   UNIVERSE("<universe>");
 

@@ -61,7 +61,7 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
-import com.google.dart.engine.internal.element.TypeAliasElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -409,7 +409,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     SimpleIdentifier aliasName = node.getName();
     ParameterElement[] parameters = holder.getParameters();
     TypeVariableElement[] typeVariables = holder.getTypeVariables();
-    TypeAliasElementImpl element = new TypeAliasElementImpl(aliasName);
+    FunctionTypeAliasElementImpl element = new FunctionTypeAliasElementImpl(aliasName);
     element.setParameters(parameters);
     element.setTypeVariables(typeVariables);
 

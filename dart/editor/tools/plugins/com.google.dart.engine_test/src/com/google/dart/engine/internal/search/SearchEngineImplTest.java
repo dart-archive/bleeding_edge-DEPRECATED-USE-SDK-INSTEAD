@@ -30,7 +30,7 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.TypeAliasElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
@@ -641,8 +641,8 @@ public class SearchEngineImplTest extends EngineTestCase {
   }
 
   public void test_searchReferences_TypeAliasElement() throws Exception {
-    TypeAliasElement referencedElement = mock(TypeAliasElement.class);
-    when(referencedElement.getKind()).thenReturn(ElementKind.TYPE_ALIAS);
+    FunctionTypeAliasElement referencedElement = mock(FunctionTypeAliasElement.class);
+    when(referencedElement.getKind()).thenReturn(ElementKind.FUNCTION_TYPE_ALIAS);
     {
       Location locationA = new Location(elementA, 1, 2, null);
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
@@ -652,7 +652,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(TypeAliasElement.class, referencedElement);
+    List<SearchMatch> matches = searchReferencesSync(FunctionTypeAliasElement.class, referencedElement);
     assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
     // verify
     assertMatches(
