@@ -18,6 +18,7 @@ import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.test.util.FileOperation;
 import com.google.dart.tools.core.test.util.FileUtilities;
 import com.google.dart.tools.core.test.util.TestUtilities;
@@ -46,9 +47,16 @@ import java.util.Set;
 
 public class AnalysisServerTest extends TestCase {
 
-  private static final String EMPTY_CACHE_CONTENT = "v4\n</end-libraries>\n0\n</end-cache>\n</end-queue>\n";
   private static final String TEST_CLASS_SIMPLE_NAME = AnalysisServerTest.class.getSimpleName();
   private static final long FIVE_MINUTES_MS = 300000;
+
+  public static String getEmptyCacheContent() {
+    return "v5\n" + getExpectedSdkVersion() + "\n</end-libraries>\n0\n</end-cache>\n</end-queue>\n";
+  }
+
+  private static String getExpectedSdkVersion() {
+    return DartSdkManager.getManager().getSdk().getSdkVersion();
+  }
 
   private AnalysisServer server;
   private Listener listener;
@@ -119,8 +127,8 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_analyzeContext() throws Exception {
-    initServer(new StringReader(
-        "v4\none\n</end-libraries>\n0\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
+    initServer(new StringReader("v5\n" + getExpectedSdkVersion()
+        + "\none\n</end-libraries>\n0\n</end-cache>\nAnalyzeContextTask\n</end-queue>"));
     File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
@@ -128,7 +136,8 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_analyzeLibrary() throws Exception {
-    initServer(new StringReader("v4\none\n</end-libraries>\n0\n</end-cache>\none\n</end-queue>"));
+    initServer(new StringReader("v5\n" + getExpectedSdkVersion()
+        + "\none\n</end-libraries>\n0\n</end-cache>\none\n</end-queue>"));
     File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
     assertEquals(1, trackedLibraryFiles.length);
     assertEquals("one", trackedLibraryFiles[0].getName());
@@ -136,34 +145,27 @@ public class AnalysisServerTest extends TestCase {
   }
 
   public void test_read_empty() throws Exception {
-    initServer(new StringReader(EMPTY_CACHE_CONTENT));
+    initServer(new StringReader(getEmptyCacheContent()));
     assertEquals(0, getTrackedLibraryFiles(server).length);
     assertQueuedTasks(server, "AnalyzeLibraryTask");
   }
 
-  public void test_read_empty_v1() throws Exception {
-    initServer(new StringReader("v1\n</end-libraries>\nsome-stuff"));
-    assertEquals(0, getTrackedLibraryFiles(server).length);
-    assertQueuedTasks(server, "AnalyzeContextTask");
-  }
-
-  public void test_read_empty_v2() throws Exception {
-    initServer(new StringReader("v2\n</end-libraries>\n</end-cache>"));
-    assertEquals(0, getTrackedLibraryFiles(server).length);
-    assertQueuedTasks(server, "AnalyzeContextTask");
-  }
-
-  public void test_read_empty_v3() throws Exception {
-    initServer(new StringReader("v3\n</end-libraries>\n</end-cache>\n</end-queue>"));
-    assertEquals(0, getTrackedLibraryFiles(server).length);
-    assertQueuedTasks(server, "AnalyzeLibraryTask");
+  public void test_read_empty_v4() throws Exception {
+    PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
+    server = new AnalysisServerImpl(libraryManager);
+    // v5 content except for v4 tag at start
+    String content = "v4\n" + getExpectedSdkVersion()
+        + "\n</end-libraries>\n0\n</end-cache>\n</end-queue>\n";
+    boolean result = readCache(new StringReader(content));
+    assertFalse("Expect v4 cache to not be read", result);
   }
 
   public void test_read_one() throws Exception {
     PrintStringWriter content = new PrintStringWriter();
 
     // version
-    content.println("v4");
+    content.println("v5");
+    content.println(getExpectedSdkVersion());
 
     // tracked libraries
     content.println("one.dart");
@@ -171,60 +173,6 @@ public class AnalysisServerTest extends TestCase {
 
     // saved context... one library cached
     content.println("0");
-    content.println("two.dart");
-    content.println("true");
-    content.println("three");
-    content.println("</end-prefixes>");
-    content.println("four.dart");
-    content.println("four.dart");
-    content.println("</end-imports>");
-    content.println("five.dart");
-    content.println("five.dart");
-    content.println("</end-sources>");
-    content.println("</end-cache>");
-
-    // queued tasks
-    content.print("</end-queue>");
-
-    initServer(new StringReader(content.toString()));
-
-    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
-    assertEquals(1, trackedLibraryFiles.length);
-    assertEquals("one.dart", trackedLibraryFiles[0].getName());
-
-    assertPackageContexts(server);
-    assertCachedLibraries(server, null, new File("two.dart"));
-
-    assertQueuedTasks(server, "AnalyzeLibraryTask");
-  }
-
-  public void test_read_one_v1() throws Exception {
-    initServer(new StringReader("v1\none\n</end-libraries>\nsome-stuff"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
-    assertEquals(1, trackedLibraryFiles.length);
-    assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks(server, "AnalyzeContextTask");
-  }
-
-  public void test_read_one_v2() throws Exception {
-    initServer(new StringReader("v2\none\n</end-libraries>\n</end-cache>"));
-    File[] trackedLibraryFiles = getTrackedLibraryFiles(server);
-    assertEquals(1, trackedLibraryFiles.length);
-    assertEquals("one", trackedLibraryFiles[0].getName());
-    assertQueuedTasks(server, "AnalyzeContextTask");
-  }
-
-  public void test_read_one_v3() throws Exception {
-    PrintStringWriter content = new PrintStringWriter();
-
-    // version
-    content.println("v3");
-
-    // tracked libraries
-    content.println("one.dart");
-    content.println("</end-libraries>");
-
-    // saved context... one library cached
     content.println("two.dart");
     content.println("true");
     content.println("three");
@@ -306,7 +254,7 @@ public class AnalysisServerTest extends TestCase {
     assertQueuedTasks(server);
     StringWriter writer = new StringWriter(5000);
     writeCache(writer);
-    Assert.assertEquals(EMPTY_CACHE_CONTENT, normalizeEols(writer.toString()));
+    Assert.assertEquals(getEmptyCacheContent(), normalizeEols(writer.toString()));
   }
 
   public void test_write_read_1() throws Exception {
@@ -398,7 +346,7 @@ public class AnalysisServerTest extends TestCase {
     // Cannot read cache while server is still running
 
     try {
-      readCache(new StringReader(EMPTY_CACHE_CONTENT));
+      readCache(new StringReader(getEmptyCacheContent()));
       fail("should not be able to read cache while server is still running");
     } catch (IllegalStateException e) {
       //$FALL-THROUGH$
@@ -431,6 +379,12 @@ public class AnalysisServerTest extends TestCase {
 
     assert2Contexts();
     assertQueuedTasks(server, "AnalyzeLibraryTask");
+  }
+
+  @Override
+  protected void setUp() throws Exception {
+    // None of this works if there is no DartSdk
+    assertTrue(DartSdkManager.getManager().hasSdk());
   }
 
   @Override
@@ -469,7 +423,8 @@ public class AnalysisServerTest extends TestCase {
     PrintStringWriter content = new PrintStringWriter();
 
     // version
-    content.println("v4");
+    content.println("v5");
+    content.println(getExpectedSdkVersion());
 
     // tracked libraries
     content.println("one.dart");
@@ -513,7 +468,7 @@ public class AnalysisServerTest extends TestCase {
     PackageLibraryManager libraryManager = PackageLibraryManagerProvider.getAnyLibraryManager();
     server = new AnalysisServerImpl(libraryManager);
     if (reader != null) {
-      readCache(reader);
+      assertTrue(readCache(reader));
     }
     listener = new Listener(server);
   }
@@ -526,15 +481,17 @@ public class AnalysisServerTest extends TestCase {
     }
   }
 
-  private void readCache(Reader reeader) throws Exception {
+  private boolean readCache(Reader reeader) throws Exception {
     // server.readCache(cacheFile)
     Method method = server.getClass().getDeclaredMethod("readCache", Reader.class);
     method.setAccessible(true);
+    Object result;
     try {
-      method.invoke(server, reeader);
+      result = method.invoke(server, reeader);
     } catch (InvocationTargetException e) {
       throw (Exception) e.getCause();
     }
+    return ((Boolean) result).booleanValue();
   }
 
   private File setupMoneyLibrary(File tempDir) throws IOException {

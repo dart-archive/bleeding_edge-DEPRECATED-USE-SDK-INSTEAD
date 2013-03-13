@@ -39,6 +39,7 @@ import java.util.Iterator;
  */
 public class AnalysisServerImpl implements AnalysisServer {
 
+  private static final String CACHE_V5_TAG = "v5";
   private static final String CACHE_V4_TAG = "v4";
   private static final String CACHE_V3_TAG = "v3";
   private static final String CACHE_V2_TAG = "v2";
@@ -310,7 +311,9 @@ public class AnalysisServerImpl implements AnalysisServer {
       try {
         BufferedReader reader = new BufferedReader(new FileReader(cacheFile));
         try {
-          return readCache(reader);
+          if (readCache(reader)) {
+            return true;
+          }
         } finally {
           try {
             reader.close();
@@ -491,7 +494,9 @@ public class AnalysisServerImpl implements AnalysisServer {
 
     int version;
     String line = cacheReader.readString();
-    if (CACHE_V4_TAG.equals(line)) {
+    if (CACHE_V5_TAG.equals(line)) {
+      version = 5;
+    } else if (CACHE_V4_TAG.equals(line)) {
       version = 4;
     } else if (CACHE_V3_TAG.equals(line)) {
       version = 3;
@@ -503,25 +508,28 @@ public class AnalysisServerImpl implements AnalysisServer {
       throw new IOException("Expected cache version " + CACHE_V4_TAG + " but found " + line);
     }
 
-    // Tracked libraries
-    cacheReader.readFilePaths(libraryFiles, END_LIBRARIES_TAG);
-    if (version == 1) {
-      queueAnalyzeContext();
-      return true;
+    // Discard older versions of cache
+    if (version < 5) {
+      return false;
     }
 
+    // Read the SDK version used when the analysis was cached,
+    // and discard the cache if the versions don't match
+    if (!DartSdkManager.getManager().hasSdk()) {
+      return false;
+    }
+    String expectedSdkVersion = DartSdkManager.getManager().getSdk().getSdkVersion();
+    String actualSdkVersion = cacheReader.readString();
+    if (!expectedSdkVersion.equals(actualSdkVersion)) {
+      return false;
+    }
+
+    // Tracked libraries
+    cacheReader.readFilePaths(libraryFiles, END_LIBRARIES_TAG);
+
     // Cached libraries
-    if (version == 2) {
-      savedContext.readCache(cacheReader);
-      queueAnalyzeContext();
-      return true;
-    }
-    if (version == 3) {
-      savedContext.readCache(cacheReader);
-    } else {
-      int packageContextCount = cacheReader.readInt();
-      savedContext.readCache(cacheReader, packageContextCount);
-    }
+    int packageContextCount = cacheReader.readInt();
+    savedContext.readCache(cacheReader, packageContextCount);
 
     // Queued tasks
     boolean tasksAdded = false;
@@ -569,7 +577,8 @@ public class AnalysisServerImpl implements AnalysisServer {
       throw new IllegalStateException();
     }
     CacheWriter cacheWriter = new CacheWriter(writer);
-    cacheWriter.writeString(CACHE_V4_TAG);
+    cacheWriter.writeString(CACHE_V5_TAG);
+    cacheWriter.writeString(DartSdkManager.getManager().getSdk().getSdkVersion());
     cacheWriter.writeFilePaths(libraryFiles, END_LIBRARIES_TAG);
 
     savedContext.writeCache(cacheWriter);
