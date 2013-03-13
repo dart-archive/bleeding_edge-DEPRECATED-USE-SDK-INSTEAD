@@ -287,8 +287,10 @@ public class ApplicationWorkbenchAdvisor extends WorkbenchAdvisor {
         }
       });
 
-      if (DartSdkManager.getManager().hasSdk()) {
-        new AnalysisMonitor(PackageLibraryManagerProvider.getDefaultAnalysisServer()).start();
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        if (DartSdkManager.getManager().hasSdk()) {
+          new AnalysisMonitor(PackageLibraryManagerProvider.getDefaultAnalysisServer()).start();
+        }
       }
 
       IWorkbench workbench = PlatformUI.getWorkbench();

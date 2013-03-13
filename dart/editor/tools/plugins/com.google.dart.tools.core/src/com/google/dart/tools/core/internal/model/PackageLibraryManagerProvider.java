@@ -19,7 +19,9 @@ import com.google.dart.compiler.SystemLibrary;
 import com.google.dart.compiler.SystemLibraryProvider;
 import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
+import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
@@ -113,6 +115,11 @@ public class PackageLibraryManagerProvider {
    * Answer the server used to analyze source against the "dart-sdk/lib" directory
    */
   public static AnalysisServer getDefaultAnalysisServer() {
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return new AnalysisServerMock();
+    }
+
     return AnalysisIndexManager.getServer();
   }
 

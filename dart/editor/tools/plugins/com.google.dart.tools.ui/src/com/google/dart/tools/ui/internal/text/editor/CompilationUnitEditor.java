@@ -1172,8 +1172,11 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   @Override
   public void dispose() {
-    SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
-    context.removeAnalysisListener(savedContextListener);
+
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
+      context.removeAnalysisListener(savedContextListener);
+    }
 
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer instanceof ITextViewerExtension) {
@@ -1949,6 +1952,12 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
    * such as reanalyze all.
    */
   private void scheduleReconcileAfterBuild() {
+
+    //TODO (pquitslund): investigate whether we need hooks for reconcile on build
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return;
+    }
+
     final SavedContext context = PackageLibraryManagerProvider.getDefaultAnalysisServer().getSavedContext();
     savedContextListener = new AnalysisListener() {
       @Override
