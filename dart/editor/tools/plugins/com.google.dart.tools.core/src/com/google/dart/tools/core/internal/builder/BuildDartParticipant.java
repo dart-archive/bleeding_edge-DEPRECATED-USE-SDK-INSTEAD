@@ -81,7 +81,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
   private static final String BUILD_LOG_NAME = ".buildlog";
 
-  private static final boolean USE_SNAPSHOT = true;
+  private static final boolean USE_SNAPSHOT = false;
 
   private static void createErrorMarker(IFile file, int severity, String message, int line,
       int charStart, int charEnd) throws CoreException {
