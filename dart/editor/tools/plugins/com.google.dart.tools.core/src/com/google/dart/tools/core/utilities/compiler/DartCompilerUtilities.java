@@ -37,6 +37,7 @@ import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
@@ -507,6 +508,8 @@ public class DartCompilerUtilities {
       DartUnit suppliedUnit, DartNode completionNode, int completionLocation,
       final Collection<DartCompilationError> parseErrors) throws DartModelException {
 
+    checkUse();
+
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
     try {
 
@@ -583,6 +586,8 @@ public class DartCompilerUtilities {
   public static DartUnit parseSource(DartSource sourceRef, String source, boolean preserveComments,
       Collection<DartCompilationError> parseErrors) throws DartModelException {
 
+    checkUse();
+
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.parseSource");
     try {
 
@@ -632,6 +637,9 @@ public class DartCompilerUtilities {
    * @return the parse result or <code>null</code> if there are any parse errors
    */
   public static DartUnit parseSource(String name, String source) throws DartModelException {
+
+    checkUse();
+
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
     DartUnit dartUnit = parseSource(name, source, parseErrors);
     if (parseErrors.size() > 0) {
@@ -681,6 +689,9 @@ public class DartCompilerUtilities {
    * @return the parse result or <code>null</code> if there are any parse errors
    */
   public static DartUnit parseUnit(CompilationUnit compilationUnit) throws DartModelException {
+
+    checkUse();
+
     Collection<DartCompilationError> parseErrors = new ArrayList<DartCompilationError>();
     DartUnit dartUnit = parseUnit(compilationUnit, parseErrors);
     if (parseErrors.size() > 0) {
@@ -709,6 +720,9 @@ public class DartCompilerUtilities {
    * Remove the given LibraryUnit from the cache of previously-analyzed libraries.
    */
   public static void removeCachedLibrary(LibrarySource library) {
+
+    checkUse();
+
     synchronized (cachedLibraries) {
       cachedLibraries.remove(library);
     }
@@ -727,6 +741,8 @@ public class DartCompilerUtilities {
   public static LibraryUnit resolveLibrary(LibrarySource library,
       Collection<DartUnit> suppliedUnits, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
+
+    checkUse();
 
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveLibrary");
     try {
@@ -779,6 +795,8 @@ public class DartCompilerUtilities {
    */
   public static DartUnit resolveUnit(CompilationUnit compilationUnit,
       Collection<DartCompilationError> parseErrors) throws DartModelException {
+
+    checkUse();
 
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
     try {
@@ -842,6 +860,8 @@ public class DartCompilerUtilities {
       Map<URI, String> suppliedSources, final Collection<DartCompilationError> parseErrors)
       throws DartModelException {
 
+    checkUse();
+
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.resolveUnit");
     try {
 
@@ -876,6 +896,9 @@ public class DartCompilerUtilities {
   public static Map<URI, LibraryUnit> secureAnalyzeLibraries(LibrarySource librarySource,
       SelectiveCache selectiveCache, CompilerConfiguration config, DartArtifactProvider provider,
       DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
+
+    checkUse();
+
     // All calls to DartC must be synchronized
 
     Map<URI, LibraryUnit> ret;
@@ -908,6 +931,8 @@ public class DartCompilerUtilities {
   public static LibraryUnit secureAnalyzeLibrary(LibrarySource librarySource,
       final Map<URI, DartUnit> parsedUnits, final CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
+
+    checkUse();
 
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureAnalyzeLibrary");
     try {
@@ -993,6 +1018,8 @@ public class DartCompilerUtilities {
   public static void secureCompileLib(LibrarySource libSource, CompilerConfiguration config,
       DartArtifactProvider provider, DartCompilerListener listener) throws IOException {
 
+    checkUse();
+
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureAnalyzeLibrary");
     try {
 
@@ -1018,6 +1045,8 @@ public class DartCompilerUtilities {
    */
   public static DartUnit secureParseUnit(DartParser parser, DartSource sourceRef) {
 
+    checkUse();
+
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartCompilerUtilities.secureParseUnit");
     try {
 
@@ -1030,6 +1059,16 @@ public class DartCompilerUtilities {
     } finally {
       instrumentation.log();
 
+    }
+  }
+
+  private static void checkUse() {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && DartCoreDebug.TRACE_MODEL_ACCESS) {
+      try {
+        throw new IllegalStateException("Inappropriate access to dartc");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -1093,4 +1132,5 @@ public class DartCompilerUtilities {
     }
     return URIUtil.toPath(firstUri).equals(URIUtil.toPath(secondUri));
   }
+
 }
