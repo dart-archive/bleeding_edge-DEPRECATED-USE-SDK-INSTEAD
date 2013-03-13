@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
@@ -379,6 +380,11 @@ public class ActionUtil {
     return false;
   }
 
+  public static boolean isOnBuildPath(Element element) {
+    //TODO (pquitslund): when is an element *not* on the build path?
+    return true;
+  }
+
   public static boolean isOpenDeclarationAvailable(DartElementSelection selection) {
     if (selection.toArray().length == 1) {
       com.google.dart.compiler.type.Type type;
@@ -444,6 +450,20 @@ public class ActionUtil {
   }
 
   public static boolean isProcessable(Shell shell, DartElement element) {
+    if (element == null) {
+      return true;
+    }
+    if (isOnBuildPath(element)) {
+      return true;
+    }
+    MessageDialog.openInformation(
+        shell,
+        ActionMessages.ActionUtil_notOnBuildPath_title,
+        ActionMessages.ActionUtil_notOnBuildPath_message);
+    return false;
+  }
+
+  public static boolean isProcessable(Shell shell, Element element) {
     if (element == null) {
       return true;
     }

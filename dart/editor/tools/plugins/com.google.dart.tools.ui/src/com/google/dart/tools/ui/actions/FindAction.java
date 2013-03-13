@@ -15,8 +15,19 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.Annotation;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.element.ElementLocation;
+import com.google.dart.engine.element.ElementVisitor;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -68,8 +79,89 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  */
 public abstract class FindAction extends InstrumentedSelectionDispatchAction {
 
+  private static final class DummyElement implements Element {
+
+    @Override
+    public <R> R accept(ElementVisitor<R> visitor) {
+      return null;
+    }
+
+    @Override
+    public <E extends Element> E getAncestor(Class<E> elementClass) {
+      return null;
+    }
+
+    @Override
+    public AnalysisContext getContext() {
+      return null;
+    }
+
+    @Override
+    public Element getEnclosingElement() {
+      return null;
+    }
+
+    @Override
+    public ElementKind getKind() {
+      return null;
+    }
+
+    @Override
+    public LibraryElement getLibrary() {
+      return null;
+    }
+
+    @Override
+    public ElementLocation getLocation() {
+      return null;
+    }
+
+    @Override
+    public Annotation[] getMetadata() {
+      return null;
+    }
+
+    @Override
+    public String getName() {
+      return null;
+    }
+
+    @Override
+    public int getNameOffset() {
+      return -1;
+    }
+
+    @Override
+    public Source getSource() {
+      return null;
+    }
+
+    @Override
+    public boolean isAccessibleIn(LibraryElement library) {
+      return false;
+    }
+
+    @Override
+    public boolean isSynthetic() {
+      return false;
+    }
+
+    @Override
+    public void visitChildren(ElementVisitor<?> visitor) {
+    }
+
+  }
+
   // A dummy element that can't be selected in the UI
-  private static final DartElement RETURN_WITHOUT_BEEP = DartCore.create(DartToolsPlugin.getWorkspace().getRoot());
+  private static final Object /*Element*/RETURN_WITHOUT_BEEP = createDummyElement();
+
+  private static Object /*Element*/createDummyElement() {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return new DummyElement();
+    } else {
+      return DartCore.create(DartToolsPlugin.getWorkspace().getRoot());
+    }
+  }
 
   private DartEditor editor;
   private Class<?>[] validTypes;
@@ -139,21 +231,65 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
     }
   }
 
-  @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    DartElement element = getDartElement(selection, false);
-    if (element == null || !element.exists()) {
-      instrumentation.metric("Problem", "Element null or not exist, showing ");
-      showOperationUnavailableDialog();
-      return;
-    } else if (element == RETURN_WITHOUT_BEEP) {
-      instrumentation.metric("Problem", "Find action on non-selectable element");
+  protected void doFind(Element element, InstrumentationBuilder instrumentation) {
+    ActionInstrumentationUtilities.recordElement(element, instrumentation);
+
+    if (!ActionUtil.isProcessable(getShell(), element)) {
+      instrumentation.metric("Problem", "Element is not processable");
       return;
     }
 
-    ActionInstrumentationUtilities.recordElement(element, instrumentation);
-    doFind(element, instrumentation);
+    // will return true except for debugging purposes.
+    try {
+      performNewSearch(new DartSearchQuery(createQuery(element)));
+    } catch (DartModelException ex) {
+      ExceptionHandler.handle(
+          ex,
+          getShell(),
+          SearchMessages.Search_Error_search_notsuccessful_title,
+          SearchMessages.Search_Error_search_notsuccessful_message);
+    } catch (InterruptedException e) {
+      // cancelled
+      instrumentation.metric("Problem", "User cancelled");
+    }
+  }
+
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+
+      Element element = getDartElement2(selection, false);
+      if (element == null) {
+        instrumentation.metric("Problem", "Element null or not exist, showing ");
+        showOperationUnavailableDialog();
+        return;
+      } else if (element == RETURN_WITHOUT_BEEP) {
+        instrumentation.metric("Problem", "Find action on non-selectable element");
+        return;
+      }
+
+      ActionInstrumentationUtilities.recordElement(element, instrumentation);
+      doFind(element, instrumentation);
+
+    } else {
+
+      DartElement element = getDartElement(selection, false);
+      if (element == null || !element.exists()) {
+        instrumentation.metric("Problem", "Element null or not exist, showing ");
+        showOperationUnavailableDialog();
+        return;
+      } else if (element == RETURN_WITHOUT_BEEP) {
+        instrumentation.metric("Problem", "Find action on non-selectable element");
+        return;
+      }
+
+      ActionInstrumentationUtilities.recordElement(element, instrumentation);
+      doFind(element, instrumentation);
+
+    }
+
   }
 
   @Override
@@ -238,6 +374,19 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
     return new NodeQuerySpecification(element, getLimitTo(), scope, "workspace"); //$NON-NLS-1$
   }
 
+  /**
+   * Creates a query for the given element. Subclasses reimplement this method.
+   * 
+   * @param element the element to create a query for
+   * @return returns the query
+   * @throws DartModelException thrown when accessing the element failed
+   * @throws InterruptedException thrown when the user interrupted the query selection
+   */
+  QuerySpecification createQuery(Element element) throws DartModelException, InterruptedException {
+    //TODO (pquitslund): add support for new element queries
+    return null;
+  }
+
   DartElement getDartElement(IStructuredSelection selection, boolean silent) {
     if (selection.size() == 1) {
       Object firstElement = selection.getFirstElement();
@@ -249,6 +398,23 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
       }
       if (elem != null) {
         return getTypeIfPossible(elem, silent);
+      }
+
+    }
+    return null;
+  }
+
+  Element getDartElement2(IStructuredSelection selection, boolean silent) {
+    if (selection.size() == 1) {
+      Object firstElement = selection.getFirstElement();
+      Element elem = null;
+      if (firstElement instanceof Element) {
+        elem = (Element) firstElement;
+      } else if (firstElement instanceof IAdaptable) {
+        elem = (Element) ((IAdaptable) firstElement).getAdapter(Element.class);
+      }
+      if (elem != null) {
+        return getTypeIfPossible2(elem, silent);
       }
 
     }
@@ -309,7 +475,7 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
         ExceptionHandler.log(ex, SearchMessages.DartElementAction_error_open_message);
       }
       if (silent) {
-        return RETURN_WITHOUT_BEEP;
+        return (DartElement) RETURN_WITHOUT_BEEP;
       } else {
         return null;
       }
@@ -318,7 +484,7 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
       return types[0];
     }
     if (silent) {
-      return RETURN_WITHOUT_BEEP;
+      return (DartElement) RETURN_WITHOUT_BEEP;
     }
     if (types.length == 0) {
       return null;
@@ -337,8 +503,40 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
     if (dialog.open() == Window.OK) {
       return (Type) dialog.getFirstResult();
     } else {
-      return RETURN_WITHOUT_BEEP;
+      return (DartElement) RETURN_WITHOUT_BEEP;
     }
+  }
+
+  private Element findType(CompilationUnitElement cu, boolean silent) {
+
+    ClassElement[] types = cu.getTypes();
+
+    if (types.length == 1 || (silent && types.length > 0)) {
+      return types[0];
+    }
+    if (silent) {
+      return (Element) RETURN_WITHOUT_BEEP;
+    }
+    if (types.length == 0) {
+      return null;
+    }
+    String title = SearchMessages.DartElementAction_typeSelectionDialog_title;
+    String message = SearchMessages.DartElementAction_typeSelectionDialog_message;
+    int flags = (DartElementLabelProvider.SHOW_DEFAULT);
+
+    ElementListSelectionDialog dialog = new ElementListSelectionDialog(
+        getShell(),
+        new DartElementLabelProvider(flags));
+    dialog.setTitle(title);
+    dialog.setMessage(message);
+    dialog.setElements(types);
+
+    if (dialog.open() == Window.OK) {
+      return (Element) dialog.getFirstResult();
+    } else {
+      return (Element) RETURN_WITHOUT_BEEP;
+    }
+
   }
 
   private DartElement getTypeIfPossible(DartElement o, boolean silent) {
@@ -348,6 +546,19 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
           return o;
         } else {
           return findType((CompilationUnit) o, silent);
+        }
+      default:
+        return o;
+    }
+  }
+
+  private Element getTypeIfPossible2(Element o, boolean silent) {
+    switch (o.getKind()) {
+      case COMPILATION_UNIT:
+        if (silent) {
+          return o;
+        } else {
+          return findType((CompilationUnitElement) o, silent);
         }
       default:
         return o;
