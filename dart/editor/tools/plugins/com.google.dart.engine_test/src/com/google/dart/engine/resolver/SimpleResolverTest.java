@@ -16,6 +16,7 @@ package com.google.dart.engine.resolver;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.source.Source;
 
 public class SimpleResolverTest extends ResolverTestCase {
@@ -242,6 +243,32 @@ public class SimpleResolverTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertNoErrors();
+    verify(source);
+  }
+
+  public void test_indexExpression_typeParameters() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  List<int> a;",
+        "  a[0];",
+        "  List<List<int>> b;",
+        "  b[0][0];",
+        "  List<List<List<int>>> c;",
+        "  c[0][0][0];",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_indexExpression_typeParameters_invalidAssignmentWarning() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  List<List<int>> b;",
+        "  b[0][0] = 'hi';",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.INVALID_ASSIGNMENT);
     verify(source);
   }
 

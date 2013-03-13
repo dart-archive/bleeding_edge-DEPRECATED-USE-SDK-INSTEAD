@@ -128,24 +128,6 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
-  public void fail_visitIndexExpression_typeParameters() throws Exception {
-    // List<int> list = ...
-    // list[0]
-    InterfaceType intType = typeProvider.getIntType();
-    InterfaceType listType = typeProvider.getListType();
-    // (int) -> E
-    MethodElement methodElement = getMethod(listType, "[]");
-    // "list" has type List<int>
-    SimpleIdentifier identifier = identifier("list");
-    identifier.setStaticType(listType.substitute(new Type[] {intType}));
-    // list[0] has MethodElement element (int) -> E
-    IndexExpression indexExpression = indexExpression(identifier, integer(0));
-    indexExpression.setElement(methodElement);
-    // analyze and assert result of the index expression
-    assertSame(intType, analyze(indexExpression));
-    listener.assertNoErrors();
-  }
-
   public void fail_visitMethodInvocation() throws Exception {
     fail("Not yet tested");
     listener.assertNoErrors();
@@ -505,6 +487,24 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     node.setElement(listType.getElement().getMethods()[1]);
     assignmentExpression(node, TokenType.EQ, integer(0));
     assertSame(listType.getTypeArguments()[0], analyze(node));
+    listener.assertNoErrors();
+  }
+
+  public void test_visitIndexExpression_typeParameters() throws Exception {
+    // List<int> list = ...
+    // list[0]
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType listType = typeProvider.getListType();
+    // (int) -> E
+    MethodElement methodElement = getMethod(listType, "[]");
+    // "list" has type List<int>
+    SimpleIdentifier identifier = identifier("list");
+    identifier.setStaticType(listType.substitute(new Type[] {intType}));
+    // list[0] has MethodElement element (int) -> E
+    IndexExpression indexExpression = indexExpression(identifier, integer(0));
+    indexExpression.setElement(methodElement);
+    // analyze and assert result of the index expression
+    assertSame(intType, analyze(indexExpression));
     listener.assertNoErrors();
   }
 
