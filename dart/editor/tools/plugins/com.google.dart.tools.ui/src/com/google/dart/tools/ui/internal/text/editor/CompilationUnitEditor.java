@@ -1572,7 +1572,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       if (input instanceof FileStoreEditorInput) {
         fJavaEditorErrorTickUpdater.updateEditorImage(input);
       } else {
-        fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
+
+        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          fJavaEditorErrorTickUpdater.updateEditorImage(getInputElement());
+        } else {
+          fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
+        }
+
       }
     }
   }
