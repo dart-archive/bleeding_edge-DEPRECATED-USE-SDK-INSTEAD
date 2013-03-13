@@ -28,12 +28,15 @@ import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
+import com.google.dart.engine.ast.IsExpression;
+import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -41,6 +44,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.TypeParameterList;
@@ -54,12 +58,13 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.element.DynamicElementImpl;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -107,6 +112,7 @@ public class CompletionEngine {
     void addNamesDefinedByType(InterfaceType type) {
       mergeNames(type.getElement().getAccessors());
       mergeNames(type.getElement().getMethods());
+      mergeNames(type.getElement().getTypeVariables());
     }
 
     void addNamesDefinedByTypes(InterfaceType[] types) {
@@ -274,12 +280,31 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitFieldFormalParameter(FieldFormalParameter node) {
+      if (completionNode == node.getIdentifier()) {
+        analyzeImmediateField(node.getIdentifier());
+      }
+      return null;
+    }
+
+    @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
       if (node.getName() == completionNode) {
         if (node.getReturnType() == null) {
           // This may be an incomplete class type alias
           state.includesUndefinedTypes();
           analyzeTypeName(node.getName(), typeDeclarationName(node));
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitMethodDeclaration(MethodDeclaration node) {
+      if (completionNode == node.getName()) {
+        if (node.getReturnType() == null) {
+          // class Foo {const F!(); }
+          analyzeLocalName(completionNode); // TODO: This is too general; need to restrict to types when following const
         }
       }
       return null;
@@ -318,6 +343,9 @@ public class CompletionEngine {
         // { v.! }
         SimpleIdentifier receiverName = node.getPrefix();
         Element receiver = receiverName.getElement();
+        if (receiver == null) {
+          return null;
+        }
         switch (receiver.getKind()) {
           case PREFIX: {
             // TODO: remove this case if/when prefix resolution changes
@@ -413,6 +441,14 @@ public class CompletionEngine {
   private class TerminalNodeCompleter extends GeneralizingASTVisitor<Void> {
 
     @Override
+    public Void visitArgumentList(ArgumentList node) {
+      if (node.getArguments().isEmpty()) {
+        analyzeLocalName(new Ident(node));
+      }
+      return null;
+    }
+
+    @Override
     public Void visitBlock(Block node) {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         // { {! stmt; !} }
@@ -464,6 +500,12 @@ public class CompletionEngine {
     @Override
     public Void visitCompilationUnit(CompilationUnit node) {
       // This is not a good terminal node...
+      return null;
+    }
+
+    @Override
+    public Void visitExpression(Expression node) {
+      analyzeLocalName(new Ident(node));
       return null;
     }
 
@@ -635,6 +677,15 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitConstructorName(ConstructorName node) {
+      if (typeName == node.getType()) {
+        // { new ! } { new Na!me(); }
+        analyzeTypeName(identifier, null);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitExtendsClause(ExtendsClause node) {
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
@@ -650,6 +701,15 @@ public class CompletionEngine {
     @Override
     public Void visitImplementsClause(ImplementsClause node) {
       analyzeTypeName(identifier, typeDeclarationName(node));
+      return null;
+    }
+
+    @Override
+    public Void visitIsExpression(IsExpression node) {
+      if (typeName == node.getType()) {
+        // TODO Confirm that this path always has simple identifiers
+        analyzeTypeName((SimpleIdentifier) node.getType().getName(), null);
+      }
       return null;
     }
 
@@ -672,7 +732,11 @@ public class CompletionEngine {
     @Override
     public Void visitVariableDeclarationList(VariableDeclarationList node) {
 //      state.includesUndefinedTypes();
-      analyzeLocalName(identifier);
+      if (node.getParent() instanceof Statement) {
+        analyzeLocalName(identifier);
+      } else {
+        analyzeTypeName(identifier, null);
+      }
       return null;
     }
 
@@ -749,6 +813,15 @@ public class CompletionEngine {
       if (rcvrTypeElem instanceof ClassElement) {
         directAccess((ClassElement) rcvrTypeElem, completionNode);
       }
+    }
+  }
+
+  void analyzeImmediateField(SimpleIdentifier fieldName) {
+    filter = new Filter(fieldName);
+    ClassDeclaration classDecl = fieldName.getAncestor(ClassDeclaration.class);
+    ClassElement classElement = classDecl.getElement();
+    for (FieldElement field : classElement.getFields()) {
+      pName(field.getName(), ProposalKind.FIELD);
     }
   }
 
@@ -845,6 +918,15 @@ public class CompletionEngine {
       }
       pName(type);
     }
+    if (!state.isForMixin) {
+      ClassDeclaration classDecl = identifier.getAncestor(ClassDeclaration.class);
+      if (classDecl != null) {
+        ClassElement classElement = classDecl.getElement();
+        for (TypeVariableElement var : classElement.getTypeVariables()) {
+          pName(var);
+        }
+      }
+    }
     if (state.isDynamicAllowed) {
       pDynamic();
     }
@@ -867,7 +949,6 @@ public class CompletionEngine {
   }
 
   void directAccess(ClassElement classElement, SimpleIdentifier identifier) {
-    // TODO Rewrite collectIdentifiersVisibleAt() in this style.
     filter = new Filter(identifier);
     NameCollector names = new NameCollector();
     names.addNamesDefinedByTypes(allSuperTypes(classElement));
@@ -933,6 +1014,12 @@ public class CompletionEngine {
     Declaration decl = ident.getAncestor(Declaration.class);
     if (decl != null) {
       Element element = decl.getElement();
+      if (element == null) {
+        decl = decl.getParent().getAncestor(Declaration.class);
+        if (decl != null) {
+          element = decl.getElement();
+        }
+      }
       Element localDef = null;
       if (element instanceof LocalVariableElement) {
         decl = decl.getParent().getAncestor(Declaration.class);
@@ -1173,16 +1260,21 @@ public class CompletionEngine {
     if (container != null) { // TODO: may be null for functions ??
       prop.setDeclaringType(container.getName());
     }
+    Type type = typeOf(element);
+    if (type != null) {
+      prop.setReturnType(type.getName());
+    }
     requestor.accept(prop);
   }
 
-  private void pName(SimpleIdentifier element) {
-    // Create a completion proposal for the name.
-    String name = element.getName();
-    if (filterDisallows(element.getName())) {
+  private void pName(SimpleIdentifier identifier) {
+    pName(identifier.getName(), ProposalKind.VARIABLE);
+  }
+
+  private void pName(String name, ProposalKind kind) {
+    if (filterDisallows(name)) {
       return;
     }
-    ProposalKind kind = ProposalKind.VARIABLE;
     CompletionProposal prop = createProposal(kind);
     prop.setCompletion(name);
     requestor.accept(prop);

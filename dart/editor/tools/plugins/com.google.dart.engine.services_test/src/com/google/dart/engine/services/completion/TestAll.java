@@ -14,11 +14,21 @@
 package com.google.dart.engine.services.completion;
 
 import junit.framework.Test;
+import junit.framework.TestResult;
 import junit.framework.TestSuite;
 
 public class TestAll {
+
+  public static int Count = 0;
+
   public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName()) {
+      @Override
+      public void run(TestResult tests) {
+        super.run(tests);
+        System.out.println("Completion tests: " + Count);
+      }
+    };
     suite.addTestSuite(CompletionTests.class);
     return suite;
   }

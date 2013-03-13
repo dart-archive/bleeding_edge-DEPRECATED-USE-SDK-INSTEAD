@@ -330,6 +330,30 @@ public class CompletionTests extends CompletionTestCase {
         "1-newt");
   }
 
+  public void testCommentSnippets022() throws Exception {
+    test("class Map{}class F{m(){new !1;}}", "1+Map");
+  }
+
+  public void testCommentSnippets022a() throws Exception {
+    test("class Map{}class F{m(){new !1", "1+Map");
+  }
+
+  public void testCommentSnippets022b() throws Exception {
+    test("class Map{factory Map.qq(){return null;}}class F{m(){new Map.!1qq();}}", "1+qq");
+  }
+
+  public void testCommentSnippets023() throws Exception {
+    test("class X {X c; X(this.!1c!3) : super() {c.!2}}", "1+c", "2+c", "3+c");
+  }
+
+  public void testCommentSnippets024() throws Exception {
+    test("class q {m(Map q){var x;m(!1)}n(){var x;n(!2)}}", "1+x", "2+x");
+  }
+
+  public void testCommentSnippets025() throws Exception {
+    test("class q {num m() {var q; num x=!1 q + !2/**/;}}", "1+q", "2+q");
+  }
+
   public void testCommentSnippets026() throws Exception {
     test("class List{}class a implements !1{}", "1+List");
   }
@@ -341,4 +365,44 @@ public class CompletionTests extends CompletionTestCase {
         "2+String",
         "2-List");
   }
+
+  public void testCommentSnippets028() throws Exception {
+    test(
+        "class String{}class List{}class DateTime{}typedef T Y<T extends !1>(List input);",
+        "1+DateTime",
+        "1+String");
+  }
+
+  public void testCommentSnippets029() throws Exception {
+//    test("interface A<X> default B<X extends !1List!2> {}", "1+DateTime", "2+List"); bad test
+  }
+
+  public void testCommentSnippets030() throws Exception {
+    test(
+        "class Bar<T extends Foo> {const Bar(!1T!2 k);T!3 m(T!4 a, T!5 b){}final T!6 f = null;}",
+        "1+T",
+        "2+T",
+        "3+T",
+        "4+T",
+        "5+T",
+        "6+T");
+  }
+
+  public void testCommentSnippets031() throws Exception {
+    test( // TODO Make one test is! when the AST is correct.
+        "class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is !! !2)}}",
+        "1+Bar",
+        "1+T",
+        "2+T",
+        "2+Bar");
+  }
+
+  public void testCommentSnippets032() throws Exception {
+    test("class Fit{}class Bar<T extends Fooa> {const F!1ara();}", "1+Fit", "1+Fara", "1-Bar");
+  }
+
+  public void testSingle() throws Exception {
+    test("class A {int x; !2mth() {int y = this.x;}}class B{}", "2+B");
+  }
+
 }

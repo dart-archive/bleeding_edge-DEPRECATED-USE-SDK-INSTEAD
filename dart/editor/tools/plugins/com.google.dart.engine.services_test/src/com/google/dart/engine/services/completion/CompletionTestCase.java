@@ -78,6 +78,7 @@ public class CompletionTestCase extends ResolverTestCase {
       for (String result : test.negativeResults) {
         requestor.assertNotSuggested(result, test.id);
       }
+      TestAll.Count += test.positiveResults.size() + test.negativeResults.size();
     }
   }
 
