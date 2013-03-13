@@ -23,7 +23,7 @@ import java.io.InputStreamReader;
  */
 class BatchRunner {
 
-  interface BatchRunnerInvocation {
+  public interface BatchRunnerInvocation {
     public ErrorSeverity invoke(String[] args) throws Throwable;
   }
 
@@ -33,7 +33,7 @@ class BatchRunner {
    * 
    * @param batchArgs command line arguments forwarded from main().
    */
-  public static void runAsBatch(String[] batchArgs, BatchRunnerInvocation toolInvocation)
+  public static ErrorSeverity runAsBatch(String[] batchArgs, BatchRunnerInvocation toolInvocation)
       throws Throwable {
     System.out.println(">>> BATCH START");
 
@@ -42,23 +42,23 @@ class BatchRunner {
     long startTime = System.currentTimeMillis();
     int testsFailed = 0;
     int totalTests = 0;
-
+    ErrorSeverity batchResult = ErrorSeverity.NONE;
     try {
       String line;
-
       for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
         long testStart = System.currentTimeMillis();
         String[] args = line.trim().split("\\s+");
         ErrorSeverity result = toolInvocation.invoke(args);
-        if (result.equals(ErrorSeverity.ERROR)) {
+        boolean resultPass = !result.equals(ErrorSeverity.ERROR);
+        if (resultPass) {
           testsFailed++;
         }
-
+        batchResult = batchResult.max(result);
         // Write stderr end token and flush.
         System.err.println(">>> EOF STDERR");
         System.err.flush();
-        System.out.println(">>> TEST " + (result.equals(ErrorSeverity.ERROR) ? "FAIL" : "PASS")
-            + " " + (System.currentTimeMillis() - testStart) + "ms");
+        System.out.println(">>> TEST " + (resultPass ? "PASS" : "FAIL") + " "
+            + (System.currentTimeMillis() - testStart) + "ms");
         System.out.flush();
       }
     } catch (Throwable e) {
@@ -70,10 +70,9 @@ class BatchRunner {
     }
 
     long elapsed = System.currentTimeMillis() - startTime;
-
     System.out.println(">>> BATCH END (" + (totalTests - testsFailed) + "/" + totalTests + ") "
         + elapsed + "ms");
     System.out.flush();
+    return batchResult;
   }
-
 }

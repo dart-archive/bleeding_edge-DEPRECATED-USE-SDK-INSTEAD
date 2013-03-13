@@ -129,6 +129,14 @@ public class AnalyzerOptions {
   @Option(name = "--fatal-warnings")
   private boolean warningsAreFatal = false;
 
+  // TODO(devoncarew): this is unused, and is only for dartc compatibility
+  @Option(name = "--fatal-type-errors")
+  private boolean fatalTypeError = false;
+
+  // TODO(devoncarew): this is unused, and is only for dartc compatibility
+  @Option(name = "--error_format")
+  private String errorFormat = "";
+
   @Option(name = "--create-sdk-index", //
   metaVar = "<file>")
   private File sdkIndexLocation = null;
@@ -155,6 +163,10 @@ public class AnalyzerOptions {
   }
 
   public boolean getMachineFormat() {
+    if ("machine".equals(errorFormat)) {
+      return true;
+    }
+
     return machineFormat;
   }
 

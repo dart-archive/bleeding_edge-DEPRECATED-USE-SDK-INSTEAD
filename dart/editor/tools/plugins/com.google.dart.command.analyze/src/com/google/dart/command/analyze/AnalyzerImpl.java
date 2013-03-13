@@ -52,9 +52,13 @@ class AnalyzerImpl {
   }
 
   private AnalyzerOptions options;
+  private DartSdk sdk;
 
   public AnalyzerImpl(AnalyzerOptions options) {
     this.options = options;
+
+    // This sdk is shared between multiple runs of the analyzer.
+    sdk = new DartSdk(options.getDartSdkPath());
   }
 
   /**
@@ -71,9 +75,6 @@ class AnalyzerImpl {
     if (sourceFile == null) {
       throw new IllegalArgumentException("sourceFile cannot be null");
     }
-
-    // TODO(devoncarew): can we share this SDK when running in batch mode?
-    DartSdk sdk = new DartSdk(options.getDartSdkPath());
 
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
 

@@ -70,6 +70,12 @@ public class AnalyzerMain {
       System.exit(1);
     }
 
+    if (!options.getDartSdkPath().exists()) {
+      System.out.println(PROGRAM_NAME + ": invalid Dart SDK path: " + options.getDartSdkPath());
+      showUsage(options, System.out);
+      System.exit(1);
+    }
+
     if (options.getSdkIndexLocation() != null) {
       AnalyzerImpl analyzer = new AnalyzerImpl(options);
       if (analyzer.createSdkIndex()) {
@@ -84,15 +90,9 @@ public class AnalyzerMain {
       System.exit(0);
     }
 
-    String sourceFilePath = options.getSourceFile();
-
-    if (sourceFilePath == null) {
-      System.out.println(PROGRAM_NAME + ": no source files were specified.");
-      showUsage(options, System.out);
-      System.exit(1);
-    }
-
     try {
+      final AnalyzerImpl analyzer = new AnalyzerImpl(options);
+
       if (options.shouldBatch()) {
         BatchRunner.runAsBatch(args, new BatchRunnerInvocation() {
           @Override
@@ -103,11 +103,19 @@ public class AnalyzerMain {
               compilerOptions.setDartSdkPath(options.getDartSdkPath());
             }
 
-            return runAnalyzer(compilerOptions);
+            return runAnalyzer(analyzer, compilerOptions);
           }
         });
       } else {
-        ErrorSeverity result = runAnalyzer(options);
+        String sourceFilePath = options.getSourceFile();
+
+        if (sourceFilePath == null) {
+          System.out.println(PROGRAM_NAME + ": no source files were specified.");
+          showUsage(options, System.out);
+          System.exit(1);
+        }
+
+        ErrorSeverity result = runAnalyzer(analyzer, options);
 
         if (result != ErrorSeverity.NONE) {
           System.exit(result.ordinal());
@@ -131,10 +139,8 @@ public class AnalyzerMain {
    * @param analyzerOptions parsed command line arguments
    * @return {@code  true} on success, {@code false} on failure.
    */
-  protected static ErrorSeverity runAnalyzer(AnalyzerOptions options) throws IOException,
-      AnalysisException {
-    AnalyzerImpl analyzer = new AnalyzerImpl(options);
-
+  protected static ErrorSeverity runAnalyzer(AnalyzerImpl analyzer, AnalyzerOptions options)
+      throws IOException, AnalysisException {
     File sourceFile = new File(options.getSourceFile());
 
     if (!sourceFile.exists()) {
