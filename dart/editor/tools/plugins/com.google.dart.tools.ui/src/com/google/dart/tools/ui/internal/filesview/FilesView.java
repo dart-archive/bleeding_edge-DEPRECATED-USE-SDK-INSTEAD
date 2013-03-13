@@ -22,6 +22,7 @@ import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.actions.CopyFilePathAction;
 import com.google.dart.tools.ui.actions.DeleteAction;
 import com.google.dart.tools.ui.actions.OpenAsTextAction;
+import com.google.dart.tools.ui.actions.OpenExternalDartdocAction;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
@@ -228,6 +229,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
   private OpenAsTextAction openAsTextAction;
 
+  private OpenExternalDartdocAction browseDartDocAction;
+
   @Override
   public void createPartControl(Composite parent) {
     preferences = DartToolsPlugin.getDefault().getCombinedPreferenceStore();
@@ -401,7 +404,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(createFolderAction);
     }
 
-    manager.add(createApplicationAction);
+    if (selection.size() == 0) {
+      manager.add(createApplicationAction);
+    }
 
     // OPEN GROUP
 
@@ -506,8 +511,16 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       manager.add(new OpenPubDocs());
     }
 
-    manager.add(new Separator());
-    manager.add(propertyDialogAction);
+    if (allElementsAreResources(selection)) {
+      manager.add(new Separator());
+      manager.add(propertyDialogAction);
+    }
+
+    // Dart SDK
+
+    if (selection.size() == 1 && !allElementsAreResources(selection)) {
+      manager.add(browseDartDocAction);
+    }
   }
 
   protected void fillInToolbar(IToolBarManager toolbar) {
@@ -720,5 +733,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
     pubUpdateAction = RunPubAction.createPubUpdateAction(getSite().getWorkbenchWindow());
     pubInstallAction = RunPubAction.createPubInstallAction(getSite().getWorkbenchWindow());
+
+    browseDartDocAction = new OpenExternalDartdocAction(getSite());
+    treeViewer.addSelectionChangedListener(browseDartDocAction);
   }
 }

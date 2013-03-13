@@ -19,6 +19,7 @@ import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.IFileSystem;
 import org.eclipse.core.runtime.IAdapterFactory;
 import org.eclipse.core.runtime.Path;
@@ -74,6 +75,15 @@ class NewDartSdkNode extends DartSdkNode {
 
   public NewDartSdkNode() {
     libraries = getLibraries();
+  }
+
+  @Override
+  public IFileStore getFileStore() {
+    if (DartSdkManager.getManager().hasSdk()) {
+      File sdkLibDir = DartSdkManager.getManager().getSdk().getLibraryDirectory();
+      return EFS.getLocalFileSystem().fromLocalFile(sdkLibDir);
+    }
+    return null;
   }
 
   @Override
@@ -139,5 +149,4 @@ class NewDartSdkNode extends DartSdkNode {
   public String toString() {
     return getLabel();
   }
-
 }

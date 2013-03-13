@@ -63,6 +63,11 @@ class DartLibraryNode implements IDartNode {
   }
 
   @Override
+  public IFileStore getFileStore() {
+    return root;
+  }
+
+  @Override
   public ImageDescriptor getImageDescriptor() {
     return DartToolsPlugin.findImageDescriptor("icons/full/obj16/package_obj.gif");
   }
@@ -94,5 +99,4 @@ class DartLibraryNode implements IDartNode {
 
     return children;
   }
-
 }

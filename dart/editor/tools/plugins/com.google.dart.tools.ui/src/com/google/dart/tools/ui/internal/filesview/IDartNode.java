@@ -14,12 +14,15 @@
 
 package com.google.dart.tools.ui.internal.filesview;
 
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 
 /**
  * An interface used to represent Dart SDK nodes in the Files view.
  */
 public interface IDartNode {
+
+  public IFileStore getFileStore();
 
   public ImageDescriptor getImageDescriptor();
 
