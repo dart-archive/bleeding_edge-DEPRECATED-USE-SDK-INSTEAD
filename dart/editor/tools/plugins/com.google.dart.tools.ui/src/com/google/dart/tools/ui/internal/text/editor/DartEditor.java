@@ -2171,9 +2171,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         changeSet.changed(source, code);
         context.changed(changeSet);
       }
+
       // resolve
       LibraryElement libraryElement = context.getLibraryElement(source);
+
+      //TODO (pquitslund): update when support for library parts is landed
+
+//      Source[] libs = context.getLibrariesContaining(source);
+//      LibraryElement libraryElement = null;
+//      //TODO (pquitslund): better handle the multiple libs case
+//      if (libs.length > 0) {
+//        libraryElement = context.getLibraryElement(libs[0]);
+//      }
+
       return context.resolve(source, libraryElement);
+
     } catch (Throwable e) {
       throw new Error(e);
     }
