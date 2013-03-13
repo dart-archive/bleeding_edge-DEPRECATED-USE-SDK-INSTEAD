@@ -232,9 +232,11 @@ public class DartUIStartup implements IStartup {
 
   @Override
   public void earlyStartup() {
-    synchronized (startupSync) {
-      startupJob = new StartupJob();
-      startupJob.schedule(500);
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      synchronized (startupSync) {
+        startupJob = new StartupJob();
+        startupJob.schedule(500);
+      }
     }
   }
 }
