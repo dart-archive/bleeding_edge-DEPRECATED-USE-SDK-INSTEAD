@@ -508,6 +508,26 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     listener.assertNoErrors();
   }
 
+  public void test_visitIndexExpression_typeParameters_inSetterContext() throws Exception {
+    // List<int> list = ...
+    // list[0] = 0;
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType listType = typeProvider.getListType();
+    // (int, E) -> void
+    MethodElement methodElement = getMethod(listType, "[]=");
+    // "list" has type List<int>
+    SimpleIdentifier identifier = identifier("list");
+    identifier.setStaticType(listType.substitute(new Type[] {intType}));
+    // list[0] has MethodElement element (int) -> E
+    IndexExpression indexExpression = indexExpression(identifier, integer(0));
+    indexExpression.setElement(methodElement);
+    // list[0] should be in a setter context
+    assignmentExpression(indexExpression, TokenType.EQ, integer(0));
+    // analyze and assert result of the index expression
+    assertSame(intType, analyze(indexExpression));
+    listener.assertNoErrors();
+  }
+
   public void test_visitInstanceCreationExpression_named() throws Exception {
     // new C.m()
     ClassElement classElement = classElement("C");
