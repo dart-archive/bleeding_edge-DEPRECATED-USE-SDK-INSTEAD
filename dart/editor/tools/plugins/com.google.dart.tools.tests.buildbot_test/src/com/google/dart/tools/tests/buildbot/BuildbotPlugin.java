@@ -14,7 +14,8 @@
 
 package com.google.dart.tools.tests.buildbot;
 
-import org.eclipse.core.runtime.Platform;
+import com.google.dart.tools.core.CmdLineOptions;
+
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.jobs.Job;
 import org.osgi.framework.BundleContext;
@@ -57,17 +58,7 @@ public class BuildbotPlugin extends Plugin {
   }
 
   private boolean shouldRunTests() {
-    for (String arg : Platform.getApplicationArgs()) {
-      if (arg.equals("-test") || arg.equals("--test")) {
-        return true;
-      }
-
-      if (arg.startsWith("-test=") || arg.startsWith("--test=")) {
-        return true;
-      }
-    }
-
-    return false;
+    return CmdLineOptions.getOptions().getRunTests();
   }
 
 }

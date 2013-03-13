@@ -79,7 +79,13 @@ public class CmdLineOptions {
 
       } else if (arg.equals(TEST_FLAG)) {
         options.runTests = true;
-
+        if (index + 1 < args.length) {
+          String nextArg = args[index + 1];
+          if (nextArg.length() > 0 && nextArg.charAt(0) != '-') {
+            options.runTestName = nextArg;
+            index++;
+          }
+        }
       } else if (arg.equals(PACKAGE_ROOT_FLAG)) {
         if (index + 1 < args.length) {
           String nextArg = args[index + 1];
@@ -95,7 +101,8 @@ public class CmdLineOptions {
 
       } else if (arg.equals("-version") || arg.equals("-port") || arg.equals("-testLoaderClass")
           || arg.equals("-loaderpluginname") || arg.equals("-classNames")
-          || arg.equals("-testApplication") || arg.equals("-testpluginname")) {
+          || arg.equals("-testApplication") || arg.equals("-testpluginname") || arg.equals("-test")) {
+        options.junitTestsAreRunning = true;
         // Ignore jUnit arguments
         if (index + 1 < args.length) {
           String nextArg = args[index + 1];
@@ -135,6 +142,8 @@ public class CmdLineOptions {
   private boolean autoExit = false;
   private boolean measurePerformance = false;
   private boolean runTests = false;
+  private String runTestName = null;
+  private boolean junitTestsAreRunning = false;
   private long startTime = 0;
   private String packageRootString = "";
   private File[] packageRoots = null;
@@ -200,11 +209,18 @@ public class CmdLineOptions {
   }
 
   /**
+   * Answer name of the test to run if {@link #getRunTests()} is {@code true}.
+   */
+  public String getRunTestName() {
+    return runTestName;
+  }
+
+  /**
    * Answer {@code true} if the {@value #TEST_FLAG} is specified on the command line indicating that
    * the Editor should automatically run the Editor's suite of tests.
    */
   public boolean getRunTests() {
-    return runTests;
+    return runTests && !junitTestsAreRunning;
   }
 
   /**

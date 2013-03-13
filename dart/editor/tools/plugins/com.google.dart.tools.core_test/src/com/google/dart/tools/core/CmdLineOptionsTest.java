@@ -75,6 +75,24 @@ public class CmdLineOptionsTest extends TestCase {
     assertOptions(options, false, 0, false, 0, true, 0);
   }
 
+  public void test_test_noName_hasOtherOption() {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test", "--perf"});
+    assertEquals(true, options.getRunTests());
+    assertEquals(null, options.getRunTestName());
+  }
+
+  public void test_test_noName_last() {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test"});
+    assertEquals(true, options.getRunTests());
+    assertEquals(null, options.getRunTestName());
+  }
+
+  public void test_test_withName() {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--test", "my.test.Name"});
+    assertEquals(true, options.getRunTests());
+    assertEquals("my.test.Name", options.getRunTestName());
+  }
+
   private void assertOptions(CmdLineOptions options, boolean perf, int startTime, boolean exitPerf,
       int fileCount, boolean runTests, int pkgRootCount) {
     assertNotNull(options);
