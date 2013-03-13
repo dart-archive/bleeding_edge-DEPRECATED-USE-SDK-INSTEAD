@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInt
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M4_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_trailingSpace_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useBlocks_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.style.Style_useTypeAnnotations_CleanUp;
@@ -69,6 +70,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
     private static final String ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL = "migrateSyntax-1M2-functionLiteral";
     private static final String ID_MIGRATE_SYNTAX_1M3_LIBRARY = "migrateSyntax-1M3-library";
     private static final String ID_MIGRATE_SYNTAX_1M3_FUTURE = "migrateSyntax-1M3-future";
+    private static final String ID_MIGRATE_1M4_LIBRARY = "migrateLibrary-1M4";
 
     private static final String ID_STYLE_TRAILING_WHITESPACE = "style-trailingWhitespace";
     private static final String ID_STYLE_USE_BLOCKS = "style-useBlocks";
@@ -90,6 +92,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
           new Migrate_1M2_functionLiteral_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_LIBRARY, new Migrate_1M3_corelib_CleanUp());
       CLEAN_UPS.put(ID_MIGRATE_SYNTAX_1M3_FUTURE, new Migrate_1M3_Future_CleanUp());
+      CLEAN_UPS.put(ID_MIGRATE_1M4_LIBRARY, new Migrate_1M4_CleanUp());
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_IDENTICAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_LIBRARY, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M1_OPTIONAL_NAMED, false);
@@ -100,6 +103,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
       settings.setDefault(ID_MIGRATE_SYNTAX_1M2_FUNCTION_LITERAL, true);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M3_LIBRARY, false);
       settings.setDefault(ID_MIGRATE_SYNTAX_1M3_FUTURE, false);
+      settings.setDefault(ID_MIGRATE_1M4_LIBRARY, false);
       // style
       CLEAN_UPS.put(ID_STYLE_TRAILING_WHITESPACE, new Style_trailingSpace_CleanUp());
       CLEAN_UPS.put(ID_STYLE_USE_BLOCKS, new Style_useBlocks_CleanUp());
@@ -189,6 +193,7 @@ public class CleanUpRefactoringWizard extends RefactoringWizard {
                 syntaxComposite,
                 ID_MIGRATE_SYNTAX_1M3_FUTURE,
                 "Migrate to 1.0 M3 Future methods (review changes carefully)");
+            createCheckButton(syntaxComposite, ID_MIGRATE_1M4_LIBRARY, "Migrate to 1.0 M4 library");
 //            new Label(syntaxComposite, SWT.NONE);
 //            new Label(syntaxComposite, SWT.NONE).setText("Work in progress... not fully implemented:");
           }

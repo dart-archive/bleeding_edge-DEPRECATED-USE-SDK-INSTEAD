@@ -33,7 +33,6 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.resolver.ClassElement;
-import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.Elements;
 import com.google.dart.compiler.resolver.VariableElement;
@@ -379,17 +378,10 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
           return null;
         }
         // handle as yet existing
-        Type type = node.getType();
-        if (type != null && type.getElement() instanceof ClassNodeElement) {
-          ClassNodeElement element = (ClassNodeElement) type.getElement();
-          if (element != null) {
-            // core
-            if (element.getLibrary().getName().equals("dart://core/core.dart")) {
-              if (element.getName().equals("Date")) {
-                addReplaceEdit(SourceRangeFactory.create(node), "DateTime");
-              }
-            }
-          }
+        if (node.getIdentifier() instanceof DartIdentifier
+            && ((DartIdentifier) node.getIdentifier()).getName().equals("Date")) {
+          addReplaceEdit(SourceRangeFactory.create(node), "DateTime");
+          return null;
         }
         return null;
       }

@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -24,6 +24,7 @@ import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_removeInt
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M2_renameTypes_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_Future_CleanUp;
 import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M3_corelib_CleanUp;
+import com.google.dart.tools.ui.internal.cleanup.migration.Migrate_1M4_CleanUp;
 
 /**
  * Test for {@link AbstractMigrateCleanUp}.
@@ -1520,6 +1521,39 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "}",
         "");
     assertNoFix(cleanUp, initial);
+  }
+
+  public void test_1M4_xMatching_to_xWhere() throws Exception {
+    ICleanUp cleanUp = new Migrate_1M4_CleanUp();
+    String initial = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main2(Iterable iter, Stream stream, Collection collection) {",
+        "  iter.firstMatching();",
+        "  iter.lastMatching();",
+        "  iter.singleMatching();",
+        "  stream.firstMatching();",
+        "  stream.lastMatching();",
+        "  stream.singleMatching();",
+        "  collection.removeMatching();",
+        "  collection.retainMatching();",
+        "}",
+        "");
+    String expected = makeSource(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'dart:async';",
+        "main2(Iterable iter, Stream stream, Collection collection) {",
+        "  iter.firstWhere();",
+        "  iter.lastWhere();",
+        "  iter.singleWhere();",
+        "  stream.firstWhere();",
+        "  stream.lastWhere();",
+        "  stream.singleWhere();",
+        "  collection.removeWhere();",
+        "  collection.retainWhere();",
+        "}",
+        "");
+    assertCleanUp(cleanUp, initial, expected);
   }
 
 }
