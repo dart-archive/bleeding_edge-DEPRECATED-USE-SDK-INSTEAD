@@ -2951,7 +2951,14 @@
            sequence="COMMAND+ALT+O"
            commandId="com.google.dart.tools.ui.edit.text.organize.imports"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
        <key
+           platform="win32"
+           sequence="M2+M3+R"
+           commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="gtk"
            sequence="M2+M3+R"
            commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
@@ -2960,33 +2967,55 @@
            sequence="COMMAND+ALT+R"
            commandId="com.google.dart.tools.ui.edit.text.dart.rename.element"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
        <key
+           platform="win32"
            sequence="M2+M3+L"
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
-           sequence="M2+M3+M"
-           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
-           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-       <key
-           sequence="M2+M3+I"
-           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
+           platform="gtk"
+           sequence="M2+M3+L"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
            platform="carbon"
            sequence="COMMAND+ALT+L"
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
+       <key
+           platform="win32"
+           sequence="M2+M3+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="gtk"
+           sequence="M2+M3+M"
+           commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
            platform="carbon"
            sequence="COMMAND+ALT+M"
            commandId="com.google.dart.tools.ui.edit.text.dart.extract.method"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
+       <key
+           platform="win32"
+           sequence="M2+M3+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+       <key
+           platform="gtk"
+           sequence="M2+M3+I"
+           commandId="com.google.dart.tools.ui.edit.text.dart.inline"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
        <key
            platform="carbon"
            sequence="COMMAND+ALT+I"
            commandId="com.google.dart.tools.ui.edit.text.dart.inline"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
+
       <!-- disable the key binding for Carbon as it conflicts with another one in the SDK -->
       <key
             platform="carbon"
