@@ -13,13 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.index.Index;
-import com.google.dart.engine.search.SearchEngineFactory;
-import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.engine.services.assist.TemporaryResolver;
-import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.completion.AnalysisUtil;
@@ -50,7 +43,6 @@ import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.keys.IBindingService;
 
-import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -416,7 +408,6 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
   @SuppressWarnings("deprecation")
   private List<ICompletionProposal> internalCreateCompletionProposals(int offset,
       DartContentAssistInvocationContext context) {
-    ITextViewer viewer = context.getViewer();
     CompletionProposalCollector collector = createCollector(context);
     collector.setInvocationContext(context);
 
@@ -473,30 +464,13 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
     collector.setFavoriteReferences(getFavoriteStaticMembers());
 
     try {
-      Point selection = viewer.getSelectedRange();
-      int len = 0;
-      if (selection.y > 0) {
-        collector.setReplacementLength(len = selection.y);
-      }
-      // Use new completion engine.
       com.google.dart.engine.services.completion.CompletionEngine engine;
       com.google.dart.engine.services.completion.CompletionFactory factory;
-      com.google.dart.engine.ast.CompilationUnit compilationUnit;
       AnalysisUtil util = new AnalysisUtil();
       util.setRequestor(collector);
       factory = new com.google.dart.engine.services.completion.CompletionFactory();
       engine = new com.google.dart.engine.services.completion.CompletionEngine(util, factory);
-      // Caution: resolution has not yet been done properly, so this control flow path is incomplete.
-      String path = context.getCompilationUnit().getPath().toOSString();
-      compilationUnit = resolve(path, context.getInputUnit());
-      Index index = TemporaryResolver.getIndex();
-      AnalysisContext analysisContext = compilationUnit.getElement().getContext();
-      index.indexUnit(analysisContext, compilationUnit);
-      engine.complete(new AssistContext(
-          SearchEngineFactory.createSearchEngine(index),
-          compilationUnit,
-          offset,
-          len));
+      engine.complete(context.getAssistContext());
     } catch (OperationCanceledException x) {
       IBindingService bindingSvc = (IBindingService) PlatformUI.getWorkbench().getAdapter(
           IBindingService.class);
@@ -526,36 +500,5 @@ public class DartCompletionProposalComputer implements IDartCompletionProposalCo
       }
     }
     return proposals;
-  }
-
-  // TODO: Delete this method ASAP.
-  private com.google.dart.engine.ast.CompilationUnit resolve(String path,
-      com.google.dart.engine.ast.CompilationUnit cu) {
-    // Extract source, parse, resolve, return new AST.
-    TemporaryResolver resolver = new TemporaryResolver();
-    try {
-      final String[] source = new String[1];
-      Source.ContentReceiver rcvr = new Source.ContentReceiver() {
-        @Override
-        public void accept(CharBuffer contents) {
-          accept(new String(contents.array()));
-        }
-
-        @Override
-        public void accept(String contents) {
-          source[0] = contents;
-        }
-      };
-      try {
-        cu.getElement().getSource().getContents(rcvr);
-      } catch (Exception ex) {
-      }
-      resolver.addSource("/path", source[0]);
-      Source resolvableSource = resolver.addSource(path, source[0]);
-      resolver.resolve(resolvableSource);
-      return resolver.getAnalysisContext().parse(resolvableSource);
-    } catch (AnalysisException ex) {
-      return null;
-    }
   }
 }

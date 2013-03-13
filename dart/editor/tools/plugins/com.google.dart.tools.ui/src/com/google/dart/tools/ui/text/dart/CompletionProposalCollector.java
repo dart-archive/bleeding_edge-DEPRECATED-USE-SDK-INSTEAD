@@ -156,7 +156,7 @@ public class CompletionProposalCollector extends CompletionRequestor {
    * @param ignoreAll <code>true</code> to ignore all kinds of completion proposals
    */
   public CompletionProposalCollector(CompilationUnit cu, boolean ignoreAll) {
-    this(cu.getDartProject(), cu, ignoreAll);
+    this(cu == null ? null : cu.getDartProject(), cu, ignoreAll); // TODO Remove getDartProject()
   }
 
   /**

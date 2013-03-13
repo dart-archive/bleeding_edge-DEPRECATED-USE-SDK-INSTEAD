@@ -113,6 +113,11 @@ public class CompletionEngine {
       mergeNames(type.getElement().getAccessors());
       mergeNames(type.getElement().getMethods());
       mergeNames(type.getElement().getTypeVariables());
+      if (!state.areOperatorsAllowed) {
+        for (ExecutableElement mth : type.getElement().getMethods()) {
+          // TODO Identify operators...
+        }
+      }
     }
 
     void addNamesDefinedByTypes(InterfaceType[] types) {
@@ -123,8 +128,8 @@ public class CompletionEngine {
 
     void addTopLevelNames() {
       mergeNames(findAllTypes());
-      mergeNames(findAllFunctions());
       mergeNames(findAllVariables());
+      mergeNames(findAllFunctions());
     }
 
     Collection<List<Element>> getNames() {

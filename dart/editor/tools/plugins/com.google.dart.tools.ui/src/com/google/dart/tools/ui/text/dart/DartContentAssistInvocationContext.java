@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.text.dart;
 
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.core.completion.CompletionContext;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -78,6 +79,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
     super(viewer, offset);
 
     fEditor = editor;
+  }
+
+  public AssistContext getAssistContext() {
+    return ((DartEditor) fEditor).getAssistContext();
   }
 
   /**

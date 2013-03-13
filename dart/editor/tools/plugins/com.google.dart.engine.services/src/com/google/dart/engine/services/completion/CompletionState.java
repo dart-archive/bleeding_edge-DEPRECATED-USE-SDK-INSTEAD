@@ -13,11 +13,16 @@ class CompletionState {
   boolean isVarAllowed;
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
+  boolean areOperatorsAllowed;
 
   void includesLiterals() {
     if (!areLiteralsProhibited) {
       areLiteralsAllowed = true;
     }
+  }
+
+  void includesOperators() {
+    areOperatorsAllowed = true;
   }
 
   void includesUndefinedDeclarationTypes() {
