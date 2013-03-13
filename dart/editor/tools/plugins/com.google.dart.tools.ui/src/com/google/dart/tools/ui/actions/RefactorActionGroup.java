@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartUI;
@@ -22,6 +23,7 @@ import com.google.dart.tools.ui.internal.actions.DartQuickMenuCreator;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
+import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -540,21 +542,31 @@ public class RefactorActionGroup extends ActionGroup {
 //    MenuManager refactorSubmenu = new MenuManager(ActionMessages.RefactorMenu_label, MENU_ID);
 //    refactorSubmenu.setActionDefinitionId(QUICK_MENU_ID);
     if (fEditor != null) {
-      final DartElement element = getEditorInput();
-      if (element != null && ActionUtil.isOnBuildPath(element)) {
-        // TODO(messick): Change to use the selection set in setContext(), and define setContext().
-        ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-        ISelection selection;
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          selection = textSelection;
-        } else {
-          selection = new DartTextSelection(
+
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+
+        Element element = EditorUtility.getEditorInputDartElement2(fEditor, false);
+        if (element != null && ActionUtil.isOnBuildPath(element)) {
+          ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+
+          //TODO (pquitslund): add support for new element text selections
+
+          refactorMenuShown(menu, selection);
+        }
+
+      } else {
+
+        final DartElement element = getEditorInput();
+        if (element != null && ActionUtil.isOnBuildPath(element)) {
+          // TODO(messick): Change to use the selection set in setContext(), and define setContext().
+          ITextSelection textSelection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
+          ISelection selection = new DartTextSelection(
               fEditor,
               getEditorInput(),
               getDocument(),
               textSelection.getOffset(),
               textSelection.getLength());
-        }
+
 //        refactorSubmenu.addMenuListener(new IMenuListener() {
 //          @Override
 //          public void menuAboutToShow(IMenuManager manager) {
@@ -563,8 +575,10 @@ public class RefactorActionGroup extends ActionGroup {
 //        });
 //        refactorSubmenu.add(fNoActionAvailable);
 //        menu.appendToGroup(fGroupName, refactorSubmenu);
-        refactorMenuShown(menu, selection);
+          refactorMenuShown(menu, selection);
+        }
       }
+
     } else {
       ISelection selection = fSelectionProvider.getSelection();
       refactorMenuShown(menu, selection);
