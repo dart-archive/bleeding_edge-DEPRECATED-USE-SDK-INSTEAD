@@ -156,8 +156,12 @@ public class AnalysisServerTest extends TestCase {
     // v5 content except for v4 tag at start
     String content = "v4\n" + getExpectedSdkVersion()
         + "\n</end-libraries>\n0\n</end-cache>\n</end-queue>\n";
-    boolean result = readCache(new StringReader(content));
-    assertFalse("Expect v4 cache to not be read", result);
+    try {
+      readCache(new StringReader(content));
+      fail("Expect old version of cache to be discarded");
+    } catch (Exception e) {
+      //$FALL-THROUGH$
+    }
   }
 
   public void test_read_one() throws Exception {

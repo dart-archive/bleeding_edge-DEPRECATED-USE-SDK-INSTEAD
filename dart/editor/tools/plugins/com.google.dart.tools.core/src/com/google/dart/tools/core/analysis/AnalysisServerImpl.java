@@ -492,25 +492,10 @@ public class AnalysisServerImpl implements AnalysisServer {
     }
     CacheReader cacheReader = new CacheReader(reader);
 
-    int version;
-    String line = cacheReader.readString();
-    if (CACHE_V5_TAG.equals(line)) {
-      version = 5;
-    } else if (CACHE_V4_TAG.equals(line)) {
-      version = 4;
-    } else if (CACHE_V3_TAG.equals(line)) {
-      version = 3;
-    } else if (CACHE_V2_TAG.equals(line)) {
-      version = 2;
-    } else if (CACHE_V1_TAG.equals(line)) {
-      version = 1;
-    } else {
-      throw new IOException("Expected cache version " + CACHE_V4_TAG + " but found " + line);
-    }
-
     // Discard older versions of cache
-    if (version < 5) {
-      return false;
+    String line = cacheReader.readString();
+    if (!CACHE_V5_TAG.equals(line)) {
+      throw new IOException("Expected cache version " + CACHE_V5_TAG + " but found " + line);
     }
 
     // Read the SDK version used when the analysis was cached,
