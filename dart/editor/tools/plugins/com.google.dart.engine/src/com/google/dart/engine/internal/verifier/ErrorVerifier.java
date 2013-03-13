@@ -487,7 +487,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#CONST_WITH_NON_CONST
    */
   private boolean checkForConstWithNonConst(InstanceCreationExpression node) {
-    if (node.isConst() && !node.getElement().isConst()) {
+    ConstructorElement constructorElement = node.getElement();
+    if (node.isConst() && constructorElement != null && !constructorElement.isConst()) {
       errorReporter.reportError(CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
       return true;
     }
