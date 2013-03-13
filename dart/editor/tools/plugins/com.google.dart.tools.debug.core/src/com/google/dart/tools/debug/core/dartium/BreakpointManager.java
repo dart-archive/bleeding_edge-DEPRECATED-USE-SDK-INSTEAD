@@ -46,10 +46,8 @@ class BreakpointManager implements IBreakpointListener {
   private DartiumDebugTarget debugTarget;
   private IResourceResolver resourceResolver;
 
-  /** Maps from webkit breakpointIds to DartBreakpoints. */
-  private Map<String, DartBreakpoint> breakpointMap = new HashMap<String, DartBreakpoint>();
-
-  private List<WebkitBreakpoint> webkitBreakpoints = new ArrayList<WebkitBreakpoint>();
+  private Map<IBreakpoint, List<String>> breakpointToIdMap = new HashMap<IBreakpoint, List<String>>();
+  private Map<String, DartBreakpoint> breakpointsToUpdateMap = new HashMap<String, DartBreakpoint>();
 
   private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
 
@@ -73,6 +71,8 @@ class BreakpointManager implements IBreakpointListener {
 
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+    // We generate this change event in the handleBreakpointResolved() method - ignore one
+    // instance of the event.
     if (ignoredBreakpoints.contains(breakpoint)) {
       ignoredBreakpoints.remove(breakpoint);
       return;
@@ -87,21 +87,19 @@ class BreakpointManager implements IBreakpointListener {
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
     if (debugTarget.supportsBreakpoint(breakpoint)) {
-      String breakpointId = getWebkitId((DartBreakpoint) breakpoint);
+      List<String> breakpointIds = breakpointToIdMap.get(breakpoint);
 
-      if (breakpointId != null) {
-        try {
-          debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(breakpointId);
-        } catch (IOException exception) {
-          if (!debugTarget.isTerminated()) {
-            DartDebugCorePlugin.logError(exception);
+      if (breakpointIds != null) {
+        for (String breakpointId : breakpointIds) {
+          breakpointsToUpdateMap.remove(breakpointId);
+
+          try {
+            debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(breakpointId);
+          } catch (IOException exception) {
+            if (!debugTarget.isTerminated()) {
+              DartDebugCorePlugin.logError(exception);
+            }
           }
-        }
-
-        WebkitBreakpoint bp = findBreakpoint(breakpointId);
-
-        if (bp != null) {
-          webkitBreakpoints.remove(bp);
         }
       }
     }
@@ -125,8 +123,12 @@ class BreakpointManager implements IBreakpointListener {
     if (DebugPlugin.getDefault() != null) {
       if (deleteAll) {
         try {
-          for (String breakpointId : breakpointMap.keySet()) {
-            debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(breakpointId);
+          for (List<String> ids : breakpointToIdMap.values()) {
+            if (ids != null) {
+              for (String id : ids) {
+                debugTarget.getWebkitConnection().getDebugger().removeBreakpoint(id);
+              }
+            }
           }
         } catch (IOException exception) {
           if (!debugTarget.isTerminated()) {
@@ -170,10 +172,22 @@ class BreakpointManager implements IBreakpointListener {
     return null;
   }
 
-  void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {
-    webkitBreakpoints.add(webkitBreakpoint);
+  void addToBreakpointMap(IBreakpoint breakpoint, String id, boolean trackChanges) {
+    synchronized (breakpointToIdMap) {
+      if (breakpointToIdMap.get(breakpoint) == null) {
+        breakpointToIdMap.put(breakpoint, new ArrayList<String>());
+      }
 
-    DartBreakpoint breakpoint = breakpointMap.get(webkitBreakpoint.getBreakpointId());
+      breakpointToIdMap.get(breakpoint).add(id);
+
+      if (trackChanges) {
+        breakpointsToUpdateMap.put(id, (DartBreakpoint) breakpoint);
+      }
+    }
+  }
+
+  void handleBreakpointResolved(WebkitBreakpoint webkitBreakpoint) {
+    DartBreakpoint breakpoint = breakpointsToUpdateMap.get(webkitBreakpoint.getBreakpointId());
 
     if (breakpoint != null) {
       int eclipseLine = WebkitLocation.webkitToElipseLine(webkitBreakpoint.getLocation().getLineNumber());
@@ -187,7 +201,7 @@ class BreakpointManager implements IBreakpointListener {
   }
 
   void handleGlobalObjectCleared() {
-    webkitBreakpoints.clear();
+
   }
 
   private void addBreakpoint(final DartBreakpoint breakpoint) throws IOException {
@@ -216,35 +230,44 @@ class BreakpointManager implements IBreakpointListener {
           null,
           regex,
           line,
+          -1,
           new WebkitCallback<String>() {
             @Override
             public void handleResult(WebkitResult<String> result) {
               if (!result.isError()) {
-                breakpointMap.put(result.getResult(), breakpoint);
+                addToBreakpointMap(breakpoint, result.getResult(), true);
               }
             }
           });
-    }
-  }
 
-  private WebkitBreakpoint findBreakpoint(String breakpointId) {
-    for (WebkitBreakpoint bp : webkitBreakpoints) {
-      if (breakpointId.equals(bp.getBreakpointId())) {
-        return bp;
+      // Handle source mapped breakpoints - set an additional breakpoint if the file is under
+      // source mapping.
+      SourceMapManager sourceMapManager = debugTarget.getSourceMapManager();
+
+      if (sourceMapManager.isMapTarget(breakpoint.getFile())) {
+        SourceMapManager.SourceLocation location = sourceMapManager.getReverseMappingFor(
+            breakpoint.getFile(),
+            line);
+
+        if (location != null) {
+          regex = resourceResolver.getUrlRegexForResource(location.getFile());
+
+          debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
+              null,
+              regex,
+              location.getLine(),
+              location.getColumn(),
+              new WebkitCallback<String>() {
+                @Override
+                public void handleResult(WebkitResult<String> result) {
+                  if (!result.isError()) {
+                    addToBreakpointMap(breakpoint, result.getResult(), false);
+                  }
+                }
+              });
+        }
       }
     }
-
-    return null;
-  }
-
-  private String getWebkitId(DartBreakpoint breakpoint) {
-    for (String breakpointId : breakpointMap.keySet()) {
-      if (breakpointMap.get(breakpointId) == breakpoint) {
-        return breakpointId;
-      }
-    }
-
-    return null;
   }
 
 }

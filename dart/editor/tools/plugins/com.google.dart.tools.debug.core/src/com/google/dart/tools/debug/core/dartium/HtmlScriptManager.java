@@ -29,7 +29,8 @@ import org.eclipse.core.runtime.CoreException;
 import java.io.IOException;
 
 /**
- * TODO:
+ * A class to listen for resource changes to html files and sync their contents over a WIP
+ * connection.
  */
 public class HtmlScriptManager implements ResourceChangeParticipant {
   private DartiumDebugTarget target;
@@ -53,7 +54,12 @@ public class HtmlScriptManager implements ResourceChangeParticipant {
   }
 
   @Override
-  public void handleFileChange(IFile file) {
+  public void handleFileAdded(IFile file) {
+
+  }
+
+  @Override
+  public final void handleFileChanged(IFile file) {
     if ("html".equals(file.getFileExtension())) {
       String fileUrl = resourceResolver.getUrlForResource(file);
 
@@ -61,6 +67,11 @@ public class HtmlScriptManager implements ResourceChangeParticipant {
         uploadNewSource(rootNode, file);
       }
     }
+  }
+
+  @Override
+  public void handleFileRemoved(IFile file) {
+
   }
 
   public void handleLoadEventFired() {
@@ -73,7 +84,7 @@ public class HtmlScriptManager implements ResourceChangeParticipant {
 
     // Get the root node.
     try {
-      // TODO: check if the connection is no longer open?
+      // TODO(devoncarew): check if the connection is no longer open?
 
       // {"id":13,"result":{"root":{"childNodeCount":3,"localName":"","nodeId":1,"documentURL":"http://127.0.0.1:3030/Users/devoncarew/projects/dart/dart/samples/solar/solar.html","baseURL":"http://127.0.0.1:3030/Users/devoncarew/projects/dart/dart/samples/solar/solar.html","nodeValue":"","nodeName":"#document","xmlVersion":"","children":[{"localName":"","nodeId":2,"internalSubset":"","publicId":"","nodeValue":"","nodeName":"html","systemId":"","nodeType":10},{"localName":"","nodeId":3,"nodeValue":" Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file\n     for details. All rights reserved. Use of this source code is governed by a\n     BSD-style license that can be found in the LICENSE file. ","nodeName":"","nodeType":8},{"childNodeCount":2,"localName":"html","nodeId":4,"nodeValue":"","nodeName":"HTML","children":[{"childNodeCount":3,"localName":"head","nodeId":5,"nodeValue":"","nodeName":"HEAD","attributes":[],"nodeType":1},{"childNodeCount":6,"localName":"body","nodeId":6,"nodeValue":"","nodeName":"BODY","attributes":[],"nodeType":1}],"attributes":[],"nodeType":1}],"nodeType":9}}}
       target.getConnection().getDom().getDocument(new WebkitCallback<WebkitNode>() {

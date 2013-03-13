@@ -91,6 +91,8 @@ public class DartDebugCorePlugin extends Plugin {
 
   public static final String PREFS_BROWSER_NAME = "browserName";
 
+  public static final String PREFS_USE_SOURCE_MAPS = "useSourceMaps";
+
   public static final String PREFS_DEFAULT_BROWSER = "defaultBrowser";
 
   public static final String PREFS_BREAK_ON_EXCEPTIONS = "breakOnExceptions";
@@ -242,6 +244,13 @@ public class DartDebugCorePlugin extends Plugin {
     return userAgentManager;
   }
 
+  /**
+   * @return whether to use source maps for debugging
+   */
+  public boolean getUseSourceMaps() {
+    return getPrefs().getBoolean(PREFS_USE_SOURCE_MAPS, true);
+  }
+
   public void setBreakOnExceptions(BreakOnExceptions value) {
     getPrefs().put(PREFS_BREAK_ON_EXCEPTIONS, value.toString());
 
@@ -288,6 +297,16 @@ public class DartDebugCorePlugin extends Plugin {
 
   public void setUserAgentManager(IUserAgentManager userAgentManager) {
     this.userAgentManager = userAgentManager;
+  }
+
+  public void setUseSourceMaps(boolean value) {
+    getPrefs().putBoolean(PREFS_USE_SOURCE_MAPS, value);
+
+    try {
+      getPrefs().flush();
+    } catch (BackingStoreException e) {
+
+    }
   }
 
   @Override

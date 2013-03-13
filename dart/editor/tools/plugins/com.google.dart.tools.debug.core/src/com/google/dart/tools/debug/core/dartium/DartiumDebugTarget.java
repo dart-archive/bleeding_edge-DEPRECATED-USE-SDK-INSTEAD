@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.core.dartium;
 import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DebugUIHelper;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.util.IResourceResolver;
@@ -75,6 +76,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   private HtmlScriptManager htmlScriptManager;
   private DartCodeManager dartCodeManager;
   private boolean canSetScriptSource;
+  private SourceMapManager sourceMapManager;
 
   /**
    * @param target
@@ -108,6 +110,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     if (DartDebugCorePlugin.SEND_MODIFIED_DART) {
       dartCodeManager = new DartCodeManager(this, resourceResolver);
     }
+
+    DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
+    sourceMapManager = new SourceMapManager(wrapper.getProject());
   }
 
   @Override
@@ -167,6 +172,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     if (dartCodeManager != null) {
       dartCodeManager.dispose();
     }
+
+    sourceMapManager.dispose();
 
     debugThread = null;
 
@@ -418,6 +425,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     return breakpointManager;
   }
 
+  protected SourceMapManager getSourceMapManager() {
+    return sourceMapManager;
+  }
+
   protected WebkitConnection getWebkitConnection() {
     return connection;
   }
@@ -435,6 +446,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
           "Debugger Connection Closed",
           "The debugger connection has been closed by the remote host.");
     }
+  }
+
+  protected boolean shouldUseSourceMapping() {
+    return DartDebugCorePlugin.getPlugin().getUseSourceMaps();
   }
 
   IStreamMonitor getOutputStreamMonitor() {

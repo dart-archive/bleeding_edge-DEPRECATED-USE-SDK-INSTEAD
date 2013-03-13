@@ -54,7 +54,12 @@ class CssScriptManager implements ResourceChangeParticipant {
   }
 
   @Override
-  public void handleFileChange(IFile file) {
+  public void handleFileAdded(IFile file) {
+    handleFileChanged(file);
+  }
+
+  @Override
+  public void handleFileChanged(IFile file) {
     if ("css".equals(file.getFileExtension())) {
       String fileUrl = resourceResolver.getUrlForResource(file);
 
@@ -64,6 +69,11 @@ class CssScriptManager implements ResourceChangeParticipant {
         }
       }
     }
+  }
+
+  @Override
+  public void handleFileRemoved(IFile file) {
+
   }
 
   public void handleLoadEventFired() {

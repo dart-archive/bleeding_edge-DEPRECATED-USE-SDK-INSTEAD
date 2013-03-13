@@ -54,9 +54,10 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
     this.variable = variable;
     this.value = value;
 
-    if (!value.isList()) {
-      populate();
-    }
+    // Change to a mode where we only request values that we're going to use.
+//    if (!value.isList()) {
+//      populate();
+//    }
   }
 
   public void computeDetail(final ValueCallback callback) {
@@ -143,15 +144,20 @@ public class DartiumDebugValue extends DartiumDebugElement implements IValue, ID
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    try {
-      // The special property @classInfo contains this like the class name. We need to populate the
-      // variable information before we attempt to retrieve the class name.
-      getVariables();
+    return value.getClassName();
 
-      return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
-    } catch (Throwable t) {
-      throw createDebugException(t);
-    }
+    // TODO(devocarew): Pavel populated the className field - remove all references to the
+    // synthetic @classInfo field
+
+//    try {
+//      // The special property @classInfo contains the class name. We need to populate the
+//      // variable information before we attempt to retrieve the class name.
+//      getVariables();
+//
+//      return DebuggerUtils.demangleVmName(getConnection().getDebugger().getClassNameSync(value));
+//    } catch (Throwable t) {
+//      throw createDebugException(t);
+//    }
   }
 
   @Override

@@ -47,7 +47,12 @@ public class DartCodeManager implements ResourceChangeParticipant {
   }
 
   @Override
-  public void handleFileChange(IFile file) {
+  public void handleFileAdded(IFile file) {
+    handleFileChanged(file);
+  }
+
+  @Override
+  public void handleFileChanged(IFile file) {
     if (!target.supportsSetScriptSource()) {
       return;
     }
@@ -61,6 +66,11 @@ public class DartCodeManager implements ResourceChangeParticipant {
         }
       }
     }
+  }
+
+  @Override
+  public void handleFileRemoved(IFile file) {
+
   }
 
   private void uploadNewSource(String scriptId, IFile file) {

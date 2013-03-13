@@ -32,6 +32,18 @@ public class SourceMapTest extends AbstractDartCoreTest {
       + "sourceRoot : \"\",\nsources: [\"foo.js\", \"bar.js\"],\n"
       + "names: [\"src\", \"maps\", \"are\", \"fun\"],\n" + "mappings: \"AA,AB;;ABCDE;\"\n}\n";
 
+  public void testDwcParse() throws Exception {
+    IFile file = testProject.setFileContent(
+        "main.dart.map",
+        getClass().getResourceAsStream("main.dart.map"));
+
+    SourceMap map = SourceMap.createFrom(file);
+
+    assertEquals(3, map.getVersion());
+    // [24:0,-1] ==> ../main.dart,14,0
+    assertEquals("../main.dart,15,0", map.getMappingFor(24, 0).toString());
+  }
+
   public void testSimpleParse() throws Exception {
     String[] expectedNames = {"foo.js", "bar.js"};
 
@@ -39,13 +51,13 @@ public class SourceMapTest extends AbstractDartCoreTest {
 
     SourceMap map = SourceMap.createFrom(file);
 
-    assertEquals(3, map.getFormatVersion());
-    assertEquals("out.js", map.getTargetFile());
+    assertEquals(3, map.getVersion());
+    assertEquals("out.js", map.getFile());
     assertArrayEquals(expectedNames, map.getSourceNames());
     assertEquals(null, map.getMappingFor(1, 0));
-    assertEquals("foo.js,1,-1", map.getMappingFor(3, -1).toString());
-    assertEquals("foo.js,1,-1", map.getMappingFor(3, 0).toString());
-    assertEquals("foo.js,1,-1", map.getMappingFor(3, 1).toString());
+    assertEquals("foo.js,1,-1", map.getMappingFor(2, -1).toString());
+    assertEquals("foo.js,1,-1", map.getMappingFor(2, 0).toString());
+    assertEquals("foo.js,1,-1", map.getMappingFor(2, 1).toString());
   }
 
   public void testSolarParse() throws Exception {
@@ -55,25 +67,25 @@ public class SourceMapTest extends AbstractDartCoreTest {
 
     SourceMap map = SourceMap.createFrom(file);
 
-    assertEquals(3, map.getFormatVersion());
+    assertEquals(3, map.getVersion());
     assertEquals(
-        "file:///C:/tools/eclipse_37/dart-sdk/lib/_internal/compiler/implementation/lib/regexp_helper.dart,84,22",
+        "file:///C:/tools/eclipse_37/dart-sdk/lib/_internal/compiler/implementation/lib/regexp_helper.dart,84,36",
         map.getMappingFor(100, -1).toString());
     assertEquals(
         "file:///C:/Users/username/solar/solar.dart,263,2",
-        map.getMappingFor(1352, -1).toString());
+        map.getMappingFor(1351, -1).toString());
     assertEquals(
         "file:///C:/Users/username/solar/solar.dart,264,8",
-        map.getMappingFor(1352, 17).toString());
+        map.getMappingFor(1351, 17).toString());
     assertEquals(
         "file:///C:/Users/username/solar/solar.dart,263,2",
-        map.getMappingFor(1352, 18).toString());
+        map.getMappingFor(1351, 18).toString());
     assertEquals(
         "file:///C:/Users/username/solar/solar.dart,264,19",
-        map.getMappingFor(1354, 6).toString());
+        map.getMappingFor(1353, 6).toString());
     assertEquals(
         "file:///C:/Users/username/solar/solar.dart,264,8",
-        map.getMappingFor(1354, 60).toString());
+        map.getMappingFor(1353, 60).toString());
   }
 
   public void x_testParseSpeed() throws Exception {

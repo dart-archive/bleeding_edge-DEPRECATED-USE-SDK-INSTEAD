@@ -141,9 +141,7 @@ class VariableCollector {
   private void collectFields(WebkitResult<WebkitPropertyDescriptor[]> results) {
     boolean gettingStaticFields = false;
 
-    if (results.isError()) {
-      DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
-    } else {
+    if (!results.isError()) {
       for (WebkitPropertyDescriptor descriptor : results.getResult()) {
         if (descriptor.isEnumerable()) {
           if (!shouldFilter(descriptor)) {
@@ -195,9 +193,7 @@ class VariableCollector {
   private void collectStaticFieldsResults(WebkitResult<WebkitPropertyDescriptor[]> results,
       CountDownLatch latch) {
     try {
-      if (results.isError()) {
-        DartDebugCorePlugin.logError("Error retrieving webkit properties: " + results);
-      } else {
+      if (!results.isError()) {
         for (WebkitPropertyDescriptor descriptor : results.getResult()) {
           if (descriptor.isEnumerable()) {
             DartiumDebugVariable variable = new DartiumDebugVariable(target, descriptor);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,21 +12,15 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.util;
+package com.google.dart.tools.debug.core.dartium;
 
-import org.eclipse.core.resources.IFile;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-/**
- * A listener to resource change events.
- * 
- * @see ResourceChangeManager
- */
-public interface ResourceChangeParticipant {
-
-  public void handleFileAdded(IFile file);
-
-  public void handleFileChanged(IFile file);
-
-  public void handleFileRemoved(IFile file);
-
+public class TestAll {
+  public static Test suite() {
+    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
+    suite.addTestSuite(SourceMapManagerTest.class);
+    return suite;
+  }
 }

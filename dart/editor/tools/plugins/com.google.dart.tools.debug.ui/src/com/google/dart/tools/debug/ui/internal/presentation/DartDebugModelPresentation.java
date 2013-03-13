@@ -14,11 +14,10 @@
 package com.google.dart.tools.debug.ui.internal.presentation;
 
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
-import com.google.dart.tools.debug.core.dartium.DartiumDebugStackFrame;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue;
-import com.google.dart.tools.debug.core.server.ServerDebugStackFrame;
 import com.google.dart.tools.debug.core.server.ServerDebugValue;
 import com.google.dart.tools.debug.core.util.IDartDebugVariable;
+import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
@@ -39,6 +38,8 @@ import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IInstructionPointerPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
@@ -191,35 +192,46 @@ public class DartDebugModelPresentation implements IDebugModelPresentation,
    */
   @Override
   public Image getImage(Object element) {
-    if (element instanceof IDartDebugVariable) {
-      IDartDebugVariable variable = (IDartDebugVariable) element;
+    try {
+      if (element instanceof IDartDebugVariable) {
+        IDartDebugVariable variable = (IDartDebugVariable) element;
 
-      if (variable.isThrownException()) {
-        return DartDebugUIPlugin.getImage("obj16/object_exception.png");
-      } else if (variable.isThisObject()) {
-        return DartDebugUIPlugin.getImage("obj16/object_this.png");
-      } else if (variable.isLibraryObject()) {
-        return DartDebugUIPlugin.getImage("obj16/object_library.png");
-      } else if (variable.isStatic()) {
-        return DartDebugUIPlugin.getImage("obj16/object_static.png");
+        if (variable.isThrownException()) {
+          return DartDebugUIPlugin.getImage("obj16/object_exception.png");
+        } else if (variable.isThisObject()) {
+          return DartDebugUIPlugin.getImage("obj16/object_this.png");
+        } else if (variable.isLibraryObject()) {
+          return DartDebugUIPlugin.getImage("obj16/object_library.png");
+        } else if (variable.isStatic()) {
+          return DartDebugUIPlugin.getImage("obj16/object_static.png");
+        } else {
+          return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+        }
+      } else if (element instanceof IDartStackFrame) {
+        IDartStackFrame frame = (IDartStackFrame) element;
+
+        Image image = DartDebugUIPlugin.getImage(DartElementImageProvider.getMethodImageDescriptor(
+            false,
+            frame.isPrivate()));
+
+        if (frame.isUsingSourceMaps()) {
+          DecorationOverlayIcon overlayDescriptor = new DecorationOverlayIcon(
+              image,
+              DartDebugUIPlugin.getImageDescriptor("ovr16/mapped.png"),
+              IDecoration.BOTTOM_RIGHT);
+
+          image = DartDebugUIPlugin.getImage(overlayDescriptor);
+        }
+
+        return image;
+      } else if (element instanceof DartBreakpoint) {
+        return getBreakpointImage((DartBreakpoint) element);
       } else {
-        return DartDebugUIPlugin.getImage("obj16/object_obj.png");
+        return null;
       }
-    } else if (element instanceof ServerDebugStackFrame) {
-      ServerDebugStackFrame frame = (ServerDebugStackFrame) element;
+    } catch (Throwable t) {
+      DartDebugUIPlugin.logError(t);
 
-      return DartDebugUIPlugin.getImage(DartElementImageProvider.getMethodImageDescriptor(
-          false,
-          frame.isPrivate()));
-    } else if (element instanceof DartiumDebugStackFrame) {
-      DartiumDebugStackFrame frame = (DartiumDebugStackFrame) element;
-
-      return DartDebugUIPlugin.getImage(DartElementImageProvider.getMethodImageDescriptor(
-          false,
-          frame.isPrivate()));
-    } else if (element instanceof DartBreakpoint) {
-      return getBreakpointImage((DartBreakpoint) element);
-    } else {
       return null;
     }
   }

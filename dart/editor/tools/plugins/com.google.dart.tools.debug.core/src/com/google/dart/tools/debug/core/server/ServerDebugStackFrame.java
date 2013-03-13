@@ -19,8 +19,8 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
-import com.google.dart.tools.debug.core.source.ISourceLookup;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 
@@ -43,7 +43,7 @@ import java.util.List;
  * Dart frame.
  */
 public class ServerDebugStackFrame extends ServerDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
+    IDartStackFrame, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private VmCallFrame vmFrame;
   private boolean isExceptionStackFrame;
@@ -207,6 +207,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return getVariables().length > 0;
   }
 
+  @Override
   public boolean isPrivate() {
     return DebuggerUtils.isPrivateName(vmFrame.getFunctionName());
   }
@@ -224,6 +225,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
   @Override
   public boolean isTerminated() {
     return getThread().isTerminated();
+  }
+
+  @Override
+  public boolean isUsingSourceMaps() {
+    return false;
   }
 
   @Override

@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.core.source;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.debug.core.util.IDartStackFrame;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.sourcelookup.AbstractSourceLookupParticipant;
@@ -34,8 +35,8 @@ public class DartSourceLookupParticipant extends AbstractSourceLookupParticipant
   public String getSourceName(Object object) throws CoreException {
     if (object instanceof String) {
       return (String) object;
-    } else if (object instanceof ISourceLookup) {
-      ISourceLookup sourceLookup = (ISourceLookup) object;
+    } else if (object instanceof IDartStackFrame) {
+      IDartStackFrame sourceLookup = (IDartStackFrame) object;
 
       return sourceLookup.getSourceLocationPath();
     } else {

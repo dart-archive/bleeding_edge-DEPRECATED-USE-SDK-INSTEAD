@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,21 +12,28 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.util;
+package com.google.dart.tools.debug.core.dartium;
 
-import org.eclipse.core.resources.IFile;
+import junit.framework.TestCase;
 
-/**
- * A listener to resource change events.
- * 
- * @see ResourceChangeManager
- */
-public interface ResourceChangeParticipant {
+public class SourceMapManagerTest extends TestCase {
 
-  public void handleFileAdded(IFile file);
+  public void testGetMappingFor() {
+    // TODO(devoncarew):
 
-  public void handleFileChanged(IFile file);
+    //fail("Not yet implemented");
+  }
 
-  public void handleFileRemoved(IFile file);
+  public void testIsMapSource() {
+    // TODO(devoncarew):
+
+    //fail("Not yet implemented");
+  }
+
+  public void testIsMapTarget() {
+    // TODO(devoncarew):
+
+    //fail("Not yet implemented");
+  }
 
 }

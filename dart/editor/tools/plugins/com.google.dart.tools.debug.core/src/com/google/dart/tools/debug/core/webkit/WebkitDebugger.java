@@ -492,15 +492,20 @@ public class WebkitDebugger extends WebkitDomain {
    * @param url URL of the resources to set breakpoint on (optional)
    * @param urlRegex Regex pattern for the URLs of the resources to set breakpoints on. Either url
    *          or urlRegex must be specified.
-   * @param line line number to set breakpoint at
+   * @param lineNumber line number to set breakpoint at
+   * @param columnNumber optional column number to set breakpoint at
    * @param callback the breakpointId of the created breakpoint
    */
-  public void setBreakpointByUrl(String url, String urlRegex, int line,
+  public void setBreakpointByUrl(String url, String urlRegex, int lineNumber, int columnNumber,
       final WebkitCallback<String> callback) throws IOException {
     try {
       JSONObject params = new JSONObject();
 
-      params.put("lineNumber", line);
+      params.put("lineNumber", lineNumber);
+
+      if (columnNumber != -1) {
+        params.put("columnNumber", columnNumber);
+      }
 
       if (url != null) {
         params.put("url", url);

@@ -107,9 +107,14 @@ public class WebkitRuntime extends WebkitDomain {
       JSONObject request = new JSONObject();
 
       JSONObject params = new JSONObject();
+
+      params.put("objectId", objectId);
       params.put("functionDeclaration", functionDeclaration);
-      params.put("arguments", argsToArray(arguments));
       params.put("returnByValue", returnByValue);
+
+      if (arguments != null) {
+        params.put("arguments", argsToArray(arguments));
+      }
 
       request.put("method", "Runtime.callFunctionOn").put("params", params);
 

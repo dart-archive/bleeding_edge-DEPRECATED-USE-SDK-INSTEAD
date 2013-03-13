@@ -35,17 +35,26 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
 
   private static final Object[] EMPTY_COLLECTION = new Object[0];
 
-  public WorkspaceSourceContainer() {
+  public static IFile locatePathAsFile(String path) {
+    IResource resource = locatePathAsResource(path);
 
+    if (resource instanceof IFile) {
+      return (IFile) resource;
+    } else {
+      return null;
+    }
   }
 
-  @Override
-  public Object[] findSourceElements(String path) throws CoreException {
+  public static IResource locatePathAsResource(String path) {
+    if (path == null) {
+      return null;
+    }
+
     // Look for a resource reference (/project/directory/file.dart).
     IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 
     if (resource != null) {
-      return new Object[] {resource};
+      return resource;
     }
 
     // Look for a file system reference.
@@ -55,18 +64,33 @@ public class WorkspaceSourceContainer extends AbstractSourceContainer {
       IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(file.toURI());
 
       if (files.length > 0) {
-        return new Object[] {files[0]};
+        return files[0];
       }
 
       // look for file among all resources, no filtering
       resource = ResourceUtil.getFile(file);
-      if (resource != null) {
-        return new Object[] {resource};
-      }
 
+      if (resource != null) {
+        return resource;
+      }
     }
 
-    return EMPTY_COLLECTION;
+    return null;
+  }
+
+  public WorkspaceSourceContainer() {
+
+  }
+
+  @Override
+  public Object[] findSourceElements(String path) throws CoreException {
+    IResource resource = locatePathAsResource(path);
+
+    if (resource != null) {
+      return new Object[] {resource};
+    } else {
+      return EMPTY_COLLECTION;
+    }
   }
 
   @Override

@@ -14,10 +14,28 @@
 
 package com.google.dart.tools.debug.core.sourcemaps;
 
+import java.util.Comparator;
+
 /**
  * An entry that maps from a line and column range to a SourceMapInfo (an original source location).
  */
 class SourceMapInfoEntry {
+
+  private static Comparator<SourceMapInfoEntry> COMPARATOR = new Comparator<SourceMapInfoEntry>() {
+    @Override
+    public int compare(SourceMapInfoEntry val1, SourceMapInfoEntry val2) {
+      return val1.line - val2.line;
+    }
+  };
+
+  public static SourceMapInfoEntry forLine(int line) {
+    return new SourceMapInfoEntry(line, 0, null);
+  }
+
+  public static Comparator<SourceMapInfoEntry> lineComparator() {
+    return COMPARATOR;
+  }
+
   /**
    * The source line.
    */

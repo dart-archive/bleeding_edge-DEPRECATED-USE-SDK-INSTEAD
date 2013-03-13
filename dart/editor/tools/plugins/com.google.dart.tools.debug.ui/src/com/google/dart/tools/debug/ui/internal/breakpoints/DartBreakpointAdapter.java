@@ -65,24 +65,23 @@ public class DartBreakpointAdapter implements IToggleBreakpointsTarget {
 
       ITextSelection textSelection = (ITextSelection) selection;
 
-      int lineNumber = textSelection.getStartLine();
+      int lineNumber = textSelection.getStartLine() + 1;
 
       IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
           DartDebugCorePlugin.DEBUG_MODEL_ID);
 
       for (int i = 0; i < breakpoints.length; i++) {
         IBreakpoint breakpoint = breakpoints[i];
+
         if (resource.equals(breakpoint.getMarker().getResource())) {
-          if (((ILineBreakpoint) breakpoint).getLineNumber() == lineNumber + 1) {
+          if (((ILineBreakpoint) breakpoint).getLineNumber() == lineNumber) {
             breakpoint.delete();
             return;
           }
         }
       }
 
-      // TODO(devoncarew): should we still do this line number magic?
-      // Line numbers start with 0 in V8, with 1 in Eclipse.
-      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber + 1);
+      DartBreakpoint breakpoint = new DartBreakpoint(resource, lineNumber);
 
       DebugPlugin.getDefault().getBreakpointManager().addBreakpoint(breakpoint);
     }

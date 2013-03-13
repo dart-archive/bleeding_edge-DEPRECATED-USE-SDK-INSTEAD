@@ -19,6 +19,8 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -30,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.List;
 
 // //@ sourceMappingURL=/path/to/file.js.map
@@ -41,6 +45,8 @@ import java.util.List;
  * @see http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/
  */
 public class SourceMap {
+
+  public static final String SOURCE_MAP_EXT = ".map";
 
   public static SourceMap createFrom(File file) throws IOException {
     String contents = Files.toString(file, Charsets.UTF_8);
@@ -58,7 +64,7 @@ public class SourceMap {
     try {
       String contents = CharStreams.toString(reader);
 
-      return createFrom(file.getParent().getFullPath(), contents);
+      return createFrom(file.getFullPath(), contents);
     } catch (JSONException e) {
       throw new IOException(e);
     } finally {
@@ -78,15 +84,44 @@ public class SourceMap {
     return createFrom(path, new JSONObject(contents));
   }
 
-  private IPath relativePath;
+  private IPath path;
 
-  private int formatVersion;
-  private String targetFile;
+  /**
+   * The format version; must be a positive integer. The current version of the spec is 3.
+   */
+  private int version;
+
+  /**
+   * The name of the generated code that this source map is associated with.
+   */
+  private String file;
+
+  /**
+   * An optional source root, useful for relocating source files on a server or removing repeated
+   * values in the "sources" entry. This value is prepended to the individual entries in the
+   * "source" field.
+   */
   private String sourceRoot;
 
+  /**
+   * A list of original sources used by the "mappings" entry.
+   */
   private String[] sources;
 
+  /**
+   * A list of symbol names used by the "mappings" entry.
+   */
   private String[] names;
+
+  /**
+   * An optional list of source content, useful when the "source" can’t be hosted.
+   */
+  @SuppressWarnings("unused")
+  private String sourcesContent[];
+
+  /**
+   * The full list of source map entries.
+   */
   private SourceMapInfoEntry[] entries;
 
   public SourceMap() {
@@ -94,23 +129,31 @@ public class SourceMap {
   }
 
   public SourceMap(IPath path, JSONObject obj) throws JSONException {
-    /*{
-        version : 3,
-        file: "out.js",
-        sourceRoot : "",
-        sources: ["foo.js", "bar.js"],
-        names: ["src", "maps", "are", "fun"],
-        mappings: "AAgBC,SAAQ,CAAEA"
-    }*/
+    // {
+    //     version : 3,
+    //     file: "out.js",
+    //     sourceRoot : "",
+    //     sources: ["foo.js", "bar.js"],
+    //     names: ["src", "maps", "are", "fun"],
+    //     mappings: "AAgBC,SAAQ,CAAEA"
+    // }
 
-    relativePath = path;
+    this.path = path;
 
-    formatVersion = obj.optInt("version");
-    targetFile = obj.optString("file");
+    version = obj.optInt("version");
+    file = obj.optString("file");
     sourceRoot = obj.optString("sourceRoot");
 
     sources = parseStringArray(obj.getJSONArray("sources"));
+    sourcesContent = parseStringArray(obj.optJSONArray("sourcesContent"));
     names = parseStringArray(obj.getJSONArray("names"));
+
+    // Prepend sourceRoot to the sources entries.
+    if (sourceRoot != null && sourceRoot.length() > 0) {
+      for (int i = 0; i < sources.length; i++) {
+        sources[i] = sourceRoot + sources[i];
+      }
+    }
 
     String mapStr = obj.getString("mappings");
 
@@ -118,8 +161,8 @@ public class SourceMap {
     entries = result.toArray(new SourceMapInfoEntry[result.size()]);
   }
 
-  public int getFormatVersion() {
-    return formatVersion;
+  public String getFile() {
+    return file;
   }
 
   /**
@@ -164,8 +207,26 @@ public class SourceMap {
     return null;
   }
 
-  public IPath getRelativePath() {
-    return relativePath;
+  public IFile getMapSource() {
+    String name = path.lastSegment();
+
+    if (name.endsWith(SOURCE_MAP_EXT)) {
+      name = name.substring(0, name.length() - SOURCE_MAP_EXT.length());
+
+      IPath newPath = path.removeLastSegments(1).append(name);
+
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(newPath);
+
+      if (resource instanceof IFile) {
+        return (IFile) resource;
+      }
+    }
+
+    return null;
+  }
+
+  public IPath getPath() {
+    return path;
   }
 
   /**
@@ -176,8 +237,25 @@ public class SourceMap {
    * @param column
    * @return
    */
-  public SourceMapInfo getReverseMappingFor(String file, int line, int column) {
-    // TODO(devoncarew): implement this
+  public SourceMapInfo getReverseMappingFor(String file, int line) {
+    // TODO(devoncarew): calculate this information once for O(1) lookup
+
+    for (SourceMapInfoEntry entry : entries) {
+      SourceMapInfo info = entry.getInfo();
+
+      if (info == null) {
+        continue;
+      }
+
+      if (line == info.getLine()) {
+        if (file.equals(info.getFile())) {
+          // TODO(devoncarew): there will be several entries on this line
+          // We need to choose one that has a non-zero range, or is a catch-all entry
+
+          return new SourceMapInfo(path.toString(), entry.line, entry.column);
+        }
+      }
+    }
 
     return null;
   }
@@ -186,38 +264,62 @@ public class SourceMap {
     return sources;
   }
 
-  public String getSourceRoot() {
-    return sourceRoot;
+  /**
+   * The format version; must be a positive integer. The current version of the specification is 3.
+   */
+  public int getVersion() {
+    return version;
   }
 
-  public String getTargetFile() {
-    return targetFile;
+  @Override
+  public String toString() {
+    return "[" + getPath().lastSegment() + ", "
+        + NumberFormat.getNumberInstance().format(entries.length) + " lines]";
   }
 
   private int findIndexForLine(int line) {
-    // TODO(devoncarew): optimize this w/ a binary search
+    // TODO(devoncarew): test this binary search
 
-    for (int i = 0; i < entries.length; i++) {
-      SourceMapInfoEntry entry = entries[i];
+    int location = Arrays.binarySearch(
+        entries,
+        SourceMapInfoEntry.forLine(line),
+        SourceMapInfoEntry.lineComparator());
 
-      if (entry.line == line) {
-        return i;
-      } else if (entry.line > line) {
-        return -1;
-      }
+    if (location < 0) {
+      return -1;
     }
 
-    return -1;
+    while (location > 0 && entries[location - 1].line == line) {
+      location--;
+    }
+
+    return location;
+
+//    for (int i = 0; i < entries.length; i++) {
+//      SourceMapInfoEntry entry = entries[i];
+//
+//      if (entry.line == line) {
+//        return i;
+//      } else if (entry.line > line) {
+//        return -1;
+//      }
+//    }
+//
+//    return -1;
   }
 
   private String[] parseStringArray(JSONArray arr) throws JSONException {
-    String[] strs = new String[arr.length()];
+    if (arr == null) {
+      return null;
+    } else {
+      String[] strs = new String[arr.length()];
 
-    for (int i = 0; i < arr.length(); i++) {
-      strs[i] = arr.getString(i);
+      for (int i = 0; i < arr.length(); i++) {
+        strs[i] = arr.getString(i);
+      }
+
+      return strs;
     }
-
-    return strs;
   }
 
 }

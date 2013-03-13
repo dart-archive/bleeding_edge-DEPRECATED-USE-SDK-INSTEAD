@@ -44,16 +44,14 @@ class SourceMapDecoder {
 
     entries = new ArrayList<SourceMapInfoEntry>();
 
-    int lineCount = 0;
+    int lineNumber = 0;
 
     for (String line : mapStr.split(";")) {
-      lineCount++;
-
-      if (line.length() == 0) {
-        continue;
+      if (line.length() > 0) {
+        decodeLine(line.split(","), lineNumber);
       }
 
-      decodeLine(line.split(","), lineCount);
+      lineNumber++;
     }
 
     return entries;

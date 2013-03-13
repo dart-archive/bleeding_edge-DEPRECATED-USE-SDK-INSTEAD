@@ -12,13 +12,33 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core.source;
+package com.google.dart.tools.debug.core.util;
+
+import org.eclipse.debug.core.model.IStackFrame;
 
 /**
  * An interface to allow you to query for a source location path.
  */
-public interface ISourceLookup {
+public interface IDartStackFrame extends IStackFrame {
 
+  /**
+   * Return either the actual path or the mapped path, depending on whether source maps are
+   * currently being used.
+   * 
+   * @return either the actual path or the mapped path
+   */
   public String getSourceLocationPath();
+
+  /**
+   * @return whether the frame represents a private method or function
+   */
+  public boolean isPrivate();
+
+  /**
+   * Return whether the frame is in code that is covered by a source map.
+   * 
+   * @return whether the frame is in code that is covered by a source map
+   */
+  public boolean isUsingSourceMaps();
 
 }

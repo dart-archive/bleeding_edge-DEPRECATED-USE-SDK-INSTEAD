@@ -79,11 +79,17 @@ public class ResourceChangeManager implements IResourceChangeListener {
       event.getDelta().accept(new IResourceDeltaVisitor() {
         @Override
         public boolean visit(IResourceDelta delta) throws CoreException {
-          if (delta.getKind() == IResourceDelta.CHANGED) {
-            IResource resource = delta.getResource();
+          IResource resource = delta.getResource();
 
-            if (resource instanceof IFile) {
-              notifyChanged((IFile) resource);
+          if (resource instanceof IFile) {
+            IFile file = (IFile) resource;
+
+            if (delta.getKind() == IResourceDelta.CHANGED) {
+              notifyChanged(file);
+            } else if (delta.getKind() == IResourceDelta.ADDED) {
+              notifyAdded(file);
+            } else if (delta.getKind() == IResourceDelta.REMOVED) {
+              notifyRemoved(file);
             }
           }
 
@@ -95,10 +101,30 @@ public class ResourceChangeManager implements IResourceChangeListener {
     }
   }
 
+  protected void notifyAdded(IFile file) {
+    for (ResourceChangeParticipant participant : listeners) {
+      try {
+        participant.handleFileAdded(file);
+      } catch (Throwable t) {
+        DartDebugCorePlugin.logError(t);
+      }
+    }
+  }
+
   protected void notifyChanged(IFile file) {
     for (ResourceChangeParticipant participant : listeners) {
       try {
-        participant.handleFileChange(file);
+        participant.handleFileChanged(file);
+      } catch (Throwable t) {
+        DartDebugCorePlugin.logError(t);
+      }
+    }
+  }
+
+  protected void notifyRemoved(IFile file) {
+    for (ResourceChangeParticipant participant : listeners) {
+      try {
+        participant.handleFileRemoved(file);
       } catch (Throwable t) {
         DartDebugCorePlugin.logError(t);
       }

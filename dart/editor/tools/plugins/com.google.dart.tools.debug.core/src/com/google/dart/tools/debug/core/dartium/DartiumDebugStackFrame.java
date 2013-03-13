@@ -17,8 +17,9 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.dartium.DartiumDebugValue.ValueCallback;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
 import com.google.dart.tools.debug.core.expr.WatchExpressionResult;
-import com.google.dart.tools.debug.core.source.ISourceLookup;
+import com.google.dart.tools.debug.core.source.WorkspaceSourceContainer;
 import com.google.dart.tools.debug.core.util.DebuggerUtils;
+import com.google.dart.tools.debug.core.util.IDartStackFrame;
 import com.google.dart.tools.debug.core.util.IExceptionStackFrame;
 import com.google.dart.tools.debug.core.util.IVariableResolver;
 import com.google.dart.tools.debug.core.webkit.WebkitCallFrame;
@@ -29,6 +30,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitResult;
 import com.google.dart.tools.debug.core.webkit.WebkitScope;
 import com.google.dart.tools.debug.core.webkit.WebkitScript;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
@@ -52,7 +54,7 @@ import java.util.concurrent.TimeUnit;
  * represents a Dart frame.
  */
 public class DartiumDebugStackFrame extends DartiumDebugElement implements IStackFrame,
-    ISourceLookup, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
+    IDartStackFrame, IExceptionStackFrame, IVariableResolver, IExpressionEvaluator {
   private IThread thread;
   private WebkitCallFrame webkitFrame;
   private boolean isExceptionStackFrame;
@@ -196,7 +198,19 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public int getLineNumber() throws DebugException {
-    return WebkitLocation.webkitToElipseLine(webkitFrame.getLocation().getLineNumber());
+    try {
+      if (getTarget().shouldUseSourceMapping() && isUsingSourceMaps()) {
+        SourceMapManager.SourceLocation location = getMappedLocation();
+
+        return WebkitLocation.webkitToElipseLine(location.line);
+      } else {
+        return WebkitLocation.webkitToElipseLine(webkitFrame.getLocation().getLineNumber());
+      }
+    } catch (Throwable t) {
+      DartDebugCorePlugin.logError(t);
+
+      return 1;
+    }
   }
 
   @Override
@@ -227,27 +241,17 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
 
   @Override
   public String getSourceLocationPath() {
-    String scriptId = webkitFrame.getLocation().getScriptId();
-
-    WebkitScript script = getConnection().getDebugger().getScript(scriptId);
-
-    if (script != null) {
-      String url = script.getUrl();
-
-      if (script.isSystemScript()) {
-        return url;
+    try {
+      if (getTarget().shouldUseSourceMapping() && isUsingSourceMaps()) {
+        return getMappedLocationPath();
+      } else {
+        return getActualLocationPath();
       }
+    } catch (Throwable t) {
+      DartDebugCorePlugin.logError(t);
 
-      try {
-        return URI.create(url).getPath();
-      } catch (IllegalArgumentException iae) {
-        // Dartium can send us bad paths:
-        // e:\b\build\slave\dartium-win-full\build ... rt\dart\CanvasRenderingContext2DImpl.dart
-        DartDebugCorePlugin.logInfo("Illegal path from Dartium: " + url);
-      }
+      return null;
     }
-
-    return null;
   }
 
   @Override
@@ -283,6 +287,7 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     return getVariables().length > 0;
   }
 
+  @Override
   public boolean isPrivate() {
     return DebuggerUtils.isPrivateName(webkitFrame.getFunctionName());
   }
@@ -304,6 +309,11 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public boolean isTerminated() {
     return getThread().isTerminated();
+  }
+
+  @Override
+  public boolean isUsingSourceMaps() {
+    return getMappedLocation() != null;
   }
 
   @Override
@@ -334,6 +344,36 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   @Override
   public void terminate() throws DebugException {
     getThread().terminate();
+  }
+
+  protected String getActualLocationPath() {
+    String scriptId = webkitFrame.getLocation().getScriptId();
+
+    WebkitScript script = getConnection().getDebugger().getScript(scriptId);
+
+    if (script != null) {
+      String url = script.getUrl();
+
+      if (script.isSystemScript()) {
+        return url;
+      }
+
+      try {
+        return URI.create(url).getPath();
+      } catch (IllegalArgumentException iae) {
+        // Dartium can send us bad paths:
+        // e:\b\build\slave\dartium-win-full\build ... rt\dart\CanvasRenderingContext2DImpl.dart
+        DartDebugCorePlugin.logInfo("Illegal path from Dartium: " + url);
+      }
+    }
+
+    return null;
+  }
+
+  protected String getMappedLocationPath() {
+    SourceMapManager.SourceLocation location = getMappedLocation();
+
+    return location.file.getLocation().toPortableString();
   }
 
   /**
@@ -384,6 +424,23 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
     }
 
     return null;
+  }
+
+  private SourceMapManager.SourceLocation getMappedLocation() {
+    SourceMapManager sourceMapManager = getTarget().getSourceMapManager();
+
+    IFile file = WorkspaceSourceContainer.locatePathAsFile(getActualLocationPath());
+
+    if (sourceMapManager.isMapSource(file)) {
+      WebkitLocation location = webkitFrame.getLocation();
+
+      return sourceMapManager.getMappingFor(
+          file,
+          location.getLineNumber(),
+          location.getColumnNumber());
+    } else {
+      return null;
+    }
   }
 
 }
