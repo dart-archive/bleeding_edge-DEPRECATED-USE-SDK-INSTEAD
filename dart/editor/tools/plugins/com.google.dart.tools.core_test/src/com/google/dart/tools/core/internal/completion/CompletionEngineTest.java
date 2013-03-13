@@ -1,11 +1,11 @@
 /*
  * Copyright (c) 2012, the Dart project authors.
- *
+ * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * 
  * http://www.eclipse.org/legal/epl-v10.html
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -35,6 +35,10 @@ import java.util.Collection;
 public class CompletionEngineTest extends TestCase {
 
   private static boolean analysisCleared = false;
+
+  public void issuetestCommentSnippets008() throws Exception {
+    test("final num M = Dat!1", "1+DateTime");
+  }
 
   public void testCommentSnippets001() throws Exception {
     test(
@@ -95,10 +99,6 @@ public class CompletionEngineTest extends TestCase {
         "2+bool",
         "3+int",
         "4+Arrays");
-  }
-
-  public void issuetestCommentSnippets008() throws Exception {
-    test("final num M = Dat!1", "1+DateTime");
   }
 
   public void testCommentSnippets009() throws Exception {
@@ -263,7 +263,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets042() throws Exception {
-    test("fd(){Date d=new Date.now();d.!1WED!2;}", "1+day", "2-WED");
+    test("fd(){DateTime d=new DateTime.now();d.!1WED!2;}", "1+day", "2-WED");
   }
 
   public void testCommentSnippets043() throws Exception {
@@ -276,7 +276,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets045() throws Exception {
-    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+arguments", "2+abs", "2-end");
+    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+abs", "2-end");
   }
 
   public void testCommentSnippets046() throws Exception {
@@ -873,7 +873,7 @@ public class CompletionEngineTest extends TestCase {
    * character prefix. The first character of the prefix corresponds to an X in the
    * <code>originalSource</code>. The second character is either a '+' or a '-' indicating whether
    * the string is a positive or negative result.
-   *
+   * 
    * @param originalSource The source for a completion test that contains completion points
    * @param validationStrings The positive and negative predictions
    */
