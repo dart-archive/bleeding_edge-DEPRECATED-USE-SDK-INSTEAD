@@ -27,7 +27,8 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: --enable--additional-warnings
+// TODO(devoncarew): --enable--additional-warnings, i.e. we want the user to be able to emit
+// warnings for things like deprecation and inference warnings.
 //@Option(name = "--type-checks-for-inferred-types",
 //usage = "[not in spec] Enables 'interface has no method/field' for receivers with inferred types.")
 
@@ -130,12 +131,9 @@ public class AnalyzerOptions {
   private boolean warningsAreFatal = false;
 
   // TODO(devoncarew): this is unused, and is only for dartc compatibility
+  @SuppressWarnings("unused")
   @Option(name = "--fatal-type-errors")
   private boolean fatalTypeError = false;
-
-  // TODO(devoncarew): this is unused, and is only for dartc compatibility
-  @Option(name = "--error_format")
-  private String errorFormat = "";
 
   @Option(name = "--create-sdk-index", //
   metaVar = "<file>")
@@ -163,10 +161,6 @@ public class AnalyzerOptions {
   }
 
   public boolean getMachineFormat() {
-    if ("machine".equals(errorFormat)) {
-      return true;
-    }
-
     return machineFormat;
   }
 
@@ -230,6 +224,10 @@ public class AnalyzerOptions {
 
   public void setDartSdkPath(File dartSdkPath) {
     this.dartSdkPath = dartSdkPath;
+  }
+
+  public void setWarningsAreFatal(boolean value) {
+    this.warningsAreFatal = value;
   }
 
   /**

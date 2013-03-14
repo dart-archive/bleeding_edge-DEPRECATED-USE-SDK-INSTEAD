@@ -43,14 +43,14 @@ class BatchRunner {
     int testsFailed = 0;
     int totalTests = 0;
     ErrorSeverity batchResult = ErrorSeverity.NONE;
-    try {
-      String line;
-      for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
-        long testStart = System.currentTimeMillis();
-        String[] args = line.trim().split("\\s+");
+    String line;
+    for (; (line = cmdlineReader.readLine()) != null; totalTests++) {
+      long testStart = System.currentTimeMillis();
+      String[] args = line.trim().split("\\s+");
+      try {
         ErrorSeverity result = toolInvocation.invoke(args);
         boolean resultPass = !result.equals(ErrorSeverity.ERROR);
-        if (resultPass) {
+        if (!resultPass) {
           testsFailed++;
         }
         batchResult = batchResult.max(result);
@@ -60,13 +60,13 @@ class BatchRunner {
         System.out.println(">>> TEST " + (resultPass ? "PASS" : "FAIL") + " "
             + (System.currentTimeMillis() - testStart) + "ms");
         System.out.flush();
+      } catch (Throwable e) {
+        e.printStackTrace();
+        System.err.println(">>> EOF STDERR");
+        System.err.flush();
+        System.out.println(">>> TEST CRASH");
+        System.out.flush();
       }
-    } catch (Throwable e) {
-      System.err.println(">>> EOF STDERR");
-      System.err.flush();
-      System.out.println(">>> TEST CRASH");
-      System.out.flush();
-      throw e;
     }
 
     long elapsed = System.currentTimeMillis() - startTime;

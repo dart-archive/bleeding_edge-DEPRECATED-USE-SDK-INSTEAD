@@ -94,7 +94,7 @@ public class AnalyzerMain {
       final AnalyzerImpl analyzer = new AnalyzerImpl(options);
 
       if (options.shouldBatch()) {
-        BatchRunner.runAsBatch(args, new BatchRunnerInvocation() {
+        ErrorSeverity result = BatchRunner.runAsBatch(args, new BatchRunnerInvocation() {
           @Override
           public ErrorSeverity invoke(String[] lineArgs) throws Throwable {
             AnalyzerOptions compilerOptions = AnalyzerOptions.createFromArgs(lineArgs);
@@ -103,9 +103,17 @@ public class AnalyzerMain {
               compilerOptions.setDartSdkPath(options.getDartSdkPath());
             }
 
+            if (options.getWarningsAreFatal()) {
+              compilerOptions.setWarningsAreFatal(true);
+            }
+
             return runAnalyzer(analyzer, compilerOptions);
           }
         });
+
+        if (result != ErrorSeverity.NONE) {
+          System.exit(result.ordinal());
+        }
       } else {
         String sourceFilePath = options.getSourceFile();
 
@@ -150,7 +158,8 @@ public class AnalyzerMain {
       return ErrorSeverity.ERROR;
     }
 
-    ErrorFormatter formatter = new ErrorFormatter(System.out, options);
+    ErrorFormatter formatter = new ErrorFormatter(options.getMachineFormat() ? System.err
+        : System.out, options);
 
     List<AnalysisError> errors = new ArrayList<AnalysisError>();
 
@@ -159,6 +168,10 @@ public class AnalyzerMain {
     ErrorSeverity status = analyzer.analyze(sourceFile, errors);
 
     formatter.formatErrors(errors);
+
+    if (status.equals(ErrorSeverity.WARNING) && options.getWarningsAreFatal()) {
+      status = ErrorSeverity.ERROR;
+    }
 
     return status;
   }

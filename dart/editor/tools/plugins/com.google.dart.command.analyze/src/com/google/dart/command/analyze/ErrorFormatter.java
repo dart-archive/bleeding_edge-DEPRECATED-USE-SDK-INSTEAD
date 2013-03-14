@@ -95,7 +95,7 @@ public class ErrorFormatter {
     if (options.getMachineFormat()) {
       out.println(String.format(
           "%s|%s|%s|%s|%d|%d|%d|%s",
-          escapePipe(error.getErrorCode().getErrorSeverity().getMachineCode()),
+          getMachineCode(error.getErrorCode().getErrorSeverity(), options.getWarningsAreFatal()),
           escapePipe(error.getErrorCode().getType().toString()),
           escapePipe(error.getErrorCode().toString()),
           escapePipe(source.getFullName()),
@@ -125,7 +125,11 @@ public class ErrorFormatter {
       if (error.getErrorCode().getErrorSeverity().equals(ErrorSeverity.ERROR)) {
         errorCount++;
       } else if (error.getErrorCode().getErrorSeverity().equals(ErrorSeverity.WARNING)) {
-        warnCount++;
+        if (options.getWarningsAreFatal()) {
+          errorCount++;
+        } else {
+          warnCount++;
+        }
       }
 
       formatError(error);
@@ -191,4 +195,12 @@ public class ErrorFormatter {
     }
   }
 
+  private String getMachineCode(ErrorSeverity severity, boolean warningsAreFatal) {
+    if (severity.equals(ErrorSeverity.WARNING) && warningsAreFatal) {
+      return ErrorSeverity.ERROR.name();
+    } else {
+      return severity.name();
+    }
+  }
+  
 }
