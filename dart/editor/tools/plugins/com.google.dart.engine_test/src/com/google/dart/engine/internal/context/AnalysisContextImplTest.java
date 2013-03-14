@@ -16,28 +16,27 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.ChangeResult;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.parser.HtmlParseResult;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import java.io.File;
-import java.util.Iterator;
 
 public class AnalysisContextImplTest extends EngineTestCase {
-
   public void fail_getElement_location() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     ElementLocation location = new ElementLocationImpl("dart:core;Object");
@@ -68,6 +67,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertTrue(errors.length > 0);
   }
 
+  public void fail_getKnownKindOf_unknown() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    assertSame(SourceKind.UNKNOWN, context.getKnownKindOf(new TestSource()));
+  }
+
   public void fail_parse_non_existent_source() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
@@ -77,22 +81,38 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(unit);
   }
 
-  public void fail_sourcesToResolve() throws Exception {
+  public void test_applyChanges_empty() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-    // TODO (danrubel): Replace this placeholder with a real test once resolution is in place
-    Iterable<Source> sourcesToResolve = context.sourcesToResolve(new Source[] {source});
-    Iterator<Source> iter = sourcesToResolve.iterator();
-    for (int i = 0; i < 23; i++) {
-      assertTrue(iter.hasNext());
-      assertNotNull(iter.next());
-    }
+    ChangeResult result = context.applyChanges(new ChangeSet());
+    assertNotNull(result);
   }
 
   public void test_creation() {
     assertNotNull(new AnalysisContextImpl());
+  }
+
+  public void test_getHtmlSources_empty() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    Source[] sources = context.getHtmlSources();
+    assertLength(0, sources);
+  }
+
+  public void test_getLaunchableClientLibrarySources_empty() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    Source[] sources = context.getLaunchableClientLibrarySources();
+    assertLength(0, sources);
+  }
+
+  public void test_getLaunchableServerLibrarySources_empty() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    Source[] sources = context.getLaunchableServerLibrarySources();
+    assertLength(0, sources);
+  }
+
+  public void test_getLibrarySources_empty() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    Source[] sources = context.getLibrarySources();
+    assertLength(0, sources);
   }
 
   public void test_parse_no_errors() throws Exception {
@@ -155,28 +175,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertLength(0, compilationUnit.getParsingErrors());
     assertLength(0, compilationUnit.getResolutionErrors());
     assertLength(0, compilationUnit.getErrors());
-  }
-
-  public void test_scan() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));;
-    sourceFactory.setContents(source, "library lib;");
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = context.scan(source, listener);
-    assertNotNull(token);
-  }
-
-  public void test_scanHtml() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));;
-    sourceFactory.setContents(source, "<!DOCTYPE html><html><body>foo</body></html>");
-    HtmlScanResult result = context.scanHtml(source);
-    assertNotNull(result.getToken());
-    assertNotNull(result.getLineStarts());
   }
 
   public void test_setSourceFactory() {

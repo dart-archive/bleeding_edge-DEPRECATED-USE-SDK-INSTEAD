@@ -2163,13 +2163,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       {
         ChangeSet changeSet = new ChangeSet();
         changeSet.added(source);
-        context.changed(changeSet);
+        context.applyChanges(changeSet);
       }
       {
         String code = getDocumentProvider().getDocument(getEditorInput()).get();
         ChangeSet changeSet = new ChangeSet();
         changeSet.changed(source, code);
-        context.changed(changeSet);
+        context.applyChanges(changeSet);
       }
 
       // resolve

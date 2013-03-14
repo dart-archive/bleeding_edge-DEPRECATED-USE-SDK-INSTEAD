@@ -68,8 +68,8 @@ public class ChangeSet {
   /**
    * Record that the specified source has been added and that it has the given content. If the
    * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous the override is removed so that the
-   * default contents will be used.
+   * source. If the contents are {@code null}, any previous override is removed so that the default
+   * contents will be used.
    * 
    * @param source the source that was added
    * @param content the content of the new source
@@ -93,8 +93,8 @@ public class ChangeSet {
   /**
    * Record that the specified source has been changed and that it now has the given content. If the
    * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous the override is removed so that the
-   * default contents will be used.
+   * source. If the contents are {@code null}, any previous override is removed so that the default
+   * contents will be used.
    * 
    * @param source the source that was changed
    * @param content the new content of the source

@@ -409,7 +409,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(appContainer, project.getPubFolder(appContainer).getResource());
     SourceContainer directory = new DirectoryBasedSourceContainer(
         appContainer.getLocation().toFile());
-    ((MockContext) project.getDefaultContext()).extractAnalysisContext(directory);
+    ((MockContext) project.getDefaultContext()).extractContext(directory);
   }
 
   public void test_pubspecRemoved_project_to_none() {

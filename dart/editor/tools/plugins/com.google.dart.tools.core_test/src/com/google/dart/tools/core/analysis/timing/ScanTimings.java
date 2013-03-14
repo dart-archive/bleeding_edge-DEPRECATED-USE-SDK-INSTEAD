@@ -75,7 +75,7 @@ public class ScanTimings extends TestCase {
     final CompilationUnit compilationUnit = new CompilationUnit(null, null, null, null, null);
 
     @Override
-    public AnalysisContext extractAnalysisContext(SourceContainer container) {
+    public AnalysisContext extractContext(SourceContainer container) {
       contextCount++;
       return new MockContextForScan();
     }

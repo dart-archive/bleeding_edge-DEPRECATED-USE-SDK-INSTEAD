@@ -264,7 +264,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       Entry<IPath, PubFolder> entry = iter.next();
       PubFolder parent = getParentPubFolder(entry.getKey());
       if (parent != null) {
-        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
+        parent.getContext().mergeContext(entry.getValue().getContext());
         iter.remove();
       }
     }
@@ -284,7 +284,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     // Merge the context into the default context
     if (defaultContext != pubFolder.getContext()) {
-      defaultContext.mergeAnalysisContext(pubFolder.getContext());
+      defaultContext.mergeContext(pubFolder.getContext());
     } else {
       initContext(defaultContext, projectResource, sdk, false);
       defaultContext.clearResolution();
@@ -310,7 +310,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     IPath location = container.getLocation();
     if (location != null) {
       SourceContainer sourceContainer = new DirectoryBasedSourceContainer(location.toFile());
-      context = defaultContext.extractAnalysisContext(sourceContainer);
+      context = defaultContext.extractContext(sourceContainer);
     } else {
       logNoLocation(container);
       context = factory.createContext();
@@ -347,7 +347,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       Entry<IPath, PubFolder> entry = iter.next();
       PubFolder parent = getParentPubFolder(entry.getKey());
       if (parent != null) {
-        parent.getContext().mergeAnalysisContext(entry.getValue().getContext());
+        parent.getContext().mergeContext(entry.getValue().getContext());
         iter.remove();
       }
     }

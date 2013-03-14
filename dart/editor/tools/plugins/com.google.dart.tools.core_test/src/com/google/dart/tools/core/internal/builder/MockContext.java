@@ -10,10 +10,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.parser.HtmlParseResult;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -108,13 +105,19 @@ public class MockContext implements AnalysisContext {
   private static final String CHANGED = "changed";
   private static final String CLEAR_RESOLUTION = "clearResolution";
   private static final String DISCARDED = "discarded";
-  private static final String EXTRACT_ANALYSIS_CONTEXT = "extractAnalysisContext";
-  private static final String MERGE_ANALYSIS_CONTEXT = "mergeAnalysisContext";
+  private static final String EXTRACT_CONTEXT = "extractContext";
+  private static final String MERGE_CONTEXT = "mergeContext";
   private static final String SOURCE_CHANGED = "sourceChanged";
   private static final String SOURCE_DELETED = "sourceDeleted";
 
   private final CallList calls = new CallList();
   private SourceFactory factory;
+
+  @Override
+  public ChangeResult applyChanges(ChangeSet changes) {
+    calls.add(new ChangedCall(this, changes));
+    return new ChangeResult();
+  }
 
   public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {
     final ChangeSet expected = new ChangeSet();
@@ -151,10 +154,10 @@ public class MockContext implements AnalysisContext {
 
   public void assertExtracted(IContainer expectedContainer) {
     if (expectedContainer != null) {
-      calls.assertCall(this, EXTRACT_ANALYSIS_CONTEXT, new DirectoryBasedSourceContainer(
+      calls.assertCall(this, EXTRACT_CONTEXT, new DirectoryBasedSourceContainer(
           expectedContainer.getLocation().toFile()));
     } else {
-      calls.assertNoCall(new Call(this, EXTRACT_ANALYSIS_CONTEXT) {
+      calls.assertNoCall(new Call(this, EXTRACT_CONTEXT) {
         @Override
         protected boolean equalArguments(Object[] otherArgs) {
           return true;
@@ -165,9 +168,9 @@ public class MockContext implements AnalysisContext {
 
   public void assertMergedContext(AnalysisContext expectedContext) {
     if (expectedContext != null) {
-      calls.assertCall(this, MERGE_ANALYSIS_CONTEXT, expectedContext);
+      calls.assertCall(this, MERGE_CONTEXT, expectedContext);
     } else {
-      calls.assertNoCall(new Call(this, MERGE_ANALYSIS_CONTEXT) {
+      calls.assertNoCall(new Call(this, MERGE_CONTEXT) {
         @Override
         protected boolean equalArguments(Object[] otherArgs) {
           return true;
@@ -201,12 +204,6 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public ChangeResult changed(ChangeSet changes) {
-    calls.add(new ChangedCall(this, changes));
-    return new ChangeResult();
-  }
-
-  @Override
   public void clearResolution() {
     calls.add(this, CLEAR_RESOLUTION);
   }
@@ -217,8 +214,8 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AnalysisContext extractAnalysisContext(SourceContainer container) {
-    calls.add(this, EXTRACT_ANALYSIS_CONTEXT, container);
+  public AnalysisContext extractContext(SourceContainer container) {
+    calls.add(this, EXTRACT_CONTEXT, container);
     return new MockContext();
   }
 
@@ -238,8 +235,23 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] getHtmlSources() {
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
   public SourceKind getKnownKindOf(Source source) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Source[] getLaunchableClientLibrarySources() {
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
+  public Source[] getLaunchableServerLibrarySources() {
+    return Source.EMPTY_ARRAY;
   }
 
   @Override
@@ -258,18 +270,13 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] getLibrarySources() {
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
   public SourceKind getOrComputeKindOf(Source source) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
-    return new AnalysisError[] {};
-  }
-
-  @Override
-  public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException {
-    return new AnalysisError[] {};
   }
 
   @Override
@@ -278,8 +285,8 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public void mergeAnalysisContext(AnalysisContext context) {
-    calls.add(this, MERGE_ANALYSIS_CONTEXT, context);
+  public void mergeContext(AnalysisContext context) {
+    calls.add(this, MERGE_CONTEXT, context);
   }
 
   @Override
@@ -295,16 +302,6 @@ public class MockContext implements AnalysisContext {
   @Override
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
     return null;
-  }
-
-  @Override
-  public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException {
-    return null;
-  }
-
-  @Override
-  public HtmlScanResult scanHtml(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
   }
 
   @Override

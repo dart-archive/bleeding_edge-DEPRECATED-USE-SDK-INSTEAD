@@ -45,7 +45,7 @@ public class ProjectUpdater implements DeltaListener {
       AnalysisContext context = entry.getKey();
       ChangeSet changeSet = entry.getValue();
       if (!changeSet.isEmpty()) {
-        results.put(context, context.changed(changeSet));
+        results.put(context, context.applyChanges(changeSet));
       }
     }
     return results;

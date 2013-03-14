@@ -123,16 +123,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   private Object cacheLock = new Object();
 
   /**
-   * The suffix used by sources that contain Dart.
-   */
-  private static final String DART_SUFFIX = ".dart";
-
-  /**
-   * The suffix used by sources that contain HTML.
-   */
-  private static final String HTML_SUFFIX = ".html";
-
-  /**
    * Initialize a newly created analysis context.
    */
   public AnalysisContextImpl() {
@@ -140,39 +130,48 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public ChangeResult changed(ChangeSet changeSet) {
+  public ChangeResult applyChanges(ChangeSet changeSet) {
+    ChangeResult result = new ChangeResult();
     if (changeSet.isEmpty()) {
-      return new ChangeResult();
+      return result;
     }
     synchronized (cacheLock) {
       //
-      // First, update the contents of the sources.
+      // First, update the contents of the sources while computing lists of sources that have been
+      // added, changed or removed.
       //
+      ArrayList<Source> addedSources = new ArrayList<Source>();
       for (Map.Entry<Source, String> entry : changeSet.getAddedWithContent().entrySet()) {
-        sourceFactory.setContents(entry.getKey(), entry.getValue());
+        Source source = entry.getKey();
+        sourceFactory.setContents(source, entry.getValue());
+        addedSources.add(source);
       }
+      ArrayList<Source> changedSources = new ArrayList<Source>();
       for (Map.Entry<Source, String> entry : changeSet.getChangedWithContent().entrySet()) {
-        sourceFactory.setContents(entry.getKey(), entry.getValue());
+        Source source = entry.getKey();
+        sourceFactory.setContents(source, entry.getValue());
+        changedSources.add(source);
+      }
+      ArrayList<Source> removedSources = new ArrayList<Source>(changeSet.getRemoved());
+      for (SourceContainer container : changeSet.getRemovedContainers()) {
+        addSourcesInContainer(removedSources, container);
       }
       //
       // Then determine which cached results are no longer valid and what the new structure of the
       // sources is.
       // TODO(brianwilkerson) The code below is incomplete.
       //
-      for (Source source : changeSet.getAddedWithContent().keySet()) {
-        sourceAvailable(source);
+      for (Source source : addedSources) {
+        sourceAvailable(result, source);
       }
-      for (Source source : changeSet.getChangedWithContent().keySet()) {
-        sourceChanged(source);
+      for (Source source : changedSources) {
+        sourceChanged(result, source);
       }
-      for (Source source : changeSet.getRemoved()) {
-        sourceDeleted(source);
-      }
-      for (SourceContainer container : changeSet.getRemovedContainers()) {
-        sourcesDeleted(container);
+      for (Source source : removedSources) {
+        sourceRemoved(result, source);
       }
     }
-    return new ChangeResult();
+    return result;
   }
 
   @Override
@@ -199,7 +198,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public AnalysisContext extractAnalysisContext(SourceContainer container) {
+  public AnalysisContext extractContext(SourceContainer container) {
     AnalysisContextImpl newContext = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
     ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
     synchronized (cacheLock) {
@@ -248,15 +247,24 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public HtmlElement getHtmlElement(Source source) {
     // TODO(brianwilkerson) Implement this.
+    if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
+      return null;
+    }
     throw new UnsupportedOperationException();
   }
 
   @Override
+  public Source[] getHtmlSources() {
+    return getSources(SourceKind.HTML);
+  }
+
+  @Override
   public SourceKind getKnownKindOf(Source source) {
-    if (source.getFullName().endsWith(HTML_SUFFIX)) {
+    String name = source.getShortName();
+    if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
-    if (!source.getFullName().endsWith(DART_SUFFIX)) {
+    if (!AnalysisEngine.isDartFileName(name)) {
       return SourceKind.UNKNOWN;
     }
     synchronized (cacheLock) {
@@ -272,6 +280,18 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public Source[] getLaunchableClientLibrarySources() {
+    // TODO(brianwilkerson) Implement this
+    return getLibrarySources();
+  }
+
+  @Override
+  public Source[] getLaunchableServerLibrarySources() {
+    // TODO(brianwilkerson) Implement this
+    return getLibrarySources();
+  }
+
+  @Override
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
       SourceInfo info = sourceMap.get(source);
@@ -284,6 +304,9 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
+    if (!AnalysisEngine.isDartFileName(source.getShortName())) {
+      return null;
+    }
     synchronized (cacheLock) {
       LibraryElement element = libraryElementCache.get(source);
       if (element == null) {
@@ -321,24 +344,17 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public Source[] getLibrarySources() {
+    return getSources(SourceKind.LIBRARY);
+  }
+
+  @Override
   public SourceKind getOrComputeKindOf(Source source) {
     SourceKind kind = getKnownKindOf(source);
     if (kind != null) {
       return kind;
     }
-    try {
-      if (hasPartOfDirective(parse(source))) {
-        return SourceKind.PART;
-      }
-    } catch (AnalysisException exception) {
-      return SourceKind.UNKNOWN;
-    }
-    return SourceKind.LIBRARY;
-  }
-
-  @Override
-  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
+    return computeKindOf(source);
   }
 
   /**
@@ -385,17 +401,12 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
   }
 
   @Override
-  public void mergeAnalysisContext(AnalysisContext context) {
+  public void mergeContext(AnalysisContext context) {
     synchronized (cacheLock) {
       for (Map.Entry<Source, SourceInfo> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
         Source newSource = entry.getKey();
@@ -478,24 +489,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public Token scan(final Source source, final AnalysisErrorListener errorListener)
-      throws AnalysisException {
-    ScanResult result = internalScan(source, errorListener);
-    return result.token;
-  }
-
-  @Override
-  public HtmlScanResult scanHtml(final Source source) throws AnalysisException {
-    HtmlScanner scanner = new HtmlScanner(source);
-    try {
-      source.getContents(scanner);
-    } catch (Exception exception) {
-      throw new AnalysisException(exception);
-    }
-    return scanner.getResult();
-  }
-
-  @Override
   public void setSourceFactory(SourceFactory sourceFactory) {
     this.sourceFactory = sourceFactory;
   }
@@ -511,6 +504,51 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
     }
     return librarySources;
+  }
+
+  /**
+   * Add all of the sources contained in the given source container to the given list of sources.
+   * <p>
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param sources the list to which sources are to be added
+   * @param container the source container containing the sources to be added to the list
+   */
+  private void addSourcesInContainer(ArrayList<Source> sources, SourceContainer container) {
+    for (Source source : sourceMap.keySet()) {
+      if (container.contains(source)) {
+        sources.add(source);
+      }
+    }
+  }
+
+  private SourceKind computeKindOf(Source source) {
+    try {
+      if (hasPartOfDirective(parse(source))) {
+        return SourceKind.PART;
+      }
+    } catch (AnalysisException exception) {
+      return SourceKind.UNKNOWN;
+    }
+    return SourceKind.LIBRARY;
+  }
+
+  /**
+   * Return an array containing all of the sources known to this context that have the given kind.
+   * 
+   * @param kind the kind of sources to be returned
+   * @return all of the sources known to this context that have the given kind
+   */
+  private Source[] getSources(SourceKind kind) {
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        if (entry.getValue().getKind() == kind) {
+          sources.add(entry.getKey());
+        }
+      }
+    }
+    return sources.toArray(new Source[sources.size()]);
   }
 
   /**
@@ -554,24 +592,38 @@ public class AnalysisContextImpl implements AnalysisContext {
     return result;
   }
 
+  private HtmlScanResult scanHtml(final Source source) throws AnalysisException {
+    HtmlScanner scanner = new HtmlScanner(source);
+    try {
+      source.getContents(scanner);
+    } catch (Exception exception) {
+      throw new AnalysisException(exception);
+    }
+    return scanner.getResult();
+  }
+
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
+   * @param result the result that will be used to report changes
    * @param source the source that has been added
    */
-  private void sourceAvailable(Source source) {
+  private void sourceAvailable(ChangeResult result, Source source) {
     SourceInfo existingInfo = sourceMap.get(source);
     if (existingInfo == null) {
-      sourceMap.put(source, new SourceInfo(source, getOrComputeKindOf(source)));
+      SourceKind kind = computeKindOf(source);
+      sourceMap.put(source, new SourceInfo(source, kind));
+      result.invalidated(source);
     }
   }
 
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
+   * @param result the result that will be used to report changes
    * @param source the source that has been changed
    */
-  private void sourceChanged(Source source) {
+  private void sourceChanged(ChangeResult result, Source source) {
     SourceInfo info = sourceMap.get(source);
     if (info == null) {
       // TODO(brianwilkerson) Figure out how to report this error.
@@ -582,6 +634,12 @@ public class AnalysisContextImpl implements AnalysisContext {
     // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
     libraryElementCache.remove(source);
     publicNamespaceCache.remove(source);
+    SourceKind oldKind = info.getKind();
+    SourceKind newKind = computeKindOf(source);
+    if (newKind != oldKind) {
+      info.setKind(newKind);
+    }
+    result.invalidated(source);
     for (Source librarySource : info.getLibrarySources()) {
       // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
       // public namespace hasn't changed, which will be a fairly common case.
@@ -593,33 +651,28 @@ public class AnalysisContextImpl implements AnalysisContext {
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
+   * @param result the result that will be used to report changes
    * @param source the source that has been deleted
    */
-  private void sourceDeleted(Source source) {
-    sourceMap.remove(source);
-    sourceChanged(source);
-  }
-
-  /**
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
-   * 
-   * @param container the source container specifying the sources that have been deleted
-   */
-  private void sourcesDeleted(SourceContainer container) {
-    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
-    for (Source source : sourceMap.keySet()) {
-      if (container.contains(source)) {
-        sourcesToRemove.add(source);
-      }
+  private void sourceRemoved(ChangeResult result, Source source) {
+    // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
+    // there are no additional dependencies on the source), and if so remove all information
+    // about the source.
+    SourceInfo info = sourceMap.get(source);
+    if (info == null) {
+      // TODO(brianwilkerson) Figure out how to report this error.
+      return;
     }
-//    for (Source source : sourcesToRemove) {
-//      // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
-//      // there are no additional dependencies on the source), and if so remove all information
-//      // about the source.
-//      sourceMap.remove(source);
-//      parseCache.remove(source);
-//      publicNamespaceCache.remove(source);
-//      libraryElementCache.remove(source);
-//    }
+    parseCache.remove(source);
+    // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
+    libraryElementCache.remove(source);
+    publicNamespaceCache.remove(source);
+    for (Source librarySource : info.getLibrarySources()) {
+      // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
+      // public namespace hasn't changed, which will be a fairly common case.
+      libraryElementCache.remove(librarySource);
+      publicNamespaceCache.remove(librarySource);
+    }
+    sourceMap.remove(source);
   }
 }

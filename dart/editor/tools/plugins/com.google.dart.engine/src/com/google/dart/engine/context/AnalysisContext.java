@@ -19,10 +19,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.parser.HtmlParseResult;
-import com.google.dart.engine.html.scanner.HtmlScanResult;
-import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -31,8 +28,14 @@ import com.google.dart.engine.source.SourceKind;
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
  * which analysis can be performed. The context includes such information as the version of the SDK
- * being analyzed against as well as the package-root used to resolve 'package:' URI's. (The latter
- * is included indirectly through the {@link SourceFactory source factory}.)
+ * being analyzed against as well as the package-root used to resolve 'package:' URI's. (Both of
+ * which are known indirectly through the {@link SourceFactory source factory}.)
+ * <p>
+ * They also represent the state of a given analysis, which includes knowing which sources have been
+ * included in the analysis (either directly or indirectly) and the results of the analysis. Some
+ * analysis results are cached in order to allow the context to balance between memory usage and
+ * performance. TODO(brianwilkerson) Decide how this is reflected in the API: a getFoo() and
+ * getOrComputeFoo() pair of methods, or a single getFoo(boolean).
  * <p>
  * Analysis engine allows for having more than one context. This can be used, for example, to
  * perform one analysis based on the state of files on disk and a separate analysis based on the
@@ -41,14 +44,13 @@ import com.google.dart.engine.source.SourceKind;
  */
 public interface AnalysisContext {
   /**
-   * Respond to the given set of changes by removing any cached information that might now be
-   * out-of-date. The result indicates what operations need to be performed as a result of this
-   * change without actually performing those operations.
+   * Apply the changes specified by the given change set to this context. The result indicates which
+   * analysis results have been invalidated as a result of the change.
    * 
-   * @param changeSet a description of the changes that have occurred
-   * @return a result (not {@code null}) indicating operations to be performed
+   * @param changeSet a description of the changes that are to be applied
+   * @return a result indicating analysis results that have been invalidated
    */
-  public ChangeResult changed(ChangeSet changeSet);
+  public ChangeResult applyChanges(ChangeSet changeSet);
 
   /**
    * Clear any cached information that is dependent on resolution. This method should be invoked if
@@ -56,8 +58,7 @@ public interface AnalysisContext {
    * Use {@link #sourceChanged(Source)} and {@link #sourcesDeleted(SourceContainer)} to indicate
    * when the contents of a file or files have changed.
    */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
+  @Deprecated
   public void clearResolution();
 
   /**
@@ -65,21 +66,18 @@ public interface AnalysisContext {
    * may choose to push some of its information back into the global cache for consumption by
    * another context for performance.
    */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
+  @Deprecated
   public void discard();
 
   /**
-   * Create a new context in which analysis can be performed. Any sources in the specified directory
-   * in the receiver will be removed from the receiver and added to the newly created context.
+   * Create a new context in which analysis can be performed. Any sources in the specified container
+   * will be removed from this context and added to the newly created context.
    * 
-   * @param directory the directory (not {@code null}) containing sources that should be removed
-   *          from the receiver and added to the returned context
-   * @return the analysis context that was created (not {@code null})
+   * @param container the container containing sources that should be removed from this context and
+   *          added to the returned context
+   * @return the analysis context that was created
    */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public AnalysisContext extractAnalysisContext(SourceContainer container);
+  public AnalysisContext extractContext(SourceContainer container);
 
   /**
    * Return the element referenced by the given location.
@@ -90,24 +88,30 @@ public interface AnalysisContext {
   public Element getElement(ElementLocation location);
 
   /**
-   * Return an array containing all of the errors associated with the given source.
+   * Return an array containing all of the errors associated with the given source. The array will
+   * be empty if the source is not known to this context or if there are no errors in the source.
    * 
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
    */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
   public AnalysisError[] getErrors(Source source) throws AnalysisException;
 
   /**
-   * Parse and build an element model for the HTML file defined by the given source.
+   * Return the element model corresponding to the HTML file defined by the given source.
    * 
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
    */
   public HtmlElement getHtmlElement(Source source);
+
+  /**
+   * Return an array containing all of the sources known to this context that represent HTML files.
+   * 
+   * @return the sources known to this context that represent HTML files
+   */
+  public Source[] getHtmlSources();
 
   /**
    * Return the kind of the given source if it is already known, or {@code null} if the kind is not
@@ -118,6 +122,26 @@ public interface AnalysisContext {
    * @see #getOrComputeKindOf(Source)
    */
   public SourceKind getKnownKindOf(Source source);
+
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library that can be run within a browser. The sources that are returned
+   * represent libraries that have a 'main' method and are either referenced by an HTML file or
+   * import, directly or indirectly, a client-only library.
+   * 
+   * @return the sources known to this context that represent the defining compilation unit of a
+   *         library that can be run within a browser
+   */
+  public Source[] getLaunchableClientLibrarySources();
+
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library that can be run outside of a browser.
+   * 
+   * @return the sources known to this context that represent the defining compilation unit of a
+   *         library that can be run outside of a browser
+   */
+  public Source[] getLaunchableServerLibrarySources();
 
   /**
    * Return the sources for the defining compilation units of any libraries of which the given
@@ -148,12 +172,22 @@ public interface AnalysisContext {
 
   /**
    * Return the element model corresponding to the library defined by the given source, or
-   * {@code null} if the element model does not yet exist.
+   * {@code null} if the element model does not currently exist or if the analysis could not be
+   * performed.
    * 
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
    */
   public LibraryElement getLibraryElementOrNull(Source source);
+
+  /**
+   * Return an array containing all of the sources known to this context that represent the defining
+   * compilation unit of a library.
+   * 
+   * @return the sources known to this context that represent the defining compilation unit of a
+   *         library
+   */
+  public Source[] getLibrarySources();
 
   /**
    * Return the kind of the given source, computing it's kind if it is not already known.
@@ -165,30 +199,6 @@ public interface AnalysisContext {
   public SourceKind getOrComputeKindOf(Source source);
 
   /**
-   * Return an array containing all of the parsing errors associated with the given source.
-   * 
-   * @param source the source whose errors are to be returned
-   * @return all of the parsing errors associated with the given source
-   * @throws AnalysisException if the errors could not be determined because the analysis could not
-   *           be performed
-   */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public AnalysisError[] getParsingErrors(Source source) throws AnalysisException;
-
-  /**
-   * Return an array containing all of the resolution errors associated with the given source.
-   * 
-   * @param source the source whose errors are to be returned
-   * @return all of the resolution errors associated with the given source
-   * @throws AnalysisException if the errors could not be determined because the analysis could not
-   *           be performed
-   */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public AnalysisError[] getResolutionErrors(Source source) throws AnalysisException;
-
-  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * 
    * @return the source factory used to create the sources that can be analyzed in this context
@@ -196,15 +206,13 @@ public interface AnalysisContext {
   public SourceFactory getSourceFactory();
 
   /**
-   * Add the sources contained in the specified context to the receiver's collection of sources.
+   * Add the sources contained in the specified context to this context's collection of sources.
    * This method is called when an existing context's pubspec has been removed, and the contained
-   * sources should be reanalyzed as part of the receiver.
+   * sources should be reanalyzed as part of this context.
    * 
-   * @param context the context being merged (not {@code null})
+   * @param context the context being merged
    */
-  // TODO (danrubel): review the situations under which this method is and should be called
-  // with an eye towards removing this method if it is not useful.
-  public void mergeAnalysisContext(AnalysisContext context);
+  public void mergeContext(AnalysisContext context);
 
   /**
    * Parse a single source to produce an AST structure. The resulting AST structure may or may not
@@ -214,6 +222,7 @@ public interface AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
+  @Deprecated
   public CompilationUnit parse(Source source) throws AnalysisException;
 
   /**
@@ -225,6 +234,7 @@ public interface AnalysisContext {
    * @return the parse result (not {@code null})
    * @throws AnalysisException if the analysis could not be performed
    */
+  @Deprecated
   public HtmlParseResult parseHtml(Source source) throws AnalysisException;
 
   /**
@@ -238,27 +248,9 @@ public interface AnalysisContext {
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException;
 
   /**
-   * Scan a single source to produce a token stream.
-   * 
-   * @param source the source to be scanned
-   * @param errorListener the listener to which errors should be reported
-   * @return the head of the token stream representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public Token scan(Source source, AnalysisErrorListener errorListener) throws AnalysisException;
-
-  /**
-   * Scan a single source to produce an HTML token stream.
-   * 
-   * @param source the source to be scanned
-   * @return the scan result (not {@code null})
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public HtmlScanResult scanHtml(Source source) throws AnalysisException;
-
-  /**
    * Set the source factory used to create the sources that can be analyzed in this context to the
-   * given source factory.
+   * given source factory. Clients can safely assume that all analysis results have been
+   * invalidated.
    * 
    * @param sourceFactory the source factory used to create the sources that can be analyzed in this
    *          context
@@ -274,6 +266,6 @@ public interface AnalysisContext {
    */
   // Soon to be deprecated, but the replacement isn't quite ready yet
   // * @deprecated Use the ChangeResult returned by {@link #changed(ChangeSet)}.
-  // @Deprecated
+  @Deprecated
   public Iterable<Source> sourcesToResolve(Source[] changedSources);
 }
