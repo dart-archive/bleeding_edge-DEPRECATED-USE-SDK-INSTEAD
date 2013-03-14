@@ -14,6 +14,28 @@ vars = {
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "http://git.chromium.org/git",
   "v8_release": "3.15",
+
+  # Revisions of /third_party/* dependencies.
+  "7zip_rev" : "@19997",
+  "apache_ant_rev" : "@19997",
+  "apache_compress_rev" : "@19997",
+  "args4j_rev" : "@19997",
+  "bzip2_rev" : "@19997",
+  "chrome_rev" : "@19997",
+  "commons-io_rev" : "@19997",
+  "commons-lang_rev" : "@19997",
+  "eclipse_rev" : "@19997",
+  "fest_rev" : "@19997",
+  "firefox_jsshell_rev" : "@19997",
+  "gsutil_rev" : "@19997",
+  "guava_rev" : "@19997",
+  "hamcrest_rev" : "@19997",
+  "json_rev" : "@19997",
+  "junit_rev" : "@19997",
+  "mockito_rev" : "@19997",
+  "snakeyaml_rev" : "@19997",
+  "WebCore_rev" : "@19997",
+  "weberknecht_rev" : "@19997",
 }
 
 deps = {
@@ -42,6 +64,32 @@ deps = {
   "dart/third_party/net_nss":
       Var("chromium_url") + "/trunk/src/net/third_party/nss" + Var("nss_rev"),
 
+  "dart/third_party/7zip": "/third_party/7zip" + Var("7zip_rev"),
+  "dart/third_party/apache_ant":
+      "/third_party/apache_ant" + Var("apache_ant_rev"),
+  "dart/third_party/apache_compress":
+      "/third_party/apache_compress" + Var("apache_compress_rev"),
+  "dart/third_party/args4j": "/third_party/args4j" + Var("args4j_rev"),
+  "dart/third_party/bzip2": "/third_party/bzip2" + Var("bzip2_rev"),
+  "dart/third_party/chrome": "/third_party/chrome" + Var("chrome_rev"),
+  "dart/third_party/commons-io":
+      "/third_party/commons-io" + Var("commons-io_rev"),
+  "dart/third_party/commons-lang":
+      "/third_party/commons-lang" + Var("commons-lang_rev"),
+  "dart/third_party/eclipse": "/third_party/eclipse" + Var("eclipse_rev"),
+  "dart/third_party/fest": "/third_party/fest" + Var("fest_rev"),
+  "dart/third_party/firefox_jsshell":
+      "/third_party/firefox_jsshell" + Var("firefox_jsshell_rev"),
+  "dart/third_party/gsutil": "/third_party/gsutil" + Var("gsutil_rev"),
+  "dart/third_party/guava": "/third_party/guava" + Var("guava_rev"),
+  "dart/third_party/hamcrest": "/third_party/hamcrest" + Var("hamcrest_rev"),
+  "dart/third_party/json": "/third_party/json" + Var("json_rev"),
+  "dart/third_party/junit": "/third_party/junit" + Var("junit_rev"),
+  "dart/third_party/mockito": "/third_party/mockito" + Var("mockito_rev"),
+  "dart/third_party/snakeyaml": "/third_party/snakeyaml" + Var("snakeyaml_rev"),
+  "dart/third_party/WebCore": "/third_party/WebCore" + Var("WebCore_rev"),
+  "dart/third_party/weberknecht":
+      "/third_party/weberknecht" + Var("weberknecht_rev"),
 }
 
 deps_os = {
