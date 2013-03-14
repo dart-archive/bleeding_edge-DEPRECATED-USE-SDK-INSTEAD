@@ -70,6 +70,7 @@ public class DartUIStartup implements IStartup {
 
           if (!getThread().isInterrupted()) {
             reportPlatformStatistics(); //Early report statistics to aid debugging in case of crash
+            reportDartCoreDebug();
           }
 
           if (!getThread().isInterrupted()) {
@@ -185,6 +186,19 @@ public class DartUIStartup implements IStartup {
           });
         }
       });
+    }
+
+    private void reportDartCoreDebug() {
+      InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportDartCoreDebug");
+      try {
+
+        DartCoreDebug.record(instrumentation);
+
+      } finally {
+        instrumentation.log();
+
+      }
+
     }
 
     /**

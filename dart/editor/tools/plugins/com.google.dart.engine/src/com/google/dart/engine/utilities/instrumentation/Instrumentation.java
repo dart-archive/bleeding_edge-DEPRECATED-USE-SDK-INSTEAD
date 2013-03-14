@@ -52,6 +52,11 @@ public final class Instrumentation {
   private static final InstrumentationBuilder NULL_INSTRUMENTATION_BUILDER = new InstrumentationBuilder() {
 
     @Override
+    public InstrumentationBuilder data(String name, boolean value) {
+      return this;
+    }
+
+    @Override
     public InstrumentationBuilder data(String name, long value) {
       return this;
     }
@@ -73,6 +78,11 @@ public final class Instrumentation {
 
     @Override
     public void log() {
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, boolean value) {
+      return this;
     }
 
     @Override

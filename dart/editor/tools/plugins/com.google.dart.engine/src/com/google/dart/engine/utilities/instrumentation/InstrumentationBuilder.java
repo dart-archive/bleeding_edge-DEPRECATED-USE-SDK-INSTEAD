@@ -32,6 +32,17 @@ public interface InstrumentationBuilder {
    * @param value the value of the data to be collected
    * @return this builder
    */
+  public InstrumentationBuilder data(String name, boolean value);
+
+  /**
+   * Append the given data to the data being collected by this builder. The information is declared
+   * to potentially contain data that is either user identifiable or contains user intellectual
+   * property (but is not guaranteed to contain either).
+   * 
+   * @param name the name used to identify the data
+   * @param value the value of the data to be collected
+   * @return this builder
+   */
   public InstrumentationBuilder data(String name, long value);
 
   /**
@@ -70,6 +81,17 @@ public interface InstrumentationBuilder {
    * method is invoked is undefined.
    */
   public void log();
+
+  /**
+   * Append the given metric to the data being collected by this builder. The information is
+   * declared to contain only metrics data (data that is not user identifiable and does not contain
+   * user intellectual property).
+   * 
+   * @param name the name used to identify the data
+   * @param value the value of the data to be collected
+   * @return this builder
+   */
+  public InstrumentationBuilder metric(String name, boolean value);
 
   /**
    * Append the given metric to the data being collected by this builder. The information is

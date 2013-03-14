@@ -14,6 +14,7 @@
 package com.google.dart.tools.core;
 
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
 import org.eclipse.core.runtime.Platform;
 
@@ -69,6 +70,45 @@ public class DartCoreDebug {
 
   public static final boolean DISABLE_DARTIUM_DEBUGGER = isOptionTrue("user/disableDartiumDebugger");
   public static final boolean DISABLE_CLI_DEBUGGER = isOptionTrue("user/disableCommandLineDebugger");
+
+  /**
+   * Report each of these parameters to the provided instrumentation builder
+   */
+  public static void record(InstrumentationBuilder instrumentation) {
+    instrumentation.metric("DEBUG_ANALYSIS", DEBUG_ANALYSIS);
+    instrumentation.metric("DEBUG_INDEX_CONTRIBUTOR", DEBUG_INDEX_CONTRIBUTOR);
+    instrumentation.metric("METRICS", METRICS);
+    instrumentation.metric("WARMUP", WARMUP);
+    instrumentation.metric("VERBOSE", VERBOSE);
+    instrumentation.metric("LOGGING_DEBUGGER", LOGGING_DEBUGGER);
+
+    instrumentation.metric("TRACE_ARTIFACT_PROVIDER", TRACE_ARTIFACT_PROVIDER);
+    instrumentation.metric("TRACE_INDEX_CONTRIBUTOR", TRACE_INDEX_CONTRIBUTOR);
+    instrumentation.metric("TRACE_INDEX_PROCESSOR", TRACE_INDEX_PROCESSOR);
+    instrumentation.metric("TRACE_INDEX_STATISTICS", TRACE_INDEX_STATISTICS);
+    instrumentation.metric("TRACE_UPDATE", TRACE_UPDATE);
+    instrumentation.metric("TRACE_MODEL_ACCESS", TRACE_MODEL_ACCESS);
+
+    instrumentation.metric("ENABLE_CONTENT_ASSIST_TIMING", ENABLE_CONTENT_ASSIST_TIMING);
+
+    instrumentation.metric("PERF_TIMER", PERF_TIMER);
+    instrumentation.metric("PERF_INDEX", PERF_INDEX);
+    instrumentation.metric("PERF_OS_RESOURCES", PERF_OS_RESOURCES);
+
+    instrumentation.metric("ENABLE_ALT_KEY_BINDINGS", ENABLE_ALT_KEY_BINDINGS);
+    instrumentation.metric("ENABLE_TESTS_VIEW", ENABLE_TESTS_VIEW);
+    instrumentation.metric("ENABLE_FORMATTER", ENABLE_FORMATTER);
+    instrumentation.metric("ENABLE_THEMES", ENABLE_THEMES);
+    instrumentation.metric("ENABLE_TAB_COLORING", ENABLE_TAB_COLORING);
+    instrumentation.metric("ENABLE_HTML_VALIDATION", ENABLE_HTML_VALIDATION);
+    instrumentation.metric("ENABLE_NEW_ANALYSIS", ENABLE_NEW_ANALYSIS);
+
+    instrumentation.metric("DISABLE_MARK_OCCURRENCES", LOGGING_DEBUGGER);
+
+    instrumentation.metric("DISABLE_DARTIUM_DEBUGGER", LOGGING_DEBUGGER);
+    instrumentation.metric("DISABLE_CLI_DEBUGGER", LOGGING_DEBUGGER);
+
+  }
 
   /**
    * @return <code>true</code> if option has value "true".

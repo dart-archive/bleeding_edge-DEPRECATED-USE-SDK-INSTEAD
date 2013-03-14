@@ -37,6 +37,12 @@ public class UIInstrumentation {
     }
 
     @Override
+    public InstrumentationBuilder data(String name, boolean value) {
+      builder.data(name, value);
+      return this;
+    }
+
+    @Override
     public UIInstrumentationBuilder data(String name, long value) {
       builder.data(name, value);
       return this;
@@ -62,6 +68,12 @@ public class UIInstrumentation {
     @Override
     public void log() {
       builder.log();
+    }
+
+    @Override
+    public InstrumentationBuilder metric(String name, boolean value) {
+      builder.metric(name, value);
+      return this;
     }
 
     @Override
