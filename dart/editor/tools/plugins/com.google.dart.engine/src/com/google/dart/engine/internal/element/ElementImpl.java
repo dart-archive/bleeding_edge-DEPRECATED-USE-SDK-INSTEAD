@@ -181,6 +181,17 @@ public abstract class ElementImpl implements Element {
   }
 
   /**
+   * Set the offset of the name of this element in the file that contains the declaration of this
+   * element to the given value. This is normally done via the constructor, but this method is
+   * provided to support unnamed constructors.
+   * 
+   * @param nameOffset the offset to the beginning of the name
+   */
+  public void setNameOffset(int nameOffset) {
+    this.nameOffset = nameOffset;
+  }
+
+  /**
    * Set whether this element is synthetic to correspond to the given value.
    * 
    * @param isSynthetic {@code true} if the element is synthetic

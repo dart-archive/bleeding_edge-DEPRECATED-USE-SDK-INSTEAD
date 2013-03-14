@@ -30,6 +30,7 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.FunctionTypedFormalParameter;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
@@ -54,6 +55,7 @@ import com.google.dart.engine.internal.element.ConstTopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
@@ -61,7 +63,6 @@ import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
 import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
-import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -208,7 +209,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
 
     currentHolder.addConstructor(element);
     node.setElement(element);
-    if (constructorName != null) {
+    if (constructorName == null) {
+      Identifier returnType = node.getReturnType();
+      if (returnType != null) {
+        element.setNameOffset(returnType.getOffset());
+      }
+    } else {
       constructorName.setElement(element);
     }
     return null;
