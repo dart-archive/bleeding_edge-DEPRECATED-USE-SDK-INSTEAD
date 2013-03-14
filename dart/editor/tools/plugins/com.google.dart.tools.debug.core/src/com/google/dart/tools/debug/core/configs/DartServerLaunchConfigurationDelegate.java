@@ -15,9 +15,9 @@ package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
@@ -29,7 +29,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -53,11 +52,17 @@ import java.util.Map;
 public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
   private static final int DEFAULT_PORT_NUMBER = 5858;
 
+  private IPackageRootProvider packageRootProvider;
+
   /**
    * Create a new DartServerLaunchConfigurationDelegate.
    */
   public DartServerLaunchConfigurationDelegate() {
+    this(IPackageRootProvider.DEFAULT);
+  }
 
+  public DartServerLaunchConfigurationDelegate(IPackageRootProvider packageRootProvider) {
+    this.packageRootProvider = packageRootProvider;
   }
 
   @Override
@@ -74,7 +79,6 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     terminateSameLaunches(launch);
 
     launchVM(launch, launchConfig, enableDebugging, monitor);
-
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,
@@ -115,14 +119,14 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
       commandsList.add("--debug:" + connectionPort);
     }
 
-    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
     if (packageRoot != null) {
-      packageRoot = new Path(packageRoot).makeAbsolute().toOSString();
+      String packageRootString = packageRoot.getAbsolutePath();
       String fileSeparator = System.getProperty("file.separator");
-      if (!packageRoot.endsWith(fileSeparator)) {
-        packageRoot += fileSeparator;
+      if (!packageRootString.endsWith(fileSeparator)) {
+        packageRootString += fileSeparator;
       }
-      commandsList.add("--package-root=" + packageRoot);
+      commandsList.add("--package-root=" + packageRootString);
     }
 
     commandsList.add(scriptPath);

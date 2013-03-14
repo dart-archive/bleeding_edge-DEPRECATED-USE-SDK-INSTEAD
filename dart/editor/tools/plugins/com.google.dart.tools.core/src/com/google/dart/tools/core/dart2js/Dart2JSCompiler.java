@@ -16,8 +16,10 @@ package com.google.dart.tools.core.dart2js;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
 
 import org.eclipse.core.resources.IContainer;
@@ -208,11 +210,17 @@ public class Dart2JSCompiler {
     container.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
   }
 
+  private IPackageRootProvider packageRootProvider;
+
   /**
    * Create a new Dart2JSCompiler.
    */
   public Dart2JSCompiler() {
+    this(IPackageRootProvider.DEFAULT);
+  }
 
+  public Dart2JSCompiler(IPackageRootProvider packageRootProvider) {
+    this.packageRootProvider = packageRootProvider;
   }
 
   /**
@@ -273,9 +281,9 @@ public class Dart2JSCompiler {
 
     args.add("--suppress-warnings");
 
-    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    File packageRoot = packageRootProvider.getPackageRoot(getProjectFor(inputPath));
     if (packageRoot != null) {
-      args.add("--package-root=" + packageRoot);
+      args.add("--package-root=" + packageRoot.getPath());
     }
     args.add("--out=" + outputPath.toOSString());
     args.add(inputPath.toOSString());
@@ -296,6 +304,10 @@ public class Dart2JSCompiler {
     }
 
     return args;
+  }
+
+  private IProject getProjectFor(IPath path) {
+    return ResourceUtil.getFile(path.toFile()).getProject();
   }
 
   private void refreshParentFolder(IPath outputPath) {

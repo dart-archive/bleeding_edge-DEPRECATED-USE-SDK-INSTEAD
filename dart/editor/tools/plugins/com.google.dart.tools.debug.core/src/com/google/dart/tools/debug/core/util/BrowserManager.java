@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DebugUIHelper;
@@ -113,8 +114,14 @@ public class BrowserManager {
 
   private int devToolsPortNumber;
 
-  private BrowserManager() {
+  private IPackageRootProvider packageRootProvider;
 
+  private BrowserManager() {
+    this(IPackageRootProvider.DEFAULT);
+  }
+
+  private BrowserManager(IPackageRootProvider packageRootProvider) {
+    this.packageRootProvider = packageRootProvider;
   }
 
   public void dispose() {
@@ -617,15 +624,14 @@ public class BrowserManager {
     }
 
     // Pass in --package-root if the preference is set
-    String packageRoot = DartCore.getPlugin().getPackageRootPref();
-    // TODO(keertip): if using default "packages" directory, do not set env variable
-    // TODO(devoncarew): why are we only passing package root in when launching a file (not a url)?
+    File packageRoot = packageRootProvider.getPackageRoot(launchConfig.getProject());
+
     if (packageRoot != null && launchConfig.getShouldLaunchFile()) {
       try {
-        String packageRootUri = getResourceServer().getUrlForFile(new Path(packageRoot).toFile());
+        String packageRootUri = getResourceServer().getUrlForFile(packageRoot);
 
         // Strip a trailing slash off the uri if the user setting didn't have one.
-        if (!packageRoot.endsWith("/") && packageRootUri.endsWith("/")) {
+        if (!packageRoot.getPath().endsWith("/") && packageRootUri.endsWith("/")) {
           packageRootUri = packageRootUri.substring(0, packageRootUri.length() - 1);
         }
 

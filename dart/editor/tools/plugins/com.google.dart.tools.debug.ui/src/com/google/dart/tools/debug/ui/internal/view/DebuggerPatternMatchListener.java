@@ -239,8 +239,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // package:abc/abc.dart
 
       // resolve package: urls to file: urls
-      if (PackageLibraryManager.isPackageSpec(url)
-          && DartCore.getPlugin().getPackageRootPref() != null) {
+      if (PackageLibraryManager.isPackageSpec(url)) {
         url = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(url).toString();
       }
 

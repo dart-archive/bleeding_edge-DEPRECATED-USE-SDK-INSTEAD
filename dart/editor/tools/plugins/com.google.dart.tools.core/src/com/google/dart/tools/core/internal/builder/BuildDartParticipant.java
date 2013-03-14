@@ -25,6 +25,7 @@ import com.google.dart.tools.core.builder.CleanVisitor;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.core.snapshot.SnapshotCompilationServer;
 
 import static com.google.dart.tools.core.DartCore.BUILD_DART_FILE_NAME;
@@ -81,7 +82,7 @@ public class BuildDartParticipant implements BuildParticipant {
 
   private static final String BUILD_LOG_NAME = ".buildlog";
 
-  private static final boolean USE_SNAPSHOT = false;
+  private static boolean USE_SNAPSHOT = false;
 
   private static void createErrorMarker(IFile file, int severity, String message, int line,
       int charStart, int charEnd) throws CoreException {
@@ -103,6 +104,16 @@ public class BuildDartParticipant implements BuildParticipant {
 
   private static void deleteMarkers(IFile file) throws CoreException {
     file.deleteMarkers(ISSUE_MARKER, true, IResource.DEPTH_ZERO);
+  }
+
+  private IPackageRootProvider packageRootProvider;
+
+  public BuildDartParticipant() {
+    this(IPackageRootProvider.DEFAULT);
+  }
+
+  public BuildDartParticipant(IPackageRootProvider packageRootProvider) {
+    this.packageRootProvider = packageRootProvider;
   }
 
   /**
@@ -285,9 +296,9 @@ public class BuildDartParticipant implements BuildParticipant {
     args.add(DartSdkManager.getManager().getSdk().getVmExecutable().getPath());
 
     // --package-root
-    String packageRoot = DartCore.getPlugin().getPackageRootPref();
+    File packageRoot = packageRootProvider.getPackageRoot(builderFile.getProject());
     if (packageRoot != null) {
-      args.add("--package-root=" + packageRoot);
+      args.add("--package-root=" + packageRoot.getPath());
     }
 
     // --use-script-snapshot

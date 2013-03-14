@@ -18,13 +18,20 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -54,6 +61,11 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   private Text dart2jsFlagsText;
 
+  private Button usePackageRootButton;
+
+  private Text packageRootText;
+  private Button packageRootBrowseButton;
+
   /**
    * Create a new DartSettingsPropertyPage.
    */
@@ -66,10 +78,13 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     IProject project = getProject();
 
     if (project != null) {
-      String flags = dart2jsFlagsText.getText().trim();
-
       try {
-        DartCore.getPlugin().setDart2jsFlags(project, flags);
+        // dart2js
+        DartCore.getPlugin().setDart2jsFlags(project, dart2jsFlagsText.getText().trim());
+
+        // package root
+        DartCore.getPlugin().setUsePackageRoot(project, usePackageRootButton.getSelection());
+        DartCore.getPlugin().setPackageRoot(project, packageRootText.getText().trim());
       } catch (CoreException ce) {
         DartToolsPlugin.log(ce);
       }
@@ -80,29 +95,73 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   @Override
   protected Control createContents(Composite parent) {
+    final int indentAmount = 15;
+
     Composite composite = new Composite(parent, SWT.NONE);
     GridLayoutFactory.fillDefaults().applyTo(composite);
 
-    Group dart2js = new Group(composite, SWT.NONE);
-    dart2js.setText("Dart2js settings");
-    GridDataFactory.fillDefaults().grab(true, false).applyTo(dart2js);
-    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(dart2js);
+    // dart2js settings
+    Group group = new Group(composite, SWT.NONE);
+    group.setText("Dart2js settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(1).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
 
-    Label label = new Label(dart2js, SWT.NONE);
-    label.setText("Additional flags:");
+    Label label = new Label(group, SWT.NONE);
+    label.setText("Additional flags for dart2js:");
 
-    dart2jsFlagsText = new Text(dart2js, SWT.BORDER | SWT.SINGLE);
-    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(true, false).applyTo(
-        dart2jsFlagsText);
+    dart2jsFlagsText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.CENTER).hint(100, -1).indent(indentAmount, 0).grab(
+        true,
+        false).applyTo(dart2jsFlagsText);
 
-    // spacer
-    new Label(dart2js, SWT.NONE);
-
-    label = new Label(dart2js, SWT.NONE);
-    label.setText("e.g. --disallow-unsafe-eval");
+    label = new Label(group, SWT.NONE);
+    label.setText("(e.g. --disallow-unsafe-eval)");
     label.setFont(getItalicFont(label.getFont()));
+    GridDataFactory.swtDefaults().indent(indentAmount, 0).applyTo(label);
+
+    // package root settings
+    group = new Group(composite, SWT.NONE);
+    group.setText("Package root settings");
+    GridDataFactory.fillDefaults().grab(true, false).applyTo(group);
+    GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
+    ((GridLayout) group.getLayout()).marginBottom = 5;
+
+    usePackageRootButton = new Button(group, SWT.CHECK);
+    usePackageRootButton.setText("Use package root");
+    GridDataFactory.swtDefaults().span(2, 1).applyTo(usePackageRootButton);
+    usePackageRootButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        updateEnablement();
+      }
+    });
+
+    packageRootText = new Text(group, SWT.BORDER | SWT.SINGLE);
+    GridDataFactory.swtDefaults().indent(indentAmount, 0).align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(
+        true,
+        false).applyTo(packageRootText);
+
+    packageRootBrowseButton = new Button(group, SWT.PUSH);
+    packageRootBrowseButton.setText("Select...");
+    PixelConverter converter = new PixelConverter(packageRootBrowseButton);
+    int widthHint = converter.convertHorizontalDLUsToPixels(IDialogConstants.BUTTON_WIDTH);
+    GridDataFactory.swtDefaults().align(SWT.FILL, SWT.BEGINNING).hint(widthHint, -1).applyTo(
+        packageRootBrowseButton);
+    packageRootBrowseButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        handlePackageRootBrowse();
+      }
+    });
+
+    label = new Label(group, SWT.NONE);
+    label.setText("The package root setting (--package-root) will override the use of local packages directories.");
+    GridDataFactory.swtDefaults().indent(indentAmount, 0).span(2, 1).applyTo(label);
 
     initializeFromSettings();
+
+    updateEnablement();
 
     return composite;
   }
@@ -111,6 +170,11 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
   protected void performDefaults() {
     dart2jsFlagsText.setText("");
 
+    usePackageRootButton.setSelection(false);
+    packageRootText.setText("");
+
+    updateEnablement();
+
     super.performDefaults();
   }
 
@@ -118,16 +182,44 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     return (IProject) getElement().getAdapter(IProject.class);
   }
 
+  private void handlePackageRootBrowse() {
+    DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.APPLICATION_MODAL | SWT.OPEN);
+    dialog.setText("Select the package root path");
+
+    String path = dialog.open();
+
+    if (path != null) {
+      packageRootText.setText(path);
+    }
+  }
+
   private void initializeFromSettings() {
     IProject project = getProject();
 
     if (project != null) {
+      // dart2js
       String args = DartCore.getPlugin().getDart2jsFlags(project);
 
       if (args != null) {
         dart2jsFlagsText.setText(args);
       }
+
+      // pub
+      usePackageRootButton.setSelection(DartCore.getPlugin().getUsePackageRoot(project));
+
+      String pref = DartCore.getPlugin().getProjectPreferences(project).get(
+          DartCore.PROJECT_PREF_PACKAGE_ROOT,
+          "");
+
+      packageRootText.setText(pref);
     }
+  }
+
+  private void updateEnablement() {
+    boolean enabled = usePackageRootButton.getSelection();
+
+    packageRootText.setEnabled(enabled);
+    packageRootBrowseButton.setEnabled(enabled);
   }
 
 }
