@@ -30,6 +30,7 @@ public class PubYamlObject {
   public String documentation;
   public Map<String, Object> environment;
   public Map<String, Object> dependencies;
+  public Map<String, Object> dev_dependencies;
 
   public PubYamlObject() {
   }

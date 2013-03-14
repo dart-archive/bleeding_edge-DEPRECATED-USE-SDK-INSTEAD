@@ -71,7 +71,7 @@ public class PubspecModelTest extends TestCase {
     assertEquals("dart team", pubspecModel.getAuthor());
     assertEquals("http://pub.dartlang.org", pubspecModel.getHomepage());
     assertEquals("http://www.dartlang.org", pubspecModel.getDocumentation());
-    assertEquals(7, pubspecModel.getDependecies().length);
+    assertEquals(8, pubspecModel.getDependecies().length);
     assertEquals("", pubspecModel.getSdkVersion());
   }
 

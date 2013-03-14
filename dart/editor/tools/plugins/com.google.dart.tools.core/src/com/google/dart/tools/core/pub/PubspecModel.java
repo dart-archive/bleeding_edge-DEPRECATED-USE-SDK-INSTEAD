@@ -214,12 +214,21 @@ public class PubspecModel {
       pubYamlObject.environment = map;
     }
     Map<String, Object> dependenciesMap = new HashMap<String, Object>();
+    Map<String, Object> devDependenciesMap = new HashMap<String, Object>();
     for (DependencyObject dep : dependencies) {
       if (dep.getType().equals(Type.HOSTED)) {
         if (dep.getVersion().isEmpty()) {
-          dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+          if (dep.isForDevelopment()) {
+            devDependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+          } else {
+            dependenciesMap.put(dep.getName(), PubspecConstants.ANY);
+          }
         } else {
-          dependenciesMap.put(dep.getName(), dep.getVersion());
+          if (dep.isForDevelopment()) {
+            devDependenciesMap.put(dep.getName(), dep.getVersion());
+          } else {
+            dependenciesMap.put(dep.getName(), dep.getVersion());
+          }
         }
       } else if (dep.getType().equals(Type.GIT)) {
         Map<String, Object> gitMap = new HashMap<String, Object>();
@@ -234,14 +243,23 @@ public class PubspecModel {
         if (!dep.getVersion().equals(PubspecConstants.ANY) && !dep.getVersion().isEmpty()) {
           gitMap.put(PubspecConstants.VERSION, dep.getVersion());
         }
-        dependenciesMap.put(dep.getName(), gitMap);
+        if (dep.isForDevelopment()) {
+          devDependenciesMap.put(dep.getName(), gitMap);
+        } else {
+          dependenciesMap.put(dep.getName(), gitMap);
+        }
       } else {
         Map<String, Object> pathMap = new HashMap<String, Object>();
         pathMap.put(PubspecConstants.PATH, dep.getPath());
-        dependenciesMap.put(dep.getName(), pathMap);
+        if (dep.isForDevelopment()) {
+          devDependenciesMap.put(dep.getName(), pathMap);
+        } else {
+          dependenciesMap.put(dep.getName(), pathMap);
+        }
       }
     }
     pubYamlObject.dependencies = dependenciesMap;
+    pubYamlObject.dev_dependencies = devDependenciesMap;
     return pubYamlObject;
   }
 
@@ -260,11 +278,12 @@ public class PubspecModel {
   // Support for dependencies hosted on pub.dartlang.org and git. 
   // TODO(keertip): Add support for hosted on other than pub.dartlang.org
   @SuppressWarnings("unchecked")
-  private DependencyObject[] processDependencies(Map<String, Object> yamlDep) {
+  private DependencyObject[] processDependencies(Map<String, Object> yamlDep, boolean isDev) {
     List<DependencyObject> deps = new ArrayList<DependencyObject>();
     if (yamlDep != null) {
       for (String name : yamlDep.keySet()) {
         DependencyObject d = new DependencyObject(name);
+        d.setForDevelopment(isDev);
         Object value = yamlDep.get(name);
         if (value instanceof String) {
           d.setVersion((String) value);
@@ -332,8 +351,14 @@ public class PubspecModel {
     documentation = (String) ((pubspecMap.get(PubspecConstants.DOCUMENTATION) != null)
         ? pubspecMap.get(PubspecConstants.DOCUMENTATION) : EMPTY_STRING);
     add(
-        processDependencies((Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES)),
+        processDependencies(
+            (Map<String, Object>) pubspecMap.get(PubspecConstants.DEPENDENCIES),
+            false),
         IModelListener.REFRESH);
-
+    add(
+        processDependencies(
+            (Map<String, Object>) pubspecMap.get(PubspecConstants.DEV_DEPENDENCIES),
+            true),
+        IModelListener.REFRESH);
   }
 }

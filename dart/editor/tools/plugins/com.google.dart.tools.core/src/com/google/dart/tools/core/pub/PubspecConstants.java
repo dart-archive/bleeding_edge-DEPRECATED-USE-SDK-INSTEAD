@@ -26,6 +26,7 @@ public interface PubspecConstants {
   public static final String ENVIRONMENT = "environment";
   public static final String HOMEPAGE = "homepage";
   public static final String DEPENDENCIES = "dependencies";
+  public static final String DEV_DEPENDENCIES = "dev_dependencies";
   public static final String DOCUMENTATION = "documentation";
   public static final String SDK_VERSION = "sdk";
   public static final String PATH = "path";

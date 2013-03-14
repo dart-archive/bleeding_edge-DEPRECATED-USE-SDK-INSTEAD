@@ -29,6 +29,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -64,6 +65,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
   private Label gitrefLabel;
 
   private boolean ignoreModify = false;
+  private Button devButton;
 
   @Override
   public void createContents(Composite parent) {
@@ -154,6 +156,18 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
       }
     });
 
+    devButton = toolkit.createButton(client, "dev dependency", SWT.CHECK);
+    devButton.setToolTipText("dependency is used for tests, examples etc.");
+    gd = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
+    devButton.setLayoutData(gd);
+    devButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        input.setForDevelopment(devButton.getSelection());
+        setTextDirty();
+      }
+    });
+
     toolkit.createLabel(client, "");
     pathLabel = toolkit.createLabel(client, "Path:");
     pathText = toolkit.createText(client, "", SWT.SINGLE | SWT.BORDER); //$NON-NLS-1$
@@ -223,6 +237,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     if (input != null) {
       nameText.setText(input.getName() != null ? input.getName() : EMPTY_STRING);
       versionText.setText(input.getVersion() != null ? input.getVersion() : EMPTY_STRING);
+      devButton.setSelection(input.isForDevelopment());
       if (input.getType().equals(Type.GIT)) {
         sourceCombo.select(0);
         updateModelandSourceFields(Type.GIT);

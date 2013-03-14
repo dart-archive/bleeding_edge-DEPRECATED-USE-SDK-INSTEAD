@@ -1,3 +1,4 @@
+dev_dependencies
 dependencies
 description
 name
@@ -11,4 +12,5 @@ sdk
 environment
 path
 documentation
+dev_dependencies
 

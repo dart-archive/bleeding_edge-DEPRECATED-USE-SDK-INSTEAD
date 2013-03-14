@@ -31,6 +31,7 @@ public class DependencyObject {
   private String path;
   private String ref;
   private Type type = Type.HOSTED;
+  private boolean forDevelopment = false;
 
   public DependencyObject(String name) {
     this.name = name;
@@ -48,6 +49,9 @@ public class DependencyObject {
       return false;
     }
     DependencyObject other = (DependencyObject) obj;
+    if (forDevelopment != other.forDevelopment) {
+      return false;
+    }
     if (name == null) {
       if (other.name != null) {
         return false;
@@ -110,12 +114,21 @@ public class DependencyObject {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + (forDevelopment ? 1231 : 1237);
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     result = prime * result + ((path == null) ? 0 : path.hashCode());
     result = prime * result + ((ref == null) ? 0 : ref.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((version == null) ? 0 : version.hashCode());
     return result;
+  }
+
+  public boolean isForDevelopment() {
+    return forDevelopment;
+  }
+
+  public void setForDevelopment(boolean forDevelopment) {
+    this.forDevelopment = forDevelopment;
   }
 
   public void setGitRef(String gitRef) {
