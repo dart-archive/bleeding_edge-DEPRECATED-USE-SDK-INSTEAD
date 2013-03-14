@@ -198,6 +198,11 @@ class ObservableList<T>
   T min([int compare(T a, T b)]) => _internal.min(compare);
   T max([int compare(T a, T b)]) => _internal.max(compare);
 
+  void insert(int index, T element) {
+    _internal.insert(index, element);
+    recordListInsert(index, element);
+  }
+
   T removeLast() {
     final result = _internal.removeLast();
     recordListRemove(length, result);

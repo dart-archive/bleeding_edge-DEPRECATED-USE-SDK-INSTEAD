@@ -303,6 +303,10 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
     return elements.remove(element);
   }
 
+  void insert(int index, E value) {
+    elements.insert(index, value);
+  }
+
   E removeAt(int index) {
     return elements.removeAt(index);
   }
