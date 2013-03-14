@@ -100,11 +100,26 @@ public class ExtractMethodAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void selectionChanged(ITextSelection selection) {
+    // no editor
+    if (editor == null || !editor.isEditable()) {
+      setEnabled(false);
+      return;
+    }
+    // not selection
     if (selection.getLength() == 0) {
       setEnabled(false);
+      return;
+    }
+    // has context?
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      AssistContext context = editor.getAssistContext();
+      if (context == null) {
+        setEnabled(false);
+        return;
+      }
+      setEnabled(true);
     } else {
-      setEnabled(editor != null && editor.isEditable()
-          && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+      setEnabled(SelectionConverter.getInputAsCompilationUnit(editor) != null);
     }
   }
 }

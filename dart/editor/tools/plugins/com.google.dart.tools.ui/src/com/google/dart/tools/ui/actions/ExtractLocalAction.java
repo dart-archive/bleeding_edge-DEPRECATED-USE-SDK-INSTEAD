@@ -46,8 +46,20 @@ public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    setEnabled(editor != null && editor.isEditable()
-        && SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    if (editor == null || !editor.isEditable()) {
+      setEnabled(false);
+      return;
+    }
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      AssistContext context = editor.getAssistContext();
+      if (context == null) {
+        setEnabled(false);
+        return;
+      }
+      setEnabled(selection.getLength() != 0);
+    } else {
+      setEnabled(SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    }
   }
 
   @Override

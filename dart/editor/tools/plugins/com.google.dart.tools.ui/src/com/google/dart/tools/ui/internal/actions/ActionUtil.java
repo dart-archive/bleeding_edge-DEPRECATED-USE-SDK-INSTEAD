@@ -20,9 +20,11 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.ExternalDartProject;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
@@ -436,17 +438,31 @@ public class ActionUtil {
       return true;
     }
     Shell shell = editor.getSite().getShell();
-    DartElement input = SelectionConverter.getInput(editor);
-    // if a Java editor doesn't have an input of type Java element
-    // then it is for sure not on the build path
-    if (input == null) {
-      MessageDialog.openInformation(
-          shell,
-          ActionMessages.ActionUtil_notOnBuildPath_title,
-          ActionMessages.ActionUtil_notOnBuildPath_message);
-      return false;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      CompilationUnitElement input = editor.getInputElement();
+      // if a Java editor doesn't have an input of type Java element
+      // then it is for sure not on the build path
+      if (input == null) {
+        MessageDialog.openInformation(
+            shell,
+            ActionMessages.ActionUtil_notOnBuildPath_title,
+            ActionMessages.ActionUtil_notOnBuildPath_message);
+        return false;
+      }
+      return isProcessable(shell, input);
+    } else {
+      DartElement input = SelectionConverter.getInput(editor);
+      // if a Java editor doesn't have an input of type Java element
+      // then it is for sure not on the build path
+      if (input == null) {
+        MessageDialog.openInformation(
+            shell,
+            ActionMessages.ActionUtil_notOnBuildPath_title,
+            ActionMessages.ActionUtil_notOnBuildPath_message);
+        return false;
+      }
+      return isProcessable(shell, input);
     }
-    return isProcessable(shell, input);
   }
 
   public static boolean isProcessable(Shell shell, DartElement element) {

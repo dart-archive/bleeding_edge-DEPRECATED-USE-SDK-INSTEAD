@@ -100,16 +100,14 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
-    // TODO(scheglov) implement when we will get selection notification for cursor movement
-//    Element element = getElement(selection);
-//    setEnabled(isRenameElementAvailable(element));
+    Element element = getElement(selection);
+    setEnabled(element != null);
   }
 
   @Override
   public void selectionChanged(ITextSelection selection) {
-    // TODO(scheglov) implement when we will get selection notification for cursor movement
-//    Element element = getElementFromEditor(selection);
-//    setEnabled(element != null);
+    Element element = getElementFromEditor(selection);
+    setEnabled(element != null);
   }
 
   private void doRun(UIInstrumentationBuilder instrumentation, Element element, boolean lightweight) {
@@ -152,7 +150,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
 
   private void run(Element element, boolean lightweight) throws CoreException {
     if (lightweight && fEditor instanceof CompilationUnitEditor) {
-      new RenameLinkedMode(element, (CompilationUnitEditor) fEditor).start();
+      new RenameLinkedMode((CompilationUnitEditor) fEditor).start();
     } else {
       RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
     }

@@ -41,6 +41,9 @@ public class RenameSupport {
     RenameRefactoring refactoring = RefactoringFactory.createRenameRefactoring(
         searchEngine,
         element);
+    if (refactoring == null) {
+      return null;
+    }
     return new RenameSupport(refactoring, newName);
   }
 

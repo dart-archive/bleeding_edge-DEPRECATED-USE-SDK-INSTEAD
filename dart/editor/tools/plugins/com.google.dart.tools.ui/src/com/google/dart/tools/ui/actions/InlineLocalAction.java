@@ -91,7 +91,7 @@ public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
         setEnabled(false);
       }
     } else {
-      setEnabled(false);
+      setEnabled(true);
     }
   }
 

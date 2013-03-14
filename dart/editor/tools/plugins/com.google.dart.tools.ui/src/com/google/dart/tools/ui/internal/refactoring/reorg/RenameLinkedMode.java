@@ -13,22 +13,18 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.reorg;
 
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.DartUnit;
+import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.Element;
-import com.google.dart.tools.core.dom.NodeFinder;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartConventions;
-import com.google.dart.tools.internal.corext.dom.LinkedNodeFinder;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
-import com.google.dart.tools.ui.internal.text.editor.ASTProvider;
 import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import org.eclipse.core.commands.operations.IOperationHistory;
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -71,8 +67,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * @coverage dart.editor.ui.refactoring.ui
@@ -152,8 +149,7 @@ public class RenameLinkedMode {
   }
 
   private final CompilationUnitEditor fEditor;
-
-  private final Element fDartElement;
+  private Element fDartElement;
 
   private RenameInformationPopup fInfoPopup;
   private Point fOriginalSelection;
@@ -174,11 +170,9 @@ public class RenameLinkedMode {
    */
   private IUndoableOperation fStartingUndoOperation;
 
-  public RenameLinkedMode(Element element, CompilationUnitEditor editor) {
-    Assert.isNotNull(element);
+  public RenameLinkedMode(CompilationUnitEditor editor) {
     Assert.isNotNull(editor);
     fEditor = editor;
-    fDartElement = element;
     fFocusEditingSupport = new FocusEditingSupport();
   }
 
@@ -239,13 +233,8 @@ public class RenameLinkedMode {
       if (fOriginalName.equals(newName)) {
         return false;
       }
-      /*
-       * TODO: use DartRenameProcessor#checkNewElementName(String) but make sure implementations
-       * don't access outdated Dart Model (cache all necessary information before starting linked
-       * mode).
-       */
       // TODO(scheglov) we may be rename not only variable, but also method, type, etc
-      return DartConventions.validateVariableName(newName).isOK();
+      return NamingConventions.validateVariableName(newName).isOK();
     } catch (BadLocationException e) {
       return false;
     }
@@ -274,17 +263,18 @@ public class RenameLinkedMode {
     int offset = fOriginalSelection.x;
 
     try {
-      DartUnit root = ASTProvider.getASTProvider().getAST(
-          getCompilationUnit(),
-          ASTProvider.WAIT_YES,
-          null);
+      AssistContext assistContext = fEditor.getAssistContext();
+      if (assistContext == null) {
+        return;
+      }
 
       fLinkedPositionGroup = new LinkedPositionGroup();
-      DartNode selectedNode = NodeFinder.perform(root, fOriginalSelection.x, fOriginalSelection.y);
-      if (!(selectedNode instanceof DartIdentifier)) {
-        return; // TODO: show dialog
+      ASTNode selectedNode = assistContext.getCoveredNode();
+      if (!(selectedNode instanceof SimpleIdentifier)) {
+        return;
       }
-      DartIdentifier nameNode = (DartIdentifier) selectedNode;
+      SimpleIdentifier nameNode = (SimpleIdentifier) selectedNode;
+      fDartElement = nameNode.getElement();
 
       if (viewer instanceof ITextViewerExtension6) {
         IUndoManager undoManager = ((ITextViewerExtension6) viewer).getUndoManager();
@@ -297,27 +287,35 @@ public class RenameLinkedMode {
       }
 
       fOriginalName = nameNode.getName();
-      final int pos = nameNode.getSourceInfo().getOffset();
-      DartNode[] sameNodes = LinkedNodeFinder.findByNode(root, nameNode);
+      final int pos = nameNode.getOffset();
+      final List<ASTNode> sameNodes = Lists.newArrayList();
+      selectedNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
+        @Override
+        public Void visitSimpleIdentifier(SimpleIdentifier node) {
+          if (node.getElement() == fDartElement) {
+            sameNodes.add(node);
+          }
+          return super.visitSimpleIdentifier(node);
+        }
+      });
 
       //TODO: copied from LinkedNamesAssistProposal#apply(..):
       // sort for iteration order, starting with the node @ offset
-      Arrays.sort(sameNodes, new Comparator<DartNode>() {
+      Collections.sort(sameNodes, new Comparator<ASTNode>() {
         @Override
-        public int compare(DartNode o1, DartNode o2) {
+        public int compare(ASTNode o1, ASTNode o2) {
           return rank(o1) - rank(o2);
         }
 
         /**
-         * Returns the absolute rank of an <code>DartNode</code>. Nodes preceding <code>pos</code>
+         * Returns the absolute rank of an <code>ASTNode</code>. Nodes preceding <code>pos</code>
          * are ranked last.
          * 
          * @param node the node to compute the rank for
          * @return the rank of the node with respect to the invocation offset
          */
-        private int rank(DartNode node) {
-          int relativeRank = node.getSourceInfo().getOffset() + node.getSourceInfo().getLength()
-              - pos;
+        private int rank(ASTNode node) {
+          int relativeRank = node.getOffset() + node.getLength() - pos;
           if (relativeRank < 0) {
             return Integer.MAX_VALUE + relativeRank;
           } else {
@@ -325,12 +323,12 @@ public class RenameLinkedMode {
           }
         }
       });
-      for (int i = 0; i < sameNodes.length; i++) {
-        DartNode elem = sameNodes[i];
+      for (int i = 0; i < sameNodes.size(); i++) {
+        ASTNode elem = sameNodes.get(i);
         LinkedPosition linkedPosition = new LinkedPosition(
             document,
-            elem.getSourceInfo().getOffset(),
-            elem.getSourceInfo().getLength(),
+            elem.getOffset(),
+            elem.getLength(),
             i);
         if (i == 0) {
           fNamePosition = linkedPosition;
@@ -444,7 +442,6 @@ public class RenameLinkedMode {
       if (executed) {
         restoreFullSelection();
       }
-      DartModelUtil.reconcile(getCompilationUnit());
     } catch (CoreException ex) {
       DartToolsPlugin.log(ex);
     } catch (InterruptedException ex) {
@@ -461,10 +458,6 @@ public class RenameLinkedMode {
         image.dispose();
       }
     }
-  }
-
-  private CompilationUnit getCompilationUnit() {
-    return (CompilationUnit) EditorUtility.getEditorInputDartElement(fEditor, false);
   }
 
   private void linkedModeLeft() {
@@ -537,8 +530,6 @@ public class RenameLinkedMode {
     } catch (InterruptedException e) {
       // canceling is OK
       return null;
-    } finally {
-      DartModelUtil.reconcile(getCompilationUnit());
     }
 
     viewer.setSelectedRange(fOriginalSelection.x, fOriginalSelection.y);

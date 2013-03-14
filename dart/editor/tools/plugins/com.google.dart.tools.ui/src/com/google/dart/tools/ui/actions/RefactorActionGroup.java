@@ -36,6 +36,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -184,7 +185,12 @@ public class RefactorActionGroup extends ActionGroup {
     ISelection selection = provider.getSelection();
 
     fRenameAction = new RenameAction(editor);
-    initAction(fRenameAction, selection, DartEditorActionDefinitionIds.RENAME_ELEMENT);
+    initUpdatingAction(
+        fRenameAction,
+        provider,
+        null,
+        selection,
+        DartEditorActionDefinitionIds.RENAME_ELEMENT);
     editor.setAction("RenameElement", fRenameAction); //$NON-NLS-1$
 
     fExtractLocalAction = new ExtractLocalAction(editor);
@@ -282,7 +288,12 @@ public class RefactorActionGroup extends ActionGroup {
 //    editor.setAction("UseSupertype", fUseSupertypeAction); //$NON-NLS-1$
 
     fInlineAction = new InlineAction(editor);
-    initAction(fInlineAction, selection, DartEditorActionDefinitionIds.INLINE);
+    initUpdatingAction(
+        fInlineAction,
+        provider,
+        null,
+        selection,
+        DartEditorActionDefinitionIds.INLINE);
     editor.setAction("Inline", fInlineAction); //$NON-NLS-1$
 
     fConvertMethodToGetterAction = new ConvertMethodToGetterAction(editor);
@@ -691,10 +702,10 @@ public class RefactorActionGroup extends ActionGroup {
     return DartUI.getEditorInputDartElement(fEditor.getEditorInput());
   }
 
-  private void initAction(InstrumentedSelectionDispatchAction action, ISelection selection,
-      String actionDefinitionId) {
-    initUpdatingAction(action, null, null, selection, actionDefinitionId);
-  }
+//  private void initAction(InstrumentedSelectionDispatchAction action, ISelection selection,
+//      String actionDefinitionId) {
+//    initUpdatingAction(action, null, null, selection, actionDefinitionId);
+//  }
 
   /**
    * Sets actionDefinitionId, updates enablement, adds to fActions, and adds selection changed
@@ -711,7 +722,9 @@ public class RefactorActionGroup extends ActionGroup {
       String actionDefinitionId) {
     action.setActionDefinitionId(actionDefinitionId);
     action.update(selection);
-    if (provider != null) {
+    if (provider instanceof IPostSelectionProvider) {
+      ((IPostSelectionProvider) provider).addPostSelectionChangedListener(action);
+    } else if (provider != null) {
       provider.addSelectionChangedListener(action);
     }
     if (specialProvider != null) {
