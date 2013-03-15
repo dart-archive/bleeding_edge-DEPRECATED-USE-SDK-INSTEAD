@@ -30,13 +30,21 @@ deps = {
   "utils":
     Var("dart_branch") + "/dart/utils",
 
+  # Stuff needed for tests to run.
+  "tests/co19/src":
+    Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
+
+  "compiler":
+    Var("dart_branch") + "/dart/compiler",
+
+  "samples":
+    Var("dart_branch") + "/dart/samples",
+
   # Stuff needed for GYP to run.
   "third_party/gyp":
     "http://gyp.googlecode.com/svn/trunk" + Var("gyp_rev"),
 
-  "tests/co19/src":
-    Var("co19_repo") + "tests/co19/src" + Var("co19_rev"),
-
+  # Stuff needed for secure sockets.
   "third_party/nss":
       Var("chromium_url") + "/trunk/deps/third_party/nss" + Var("nss_rev"),
 
