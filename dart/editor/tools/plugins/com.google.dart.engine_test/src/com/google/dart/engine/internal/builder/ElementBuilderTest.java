@@ -35,13 +35,13 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.scanner.Keyword;
@@ -53,6 +53,7 @@ import static com.google.dart.engine.ast.ASTFactory.breakStatement;
 import static com.google.dart.engine.ast.ASTFactory.catchClause;
 import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
+import static com.google.dart.engine.ast.ASTFactory.emptyFunctionBody;
 import static com.google.dart.engine.ast.ASTFactory.fieldDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.formalParameterList;
@@ -496,13 +497,13 @@ public class ElementBuilderTest extends EngineTestCase {
     ElementBuilder builder = new ElementBuilder(holder);
     String methodName = "m";
     MethodDeclaration methodDeclaration = methodDeclaration(
-        Keyword.ABSTRACT,
+        null,
         null,
         null,
         null,
         identifier(methodName),
         formalParameterList(),
-        blockFunctionBody());
+        emptyFunctionBody());
     methodDeclaration.accept(builder);
     MethodElement[] methods = holder.getMethods();
     assertLength(1, methods);
