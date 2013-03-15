@@ -14,14 +14,12 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import org.eclipse.core.resources.IContainer;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
 /**
@@ -37,18 +35,16 @@ public class ProjectUpdater implements DeltaListener {
   private ChangeSet currentChanges;
 
   /**
-   * Apply change sets to the associated contexts, and return the results.
+   * Apply change sets to the associated contexts.
    */
-  public Map<AnalysisContext, ChangeResult> applyChanges() {
-    HashMap<AnalysisContext, ChangeResult> results = new HashMap<AnalysisContext, ChangeResult>();
+  public void applyChanges() {
     for (Entry<AnalysisContext, ChangeSet> entry : contextChangeMap.entrySet()) {
       AnalysisContext context = entry.getKey();
       ChangeSet changeSet = entry.getValue();
       if (!changeSet.isEmpty()) {
-        results.put(context, context.applyChanges(changeSet));
+        context.applyChanges(changeSet);
       }
     }
-    return results;
   }
 
   @Override

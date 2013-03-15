@@ -44,13 +44,12 @@ import com.google.dart.engine.source.SourceKind;
  */
 public interface AnalysisContext {
   /**
-   * Apply the changes specified by the given change set to this context. The result indicates which
-   * analysis results have been invalidated as a result of the change.
+   * Apply the changes specified by the given change set to this context. Any analysis results that
+   * have been invalidated by these changes will be removed.
    * 
    * @param changeSet a description of the changes that are to be applied
-   * @return a result indicating analysis results that have been invalidated
    */
-  public ChangeResult applyChanges(ChangeSet changeSet);
+  public void applyChanges(ChangeSet changeSet);
 
   /**
    * Clear any cached information that is dependent on resolution. This method should be invoked if

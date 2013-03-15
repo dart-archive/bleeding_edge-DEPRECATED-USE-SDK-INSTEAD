@@ -20,7 +20,6 @@ import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
-import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -131,10 +130,9 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public ChangeResult applyChanges(ChangeSet changeSet) {
-    ChangeResult result = new ChangeResult();
+  public void applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty()) {
-      return result;
+      return;
     }
     synchronized (cacheLock) {
       //
@@ -163,16 +161,15 @@ public class AnalysisContextImpl implements AnalysisContext {
       // TODO(brianwilkerson) The code below is incomplete.
       //
       for (Source source : addedSources) {
-        sourceAvailable(result, source);
+        sourceAvailable(source);
       }
       for (Source source : changedSources) {
-        sourceChanged(result, source);
+        sourceChanged(source);
       }
       for (Source source : removedSources) {
-        sourceRemoved(result, source);
+        sourceRemoved(source);
       }
     }
-    return result;
   }
 
   @Override
@@ -619,25 +616,22 @@ public class AnalysisContextImpl implements AnalysisContext {
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
-   * @param result the result that will be used to report changes
    * @param source the source that has been added
    */
-  private void sourceAvailable(ChangeResult result, Source source) {
+  private void sourceAvailable(Source source) {
     SourceInfo existingInfo = sourceMap.get(source);
     if (existingInfo == null) {
       SourceKind kind = computeKindOf(source);
       sourceMap.put(source, new SourceInfo(source, kind));
-      result.invalidated(source);
     }
   }
 
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
-   * @param result the result that will be used to report changes
    * @param source the source that has been changed
    */
-  private void sourceChanged(ChangeResult result, Source source) {
+  private void sourceChanged(Source source) {
     SourceInfo info = sourceMap.get(source);
     if (info == null) {
       // TODO(brianwilkerson) Figure out how to report this error.
@@ -653,7 +647,6 @@ public class AnalysisContextImpl implements AnalysisContext {
     if (newKind != oldKind) {
       info.setKind(newKind);
     }
-    result.invalidated(source);
     for (Source librarySource : info.getLibrarySources()) {
       // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
       // public namespace hasn't changed, which will be a fairly common case.
@@ -665,10 +658,9 @@ public class AnalysisContextImpl implements AnalysisContext {
   /**
    * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
-   * @param result the result that will be used to report changes
    * @param source the source that has been deleted
    */
-  private void sourceRemoved(ChangeResult result, Source source) {
+  private void sourceRemoved(Source source) {
     // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
     // there are no additional dependencies on the source), and if so remove all information
     // about the source.

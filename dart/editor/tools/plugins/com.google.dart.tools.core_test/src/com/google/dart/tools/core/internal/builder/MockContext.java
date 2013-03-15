@@ -4,7 +4,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
-import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -115,9 +114,8 @@ public class MockContext implements AnalysisContext {
   private SourceFactory factory;
 
   @Override
-  public ChangeResult applyChanges(ChangeSet changes) {
+  public void applyChanges(ChangeSet changes) {
     calls.add(new ChangedCall(this, changes));
-    return new ChangeResult();
   }
 
   public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {
