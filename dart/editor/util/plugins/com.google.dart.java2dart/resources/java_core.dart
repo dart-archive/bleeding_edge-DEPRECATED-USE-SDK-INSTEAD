@@ -291,6 +291,10 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
     return elements.indexOf(element, start);
   }
 
+  void insert(int index, E element) {
+    elements.insert(index, element);
+  }
+
   int lastIndexOf(E element, [int start]) {
     return elements.lastIndexOf(element, start);
   }
@@ -301,10 +305,6 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
 
   void remove(Object element) {
     return elements.remove(element);
-  }
-
-  void insert(int index, E value) {
-    elements.insert(index, value);
   }
 
   E removeAt(int index) {
