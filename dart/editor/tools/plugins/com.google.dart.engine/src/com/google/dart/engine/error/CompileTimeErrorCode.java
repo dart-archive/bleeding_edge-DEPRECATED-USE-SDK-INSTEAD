@@ -244,8 +244,30 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
    * <p>
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
+   * 
+   * @param typeName the name of the type that cannot be extended
+   * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
-  EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS(""),
+  EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
+
+  /**
+   * 12.2 Null: It is a compile-time error for a class to attempt to extend or implement Null.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement int.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for a class to attempt to extend or implement double.
+   * <p>
+   * 12.3 Numbers: It is a compile-time error for any type other than the types int and double to
+   * attempt to extend or implement num.
+   * <p>
+   * 12.4 Booleans: It is a compile-time error for a class to attempt to extend or implement bool.
+   * <p>
+   * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
+   * 
+   * @param typeName the name of the type that cannot be implemented
+   * @see #EXTENDS_DISALLOWED_CLASS
+   */
+  IMPLEMENTS_DISALLOWED_CLASS("Classes cannot implement '%s'"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time

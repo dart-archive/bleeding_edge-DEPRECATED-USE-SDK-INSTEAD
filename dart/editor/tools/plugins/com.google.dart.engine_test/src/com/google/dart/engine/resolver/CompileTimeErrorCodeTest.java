@@ -185,75 +185,11 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_extendsOrImplementsDisallowedClass_extends_bool() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends bool {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_extends_double() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends double {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_extends_int() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends int {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
   public void fail_extendsOrImplementsDisallowedClass_extends_null() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends Null {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_extends_num() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends num {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_extends_String() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A extends String {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_implements_bool() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements bool {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_implements_double() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements double {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_implements_int() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements int {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -261,23 +197,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", createSource(//
         "class A implements Null {}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_implements_num() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements num {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
-    verify(source);
-  }
-
-  public void fail_extendsOrImplementsDisallowedClass_implements_String() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements String {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXTENDS_OR_IMPLEMENTS_DISALLOWED_CLASS);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 
@@ -1375,6 +1295,86 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B extends A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.EXTENDS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_extends_bool() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends bool {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_extends_double() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends double {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_extends_int() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends int {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_extends_num() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends num {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_extends_String() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A extends String {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_implements_bool() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements bool {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_implements_double() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements double {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_implements_int() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements int {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_implements_num() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements num {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_extendsOrImplementsDisallowedClass_implements_String() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements String {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     verify(source);
   }
 

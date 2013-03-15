@@ -80,6 +80,13 @@ public interface TypeProvider {
   public InterfaceType getMapType();
 
   /**
+   * Return the type representing the built-in type 'num'.
+   * 
+   * @return the type representing the built-in type 'num'
+   */
+  public InterfaceType getNumType();
+
+  /**
    * Return the type representing the built-in type 'Object'.
    * 
    * @return the type representing the built-in type 'Object'

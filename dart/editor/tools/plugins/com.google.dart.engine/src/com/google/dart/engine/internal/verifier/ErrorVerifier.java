@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.verifier;
 
+import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
@@ -23,12 +24,14 @@ import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
@@ -98,12 +101,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    */
   private ExecutableElement currentFunction;
 
+  /**
+   * A list of types used by the {@link CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS} and
+   * {@link CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS} error codes.
+   */
+  private final InterfaceType[] DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT;
+
   public ErrorVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
       TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
     this.currentLibrary = currentLibrary;
     this.typeProvider = typeProvider;
     dynamicType = typeProvider.getDynamicType();
+    DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
+        typeProvider.getNumType(), typeProvider.getIntType(), typeProvider.getDoubleType(),
+        typeProvider.getBoolType(), typeProvider.getStringType()};
   }
 
   @Override
@@ -166,6 +178,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitExtendsClause(ExtendsClause node) {
+    checkForExtendsDisallowedClass(node);
+    return super.visitExtendsClause(node);
+  }
+
+  @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
     return super.visitFieldFormalParameter(node);
@@ -205,6 +223,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitIfStatement(IfStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitIfStatement(node);
+  }
+
+  @Override
+  public Void visitImplementsClause(ImplementsClause node) {
+    checkForImplementsDisallowedClass(node);
+    return super.visitImplementsClause(node);
   }
 
   @Override
@@ -493,6 +517,81 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed extends clause does not extend classes such as num or String.
+   * 
+   * @param node the extends clause to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   */
+  private boolean checkForExtendsDisallowedClass(ExtendsClause extendsClause) {
+    return checkForExtendsOrImplementsDisallowedClass(
+        extendsClause.getSuperclass(),
+        CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS);
+  }
+
+  /**
+   * This verifies that the passed type name does not extend or implement classes such as 'num' or
+   * 'String'.
+   * 
+   * @param node the type name to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see #checkForExtendsDisallowedClass(ExtendsClause)
+   * @see #checkForImplementsDisallowedClass(ImplementsClause)
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   */
+  private boolean checkForExtendsOrImplementsDisallowedClass(TypeName typeName, ErrorCode errorCode) {
+    if (typeName.isSynthetic()) {
+      return false;
+    }
+    Type superType = typeName.getType();
+    for (InterfaceType disallowedType : DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT) {
+      if (superType.equals(disallowedType)) {
+        // if the violating type happens to be 'num', we need to rule out the case where the
+        // enclosing class is 'int' or 'double'
+        if (superType.equals(typeProvider.getNumType())) {
+          ASTNode grandParent = typeName.getParent().getParent();
+          // Note: this is a corner case that won't happen often, so adding a field currentClass
+          // (see currentFunction) to ErrorVerifier isn't worth if for this case, but if the field
+          // currentClass is added, then this message should become a todo to not lookup the
+          // grandparent node
+          if (grandParent instanceof ClassDeclaration) {
+            ClassElement classElement = ((ClassDeclaration) grandParent).getElement();
+            Type classType = classElement.getType();
+            if (classType != null
+                && (classType.equals(typeProvider.getIntType()) || classType.equals(typeProvider.getDoubleType()))) {
+              return false;
+            }
+          }
+        }
+        // otherwise, report the error
+        errorReporter.reportError(errorCode, typeName, disallowedType.getName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed implements clause does not implement classes such as 'num' or
+   * 'String'.
+   * 
+   * @param node the implements clause to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   */
+  private boolean checkForImplementsDisallowedClass(ImplementsClause implementsClause) {
+    boolean result = false;
+    for (TypeName type : implementsClause.getInterfaces()) {
+      result = result
+          | checkForExtendsOrImplementsDisallowedClass(
+              type,
+              CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);;
+    }
+    return result;
   }
 
   /**

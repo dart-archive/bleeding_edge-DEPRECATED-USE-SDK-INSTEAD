@@ -179,6 +179,7 @@ public class TestTypeProvider implements TypeProvider {
     return mapType;
   }
 
+  @Override
   public InterfaceType getNumType() {
     if (numType == null) {
       initializeNumericTypes();

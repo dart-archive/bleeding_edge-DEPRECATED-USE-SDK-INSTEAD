@@ -72,6 +72,11 @@ public class TypeProviderImpl implements TypeProvider {
   private InterfaceType mapType;
 
   /**
+   * The type representing the built-in type 'num'.
+   */
+  private InterfaceType numType;
+
+  /**
    * The type representing the built-in type 'Object'.
    */
   private InterfaceType objectType;
@@ -141,6 +146,11 @@ public class TypeProviderImpl implements TypeProvider {
   }
 
   @Override
+  public InterfaceType getNumType() {
+    return numType;
+  }
+
+  @Override
   public InterfaceType getObjectType() {
     return objectType;
   }
@@ -192,6 +202,7 @@ public class TypeProviderImpl implements TypeProvider {
     intType = getType(namespace, "int");
     listType = getType(namespace, "List");
     mapType = getType(namespace, "Map");
+    numType = getType(namespace, "num");
     objectType = getType(namespace, "Object");
     stackTraceType = getType(namespace, "StackTrace");
     stringType = getType(namespace, "String");
