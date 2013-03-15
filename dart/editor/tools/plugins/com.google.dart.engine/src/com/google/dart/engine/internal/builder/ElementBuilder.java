@@ -480,13 +480,12 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
         nameOfMethod = "unary-";
       }
       MethodElementImpl element = new MethodElementImpl(nameOfMethod, methodName.getOffset());
-      Token keyword = node.getModifierKeyword();
-      element.setAbstract(matches(keyword, Keyword.ABSTRACT));
+      element.setAbstract(node.isAbstract());
       element.setFunctions(holder.getFunctions());
       element.setLabels(holder.getLabels());
       element.setLocalVariables(holder.getLocalVariables());
       element.setParameters(holder.getParameters());
-      element.setStatic(matches(keyword, Keyword.STATIC));
+      element.setStatic(node.isStatic());
 
       currentHolder.addMethod(element);
       methodName.setElement(element);

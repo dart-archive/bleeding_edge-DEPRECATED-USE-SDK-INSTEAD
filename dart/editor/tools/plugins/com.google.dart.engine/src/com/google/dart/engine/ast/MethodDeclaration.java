@@ -219,8 +219,7 @@ public class MethodDeclaration extends ClassMember {
    * @return {@code true} if this method is declared to be an abstract method
    */
   public boolean isAbstract() {
-    return modifierKeyword != null
-        && ((KeywordToken) modifierKeyword).getKeyword() == Keyword.ABSTRACT;
+    return externalKeyword == null && (body instanceof EmptyFunctionBody);
   }
 
   /**
