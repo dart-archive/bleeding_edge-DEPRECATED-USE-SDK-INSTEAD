@@ -60,6 +60,9 @@ public class DartUriResolver extends UriResolver {
       return null;
     }
     File resolvedFile = sdk.mapDartUri(uri.toString());
+    if (resolvedFile == null) {
+      return null;
+    }
     return new FileBasedSource(factory, resolvedFile, true);
   }
 }

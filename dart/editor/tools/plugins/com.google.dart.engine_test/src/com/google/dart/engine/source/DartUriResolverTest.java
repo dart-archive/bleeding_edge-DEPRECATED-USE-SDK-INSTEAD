@@ -38,6 +38,16 @@ public class DartUriResolverTest extends TestCase {
     assertNotNull(result);
   }
 
+  public void test_resolve_dart_non_existing_library() throws Exception {
+    SourceFactory factory = new SourceFactory();
+    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+    assertNotNull(sdkDirectory);
+    DartSdk sdk = new DartSdk(sdkDirectory);
+    UriResolver resolver = new DartUriResolver(sdk);
+    Source result = resolver.resolveAbsolute(factory, new URI("dart:cor"));
+    assertNull(result);
+  }
+
   public void test_resolve_nonDart() throws Exception {
     SourceFactory factory = new SourceFactory();
     File sdkDirectory = DartSdk.getDefaultSdkDirectory();
