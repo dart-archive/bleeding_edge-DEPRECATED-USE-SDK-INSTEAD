@@ -272,6 +272,10 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
+  List sublist(int start, [int end]) {
+    throw new UnimplementedError();
+  }
+
   List getRange(int start, int length) {
     throw new UnimplementedError();
   }

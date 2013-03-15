@@ -351,7 +351,7 @@ class TouchHandler {
   }
 
   static List<int> _removeFirstN(List<int> list, int n) {
-    return list.getRange(n, list.length - n);
+    return list.sublist(n);
   }
 
   /**
