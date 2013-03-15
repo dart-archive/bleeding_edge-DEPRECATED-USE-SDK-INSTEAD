@@ -136,7 +136,7 @@ public class NewLaunchUtils {
           // Source[] of all referencing libraries
         }
       }
-    } else {
+    } else if (resource != null) {
       resource = resource.getParent();
     }
     if (resource instanceof IContainer) {
