@@ -178,6 +178,14 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_defaultValueInFunctionTypeAlias() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "typedef F([x]);"));
+    resolve(source);
+    assertErrors();
+    verify(source);
+  }
+
   public void test_duplicateDefinition_getter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "bool get a => true;"));

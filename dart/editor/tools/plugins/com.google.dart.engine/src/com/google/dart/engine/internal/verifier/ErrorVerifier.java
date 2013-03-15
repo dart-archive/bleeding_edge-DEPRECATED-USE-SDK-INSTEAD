@@ -22,10 +22,13 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.FormalParameter;
+import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
@@ -216,6 +219,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     checkForBuiltInIdentifierAsName(
         node.getName(),
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
+    checkForDefaultValueInFunctionTypeAlias(node);
     return super.visitFunctionTypeAlias(node);
   }
 
@@ -517,6 +521,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return true;
     }
     return false;
+  }
+
+  /**
+   * This verifies that there are no default parameters in the passed function type alias.
+   * 
+   * @param node the function type alias to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS
+   */
+  private boolean checkForDefaultValueInFunctionTypeAlias(FunctionTypeAlias node) {
+    boolean result = false;
+    FormalParameterList formalParameterList = node.getParameters();
+    NodeList<FormalParameter> parameters = formalParameterList.getParameters();
+    for (FormalParameter formalParameter : parameters) {
+      if (formalParameter instanceof DefaultFormalParameter) {
+        DefaultFormalParameter defaultFormalParameter = (DefaultFormalParameter) formalParameter;
+        if (defaultFormalParameter.getDefaultValue() != null) {
+          errorReporter.reportError(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS, node);
+          result = true;
+        }
+      }
+    }
+    return result;
   }
 
   /**

@@ -189,7 +189,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 15.3.1 Typedef: It is a compile-time error if any default values are specified in the signature
    * of a function type alias.
    */
-  DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS(""),
+  DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS("Default values aren't allowed in typedefs"),
 
   /**
    * 3.1 Scoping: It is a compile-time error if there is more than one entity with the same name

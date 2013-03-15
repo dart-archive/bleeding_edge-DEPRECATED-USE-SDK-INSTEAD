@@ -125,14 +125,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_defaultValueInFunctionTypeAlias() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "typedef F([x = 0]);"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS);
-    verify(source);
-  }
-
   public void fail_duplicateDefinition() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
@@ -1267,6 +1259,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "f() { return const T(0, 1, c: 2, d: 3); }"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_WITH_NON_CONST);
+    verify(source);
+  }
+
+  public void test_defaultValueInFunctionTypeAlias() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "typedef F([x = 0]);"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE_ALIAS);
     verify(source);
   }
 
