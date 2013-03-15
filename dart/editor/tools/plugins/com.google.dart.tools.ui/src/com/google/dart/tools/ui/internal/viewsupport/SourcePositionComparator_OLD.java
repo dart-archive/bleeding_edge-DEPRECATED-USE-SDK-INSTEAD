@@ -27,7 +27,7 @@ import org.eclipse.jface.viewers.ViewerComparator;
 /**
  * Viewer sorter which sorts the Dart elements like they appear in the source.
  */
-public class SourcePositionComparator extends ViewerComparator {
+public class SourcePositionComparator_OLD extends ViewerComparator {
 
   /*
    * @see org.eclipse.jface.viewers.ViewerSorter#compare(org.eclipse.jface.viewers .Viewer,

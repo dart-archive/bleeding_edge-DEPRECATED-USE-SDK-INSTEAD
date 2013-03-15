@@ -14,8 +14,16 @@
 package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.FieldDeclaration;
+import com.google.dart.engine.ast.FunctionDeclaration;
+import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
@@ -93,6 +101,72 @@ public class NewSelectionConverter {
 
     return input;
 
+  }
+
+  public static Element getElementEnclosingOffset(CompilationUnit unit, final int offset) {
+    final Element result[] = new Element[] {null};
+    unit.accept(new GeneralizingASTVisitor<Void>() {
+      @Override
+      public Void visitClassDeclaration(ClassDeclaration node) {
+        if (isNodeEnclosingOffset(node)) {
+          result[0] = node.getElement();
+          return super.visitClassDeclaration(node);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+        if (isNodeEnclosingOffset(node)) {
+          result[0] = node.getElement();
+          return super.visitConstructorDeclaration(node);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitFieldDeclaration(FieldDeclaration node) {
+        if (isNodeEnclosingOffset(node)) {
+          NodeList<VariableDeclaration> variables = node.getFields().getVariables();
+          if (!variables.isEmpty()) {
+            result[0] = variables.get(0).getElement();
+          }
+          return super.visitFieldDeclaration(node);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitFunctionDeclaration(FunctionDeclaration node) {
+        if (isNodeEnclosingOffset(node)) {
+          result[0] = node.getElement();
+          return super.visitFunctionDeclaration(node);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitMethodDeclaration(MethodDeclaration node) {
+        if (isNodeEnclosingOffset(node)) {
+          result[0] = node.getElement();
+          return super.visitMethodDeclaration(node);
+        }
+        return null;
+      }
+
+      @Override
+      public Void visitNode(ASTNode node) {
+        if (isNodeEnclosingOffset(node)) {
+          super.visitNode(node);
+        }
+        return null;
+      }
+
+      private boolean isNodeEnclosingOffset(ASTNode node) {
+        return node.getOffset() <= offset && offset <= node.getEnd();
+      }
+    });
+    return result[0];
   }
 
   private static Element getElementAtOffset(DartEditor editor, boolean primaryOnly) {

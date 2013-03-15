@@ -13,6 +13,12 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -20,9 +26,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * "New world" dart reconciler.
  */
 public class DartReconciler extends MonoReconciler {
-
-  @SuppressWarnings("unused")
-  private final ITextEditor editor;
+  private final DartEditor editor;
+  private volatile Thread thread;
 
   /**
    * Creates a new reconciler.
@@ -34,8 +39,59 @@ public class DartReconciler extends MonoReconciler {
   public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy,
       boolean isIncremental) {
     super(strategy, isIncremental);
-    this.editor = editor;
-    //TODO (pquitslund): implement new world reconciliation
+    this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
   }
 
+  @Override
+  public void install(ITextViewer textViewer) {
+    super.install(textViewer);
+    if (editor != null) {
+      thread = new Thread() {
+        @Override
+        public void run() {
+          refreshLoop();
+        }
+      };
+      thread.setDaemon(true);
+      thread.start();
+    }
+  }
+
+  @Override
+  public void uninstall() {
+    super.uninstall();
+    thread = null;
+  }
+
+  @Override
+  protected void process(DirtyRegion dirtyRegion) {
+    super.process(dirtyRegion);
+    if (editor != null) {
+      DartEditor dartEditor = editor;
+      dartEditor.applyChangesToContext();
+    }
+  }
+
+  /**
+   * Performs main refresh loop to reflect changes in {@link DartEditor} and/or environment.
+   */
+  private void refreshLoop() {
+    CompilationUnitElement previousUnitElement = null;
+    while (thread != null) {
+      try {
+        CompilationUnit unitNode = editor.getInputUnit();
+        CompilationUnitElement unitElement = unitNode.getElement();
+        if (unitElement != previousUnitElement) {
+          previousUnitElement = unitElement;
+//          System.out.println("unitElement: " + ObjectUtils.identityToString(unitElement));
+          // unit was resolved
+          if (unitElement != null) {
+            editor.applyCompilationUnitElement(unitNode);
+          }
+        }
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+      }
+    }
+  }
 }

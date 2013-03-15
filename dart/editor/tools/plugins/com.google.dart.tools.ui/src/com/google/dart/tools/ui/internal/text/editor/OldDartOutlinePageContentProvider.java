@@ -49,9 +49,9 @@ import java.util.List;
  * A subclass of {@link OldStandardDartElementContentProvider} which implements
  * {@link ElementChangedListener} to update itself when changes are made to the Dart model.
  * <p>
- * This content provider is used by the {@link DartOutlinePage}.
+ * This content provider is used by the {@link DartOutlinePage_OLD}.
  * 
- * @see DartOutlinePage
+ * @see DartOutlinePage_OLD
  */
 public class OldDartOutlinePageContentProvider extends OldStandardDartElementContentProvider implements
     ElementChangedListener {

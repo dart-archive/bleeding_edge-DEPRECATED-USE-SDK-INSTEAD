@@ -19,7 +19,9 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
@@ -28,6 +30,7 @@ import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -1604,6 +1607,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  private IFile inputFile;
+
   private SourceRange textSelectionRange;
 
   /** Preference key for matching brackets */
@@ -1637,7 +1642,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /** The outline page */
-  protected DartOutlinePage fOutlinePage;
+  protected DartOutlinePage_I fOutlinePage;
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
@@ -1814,6 +1819,45 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public DartEditor() {
     super();
+  }
+
+  /**
+   * Notifies this {@link DartEditor} that its content was changed, so its {@link AnalysisContext}
+   * should be notified about this change.
+   */
+  public void applyChangesToContext() {
+    // prepare AnalysisContext
+    AnalysisContext context = getInputContext();
+    if (context == null) {
+      return;
+    }
+    // prepare Source
+    Source source = getInputSource();
+    if (source == null) {
+      return;
+    }
+    // notify AnalysisContext about changes
+    String code = getDocumentProvider().getDocument(getEditorInput()).get();
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.changed(source, code);
+    context.applyChanges(changeSet);
+  }
+
+  /**
+   * Notifies that {@link com.google.dart.engine.ast.CompilationUnit} of this {@link DartEditor} was
+   * resolved.
+   */
+  public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
+    final CompilationUnitElement unitElement = unit.getElement();
+    if (fOutlinePage != null) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          ((((DartOutlinePage) fOutlinePage))).setInput(unitElement);
+          synchronizeOutlinePageSelection();
+        }
+      });
+    }
   }
 
   /**
@@ -2057,15 +2101,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public AssistContext getAssistContext() {
     try {
-      // prepare input IFile
-      IFile file = getInputFile();
-      if (file == null) {
+      if (inputFile == null) {
         return null;
       }
       // prepare input CompilationUnit
-      com.google.dart.tools.core.analysis.model.Project project = DartCore.getProjectManager().getProject(
-          file.getProject());
-      AnalysisContext context = project.getContext(file);
       com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
       if (unit == null) {
         return null;
@@ -2140,6 +2179,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * @return the {@link AnalysisContext} in should be {@link #getInputSource()} was analyzed.
+   */
+  public AnalysisContext getInputContext() {
+    Project project = getInputProject();
+    if (project == null) {
+      return null;
+    }
+    return project.getContext(inputFile);
+  }
+
+  /**
    * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
    * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
    */
@@ -2148,29 +2198,41 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return unit == null ? null : unit.getElement();
   }
 
+  /**
+   * @return the {@link Source} which corresponds to the {@link IEditorInput}.
+   */
+  public Source getInputSource() {
+    Project project = getInputProject();
+    if (project == null) {
+      return null;
+    }
+    AnalysisContext context = project.getContext(inputFile);
+    return project.getSource(inputFile);
+  }
+
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
     // TODO(scheglov) updated to use most recent API
     try {
-      IFile file = getInputFile();
-      if (file == null) {
+      Source source = getInputSource();
+      if (source == null) {
         return null;
       }
-      com.google.dart.tools.core.analysis.model.Project project = DartCore.getProjectManager().getProject(
-          file.getProject());
-      AnalysisContext context = project.getContext(file);
-      Source source = project.getSource(file);
-      // update source
-      {
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.added(source);
-        context.applyChanges(changeSet);
+      AnalysisContext context = getInputContext();
+      if (context == null) {
+        return null;
       }
-      {
-        String code = getDocumentProvider().getDocument(getEditorInput()).get();
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.changed(source, code);
-        context.applyChanges(changeSet);
-      }
+//      // update source
+//      {
+//        ChangeSet changeSet = new ChangeSet();
+//        changeSet.added(source);
+//        context.applyChanges(changeSet);
+//      }
+//      {
+//        String code = getDocumentProvider().getDocument(getEditorInput()).get();
+//        ChangeSet changeSet = new ChangeSet();
+//        changeSet.changed(source, code);
+//        context.applyChanges(changeSet);
+//      }
 
       // resolve
       LibraryElement libraryElement = context.getLibraryElement(source);
@@ -2377,7 +2439,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setSelection(reference, true);
 
     if (fOutlinePage != null) {
-      fOutlinePage.select(reference);
+      ((DartOutlinePage) fOutlinePage).select(element);
     }
 
   }
@@ -2399,7 +2461,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       setSelection(reference, true);
       // set outliner selection
       if (fOutlinePage != null) {
-        fOutlinePage.select(reference);
+        ((DartOutlinePage_OLD) fOutlinePage).select(reference);
       }
     }
   }
@@ -2447,7 +2509,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
       setHighlightRange(elementOffset, elementLength, true);
       if (fOutlinePage != null) {
-        fOutlinePage.select(element);
+        ((DartOutlinePage) fOutlinePage).select((com.google.dart.engine.element.Element) element);
       }
 
     } else {
@@ -2467,7 +2529,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
             setHighlightRange(range.getOffset(), range.getLength(), true);
             if (fOutlinePage != null) {
-              fOutlinePage.select(element);
+              ((DartOutlinePage_OLD) fOutlinePage).select(element);
             }
 
             return;
@@ -2550,6 +2612,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @return the computed source element
    */
   protected com.google.dart.engine.element.Element computeHighlightRangeSourceElement() {
+    com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+    if (unit == null) {
+      return null;
+    }
 
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {
@@ -2570,8 +2636,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       caret = offset + styledText.getCaretOffset();
     }
 
-    return NewSelectionConverter.getElementAtOffset(this, caret);
-
+    return NewSelectionConverter.getElementEnclosingOffset(unit, caret);
   }
 
   /**
@@ -2856,8 +2921,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * 
    * @return the created Dart outline page
    */
-  protected DartOutlinePage createOutlinePage() {
-    DartOutlinePage page = new DartOutlinePage(fOutlinerContextMenuId, this);
+  protected DartOutlinePage_I createOutlinePage() {
+    DartOutlinePage_I page;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      page = new DartOutlinePage(fOutlinerContextMenuId, this);
+    } else {
+      page = new DartOutlinePage_OLD(fOutlinerContextMenuId, this);
+    }
     setOutlinePageInput(page, getEditorInput());
     return page;
   }
@@ -2968,62 +3038,88 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   protected void doSelectionChanged(ISelection selection) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (selection instanceof IStructuredSelection) {
+        IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+        for (Object selectionObject : structuredSelection.toList()) {
+          if (selectionObject instanceof com.google.dart.engine.element.Element) {
+            setSelection((com.google.dart.engine.element.Element) selectionObject, !isActivePart());
+            break;
+          }
+        }
+      }
+    } else {
+      SourceReference reference = null;
 
-    SourceReference reference = null;
+      Iterator<?> iter = ((IStructuredSelection) selection).iterator();
+      while (iter.hasNext()) {
 
-    Iterator<?> iter = ((IStructuredSelection) selection).iterator();
-    while (iter.hasNext()) {
+        Object o = iter.next();
 
-      Object o = iter.next();
+        if (o instanceof SourceReference) {
+          reference = (SourceReference) o;
+          break;
+        }
 
-      if (o instanceof SourceReference) {
-        reference = (SourceReference) o;
-        break;
+        // Adapt new elements to old
+        //TODO (pquitslund): flip this around, adapting old to new
+        if (o instanceof com.google.dart.engine.element.Element) {
+          reference = new SourceReferenceAdapter((com.google.dart.engine.element.Element) o);
+          break;
+        }
+
       }
 
-      // Adapt new elements to old
-      //TODO (pquitslund): flip this around, adapting old to new
-      if (o instanceof com.google.dart.engine.element.Element) {
-        reference = new SourceReferenceAdapter((com.google.dart.engine.element.Element) o);
-        break;
+      if (!isActivePart() && DartToolsPlugin.getActivePage() != null) {
+        DartToolsPlugin.getActivePage().bringToTop(this);
       }
 
+      setSelection(reference, !isActivePart());
+
+      ISelectionProvider selectionProvider = getSelectionProvider();
+      if (selectionProvider == null) {
+        return;
+      }
+
+      ISelection textSelection = selectionProvider.getSelection();
+      if (!(textSelection instanceof ITextSelection)) {
+        return;
+      }
+
+      DartElement inputElement = getInputDartElement();
+      if (inputElement == null) {
+        return;
+      }
+
+      DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
+          inputElement,
+          ASTProvider.WAIT_NO,
+          getProgressMonitor());
+      if (ast != null) {
+        fForcedMarkOccurrencesSelection = textSelection;
+        updateOccurrenceAnnotations((ITextSelection) textSelection, ast);
+      }
     }
-
-    if (!isActivePart() && DartToolsPlugin.getActivePage() != null) {
-      DartToolsPlugin.getActivePage().bringToTop(this);
-    }
-
-    setSelection(reference, !isActivePart());
-
-    ISelectionProvider selectionProvider = getSelectionProvider();
-    if (selectionProvider == null) {
-      return;
-    }
-
-    ISelection textSelection = selectionProvider.getSelection();
-    if (!(textSelection instanceof ITextSelection)) {
-      return;
-    }
-
-    DartElement inputElement = getInputDartElement();
-    if (inputElement == null) {
-      return;
-    }
-
-    DartUnit ast = DartToolsPlugin.getDefault().getASTProvider().getAST(
-        inputElement,
-        ASTProvider.WAIT_NO,
-        getProgressMonitor());
-    if (ast != null) {
-      fForcedMarkOccurrencesSelection = textSelection;
-      updateOccurrenceAnnotations((ITextSelection) textSelection, ast);
-    }
-
   }
 
   @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
+    if (input instanceof IFileEditorInput) {
+      IFileEditorInput fileInput = (IFileEditorInput) input;
+      inputFile = fileInput.getFile();
+      // TODO(scheglov) remove this when Builder will add Source to AnalysisContext
+      {
+        AnalysisContext context = getInputContext();
+        Source source = getInputSource();
+        if (context != null && source != null) {
+          ChangeSet changeSet = new ChangeSet();
+          changeSet.added(source);
+          changeSet.changed(source);
+          context.applyChanges(changeSet);
+        }
+      }
+    }
+
     ISourceViewer sourceViewer = getSourceViewer();
     if (!(sourceViewer instanceof ISourceViewerExtension2)) {
       setPreferenceStore(createCombinedPreferenceStore(input));
@@ -3264,7 +3360,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return new NonLocalUndoUserApprover(
           undoContext,
           this,
-          new Object[] {getInputFile()},
+          new Object[] {inputFile},
           IResource.class);
     } else {
       return new NonLocalUndoUserApprover(
@@ -3692,21 +3788,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * @param page the Dart outline page
    * @param input the editor input
    */
-  protected void setOutlinePageInput(DartOutlinePage page, IEditorInput input) {
+  protected void setOutlinePageInput(DartOutlinePage_I page, IEditorInput input) {
     if (page == null) {
       return;
     }
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       // new Analysis Engine
-      page.setInputElement(getInputElement());
+      ((DartOutlinePage) page).setInput(getInputElement());
     } else {
       // dartc
       DartElement de = getInputDartElement();
       if (de != null && de.exists()) {
-        page.setInput(de);
+        ((DartOutlinePage_OLD) page).setInput(de);
       } else {
-        page.setInput(null);
+        ((DartOutlinePage_OLD) page).setInput(null);
       }
     }
 
@@ -3738,7 +3834,51 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   protected void setSelection(com.google.dart.engine.element.Element element, boolean moveCursor) {
-    //TODO (pquitslund): implement selection for analysis engine elements
+    // validate Element
+    if (element == null) {
+      return;
+    }
+    if (element.getName() == null) {
+      return;
+    }
+    // prepare ISourceViewer
+    ISourceViewer sourceViewer = getSourceViewer();
+    if (sourceViewer == null) {
+      return;
+    }
+    // highlight Element name
+    int offset = element.getNameOffset();
+    int length = element.getName().length();
+    if (offset < 0) {
+      return;
+    }
+    // Unnamed constructors have no name, but we don't want to show user empty selection.
+    // So, we highlight type name instead.
+    if (length == 0 && element instanceof ConstructorElement) {
+      com.google.dart.engine.element.Element enclosing = element.getEnclosingElement();
+      if (enclosing instanceof ClassElement && enclosing.getName() != null) {
+        length = enclosing.getName().length();
+      }
+    }
+    // highlight range (not selection - just highlighting on left editor band)
+    setHighlightRange(offset, length, moveCursor);
+    // do we want to change selection?
+    if (!moveCursor) {
+      return;
+    }
+    // prepare StyledText
+    StyledText textWidget = sourceViewer.getTextWidget();
+    if (textWidget == null) {
+      return;
+    }
+    // set selection in StyledText
+    try {
+      textWidget.setRedraw(false);
+      sourceViewer.revealRange(offset, length);
+      sourceViewer.setSelectedRange(offset, length);
+    } finally {
+      textWidget.setRedraw(true);
+    }
   }
 
   protected void setSelection(SourceReference reference, boolean moveCursor) {
@@ -3853,7 +3993,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       boolean checkIfOutlinePageActive) {
     if (fOutlinePage != null && element != null
         && !(checkIfOutlinePageActive && isOutlinePageActive())) {
-      fOutlinePage.select(element);
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        ((DartOutlinePage) fOutlinePage).select((com.google.dart.engine.element.Element) element);
+      } else {
+        ((DartOutlinePage_OLD) fOutlinePage).select(element);
+      }
     }
   }
 
@@ -4209,13 +4353,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return key != null && store.getBoolean(key);
   }
 
-  private IFile getInputFile() {
-    IFile file = null;
-    if (getEditorInput() instanceof IFileEditorInput) {
-      IFileEditorInput input = (IFileEditorInput) getEditorInput();
-      file = input.getFile();
+  private Project getInputProject() {
+    if (inputFile == null) {
+      return null;
     }
-    return file;
+    IProject projectResource = inputFile.getProject();
+    return DartCore.getProjectManager().getProject(projectResource);
   }
 
   /**
