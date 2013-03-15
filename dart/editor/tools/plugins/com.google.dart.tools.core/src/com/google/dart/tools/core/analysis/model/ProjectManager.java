@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.analysis.model;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
@@ -107,6 +108,13 @@ public interface ProjectManager extends ContextManager {
    * @return the sdk (not {@code null})
    */
   DartSdk getSdk();
+
+  /**
+   * Answer the context containing analysis of sources in the SDK.
+   * 
+   * @return the context (not {@code null})
+   */
+  AnalysisContext getSdkContext();
 
   /**
    * Create and answer a new search engine backed by the global index

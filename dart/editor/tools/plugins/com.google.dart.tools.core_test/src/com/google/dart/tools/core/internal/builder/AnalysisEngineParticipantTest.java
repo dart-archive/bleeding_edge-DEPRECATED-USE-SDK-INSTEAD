@@ -304,6 +304,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     }
 
     @Override
+    public AnalysisContext getSdkContext() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Source getSource(IFile file) {
       throw new UnsupportedOperationException();
     }

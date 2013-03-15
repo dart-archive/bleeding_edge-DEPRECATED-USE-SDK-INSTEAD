@@ -19,6 +19,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
 import com.google.dart.tools.core.analysis.model.ProjectListener;
@@ -42,6 +43,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -270,6 +272,19 @@ public class ProjectManagerImplTest extends TestCase {
     assertSame(expectedSdk, sdk);
   }
 
+  public void test_getSdkContext() throws Exception {
+    AnalysisContext sdkContext = manager.getSdkContext();
+    assertNotNull(sdkContext);
+    SourceFactory factory = sdkContext.getSourceFactory();
+    assertNotNull(factory);
+    Source source = factory.forUri("dart:core");
+    assertNotNull(source);
+    source = factory.forUri("package:foo/bar.dart");
+    assertNull(source);
+    source = factory.forUri("file:/does/not/exist.dart");
+    assertNull(source);
+  }
+
   public void test_listener() throws Exception {
     Project project = manager.getProject(projectContainer);
     MockProjectListener listener = new MockProjectListener();
@@ -289,6 +304,7 @@ public class ProjectManagerImplTest extends TestCase {
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
     expectedSdk = mock(DartSdk.class);
+    when(expectedSdk.mapDartUri("dart:core")).thenReturn(new File("dart-core-mock.dart"));
     manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
     context = new MockContextForTest();
   }

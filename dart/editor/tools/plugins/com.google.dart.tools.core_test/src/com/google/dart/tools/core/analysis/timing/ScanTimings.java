@@ -239,6 +239,11 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public AnalysisContext getSdkContext() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Source getSource(IFile file) {
       throw new UnsupportedOperationException();
     }
