@@ -489,8 +489,16 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public void setSourceFactory(SourceFactory sourceFactory) {
-    this.sourceFactory = sourceFactory;
+  public void setSourceFactory(SourceFactory factory) {
+    if (sourceFactory == factory) {
+      return;
+    } else if (factory.getContext() != null) {
+      throw new IllegalStateException("Source factories cannot be shared between contexts");
+    } else if (sourceFactory != null) {
+      sourceFactory.setContext(null);
+    }
+    factory.setContext(this);
+    sourceFactory = factory;
   }
 
   @Override

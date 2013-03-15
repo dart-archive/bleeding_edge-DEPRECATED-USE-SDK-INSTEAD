@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+
 import java.net.URI;
 import java.nio.CharBuffer;
 
@@ -66,6 +68,13 @@ public interface Source {
    * @return {@code true} if this source exists
    */
   public boolean exists();
+
+  /**
+   * Return the analysis context in which this source is defined.
+   * 
+   * @return the analysis context in which this source is defined
+   */
+  public AnalysisContext getContext();
 
   /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods

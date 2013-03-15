@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -81,6 +83,11 @@ public class FileBasedSource implements Source {
   @Override
   public boolean exists() {
     return file.exists();
+  }
+
+  @Override
+  public AnalysisContext getContext() {
+    return factory.getContext();
   }
 
   @Override

@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -23,6 +26,11 @@ import java.net.URISyntaxException;
  * @coverage dart.engine.source
  */
 public class SourceFactory {
+  /**
+   * The analysis context that this source factory is associated with.
+   */
+  private AnalysisContext context;
+
   /**
    * The resolvers used to resolve absolute URI's.
    */
@@ -85,6 +93,15 @@ public class SourceFactory {
   }
 
   /**
+   * Return the analysis context that this source factory is associated with.
+   * 
+   * @return the analysis context that this source factory is associated with
+   */
+  public AnalysisContext getContext() {
+    return context;
+  }
+
+  /**
    * Return a source object representing the URI that results from resolving the given (possibly
    * relative) contained URI against the URI associated with an existing source object, or
    * {@code null} if either the contained URI is invalid or if it cannot be resolved against the
@@ -113,6 +130,19 @@ public class SourceFactory {
    */
   public void setContents(Source source, String contents) {
     contentCache.setContents(source, contents);
+  }
+
+  /**
+   * Set the analysis context that this source factory is associated with to the given context.
+   * <p>
+   * <b>Note:</b> This method should only be invoked by
+   * {@link AnalysisContextImpl#setSourceFactory(SourceFactory)} and is only public out of
+   * necessity.
+   * 
+   * @param context the analysis context that this source factory is associated with
+   */
+  public void setContext(AnalysisContext context) {
+    this.context = context;
   }
 
   /**
