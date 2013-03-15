@@ -34,7 +34,7 @@ public class RefactoringStatusContextTest extends AbstractDartTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {}",
         "");
-    SimpleIdentifier node = findTestNode("main() {}", SimpleIdentifier.class);
+    SimpleIdentifier node = findNode("main() {}", SimpleIdentifier.class);
     RefactoringStatusContext context = RefactoringStatusContext.create(node);
     // access
     assertSame(testUnit.getElement().getContext(), context.getContext());

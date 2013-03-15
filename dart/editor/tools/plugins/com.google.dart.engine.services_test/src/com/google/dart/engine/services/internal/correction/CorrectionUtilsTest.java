@@ -334,7 +334,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  }",
         "}",
         "");
-    ConstructorDeclaration constructorNode = findTestNode("A()", ConstructorDeclaration.class);
+    ConstructorDeclaration constructorNode = findNode("A()", ConstructorDeclaration.class);
     ConstructorElement constructorElement = constructorNode.getElement();
     SimpleIdentifier node = findIdentifier("print(0)");
     assertSame(constructorNode, CorrectionUtils.getEnclosingExecutableNode(node));
@@ -350,7 +350,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  print(0);",
         "}",
         "");
-    FunctionDeclaration functionNode = findTestNode("fff(p)", FunctionDeclaration.class);
+    FunctionDeclaration functionNode = findNode("fff(p)", FunctionDeclaration.class);
     ExecutableElement functionElement = functionNode.getElement();
     SimpleIdentifier node = findIdentifier("print(0)");
     assertSame(functionNode, CorrectionUtils.getEnclosingExecutableNode(node));
@@ -366,7 +366,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  }",
         "}",
         "");
-    MethodDeclaration methodNode = findTestNode("method()", MethodDeclaration.class);
+    MethodDeclaration methodNode = findNode("method()", MethodDeclaration.class);
     MethodElement methodElement = (MethodElement) methodNode.getElement();
     SimpleIdentifier node = findIdentifier("print(0)");
     assertSame(methodNode, CorrectionUtils.getEnclosingExecutableNode(node));
@@ -538,10 +538,10 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}",
         "");
     CorrectionUtils utils = getTestCorrectionUtils();
-    Block block = findTestNode("{ // marker", Block.class);
-    Statement statementA = findTestNode("var a", Statement.class);
-    Statement statementB = findTestNode("var b", Statement.class);
-    Statement statementC = findTestNode("var c", Statement.class);
+    Block block = findNode("{ // marker", Block.class);
+    Statement statementA = findNode("var a", Statement.class);
+    Statement statementB = findNode("var b", Statement.class);
+    Statement statementC = findNode("var c", Statement.class);
     {
       SourceRange range = utils.getLinesRange(ImmutableList.of(statementA, statementB));
       assertEquals(rangeStartEnd(statementA.getOffset() - 2, statementC.getOffset() - 2), range);
@@ -706,7 +706,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}",
         "");
     // find node
-    FunctionExpression node = findTestNode("() => true", FunctionExpression.class);
+    FunctionExpression node = findNode("() => true", FunctionExpression.class);
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("  ", utils.getNodePrefix(node));
@@ -861,16 +861,16 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  }",
         "}");
     {
-      Statement statement = findTestNode("var singleStatement", Statement.class);
+      Statement statement = findNode("var singleStatement", Statement.class);
       assertSame(statement, CorrectionUtils.getSingleStatement(statement));
     }
     {
-      Block block = findTestNode("{ // marker-1", Block.class);
-      Statement statement = findTestNode("var blockWithSingleStatement", Statement.class);
+      Block block = findNode("{ // marker-1", Block.class);
+      Statement statement = findNode("var blockWithSingleStatement", Statement.class);
       assertSame(statement, CorrectionUtils.getSingleStatement(block));
     }
     {
-      Block block = findTestNode("{ // marker-2", Block.class);
+      Block block = findNode("{ // marker-2", Block.class);
       assertSame(null, CorrectionUtils.getSingleStatement(block));
     }
   }
@@ -889,18 +889,18 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "  }",
         "}");
     {
-      Statement statement = findTestNode("var singleStatement", Statement.class);
+      Statement statement = findNode("var singleStatement", Statement.class);
       assertThat(CorrectionUtils.getStatements(statement)).containsExactly(statement);
     }
     {
-      Block block = findTestNode("{ // marker-1", Block.class);
-      Statement statement = findTestNode("var blockWithSingleStatement", Statement.class);
+      Block block = findNode("{ // marker-1", Block.class);
+      Statement statement = findNode("var blockWithSingleStatement", Statement.class);
       assertThat(CorrectionUtils.getStatements(block)).containsExactly(statement);
     }
     {
-      Block block = findTestNode("{ // marker-2", Block.class);
-      Statement statementA = findTestNode("var statementA;", Statement.class);
-      Statement statementB = findTestNode("var statementB", Statement.class);
+      Block block = findNode("{ // marker-2", Block.class);
+      Statement statementA = findNode("var statementA;", Statement.class);
+      Statement statementB = findNode("var statementB", Statement.class);
       assertThat(CorrectionUtils.getStatements(block)).containsExactly(statementA, statementB);
     }
   }
@@ -973,7 +973,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    */
   public void test_getText_ASTNode() throws Exception {
     parseTestUnit("class AAA {}");
-    ASTNode node = findTestNode("AAA {", Identifier.class);
+    ASTNode node = findNode("AAA {", Identifier.class);
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals("AAA", utils.getText(node));
   }
@@ -1045,7 +1045,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "main() {",
         "  TreeNode node = null;",
         "}");
-    Expression expression = findTestNode("null;", Expression.class);
+    Expression expression = findNode("null;", Expression.class);
     Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
     assert_getVariableNameSuggestions(
         expectedType,
@@ -1061,7 +1061,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "main() {",
         "  double res = 0;",
         "}");
-    Expression expression = findTestNode("0;", Expression.class);
+    Expression expression = findNode("0;", Expression.class);
     Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
     // first choice for "double" is "d"
     assert_getVariableNameSuggestions(
@@ -1084,7 +1084,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "main() {",
         "  int res = 0;",
         "}");
-    Expression expression = findTestNode("0;", Expression.class);
+    Expression expression = findNode("0;", Expression.class);
     Type expectedType = ((VariableDeclaration) expression.getParent()).getElement().getType();
     // first choice for "int" is "i"
     assert_getVariableNameSuggestions(
@@ -1115,12 +1115,12 @@ public class CorrectionUtilsTest extends AbstractDartTest {
 //        formatLines("a"));
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("222", Expression.class),
+        findNode("222", Expression.class),
         ImmutableSet.of(""),
         formatLines("b"));
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("333", Expression.class),
+        findNode("333", Expression.class),
         ImmutableSet.of(""),
         formatLines("c"));
   }
@@ -1154,7 +1154,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("sortedNodes as String", AsExpression.class),
+        findNode("sortedNodes as String", AsExpression.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1167,7 +1167,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("doc.getSortedNodes()", MethodInvocation.class),
+        findNode("doc.getSortedNodes()", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1183,7 +1183,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("doc.get()", MethodInvocation.class),
+        findNode("doc.get()", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines());
   }
@@ -1196,7 +1196,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("doc.sortedNodes()", MethodInvocation.class),
+        findNode("doc.sortedNodes()", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1211,7 +1211,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     // TODO(scheglov) would be good if resolver rewrite this to PropertyAccess
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("doc.sortedNodes", PrefixedIdentifier.class),
+        findNode("doc.sortedNodes", PrefixedIdentifier.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1225,7 +1225,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("sortedNodes;", Expression.class),
+        findNode("sortedNodes;", Expression.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1239,7 +1239,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("getSortedNodes();", MethodInvocation.class),
+        findNode("getSortedNodes();", MethodInvocation.class),
         ImmutableSet.of(""),
         formatLines("sortedNodes", "nodes"));
   }
@@ -1253,7 +1253,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "}");
     assert_getVariableNameSuggestions(
         null,
-        findTestNode("sortedTreeNodes", Expression.class),
+        findNode("sortedTreeNodes", Expression.class),
         ImmutableSet.of("treeNodes"),
         formatLines("sortedTreeNodes", "treeNodes2", "nodes"));
   }
@@ -1342,7 +1342,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
         "var v = 111 + 222 + 333;",
         "");
     CorrectionUtils utils = getTestCorrectionUtils();
-    ASTNode node = findTestNode("222", IntegerLiteral.class);
+    ASTNode node = findNode("222", IntegerLiteral.class);
     // "selection" does not cover node
     {
       SourceRange selection = rangeStartEnd(findOffset("22 "), findEnd("22 "));
@@ -1489,7 +1489,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    */
   private void assert_getNodePrefix(String nodePattern, String expectedPrefix) throws Exception {
     // find node
-    VariableDeclarationStatement node = findTestNode(
+    VariableDeclarationStatement node = findNode(
         nodePattern,
         VariableDeclarationStatement.class);
     // assert prefix
@@ -1499,7 +1499,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
 
   @SuppressWarnings("unchecked")
   private <T extends ASTNode> T findVariableInitializer(String pattern) {
-    return (T) findTestNode(pattern, VariableDeclaration.class).getInitializer();
+    return (T) findNode(pattern, VariableDeclaration.class).getInitializer();
   }
 
   /**

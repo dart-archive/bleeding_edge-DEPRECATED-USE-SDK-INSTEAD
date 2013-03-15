@@ -29,6 +29,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -36,7 +37,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-public class IndexContributorTest extends AbstractResolvedUnitTest {
+public class IndexContributorTest extends AbstractDartTest {
   private static class ExpectedLocation {
     Element element;
     int offset;
@@ -213,16 +213,16 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
   public void test_definesClass() throws Exception {
     parseTestUnit("class A {}");
     // prepare elements
-    ClassElement classElementA = getElement("A {}");
+    ClassElement classElementA = findElement("A {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertDefinesTopLevelElement(
         relations,
-        libraryElement,
+        testLibraryElement,
         IndexConstants.DEFINES_CLASS,
-        new ExpectedLocation(classElementA, getOffset("A {}"), "A"));
+        new ExpectedLocation(classElementA, findOffset("A {}"), "A"));
   }
 
   public void test_definesClassAlias() throws Exception {
@@ -230,61 +230,61 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Mix {}",
         "typedef MyClass = Object with Mix;");
-    Element classElement = getElement("MyClass =");
+    Element classElement = findElement("MyClass =");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertDefinesTopLevelElement(
         relations,
-        libraryElement,
+        testLibraryElement,
         IndexConstants.DEFINES_CLASS_ALIAS,
-        new ExpectedLocation(classElement, getOffset("MyClass ="), "MyClass"));
+        new ExpectedLocation(classElement, findOffset("MyClass ="), "MyClass"));
     assertNoRecordedRelation(relations, classElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesFunction() throws Exception {
     parseTestUnit("myFunction() {}");
-    FunctionElement functionElement = getElement("myFunction() {}");
+    FunctionElement functionElement = findElement("myFunction() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertDefinesTopLevelElement(
         relations,
-        libraryElement,
+        testLibraryElement,
         IndexConstants.DEFINES_FUNCTION,
-        new ExpectedLocation(functionElement, getOffset("myFunction() {}"), "myFunction"));
+        new ExpectedLocation(functionElement, findOffset("myFunction() {}"), "myFunction"));
     assertNoRecordedRelation(relations, functionElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesFunctionType() throws Exception {
     parseTestUnit("typedef MyFunction(int p);");
-    FunctionTypeAliasElement typeAliasElement = getElement("MyFunction");
+    FunctionTypeAliasElement typeAliasElement = findElement("MyFunction");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertDefinesTopLevelElement(
         relations,
-        libraryElement,
+        testLibraryElement,
         IndexConstants.DEFINES_FUNCTION_TYPE,
-        new ExpectedLocation(typeAliasElement, getOffset("MyFunction"), "MyFunction"));
+        new ExpectedLocation(typeAliasElement, findOffset("MyFunction"), "MyFunction"));
     assertNoRecordedRelation(relations, typeAliasElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
   public void test_definesVariable() throws Exception {
     parseTestUnit("var myVar;");
-    VariableElement varElement = getElement("myVar");
+    VariableElement varElement = findElement("myVar");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertDefinesTopLevelElement(
         relations,
-        libraryElement,
+        testLibraryElement,
         IndexConstants.DEFINES_VARIABLE,
-        new ExpectedLocation(varElement, getOffset("myVar"), "myVar"));
+        new ExpectedLocation(varElement, findOffset("myVar"), "myVar"));
     assertNoRecordedRelation(relations, varElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -297,22 +297,22 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    ClassElement classA = getElement("A {");
-    ConstructorElement consA = findNode(ConstructorDeclaration.class, "A()").getElement();
-    ConstructorElement consA_foo = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
+    ClassElement classA = findElement("A {");
+    ConstructorElement consA = findNode("A()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consA_foo = findNode("A.foo()", ConstructorDeclaration.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
     List<RecordedRelation> relations = captureRecordedRelations();
     assertRecordedRelation(relations, consA, IndexConstants.IS_DEFINED_BY, new ExpectedLocation(
         classA,
-        getOffset("() {}"),
+        findOffset("() {}"),
         ""));
     assertRecordedRelation(
         relations,
         consA_foo,
         IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(classA, getOffset(".foo() {}"), ".foo"));
+        new ExpectedLocation(classA, findOffset(".foo() {}"), ".foo"));
   }
 
   public void test_isExtendedBy_ClassDeclaration() throws Exception {
@@ -322,8 +322,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "class B extends A {} // 2",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementB = getElement("B extends");
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementB = findElement("B extends");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -333,7 +333,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementA,
         IndexConstants.IS_EXTENDED_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementB, getOffset("A {} // 2"), "A"));
+        new ExpectedLocation(classElementB, findOffset("A {} // 2"), "A"));
   }
 
   public void test_isExtendedBy_ClassTypeAlias() throws Exception {
@@ -344,8 +344,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "typedef C = A with B; // 3",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementC = getElement("C =");
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementC = findElement("C =");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -355,7 +355,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementA,
         IndexConstants.IS_EXTENDED_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementC, getOffset("A with"), "A"));
+        new ExpectedLocation(classElementC, findOffset("A with"), "A"));
   }
 
   public void test_isImplementedBy_ClassDeclaration() throws Exception {
@@ -365,8 +365,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "class B implements A {} // 2",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementB = getElement("B implements");
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementB = findElement("B implements");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -376,7 +376,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementA,
         IndexConstants.IS_IMPLEMENTED_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementB, getOffset("A {} // 2"), "A"));
+        new ExpectedLocation(classElementB, findOffset("A {} // 2"), "A"));
   }
 
   public void test_isImplementedBy_ClassTypeAlias() throws Exception {
@@ -387,8 +387,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "typedef C = Object with A implements B; // 3",
         "");
     // prepare elements
-    ClassElement classElementB = getElement("B {} // 2");
-    ClassElement classElementC = getElement("C =");
+    ClassElement classElementB = findElement("B {} // 2");
+    ClassElement classElementC = findElement("C =");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -398,7 +398,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementB,
         IndexConstants.IS_IMPLEMENTED_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementC, getOffset("B; // 3"), "B"));
+        new ExpectedLocation(classElementC, findOffset("B; // 3"), "B"));
   }
 
   public void test_isInvokedBy_FunctionElement() throws Exception {
@@ -410,8 +410,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main(");
-    FunctionElement referencedElement = getElement("foo() {}");
+    Element mainElement = findElement("main(");
+    FunctionElement referencedElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -420,7 +420,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_INVOKED_BY,
-        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
   }
 
   public void test_isInvokedByQualified_MethodElement() throws Exception {
@@ -433,8 +433,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
+    Element mainElement = findElement("main() {");
+    MethodElement fooElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -443,7 +443,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_INVOKED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -457,8 +457,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
+    Element mainElement = findElement("main() {");
+    MethodElement fooElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -467,7 +467,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo();"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo();"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -478,8 +478,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "class B extends Object with A {} // 2",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementB = getElement("B extends");
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementB = findElement("B extends");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -489,7 +489,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementA,
         IndexConstants.IS_MIXED_IN_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementB, getOffset("A {} // 2"), "A"));
+        new ExpectedLocation(classElementB, findOffset("A {} // 2"), "A"));
   }
 
   public void test_isMixedInBy_ClassTypeAlias() throws Exception {
@@ -499,8 +499,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "typedef C = Object with A; // 2",
         "");
     // prepare elements
-    ClassElement classElementA = getElement("A {} // 1");
-    ClassElement classElementC = getElement("C =");
+    ClassElement classElementA = findElement("A {} // 1");
+    ClassElement classElementC = findElement("C =");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -510,7 +510,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         classElementA,
         IndexConstants.IS_MIXED_IN_BY,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementC, getOffset("A; // 2"), "A"));
+        new ExpectedLocation(classElementC, findOffset("A; // 2"), "A"));
   }
 
   public void test_isReadBy_ParameterElement() throws Exception {
@@ -520,8 +520,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  print(p);",
         "}");
     // prepare elements
-    Element mainElement = getElement("main2(");
-    ParameterElement parameterElement = getElement("p) {");
+    Element mainElement = findElement("main2(");
+    ParameterElement parameterElement = findElement("p) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -530,7 +530,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         parameterElement,
         IndexConstants.IS_READ_BY,
-        new ExpectedLocation(mainElement, getOffset("p);"), "p"));
+        new ExpectedLocation(mainElement, findOffset("p);"), "p"));
   }
 
   public void test_isReadBy_VariableElement() throws Exception {
@@ -541,8 +541,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  print(v);",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
-    VariableElement variableElement = getElement("v = 0");
+    Element mainElement = findElement("main(");
+    VariableElement variableElement = findElement("v = 0");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -551,7 +551,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         variableElement,
         IndexConstants.IS_READ_BY,
-        new ExpectedLocation(mainElement, getOffset("v);"), "v"));
+        new ExpectedLocation(mainElement, findOffset("v);"), "v"));
   }
 
   public void test_isReadWrittenBy_ParameterElement() throws Exception {
@@ -561,8 +561,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  p += 1;",
         "}");
     // prepare elements
-    Element mainElement = getElement("main2(");
-    ParameterElement parameterElement = getElement("p) {");
+    Element mainElement = findElement("main2(");
+    ParameterElement parameterElement = findElement("p) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -571,7 +571,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         parameterElement,
         IndexConstants.IS_READ_WRITTEN_BY,
-        new ExpectedLocation(mainElement, getOffset("p += 1"), "p"));
+        new ExpectedLocation(mainElement, findOffset("p += 1"), "p"));
   }
 
   public void test_isReadWrittenBy_VariableElement() throws Exception {
@@ -582,8 +582,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  v += 1;",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
-    VariableElement variableElement = getElement("v = 0");
+    Element mainElement = findElement("main(");
+    VariableElement variableElement = findElement("v = 0");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -592,13 +592,15 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         variableElement,
         IndexConstants.IS_READ_WRITTEN_BY,
-        new ExpectedLocation(mainElement, getOffset("v += 1"), "v"));
+        new ExpectedLocation(mainElement, findOffset("v += 1"), "v"));
   }
 
   public void test_isReferencedBy_ClassElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
+        "class A {",
+        "  var field;",
+        "}",
         "topLevelFunction(A p) {",
         "  A v;",
         "  new A(); // 2",
@@ -606,8 +608,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  print(A.field); // 3",
         "}");
     // prepare elements
-    Element functionElement = getElement("topLevelFunction(");
-    ClassElement classElementA = getElement("A {}");
+    Element functionElement = findElement("topLevelFunction(");
+    ClassElement classElementA = findElement("A {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -616,27 +618,27 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("A p)"), "A"));
+        new ExpectedLocation(functionElement, findOffset("A p)"), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("A v"), "A"));
+        new ExpectedLocation(functionElement, findOffset("A v"), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("A(); // 2"), "A"));
+        new ExpectedLocation(functionElement, findOffset("A(); // 2"), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("A.field ="), "A"));
+        new ExpectedLocation(functionElement, findOffset("A.field ="), "A"));
     assertRecordedRelation(
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("A.field); // 3"), "A"));
+        new ExpectedLocation(functionElement, findOffset("A.field); // 3"), "A"));
   }
 
   public void test_isReferencedBy_ClassElement_withPrefix() throws Exception {
@@ -646,7 +648,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  pref.MyClass v;",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
+    Element mainElement = findElement("main(");
     LibraryElement libraryElement = mock(LibraryElement.class);
     ClassElement classElement = mock(ClassElement.class);
     findSimpleIdentifier("MyClass v;").setElement(classElement);
@@ -659,7 +661,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         classElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("MyClass v;"), "MyClass", "pref"));
+        new ExpectedLocation(mainElement, findOffset("MyClass v;"), "MyClass", "pref"));
   }
 
   public void test_isReferencedBy_ClassTypeAlias() throws Exception {
@@ -671,8 +673,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  B v;",
         "}");
     // prepare elements
-    Element functionElement = getElement("topLevelFunction(");
-    ClassElement classElementB = getElement("B =");
+    Element functionElement = findElement("topLevelFunction(");
+    ClassElement classElementB = findElement("B =");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -681,26 +683,26 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         classElementB,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("B p)"), "B"));
+        new ExpectedLocation(functionElement, findOffset("B p)"), "B"));
     assertRecordedRelation(
         relations,
         classElementB,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(functionElement, getOffset("B v"), "B"));
+        new ExpectedLocation(functionElement, findOffset("B v"), "B"));
   }
 
   public void test_isReferencedBy_CompilationUnitElement() throws Exception {
-    setFileContent("SomeUnit.dart", "// empty file");
+    setFileContent("SomeUnit.dart", "part of myLib;");
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "library myLib;",
         "part 'SomeUnit.dart';",
         "");
     // set elements
-    Element mainElement = unitElement;
+    Element mainElement = testUnitElement;
     CompilationUnitElement referencedElement = (CompilationUnitElement) findNode(
-        PartDirective.class,
-        "part 'Some").getElement();
+        "part 'Some",
+        PartDirective.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -709,7 +711,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
+        new ExpectedLocation(mainElement, findOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
   }
 
   public void test_isReferencedBy_FunctionElement() throws Exception {
@@ -722,8 +724,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main(");
-    FunctionElement referencedElement = getElement("foo() {}");
+    Element mainElement = findElement("main(");
+    FunctionElement referencedElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -733,26 +735,26 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo);"), "foo"));
     // only "invoked", but not "referenced"
     {
       assertRecordedRelation(
           relations,
           referencedElement,
           IndexConstants.IS_INVOKED_BY,
-          new ExpectedLocation(mainElement, getOffset("foo());"), "foo"));
+          new ExpectedLocation(mainElement, findOffset("foo());"), "foo"));
       assertNoRecordedRelation(
           relations,
           referencedElement,
           IndexConstants.IS_REFERENCED_BY,
-          new ExpectedLocation(mainElement, getOffset("foo());"), "foo"));
+          new ExpectedLocation(mainElement, findOffset("foo());"), "foo"));
     }
   }
 
   public void test_isReferencedBy_ImportElement_noPrefix() throws Exception {
     setFileContent(
         "Lib.dart",
-        createSource(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;"));
@@ -765,9 +767,9 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "");
     // set elements
     ImportElement importElement = (ImportElement) findNode(
-        ImportDirective.class,
-        "import 'Lib.dart").getElement();
-    Element mainElement = getElement("main(");
+        "import 'Lib.dart",
+        ImportDirective.class).getElement();
+    Element mainElement = findElement("main(");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -776,13 +778,13 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         importElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("myVar = 1"), ""));
+        new ExpectedLocation(mainElement, findOffset("myVar = 1"), ""));
   }
 
   public void test_isReferencedBy_ImportElement_withPrefix() throws Exception {
     setFileContent(
         "Lib.dart",
-        createSource(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;",
             "var myVar;"));
@@ -794,10 +796,10 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main(");
+    Element mainElement = findElement("main(");
     ImportElement importElement = (ImportElement) findNode(
-        ImportDirective.class,
-        "import 'Lib.dart").getElement();
+        "import 'Lib.dart",
+        ImportDirective.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -808,7 +810,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
 //        relations,
 //        importElement,
 //        IndexConstants.IS_REFERENCED_BY,
-//        new ExpectedLocation(mainElement, getOffset("pref.myVar"), "pref"));
+//        new ExpectedLocation(mainElement, findOffset("pref.myVar"), "pref"));
   }
 
   public void test_isReferencedBy_LabelElement() throws Exception {
@@ -821,8 +823,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main(");
-    LabelElement referencedElement = getElement("L:");
+    Element mainElement = findElement("main(");
+    LabelElement referencedElement = findElement("L:");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -831,13 +833,13 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("L;"), "L"));
+        new ExpectedLocation(mainElement, findOffset("L;"), "L"));
   }
 
   public void test_isReferencedBy_LibraryElement_export() throws Exception {
     setFileContent(
         "Lib.dart",
-        createSource(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;"));
     parseTestUnit(
@@ -845,10 +847,10 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "export 'Lib.dart';",
         "");
     // set elements
-    Element mainElement = unitElement;
+    Element mainElement = testUnitElement;
     LibraryElement referencedElement = ((ExportElement) findNode(
-        ExportDirective.class,
-        "export 'Lib.dart").getElement()).getExportedLibrary();
+        "export 'Lib.dart",
+        ExportDirective.class).getElement()).getExportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -857,13 +859,13 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("'Lib.dart'"), "'Lib.dart'"));
+        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
   public void test_isReferencedBy_LibraryElement_import() throws Exception {
     setFileContent(
         "Lib.dart",
-        createSource(
+        makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library lib;"));
     parseTestUnit(
@@ -871,10 +873,10 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "import 'Lib.dart';",
         "");
     // set elements
-    Element mainElement = unitElement;
+    Element mainElement = testUnitElement;
     LibraryElement referencedElement = ((ImportElement) findNode(
-        ImportDirective.class,
-        "import 'Lib.dart").getElement()).getImportedLibrary();
+        "import 'Lib.dart",
+        ImportDirective.class).getElement()).getImportedLibrary();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -883,7 +885,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("'Lib.dart'"), "'Lib.dart'"));
+        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
   public void test_isReferencedBy_NameElement_class() throws Exception {
@@ -894,9 +896,9 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  A a = new A();",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
-    Element varElement = getElement("a =");
-    ClassElement classElementA = getElement("A {}");
+    Element mainElement = findElement("main(");
+    Element varElement = findElement("a =");
+    ClassElement classElementA = findElement("A {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -906,17 +908,17 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         nameElement,
         IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(classElementA, getOffset("A {}"), "A"));
+        new ExpectedLocation(classElementA, findOffset("A {}"), "A"));
     assertRecordedRelation(
         relations,
         nameElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("A a = "), "A"));
+        new ExpectedLocation(mainElement, findOffset("A a = "), "A"));
     assertRecordedRelation(
         relations,
         nameElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(varElement, getOffset("A();"), "A"));
+        new ExpectedLocation(varElement, findOffset("A();"), "A"));
   }
 
   public void test_isReferencedBy_NameElement_field() throws Exception {
@@ -929,8 +931,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  print(a.myField);",
         "}");
     // prepare elements
-    Element mainElement = getElement("main2(");
-    FieldElement fieldElement = getElement("myField;");
+    Element mainElement = findElement("main2(");
+    FieldElement fieldElement = findElement("myField;");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -940,12 +942,12 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         nameElement,
         IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(fieldElement, getOffset("myField;"), "myField"));
+        new ExpectedLocation(fieldElement, findOffset("myField;"), "myField"));
     assertRecordedRelation(
         relations,
         nameElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+        new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
   }
 
   public void test_isReferencedBy_NameElement_typeVariable() throws Exception {
@@ -957,8 +959,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
-    TypeVariableElement typeVariableElement = getElement("T>");
+    Element mainElement = findElement("main(");
+    TypeVariableElement typeVariableElement = findElement("T>");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -968,12 +970,12 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         nameElement,
         IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(typeVariableElement, getOffset("T>"), "T"));
+        new ExpectedLocation(typeVariableElement, findOffset("T>"), "T"));
     assertRecordedRelation(
         relations,
         nameElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("T v = "), "T"));
+        new ExpectedLocation(mainElement, findOffset("T v = "), "T"));
   }
 
   public void test_isReferencedBy_ParameterElement() throws Exception {
@@ -985,8 +987,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main(");
-    ParameterElement parameterElement = getElement("p}) {");
+    Element mainElement = findElement("main(");
+    ParameterElement parameterElement = findElement("p}) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -995,7 +997,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         parameterElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("p: 1"), "p"));
+        new ExpectedLocation(mainElement, findOffset("p: 1"), "p"));
   }
 
   public void test_isReferencedBy_TypeAliasElement() throws Exception {
@@ -1005,8 +1007,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "main2(A p) {",
         "}");
     // prepare elements
-    Element mainElement = getElement("main2(");
-    FunctionTypeAliasElement classElementA = getElement("A();");
+    Element mainElement = findElement("main2(");
+    FunctionTypeAliasElement classElementA = findElement("A();");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1015,7 +1017,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         classElementA,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset("A p)"), "A"));
+        new ExpectedLocation(mainElement, findOffset("A p)"), "A"));
   }
 
   public void test_isReferencedBy_TypeVariableElement() throws Exception {
@@ -1028,8 +1030,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // prepare elements
-    ClassElement classElementA = getElement("A<T>");
-    TypeVariableElement typeVariableElement = getElement("T>");
+    ClassElement classElementA = findElement("A<T>");
+    TypeVariableElement typeVariableElement = findElement("T>");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1038,7 +1040,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         typeVariableElement,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(classElementA, getOffset("T f"), "T"));
+        new ExpectedLocation(classElementA, findOffset("T f"), "T"));
   }
 
   public void test_isReferencedByQualified_ConstructorElement() throws Exception {
@@ -1059,12 +1061,12 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "}",
         "");
     // set elements
-    Element mainElement = getElement("main() {");
-    ConstructorElement consB = findNode(ConstructorDeclaration.class, "B()").getElement();
-    ConstructorElement consB_foo = findNode(ConstructorDeclaration.class, "B.foo()").getElement();
-    ConstructorElement consB_bar = findNode(ConstructorDeclaration.class, "B.bar()").getElement();
-    ConstructorElement consA = findNode(ConstructorDeclaration.class, "A()").getElement();
-    ConstructorElement consA_foo = findNode(ConstructorDeclaration.class, "A.foo()").getElement();
+    Element mainElement = findElement("main() {");
+    ConstructorElement consB = findNode("B()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consB_foo = findNode("B.foo()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consB_bar = findNode("B.bar()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consA = findNode("A()", ConstructorDeclaration.class).getElement();
+    ConstructorElement consA_foo = findNode("A.foo()", ConstructorDeclaration.class).getElement();
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1072,28 +1074,28 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
     // A()
     assertRecordedRelation(relations, consA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
         consB,
-        getOffset("(); // marker-1"),
+        findOffset("(); // marker-1"),
         ""));
     assertRecordedRelation(relations, consA, IndexConstants.IS_REFERENCED_BY, new ExpectedLocation(
         mainElement,
-        getOffset("(); // marker-main-1"),
+        findOffset("(); // marker-main-1"),
         ""));
     // A.foo()
     assertRecordedRelation(
         relations,
         consA_foo,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(consB_foo, getOffset(".foo(); // marker-2"), ".foo"));
+        new ExpectedLocation(consB_foo, findOffset(".foo(); // marker-2"), ".foo"));
     assertRecordedRelation(
         relations,
         consA_foo,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(consB_bar, getOffset(".foo; // marker-3"), ".foo"));
+        new ExpectedLocation(consB_bar, findOffset(".foo; // marker-3"), ".foo"));
     assertRecordedRelation(
         relations,
         consA_foo,
         IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, getOffset(".foo(); // marker-main-2"), ".foo"));
+        new ExpectedLocation(mainElement, findOffset(".foo(); // marker-main-2"), ".foo"));
   }
 
   public void test_isReferencedByQualified_FieldElement() throws Exception {
@@ -1106,8 +1108,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  A.myField = 1;",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("myField;");
     PropertyAccessorElement accessorElement = fieldElement.getSetter();
     // index
     index.visitCompilationUnit(testUnit);
@@ -1117,7 +1119,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         accessorElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 1"), "myField"));
+        new ExpectedLocation(mainElement, findOffset("myField = 1"), "myField"));
   }
 
   public void test_isReferencedByQualified_MethodElement() throws Exception {
@@ -1130,8 +1132,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
+    Element mainElement = findElement("main() {");
+    MethodElement fooElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1140,7 +1142,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo);"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -1154,8 +1156,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    PropertyAccessorElement fooElement = getElement("foo => ");
+    Element mainElement = findElement("main() {");
+    PropertyAccessorElement fooElement = findElement("foo => ");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1164,7 +1166,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo);"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -1178,8 +1180,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    PropertyAccessorElement fooElement = getElement("foo(x) {}");
+    Element mainElement = findElement("main() {");
+    PropertyAccessorElement fooElement = findElement("foo(x) {}");
     findSimpleIdentifier("foo = 42").setElement(fooElement);
     // index
     index.visitCompilationUnit(testUnit);
@@ -1189,7 +1191,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo = 42"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo = 42"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -1204,8 +1206,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    FieldElement fieldElement = getElement("myField;");
+    Element mainElement = findElement("main() {");
+    FieldElement fieldElement = findElement("myField;");
     PropertyAccessorElement getterElement = fieldElement.getGetter();
     PropertyAccessorElement setterElement = fieldElement.getSetter();
     // index
@@ -1216,12 +1218,12 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         getterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField);"), "myField"));
+        new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
     assertRecordedRelation(
         relations,
         setterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myField = 5"), "myField"));
+        new ExpectedLocation(mainElement, findOffset("myField = 5"), "myField"));
   }
 
   public void test_isReferencedByUnqualified_MethodElement() throws Exception {
@@ -1234,8 +1236,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  }",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    MethodElement fooElement = getElement("foo() {}");
+    Element mainElement = findElement("main() {");
+    MethodElement fooElement = findElement("foo() {}");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1244,7 +1246,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         fooElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("foo);"), "foo"));
+        new ExpectedLocation(mainElement, findOffset("foo);"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
   }
 
@@ -1257,8 +1259,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  print(myTopLevelVariable);",
         "}");
     // set elements
-    Element mainElement = getElement("main() {");
-    TopLevelVariableElement topVarElement = getElement("myTopLevelVariable;");
+    Element mainElement = findElement("main() {");
+    TopLevelVariableElement topVarElement = findElement("myTopLevelVariable;");
     PropertyAccessorElement getterElement = topVarElement.getGetter();
     PropertyAccessorElement setterElement = topVarElement.getSetter();
     // index
@@ -1269,12 +1271,15 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         getterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable);"), "myTopLevelVariable"));
+        new ExpectedLocation(mainElement, findOffset("myTopLevelVariable);"), "myTopLevelVariable"));
     assertRecordedRelation(
         relations,
         setterElement,
         IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
-        new ExpectedLocation(mainElement, getOffset("myTopLevelVariable = 5"), "myTopLevelVariable"));
+        new ExpectedLocation(
+            mainElement,
+            findOffset("myTopLevelVariable = 5"),
+            "myTopLevelVariable"));
   }
 
   public void test_isWrittenBy_ParameterElement() throws Exception {
@@ -1284,8 +1289,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  p = 1;",
         "}");
     // set elements
-    Element mainElement = getElement("main2(");
-    ParameterElement parameterElement = getElement("p) {");
+    Element mainElement = findElement("main2(");
+    ParameterElement parameterElement = findElement("p) {");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1294,7 +1299,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         parameterElement,
         IndexConstants.IS_WRITTEN_BY,
-        new ExpectedLocation(mainElement, getOffset("p = 1"), "p"));
+        new ExpectedLocation(mainElement, findOffset("p = 1"), "p"));
   }
 
   public void test_isWrittenBy_VariableElement() throws Exception {
@@ -1305,8 +1310,8 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         "  v = 1;",
         "}");
     // prepare elements
-    Element mainElement = getElement("main(");
-    VariableElement varElement = getElement("v = 0");
+    Element mainElement = findElement("main(");
+    VariableElement varElement = findElement("v = 0");
     // index
     index.visitCompilationUnit(testUnit);
     // verify
@@ -1315,7 +1320,7 @@ public class IndexContributorTest extends AbstractResolvedUnitTest {
         relations,
         varElement,
         IndexConstants.IS_WRITTEN_BY,
-        new ExpectedLocation(mainElement, getOffset("v = 1;"), "v"));
+        new ExpectedLocation(mainElement, findOffset("v = 1;"), "v"));
   }
 
   public void test_unresolvedUnit() throws Exception {

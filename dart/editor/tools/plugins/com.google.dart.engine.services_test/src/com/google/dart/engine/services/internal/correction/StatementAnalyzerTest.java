@@ -123,8 +123,8 @@ public class StatementAnalyzerTest extends AbstractDartTest {
         "  var b;",
         "}",
         "");
-    Statement statementA = findTestNode("var a", Statement.class);
-    Statement statementB = findTestNode("var b", Statement.class);
+    Statement statementA = findNode("var a", Statement.class);
+    Statement statementB = findNode("var b", Statement.class);
     // analyze selection
     SourceRange selection = rangeStartStart(statementA, statementB);
     StatementAnalyzer analyzer = new StatementAnalyzer(testUnit, selection);

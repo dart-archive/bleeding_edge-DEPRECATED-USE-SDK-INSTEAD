@@ -60,7 +60,7 @@ public class SelectionAnalyzerTest extends AbstractDartTest {
         "main() { // marker",
         "}",
         "");
-    FunctionDeclaration main = findTestNode("main", FunctionDeclaration.class);
+    FunctionDeclaration main = findNode("main", FunctionDeclaration.class);
     // analyze selection
     SourceRange selection = rangeStartEnd(0, findOffset("// marker"));
     SelectionAnalyzer analyzer = new SelectionAnalyzer(selection);
@@ -77,8 +77,8 @@ public class SelectionAnalyzerTest extends AbstractDartTest {
         "  var b;",
         "}",
         "");
-    Statement statementA = findTestNode("var a", Statement.class);
-    Statement statementB = findTestNode("var b", Statement.class);
+    Statement statementA = findNode("var a", Statement.class);
+    Statement statementB = findNode("var b", Statement.class);
     // analyze selection
     SourceRange selection = rangeStartEnd(findOffset("ar a"), statementB);
     SelectionAnalyzer analyzer = new SelectionAnalyzer(selection);
@@ -96,9 +96,9 @@ public class SelectionAnalyzerTest extends AbstractDartTest {
         "  var c;",
         "}",
         "");
-    Block block = findTestNode("{ // marker", Block.class);
-    Statement statementA = findTestNode("var a", Statement.class);
-    Statement statementB = findTestNode("var b", Statement.class);
+    Block block = findNode("{ // marker", Block.class);
+    Statement statementA = findNode("var a", Statement.class);
+    Statement statementB = findNode("var b", Statement.class);
     // analyze selection
     SourceRange selection = rangeStartEnd(findOffset("  var a"), findOffset("  var c"));
     SelectionAnalyzer analyzer = new SelectionAnalyzer(selection);

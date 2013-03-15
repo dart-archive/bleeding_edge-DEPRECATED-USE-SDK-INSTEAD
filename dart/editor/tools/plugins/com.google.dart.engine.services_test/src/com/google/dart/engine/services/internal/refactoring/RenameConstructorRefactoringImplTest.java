@@ -156,7 +156,7 @@ public class RenameConstructorRefactoringImplTest extends RenameRefactoringImplT
         "}");
     // configure refactoring
     {
-      ConstructorElement constructor = findTestNode("A() {}", ConstructorDeclaration.class).getElement();
+      ConstructorElement constructor = findNode("A() {}", ConstructorDeclaration.class).getElement();
       createRenameRefactoring(constructor);
     }
     assertEquals("Rename Constructor", refactoring.getRefactoringName());
