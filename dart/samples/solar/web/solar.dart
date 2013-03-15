@@ -20,7 +20,7 @@ void main() {
   solarSystem.start();
 }
 
-double fpsAverage;
+num fpsAverage;
 
 /**
  * Display the animation's FPS in a div.

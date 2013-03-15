@@ -14,7 +14,7 @@ void main() {
   new CountDownClock();
 }
 
-double fpsAverage;
+num fpsAverage;
 
 /**
  * Display the animation's FPS in a div.
@@ -30,7 +30,7 @@ void showFps(num fps) {
 }
 
 class CountDownClock {
-  static const int NUMBER_SPACING = 19;
+  static const double NUMBER_SPACING = 19.0;
   static const double BALL_WIDTH = 19.0;
   static const double BALL_HEIGHT = 19.0;
 

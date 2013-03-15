@@ -192,7 +192,7 @@ build system.  The PDE build system has to run under Eclipse.
 
                 <include name="solar/**"/>
 
-                <include name="solar3d/**"/>
+                <!-- include name="solar3d/**"/ -->
                 
                 <include name="sunflower/**"/>
 
