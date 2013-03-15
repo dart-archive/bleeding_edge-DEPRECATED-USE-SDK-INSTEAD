@@ -70,17 +70,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_constEvalThrowsException() throws Exception { // Not compile-time constant
-    Source source = addSource("/test.dart", createSource(//
-        "class C {",
-        "  const C() { throw null; }",
-        "}",
-        "f() { return const C(); }"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-    verify(source);
-  }
-
   public void fail_constWithNonConstantArgument() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {",
@@ -1208,6 +1197,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD);
+    verify(source);
+  }
+
+  public void test_constEvalThrowsException() throws Exception { // Not compile-time constant
+    Source source = addSource("/test.dart", createSource(//
+        "class C {",
+        "  const C() { throw null; }",
+        "}",
+        "f() { return const C(); }"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     verify(source);
   }
 

@@ -135,7 +135,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant object results in an
    * uncaught exception being thrown.
    */
-  CONST_EVAL_THROWS_EXCEPTION(""),
+  CONST_EVAL_THROWS_EXCEPTION("'const' constructors cannot throw exceptions"),
 
   /**
    * 12.11.2 Const: If <i>T</i> is a parameterized type <i>S&lt;U<sub>1</sub>, &hellip;,

@@ -43,6 +43,7 @@ import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.ThrowExpression;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -99,6 +100,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private TypeProvider typeProvider;
 
   /**
+   * This is set to <code>true</code> iff the visitor is currently visiting children nodes of a
+   * {@link ConstructorDeclaration} and the constructor is 'const'.
+   * 
+   * @see #visitConstructorDeclaration(ConstructorDeclaration)
+   */
+  private boolean isEnclosingConstructorConst;
+
+  /**
    * The method or function that we are currently visiting, or {@code null} if we are not inside a
    * method or function.
    */
@@ -115,6 +124,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.errorReporter = errorReporter;
     this.currentLibrary = currentLibrary;
     this.typeProvider = typeProvider;
+    isEnclosingConstructorConst = false;
     dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
         typeProvider.getNumType(), typeProvider.getIntType(), typeProvider.getDoubleType(),
@@ -166,10 +176,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     ExecutableElement previousFunction = currentFunction;
     try {
       currentFunction = node.getElement();
+      isEnclosingConstructorConst = node.getConstKeyword() != null;
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
       return super.visitConstructorDeclaration(node);
     } finally {
+      isEnclosingConstructorConst = false;
       currentFunction = previousFunction;
     }
   }
@@ -279,6 +291,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitSwitchStatement(SwitchStatement node) {
     checkForCaseExpressionTypeImplementsEquals(node);
     return super.visitSwitchStatement(node);
+  }
+
+  @Override
+  public Void visitThrowExpression(ThrowExpression node) {
+    checkForConstEvalThrowsException(node);
+    return super.visitThrowExpression(node);
   }
 
   @Override
@@ -444,7 +462,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD
    */
   private boolean checkForConstConstructorWithNonFinalField(ConstructorDeclaration node) {
-    if (node.getConstKeyword() == null) {
+    if (!isEnclosingConstructorConst) {
       return false;
     }
     ConstructorElement constructorElement = node.getElement();
@@ -459,6 +477,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed throw expression is not enclosed in a 'const' constructor
+   * declaration.
+   * 
+   * @param node the throw expression expression to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#CONST_EVAL_THROWS_EXCEPTION
+   */
+  private boolean checkForConstEvalThrowsException(ThrowExpression node) {
+    if (isEnclosingConstructorConst) {
+      errorReporter.reportError(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+      return true;
     }
     return false;
   }
