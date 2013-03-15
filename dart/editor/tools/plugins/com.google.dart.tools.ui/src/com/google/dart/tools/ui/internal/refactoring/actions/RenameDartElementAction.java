@@ -140,6 +140,9 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
 
   private Element getElementFromEditor(ITextSelection selection) {
     CompilationUnit unit = fEditor.getInputUnit();
+    if (unit == null) {
+      return null;
+    }
     int selectionOffset = selection.getOffset();
     ASTNode selectedNode = new NodeLocator(selectionOffset).searchWithin(unit);
     if (selectedNode instanceof SimpleIdentifier) {
