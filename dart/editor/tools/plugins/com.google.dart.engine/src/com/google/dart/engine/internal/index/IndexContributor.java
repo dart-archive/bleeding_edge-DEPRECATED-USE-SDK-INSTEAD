@@ -27,6 +27,7 @@ import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionTypeAlias;
+import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.Label;
@@ -52,6 +53,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -60,7 +62,6 @@ import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.IndexStore;
@@ -183,14 +184,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         ExtendsClause extendsClause = node.getExtendsClause();
         if (extendsClause != null) {
           TypeName superclassNode = extendsClause.getSuperclass();
-          recordSuperType(element, superclassNode, IndexConstants.IS_EXTENDED_BY);
+          recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
         }
       }
       {
         WithClause withClause = node.getWithClause();
         if (withClause != null) {
           for (TypeName mixinNode : withClause.getMixinTypes()) {
-            recordSuperType(element, mixinNode, IndexConstants.IS_MIXED_IN_BY);
+            recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
           }
         }
       }
@@ -198,7 +199,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         ImplementsClause implementsClause = node.getImplementsClause();
         if (implementsClause != null) {
           for (TypeName interfaceNode : implementsClause.getInterfaces()) {
-            recordSuperType(element, interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
+            recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
           }
         }
       }
@@ -221,14 +222,14 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       {
         TypeName superclassNode = node.getSuperclass();
         if (superclassNode != null) {
-          recordSuperType(element, superclassNode, IndexConstants.IS_EXTENDED_BY);
+          recordSuperType(superclassNode, IndexConstants.IS_EXTENDED_BY);
         }
       }
       {
         WithClause withClause = node.getWithClause();
         if (withClause != null) {
           for (TypeName mixinNode : withClause.getMixinTypes()) {
-            recordSuperType(element, mixinNode, IndexConstants.IS_MIXED_IN_BY);
+            recordSuperType(mixinNode, IndexConstants.IS_MIXED_IN_BY);
           }
         }
       }
@@ -236,7 +237,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         ImplementsClause implementsClause = node.getImplementsClause();
         if (implementsClause != null) {
           for (TypeName interfaceNode : implementsClause.getInterfaces()) {
-            recordSuperType(element, interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
+            recordSuperType(interfaceNode, IndexConstants.IS_IMPLEMENTED_BY);
           }
         }
       }
@@ -303,19 +304,21 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitExportDirective(ExportDirective node) {
     ExportElement element = (ExportElement) node.getElement();
-    Location location = createLocation(node.getUri());
-    recordRelationship(element.getExportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    if (element != null) {
+      Location location = createLocation(node.getUri());
+      recordRelationship(element.getExportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    }
     return super.visitExportDirective(node);
   }
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.getElement();
+    Location location = createElementLocation(element);
+    recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
+    recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION, location);
     enterScope(element);
     try {
-      Location location = createElementLocation(element);
-      recordRelationship(libraryElement, IndexConstants.DEFINES_FUNCTION, location);
-      recordRelationship(IndexConstants.UNIVERSE, IndexConstants.DEFINES_FUNCTION, location);
       return super.visitFunctionDeclaration(node);
     } finally {
       exitScope();
@@ -334,8 +337,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitImportDirective(ImportDirective node) {
     ImportElement element = (ImportElement) node.getElement();
-    Location location = createLocation(node.getUri());
-    recordRelationship(element.getImportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    if (element != null) {
+      Location location = createLocation(node.getUri());
+      recordRelationship(element.getImportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+    }
     return super.visitImportDirective(node);
   }
 
@@ -572,13 +577,13 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
    * Records extends/implements relationships between given {@link ClassElement} and {@link Type} of
    * "superNode".
    */
-  private void recordSuperType(ClassElement element, TypeName superNode, Relationship relationship) {
-    if (element != null) {
-      Element superElement = superNode.getName().getElement();
-      if (superElement != null) {
+  private void recordSuperType(TypeName superNode, Relationship relationship) {
+    if (superNode != null) {
+      Identifier superName = superNode.getName();
+      if (superName != null) {
+        Element superElement = superName.getElement();
         recordRelationship(superElement, relationship, createLocation(superNode));
       }
     }
   }
-
 }
