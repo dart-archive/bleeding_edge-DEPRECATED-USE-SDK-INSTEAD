@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.text.functions;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.ParentElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -90,9 +91,6 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     public NamePatternFilter() {
     }
 
-    /*
-     * (non-Javadoc) Method declared on ViewerFilter.
-     */
     @Override
     public boolean select(Viewer viewer, Object parentElement, Object element) {
       StringMatcher matcher = getMatcher();
@@ -109,12 +107,21 @@ public abstract class AbstractInformationControl extends PopupDialog implements
       return hasUnfilteredChild(treeViewer, element);
     }
 
-    private boolean hasUnfilteredChild(TreeViewer viewer, Object element) {
-      if (element instanceof ParentElement) {
+    private boolean hasUnfilteredChild(final TreeViewer viewer, Object element) {
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
         Object[] children = ((ITreeContentProvider) viewer.getContentProvider()).getChildren(element);
         for (int i = 0; i < children.length; i++) {
           if (select(viewer, element, children[i])) {
             return true;
+          }
+        }
+      } else {
+        if (element instanceof ParentElement) {
+          Object[] children = ((ITreeContentProvider) viewer.getContentProvider()).getChildren(element);
+          for (int i = 0; i < children.length; i++) {
+            if (select(viewer, element, children[i])) {
+              return true;
+            }
           }
         }
       }
@@ -724,7 +731,12 @@ public abstract class AbstractInformationControl extends PopupDialog implements
    */
   protected void selectFirstMatch() {
     Tree tree = fTreeViewer.getTree();
-    Object element = findElement(tree.getItems());
+    Object element;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      element = findElement(tree.getItems());
+    } else {
+      element = findElement_OLD(tree.getItems());
+    }
     if (element != null) {
       fTreeViewer.setSelection(new StructuredSelection(element), true);
     } else {
@@ -784,10 +796,10 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     setInfoText(getStatusFieldText());
   }
 
-  private DartElement findElement(TreeItem[] items) {
+  private Element findElement(TreeItem[] items) {
     ILabelProvider labelProvider = (ILabelProvider) fTreeViewer.getLabelProvider();
     for (int i = 0; i < items.length; i++) {
-      DartElement element = (DartElement) items[i].getData();
+      Element element = (Element) items[i].getData();
       if (fStringMatcher == null) {
         return element;
       }
@@ -807,6 +819,29 @@ public abstract class AbstractInformationControl extends PopupDialog implements
     return null;
   }
 
+  private DartElement findElement_OLD(TreeItem[] items) {
+    ILabelProvider labelProvider = (ILabelProvider) fTreeViewer.getLabelProvider();
+    for (int i = 0; i < items.length; i++) {
+      DartElement element = (DartElement) items[i].getData();
+      if (fStringMatcher == null) {
+        return element;
+      }
+
+      if (element != null) {
+        String label = labelProvider.getText(element);
+        if (fStringMatcher.match(label)) {
+          return element;
+        }
+      }
+
+      element = findElement_OLD(items[i].getItems());
+      if (element != null) {
+        return element;
+      }
+    }
+    return null;
+  }
+
   private void gotoSelectedElement() {
     Object selectedElement = getSelectedElement();
     if (selectedElement != null) {
@@ -814,11 +849,14 @@ public abstract class AbstractInformationControl extends PopupDialog implements
         dispose();
         IEditorPart part = EditorUtility.openInEditor(selectedElement, true);
         if (part != null) {
-          if (selectedElement instanceof DartElement) {
-            EditorUtility.revealInEditor(part, (DartElement) selectedElement);
-          }
-          if (selectedElement instanceof Element) {
-            EditorUtility.revealInEditor(part, (Element) selectedElement);
+          if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+            if (selectedElement instanceof Element) {
+              EditorUtility.revealInEditor(part, (Element) selectedElement);
+            }
+          } else {
+            if (selectedElement instanceof DartElement) {
+              EditorUtility.revealInEditor(part, (DartElement) selectedElement);
+            }
           }
         }
       } catch (CoreException ex) {
