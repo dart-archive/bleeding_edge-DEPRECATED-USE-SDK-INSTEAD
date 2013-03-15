@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
@@ -465,6 +466,11 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       return result;
     }
+  }
+
+  @Override
+  public ChangeNotice[] performAnalysisTask() {
+    return ChangeNotice.EMPTY_ARRAY;
   }
 
   /**

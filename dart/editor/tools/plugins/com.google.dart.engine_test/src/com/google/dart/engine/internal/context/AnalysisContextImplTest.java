@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
-import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
@@ -33,8 +32,6 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.source.TestSource;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
-
-import java.io.File;
 
 public class AnalysisContextImplTest extends EngineTestCase {
   public void fail_getElement_location() {
@@ -72,19 +69,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(SourceKind.UNKNOWN, context.getKnownKindOf(new TestSource()));
   }
 
-  public void fail_parse_non_existent_source() throws Exception {
+  public void fail_parse_nonExistentSource() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
     context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, new File("/does/not/exist.dart"));
+    Source source = new FileBasedSource(sourceFactory, createFile("/does/not/exist.dart"));
     CompilationUnit unit = context.parse(source);
     assertNotNull(unit);
   }
 
   public void test_applyChanges_empty() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    ChangeResult result = context.applyChanges(new ChangeSet());
-    assertNotNull(result);
+    context.applyChanges(new ChangeSet());
+    // TODO(brianwilkerson) Test that there are no tasks waiting to be performed.
   }
 
   public void test_creation() {

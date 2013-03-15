@@ -238,6 +238,15 @@ public interface AnalysisContext {
   public HtmlParseResult parseHtml(Source source) throws AnalysisException;
 
   /**
+   * Perform the next unit of work required to keep the analysis results up-to-date and return
+   * information about the consequent changes to the analysis results. If there were no results the
+   * returned array will be empty. This method can be long running.
+   * 
+   * @return an array containing notices of changes to the analysis results
+   */
+  public ChangeNotice[] performAnalysisTask();
+
+  /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    * 
    * @param source the source to be parsed and resolved
@@ -252,10 +261,10 @@ public interface AnalysisContext {
    * given source factory. Clients can safely assume that all analysis results have been
    * invalidated.
    * 
-   * @param sourceFactory the source factory used to create the sources that can be analyzed in this
+   * @param factory the source factory used to create the sources that can be analyzed in this
    *          context
    */
-  public void setSourceFactory(SourceFactory sourceFactory);
+  public void setSourceFactory(SourceFactory factory);
 
   /**
    * Given a collection of sources with content that has changed, return an {@link Iterable}

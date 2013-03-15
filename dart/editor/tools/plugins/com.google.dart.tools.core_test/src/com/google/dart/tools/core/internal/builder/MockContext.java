@@ -3,6 +3,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeResult;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
@@ -297,6 +298,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public HtmlParseResult parseHtml(Source source) throws AnalysisException {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public ChangeNotice[] performAnalysisTask() {
+    return ChangeNotice.EMPTY_ARRAY;
   }
 
   @Override
