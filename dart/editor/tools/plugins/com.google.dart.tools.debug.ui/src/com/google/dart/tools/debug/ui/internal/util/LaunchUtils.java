@@ -430,7 +430,9 @@ public class LaunchUtils {
 
     if (ObjectUtils.equals(appResource, resource)) {
       DartLibrary[] testLibraries = LaunchUtils.getDartLibraries(resource);
-      return isCorrectLaunchConfigType(config, testLibraries[0]);
+      if (testLibraries.length > 0) {
+        return isCorrectLaunchConfigType(config, testLibraries[0]);
+      }
     }
 
     // TODO: this does not use the launch configurations correctly
