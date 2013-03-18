@@ -71,6 +71,16 @@ public class MethodElementImpl extends ExecutableElementImpl implements MethodEl
   }
 
   @Override
+  public boolean isOperator() {
+    String name = getName();
+    if (name.isEmpty()) {
+      return false;
+    }
+    char first = name.charAt(0);
+    return !(('a' <= first && first <= 'z') || ('A' <= first && first <= 'Z') || first == '_' || first == '$');
+  }
+
+  @Override
   public boolean isStatic() {
     return hasModifier(Modifier.STATIC);
   }

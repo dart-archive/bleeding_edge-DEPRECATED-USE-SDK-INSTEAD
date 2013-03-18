@@ -35,4 +35,12 @@ public interface MethodElement extends ExecutableElement {
    * @return {@code true} if this method is abstract
    */
   public boolean isAbstract();
+
+  /**
+   * Return {@code true} if this method is an operator. The test may be based on the name of the
+   * method, in which case the result will be correct when the name is legal.
+   * 
+   * @return {@code true} if this method is an operator
+   */
+  public boolean isOperator();
 }
