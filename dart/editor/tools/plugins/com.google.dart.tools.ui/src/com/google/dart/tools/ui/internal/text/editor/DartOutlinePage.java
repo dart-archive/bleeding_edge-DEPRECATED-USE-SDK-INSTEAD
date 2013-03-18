@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
-import com.google.dart.engine.element.Element;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.DartSearchActionGroup;
@@ -27,7 +27,10 @@ import com.google.dart.tools.ui.internal.viewsupport.NameElementComparator;
 import com.google.dart.tools.ui.internal.viewsupport.SourcePositionElementComparator;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -59,10 +62,11 @@ import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.part.Page;
+import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
- * The content outline page of the Dart editor.
+ * {@link IContentOutlinePage} for {@link DartEditor}.
  */
 public class DartOutlinePage extends Page implements IContentOutlinePage, DartOutlinePage_I {
 
@@ -86,7 +90,6 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   private class DartOutlineViewer extends TreeViewer {
     public DartOutlineViewer(final Tree tree) {
       super(tree);
-      setAutoExpandLevel(ALL_LEVELS);
       setUseHashlookup(true);
       tree.setBackgroundMode(SWT.INHERIT_FORCE);
       tree.addListener(SWT.EraseItem, new Listener() {
@@ -163,17 +166,18 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
   }
 
   private String fContextMenuID;
+
   private DartEditor fEditor;
-
   private IPropertyChangeListener fPropertyChangeListener;
-
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
-
   private DartOutlineViewer fOutlineViewer;
   private Menu fMenu;
+
   private CompositeActionGroup fActionGroups;
+
   private ListenerList fSelectionChangedListeners = new ListenerList(ListenerList.IDENTITY);
-  private Element input;
+
+  private CompilationUnit input;
 
   public DartOutlinePage(String contextMenuID, DartEditor editor) {
     Assert.isNotNull(editor);
@@ -206,8 +210,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     fOutlineViewer = new DartOutlineViewer(tree);
     ColoredViewersManager.install(fOutlineViewer);
 
-    fOutlineViewer.setContentProvider(new NewDartOutlinePageContentProvider());
-    fOutlineViewer.setLabelProvider(new NewDartElementLabelProvider());
+    fOutlineViewer.setContentProvider(LightNodeElements.newTreeContentProvider());
+    fOutlineViewer.setLabelProvider(LightNodeElements.newLabelProvider());
     fOutlineViewer.updateTreeFont();
 
     {
@@ -256,7 +260,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       }
     });
 
-    fOutlineViewer.setInput(input);
+    // Schedule update in 100ms from now, to make impression that editor opens instantaneously.
+    new UIJob("Update Outline") {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        fOutlineViewer.setInput(input);
+        return Status.OK_STATUS;
+      }
+    }.schedule(100);
   }
 
   @Override
@@ -316,7 +327,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
-  public void select(Element element) {
+  public void select(LightNodeElement element) {
     if (fOutlineViewer != null) {
       fOutlineViewer.setSelection(new StructuredSelection(element));
     }
@@ -329,7 +340,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
-  public void setInput(Element input) {
+  public void setInput(CompilationUnit input) {
     this.input = input;
     if (fOutlineViewer != null) {
       fOutlineViewer.setInput(input);

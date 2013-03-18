@@ -601,7 +601,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
             sourceViewer,
             editor,
             getConfiguredDocumentPartitioning(sourceViewer));
-        reconciler = new DartReconciler(editor, strategy, false);
+        reconciler = new DartReconciler(editor, strategy);
       } else {
         LegacyDartCompositeReconcilingStrategy strategy = new LegacyDartCompositeReconcilingStrategy(
             sourceViewer,

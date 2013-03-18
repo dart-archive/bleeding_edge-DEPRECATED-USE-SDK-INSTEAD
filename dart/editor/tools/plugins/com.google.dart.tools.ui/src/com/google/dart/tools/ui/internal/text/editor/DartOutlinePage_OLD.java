@@ -135,11 +135,7 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
           PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE,
           isChecked);
       if (isChecked && fEditor != null) {
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceElement(), false);
-        } else {
-          fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
-        }
+        fEditor.synchronizeOutlinePage(fEditor.computeHighlightRangeSourceReference(), false);
       }
       fOpenAndLinkWithEditorHelper.setLinkWithEditor(isChecked);
     }

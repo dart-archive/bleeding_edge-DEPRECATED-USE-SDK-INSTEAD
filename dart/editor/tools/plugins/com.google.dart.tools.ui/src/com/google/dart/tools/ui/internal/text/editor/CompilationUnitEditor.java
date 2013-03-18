@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.common.base.Objects;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisEvent;
@@ -32,6 +33,8 @@ import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
+import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
@@ -60,6 +63,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -127,6 +131,7 @@ import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.ide.FileStoreEditorInput;
+import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -1143,6 +1148,26 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
   }
 
+  @Override
+  public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
+    super.applyCompilationUnitElement(unit);
+    new UIJob("Update Editor Image") {
+      @Override
+      public IStatus runInUIThread(IProgressMonitor monitor) {
+        ExecutionUtils.runLog(new RunnableEx() {
+          @Override
+          public void run() throws Exception {
+            CompilationUnitElement element = getInputElement();
+            if (element != null) {
+              fJavaEditorErrorTickUpdater.updateEditorImage(element);
+            }
+          }
+        });
+        return Status.OK_STATUS;
+      }
+    }.schedule();
+  }
+
   /*
    * @see AbstractTextEditor#createPartControl(Composite)
    */
@@ -1577,7 +1602,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
       } else {
 
         if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          fJavaEditorErrorTickUpdater.updateEditorImage(getInputElement());
+          // moved to applyCompilationUnitElement()
         } else {
           fJavaEditorErrorTickUpdater.updateEditorImage(getInputDartElement());
         }

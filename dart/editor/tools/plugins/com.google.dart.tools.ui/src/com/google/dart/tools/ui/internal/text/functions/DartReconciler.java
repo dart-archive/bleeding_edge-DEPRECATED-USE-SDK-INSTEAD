@@ -13,39 +13,113 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.ITextInputListener;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.jface.text.reconciler.MonoReconciler;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * "New world" dart reconciler.
  */
 public class DartReconciler extends MonoReconciler {
+  private static class EditorState {
+    private final long time = System.currentTimeMillis();
+    private final String code;
+    private final Point selectionRange;
+
+    public EditorState(String code, Point selectionRange) {
+      this.code = code;
+      this.selectionRange = selectionRange;
+    }
+  }
+
+  private class Listener implements IDocumentListener, ITextInputListener,
+      ISelectionChangedListener {
+
+    @Override
+    public void documentAboutToBeChanged(DocumentEvent event) {
+    }
+
+    @Override
+    public void documentChanged(DocumentEvent event) {
+      putEditorState();
+    }
+
+    @Override
+    public void inputDocumentAboutToBeChanged(IDocument oldInput, IDocument newInput) {
+    }
+
+    @Override
+    public void inputDocumentChanged(IDocument oldInput, IDocument newInput) {
+      if (oldInput != null) {
+        oldInput.removeDocumentListener(this);
+      }
+      if (newInput != null) {
+        newInput.addDocumentListener(this);
+      }
+      putEditorState();
+    }
+
+    @Override
+    public void selectionChanged(SelectionChangedEvent event) {
+      putEditorState();
+    }
+  }
+
   private final DartEditor editor;
+  private final IFile file;
+  private Project project;
   private volatile Thread thread;
 
-  /**
-   * Creates a new reconciler.
-   * 
-   * @param editor the editor
-   * @param strategy the reconcile strategy
-   * @param isIncremental <code>true</code> if this is an incremental reconciler
-   */
-  public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy,
-      boolean isIncremental) {
-    super(strategy, isIncremental);
+  private final Object editorStateLock = new Object();
+  private EditorState editorState;
+  private String oldCode;
+  private final Listener documentListener = new Listener();
+
+  public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy) {
+    super(strategy, false);
     this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
+    this.file = this.editor != null ? this.editor.getInputFile() : null;
+    if (this.editor != null) {
+      this.editor.setReconciler(this);
+    }
   }
 
   @Override
   public void install(ITextViewer textViewer) {
     super.install(textViewer);
-    if (editor != null) {
+    if (file != null) {
+      putEditorState();
+      // add listener
+      {
+        IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();
+        provider.addPostSelectionChangedListener(documentListener);
+        getTextViewer().addTextInputListener(documentListener);
+      }
+      // start thread
       thread = new Thread() {
         @Override
         public void run() {
@@ -60,15 +134,110 @@ public class DartReconciler extends MonoReconciler {
   @Override
   public void uninstall() {
     super.uninstall();
+    // remove listeners
+    {
+      IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();
+      provider.removePostSelectionChangedListener(documentListener);
+      getTextViewer().removeTextInputListener(documentListener);
+    }
+    // notify thread that it should be stopped
     thread = null;
   }
 
   @Override
-  protected void process(DirtyRegion dirtyRegion) {
-    super.process(dirtyRegion);
-    if (editor != null) {
-      DartEditor dartEditor = editor;
-      dartEditor.applyChangesToContext();
+  protected void aboutToBeReconciled() {
+    super.aboutToBeReconciled();
+    if (file != null) {
+      // notify editor that CompilationUnit is not valid anymore
+      editor.applyCompilationUnitElement(null);
+    }
+  }
+
+  /**
+   * Asynchronously notify {@link DartEditor} about parsed {@link CompilationUnit} and selection.
+   */
+  private void displayReconcilerTick(final CompilationUnit unit, final boolean newUnit,
+      final Point selectionRange) {
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        editor.applyParsedUnitAndSelection(unit, newUnit, selectionRange);
+      }
+    });
+  };
+
+  /**
+   * @return the parsed {@link CompilationUnit}, may be <code>null</code>/
+   */
+  private CompilationUnit getParsedUnit() throws AnalysisException {
+    // TODO(scheglov) replace when AnalysisContext will have better method
+    Source source = getSource();
+    if (source == null) {
+      return null;
+    }
+    // parse
+    AnalysisContext context = source.getContext();
+    return context.parse(source);
+  }
+
+  /**
+   * @return the resolved {@link CompilationUnit}, may be <code>null</code>/
+   */
+  private CompilationUnit getResolvedUnit() throws Exception {
+    // TODO(scheglov) replace when AnalysisContext will have better method
+    Source source = getSource();
+    if (source == null) {
+      return null;
+    }
+    // resolve
+    AnalysisContext context = source.getContext();
+    LibraryElement libraryElement = context.getLibraryElement(source);
+    return context.resolve(source, libraryElement);
+  }
+
+  /**
+   * @return the {@link Source} which corresponds to the {@link IEditorInput}.
+   */
+  private Source getSource() {
+    return project.getSource(file);
+  }
+
+  /**
+   * Notifies {@link AnalysisContext} that {@link Source} was changed.
+   */
+  private void notifyContextAboutCode(String code) {
+    // only if changed
+    if (Objects.equal(code, oldCode)) {
+      return;
+    }
+    oldCode = code;
+    // prepare Source
+    Source source = getSource();
+    if (source == null) {
+      return;
+    }
+    // notify AnalysisContext about changes
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source, code);
+    changeSet.changed(source, code);
+    source.getContext().applyChanges(changeSet);
+  }
+
+  /**
+   * Fills {@link #editorState} with current state (text and selection) of editor.
+   */
+  private void putEditorState() {
+    IDocument document = getDocument();
+    ITextViewer textViewer = getTextViewer();
+    if (document != null && textViewer != null) {
+      try {
+        String code = document.get();
+        Point selectionRange = textViewer.getSelectedRange();
+        synchronized (editorStateLock) {
+          editorState = new EditorState(code, selectionRange);
+        }
+      } catch (Throwable e) {
+      }
     }
   }
 
@@ -76,21 +245,57 @@ public class DartReconciler extends MonoReconciler {
    * Performs main refresh loop to reflect changes in {@link DartEditor} and/or environment.
    */
   private void refreshLoop() {
+    // prepare Project
+    {
+      IProject projectResource = file.getProject();
+      project = DartCore.getProjectManager().getProject(projectResource);
+    }
+    // change Thread name
+    {
+      Source source = getSource();
+      if (source != null) {
+        Thread.currentThread().setName("Reconciler: " + source.getShortName());
+      }
+    }
+    // run loop and wait for CompilationUnit changes
+    CompilationUnit lastParsedUnit = null;
     CompilationUnitElement previousUnitElement = null;
     while (thread != null) {
       try {
-        CompilationUnit unitNode = editor.getInputUnit();
+        // wait
+        try {
+          Thread.sleep(50);
+        } catch (InterruptedException e) {
+        }
+        // process EditorState
+        {
+          // prepare EditorState to apply
+          EditorState loopEditorState = null;
+          synchronized (editorStateLock) {
+            if (editorState != null && System.currentTimeMillis() - editorState.time > 100) {
+              loopEditorState = editorState;
+              editorState = null;
+            }
+          }
+          // apply EditorState if it is ready
+          if (loopEditorState != null) {
+            notifyContextAboutCode(loopEditorState.code);
+            CompilationUnit parsedUnit = getParsedUnit();
+            boolean newUnit = !Objects.equal(parsedUnit, lastParsedUnit);
+            lastParsedUnit = parsedUnit;
+            displayReconcilerTick(parsedUnit, newUnit, loopEditorState.selectionRange);
+          }
+        }
+        // may be resolved
+        CompilationUnit unitNode = getResolvedUnit();
         CompilationUnitElement unitElement = unitNode.getElement();
-        if (unitElement != previousUnitElement) {
-          previousUnitElement = unitElement;
-//          System.out.println("unitElement: " + ObjectUtils.identityToString(unitElement));
-          // unit was resolved
-          if (unitElement != null) {
+        if (unitElement != null) {
+          if (unitElement != previousUnitElement) {
+            previousUnitElement = unitElement;
             editor.applyCompilationUnitElement(unitNode);
           }
         }
-        Thread.sleep(50);
-      } catch (InterruptedException e) {
+      } catch (Throwable e) {
       }
     }
   }
