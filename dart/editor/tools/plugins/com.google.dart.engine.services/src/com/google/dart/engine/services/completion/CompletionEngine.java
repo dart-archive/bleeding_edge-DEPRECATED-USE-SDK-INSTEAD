@@ -16,6 +16,7 @@ package com.google.dart.engine.services.completion;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -62,6 +63,7 @@ import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.TypeVariableElement;
@@ -114,8 +116,10 @@ public class CompletionEngine {
       mergeNames(type.getElement().getMethods());
       mergeNames(type.getElement().getTypeVariables());
       if (!state.areOperatorsAllowed) {
-        for (ExecutableElement mth : type.getElement().getMethods()) {
-          // TODO Identify operators...
+        for (MethodElement mth : type.getElement().getMethods()) {
+          if (mth.isOperator()) {
+            remove(mth);
+          }
         }
       }
     }
@@ -258,6 +262,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitBinaryExpression(BinaryExpression node) {
+      if (node.getLeftOperand() == completionNode) {
+        analyzeLocalName(completionNode);
+      } else if (node.getRightOperand() == completionNode) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
       // { A() : this.!x = 1; }
       if (node.getFieldName() == completionNode) {
@@ -281,6 +295,12 @@ public class CompletionEngine {
           }
         }
       }
+      return null;
+    }
+
+    @Override
+    public Void visitExpression(Expression node) {
+      analyzeLocalName(new Ident(node));
       return null;
     }
 
@@ -339,6 +359,11 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitNode(ASTNode node) {
+      return super.visitNode(node);
+    }
+
+    @Override
     public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
       if (node.getPrefix() == completionNode) {
         // { x!.y }
@@ -346,31 +371,7 @@ public class CompletionEngine {
         analyzeLocalName(node.getPrefix());
       } else {
         // { v.! }
-        SimpleIdentifier receiverName = node.getPrefix();
-        Element receiver = receiverName.getElement();
-        if (receiver == null) {
-          return null;
-        }
-        switch (receiver.getKind()) {
-          case PREFIX: {
-            // TODO: remove this case if/when prefix resolution changes
-            PrefixElement prefixElement = (PrefixElement) receiver;
-            // Complete lib_prefix.name
-            prefixedAccess(prefixElement, node.getIdentifier());
-            break;
-          }
-          case IMPORT: {
-            ImportElement importElement = (ImportElement) receiver;
-            // Complete lib_prefix.name
-            prefixedAccess(importElement, node.getIdentifier());
-            break;
-          }
-          default: {
-            Type receiverType = typeOf(receiver);
-            analyzePrefixedAccess(receiverType, node.getIdentifier());
-            break;
-          }
-        }
+        dispatchPrefixAnalysis(node, node.getIdentifier());
       }
       return null;
     }
@@ -404,11 +405,11 @@ public class CompletionEngine {
           return null;
         }
       }
-      if (node.getKeyword() != null && isCompletionBefore(node.getKeyword().getEnd())) {
-        final Token token = node.getKeyword();
-        Ident ident = new Ident(node, token);
-        analyzeTypeName(ident, ident);
-      }
+//      if (node.getKeyword() != null && isCompletionBefore(node.getKeyword().getEnd())) {
+//        final Token token = node.getKeyword();
+//        Ident ident = new Ident(node, token);
+//        analyzeTypeName(ident, ident);
+//      }
       return null;
     }
 
@@ -613,6 +614,34 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitNode(ASTNode node) {
+      return null;
+    }
+
+    @Override
+    public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+      if (isCompletionAfter(node.getPeriod().getEnd())) {
+        if (node.getIdentifier() == null || isCompletionBefore(node.getIdentifier().getOffset())) {
+          // { x.!  y } Note missing/implied semicolon before y; this looks like an obscure case
+          // but it occurs frequently when editing existing code.
+          dispatchPrefixAnalysis(node, new Ident(node));
+        }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
+      if (node.getKeyword() != null && isCompletionBefore(node.getKeyword().getEnd())) {
+        // f() { g(var! z) }
+        final Token token = node.getKeyword();
+        Ident ident = new Ident(node, token);
+        analyzeTypeName(ident, ident);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitSimpleIdentifier(SimpleIdentifier node) {
       ASTNode parent = node.getParent();
       if (parent != null) {
@@ -643,6 +672,15 @@ public class CompletionEngine {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
         return null;
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitVariableDeclaration(VariableDeclaration node) {
+      if (isCompletionAfter(node.getEquals().getEnd())) {
+        // { var x =! ...}
+        analyzeLocalName(new Ident(node));
       }
       return null;
     }
@@ -716,6 +754,19 @@ public class CompletionEngine {
         analyzeTypeName((SimpleIdentifier) node.getType().getName(), null);
       }
       return null;
+    }
+
+    @Override
+    public Void visitMethodDeclaration(MethodDeclaration node) {
+      if (node.getReturnType() == typeName) {
+        analyzeTypeName(identifier, null);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitNode(ASTNode node) {
+      return null;//super.visitNode(node);
     }
 
     @Override
@@ -960,6 +1011,34 @@ public class CompletionEngine {
     names.addNamesDefinedByTypes(allSubtypes(classElement));
     names.addTopLevelNames();
     proposeNames(names, classElement, identifier);
+  }
+
+  void dispatchPrefixAnalysis(PrefixedIdentifier node, SimpleIdentifier identifier) {
+    SimpleIdentifier receiverName = node.getPrefix();
+    Element receiver = receiverName.getElement();
+    if (receiver == null) {
+      return;
+    }
+    switch (receiver.getKind()) {
+      case PREFIX: {
+        // TODO: remove this case if/when prefix resolution changes
+        PrefixElement prefixElement = (PrefixElement) receiver;
+        // Complete lib_prefix.name
+        prefixedAccess(prefixElement, identifier);
+        break;
+      }
+      case IMPORT: {
+        ImportElement importElement = (ImportElement) receiver;
+        // Complete lib_prefix.name
+        prefixedAccess(importElement, identifier);
+        break;
+      }
+      default: {
+        Type receiverType = typeOf(receiver);
+        analyzePrefixedAccess(receiverType, identifier);
+        break;
+      }
+    }
   }
 
   void fieldReference(ClassElement classElement, SimpleIdentifier identifier) {

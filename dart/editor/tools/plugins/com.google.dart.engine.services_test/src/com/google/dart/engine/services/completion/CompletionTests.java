@@ -23,7 +23,15 @@ public class CompletionTests extends CompletionTestCase {
         "void r1(var v) {",
         "  v.!1toString!2().!3hash!4Code",
         "}");
-    test(source, "1+toString", "2+toString", "3+hashCode", "3+toString", "4+hashCode", "4-toString");
+    test(
+        source,
+        "1+toString",
+        "1-==",
+        "2+toString",
+        "3+hashCode",
+        "3+toString",
+        "4+hashCode",
+        "4-toString");
   }
 
   public void test002() throws Exception {
@@ -351,7 +359,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets025() throws Exception {
-    test("class q {num m() {var q; num x=!1 q + !2/**/;}}", "1+q", "2+q");
+    test("class q {num m() {var q; num x=!1 q!3 + !2/**/;}}", "1+q", "2+q", "3+q");
   }
 
   public void testCommentSnippets026() throws Exception {
@@ -399,6 +407,47 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets032() throws Exception {
     test("class Fit{}class Bar<T extends Fooa> {const F!1ara();}", "1+Fit", "1+Fara", "1-Bar");
+  }
+
+  public void testCommentSnippets033() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    test(
+//        "class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}",
+//        "1+add",
+//        "1+length");
+  }
+
+  public void testCommentSnippets034() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
+  }
+
+  public void testCommentSnippets035() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    test(
+//        "class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}",
+//        "1+length",
+//        "2+clear");
+  }
+
+  public void testCommentSnippets036() throws Exception {
+    test("class List{}t3() {var x=new List!1}", "1+List");
+  }
+
+  public void testCommentSnippets037() throws Exception {
+    test("class List{factory List.from(){}}t3() {var x=new List.!1}", "1+from");
+  }
+
+  public void testCommentSnippets038() throws Exception {
+    test("int xa; String s = '$x!1'", "1+xa");
+  }
+
+  public void testCommentSnippets039() throws Exception {
+    test("int xa; String s = '$!1'", "1+xa");
+  }
+
+  public void testCommentSnippets040() throws Exception {
+    test("class List{add(){}}class Map{}class X{m(){List list; list.!1 Map map;}}", "1+add");
   }
 
   public void testSingle() throws Exception {
