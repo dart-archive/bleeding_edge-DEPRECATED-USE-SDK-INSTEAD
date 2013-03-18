@@ -14,8 +14,6 @@ public class DebugInstrumentationUtilities {
       InstrumentationBuilder instrumentation) {
 
     instrumentation.data("LaunchConfig-ApplicationName", launch.getApplicationName());
-    instrumentation.data("LaunchConfig-getConnectionHost", launch.getConnectionHost());
-    instrumentation.data("LaunchConfig-getConnectionPort", launch.getConnectionPort());
     instrumentation.data("LaunchConfig-getProjectName", launch.getProjectName());
     instrumentation.data("LaunchConfig-getUrl", launch.getUrl());
     instrumentation.data("LaunchConfig-getWorkingDirectory", launch.getWorkingDirectory());

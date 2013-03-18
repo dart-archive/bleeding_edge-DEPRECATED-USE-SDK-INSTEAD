@@ -32,9 +32,6 @@ import java.util.List;
  */
 public class DartLaunchConfigWrapper {
 
-  public static final int DEFAULT_CHROME_PORT = 9222;
-  public static final String DEFAULT_HOST = "localhost";
-
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
@@ -143,32 +140,6 @@ public class DartLaunchConfigWrapper {
    */
   public ILaunchConfiguration getConfig() {
     return launchConfig;
-  }
-
-  /**
-   * @return the host to connect to for remote debugging
-   */
-  public String getConnectionHost() {
-    try {
-      return launchConfig.getAttribute(CONNECTION_HOST, DEFAULT_HOST);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return DEFAULT_HOST;
-    }
-  }
-
-  /**
-   * @return the port to connect to for remote debugging
-   */
-  public int getConnectionPort() {
-    try {
-      return launchConfig.getAttribute(CONNECTION_PORT, DEFAULT_CHROME_PORT);
-    } catch (CoreException e) {
-      DartDebugCorePlugin.logError(e);
-
-      return DEFAULT_CHROME_PORT;
-    }
   }
 
   /**
