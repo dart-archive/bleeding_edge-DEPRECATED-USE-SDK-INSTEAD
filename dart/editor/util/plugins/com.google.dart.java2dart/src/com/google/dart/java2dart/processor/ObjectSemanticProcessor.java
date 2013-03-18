@@ -130,7 +130,21 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
             return null;
           }
         }
-        return super.visitBinaryExpression(node);
+        // super
+        super.visitBinaryExpression(node);
+        // in Java "true | false" will compute both operands
+        if (node.getOperator().getType() == TokenType.BAR) {
+          Expression leftOperand = node.getLeftOperand();
+          ITypeBinding argTypeBinding = context.getNodeTypeBinding(leftOperand);
+          if (JavaUtils.isTypeNamed(argTypeBinding, "boolean")) {
+            replaceNode(
+                node,
+                methodInvocation("javaBooleanOr", leftOperand, node.getRightOperand()));
+            return null;
+          }
+        }
+        // done
+        return null;
       }
 
       @Override

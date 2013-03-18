@@ -34,6 +34,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_Boolean_or() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public boolean test(boolean a, boolean b) {",
+        "    return a | b;",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(
+        "class Test {",
+        "  bool test(bool a, bool b) => javaBooleanOr(a, b);",
+        "}");
+  }
+
   public void test_Boolean_TRUE() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

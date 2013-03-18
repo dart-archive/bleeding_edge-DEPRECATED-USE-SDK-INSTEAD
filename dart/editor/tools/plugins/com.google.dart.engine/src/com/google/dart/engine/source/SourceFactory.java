@@ -114,7 +114,7 @@ public class SourceFactory {
   public Source resolveUri(Source containingSource, String containedUri) {
     try {
       // Force the creation of an escaped URI to deal with spaces, etc.
-      return resolveUri(containingSource, new URI(null, null, containedUri, null));
+      return resolveUri(containingSource, new URI(containedUri));
     } catch (URISyntaxException exception) {
       return null;
     }

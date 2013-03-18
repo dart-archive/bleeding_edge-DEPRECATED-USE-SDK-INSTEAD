@@ -4,6 +4,9 @@ class TestSource implements Source {
   bool operator ==(Object object) {
     return this == object;
   }
+  AnalysisContext get context {
+    throw new UnsupportedOperationException();
+  }
   void getContents(Source_ContentReceiver receiver) {
     throw new UnsupportedOperationException();
   }
