@@ -14,10 +14,13 @@
 package com.google.dart.tools.ui.internal.properties;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.internal.model.DartModelManager;
+import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -85,6 +88,11 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
         // package root
         DartCore.getPlugin().setUsePackageRoot(project, usePackageRootButton.getSelection());
         DartCore.getPlugin().setPackageRoot(project, packageRootText.getText().trim());
+        if (usePackageRootButton.getSelection()) {
+          DartModelManager.getInstance().resetModel();
+          Job job = new CleanLibrariesJob();
+          job.schedule();
+        }
       } catch (CoreException ce) {
         DartToolsPlugin.log(ce);
       }

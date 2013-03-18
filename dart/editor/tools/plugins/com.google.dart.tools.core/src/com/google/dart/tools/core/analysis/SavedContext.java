@@ -38,7 +38,7 @@ public class SavedContext extends Context {
    * A mapping of application directories (directories containing a "packages" directory) to current
    * package contexts. This should only be accessed on the background thread.
    */
-  private HashMap<File, PackageContext> packageContexts = new HashMap<File, PackageContext>();
+  private HashMap<File, Context> packageContexts = new HashMap<File, Context>();
 
   private AnalysisListener[] analysisListeners = new AnalysisListener[0];
 
@@ -80,10 +80,14 @@ public class SavedContext extends Context {
       return getOrCreatePackageContext(appDir);
     }
 
+    File packageRoot = DartCore.getPlugin().getPackageRoot(libFileOrDir);
+    if (packageRoot != null) {
+      return getOrCreateProjectContext(packageRoot);
+    }
     // See if the library is already cached
 
     if (libFileOrDir.isFile()) {
-      for (PackageContext context : getPackageContexts()) {
+      for (Context context : getPackageContexts()) {
         Library lib = context.getCachedLibrary(libFileOrDir);
         if (lib != null) {
           return lib.getContext();
@@ -216,9 +220,9 @@ public class SavedContext extends Context {
   @Override
   void discardLibraries(File rootFile, ArrayList<Library> discarded) {
     super.discardLibraries(rootFile, discarded);
-    Iterator<PackageContext> iter = getPackageContexts().iterator();
+    Iterator<Context> iter = getPackageContexts().iterator();
     while (iter.hasNext()) {
-      PackageContext context = iter.next();
+      Context context = iter.next();
       context.discardLibraries(rootFile, discarded);
       if (equalsOrContains(rootFile, context.getApplicationDirectory())) {
         iter.remove();
@@ -253,7 +257,7 @@ public class SavedContext extends Context {
    */
   Library[] getCachedLibrariesInPackageContexts(File libFile) {
     Library[] result = Library.NONE;
-    for (PackageContext context : getPackageContexts()) {
+    for (Context context : getPackageContexts()) {
       Library lib = context.getCachedLibrary(libFile);
       if (lib != null) {
         result = AnalysisUtility.append(result, lib);
@@ -269,7 +273,7 @@ public class SavedContext extends Context {
    */
   @Override
   Library[] getLibrariesSourcing(File file, Library[] result) {
-    for (PackageContext context : getPackageContexts()) {
+    for (Context context : getPackageContexts()) {
       result = context.getLibrariesSourcing(file, result);
     }
     return super.getLibrariesSourcing(file, result);
@@ -282,8 +286,8 @@ public class SavedContext extends Context {
    * @param applicationDirectory a directory containing a "packages" directory
    * @return the cached or created package context
    */
-  PackageContext getOrCreatePackageContext(File applicationDirectory) {
-    PackageContext context = packageContexts.get(applicationDirectory);
+  Context getOrCreatePackageContext(File applicationDirectory) {
+    Context context = packageContexts.get(applicationDirectory);
     if (context == null) {
       context = new PackageContext(server, applicationDirectory);
       packageContexts.put(applicationDirectory, context);
@@ -291,7 +295,23 @@ public class SavedContext extends Context {
     return context;
   }
 
-  Collection<PackageContext> getPackageContexts() {
+  /**
+   * Answer the project context for the specified pacakge root directory, creating and caching a new
+   * one if one does not already exist.
+   * 
+   * @param packageRoot a directory which is set in the project preference
+   * @return the cached or created project context
+   */
+  Context getOrCreateProjectContext(File packageRoot) {
+    Context context = packageContexts.get(packageRoot);
+    if (context == null) {
+      context = new ProjectContext(server, packageRoot);
+      packageContexts.put(packageRoot, context);
+    }
+    return context;
+  }
+
+  Collection<Context> getPackageContexts() {
     return packageContexts.values();
   }
 
@@ -360,8 +380,14 @@ public class SavedContext extends Context {
     readCache(cacheReader);
     for (int i = 0; i < packageContextCount; i++) {
       File appDir = new File(cacheReader.readString());
-      Context context = getOrCreatePackageContext(appDir);
-      context.readCache(cacheReader);
+      File packageRoot = DartCore.getPlugin().getPackageRoot(appDir);
+      if (packageRoot != null) {
+        Context context = getOrCreateProjectContext(appDir);
+        context.readCache(cacheReader);
+      } else {
+        Context context = getOrCreatePackageContext(appDir);
+        context.readCache(cacheReader);
+      }
     }
   }
 
@@ -369,7 +395,7 @@ public class SavedContext extends Context {
   void writeCache(CacheWriter writer) {
     writer.writeInt(packageContexts.size());
     super.writeCache(writer);
-    for (PackageContext context : getPackageContexts()) {
+    for (Context context : getPackageContexts()) {
       writer.writeString(context.getApplicationDirectory().getPath());
       context.writeCache(writer);
     }

@@ -40,6 +40,11 @@ public class PackageContext extends Context {
     getLibraryManager().setPackageRoots(Lists.newArrayList(packagesDir));
   }
 
+  PackageContext(AnalysisServer server, PackageLibraryManager plm, File applicationDirectory) {
+    super(server, plm);
+    this.applicationDirectory = applicationDirectory;
+  }
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" + applicationDirectory + "]";

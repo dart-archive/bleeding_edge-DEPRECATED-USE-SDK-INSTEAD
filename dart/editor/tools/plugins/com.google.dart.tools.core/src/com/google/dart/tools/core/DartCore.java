@@ -35,6 +35,7 @@ import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.operation.BatchOperation;
 import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.internal.util.MementoTokenizer;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.internal.util.Util;
 import com.google.dart.tools.core.internal.workingcopy.DefaultWorkingCopyOwner;
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
@@ -1421,6 +1422,21 @@ public class DartCore extends Plugin implements DartSdkListener {
 
   public boolean getDisableDartBasedBuilder(IProject project) {
     return getProjectPreferences(project).getBoolean(PROJECT_PREF_DISABLE_DART_BASED_BUILDER, false);
+  }
+
+  /**
+   * Given an File, return the appropriate java.io.File representing a package root. This can be
+   * null if a package root should not be used.
+   * 
+   * @param file the File
+   * @return the File for the package root, or null if none
+   */
+  public File getPackageRoot(File file) {
+    IResource resource = ResourceUtil.getResource(file);
+    if (resource != null) {
+      return getPackageRoot(resource.getProject());
+    }
+    return null;
   }
 
   /**

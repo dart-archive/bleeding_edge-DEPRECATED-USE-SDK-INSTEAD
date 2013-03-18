@@ -171,11 +171,11 @@ public class AnalysisServerImpl implements AnalysisServer {
    */
   @Override
   public String getAnalysisStatus(String message) {
-    Collection<PackageContext> packageContexts = savedContext.getPackageContexts();
+    Collection<Context> packageContexts = savedContext.getPackageContexts();
     int taskCount = queue.size();
     int contextCount = packageContexts.size() + 1;
     int libraryCount = savedContext.getLibraryCount();
-    for (PackageContext context : packageContexts) {
+    for (Context context : packageContexts) {
       libraryCount += context.getLibraryCount();
     }
     return message + ": " + taskCount + " tasks, " + libraryCount + " libraries, " + contextCount

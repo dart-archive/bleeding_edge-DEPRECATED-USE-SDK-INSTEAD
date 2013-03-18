@@ -23,8 +23,11 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
+import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
+
+import org.eclipse.core.resources.IResource;
 
 import java.io.File;
 import java.net.URI;
@@ -140,6 +143,15 @@ public class PackageLibraryManagerProvider {
       File packagesDir = new File(appDir, DartCore.PACKAGES_DIRECTORY_NAME);
       libraryManager.setPackageRoots(Lists.newArrayList(packagesDir));
       return libraryManager;
+    }
+    IResource resource = ResourceUtil.getResource(file);
+    if (resource != null) {
+      File root = DartCore.getPlugin().getPackageRoot(resource.getProject());
+      if (root != null) {
+        PackageLibraryManager libraryManager = new PackageLibraryManager();
+        libraryManager.setPackageRoots(Lists.newArrayList(root));
+        return libraryManager;
+      }
     }
     return getAnyLibraryManager();
   }
