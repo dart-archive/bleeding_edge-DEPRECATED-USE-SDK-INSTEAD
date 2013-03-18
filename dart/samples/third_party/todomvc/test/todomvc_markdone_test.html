@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html lang="en">
+<head>
+<!--
+This test runs the TodoMVC app, adds a few todos, marks some as done
+programatically, and clicks on a checkbox to mark others via the UI.
+-->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <link rel="components" href="../web/app.html">
+  <link rel="stylesheet" href="../web/base.css">
+  <script src="packages/web_ui/testing/testing.js"></script>
+  <title>Dart • TodoMVC</title>
+</head><body>
+  <todo-app></todo-app>
+  <script type="application/dart">
+import 'dart:async';
+import 'dart:html';
+import 'package:unittest/unittest.dart';
+import 'package:web_ui/web_ui.dart';
+import '../web/model.dart';
+
+main() {
+  Timer.run(() {
+    useShadowDom = false;
+    app.todos.add(new Todo('one (unchecked)'));
+    app.todos.add(new Todo('two (unchecked)'));
+    app.todos.add(new Todo('three (checked)')..done = true);
+    app.todos.add(new Todo('four (checked)'));
+    deliverChangesSync();
+
+    // To ensure we click in the correct place, we calculate x, y offset where
+    // we want to click based on the coordinates given by DumpRenderTree, and
+    // then adapt those offset in the current window. This makes is possible to
+    // debug the application in Dartium reliably.
+
+    var bounding = document.body.getBoundingClientRect();
+    // The x, y location of body in the DumpRenderTree output was: (117, 130)
+    // and location of the node we want to click was: (119, 398)
+    int x = bounding.left.toInt() + (119 - 117);
+    int y = bounding.top.toInt() + (398 - 130);
+    var node = document.elementFromPoint(x, y);
+    expect(node is InputElement, isTrue,
+        reason: '$x, $y points to a checkbox');
+    expect(node.checked, isFalse, reason: 'element is unchecked');
+    Element parent = node.parent;
+    expect(parent.query('label').text, equals('four (checked)'));
+    node.dispatchEvent(new MouseEvent('click', detail: 1));
+    expect(node.checked, isTrue, reason: 'element is checked');
+
+    // Ideally the test above would work also with shadow DOM (pending that
+    // 'elementFromPoint' is fixed to return also nodes under the shadow DOM).
+    // The next extra check is only valid when polyfilling the shadow DOM:
+    expect(node, same(document.queryAll('input[type=checkbox]')[4]));
+
+    window.postMessage('done', '*');
+  });
+}
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+-->
+<html lang="en">
+<head>
+<!--
+This test runs the TodoMVC app and evaluates that it renders correctly if a
+single item is present in the todo list.
+-->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <link rel="components" href="../web/app.html">
+  <link rel="stylesheet" href="../web/base.css">
+  <script src="packages/web_ui/testing/testing.js"></script>
+  <title>Dart • TodoMVC</title>
+</head><body>
+  <todo-app></todo-app>
+  <script type="application/dart">
+import 'dart:async';
+import 'dart:html';
+import 'package:web_ui/web_ui.dart';
+import '../web/model.dart';
+
+main() {
+  Timer.run(() {
+    app.todos.add(new Todo('hola'));
+    deliverChangesSync();
+    window.postMessage('done', '*');
+  });
+}
+  </script>
+</body>
+</html>
