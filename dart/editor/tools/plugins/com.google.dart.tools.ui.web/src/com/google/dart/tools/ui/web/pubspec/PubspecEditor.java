@@ -17,7 +17,7 @@ package com.google.dart.tools.ui.web.pubspec;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.io.FileUtilities;
 import com.google.dart.tools.ui.web.DartWebPlugin;
-import com.google.dart.tools.ui.web.yaml.YamlEditor;
+import com.google.dart.tools.ui.web.yaml.PubspecYamlEditor;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -46,7 +46,7 @@ public class PubspecEditor extends FormEditor {
       "editor-page-index"); //$NON-NLS-1$
 
   private PubspecModel model;
-  private YamlEditor yamlEditor;
+  private PubspecYamlEditor yamlEditor;
   private OverviewFormPage formPage;
 
   public PubspecEditor() {
@@ -105,7 +105,7 @@ public class PubspecEditor extends FormEditor {
   @Override
   protected void addPages() {
     try {
-      yamlEditor = new YamlEditor();
+      yamlEditor = new PubspecYamlEditor();
       formPage = new OverviewFormPage(this);
       addPage(formPage);
       addPage(yamlEditor, getEditorInput());

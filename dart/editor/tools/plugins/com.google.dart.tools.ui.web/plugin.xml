@@ -89,6 +89,16 @@
             name="Dart Source Map Editor"
             default="true">
       </editor>
+      <editor
+            class="com.google.dart.tools.ui.web.yaml.PubspecYamlEditor"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            default="false"
+            extensions="yaml"
+            icon="icons/pubspec.png"
+            id="com.google.dart.tools.ui.editor.pubspec.yaml"
+            name="Pubspec yaml editor"
+            symbolicFontName="com.google.dart.tools.ui.editors.textfont">
+      </editor>
    </extension>
    
    <!-- JSON extensions -->
