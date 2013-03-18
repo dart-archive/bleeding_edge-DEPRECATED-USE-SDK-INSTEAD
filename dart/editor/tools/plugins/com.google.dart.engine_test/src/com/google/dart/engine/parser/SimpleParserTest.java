@@ -1734,6 +1734,44 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
   }
 
+  public void test_parseDeclaredIdentifier_const() throws Exception {
+    DeclaredIdentifier declaredIdentifier = parse(
+        "parseDeclaredIdentifier",
+        new Object[] {emptyCommentAndMetadata()},
+        "const A a");
+    assertNotNull(declaredIdentifier.getKeyword());
+    assertTrue(declaredIdentifier.isConst());
+    assertNotNull(declaredIdentifier.getType());
+  }
+
+  public void test_parseDeclaredIdentifier_final() throws Exception {
+    DeclaredIdentifier declaredIdentifier = parse(
+        "parseDeclaredIdentifier",
+        new Object[] {emptyCommentAndMetadata()},
+        "final A a");
+    assertNotNull(declaredIdentifier.getKeyword());
+    assertTrue(declaredIdentifier.isFinal());
+    assertNotNull(declaredIdentifier.getType());
+  }
+
+  public void test_parseDeclaredIdentifier_type() throws Exception {
+    DeclaredIdentifier declaredIdentifier = parse(
+        "parseDeclaredIdentifier",
+        new Object[] {emptyCommentAndMetadata()},
+        "A a");
+    assertNull(declaredIdentifier.getKeyword());
+    assertNotNull(declaredIdentifier.getType());
+  }
+
+  public void test_parseDeclaredIdentifier_var() throws Exception {
+    DeclaredIdentifier declaredIdentifier = parse(
+        "parseDeclaredIdentifier",
+        new Object[] {emptyCommentAndMetadata()},
+        "var a");
+    assertNotNull(declaredIdentifier.getKeyword());
+    assertNull(declaredIdentifier.getType());
+  }
+
   public void test_parseDirective_export() throws Exception {
     ExportDirective directive = parse(
         "parseDirective",

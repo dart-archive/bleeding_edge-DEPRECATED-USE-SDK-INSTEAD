@@ -1981,6 +1981,23 @@ public class Parser {
   }
 
   /**
+   * Parse a declared identifier declaration.
+   * 
+   * @param commentAndMetadata the metadata to be associated with the directive
+   * @return the declared identifier that was parsed
+   */
+  private DeclaredIdentifier parseDeclaredIdentifier(CommentAndMetadata commentAndMetadata) {
+    FinalConstVarOrType finalConstVarOrType = parseFinalConstVarOrType(false);
+    SimpleIdentifier identifier = parseSimpleIdentifier();
+    return new DeclaredIdentifier(
+        commentAndMetadata.getComment(),
+        commentAndMetadata.getMetadata(),
+        finalConstVarOrType.getKeyword(),
+        finalConstVarOrType.getType(),
+        identifier);
+  }
+
+  /**
    * Parse a directive.
    * 
    * <pre>
@@ -2512,7 +2529,7 @@ public class Parser {
    *   | identifier 'in' expression
    * 
    * forInitializerStatement ::=
-   *     variableDeclarationList ';'
+   *     localVariableDeclaration ';'
    *   | expression? ';'
    * </pre>
    * 
