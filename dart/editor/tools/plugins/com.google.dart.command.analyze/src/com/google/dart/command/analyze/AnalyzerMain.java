@@ -185,6 +185,10 @@ public class AnalyzerMain {
     // org.junit.runner.JUnitCore.main("com.google.dart.command.analyze.CombinedEngineTestSuite");
 
     try {
+      // Load the main test suite using Class.forName(). This lets any jar minimization tools in the
+      // build pipeline know that this class is referenced by reflection.
+      Class.forName("com.google.dart.command.analyze.CombinedEngineTestSuite");
+
       Class<?> junitRunner = Class.forName("org.junit.runner.JUnitCore");
 
       Method mainMethod = junitRunner.getMethod("main", String[].class);

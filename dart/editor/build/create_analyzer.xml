@@ -4,178 +4,196 @@
   BSD-style license that can be found in the LICENSE file.
  -->
 
-<project default="analyzer-dist">
+<project default="dist">
 
-	<!-- The arguments to this script are: -->
-	<!--   build: the scratch build directory (-Dbuild.dir=foo) -->
-	<!--   dist: the artifact output directory (-Ddist.dir=bar) -->
+    <!-- The arguments to this script are: -->
+    <!--   build: the scratch build directory (-Dbuild.dir=foo) -->
+    <!--   dist: the artifact output directory (-Ddist.dir=bar) -->
 
-	<target name="get-version">
-		<exec dir="../../tools"
-		      executable="testing/bin/windows/dart.exe"
-		      outputproperty="dart.version"
-		      osfamily="windows">
-			<arg value="version.dart" />
-		</exec>
-		<exec dir="../../tools"
-		      executable="testing/bin/macos/dart"
-		      outputproperty="dart.version"
-		      osfamily="mac">
-			<arg value="version.dart" />
-		</exec>
-		<exec dir="../../tools"
-		      executable="testing/bin/linux/dart"
-		      outputproperty="dart.version"
-		      osfamily="unix"
-		      failonerror="false"
-		      errorproperty="ignore.prop">
-			<arg value="version.dart" />
-		</exec>
+    <target name="get-version">
+        <exec dir="../../tools"
+              executable="testing/bin/windows/dart.exe"
+              outputproperty="dart.version"
+              osfamily="windows">
+            <arg value="version.dart" />
+        </exec>
+        <exec dir="../../tools"
+              executable="testing/bin/macos/dart"
+              outputproperty="dart.version"
+              osfamily="mac">
+            <arg value="version.dart" />
+        </exec>
+        <exec dir="../../tools"
+              executable="testing/bin/linux/dart"
+              outputproperty="dart.version"
+              osfamily="unix"
+              failonerror="false"
+              errorproperty="ignore.prop">
+            <arg value="version.dart" />
+        </exec>
 
-		<echo message="verison = ${dart.version}" />
-	</target>
+        <echo message="verison = ${dart.version}" />
+    </target>
 
-	<target name="init" depends="get-version">
-		<property name="build.dir" value="out" />
-		<property name="dist.dir" value="${build.dir}/dist" />
-		<property name="third_party" value="../../third_party" />
-		<property name="source" value="../tools/plugins" />
+    <target name="init" depends="get-version">
+        <property name="build.dir" value="out" />
+        <property name="dist.dir" value="${build.dir}/dist" />
+        <property name="third_party" value="../../third_party" />
+        <property name="source" value="../tools/plugins" />
 
-		<mkdir dir="${build.dir}" />
-		<mkdir dir="${dist.dir}" />
+        <mkdir dir="${build.dir}" />
+        <mkdir dir="${dist.dir}" />
 
-		<path id="compile.ref">
-			<pathelement location="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar" />
-			<pathelement location="${third_party}/json/r2_20080312/json.jar" />
-			<pathelement location="${third_party}/guava/r13/guava-13.0.1.jar" />
-			<pathelement location="${third_party}/args4j/2.0.12/args4j-2.0.12.jar" />
-		</path>
-		<path id="tests.ref">
-			<pathelement location="${third_party}/junit/v4_8_2/junit.jar" />
-			<pathelement location="${third_party}/mockito/1.9.0/mockito-all-1.9.0.jar" />
-			<pathelement location="${third_party}/fest/fest-util-1.1.6.jar" />
-			<pathelement location="${third_party}/fest/fest-assert-1.4.jar" />
-		</path>
-	</target>
-
-
-	<target name="clean" depends="init">
-		<delete dir="${build.dir}" />
-		<delete dir="${dist.dir}" />
-	</target>
+        <path id="compile.ref">
+            <pathelement location="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar" />
+            <pathelement location="${third_party}/json/r2_20080312/json.jar" />
+            <pathelement location="${third_party}/guava/r13/guava-13.0.1.jar" />
+            <pathelement location="${third_party}/args4j/2.0.12/args4j-2.0.12.jar" />
+        </path>
+        <path id="tests.ref">
+            <pathelement location="${third_party}/junit/v4_8_2/junit.jar" />
+            <pathelement location="${third_party}/mockito/1.9.0/mockito-all-1.9.0.jar" />
+            <pathelement location="${third_party}/fest/fest-util-1.1.6.jar" />
+            <pathelement location="${third_party}/fest/fest-assert-1.4.jar" />
+        </path>
+    </target>
 
 
-	<target name="analyzer" depends="init">
-		<property name="build.classes" value="${build.dir}/classes" />
-		<mkdir dir="${build.classes}" />
-
-		<javac destdir="${build.classes}"
-		       fork="true"
-		       debug="true"
-		       source="1.6"
-		       target="1.6"
-		       includeAntRuntime="false">
-			<classpath refid="compile.ref" />
-			<src path="${source}/com.google.dart.engine/src" />
-			<src path="${source}/com.google.dart.command.analyze/src" />
-		</javac>
-
-		<property name="dartanalyzer.jar" value="${build.dir}/dartanalyzer.jar" />
-
-		<jar destfile="${dartanalyzer.jar}" basedir="${build.classes}">
-			<manifest>
-				<attribute name="Main-Class" value="com.google.dart.command.analyze.AnalyzerMain" />
-				<attribute name="Implementation-Version" value="${dart.version}" />
-				<attribute name="Implementation-Vendor" value="dartlang.org" />
-				<attribute name="Implementation-Title" value="dartanalyzer" />
-			</manifest>
-			<zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
-			            excludes="META-INF/**" />
-			<zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/args4j/2.0.12/args4j-2.0.12.jar"
-			            excludes="META-INF/**" />
-		</jar>
-	</target>
+    <target name="clean" depends="init">
+        <delete dir="${build.dir}" />
+        <delete dir="${dist.dir}" />
+    </target>
 
 
-	<target name="analyzer-tests" depends="init, analyzer">
-		<property name="build.classes-tests" value="${build.dir}/classes-test" />
-		<mkdir dir="${build.classes-tests}" />
+    <target name="analyzer" depends="init">
+        <property name="build.classes" value="${build.dir}/classes" />
+        <mkdir dir="${build.classes}" />
 
-		<javac destdir="${build.classes-tests}"
-		       fork="true"
-		       debug="true"
-		       source="1.6"
-		       target="1.6"
-		       includeAntRuntime="false">
-			<classpath refid="compile.ref" />
-			<classpath refid="tests.ref" />
-			<classpath path="${dartanalyzer.jar}" />
-			<src path="${source}/com.google.dart.engine_test/src" />
-			<src path="${source}/com.google.dart.command.analyze_test/src" />
-		</javac>
+        <javac destdir="${build.classes}"
+               fork="true"
+               debug="true"
+               source="1.6"
+               target="1.6"
+               includeAntRuntime="false">
+            <classpath refid="compile.ref" />
+            <src path="${source}/com.google.dart.engine/src" />
+            <src path="${source}/com.google.dart.command.analyze/src" />
+        </javac>
 
-		<property name="dartanalyzer-tests.jar" value="${build.dir}/dartanalyzer-tests.jar" />
-
-		<jar destfile="${dartanalyzer-tests.jar}" basedir="${build.classes-tests}">
-			<manifest>
-				<attribute name="Main-Class" value="com.google.dart.command.analyze.AnalyzerMain" />
-				<attribute name="Implementation-Version" value="${dart.version}" />
-				<attribute name="Implementation-Vendor" value="dartlang.org" />
-				<attribute name="Implementation-Title" value="dartanalyzer" />
-			</manifest>
-			<zipfileset src="${dartanalyzer.jar}" />
-			<zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
-			            excludes="META-INF/**" />
-			<zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/args4j/2.0.12/args4j-2.0.12.jar"
-			            excludes="META-INF/**" />
-			<zipfileset src="${third_party}/junit/v4_8_2/junit.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/mockito/1.9.0/mockito-all-1.9.0.jar"
-			            excludes="META-INF/**" />
-			<zipfileset src="${third_party}/fest/fest-util-1.1.6.jar" excludes="META-INF/**" />
-			<zipfileset src="${third_party}/fest/fest-assert-1.4.jar" excludes="META-INF/**" />
-		</jar>
-	</target>
+        <jar destfile="${build.dir}/dartanalyzer.jar" basedir="${build.classes}">
+            <manifest>
+                <attribute name="Main-Class" value="com.google.dart.command.analyze.AnalyzerMain" />
+                <attribute name="Implementation-Version" value="${dart.version}" />
+                <attribute name="Implementation-Vendor" value="dartlang.org" />
+                <attribute name="Implementation-Title" value="dartanalyzer" />
+            </manifest>
+            <zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
+                        excludes="META-INF/**" />
+            <zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/args4j/2.0.12/args4j-2.0.12.jar"
+                        excludes="META-INF/**" />
+        </jar>
+    </target>
 
 
-	<target name="createSdkIndex" depends="analyzer">
-		<property name="index.file" value="${build.dir}/sdk.index" />
+    <target name="analyzer-tests" depends="init, analyzer">
+        <property name="build.classes-tests" value="${build.dir}/classes-test" />
+        <mkdir dir="${build.classes-tests}" />
 
-		<java jar="${dartanalyzer.jar}" fork="true" failonerror="true">
-			<arg value="--dart-sdk" />
-			<arg file="../../sdk" />
-			<arg value="--create-sdk-index" />
-			<arg file="${index.file}" />
-		</java>
+        <javac destdir="${build.classes-tests}"
+               fork="true"
+               debug="true"
+               source="1.6"
+               target="1.6"
+               includeAntRuntime="false">
+            <classpath refid="compile.ref" />
+            <classpath refid="tests.ref" />
+            <classpath path="${build.dir}/dartanalyzer.jar" />
+            <src path="${source}/com.google.dart.engine_test/src" />
+            <src path="${source}/com.google.dart.command.analyze_test/src" />
+        </javac>
 
-		<length file="${index.file}" property="index.file.length" />
-		<echo message="Wrote ${index.file}, ${index.file.length} bytes." />
-	</target>
+        <jar destfile="${build.dir}/dartanalyzer-tests.jar" basedir="${build.classes-tests}">
+            <manifest>
+                <attribute name="Main-Class" value="com.google.dart.command.analyze.AnalyzerMain" />
+                <attribute name="Implementation-Version" value="${dart.version}" />
+                <attribute name="Implementation-Vendor" value="dartlang.org" />
+                <attribute name="Implementation-Title" value="dartanalyzer" />
+            </manifest>
+            <zipfileset src="${build.dir}/dartanalyzer.jar" />
+            <zipfileset src="${third_party}/commons-lang/3.1/commons-lang3-3.1.jar"
+                        excludes="META-INF/**" />
+            <zipfileset src="${third_party}/json/r2_20080312/json.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/guava/r13/guava-13.0.1.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/args4j/2.0.12/args4j-2.0.12.jar"
+                        excludes="META-INF/**" />
+            <zipfileset src="${third_party}/junit/v4_8_2/junit.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/mockito/1.9.0/mockito-all-1.9.0.jar"
+                        excludes="META-INF/**" />
+            <zipfileset src="${third_party}/fest/fest-util-1.1.6.jar" excludes="META-INF/**" />
+            <zipfileset src="${third_party}/fest/fest-assert-1.4.jar" excludes="META-INF/**" />
+        </jar>
+    </target>
 
 
-	<target name="analyzer-dist" depends="createSdkIndex">
-		<!-- the elements file ends up in /meta/sdk-elements -->
-		<!-- delete file="${dist.dir}/dartanalyzer.jar" failonerror="false" / -->
-		<zip destfile="${dist.dir}/dartanalyzer.jar">
-			<zipfileset file="${index.file}" prefix="meta" />
-			<zipfileset src="${dartanalyzer.jar}" />
-		</zip>
-	</target>
+    <target name="createSdkIndex" depends="analyzer">
+        <property name="index.file" value="${build.dir}/sdk.index" />
+
+        <java jar="${build.dir}/dartanalyzer.jar" fork="true" failonerror="true">
+            <arg value="--dart-sdk" />
+            <arg file="../../sdk" />
+            <arg value="--create-sdk-index" />
+            <arg file="${index.file}" />
+        </java>
+
+        <length file="${index.file}" property="index.file.length" />
+        <echo message="Wrote ${index.file}, ${index.file.length} bytes." />
+    </target>
 
 
-	<target name="analyzer-tests-dist" depends="createSdkIndex,analyzer-tests">
-		<zip destfile="${dist.dir}/dartanalyzer-tests.jar">
-			<zipfileset file="${index.file}" prefix="meta" />
-			<zipfileset src="${dartanalyzer-tests.jar}" />
-		</zip>
-	</target>
+    <target name="analyzer-opt" depends="analyzer, createSdkIndex">
+        <!-- add sdk elements -->
+        <zip destfile="${build.dir}/dartanalyzer-index.jar">
+            <zipfileset file="${index.file}" prefix="meta" />
+            <zipfileset src="${build.dir}/dartanalyzer.jar" />
+        </zip>
+
+        <!-- create the list of classes loaded from the analyzer -->
+        <echo file="${build.dir}/hello.dart"
+              message="import 'dart:html'; void main() { print('hello'); }" />
+
+        <java jar="${build.dir}/dartanalyzer-index.jar"
+              fork="true"
+              failonerror="true"
+              output="${build.dir}/classes.txt">
+            <jvmarg value="-verbose:class" />
+            <arg value="--dart-sdk" />
+            <arg file="../../sdk" />
+            <arg file="${build.dir}/hello.dart" />
+        </java>
+
+        <!-- reorder and minimize -->
+        <java jar="${third_party}/stripjar/0.9.2/stripjar.jar" fork="true" failonerror="true">
+            <arg value="--reorder" />
+            <arg value="${build.dir}/classes.txt" />
+            <arg value="--out" />
+            <arg file="${build.dir}/dartanalyzer-opt.jar" />
+            <arg file="${build.dir}/dartanalyzer-index.jar" />
+        </java>
+    </target>
 
 
-	<target name="all" depends="analyzer-dist, analyzer-tests-dist">
+    <target name="dist" depends="analyzer-opt">
+        <!-- create dist/dartanalyzer.jar -->
+        <copy file="${build.dir}/dartanalyzer-opt.jar" tofile="${dist.dir}/dartanalyzer.jar" />
+    </target>
 
-	</target>
+
+    <target name="all" depends="dist, analyzer-tests">
+        <!-- create dist/dartanalyzer-tests.jar -->
+        <copy file="${build.dir}/dartanalyzer-tests.jar"
+              tofile="${dist.dir}/dartanalyzer-tests.jar" />
+    </target>
 
 </project>

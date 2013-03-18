@@ -27,11 +27,6 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO(devoncarew): --enable--additional-warnings, i.e. we want the user to be able to emit
-// warnings for things like deprecation and inference warnings.
-//@Option(name = "--type-checks-for-inferred-types",
-//usage = "[not in spec] Enables 'interface has no method/field' for receivers with inferred types.")
-
 /**
  * Command line options accepted by the {@link AnalyzerMain} entry point.
  */
@@ -116,12 +111,27 @@ public class AnalyzerOptions {
   usage = "The path to the Dart SDK")
   private File dartSdkPath = null;
 
+  @SuppressWarnings("unused")
+  @Option(name = "--verbose", //
+  aliases = {"-v"})
+  // TODO(devoncarew): document this flag when it is supported
+  //usage = "Print verbose information while analyzing")
+  private boolean enableVerbose = false;
+
+  @SuppressWarnings("unused")
+  @Option(name = "--additional-warnings", //
+  aliases = {"-w"})
+  // TODO(devoncarew): document this flag when it is supported
+  //usage = "Enable warnings for deprecation usage and inferred warnings")
+  private boolean enableAdditionalWarnings = false;
+
   @Option(name = "--package-root", //
   metaVar = "<dir>", //
   usage = "The path to the package root")
   private File packageRootPath = null;
 
-  @Option(name = "--batch", aliases = {"-batch"})
+  @Option(name = "--batch", //
+  aliases = {"-batch"})
   private boolean batch = false;
 
   @Option(name = "--show-sdk-warnings")
@@ -219,6 +229,7 @@ public class AnalyzerOptions {
    */
   public void printUsage(PrintStream out) {
     CmdLineParser parser = new CmdLineParser(this);
+    parser.setUsageWidth(120);
     parser.printUsage(out);
   }
 
@@ -251,26 +262,23 @@ public class AnalyzerOptions {
    * Initialize the SDK path.
    */
   protected void initializeSdkPath() {
+    // current directory, one level up, and a "sdk" directory below us
+    final String[] searchPath = new String[] {".", "..", "sdk"};
+
     if (dartSdkPath == null) {
       try {
-        File directory = new File(".").getCanonicalFile();
+        File cwd = new File(".").getCanonicalFile();
 
-        while (directory != null) {
-          if (isSDKPath(directory)) {
-            dartSdkPath = directory;
+        for (String path : searchPath) {
+          File dir = new File(cwd, path);
 
-            return;
-          }
+          dir = dir.getCanonicalFile();
 
-          File childDir = new File(directory, "dart-sdk");
-
-          if (isSDKPath(childDir)) {
-            dartSdkPath = childDir;
+          if (isSDKPath(dir)) {
+            dartSdkPath = dir;
 
             return;
           }
-
-          directory = directory.getParentFile();
         }
       } catch (IOException ioe) {
         ioe.printStackTrace();
@@ -278,8 +286,34 @@ public class AnalyzerOptions {
     }
   }
 
-  private boolean isSDKPath(File directory) {
-    return directory.getName().equals("dart-sdk") && new File(directory, "VERSION").exists();
+  private boolean isSDKPath(File sdkDirectory) {
+    if (!sdkDirectory.exists()) {
+      return false;
+    }
+
+    if (!sdkDirectory.getName().equals("dart-sdk") && !sdkDirectory.getName().equals("sdk")) {
+      return false;
+    }
+
+    // check for (dart-sdk|sdk)/version
+    if (new File(sdkDirectory, "version").exists()) {
+      return true;
+    }
+
+    // check for (dart-sdk|sdk)/lib/_internal/libraries.dart
+    File libDir = new File(sdkDirectory, "lib");
+
+    if (libDir.exists()) {
+      File _internalDir = new File(libDir, "_internal");
+
+      if (_internalDir.exists()) {
+        if (new File(_internalDir, "libraries.dart").exists()) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
 }

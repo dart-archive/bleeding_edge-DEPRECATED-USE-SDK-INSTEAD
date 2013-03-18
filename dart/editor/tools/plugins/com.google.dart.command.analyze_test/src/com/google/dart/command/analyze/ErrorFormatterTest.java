@@ -40,7 +40,7 @@ public class ErrorFormatterTest extends TestCase {
 
     String actual = out.toString("UTF-8").trim();
 
-    assertEquals("E|COMPILE_TIME_ERROR|MISSING_LIBRARY_DIRECTIVE_WITH_PART|/test.dart|1|1|0|"
+    assertEquals("ERROR|COMPILE_TIME_ERROR|MISSING_LIBRARY_DIRECTIVE_WITH_PART|/test.dart|1|1|0|"
         + "Libraries that have parts must have a library directive", actual);
   }
 
