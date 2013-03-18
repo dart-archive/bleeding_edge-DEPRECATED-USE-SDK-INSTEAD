@@ -2314,11 +2314,12 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getBody());
   }
 
-  public void test_parseForStatement_each_noType() throws Exception {
-    ForEachStatement statement = parse("parseForStatement", "for (element in list) {}");
+  public void test_parseForStatement_each_noType_metadata() throws Exception {
+    ForEachStatement statement = parse("parseForStatement", "for (@A var element in list) {}");
     assertNotNull(statement.getForKeyword());
     assertNotNull(statement.getLeftParenthesis());
     assertNotNull(statement.getLoopVariable());
+    assertSize(1, statement.getLoopVariable().getMetadata());
     assertNotNull(statement.getInKeyword());
     assertNotNull(statement.getIterator());
     assertNotNull(statement.getRightParenthesis());

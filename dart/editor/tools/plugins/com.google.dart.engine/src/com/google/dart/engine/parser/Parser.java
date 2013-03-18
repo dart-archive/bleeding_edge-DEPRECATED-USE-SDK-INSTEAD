@@ -2544,6 +2544,7 @@ public class Parser {
       VariableDeclarationList variableList = null;
       Expression initialization = null;
       if (!matches(TokenType.SEMICOLON)) {
+        CommentAndMetadata commentAndMetadata = parseCommentAndMetadata();
         if (matchesIdentifier() && matches(peek(), Keyword.IN)) {
           List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
@@ -2571,8 +2572,8 @@ public class Parser {
               reportError(ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH);
             }
             loopVariable = new DeclaredIdentifier(
-                null,
-                null,
+                commentAndMetadata.getComment(),
+                commentAndMetadata.getMetadata(),
                 variableList.getKeyword(),
                 variableList.getType(),
                 variable.getName());
