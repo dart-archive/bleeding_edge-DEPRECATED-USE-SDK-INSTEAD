@@ -155,7 +155,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       Entry<IPath, PubFolder> entry = iter.next();
       IPath key = entry.getKey();
       if (path.equals(key) || path.isPrefixOf(key)) {
-        entry.getValue().getContext().discard();
         iter.remove();
       }
     }
@@ -255,8 +254,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     // If this is the project, then adjust the context source factory
     if (container.getType() == PROJECT) {
       initContext(defaultContext, projectResource, sdk, true);
-      defaultContext.clearResolution();
-      // TODO (danrubel): discard sources in package roots from context
     }
 
     // Merge any overlapping pub folders
@@ -287,7 +284,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       defaultContext.mergeContext(pubFolder.getContext());
     } else {
       initContext(defaultContext, projectResource, sdk, false);
-      defaultContext.clearResolution();
     }
 
     // Traverse container to find pubspec files that were overshadowed by the one just removed

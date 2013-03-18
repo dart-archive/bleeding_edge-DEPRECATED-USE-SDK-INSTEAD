@@ -103,8 +103,6 @@ public class MockContext implements AnalysisContext {
   }
 
   private static final String CHANGED = "changed";
-  private static final String CLEAR_RESOLUTION = "clearResolution";
-  private static final String DISCARDED = "discarded";
   private static final String EXTRACT_CONTEXT = "extractContext";
   private static final String MERGE_CONTEXT = "mergeContext";
   private static final String SOURCE_CHANGED = "sourceChanged";
@@ -141,14 +139,6 @@ public class MockContext implements AnalysisContext {
       }
     }
     calls.assertCall(new ChangedCall(this, expected));
-  }
-
-  public void assertClearResolution(boolean expected) {
-    calls.assertExpectedCall(expected, this, CLEAR_RESOLUTION);
-  }
-
-  public void assertDiscarded(boolean expected) {
-    calls.assertExpectedCall(expected, this, DISCARDED);
   }
 
   public void assertExtracted(IContainer expectedContainer) {
@@ -200,16 +190,6 @@ public class MockContext implements AnalysisContext {
         calls.assertCall(this, SOURCE_DELETED, sourceContainer);
       }
     }
-  }
-
-  @Override
-  public void clearResolution() {
-    calls.add(this, CLEAR_RESOLUTION);
-  }
-
-  @Override
-  public void discard() {
-    calls.add(this, DISCARDED);
   }
 
   @Override

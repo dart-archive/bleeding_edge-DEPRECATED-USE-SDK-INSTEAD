@@ -82,29 +82,23 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
-    MockContext defaultContext = (MockContext) project.getDefaultContext();
-    defaultContext.assertDiscarded(false);
 
     projectContainer.remove(PUBSPEC_FILE_NAME);
     project.discardContextsIn(projectContainer);
 
     assertEquals(0, project.getPubFolders().length);
-    defaultContext.assertDiscarded(true);
   }
 
   public void test_discardContextsIn_project_web() {
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
     assertNotNull(pubFolder);
-    MockContext defaultContext = (MockContext) project.getDefaultContext();
-    defaultContext.assertDiscarded(false);
 
     projectContainer.remove("web");
     project.discardContextsIn(webContainer);
 
     assertEquals(1, project.getPubFolders().length);
     assertSame(pubFolder, project.getPubFolder(projectContainer));
-    defaultContext.assertDiscarded(false);
   }
 
   public void test_getContext_folder() {
@@ -292,8 +286,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertEquals(0, project.getPubFolders().length);
     MockContext defaultContext = (MockContext) project.getDefaultContext();
-    defaultContext.assertClearResolution(false);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -308,8 +300,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(defaultContext, project.getDefaultContext());
     assertNotSame(defaultContext, pubFolder.getContext());
     assertSame(appContainer, pubFolder.getResource());
-    defaultContext.assertClearResolution(false);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(appContainer);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -338,8 +328,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertEquals(0, project.getPubFolders().length);
     MockContext defaultContext = (MockContext) project.getDefaultContext();
-    defaultContext.assertClearResolution(false);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -354,8 +342,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(defaultContext, project.getDefaultContext());
     assertSame(defaultContext, pubFolder.getContext());
     assertSame(projectContainer, pubFolder.getResource());
-    defaultContext.assertClearResolution(true);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -372,8 +358,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertNotNull(oldPubFolder);
     assertSame(appContainer, oldPubFolder.getResource());
     MockContext defaultContext = (MockContext) project.getDefaultContext();
-    defaultContext.assertClearResolution(false);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(appContainer);
     defaultContext.assertMergedContext(null);
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -388,8 +372,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(defaultContext, project.getDefaultContext());
     assertSame(defaultContext, newPubFolder.getContext());
     assertSame(projectContainer, newPubFolder.getResource());
-    defaultContext.assertClearResolution(true);
-    defaultContext.assertDiscarded(false);
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(oldPubFolder.getContext());
     assertFactoryInitialized(projectContainer, defaultContext);
@@ -426,7 +408,6 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     project.pubspecRemoved(projectContainer);
 
     assertEquals(0, project.getPubFolders().length);
-    ((MockContext) project.getDefaultContext()).assertClearResolution(true);
     assertUriResolvedToPackageRoot(new Path(packageRoots[0].getPath()));
   }
 

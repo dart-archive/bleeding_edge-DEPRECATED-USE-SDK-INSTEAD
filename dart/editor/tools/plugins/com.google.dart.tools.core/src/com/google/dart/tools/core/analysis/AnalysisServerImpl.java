@@ -40,10 +40,6 @@ import java.util.Iterator;
 public class AnalysisServerImpl implements AnalysisServer {
 
   private static final String CACHE_V5_TAG = "v5";
-  private static final String CACHE_V4_TAG = "v4";
-  private static final String CACHE_V3_TAG = "v3";
-  private static final String CACHE_V2_TAG = "v2";
-  private static final String CACHE_V1_TAG = "v1";
   private static final String ANALYZE_CONTEXT_TAG = AnalyzeContextTask.class.getSimpleName();
   private static final String END_LIBRARIES_TAG = "</end-libraries>";
   private static final String END_QUEUE_TAG = "</end-queue>";

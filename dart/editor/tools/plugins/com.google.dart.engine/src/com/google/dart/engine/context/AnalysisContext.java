@@ -52,23 +52,6 @@ public interface AnalysisContext {
   public void applyChanges(ChangeSet changeSet);
 
   /**
-   * Clear any cached information that is dependent on resolution. This method should be invoked if
-   * the assumptions used by resolution have changed but the contents of the file have not changed.
-   * Use {@link #sourceChanged(Source)} and {@link #sourcesDeleted(SourceContainer)} to indicate
-   * when the contents of a file or files have changed.
-   */
-  @Deprecated
-  public void clearResolution();
-
-  /**
-   * Call this method when this context is no longer going to be used. At this point, the receiver
-   * may choose to push some of its information back into the global cache for consumption by
-   * another context for performance.
-   */
-  @Deprecated
-  public void discard();
-
-  /**
    * Create a new context in which analysis can be performed. Any sources in the specified container
    * will be removed from this context and added to the newly created context.
    * 

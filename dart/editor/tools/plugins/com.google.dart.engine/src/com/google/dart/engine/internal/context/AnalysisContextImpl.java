@@ -173,29 +173,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public void clearResolution() {
-    synchronized (cacheLock) {
-      // TODO (danrubel): Optimize to only discard resolution information
-      parseCache.clear();
-      htmlParseCache.clear();
-      libraryElementCache.clear();
-      publicNamespaceCache.clear();
-    }
-  }
-
-  @Override
-  public void discard() {
-    synchronized (cacheLock) {
-      // TODO (danrubel): Optimize to recache the token stream and/or ASTs in a global context
-      sourceMap.clear();
-      parseCache.clear();
-      htmlParseCache.clear();
-      libraryElementCache.clear();
-      publicNamespaceCache.clear();
-    }
-  }
-
-  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     AnalysisContextImpl newContext = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
     ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
@@ -208,6 +185,10 @@ public class AnalysisContextImpl implements AnalysisContext {
           newContext.sourceMap.put(source, new SourceInfo(entry.getValue()));
         }
       }
+
+      // TODO (danrubel): Either remove sources or adjust contract described in AnalysisContext.
+      // Currently, callers assume that sources have been removed from this context
+
 //      for (Source source : sourcesToRemove) {
 //        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
 //        // there are no additional dependencies on the source), and if so remove all information
@@ -502,6 +483,8 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
     factory.setContext(this);
     sourceFactory = factory;
+    // TODO (danrubel): All sources need to be reanalyzed per comment in AnalysisContext
+    // or need to update clients to build and apply change set.
   }
 
   @Override
