@@ -11,9 +11,9 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.debug.core.util;
+package com.google.dart.tools.core.utilities.net;
 
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
+import com.google.dart.tools.core.DartCore;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -97,7 +97,7 @@ public class NetUtils {
 
         loopbackAddress = address.getHostAddress();
       } catch (UnknownHostException e) {
-        DartDebugCorePlugin.logError(e);
+        DartCore.logError(e);
 
         // Fallback to the "localhost" address.
         return "localhost";

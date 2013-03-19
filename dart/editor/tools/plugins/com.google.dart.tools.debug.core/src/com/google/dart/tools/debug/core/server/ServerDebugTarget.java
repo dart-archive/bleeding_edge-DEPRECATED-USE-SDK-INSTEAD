@@ -16,12 +16,12 @@ package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
-import com.google.dart.tools.debug.core.util.NetUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;

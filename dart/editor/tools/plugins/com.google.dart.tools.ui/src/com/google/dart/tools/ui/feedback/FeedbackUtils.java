@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -62,6 +63,8 @@ public class FeedbackUtils {
       writer.println(countString(numEditors));
 
       writer.println("auto-run pub: " + autoRunPubEnabled);
+
+      writer.println("localhost resolves to: " + cleanLocalHost(NetUtils.getLoopbackAddress()));
 
       writer.print("mem max/total/free: ");
       writer.print(convertToMeg(maxMem));
@@ -194,6 +197,21 @@ public class FeedbackUtils {
 
   private static boolean binaryMismatch() throws Exception {
     return is64bitOS() != is64bitBinary();
+  }
+
+  /**
+   * If localhost doesn't resolve to something we know to be generic, just return "other". This is
+   * used to make sure that we don't accidentally send user identifying information.
+   * 
+   * @param host
+   * @return
+   */
+  private static String cleanLocalHost(String host) {
+    if (host.startsWith("local") || host.startsWith("127.") || host.startsWith("::")) {
+      return host;
+    } else {
+      return "other";
+    }
   }
 
   private static String getBinaryString() throws Exception {
