@@ -32,19 +32,31 @@ import java.util.zip.GZIPInputStream;
  */
 public class JsonTests extends TestCase {
 
-  public void xxx_test_parse1() throws IOException, JSONException {
+  public void test_parse1() throws IOException, JSONException {
+    InputStream in = JsonTests.class.getResourceAsStream("test1.json.gz");
+    GZIPInputStream gzipIn = new GZIPInputStream(in);
+    String string = CharStreams.toString(new InputStreamReader(gzipIn, Charsets.UTF_8));
+
+    int iterations = 1;
+
+    for (int i = 0; i < iterations; i++) {
+      @SuppressWarnings("unused")
+      JSONObject obj = new JSONObject(string);
+    }
+  }
+
+  public void xxx_test_parse100() throws IOException, JSONException {
     InputStream in = JsonTests.class.getResourceAsStream("test1.json.gz");
     GZIPInputStream gzipIn = new GZIPInputStream(in);
     String string = CharStreams.toString(new InputStreamReader(gzipIn, Charsets.UTF_8));
 
     long start = System.nanoTime();
 
-    int iterations = 10;
+    int iterations = 100;
 
     for (int i = 0; i < iterations; i++) {
       @SuppressWarnings("unused")
       JSONObject obj = new JSONObject(string);
-
     }
 
     long elapsed = System.nanoTime() - start;

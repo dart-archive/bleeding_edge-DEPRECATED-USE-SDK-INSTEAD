@@ -22,6 +22,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitDebugger.PausedReasonType;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -46,7 +47,8 @@ class TestMain {
     List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(port);
 
     //ChromiumConnector.getWebSocketURLFor(port, 1);
-    WebkitConnection connection = new WebkitConnection(tabs.get(0).getWebSocketDebuggerUrl());
+    URI uri = URI.create(tabs.get(0).getWebSocketDebuggerUrl());
+    WebkitConnection connection = new WebkitConnection(uri);
 
     connection.addConnectionListener(new WebkitConnectionListener() {
       @Override

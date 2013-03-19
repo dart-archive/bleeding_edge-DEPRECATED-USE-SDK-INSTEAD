@@ -14,7 +14,9 @@
 
 package com.google.dart.tools.debug.core.webkit;
 
-import com.google.dart.tools.debug.core.util.NetUtils;
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
+import com.google.dart.tools.debug.core.util.HttpUrlConnector;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -24,11 +26,40 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+//GET /json 1.0
+//
+//HTTP/1.1 200 OK
+//Content-Type:application/json; charset=UTF-8
+//Content-Length:871
+//
+//[ {
+// "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=3",
+// "faviconUrl": "http://www.apple.com/favicon.ico",
+// "thumbnailUrl": "/thumb/http://www.apple.com/",
+// "title": "Apple",
+// "url": "http://www.apple.com/",
+// "webSocketDebuggerUrl": "ws:///devtools/page/3"
+//}, {
+// "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=2",
+// "faviconUrl": "http://www.yahoo.com/favicon.ico",
+// "thumbnailUrl": "/thumb/http://www.yahoo.com/",
+// "title": "Yahoo!",
+// "url": "http://www.yahoo.com/",
+// "webSocketDebuggerUrl": "ws:///devtools/page/2"
+//}, {
+// "devtoolsFrontendUrl": "/devtools/devtools.html?ws=127.0.0.1:51069/devtools/page/1",
+// "faviconUrl": "",
+// "id": "1",
+// "thumbnailUrl": "/thumb/chrome://newtab/",
+// "title": "New Tab",
+// "type": "page",
+// "url": "chrome://newtab/",
+// "webSocketDebuggerUrl": "ws://127.0.0.1:51069/devtools/page/1"
+//} ]
 
 /**
  * Retrieve Webkit inspection protocol debugging information from a Chromium instance.
@@ -55,42 +86,7 @@ public class ChromiumConnector {
    * @throws IOException
    */
   public static List<ChromiumTabInfo> getAvailableTabs(String host, int port) throws IOException {
-//  GET /json 1.0
-//
-//  HTTP/1.1 200 OK
-//  Content-Type:application/json; charset=UTF-8
-//  Content-Length:871
-//
-//  [ {
-//     "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=3",
-//     "faviconUrl": "http://www.apple.com/favicon.ico",
-//     "thumbnailUrl": "/thumb/http://www.apple.com/",
-//     "title": "Apple",
-//     "url": "http://www.apple.com/",
-//     "webSocketDebuggerUrl": "ws:///devtools/page/3"
-//  }, {
-//     "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=2",
-//     "faviconUrl": "http://www.yahoo.com/favicon.ico",
-//     "thumbnailUrl": "/thumb/http://www.yahoo.com/",
-//     "title": "Yahoo!",
-//     "url": "http://www.yahoo.com/",
-//     "webSocketDebuggerUrl": "ws:///devtools/page/2"
-//  }, {
-//     "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=1",
-//     "faviconUrl": "http://www.gstatic.com/news/img/favicon.ico",
-//     "thumbnailUrl": "/thumb/http://news.google.com/",
-//     "title": "Google News",
-//     "url": "http://news.google.com/",
-//     "webSocketDebuggerUrl": "ws:///devtools/page/1"
-//  } ]
-
-    if (host == null) {
-      host = NetUtils.getLoopbackAddress();
-    }
-
-    URL chromiumUrl = new URL("http", host, port, "/json");
-
-    URLConnection connection = chromiumUrl.openConnection();
+    HttpUrlConnector connection = new HttpUrlConnector(host, port, "/json");
 
     String text = readText(connection, connection.getInputStream());
 
@@ -102,9 +98,7 @@ public class ChromiumConnector {
       for (int i = 0; i < arr.length(); i++) {
         JSONObject object = arr.getJSONObject(i);
 
-        ChromiumTabInfo tab = ChromiumTabInfo.fromJson(object);
-
-        tab.patchUpUrl(host, port);
+        ChromiumTabInfo tab = ChromiumTabInfo.fromJson(host, port, object);
 
         tabs.add(tab);
       }
@@ -117,53 +111,44 @@ public class ChromiumConnector {
     }
   }
 
-  /**
-   * Return the correct websocket URL for connecting to the Chromium instance at localhost and the
-   * given port.
-   * 
-   * @param host
-   * @param port
-   * @param tab
-   * @return
-   */
-  public static String getWebSocketURLFor(int port, int tab) {
-    return getWebSocketURLFor(null, port, tab);
-  }
+//  /**
+//   * Return the correct websocket URL for connecting to the Chromium instance at localhost and the
+//   * given port.
+//   * 
+//   * @param host
+//   * @param port
+//   * @param tab
+//   * @return
+//   */
+//  public static String getWebSocketURLFor(int port, int tab) {
+//    return getWebSocketURLFor(null, port, tab);
+//  }
+//
+//  /**
+//   * Return the correct websocket URL for connecting to the Chromium instance at the given host and
+//   * port.
+//   * 
+//   * @param host
+//   * @param port
+//   * @param tab
+//   * @return
+//   */
+//  public static String getWebSocketURLFor(String host, int port, int tab) {
+//    if (host == null) {
+//      host = NetUtils.getLoopbackAddress();
+//    }
+//
+//    return "ws://" + host + ":" + port + "/devtools/page/" + tab;
+//  }
 
-  /**
-   * Return the correct websocket URL for connecting to the Chromium instance at the given host and
-   * port.
-   * 
-   * @param host
-   * @param port
-   * @param tab
-   * @return
-   */
-  public static String getWebSocketURLFor(String host, int port, int tab) {
-    if (host == null) {
-      host = NetUtils.getLoopbackAddress();
-    }
+  private static String readText(HttpUrlConnector connection, InputStream in) throws IOException {
+    Reader reader = new InputStreamReader(in, Charsets.UTF_8);
 
-    return "ws://" + host + ":" + port + "/devtools/page/" + tab;
-  }
+    String data = CharStreams.toString(reader);
 
-  private static String readText(URLConnection connection, InputStream in) throws IOException {
-    // TODO(devoncarew): get the encoding from the stream?
+    reader.close();
 
-    Reader reader = new InputStreamReader(in, "UTF-8");
-    StringBuilder builder = new StringBuilder();
-
-    char[] buffer = new char[1024];
-
-    int count = reader.read(buffer);
-
-    while (count != -1) {
-      builder.append(buffer, 0, count);
-
-      count = reader.read(buffer);
-    }
-
-    return builder.toString();
+    return data;
   }
 
   private ChromiumConnector() {

@@ -16,8 +16,42 @@ package com.google.dart.tools.debug.core.util;
 
 import junit.framework.TestCase;
 
-// TODO:
+import java.io.IOException;
+import java.io.InputStream;
 
 public class HttpUrlConnectorTest extends TestCase {
+
+  public void test_localHostConnect_fail() throws IOException {
+    int port = ResourceServerManager.getServer().getPort();
+
+    HttpUrlConnector connector = new HttpUrlConnector(null, port, "/dssdf");
+
+    InputStream in = connector.getInputStream();
+
+    try {
+      assertNotNull(in);
+      assertEquals(404, connector.getStatusCode());
+      assertEquals("Not Found", connector.getStatusText());
+    } finally {
+      in.close();
+    }
+  }
+
+  public void test_localHostConnect_succeed() throws IOException {
+    int port = ResourceServerManager.getServer().getPort();
+
+    HttpUrlConnector connector = new HttpUrlConnector(null, port, "/favicon.ico");
+
+    InputStream in = connector.getInputStream();
+
+    try {
+      assertNotNull(in);
+      assertEquals(200, connector.getStatusCode());
+      assertEquals("OK", connector.getStatusText());
+      assertTrue(connector.getContentLength() > 0);
+    } finally {
+      in.close();
+    }
+  }
 
 }

@@ -85,6 +85,10 @@ public class WebkitConnection {
 
   private URI webSocketUri;
 
+  private String host;
+  private int port;
+  private String webSocketFile;
+
   private WebSocket websocket;
   private boolean connected;
 
@@ -105,8 +109,10 @@ public class WebkitConnection {
 
   private List<WebkitConnectionListener> connectionListeners = new ArrayList<WebkitConnectionListener>();
 
-  public WebkitConnection(String webSocketUri) {
-    this(URI.create(webSocketUri));
+  public WebkitConnection(String host, int port, String webSocketFile) {
+    this.host = host;
+    this.port = port;
+    this.webSocketFile = webSocketFile;
   }
 
   public WebkitConnection(URI webSocketUri) {
@@ -131,7 +137,11 @@ public class WebkitConnection {
 
   public void connect() throws IOException {
     try {
-      websocket = new WebSocket(webSocketUri);
+      if (webSocketUri != null) {
+        websocket = new WebSocket(webSocketUri);
+      } else {
+        websocket = new WebSocket(host, port, webSocketFile);
+      }
 
       // Register Event Handlers
       websocket.setEventHandler(new WebSocketEventHandler() {

@@ -22,4 +22,4 @@ Export-Package: com.google.dart.tools.debug.core,
  com.google.dart.tools.debug.core.util,
  com.google.dart.tools.debug.core.webkit
 Bundle-ClassPath: .,
- lib/weberknecht-0.1.2.jar
+ lib/weberknecht-0.1.4.jar

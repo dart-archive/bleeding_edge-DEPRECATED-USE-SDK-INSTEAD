@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.core.webkit;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URI;
 import java.util.Comparator;
 
 /**
@@ -27,7 +28,7 @@ import java.util.Comparator;
  */
 public class ChromiumTabInfo {
 
-  static ChromiumTabInfo fromJson(JSONObject object) throws JSONException {
+  static ChromiumTabInfo fromJson(String host, int port, JSONObject object) throws JSONException {
 // {
 //    "devtoolsFrontendUrl": "/devtools/devtools.html?host=&page=3",
 //    "faviconUrl": "http://www.apple.com/favicon.ico",
@@ -37,7 +38,7 @@ public class ChromiumTabInfo {
 //    "webSocketDebuggerUrl": "ws:///devtools/page/3"
 // }
 
-    ChromiumTabInfo tab = new ChromiumTabInfo();
+    ChromiumTabInfo tab = new ChromiumTabInfo(host, port);
 
     tab.devtoolsFrontendUrl = JsonUtils.getString(object, "devtoolsFrontendUrl");
     tab.faviconUrl = JsonUtils.getString(object, "faviconUrl");
@@ -70,6 +71,10 @@ public class ChromiumTabInfo {
     };
   }
 
+  private String host;
+
+  private int port;
+
   private String devtoolsFrontendUrl;
 
   private String faviconUrl;
@@ -82,8 +87,9 @@ public class ChromiumTabInfo {
 
   private String webSocketDebuggerUrl;
 
-  private ChromiumTabInfo() {
-
+  private ChromiumTabInfo(String host, int port) {
+    this.host = host;
+    this.port = port;
   }
 
   public String getDevtoolsFrontendUrl() {
@@ -92,6 +98,14 @@ public class ChromiumTabInfo {
 
   public String getFaviconUrl() {
     return faviconUrl;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public int getPort() {
+    return port;
   }
 
   public String getThumbnailUrl() {
@@ -106,8 +120,22 @@ public class ChromiumTabInfo {
     return url;
   }
 
+  public String getWebSocketDebuggerFile() {
+    if (webSocketDebuggerUrl != null) {
+      return URI.create(webSocketDebuggerUrl).getPath();
+    } else {
+      return webSocketDebuggerUrl;
+    }
+  }
+
   public String getWebSocketDebuggerUrl() {
-    return webSocketDebuggerUrl;
+    // Convert a 'ws:///devtools/page/3' websocket URL to a ws://host:port/devtools/page/3 url.
+
+    if (webSocketDebuggerUrl != null && webSocketDebuggerUrl.startsWith("ws:///")) {
+      return "ws://" + host + ":" + port + webSocketDebuggerUrl.substring("ws:///".length());
+    } else {
+      return webSocketDebuggerUrl;
+    }
   }
 
   public boolean isChromeExtension() {
@@ -117,16 +145,6 @@ public class ChromiumTabInfo {
   @Override
   public String toString() {
     return "[" + getTitle() + "," + getUrl() + "," + getWebSocketDebuggerUrl() + "]";
-  }
-
-  /**
-   * Convert a 'ws:///devtools/page/3' websocket URL to a ws://host:port/devtools/page/3 url.
-   */
-  void patchUpUrl(String host, int port) {
-    if (webSocketDebuggerUrl != null && webSocketDebuggerUrl.startsWith("ws:///")) {
-      webSocketDebuggerUrl = "ws://" + host + ":" + port
-          + webSocketDebuggerUrl.substring("ws:///".length());
-    }
   }
 
 }

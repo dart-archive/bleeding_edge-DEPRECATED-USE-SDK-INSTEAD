@@ -22,6 +22,7 @@ public class TestAll {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.tools.debug.core.dartium.TestAll.suite());
     suite.addTest(com.google.dart.tools.debug.core.sourcemaps.TestAll.suite());
+    suite.addTest(com.google.dart.tools.debug.core.util.TestAll.suite());
     return suite;
   }
 }

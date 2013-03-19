@@ -254,10 +254,7 @@ public class BrowserManager {
       // avg: 383ms
       timer.startTask("get chromium tabs");
 
-      ChromiumTabInfo chromiumTab = getChromiumTab(
-          runtimeProcess,
-          devToolsPortNumber,
-          dartiumOutput);
+      ChromiumTabInfo tab = getChromiumTab(runtimeProcess, devToolsPortNumber, dartiumOutput);
 
       monitor.worked(2);
 
@@ -266,14 +263,14 @@ public class BrowserManager {
       // avg: 46ms
       timer.startTask("open WIP connection");
 
-      if (chromiumTab == null) {
+      if (tab == null) {
         throw new DebugException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
             "Unable to connect to Dartium"));
       }
 
-      if (chromiumTab == null || chromiumTab.getWebSocketDebuggerUrl() == null) {
+      if (tab == null || tab.getWebSocketDebuggerUrl() == null) {
         throw new DebugException(new Status(
             IStatus.ERROR,
             DartDebugCorePlugin.PLUGIN_ID,
@@ -284,7 +281,10 @@ public class BrowserManager {
       // may not yet have started up. Delay a small fixed amount of time.
       sleep(100);
 
-      WebkitConnection connection = new WebkitConnection(chromiumTab.getWebSocketDebuggerUrl());
+      WebkitConnection connection = new WebkitConnection(
+          tab.getHost(),
+          tab.getPort(),
+          tab.getWebSocketDebuggerFile());
 
       final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
           executable,
