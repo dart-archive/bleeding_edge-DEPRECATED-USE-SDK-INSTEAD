@@ -15,8 +15,6 @@ package com.google.dart.engine.html.scanner;
 
 import com.google.dart.engine.source.Source;
 
-import java.nio.CharBuffer;
-
 /**
  * Instances of the class {@code CharBufferScanner} implement a scanner that reads from a character
  * buffer. The scanning logic is in the superclass.
@@ -27,7 +25,7 @@ public class CharBufferScanner extends AbstractScanner {
   /**
    * The buffer from which characters will be read.
    */
-  private final CharBuffer buffer;
+  private final CharSequence buffer;
 
   /**
    * The number of characters in the buffer.
@@ -45,7 +43,7 @@ public class CharBufferScanner extends AbstractScanner {
    * @param source the source being scanned
    * @param buffer the buffer from which characters will be read
    */
-  public CharBufferScanner(Source source, CharBuffer buffer) {
+  public CharBufferScanner(Source source, CharSequence buffer) {
     super(source);
     this.buffer = buffer;
     this.bufferLength = buffer.length();
