@@ -51,7 +51,7 @@ public class OpenNewProjectWizardAction extends AbstractOpenWizardAction impleme
 
     closeIntroPage();
 
-    super.run();
+    super.doRun(event, instrumentation);
   }
 
   @Override
