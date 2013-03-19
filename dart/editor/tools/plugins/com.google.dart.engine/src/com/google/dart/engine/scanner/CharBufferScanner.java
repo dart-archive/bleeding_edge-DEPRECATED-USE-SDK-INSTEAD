@@ -69,7 +69,7 @@ public class CharBufferScanner extends AbstractScanner {
 
   @Override
   protected String getString(int start, int endDelta) {
-    return buffer.subSequence(start, charOffset + 1 + endDelta).toString();
+    return ((CharSequence) buffer).subSequence(start, charOffset + 1 + endDelta).toString();
   }
 
   @Override
