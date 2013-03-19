@@ -371,9 +371,18 @@ public class DartiumDebugStackFrame extends DartiumDebugElement implements IStac
   }
 
   protected String getMappedLocationPath() {
-    SourceMapManager.SourceLocation location = getMappedLocation();
+    SourceMapManager.SourceLocation targetLocation = getMappedLocation();
 
-    return location.file.getLocation().toPortableString();
+    if (DartDebugCorePlugin.LOGGING) {
+      WebkitLocation sourceLocation = webkitFrame.getLocation();
+      WebkitScript script = getConnection().getDebugger().getScript(sourceLocation.getScriptId());
+      String scriptPath = script == null ? "null" : script.getUrl();
+
+      System.out.println("[" + scriptPath + "," + sourceLocation.getLineNumber() + ","
+          + sourceLocation.getColumnNumber() + "] ==> mapped to " + targetLocation);
+    }
+
+    return targetLocation.file.getLocation().toPortableString();
   }
 
   /**

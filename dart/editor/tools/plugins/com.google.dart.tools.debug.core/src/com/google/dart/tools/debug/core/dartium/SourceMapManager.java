@@ -86,7 +86,7 @@ public class SourceMapManager implements ResourceChangeParticipant {
 
     @Override
     public String toString() {
-      return "[" + file + "," + line + "]";
+      return "[" + file + "," + line + "," + column + "]";
     }
   }
 

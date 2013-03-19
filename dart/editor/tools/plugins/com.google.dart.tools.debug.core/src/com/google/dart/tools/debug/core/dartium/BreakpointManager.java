@@ -250,11 +250,16 @@ class BreakpointManager implements IBreakpointListener {
             line);
 
         if (location != null) {
-          regex = resourceResolver.getUrlRegexForResource(location.getFile());
+          String mappedRegex = resourceResolver.getUrlRegexForResource(location.getFile());
+
+          if (DartDebugCorePlugin.LOGGING) {
+            System.out.println("breakpoint [" + regex + "," + line + ",-1] ==> mapped to ["
+                + mappedRegex + "," + location.getLine() + "," + location.getColumn() + "]");
+          }
 
           debugTarget.getWebkitConnection().getDebugger().setBreakpointByUrl(
               null,
-              regex,
+              mappedRegex,
               location.getLine(),
               location.getColumn(),
               new WebkitCallback<String>() {
@@ -269,5 +274,4 @@ class BreakpointManager implements IBreakpointListener {
       }
     }
   }
-
 }

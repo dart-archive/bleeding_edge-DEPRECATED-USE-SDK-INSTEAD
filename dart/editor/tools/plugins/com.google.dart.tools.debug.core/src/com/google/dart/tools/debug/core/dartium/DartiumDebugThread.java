@@ -164,8 +164,8 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepInto() throws DebugException {
-    expectedResumeReason = DebugEvent.STEP_END;
-    expectedSuspendReason = DebugEvent.STEP_INTO;
+    expectedResumeReason = DebugEvent.STEP_INTO;
+    expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
       getConnection().getDebugger().stepInto();
@@ -179,8 +179,8 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepOver() throws DebugException {
-    expectedResumeReason = DebugEvent.STEP_END;
-    expectedSuspendReason = DebugEvent.STEP_OVER;
+    expectedResumeReason = DebugEvent.STEP_OVER;
+    expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
       getConnection().getDebugger().stepOver();
@@ -194,8 +194,8 @@ public class DartiumDebugThread extends DartiumDebugElement implements IThread {
 
   @Override
   public void stepReturn() throws DebugException {
-    expectedResumeReason = DebugEvent.STEP_END;
-    expectedSuspendReason = DebugEvent.STEP_RETURN;
+    expectedResumeReason = DebugEvent.STEP_RETURN;
+    expectedSuspendReason = DebugEvent.STEP_END;
 
     try {
       getConnection().getDebugger().stepOut();
