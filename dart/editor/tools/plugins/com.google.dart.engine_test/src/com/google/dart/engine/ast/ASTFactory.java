@@ -1060,6 +1060,8 @@ public final class ASTFactory {
   public static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type,
       VariableDeclaration... variables) {
     return new VariableDeclarationList(
+        null,
+        null,
         keyword == null ? null : token(keyword),
         type,
         list(variables));

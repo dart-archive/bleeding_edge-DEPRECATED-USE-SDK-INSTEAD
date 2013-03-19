@@ -1745,8 +1745,10 @@ public class Parser {
             return new TopLevelVariableDeclaration(
                 commentAndMetadata.getComment(),
                 commentAndMetadata.getMetadata(),
-                parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), null),
-                expect(TokenType.SEMICOLON));
+                parseVariableDeclarationList(
+                    null,
+                    validateModifiersForTopLevelVariable(modifiers),
+                    null), expect(TokenType.SEMICOLON));
           }
         }
         // TODO(brianwilkerson) Report this error.
@@ -1769,7 +1771,7 @@ public class Parser {
       return new TopLevelVariableDeclaration(
           commentAndMetadata.getComment(),
           commentAndMetadata.getMetadata(),
-          parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), null),
+          parseVariableDeclarationList(null, validateModifiersForTopLevelVariable(modifiers), null),
           expect(TokenType.SEMICOLON));
     }
     TypeName returnType = parseReturnType();
@@ -1793,8 +1795,10 @@ public class Parser {
     return new TopLevelVariableDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
-        parseVariableDeclarationList(validateModifiersForTopLevelVariable(modifiers), returnType),
-        expect(TokenType.SEMICOLON));
+        parseVariableDeclarationList(
+            null,
+            validateModifiersForTopLevelVariable(modifiers),
+            returnType), expect(TokenType.SEMICOLON));
   }
 
   /**
@@ -1978,23 +1982,6 @@ public class Parser {
     }
     Token semicolon = expect(TokenType.SEMICOLON);
     return new ContinueStatement(continueKeyword, label, semicolon);
-  }
-
-  /**
-   * Parse a declared identifier declaration.
-   * 
-   * @param commentAndMetadata the metadata to be associated with the directive
-   * @return the declared identifier that was parsed
-   */
-  private DeclaredIdentifier parseDeclaredIdentifier(CommentAndMetadata commentAndMetadata) {
-    FinalConstVarOrType finalConstVarOrType = parseFinalConstVarOrType(false);
-    SimpleIdentifier identifier = parseSimpleIdentifier();
-    return new DeclaredIdentifier(
-        commentAndMetadata.getComment(),
-        commentAndMetadata.getMetadata(),
-        finalConstVarOrType.getKeyword(),
-        finalConstVarOrType.getType(),
-        identifier);
   }
 
   /**
@@ -2549,9 +2536,16 @@ public class Parser {
           List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
           SimpleIdentifier variableName = parseSimpleIdentifier();
           variables.add(new VariableDeclaration(null, null, variableName, null, null));
-          variableList = new VariableDeclarationList(null, null, variables);
+          // TODO(jwren) metadata isn't allowed before the identifier in "identifier in expression",
+          // add warning if commentAndMetadata has content
+          variableList = new VariableDeclarationList(
+              commentAndMetadata.getComment(),
+              commentAndMetadata.getMetadata(),
+              null,
+              null,
+              variables);
         } else if (isInitializedVariableDeclaration()) {
-          variableList = parseVariableDeclarationList();
+          variableList = parseVariableDeclarationList(commentAndMetadata);
         } else {
           initialization = parseExpression();
         }
@@ -3024,7 +3018,7 @@ public class Parser {
    */
   private FieldDeclaration parseInitializedIdentifierList(CommentAndMetadata commentAndMetadata,
       Token staticKeyword, Token keyword, TypeName type) {
-    VariableDeclarationList fieldList = parseVariableDeclarationList(keyword, type);
+    VariableDeclarationList fieldList = parseVariableDeclarationList(null, keyword, type);
     return new FieldDeclaration(
         commentAndMetadata.getComment(),
         commentAndMetadata.getMetadata(),
@@ -3536,7 +3530,7 @@ public class Parser {
       } else if (keyword == Keyword.WHILE) {
         return parseWhileStatement();
       } else if (keyword == Keyword.VAR || keyword == Keyword.FINAL) {
-        return parseVariableDeclarationStatement();
+        return parseVariableDeclarationStatement(commentAndMetadata);
       } else if (keyword == Keyword.VOID) {
         TypeName returnType = parseReturnType();
         if (matchesIdentifier()
@@ -3552,7 +3546,7 @@ public class Parser {
             if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
               // We appear to have a variable declaration with a type of "void".
               reportError(ParserErrorCode.VOID_VARIABLE, returnType);
-              return parseVariableDeclarationStatement();
+              return parseVariableDeclarationStatement(commentAndMetadata);
             }
           }
           // TODO(brianwilkerson) Report this error.
@@ -3578,7 +3572,7 @@ public class Parser {
             }
           }
         }
-        return parseVariableDeclarationStatement();
+        return parseVariableDeclarationStatement(commentAndMetadata);
       } else if (keyword == Keyword.NEW || keyword == Keyword.TRUE || keyword == Keyword.FALSE
           || keyword == Keyword.NULL || keyword == Keyword.SUPER || keyword == Keyword.THIS) {
         return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
@@ -3591,7 +3585,7 @@ public class Parser {
     } else if (matches(TokenType.SEMICOLON)) {
       return parseEmptyStatement();
     } else if (isInitializedVariableDeclaration()) {
-      return parseVariableDeclarationStatement();
+      return parseVariableDeclarationStatement(commentAndMetadata);
     } else if (isFunctionDeclaration()) {
       return parseFunctionDeclarationStatement();
     } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
@@ -4701,11 +4695,12 @@ public class Parser {
    *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the variable declaration list
    * @return the variable declaration list that was parsed
    */
-  private VariableDeclarationList parseVariableDeclarationList() {
+  private VariableDeclarationList parseVariableDeclarationList(CommentAndMetadata commentAndMetadata) {
     FinalConstVarOrType holder = parseFinalConstVarOrType(false);
-    return parseVariableDeclarationList(holder.getKeyword(), holder.getType());
+    return parseVariableDeclarationList(commentAndMetadata, holder.getKeyword(), holder.getType());
   }
 
   /**
@@ -4716,19 +4711,27 @@ public class Parser {
    *     finalConstVarOrType variableDeclaration (',' variableDeclaration)*
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the variable declaration list, or
+   *          <code>null</code> if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
    *          there is no keyword
    * @param type the type of the variables in the list
    * @return the variable declaration list that was parsed
    */
-  private VariableDeclarationList parseVariableDeclarationList(Token keyword, TypeName type) {
+  private VariableDeclarationList parseVariableDeclarationList(
+      CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
     List<VariableDeclaration> variables = new ArrayList<VariableDeclaration>();
     variables.add(parseVariableDeclaration());
     while (matches(TokenType.COMMA)) {
       advance();
       variables.add(parseVariableDeclaration());
     }
-    return new VariableDeclarationList(keyword, type, variables);
+    return new VariableDeclarationList(
+        commentAndMetadata != null ? commentAndMetadata.getComment() : null,
+        commentAndMetadata != null ? commentAndMetadata.getMetadata() : null,
+        keyword,
+        type,
+        variables);
   }
 
   /**
@@ -4741,8 +4744,9 @@ public class Parser {
    * 
    * @return the variable declaration statement that was parsed
    */
-  private VariableDeclarationStatement parseVariableDeclarationStatement() {
-    VariableDeclarationList variableList = parseVariableDeclarationList();
+  private VariableDeclarationStatement parseVariableDeclarationStatement(
+      CommentAndMetadata commentAndMetadata) {
+    VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
     Token semicolon = expect(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }

@@ -1734,44 +1734,6 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getSemicolon());
   }
 
-  public void test_parseDeclaredIdentifier_const() throws Exception {
-    DeclaredIdentifier declaredIdentifier = parse(
-        "parseDeclaredIdentifier",
-        new Object[] {emptyCommentAndMetadata()},
-        "const A a");
-    assertNotNull(declaredIdentifier.getKeyword());
-    assertTrue(declaredIdentifier.isConst());
-    assertNotNull(declaredIdentifier.getType());
-  }
-
-  public void test_parseDeclaredIdentifier_final() throws Exception {
-    DeclaredIdentifier declaredIdentifier = parse(
-        "parseDeclaredIdentifier",
-        new Object[] {emptyCommentAndMetadata()},
-        "final A a");
-    assertNotNull(declaredIdentifier.getKeyword());
-    assertTrue(declaredIdentifier.isFinal());
-    assertNotNull(declaredIdentifier.getType());
-  }
-
-  public void test_parseDeclaredIdentifier_type() throws Exception {
-    DeclaredIdentifier declaredIdentifier = parse(
-        "parseDeclaredIdentifier",
-        new Object[] {emptyCommentAndMetadata()},
-        "A a");
-    assertNull(declaredIdentifier.getKeyword());
-    assertNotNull(declaredIdentifier.getType());
-  }
-
-  public void test_parseDeclaredIdentifier_var() throws Exception {
-    DeclaredIdentifier declaredIdentifier = parse(
-        "parseDeclaredIdentifier",
-        new Object[] {emptyCommentAndMetadata()},
-        "var a");
-    assertNotNull(declaredIdentifier.getKeyword());
-    assertNull(declaredIdentifier.getType());
-  }
-
   public void test_parseDirective_export() throws Exception {
     ExportDirective directive = parse(
         "parseDirective",
@@ -2396,6 +2358,24 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getLeftParenthesis());
     VariableDeclarationList variables = statement.getVariables();
     assertNotNull(variables);
+    assertSize(0, variables.getMetadata());
+    assertSize(1, variables.getVariables());
+    assertNull(statement.getInitialization());
+    assertNotNull(statement.getLeftSeparator());
+    assertNull(statement.getCondition());
+    assertNotNull(statement.getRightSeparator());
+    assertSize(0, statement.getUpdaters());
+    assertNotNull(statement.getRightParenthesis());
+    assertNotNull(statement.getBody());
+  }
+
+  public void test_parseForStatement_loop_i_withMetadata() throws Exception {
+    ForStatement statement = parse("parseForStatement", "for (@A var i = 0;;) {}");
+    assertNotNull(statement.getForKeyword());
+    assertNotNull(statement.getLeftParenthesis());
+    VariableDeclarationList variables = statement.getVariables();
+    assertNotNull(variables);
+    assertSize(1, variables.getMetadata());
     assertSize(1, variables.getVariables());
     assertNull(statement.getInitialization());
     assertNotNull(statement.getLeftSeparator());
@@ -4150,56 +4130,80 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseVariableDeclarationList_const_noType() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "const a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_const_type() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "const A a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "const A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_final_noType() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "final a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_final_type() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "final A a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "final A a");
     assertNotNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_type_multiple() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "A a, b, c");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "A a, b, c");
     assertNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
     assertSize(3, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_type_single() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "A a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "A a");
     assertNull(declarationList.getKeyword());
     assertNotNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_var_multiple() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "var a, b, c");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "var a, b, c");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
     assertSize(3, declarationList.getVariables());
   }
 
   public void test_parseVariableDeclarationList_var_single() throws Exception {
-    VariableDeclarationList declarationList = parse("parseVariableDeclarationList", "var a");
+    VariableDeclarationList declarationList = parse(
+        "parseVariableDeclarationList",
+        new Object[] {emptyCommentAndMetadata()},
+        "var a");
     assertNotNull(declarationList.getKeyword());
     assertNull(declarationList.getType());
     assertSize(1, declarationList.getVariables());
@@ -4208,7 +4212,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseVariableDeclarationList2_type() throws Exception {
     TypeName type = new TypeName(new SimpleIdentifier(null), null);
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", new Object[] {
-        null, type}, "a");
+        emptyCommentAndMetadata(), null, type}, "a");
     assertNull(declarationList.getKeyword());
     assertEquals(type, declarationList.getType());
     assertSize(1, declarationList.getVariables());
@@ -4217,7 +4221,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseVariableDeclarationList2_var() throws Exception {
     Token keyword = token(Keyword.VAR);
     VariableDeclarationList declarationList = parse("parseVariableDeclarationList", new Object[] {
-        keyword, null}, "a, b, c");
+        emptyCommentAndMetadata(), keyword, null}, "a, b, c");
     assertEquals(keyword, declarationList.getKeyword());
     assertNull(declarationList.getType());
     assertSize(3, declarationList.getVariables());
@@ -4226,6 +4230,7 @@ public class SimpleParserTest extends ParserTestCase {
   public void test_parseVariableDeclarationStatement_multiple() throws Exception {
     VariableDeclarationStatement statement = parse(
         "parseVariableDeclarationStatement",
+        new Object[] {emptyCommentAndMetadata()},
         "var x, y, z;");
     assertNotNull(statement.getSemicolon());
     VariableDeclarationList variableList = statement.getVariables();
@@ -4234,7 +4239,10 @@ public class SimpleParserTest extends ParserTestCase {
   }
 
   public void test_parseVariableDeclarationStatement_single() throws Exception {
-    VariableDeclarationStatement statement = parse("parseVariableDeclarationStatement", "var x;");
+    VariableDeclarationStatement statement = parse(
+        "parseVariableDeclarationStatement",
+        new Object[] {emptyCommentAndMetadata()},
+        "var x;");
     assertNotNull(statement.getSemicolon());
     VariableDeclarationList variableList = statement.getVariables();
     assertNotNull(variableList);

@@ -87,12 +87,22 @@ public abstract class AnnotatedNode extends ASTNode {
   }
 
   /**
-   * Set the documentation comment associated with this node to the given comment
+   * Set the documentation comment associated with this node to the given comment.
    * 
    * @param comment the documentation comment to be associated with this node
    */
   public void setDocumentationComment(Comment comment) {
     this.comment = becomeParentOf(comment);
+  }
+
+  /**
+   * Set the metadata associated with this node to the given metadata.
+   * 
+   * @param metadata the metadata to be associated with this node
+   */
+  public void setMetadata(List<Annotation> metadata) {
+    this.metadata.clear();
+    this.metadata.addAll(metadata);
   }
 
   @Override

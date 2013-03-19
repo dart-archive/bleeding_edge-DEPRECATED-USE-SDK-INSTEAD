@@ -36,7 +36,7 @@ import java.util.List;
  * 
  * @coverage dart.engine.ast
  */
-public class VariableDeclarationList extends ASTNode {
+public class VariableDeclarationList extends AnnotatedNode {
   /**
    * The token representing the 'final', 'const' or 'var' keyword, or {@code null} if no keyword was
    * included.
@@ -56,11 +56,15 @@ public class VariableDeclarationList extends ASTNode {
   /**
    * Initialize a newly created variable declaration list.
    * 
+   * @param comment the documentation comment associated with this declaration list
+   * @param metadata the annotations associated with this declaration list
    * @param keyword the token representing the 'final', 'const' or 'var' keyword
    * @param type the type of the variables being declared
    * @param variables a list containing the individual variables being declared
    */
-  public VariableDeclarationList(Token keyword, TypeName type, List<VariableDeclaration> variables) {
+  public VariableDeclarationList(Comment comment, List<Annotation> metadata, Token keyword,
+      TypeName type, List<VariableDeclaration> variables) {
+    super(comment, metadata);
     this.keyword = keyword;
     this.type = becomeParentOf(type);
     this.variables.addAll(variables);
@@ -69,16 +73,6 @@ public class VariableDeclarationList extends ASTNode {
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitVariableDeclarationList(this);
-  }
-
-  @Override
-  public Token getBeginToken() {
-    if (keyword != null) {
-      return keyword;
-    } else if (type != null) {
-      return type.getBeginToken();
-    }
-    return variables.getBeginToken();
   }
 
   @Override
@@ -159,4 +153,15 @@ public class VariableDeclarationList extends ASTNode {
     safelyVisitChild(type, visitor);
     variables.accept(visitor);
   }
+
+  @Override
+  protected Token getFirstTokenAfterCommentAndMetadata() {
+    if (keyword != null) {
+      return keyword;
+    } else if (type != null) {
+      return type.getBeginToken();
+    }
+    return variables.getBeginToken();
+  }
+
 }
