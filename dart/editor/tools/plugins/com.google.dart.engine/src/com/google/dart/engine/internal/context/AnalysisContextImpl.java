@@ -992,12 +992,13 @@ public class AnalysisContextImpl implements AnalysisContext {
         if (libraryInfo.hasInvalidElement()) {
           try {
             computeLibraryElement(entry.getKey());
-            return;
           } catch (AnalysisException exception) {
+            libraryInfo.setElement(null);
             AnalysisEngine.getInstance().getLogger().logError(
                 "Could not compute the library element for " + entry.getKey().getFullName(),
                 exception);
           }
+          return;
         }
       }
     }
