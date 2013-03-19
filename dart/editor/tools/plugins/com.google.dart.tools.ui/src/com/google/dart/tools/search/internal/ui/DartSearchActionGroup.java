@@ -33,13 +33,13 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 public class DartSearchActionGroup extends ActionGroup {
   private IWorkbenchSite site;
   private FindReferencesAction findReferencesAction;
-  private FindDeclarationsAction_OLD findDeclarationsAction;
+  private FindDeclarationsAction findDeclarationsAction;
 
   public DartSearchActionGroup(DartEditor editor) {
     this.site = editor.getSite();
     findReferencesAction = new FindReferencesAction(editor);
-    findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
-    findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findDeclarationsAction = new FindDeclarationsAction(editor);
+    initActions();
   }
 
   public DartSearchActionGroup(Page page) {
@@ -49,19 +49,16 @@ public class DartSearchActionGroup extends ActionGroup {
   private DartSearchActionGroup(IWorkbenchSite site) {
     this.site = site;
     findReferencesAction = new FindReferencesAction(site);
-    findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
-    findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findDeclarationsAction = new FindDeclarationsAction(site);
+    initActions();
     // TODO(scheglov)
-    site.getSelectionProvider().addSelectionChangedListener(findReferencesAction);
+//    site.getSelectionProvider().addSelectionChangedListener(findReferencesAction);
   }
 
   @Override
   public void dispose() {
     disposeAction(findReferencesAction);
-    // TODO(scheglov) remove check for null
-    if (findDeclarationsAction != null) {
-      disposeAction(findDeclarationsAction);
-    }
+    disposeAction(findDeclarationsAction);
     findReferencesAction = null;
     findDeclarationsAction = null;
     super.dispose();
@@ -73,41 +70,16 @@ public class DartSearchActionGroup extends ActionGroup {
     menu.add(new Separator());
     {
       ISelection selection = getContext().getSelection();
-      // TODO(scheglov) remove check for null
-      if (findReferencesAction != null) {
-        findReferencesAction.update(selection);
-        appendToGroup(menu, findReferencesAction);
-      }
-      // TODO(scheglov) remove check for null
-      if (findDeclarationsAction != null) {
-        findDeclarationsAction.update(selection);
-        appendToGroup(menu, findDeclarationsAction);
-      }
-//      if (sel instanceof DartElementSelection) {
-//        DartElementSelection selection = (DartElementSelection) sel;
-//        if (ActionUtil.isFindOverridesAvailable(selection)) {
-//          findOverridesAction.update(selection);
-//          appendToGroup(mm, findOverridesAction);
-//        }
-//        if (ActionUtil.isFindDeclarationsAvailable(selection)) {
-//          findDeclarationsAction.update(selection);
-//          appendToGroup(mm, findDeclarationsAction);
-//        }
-//        if (ActionUtil.isFindUsesAvailable(selection)) {
-//          findReferencesAction.update(selection);
-//          appendToGroup(mm, findReferencesAction);
-//        }
-//      } else {
-//        // TODO(messick): Remove this branch.
-//        appendToGroup(mm, findDeclarationsAction);
-//        appendToGroup(mm, findReferencesAction);
-//      }
+      findReferencesAction.update(selection);
+      findDeclarationsAction.update(selection);
+      appendToGroup(menu, findReferencesAction);
+      appendToGroup(menu, findDeclarationsAction);
     }
   }
 
   private void appendToGroup(IMenuManager menu, IAction action) {
     if (action.isEnabled()) {
-      menu.prependToGroup(ITextEditorActionConstants.GROUP_OPEN, action);
+      menu.appendToGroup(ITextEditorActionConstants.GROUP_OPEN, action);
     }
   }
 
@@ -116,5 +88,12 @@ public class DartSearchActionGroup extends ActionGroup {
     if (provider != null) {
       provider.removeSelectionChangedListener(action);
     }
+  }
+
+  private void initActions() {
+    findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
+    findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+    findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
   }
 }

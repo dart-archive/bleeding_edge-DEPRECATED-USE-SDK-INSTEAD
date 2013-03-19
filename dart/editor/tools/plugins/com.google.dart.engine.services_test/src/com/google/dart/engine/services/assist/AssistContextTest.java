@@ -14,24 +14,18 @@
 
 package com.google.dart.engine.services.assist;
 
-import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.parser.ParserTestCase;
 import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
-
-import junit.framework.TestCase;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AssistContextTest extends TestCase {
-  private static String toString(String... lines) {
-    return Joiner.on("\n").join(lines);
-  }
-
+public class AssistContextTest extends AbstractDartTest {
   private final SearchEngine searchEngine = mock(SearchEngine.class);
 
   public void test_access() throws Exception {
@@ -61,25 +55,44 @@ public class AssistContextTest extends TestCase {
     assertSame(null, context.getSource());
   }
 
-  public void test_getNode() throws Exception {
-    String sourceContent = toString(
+  public void test_getCoveredElement() throws Exception {
+    parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  String text = '';",
         "}",
         "");
-    CompilationUnit compilationUnit = ParserTestCase.parseCompilationUnit(sourceContent);
+    //
+    int selectionOffset = testCode.indexOf("tring ");
+    int selectionLength = testCode.indexOf("ng ") - selectionOffset;
+    AssistContext context = new AssistContext(
+        searchEngine,
+        testUnit,
+        selectionOffset,
+        selectionLength);
+    ClassElement coveredElement = (ClassElement) context.getCoveredElement();
+    assertNotNull(coveredElement);
+    assertEquals("String", coveredElement.getName());
+  }
+
+  public void test_getNode() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  String text = '';",
+        "}",
+        "");
     // covering == covered
     {
-      int selectionOffset = sourceContent.indexOf("tring ");
-      int selectionEnd = sourceContent.indexOf("ng ");
+      int selectionOffset = testCode.indexOf("tring ");
+      int selectionEnd = testCode.indexOf("ng ");
       int selectionLength = selectionEnd - selectionOffset;
       AssistContext context = new AssistContext(
           searchEngine,
-          compilationUnit,
+          testUnit,
           selectionOffset,
           selectionLength);
-      assertSame(compilationUnit, context.getCompilationUnit());
+      assertSame(testUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String", context.getCoveringNode().toSource());
       assertEquals(selectionOffset, context.getSelectionOffset());
@@ -87,15 +100,15 @@ public class AssistContextTest extends TestCase {
     }
     // covering > covered
     {
-      int selectionOffset = sourceContent.indexOf("tring ");
-      int selectionEnd = sourceContent.indexOf(" = ''");
+      int selectionOffset = testCode.indexOf("tring ");
+      int selectionEnd = testCode.indexOf(" = ''");
       int selectionLength = selectionEnd - selectionOffset;
       AssistContext context = new AssistContext(
           searchEngine,
-          compilationUnit,
+          testUnit,
           selectionOffset,
           selectionLength);
-      assertSame(compilationUnit, context.getCompilationUnit());
+      assertSame(testUnit, context.getCompilationUnit());
       assertEquals("String", context.getCoveredNode().toSource());
       assertEquals("String text = ''", context.getCoveringNode().toSource());
       assertEquals(selectionOffset, context.getSelectionOffset());

@@ -14,8 +14,10 @@
 package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -25,6 +27,18 @@ import org.eclipse.ui.IWorkbenchSite;
  * Abstract class for search actions.
  */
 public abstract class FindAction extends InstrumentedSelectionDispatchAction {
+  /**
+   * @return the {@link Element} covered by the given {@link DartSelection}, may be
+   *         <code>null</code>.
+   */
+  protected static Element getSelectionElement(DartSelection selection) {
+    AssistContext context = selection.getContext();
+    if (context != null) {
+      return context.getCoveredElement();
+    }
+    return null;
+  }
+
   /**
    * @return the only {@link Element} in the given {@link IStructuredSelection}. May be
    *         <code>null</code>.

@@ -33,14 +33,15 @@ import org.eclipse.ui.PlatformUI;
 import java.util.List;
 
 /**
- * Finds references of the selected {@link Element} in the workspace.
+ * Finds references of the selected name in the workspace.
  */
-public class FindReferencesAction extends FindAction {
-  public FindReferencesAction(DartEditor editor) {
+public class FindDeclarationsAction extends FindAction {
+
+  public FindDeclarationsAction(DartEditor editor) {
     super(editor);
   }
 
-  public FindReferencesAction(IWorkbenchSite site) {
+  public FindDeclarationsAction(IWorkbenchSite site) {
     super(site);
   }
 
@@ -72,32 +73,33 @@ public class FindReferencesAction extends FindAction {
 
   @Override
   protected void init() {
-    setText(SearchMessages.Search_FindReferencesAction_label);
-    setToolTipText(SearchMessages.Search_FindReferencesAction_tooltip);
+    setText(SearchMessages.Search_FindDeclarationsAction_label);
+    setToolTipText(SearchMessages.Search_FindDeclarationsAction_tooltip);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
-        DartHelpContextIds.FIND_REFERENCES_IN_WORKSPACE_ACTION);
+        DartHelpContextIds.FIND_DECLARATIONS_IN_WORKSPACE_ACTION);
   }
 
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(final Element element) {
+  private void doSearch(Element element) {
     if (element == null) {
       return;
     }
+    final String name = element.getName();
+    // do search
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
-      view.showPage(new SearchMatchPage(view, "Searching for references...") {
+      view.showPage(new SearchMatchPage(view, "Searching for declarations...") {
         @Override
         protected List<SearchMatch> runQuery() {
-          return searchEngine.searchReferences(element, null, null);
+          return searchEngine.searchDeclarations(name, null, null);
         }
       });
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during search.");
     }
   }
-
 }

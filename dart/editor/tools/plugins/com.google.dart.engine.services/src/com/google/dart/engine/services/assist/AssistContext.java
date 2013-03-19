@@ -15,8 +15,10 @@ package com.google.dart.engine.services.assist;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
@@ -50,6 +52,14 @@ public class AssistContext {
    */
   public CompilationUnit getCompilationUnit() {
     return compilationUnit;
+  }
+
+  /**
+   * @return the {@link Element} of the {@link #coveredNode}, may be <code>null</code>.
+   */
+  public Element getCoveredElement() {
+    ASTNode coveredNode = getCoveredNode();
+    return ElementLocator.locate(coveredNode);
   }
 
   /**

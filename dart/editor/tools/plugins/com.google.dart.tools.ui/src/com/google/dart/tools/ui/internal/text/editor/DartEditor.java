@@ -37,6 +37,7 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
@@ -1445,6 +1446,24 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  private class DartSelectionProvider extends SelectionProvider {
+    public DartSelectionProvider() {
+    }
+
+    @Override
+    public ISelection getSelection() {
+      ITextSelection textSelection = (ITextSelection) super.getSelection();
+      IDocument document = getSourceViewer().getDocument();
+      AssistContext assistContext = getAssistContext(textSelection);
+      return new DartSelection(
+          DartEditor.this,
+          assistContext,
+          document,
+          textSelection.getOffset(),
+          textSelection.getLength());
+    }
+  }
+
   /**
    * Updates the outline page selection and this editor's range indicator.
    */
@@ -1626,6 +1645,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private IFile inputFile;
   private DartReconciler reconciler;
+
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
 
   private SourceRange textSelectionRange;
@@ -1640,19 +1660,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /** The outline page */
   protected DartOutlinePage_I fOutlinePage;
-
   /** Outliner context menu Id */
   protected String fOutlinerContextMenuId;
   /**
    * The editor selection changed listener.
    */
   private EditorSelectionChangedListener fEditorSelectionChangedListener;
+
   /** The editor's bracket matcher */
   protected DartPairMatcher fBracketMatcher = new DartPairMatcher(BRACKETS);
 
   /** This editor's encoding support */
   private DefaultEncodingSupport fEncodingSupport;
-
   /** History for structure select action */
   private SelectionHistory fSelectionHistory;
   protected CompositeActionGroup fActionGroups;
@@ -1660,13 +1679,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * The action group for folding.
    */
   private FoldingActionGroup fFoldingGroup;
+
   private CompositeActionGroup fOpenEditorActionGroup;
 
   /**
    * Removes trailing whitespace on editor saves.
    */
   private RemoveTrailingWhitespaceAction removeTrailingWhitespaceAction;
-
   /**
    * Holds the current occurrence annotations.
    */
@@ -1697,6 +1716,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkConstantOccurrences;
+
   /**
    * Tells whether to mark field occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1708,7 +1728,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkLocalVariableypeOccurrences;
-
   /**
    * Tells whether to mark exception occurrences in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
@@ -1724,12 +1743,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * this editor. Only valid if {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkBreakContinueTargets;
+
   /**
    * Tells whether to mark implementors in this editor. Only valid if
    * {@link #fMarkOccurrenceAnnotations} is <code>true</code>.
    */
   private boolean fMarkImplementors;
-
   /**
    * The selection used when forcing occurrence marking through code.
    */
@@ -1754,15 +1773,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * This editor's projection support
    */
   private ProjectionSupport fProjectionSupport;
+
   /**
    * This editor's projection model updater
    */
   private IDartFoldingStructureProvider fProjectionModelUpdater;
-
   /**
    * The override and implements indicator manager for this editor.
    */
   protected OverrideIndicatorManager fOverrideIndicatorManager;
+
   /**
    * Semantic highlighting manager
    */
@@ -1806,10 +1826,12 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private final ASTCache astCache = new ASTCache();
 
   private boolean isEditableStateKnown;
-
   private boolean isEditable;
   private OpenCallHierarchyAction openCallHierarchy;
+
   private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
+
+  private SelectionProvider selectionProvider = new DartSelectionProvider();
 
   /**
    * Default constructor.
@@ -1874,13 +1896,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   public ISelection createElementSelection() {
     ITextSelection textSelection = (ITextSelection) getSelectionProvider().getSelection();
-    ISelection selection = new DartElementSelection(
-        this,
-        DartUI.getEditorInputDartElement(getEditorInput()),
-        getSourceViewer().getDocument(),
-        textSelection.getOffset(),
-        textSelection.getLength());
-    return selection;
+    IDocument document = getSourceViewer().getDocument();
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return textSelection;
+    } else {
+      ISelection selection = new DartElementSelection(
+          this,
+          DartUI.getEditorInputDartElement(getEditorInput()),
+          document,
+          textSelection.getOffset(),
+          textSelection.getLength());
+      return selection;
+    }
   }
 
   @Override
@@ -2004,10 +2031,16 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
-    if (elementSelection != null && ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
-      showSelectionLabel.update(elementSelection);
-      showSelectionLabel.setEnabled(false);
-      menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
+    if (elementSelection != null) {
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        // TODO(scheglov) For 'elementOrIdentifier' do:
+      } else {
+        if (ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
+          showSelectionLabel.update(elementSelection);
+          showSelectionLabel.setEnabled(false);
+          menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
+        }
+      }
     }
   }
 
@@ -2090,33 +2123,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    *         {@link SearchEngine}. May be <code>null</code>.
    */
   public AssistContext getAssistContext() {
-    try {
-      if (inputFile == null) {
-        return null;
-      }
-      // prepare input CompilationUnit
-      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
-      if (unit == null) {
-        return null;
-      }
-      // prepare selection
-      int selectionOffset = 0;
-      int selectionLength = 0;
-      {
-        Point selectedRange = getViewer().getSelectedRange();
-        selectionOffset = selectedRange.x;
-        selectionLength = selectedRange.y;
-      }
-      // return AssistContext
-      Index index = DartCore.getProjectManager().getIndex();
-      return new AssistContext(
-          SearchEngineFactory.createSearchEngine(index),
-          unit,
-          selectionOffset,
-          selectionLength);
-    } catch (Throwable e) {
-      throw new Error(e);
-    }
+    ITextSelection textSelection = (ITextSelection) getSelectionProvider().getSelection();
+    return getAssistContext(textSelection);
   }
 
   /**
@@ -2221,6 +2229,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   public IPreferenceStore getPreferences() {
     return super.getPreferenceStore();
+  }
+
+  @Override
+  public ISelectionProvider getSelectionProvider() {
+    return selectionProvider;
   }
 
   /**
@@ -2649,12 +2662,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     super.createActions();
 
     DartX.todo("actions");
-    ActionGroup oeg, ovg;
-    ActionGroup dsg, ddg;
-    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-        oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
-        dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
-    fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      ActionGroup oeg, ovg;
+      ActionGroup dsg, ddg;
+      fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
+      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    } else {
+      ActionGroup oeg, ovg;
+      ActionGroup dsg, ddg;
+      fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
+      fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
+    }
 
     // Registers the folding actions with the editor
     fFoldingGroup = new FoldingActionGroup(this, getViewer());
@@ -4297,6 +4319,39 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link AssistContext} with resolved {@link CompilationUnit}, selection and
+   *         {@link SearchEngine}. May be <code>null</code>.
+   */
+  private AssistContext getAssistContext(ITextSelection textSelection) {
+    try {
+      if (inputFile == null) {
+        return null;
+      }
+      // prepare input CompilationUnit
+      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+      if (unit == null) {
+        return null;
+      }
+      // prepare selection
+      int selectionOffset = 0;
+      int selectionLength = 0;
+      {
+        selectionOffset = textSelection.getOffset();
+        selectionLength = textSelection.getLength();
+      }
+      // return AssistContext
+      Index index = DartCore.getProjectManager().getIndex();
+      return new AssistContext(
+          SearchEngineFactory.createSearchEngine(index),
+          unit,
+          selectionOffset,
+          selectionLength);
+    } catch (Throwable e) {
+      throw new Error(e);
+    }
   }
 
   /**

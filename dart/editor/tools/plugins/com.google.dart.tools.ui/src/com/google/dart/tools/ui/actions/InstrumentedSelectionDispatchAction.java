@@ -2,6 +2,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.runtime.Assert;
@@ -169,6 +170,15 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
    * 
    * @param selection the selection
    */
+  public void selectionChanged(DartSelection selection) {
+    selectionChanged((ITextSelection) selection);
+  }
+
+  /**
+   * Note: This method is for internal use only. Clients should not call this method.
+   * 
+   * @param selection the selection
+   */
   public void selectionChanged(DartTextSelection selection) {
     selectionChanged((ITextSelection) selection);
   }
@@ -236,11 +246,11 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
     dispatchSelectionChanged(selection);
   }
 
-  /**
-   * Note: This method is for internal use only. Clients should not call this method.
-   * 
-   * @param selection the selection
-   */
+  protected void doRun(DartSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    doRun((ITextSelection) selection, event, instrumentation);
+  }
+
   protected void doRun(DartTextSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     doRun((ITextSelection) selection, event, instrumentation);
@@ -249,24 +259,22 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
-
-    if (selection instanceof DartTextSelection) {
+    if (selection instanceof DartSelection) {
+      instrumentation.record((DartSelection) selection);
+      doRun((DartSelection) selection, event, instrumentation);
+    } else if (selection instanceof DartTextSelection) {
       instrumentation.record((DartTextSelection) selection);
       doRun((DartTextSelection) selection, event, instrumentation);
-
     } else if (selection instanceof IStructuredSelection) {
       instrumentation.record((IStructuredSelection) selection);
       doRun((IStructuredSelection) selection, event, instrumentation);
-
     } else if (selection instanceof ITextSelection) {
       instrumentation.record((ITextSelection) selection);
       doRun((ITextSelection) selection, event, instrumentation);
-
     } else {
       instrumentation.record(selection);
       doRun(selection, event, instrumentation);
     }
-
   }
 
   /**
@@ -300,7 +308,9 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   }
 
   private void dispatchSelectionChanged(ISelection selection) {
-    if (selection instanceof DartTextSelection) {
+    if (selection instanceof DartSelection) {
+      selectionChanged((DartSelection) selection);
+    } else if (selection instanceof DartTextSelection) {
       selectionChanged((DartTextSelection) selection);
     } else if (selection instanceof IStructuredSelection) {
       selectionChanged((IStructuredSelection) selection);
