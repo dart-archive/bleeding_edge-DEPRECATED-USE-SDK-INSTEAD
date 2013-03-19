@@ -28,6 +28,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
 import static org.eclipse.core.resources.IResource.PROJECT;
 
@@ -51,8 +52,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       return AnalysisEngine.getInstance().createAnalysisContext();
     }
 
-    public File[] getPackageRoots() {
-      return CmdLineOptions.getOptions().getPackageRoots();
+    public File[] getPackageRoots(IContainer container) {
+      return ProjectImpl.getPackageRoots(
+          DartCore.getPlugin(),
+          CmdLineOptions.getOptions(),
+          container);
     }
   }
 
@@ -100,6 +104,27 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * Lock object for use when accessing {@link #dartResolver}
    */
   private static Object lock = new Object();
+
+  /**
+   * Answer the package roots for the specified project with the given options. May return an empty
+   * array if no package roots are specified either at the project level or in the command line
+   * options.
+   * 
+   * @param core the instance of DartCore used to access project preferences
+   * @param options the command line options (not {@code null})
+   * @param container the container for which package roots are to be returned
+   * @return the package roots (not {@code null}, contains no {@code null}s)
+   */
+  public static File[] getPackageRoots(DartCore core, CmdLineOptions options, IContainer container) {
+    if (container instanceof IProject) {
+      IEclipsePreferences prefs = core.getProjectPreferences((IProject) container);
+      String setting = prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "");
+      if (setting != null && setting.length() > 0) {
+        return new File[] {new File(setting)};
+      }
+    }
+    return options.getPackageRoots();
+  }
 
   /**
    * Answer the dart URI resolver for the SDK
@@ -419,7 +444,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     FileUriResolver fileResolver = new FileUriResolver();
 
-    File[] packageRoots = factory.getPackageRoots();
+    File[] packageRoots = factory.getPackageRoots(container);
     File[] packagesDirs = null;
     if (hasPubspec || packageRoots.length == 0) {
       IPath location = container.getLocation();

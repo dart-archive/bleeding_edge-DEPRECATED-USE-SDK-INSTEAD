@@ -22,6 +22,8 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.AbstractDartCoreTest;
+import com.google.dart.tools.core.CmdLineOptions;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
@@ -40,8 +42,10 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -76,6 +80,15 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     IPath actual = new Path(source.getFullName());
 
     assertEquals(expected.setDevice(null), actual.setDevice(null));
+  }
+
+  public void test_AnalysisContextFactory() throws Exception {
+    AnalysisContextFactory contextFactory = new AnalysisContextFactory();
+    AnalysisContext context = contextFactory.createContext();
+    assertNotNull(context);
+    File[] roots = contextFactory.getPackageRoots(projectContainer);
+    assertNotNull(roots);
+    assertEquals(0, roots.length);
   }
 
   public void test_discardContextsIn_project() {
@@ -169,6 +182,38 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     libraries = project.getLibraries(container);
     assertTrue(libraries.length == 1);
     assertTrue(libraries[0].getName().equals("libraryA"));
+  }
+
+  public void test_getPackageRoots() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
+    DartCore core = DartCore.getPlugin();
+
+    File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
+    assertNotNull(roots);
+    assertEquals(0, roots.length);
+  }
+
+  public void test_getPackageRoots_global() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {"--package-root", "foo"});
+    DartCore core = DartCore.getPlugin();
+
+    File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
+    assertNotNull(roots);
+    assertEquals(1, roots.length);
+    assertEquals("foo", roots[0].getName());
+  }
+
+  public void test_getPackageRoots_project() throws Exception {
+    CmdLineOptions options = CmdLineOptions.parseCmdLine(new String[] {});
+    final IEclipsePreferences prefs = mock(IEclipsePreferences.class);
+    when(prefs.get(DartCore.PROJECT_PREF_PACKAGE_ROOT, "")).thenReturn("bar");
+    final DartCore core = mock(DartCore.class);
+    when(core.getProjectPreferences(projectContainer)).thenReturn(prefs);
+
+    File[] roots = ProjectImpl.getPackageRoots(core, options, projectContainer);
+    assertNotNull(roots);
+    assertEquals(1, roots.length);
+    assertEquals("bar", roots[0].getName());
   }
 
   public void test_getResource() {
@@ -427,7 +472,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
       }
 
       @Override
-      public File[] getPackageRoots() {
+      public File[] getPackageRoots(IContainer container) {
         return packageRoots;
       }
     });
