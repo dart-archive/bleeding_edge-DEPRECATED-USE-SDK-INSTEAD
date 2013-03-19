@@ -564,7 +564,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map
    * literal is not a compile-time constant.
    */
-  NON_CONSTANT_MAP_KEY("The keys in a 'const' map must be constant"),
+  NON_CONSTANT_MAP_KEY("The keys in a map must be constant"),
 
   /**
    * 12.7 Maps: It is a compile time error if either a key or a value of an entry in a constant map

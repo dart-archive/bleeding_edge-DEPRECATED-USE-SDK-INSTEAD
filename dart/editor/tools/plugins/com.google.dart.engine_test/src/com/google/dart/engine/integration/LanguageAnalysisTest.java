@@ -118,13 +118,26 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       "/checked_null_test.dart", // invocation of undefined function
       "/closure_in_initializer2_test.dart", // invocation of undefined function
       "/compile_time_constant_k_test.dart", // duplicated keys in literal map
+      "/compile_time_constant_o_test.dart", // duplicated keys in literal map
       "/const_objects_are_immutable_test.dart", // undefined setter
       "/constructor_test.dart", // references undefined method
       "/factory_implementation_test.dart", // misuse of factory method
       "/first_class_types_literals_test.dart", // type literals don't implement +
       "/function_malformed_result_type_test.dart", // wrong number of type arguments
-      "/generic_instanceof.dart", // missing part-of directive
+      "/generic_instanceof_test.dart", // missing part-of directive
       "/implicit_scope_test.dart", //test implies that some statements create their own scope
+      "/lazy_static6_test.dart", // missing a part-of directive
+      "/many_generic_instanceof_test.dart", // missing a part-of directive
+      "/many_overridden_no_such_method_test.dart", // missing a part-of directive
+      "/map_literal2_test.dart", // keys in a map must be constant
+      "/multi_pass2_test.dart", // missing a part-of directive
+      "/multi_pass_test.dart", // missing a part-of directive
+      "/private2_test.dart", // missing a part-of directive
+      "/ternary_test.dart", // no unary plus operator
+      "/top_level_entry_test.dart", // missing a part-of directive
+      "/type_error_test.dart", // invalid assumption about the type of an assignment statement
+      "/type_vm_test.dart", // StaticTypeWarningCode.NON_BOOL_CONDITION is a warning, not an error
+      "/unary_test.dart", // no unary plus operator
   };
 
   /**

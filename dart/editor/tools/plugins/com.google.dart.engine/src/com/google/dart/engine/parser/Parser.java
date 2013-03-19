@@ -4400,7 +4400,7 @@ public class Parser {
    * 
    * onPart ::=
    *     catchPart block
-   *   | 'on' qualified catchPart? block
+   *   | 'on' type catchPart? block
    * 
    * catchPart ::=
    *     'catch' '(' identifier (',' identifier)? ')'
@@ -4421,7 +4421,7 @@ public class Parser {
       TypeName exceptionType = null;
       if (matches(ON)) {
         onKeyword = getAndAdvance();
-        exceptionType = new TypeName(parsePrefixedIdentifier(), null);
+        exceptionType = parseTypeName();
       }
       Token catchKeyword = null;
       Token leftParenthesis = null;
