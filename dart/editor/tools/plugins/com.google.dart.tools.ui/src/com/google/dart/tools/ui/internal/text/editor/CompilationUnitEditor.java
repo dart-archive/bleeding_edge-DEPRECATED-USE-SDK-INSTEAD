@@ -1158,7 +1158,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
           @Override
           public void run() throws Exception {
             CompilationUnitElement element = getInputElement();
-            if (element != null) {
+            if (element != null && fJavaEditorErrorTickUpdater != null) {
               fJavaEditorErrorTickUpdater.updateEditorImage(element);
             }
           }

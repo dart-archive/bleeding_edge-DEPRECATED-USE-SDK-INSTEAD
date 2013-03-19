@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;

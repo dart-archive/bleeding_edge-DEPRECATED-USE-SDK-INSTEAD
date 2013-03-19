@@ -37,13 +37,13 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.core.utilities.ast.NameOccurrencesFinder;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.search.internal.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
@@ -2653,7 +2653,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     ActionGroup dsg, ddg;
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
         oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
-        dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
+        dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
     fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
 
     // Registers the folding actions with the editor

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
@@ -35,9 +35,9 @@ import org.eclipse.ui.part.Page;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class DartSearchActionGroup extends ActionGroup {
+public class DartSearchActionGroup_OLD extends ActionGroup {
 
-  private final ReferencesSearchGroup referencesGroup;
+  private final ReferencesSearchGroup_OLD referencesGroup;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -45,9 +45,9 @@ public class DartSearchActionGroup extends ActionGroup {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public DartSearchActionGroup(DartEditor editor) {
+  public DartSearchActionGroup_OLD(DartEditor editor) {
     Assert.isNotNull(editor);
-    referencesGroup = new ReferencesSearchGroup(editor);
+    referencesGroup = new ReferencesSearchGroup_OLD(editor);
   }
 
   /**
@@ -57,7 +57,7 @@ public class DartSearchActionGroup extends ActionGroup {
    * 
    * @param part the view part that owns this action group
    */
-  public DartSearchActionGroup(IViewPart part) {
+  public DartSearchActionGroup_OLD(IViewPart part) {
     this(part.getViewSite());
   }
 
@@ -69,8 +69,8 @@ public class DartSearchActionGroup extends ActionGroup {
    * @param specialSelectionProvider the selection provider used instead of the sites selection
    *          provider.
    */
-  public DartSearchActionGroup(IWorkbenchSite site, ISelectionProvider specialSelectionProvider) {
-    referencesGroup = new ReferencesSearchGroup(site, specialSelectionProvider);
+  public DartSearchActionGroup_OLD(IWorkbenchSite site, ISelectionProvider specialSelectionProvider) {
+    referencesGroup = new ReferencesSearchGroup_OLD(site, specialSelectionProvider);
   }
 
   /**
@@ -80,12 +80,12 @@ public class DartSearchActionGroup extends ActionGroup {
    * 
    * @param page the page that owns this action group
    */
-  public DartSearchActionGroup(Page page) {
+  public DartSearchActionGroup_OLD(Page page) {
     this(page.getSite());
   }
 
-  private DartSearchActionGroup(IWorkbenchSite site) {
-    referencesGroup = new ReferencesSearchGroup(site);
+  private DartSearchActionGroup_OLD(IWorkbenchSite site) {
+    referencesGroup = new ReferencesSearchGroup_OLD(site);
   }
 
   @Override

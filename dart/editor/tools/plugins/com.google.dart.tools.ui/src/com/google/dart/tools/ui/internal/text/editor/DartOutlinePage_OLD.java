@@ -26,6 +26,7 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.model.SourceReference;
 import com.google.dart.tools.core.model.Type;
 import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.search.internal.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartElementComparator;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -33,7 +34,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
-import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
@@ -904,7 +904,7 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
 
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
         new OpenViewActionGroup(this), new RefactorActionGroup(this),
-        new DartSearchActionGroup(this)});
+        new DartSearchActionGroup_OLD(this)});
 
     // register global actions
     IActionBars actionBars = site.getActionBars();

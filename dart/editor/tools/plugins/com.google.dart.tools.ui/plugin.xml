@@ -418,6 +418,15 @@
             allowMultiple="false"
             id="com.google.dart.tools.ui.TypeHierarchy">
       </view>
+
+      <view
+            name="%searchViewName"
+            icon="$nl$/icons/full/eview16/search_results.gif"
+            category="com.google.dart.tools.ui.dart"
+            class="com.google.dart.tools.search.internal.ui.SearchView"
+            allowMultiple="false"
+            id="com.google.dart.tools.SearchView">
+      </view>
       
       <!-- view
             category="com.google.dart.tools.ui.dart"
@@ -3437,6 +3446,9 @@
             contentTypeId="com.google.dart.tools.core.dartSourceFile"
             contentMergeViewerId="com.google.dart.tools.ui.internal.compare.DartContentViewerCreator">
         </contentTypeBinding>
+    </extension>
+    <extension
+          point="org.eclipse.ui.views">
     </extension>
 
 </plugin>

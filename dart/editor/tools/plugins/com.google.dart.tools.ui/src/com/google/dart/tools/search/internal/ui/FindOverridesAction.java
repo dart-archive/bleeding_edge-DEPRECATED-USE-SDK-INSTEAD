@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -29,10 +29,10 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Finds declarations of the selected element in the workspace. The action is applicable to
- * selections representing a Dart element.
+ * Finds declarations of the selected method in the hierarchy. The action is applicable to
+ * selections representing a Dart method only.
  */
-public class FindDeclarationsAction extends FindAction {
+public class FindOverridesAction extends FindAction_OLD {
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -40,18 +40,18 @@ public class FindDeclarationsAction extends FindAction {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public FindDeclarationsAction(DartEditor editor) {
+  public FindOverridesAction(DartEditor editor) {
     super(editor);
   }
 
   /**
-   * Creates a new <code>FindDeclarationsAction</code>. The action requires that the selection
-   * provided by the site's selection provider is of type
+   * Creates a new <code>FindOverridesAction</code>. The action requires that the selection provided
+   * by the site's selection provider is of type
    * <code>org.eclipse.jface.viewers.IStructuredSelection</code>.
    * 
    * @param site the site providing context information for this action
    */
-  public FindDeclarationsAction(IWorkbenchSite site) {
+  public FindOverridesAction(IWorkbenchSite site) {
     super(site);
   }
 
@@ -63,6 +63,7 @@ public class FindDeclarationsAction extends FindAction {
 //        false,
 //        selection);
 //    setText(text.toString());
+    setEnabled(true);
   }
 
   @Override
@@ -74,7 +75,7 @@ public class FindDeclarationsAction extends FindAction {
 
   @Override
   int getLimitTo() {
-    return QuerySpecification.LIMIT_DECLARATIONS;
+    return QuerySpecification.LIMIT_OVERRIDES;
   }
 
   @Override
@@ -84,11 +85,11 @@ public class FindDeclarationsAction extends FindAction {
 
   @Override
   void init() {
-    setText(SearchMessages.Search_FindDeclarationsAction_label);
-    setToolTipText(SearchMessages.Search_FindDeclarationsAction_tooltip);
+    setText(SearchMessages.Search_FindOverridesAction_label);
+    setToolTipText(SearchMessages.Search_FindOverridesAction_tooltip);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(
         this,
-        DartHelpContextIds.FIND_DECLARATIONS_IN_WORKSPACE_ACTION);
+        DartHelpContextIds.FIND_DECLARATIONS_IN_HIERARCHY_ACTION);
   }
 
 }

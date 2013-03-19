@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
@@ -41,6 +41,8 @@ import com.google.dart.tools.core.utilities.ast.DartElementLocator;
 import com.google.dart.tools.search.ui.NewSearchUI;
 import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
@@ -77,7 +79,7 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public abstract class FindAction extends InstrumentedSelectionDispatchAction {
+public abstract class FindAction_OLD extends InstrumentedSelectionDispatchAction {
 
   private static final class DummyElement implements Element {
 
@@ -166,13 +168,13 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
   private DartEditor editor;
   private Class<?>[] validTypes;
 
-  FindAction(DartEditor editor) {
+  FindAction_OLD(DartEditor editor) {
     this(editor.getEditorSite());
     this.editor = editor;
     setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
-  FindAction(IWorkbenchSite site) {
+  FindAction_OLD(IWorkbenchSite site) {
     super(site);
     validTypes = getValidTypes();
     init();

@@ -18,6 +18,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.visitor.ElementLocator;
+import com.google.dart.engine.element.Element;
 
 import java.util.List;
 
@@ -56,6 +58,13 @@ public class LightNodeElement {
 
   public List<LightNodeElement> getChildren() {
     return children;
+  }
+
+  /**
+   * @return the resolved {@link Element} for wrapped {@link ASTNode}. May be <code>null</code>.
+   */
+  public Element getElement() {
+    return ElementLocator.locate(node);
   }
 
   public String getName() {

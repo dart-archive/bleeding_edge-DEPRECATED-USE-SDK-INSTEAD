@@ -16,13 +16,13 @@ package com.google.dart.tools.ui.callhierarchy;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.core.search.SearchScope;
+import com.google.dart.tools.search.internal.ui.DartSearchActionGroup_OLD;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.actions.CCPActionGroup;
-import com.google.dart.tools.ui.actions.DartSearchActionGroup;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
 import com.google.dart.tools.ui.internal.callhierarchy.CallHierarchy;
@@ -1199,7 +1199,7 @@ public class CallHierarchyViewPart extends ViewPart implements ICallHierarchyVie
 //        new SelectFieldModeAction(this, IJavaSearchConstants.WRITE_ACCESSES)};
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
         new OpenEditorActionGroup(this), new CCPActionGroup(this), new GenerateActionGroup(this),
-        new DartSearchActionGroup(this), searchScopeActions, filtersActionGroup});
+        new DartSearchActionGroup_OLD(this), searchScopeActions, filtersActionGroup});
   }
 
   private void methodSelectionChanged(ISelection selection) {

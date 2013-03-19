@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.tools.core.model.CompilationUnitElement;
 import com.google.dart.tools.core.model.DartElement;
@@ -37,7 +37,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class FindReferencesAction extends FindAction {
+public class FindReferencesAction_OLD extends FindAction_OLD {
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -45,7 +45,7 @@ public class FindReferencesAction extends FindAction {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public FindReferencesAction(DartEditor editor) {
+  public FindReferencesAction_OLD(DartEditor editor) {
     super(editor);
   }
 
@@ -56,7 +56,7 @@ public class FindReferencesAction extends FindAction {
    * 
    * @param site the site providing context information for this action
    */
-  public FindReferencesAction(IWorkbenchSite site) {
+  public FindReferencesAction_OLD(IWorkbenchSite site) {
     super(site);
   }
 

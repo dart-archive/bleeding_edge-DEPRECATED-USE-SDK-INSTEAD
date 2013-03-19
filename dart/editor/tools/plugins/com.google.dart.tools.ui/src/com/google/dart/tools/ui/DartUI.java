@@ -709,9 +709,6 @@ public final class DartUI {
    */
   public static IEditorPart openInEditor(Element element, boolean activate, boolean reveal)
       throws DartModelException, PartInitException {
-    if (!(element instanceof SourceReference)) {
-      return null;
-    }
     IEditorPart part = EditorUtility.openInEditor(element, activate);
     if (reveal && part != null) {
       EditorUtility.revealInEditor(part, element);

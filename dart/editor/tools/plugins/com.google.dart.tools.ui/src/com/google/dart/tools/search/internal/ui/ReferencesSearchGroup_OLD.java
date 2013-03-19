@@ -11,8 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.actions;
+package com.google.dart.tools.search.internal.ui;
 
+import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.actions.JdtActionConstants;
 import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
@@ -38,14 +41,14 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
  * 
  * @noextend This class is not intended to be subclassed by clients.
  */
-public class ReferencesSearchGroup extends ActionGroup {
+public class ReferencesSearchGroup_OLD extends ActionGroup {
 
   private IActionBars actionBars;
   private IWorkbenchSite site;
 
-  private FindReferencesAction findReferencesAction;
-  private FindDeclarationsAction findDeclarationsAction;
-  private FindAction findOverridesAction;
+  private FindReferencesAction_OLD findReferencesAction;
+  private FindDeclarationsAction_OLD findDeclarationsAction;
+  private FindAction_OLD findOverridesAction;
 
   /**
    * Note: This constructor is for internal use only. Clients should not call this constructor.
@@ -53,16 +56,16 @@ public class ReferencesSearchGroup extends ActionGroup {
    * @param editor the Dart editor
    * @noreference This constructor is not intended to be referenced by clients.
    */
-  public ReferencesSearchGroup(DartEditor editor) {
+  public ReferencesSearchGroup_OLD(DartEditor editor) {
     Assert.isNotNull(editor);
     site = editor.getSite();
-    findReferencesAction = new FindReferencesAction(editor);
+    findReferencesAction = new FindReferencesAction_OLD(editor);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     editor.setAction(
         DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE,
         findReferencesAction); //$NON-NLS-1$
-    findDeclarationsAction = new FindDeclarationsAction(editor);
+    findDeclarationsAction = new FindDeclarationsAction_OLD(editor);
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     editor.setAction(
@@ -83,7 +86,7 @@ public class ReferencesSearchGroup extends ActionGroup {
    * 
    * @param site the view part that owns this action group
    */
-  public ReferencesSearchGroup(IWorkbenchSite site) {
+  public ReferencesSearchGroup_OLD(IWorkbenchSite site) {
     this(site, null);
   }
 
@@ -95,13 +98,13 @@ public class ReferencesSearchGroup extends ActionGroup {
    * @param specialSelectionProvider the selection provider used instead of the sites selection
    *          provider.
    */
-  public ReferencesSearchGroup(IWorkbenchSite site, ISelectionProvider specialSelectionProvider) {
+  public ReferencesSearchGroup_OLD(IWorkbenchSite site, ISelectionProvider specialSelectionProvider) {
     this.site = site;
 
-    findReferencesAction = new FindReferencesAction(site);
+    findReferencesAction = new FindReferencesAction_OLD(site);
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
-    findDeclarationsAction = new FindDeclarationsAction(site);
+    findDeclarationsAction = new FindDeclarationsAction_OLD(site);
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
 

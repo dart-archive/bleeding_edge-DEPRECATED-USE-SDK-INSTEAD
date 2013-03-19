@@ -544,6 +544,16 @@ public class EditorUtility {
   }
 
   /**
+   * Selects and reveals the given source range in the given editor part.
+   */
+  public static void revealInEditor(IEditorPart part,
+      com.google.dart.engine.utilities.source.SourceRange range) {
+    if (part != null && range != null) {
+      revealInEditor(part, range.getOffset(), range.getLength());
+    }
+  }
+
+  /**
    * Selects a Dart Element in an editor
    */
   public static void revealInEditor(IEditorPart part, DartElement element) {
