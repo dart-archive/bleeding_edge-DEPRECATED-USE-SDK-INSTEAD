@@ -23,6 +23,7 @@
 /net_nss
 /nss
 /snakeyaml
+/stripjar
 /sqlite
 /v8
 /WebCore
