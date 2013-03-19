@@ -167,8 +167,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public static final String PUB_AUTO_RUN_PREFERENCE = "pubAutoRun";
 
-  public static final String PROJECT_PREF_USE_PACKAGE_ROOT = "projectUsePackageRoot";
-
   public static final String PROJECT_PREF_PACKAGE_ROOT = "projectPackageRoot";
 
   /**
@@ -1448,10 +1446,6 @@ public class DartCore extends Plugin implements DartSdkListener {
    */
   public File getPackageRoot(IProject project) {
     if (project != null) {
-      if (!getUsePackageRoot(project)) {
-        return null;
-      }
-
       String setting = getProjectPreferences(project).get(PROJECT_PREF_PACKAGE_ROOT, "");
 
       if (setting != null && setting.length() > 0) {
@@ -1459,10 +1453,10 @@ public class DartCore extends Plugin implements DartSdkListener {
       }
     }
 
-    String setting = CmdLineOptions.getOptions().getPackageRootString();;
+    File[] roots = CmdLineOptions.getOptions().getPackageRoots();
 
-    if (setting != null && setting.length() > 0) {
-      return new File(setting);
+    if (roots.length > 0) {
+      return roots[0];
     }
 
     return null;
@@ -1480,10 +1474,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     ProjectScope projectScope = new ProjectScope(project);
 
     return projectScope.getNode(PLUGIN_ID);
-  }
-
-  public boolean getUsePackageRoot(IProject project) {
-    return getProjectPreferences(project).getBoolean(PROJECT_PREF_USE_PACKAGE_ROOT, false);
   }
 
   public boolean isAutoRunPubEnabled() {
@@ -1521,16 +1511,6 @@ public class DartCore extends Plugin implements DartSdkListener {
     try {
       IEclipsePreferences prefs = getProjectPreferences(project);
       prefs.put(PROJECT_PREF_PACKAGE_ROOT, packageRootPath);
-      prefs.flush();
-    } catch (BackingStoreException ex) {
-      throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));
-    }
-  }
-
-  public void setUsePackageRoot(IProject project, boolean value) throws CoreException {
-    try {
-      IEclipsePreferences prefs = getProjectPreferences(project);
-      prefs.putBoolean(PROJECT_PREF_USE_PACKAGE_ROOT, value);
       prefs.flush();
     } catch (BackingStoreException ex) {
       throw new CoreException(new Status(IStatus.ERROR, PLUGIN_ID, ex.toString(), ex));

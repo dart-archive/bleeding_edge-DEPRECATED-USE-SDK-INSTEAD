@@ -64,8 +64,6 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
 
   private Text dart2jsFlagsText;
 
-  private Button usePackageRootButton;
-
   private Text packageRootText;
   private Button packageRootBrowseButton;
 
@@ -86,9 +84,13 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
         DartCore.getPlugin().setDart2jsFlags(project, dart2jsFlagsText.getText().trim());
 
         // package root
-        DartCore.getPlugin().setUsePackageRoot(project, usePackageRootButton.getSelection());
-        DartCore.getPlugin().setPackageRoot(project, packageRootText.getText().trim());
-        if (usePackageRootButton.getSelection()) {
+        String oldPackageRoot = DartCore.getPlugin().getProjectPreferences(project).get(
+            DartCore.PROJECT_PREF_PACKAGE_ROOT,
+            "");
+        // TODO(keertip): move this check into setPacakgeRoot and inform whether it has changed.
+        String packageRoot = packageRootText.getText().trim();
+        if (!oldPackageRoot.equals(packageRoot)) {
+          DartCore.getPlugin().setPackageRoot(project, packageRoot);
           DartModelManager.getInstance().resetModel();
           Job job = new CleanLibrariesJob();
           job.schedule();
@@ -135,16 +137,6 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     GridLayoutFactory.swtDefaults().numColumns(2).applyTo(group);
     ((GridLayout) group.getLayout()).marginBottom = 5;
 
-    usePackageRootButton = new Button(group, SWT.CHECK);
-    usePackageRootButton.setText("Use package root");
-    GridDataFactory.swtDefaults().span(2, 1).applyTo(usePackageRootButton);
-    usePackageRootButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        updateEnablement();
-      }
-    });
-
     packageRootText = new Text(group, SWT.BORDER | SWT.SINGLE);
     GridDataFactory.swtDefaults().indent(indentAmount, 0).align(SWT.FILL, SWT.CENTER).hint(100, -1).grab(
         true,
@@ -164,12 +156,10 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
     });
 
     label = new Label(group, SWT.NONE);
-    label.setText("The package root setting (--package-root) will override the use of local packages directories.");
+    label.setText("The package root setting will override the use of local packages directories.");
     GridDataFactory.swtDefaults().indent(indentAmount, 0).span(2, 1).applyTo(label);
 
     initializeFromSettings();
-
-    updateEnablement();
 
     return composite;
   }
@@ -177,12 +167,7 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
   @Override
   protected void performDefaults() {
     dart2jsFlagsText.setText("");
-
-    usePackageRootButton.setSelection(false);
     packageRootText.setText("");
-
-    updateEnablement();
-
     super.performDefaults();
   }
 
@@ -212,22 +197,12 @@ public class DartSettingsPropertyPage extends PropertyPage implements IWorkbench
         dart2jsFlagsText.setText(args);
       }
 
-      // pub
-      usePackageRootButton.setSelection(DartCore.getPlugin().getUsePackageRoot(project));
-
       String pref = DartCore.getPlugin().getProjectPreferences(project).get(
           DartCore.PROJECT_PREF_PACKAGE_ROOT,
           "");
 
       packageRootText.setText(pref);
     }
-  }
-
-  private void updateEnablement() {
-    boolean enabled = usePackageRootButton.getSelection();
-
-    packageRootText.setEnabled(enabled);
-    packageRootBrowseButton.setEnabled(enabled);
   }
 
 }
