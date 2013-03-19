@@ -19,72 +19,19 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
- * Instances of the class {@code ChangeNotice} represent a change to the analysis results associated
- * with a given source.
+ * The interface {@code ChangeNotice} defines the behavior of objects that represent a change to the
+ * analysis results associated with a given source.
+ * 
+ * @coverage dart.engine
  */
-public class ChangeNotice {
-  /**
-   * The source for which the result is being reported.
-   */
-  private Source source;
-
-  /**
-   * The fully resolved AST that changed as a result of the analysis, or {@code null} if the AST was
-   * not changed.
-   */
-  private CompilationUnit compilationUnit;
-
-  /**
-   * The errors that changed as a result of the analysis, or {@code null} if errors were not
-   * changed.
-   */
-  private AnalysisError[] errors;
-
-  /**
-   * The line information associated with the source, or {@code null} if errors were not changed.
-   */
-  private LineInfo lineInfo;
-
-  /**
-   * An empty array of change notices.
-   */
-  public static final ChangeNotice[] EMPTY_ARRAY = new ChangeNotice[0];
-
-  /**
-   * Initialize a newly created result representing the fact that the errors associated with a
-   * source have changed.
-   * 
-   * @param source the source for which the result is being reported
-   * @param errors the errors that changed as a result of the analysis
-   * @param the line information associated with the source
-   */
-  public ChangeNotice(Source source, AnalysisError[] errors, LineInfo lineInfo) {
-    this.source = source;
-    this.errors = errors;
-    this.lineInfo = lineInfo;
-  }
-
-  /**
-   * Initialize a newly created result representing the fact that the resolution of a source has
-   * changed.
-   * 
-   * @param source the source for which the result is being reported
-   * @param compilationUnit the fully resolved AST produced as a result of the analysis
-   */
-  public ChangeNotice(Source source, CompilationUnit compilationUnit) {
-    this.source = source;
-    this.compilationUnit = compilationUnit;
-  }
-
+public interface ChangeNotice {
   /**
    * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
    * AST was not changed.
    * 
    * @return the fully resolved AST that changed as a result of the analysis
    */
-  public CompilationUnit getCompilationUnit() {
-    return compilationUnit;
-  }
+  public CompilationUnit getCompilationUnit();
 
   /**
    * Return the errors that changed as a result of the analysis, or {@code null} if errors were not
@@ -92,9 +39,7 @@ public class ChangeNotice {
    * 
    * @return the errors that changed as a result of the analysis
    */
-  public AnalysisError[] getErrors() {
-    return errors;
-  }
+  public AnalysisError[] getErrors();
 
   /**
    * Return the line information associated with the source, or {@code null} if errors were not
@@ -102,16 +47,12 @@ public class ChangeNotice {
    * 
    * @return the line information associated with the source
    */
-  public LineInfo getLineInfo() {
-    return lineInfo;
-  }
+  public LineInfo getLineInfo();
 
   /**
    * Return the source for which the result is being reported.
    * 
    * @return the source for which the result is being reported
    */
-  public Source getSource() {
-    return source;
-  }
+  public Source getSource();
 }

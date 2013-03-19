@@ -20,7 +20,6 @@ import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
@@ -42,31 +41,13 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(location, element.getLocation());
   }
 
-  public void fail_getErrors_none() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-    sourceFactory.setContents(source, "library lib;");
-    AnalysisError[] errors = context.getErrors(source);
-    assertNotNull(errors);
-    assertLength(0, errors);
-  }
-
-  public void fail_getErrors_some() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-    sourceFactory.setContents(source, "library lib;");
-    AnalysisError[] errors = context.getErrors(source);
-    assertNotNull(errors);
-    assertTrue(errors.length > 0);
-  }
-
   public void fail_getKnownKindOf_unknown() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    assertSame(SourceKind.UNKNOWN, context.getKnownKindOf(new TestSource()));
+    Source source = new TestSource();
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
+    assertSame(SourceKind.UNKNOWN, context.getKnownKindOf(source));
   }
 
   public void fail_parse_nonExistentSource() throws Exception {
@@ -84,8 +65,34 @@ public class AnalysisContextImplTest extends EngineTestCase {
     // TODO(brianwilkerson) Test that there are no tasks waiting to be performed.
   }
 
+  public void test_computeErrors_some() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source, "library 'lib';");
+    context.applyChanges(changeSet);
+    AnalysisError[] errors = context.computeErrors(source);
+    assertNotNull(errors);
+    assertTrue(errors.length > 0);
+  }
+
   public void test_creation() {
     assertNotNull(new AnalysisContextImpl());
+  }
+
+  public void test_getErrors_none() throws Exception {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    SourceFactory sourceFactory = new SourceFactory();
+    context.setSourceFactory(sourceFactory);
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source, "library lib;");
+    context.applyChanges(changeSet);
+    AnalysisError[] errors = context.getErrors(source);
+    assertNotNull(errors);
+    assertLength(0, errors);
   }
 
   public void test_getHtmlSources_empty() {
@@ -117,6 +124,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
     Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library lib;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
     CompilationUnit compilationUnit = context.parse(source);
     assertLength(0, compilationUnit.getParsingErrors());
     // TODO (danrubel): assert no semantic errors
@@ -129,22 +139,14 @@ public class AnalysisContextImplTest extends EngineTestCase {
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
     Source source = new TestSource(sourceFactory, createFile("/lib.dart"), "library {");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
     CompilationUnit compilationUnit = context.parse(source);
     assertTrue("Expected syntax errors", compilationUnit.getParsingErrors().length > 0);
     // TODO (danrubel): assert no semantic errors
 //  assertEquals(null, compilationUnit.getSemanticErrors());
 //  assertEquals(null, compilationUnit.getErrors());
-  }
-
-  public void test_parse_with_listener() throws Exception {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory();
-    context.setSourceFactory(sourceFactory);
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-    sourceFactory.setContents(source, "library lib;");
-    GatheringErrorListener listener = new GatheringErrorListener();
-    CompilationUnit compilationUnit = context.parse(source, listener);
-    assertNotNull(compilationUnit);
   }
 
   public void test_parseHtml_no_errors() throws Exception {
@@ -153,6 +155,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.setSourceFactory(sourceFactory);
     String content = createSource("<!DOCTYPE html/>", "<html><h1>Foo</h1><p>bar</p></html>");
     Source source = new TestSource(sourceFactory, createFile("/lib.html"), content);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
     HtmlParseResult result = context.parseHtml(source);
     assertNotNull(result);
     HtmlUnit unit = result.getHtmlUnit();
@@ -162,12 +167,14 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(result.getToken());
   }
 
-  public void test_resolve() throws Exception {
+  public void test_resolveCompilationUnit() throws Exception {
     AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
     SourceFactory sourceFactory = context.getSourceFactory();
     Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart"));
-    sourceFactory.setContents(source, "library lib;");
-    CompilationUnit compilationUnit = context.resolve(source, null);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source, "library lib;");
+    context.applyChanges(changeSet);
+    CompilationUnit compilationUnit = context.resolveCompilationUnit(source, source);
     assertNotNull(compilationUnit);
     assertLength(0, compilationUnit.getParsingErrors());
     assertLength(0, compilationUnit.getResolutionErrors());

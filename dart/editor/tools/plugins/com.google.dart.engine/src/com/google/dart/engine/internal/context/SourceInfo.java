@@ -13,103 +13,102 @@
  */
 package com.google.dart.engine.internal.context;
 
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
-
-import java.util.ArrayList;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
- * Instances of the class {@code SourceInfo} maintain the information known by an analysis context
+ * Instances of the class {@code SourceInfo} maintain the information cached by an analysis context
  * about an individual source.
  * 
  * @coverage dart.engine
  */
-public class SourceInfo {
+public abstract class SourceInfo {
   /**
-   * The source about which information is being maintained.
+   * The state of the cached line information.
    */
-//  private Source source;
+  private CacheState lineInfoState = CacheState.INVALID;
 
   /**
-   * The kind of the source.
+   * The line information computed for the source, or {@code null} if the line information is not
+   * currently cached.
    */
-  private SourceKind kind;
+  private LineInfo lineInfo;
 
   /**
-   * The sources for the defining compilation units for the libraries containing the source, or
-   * {@code null} if the libraries containing the source are not yet known.
+   * Initialize a newly created information holder to be empty.
    */
-  private ArrayList<Source> librarySources = null;
-
-  public SourceInfo(Source source, SourceKind kind) {
-//    this.source = source;
-    this.kind = kind;
+  public SourceInfo() {
+    super();
   }
 
   /**
-   * Initialize a newly created information holder to hold the same information as the given holder.
+   * Remove the line information from the cache.
+   */
+  public void clearLineInfo() {
+    lineInfo = null;
+  }
+
+  /**
+   * Return a copy of this information holder.
    * 
-   * @param info the information holder used to initialize this holder
+   * @return a copy of this information holder
    */
-  public SourceInfo(SourceInfo info) {
-//  source = info.source;
-    kind = info.kind;
-    librarySources = new ArrayList<Source>(info.librarySources);
-  }
+  public abstract SourceInfo copy();
 
   /**
-   * Add the given source to the list of sources for the defining compilation units for the
-   * libraries containing this source.
-   * 
-   * @param source the source to be added to the list
-   */
-  public void addLibrarySource(Source source) {
-    if (librarySources == null) {
-      librarySources = new ArrayList<Source>();
-    }
-    librarySources.add(source);
-  }
-
-  /**
-   * Return the kind of the source.
+   * Return the kind of the source, or {@code null} if the kind is not currently cached.
    * 
    * @return the kind of the source
    */
-  public SourceKind getKind() {
-    return kind;
+  public abstract SourceKind getKind();
+
+  /**
+   * Return the line information computed for the source, or {@code null} if the line information is
+   * not currently cached.
+   * 
+   * @return the line information computed for the source
+   */
+  public LineInfo getLineInfo() {
+    return lineInfo;
   }
 
   /**
-   * Return the sources for the defining compilation units for the libraries containing this source.
+   * Return {@code true} if the line information needs to be recomputed.
    * 
-   * @return the sources for the defining compilation units for the libraries containing this source
+   * @return {@code true} if the line information needs to be recomputed
    */
-  public Source[] getLibrarySources() {
-    if (librarySources == null) {
-      return Source.EMPTY_ARRAY;
-    }
-    return librarySources.toArray(new Source[librarySources.size()]);
+  public boolean hasInvalidLineInfo() {
+    return lineInfoState == CacheState.INVALID;
   }
 
   /**
-   * Remove the given source from the list of sources for the defining compilation units for the
-   * libraries containing this source.
-   * 
-   * @param source the source to be removed to the list
+   * Mark the line information as needing to be recomputed.
    */
-  public void removeLibrarySource(Source source) {
-    librarySources.remove(source);
-    if (librarySources.isEmpty()) {
-      librarySources = null;
-    }
+  public void invalidateLineInfo() {
+    lineInfoState = CacheState.INVALID;
+    lineInfo = null;
   }
 
   /**
-   * Set the kind of the source to the given kind.
+   * Set the line information for the source to the given line information.
+   * <p>
+   * <b>Note:</b> Do not use this method to clear or invalidate the element. Use either
+   * {@link #clearLineInfo()} or {@link #invalidateLineInfo()}.
    * 
-   * @param kind the kind of the source
+   * @param info the line information for the source
    */
-  public void setKind(SourceKind kind) {
-    this.kind = kind;
+  public void setLineInfo(LineInfo info) {
+    lineInfo = info;
+    lineInfoState = CacheState.VALID;
+  }
+
+  /**
+   * Copy the information from the given information holder.
+   * 
+   * @param info the information holder from which information will be copied
+   */
+  protected void copyFrom(SourceInfo info) {
+    lineInfoState = info.lineInfoState;
+    lineInfo = info.lineInfo;
   }
 }

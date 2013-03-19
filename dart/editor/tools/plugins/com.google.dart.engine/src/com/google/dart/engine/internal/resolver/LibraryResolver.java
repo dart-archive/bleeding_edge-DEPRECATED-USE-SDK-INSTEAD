@@ -71,7 +71,7 @@ public class LibraryResolver {
    * This error listener is used by the resolver to be able to call the listener and get back the
    * set of errors for each {@link Source}.
    * 
-   * @see #recordErrors()
+   * @see #recordResults()
    */
   private RecordingErrorListener recordingErrorListener;
 
@@ -219,8 +219,7 @@ public class LibraryResolver {
       //
       runAdditionalAnalyses();
     }
-    recordLibraryElements();
-    recordErrors();
+    recordResults();
     return targetLibrary.getLibraryElement();
   }
 
@@ -519,6 +518,9 @@ public class LibraryResolver {
    * @return the library object that was created
    */
   private Library createLibraryOrNull(Source librarySource) {
+    if (!librarySource.exists()) {
+      return null;
+    }
     Library library = new Library(analysisContext, errorListener, librarySource);
     try {
       library.getDefiningCompilationUnit();
@@ -546,38 +548,30 @@ public class LibraryResolver {
   }
 
   /**
-   * For each library, loop through the set of all {@link CompilationUnit}s recording the set of
-   * resolution errors on each unit.
+   * Record the results of resolution with the analysis context. This includes recording
+   * <ul>
+   * <li>the resolved AST associated with each compilation unit,</li>
+   * <li>the set of resolution errors produced for each compilation unit, and</li>
+   * <li>the element models produced for each library.</li>
+   * </ul>
    */
-  private void recordErrors() throws AnalysisException {
-    for (Library library : librariesInCycles) {
-      try {
-        CompilationUnit definingUnit = library.getDefiningCompilationUnit();
-        definingUnit.setResolutionErrors(recordingErrorListener.getErrors(library.getLibrarySource()));
-      } catch (AnalysisException e) {
-        throw new AnalysisException();
-      }
-      Set<Source> sources = library.getCompilationUnitSources();
-      for (Source source : sources) {
-        try {
-          CompilationUnit unit = library.getAST(source);
-          unit.setResolutionErrors(recordingErrorListener.getErrors(source));
-        } catch (Exception e) {
-          throw new AnalysisException();
-        }
-      }
-    }
-  }
-
-  /**
-   * As the final step in the process, record the resolved element models with the analysis context.
-   */
-  private void recordLibraryElements() {
+  private void recordResults() throws AnalysisException {
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
     for (Library library : librariesInCycles) {
+      recordResults(library.getLibrarySource(), library.getDefiningCompilationUnit());
+      for (Source source : library.getCompilationUnitSources()) {
+        recordResults(source, library.getAST(source));
+      }
       elementMap.put(library.getLibrarySource(), library.getLibraryElement());
     }
     analysisContext.recordLibraryElements(elementMap);
+  }
+
+  private void recordResults(Source source, CompilationUnit unit) {
+    AnalysisError[] errors = recordingErrorListener.getErrors(source);
+    unit.setResolutionErrors(errors);
+    analysisContext.recordResolvedCompilationUnit(source, unit);
+    analysisContext.recordResolutionErrors(source, errors, unit.getLineInfo());
   }
 
   /**

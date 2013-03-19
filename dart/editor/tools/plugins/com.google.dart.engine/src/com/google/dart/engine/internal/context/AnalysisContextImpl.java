@@ -27,10 +27,14 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
 import com.google.dart.engine.html.scanner.HtmlScanner;
+import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
+import com.google.dart.engine.internal.element.ElementImpl;
+import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
@@ -85,37 +89,22 @@ public class AnalysisContextImpl implements AnalysisContext {
   private SourceFactory sourceFactory;
 
   /**
-   * A table mapping sources known to the context to the information known about the source.
+   * A table mapping the sources known to the context to the information known about the source.
    */
   private final HashMap<Source, SourceInfo> sourceMap = new HashMap<Source, SourceInfo>();
-
-  /**
-   * A cache mapping sources to the compilation units that were produced for the contents of the
-   * source.
-   */
-  // TODO(brianwilkerson) Replace this with a real cache.
-  private HashMap<Source, CompilationUnit> parseCache = new HashMap<Source, CompilationUnit>();
 
   /**
    * A cache mapping sources to the html parse results that were produced for the contents of the
    * source.
    */
-  // TODO (danrubel): Replace this with a real cache.
+  // TODO (brianwilkerson): Remove this after removing parseHtml(Source).
   private HashMap<Source, HtmlParseResult> htmlParseCache = new HashMap<Source, HtmlParseResult>();
 
   /**
-   * A cache mapping sources (of the defining compilation units of libraries) to the library
-   * elements for those libraries.
+   * A table mapping sources to the change notices that are waiting to be returned related to that
+   * source.
    */
-  // TODO(brianwilkerson) Replace this with a real cache.
-  private HashMap<Source, LibraryElement> libraryElementCache = new HashMap<Source, LibraryElement>();
-
-  /**
-   * A cache mapping sources (of the defining compilation units of libraries) to the public
-   * namespace for that library.
-   */
-  // TODO(brianwilkerson) Replace this with a real cache.
-  private HashMap<Source, Namespace> publicNamespaceCache = new HashMap<Source, Namespace>();
+  private HashMap<Source, ChangeNoticeImpl> pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
    * The object used to synchronize access to all of the caches.
@@ -156,9 +145,7 @@ public class AnalysisContextImpl implements AnalysisContext {
         addSourcesInContainer(removedSources, container);
       }
       //
-      // Then determine which cached results are no longer valid and what the new structure of the
-      // sources is.
-      // TODO(brianwilkerson) The code below is incomplete.
+      // Then determine which cached results are no longer valid.
       //
       for (Source source : addedSources) {
         sourceAvailable(source);
@@ -173,6 +160,90 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public AnalysisError[] computeErrors(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      CompilationUnitInfo info = getCompilationUnitInfo(source);
+      if (info == null) {
+        return AnalysisError.NO_ERRORS;
+      }
+      if (info.hasInvalidParseErrors()) {
+        parseCompilationUnit(source);
+      }
+      if (info.hasInvalidResolutionErrors()) {
+        // TODO(brianwilkerson) Decide whether to resolve the source against all libraries or
+        // whether to add a librarySource parameter to this method.
+        // resolveCompilationUnit(source);
+      }
+      return info.getAllErrors();
+    }
+  }
+
+  //@Override
+  public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
+    if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
+      return null;
+    }
+    synchronized (cacheLock) {
+      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
+      if (htmlUnitInfo == null) {
+        return null;
+      }
+      HtmlElement element = htmlUnitInfo.getElement();
+      if (element == null) {
+        HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
+        element = builder.buildHtmlElement(source, parseHtmlUnit(source));
+        htmlUnitInfo.setElement(element);
+      }
+      return element;
+    }
+  }
+
+  @Override
+  public SourceKind computeKindOf(Source source) {
+    synchronized (cacheLock) {
+      SourceInfo sourceInfo = getSourceInfo(source);
+      if (sourceInfo == null) {
+        return SourceKind.UNKNOWN;
+      } else if (sourceInfo instanceof DartInfo) {
+        sourceInfo = internalComputeKindOf(source, sourceInfo);
+        sourceMap.put(source, sourceInfo);
+      }
+      return sourceInfo.getKind();
+    }
+  }
+
+  @Override
+  public LibraryElement computeLibraryElement(Source source) throws AnalysisException {
+    if (!AnalysisEngine.isDartFileName(source.getShortName())) {
+      return null;
+    }
+    synchronized (cacheLock) {
+      LibraryInfo libraryInfo = getLibraryInfo(source);
+      if (libraryInfo == null) {
+        return null;
+      }
+      LibraryElement element = libraryInfo.getElement();
+      if (element == null) {
+        if (computeKindOf(source) != SourceKind.LIBRARY) {
+          return null;
+        }
+        LibraryResolver resolver = new LibraryResolver(this);
+        try {
+          element = resolver.resolveLibrary(source, true);
+          if (element != null) {
+            libraryInfo.setElement(element);
+          }
+        } catch (AnalysisException exception) {
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Could not resolve the library " + source.getFullName(),
+              exception);
+        }
+      }
+      return element;
+    }
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     AnalysisContextImpl newContext = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
     ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
@@ -182,7 +253,7 @@ public class AnalysisContextImpl implements AnalysisContext {
         Source source = entry.getKey();
         if (container.contains(source)) {
           sourcesToRemove.add(source);
-          newContext.sourceMap.put(source, new SourceInfo(entry.getValue()));
+          newContext.sourceMap.put(source, entry.getValue().copy());
         }
       }
 
@@ -205,31 +276,48 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public Element getElement(ElementLocation location) {
-    throw new UnsupportedOperationException();
-//    String[] components = ((ElementLocationImpl) location).getComponents();
-//    Source librarySource = findSource(components[0]);
-//    ElementImpl element = (ElementImpl) getLibraryElement(librarySource);
-//    for (int i = 1; i < components.length; i++) {
-//      if (element == null) {
-//        return null;
-//      }
-//      element = element.getChild(components[i]);
-//    }
-//    return element;
+    String[] components = ((ElementLocationImpl) location).getComponents();
+    ElementImpl element;
+    synchronized (cacheLock) {
+      Source librarySource = sourceFactory.fromEncoding(components[0]);
+      try {
+        element = (ElementImpl) computeLibraryElement(librarySource);
+      } catch (AnalysisException exception) {
+        return null;
+      }
+    }
+    for (int i = 1; i < components.length; i++) {
+      if (element == null) {
+        return null;
+      }
+      element = element.getChild(components[i]);
+    }
+    return element;
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
+  public AnalysisError[] getErrors(Source source) {
+    synchronized (cacheLock) {
+      CompilationUnitInfo info = getCompilationUnitInfo(source);
+      if (info == null) {
+        return AnalysisError.NO_ERRORS;
+      }
+      return info.getAllErrors();
+    }
   }
 
   @Override
   public HtmlElement getHtmlElement(Source source) {
-    // TODO(brianwilkerson) Implement this.
     if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
       return null;
     }
-    throw new UnsupportedOperationException();
+    synchronized (cacheLock) {
+      HtmlUnitInfo info = getHtmlUnitInfo(source);
+      if (info == null) {
+        return null;
+      }
+      return info.getElement();
+    }
   }
 
   @Override
@@ -237,25 +325,20 @@ public class AnalysisContextImpl implements AnalysisContext {
     return getSources(SourceKind.HTML);
   }
 
+  //@Override
+  public SourceKind getKindOf(Source source) {
+    synchronized (cacheLock) {
+      SourceInfo sourceInfo = getSourceInfo(source);
+      if (sourceInfo == null) {
+        return SourceKind.UNKNOWN;
+      }
+      return sourceInfo.getKind();
+    }
+  }
+
   @Override
   public SourceKind getKnownKindOf(Source source) {
-    String name = source.getShortName();
-    if (AnalysisEngine.isHtmlFileName(name)) {
-      return SourceKind.HTML;
-    }
-    if (!AnalysisEngine.isDartFileName(name)) {
-      return SourceKind.UNKNOWN;
-    }
-    synchronized (cacheLock) {
-      if (libraryElementCache.containsKey(source)) {
-        return SourceKind.LIBRARY;
-      }
-      CompilationUnit unit = parseCache.get(source);
-      if (unit != null && hasPartOfDirective(unit)) {
-        return SourceKind.PART;
-      }
-    }
-    return null;
+    return getKindOf(source);
   }
 
   @Override
@@ -273,52 +356,31 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = sourceMap.get(source);
-      if (info == null) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+      if (compilationUnitInfo == null) {
         return Source.EMPTY_ARRAY;
       }
-      return info.getLibrarySources();
+      return compilationUnitInfo.getLibrarySources();
     }
   }
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
-    if (!AnalysisEngine.isDartFileName(source.getShortName())) {
+    try {
+      return computeLibraryElement(source);
+    } catch (AnalysisException exception) {
       return null;
-    }
-    synchronized (cacheLock) {
-      LibraryElement element = libraryElementCache.get(source);
-      if (element == null) {
-        if (getOrComputeKindOf(source) != SourceKind.LIBRARY) {
-          return null;
-        }
-        LibraryResolver resolver = new LibraryResolver(this);
-        try {
-          element = resolver.resolveLibrary(source, true);
-          if (element != null) {
-            libraryElementCache.put(source, element);
-          }
-        } catch (AnalysisException exception) {
-          AnalysisEngine.getInstance().getLogger().logError(
-              "Could not resolve the library " + source.getFullName(),
-              exception);
-        }
-      }
-      return element;
     }
   }
 
-  /**
-   * Return the element model corresponding to the library defined by the given source, or
-   * {@code null} if the element model does not yet exist.
-   * 
-   * @param source the source defining the library whose element model is to be returned
-   * @return the element model corresponding to the library defined by the given source
-   */
   @Override
   public LibraryElement getLibraryElementOrNull(Source source) {
     synchronized (cacheLock) {
-      return libraryElementCache.get(source);
+      LibraryInfo libraryInfo = getLibraryInfo(source);
+      if (libraryInfo == null) {
+        return null;
+      }
+      return libraryInfo.getElement();
     }
   }
 
@@ -328,11 +390,29 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public SourceKind getOrComputeKindOf(Source source) {
-    SourceKind kind = getKnownKindOf(source);
-    if (kind != null) {
-      return kind;
+  public LineInfo getLineInfo(Source source) {
+    synchronized (cacheLock) {
+      SourceInfo sourceInfo = getSourceInfo(source);
+      if (sourceInfo == null) {
+        return null;
+      }
+      LineInfo lineInfo = sourceInfo.getLineInfo();
+      if (lineInfo == null) {
+        try {
+          parse(source);
+          lineInfo = sourceInfo.getLineInfo();
+        } catch (AnalysisException exception) {
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Could not parse " + source.getFullName(),
+              exception);
+        }
+      }
+      return lineInfo;
     }
+  }
+
+  @Override
+  public SourceKind getOrComputeKindOf(Source source) {
     return computeKindOf(source);
   }
 
@@ -344,13 +424,19 @@ public class AnalysisContextImpl implements AnalysisContext {
    * @return the public namespace of the given library
    */
   public Namespace getPublicNamespace(LibraryElement library) {
+    // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
+    // API of the interface.
     Source source = library.getDefiningCompilationUnit().getSource();
     synchronized (cacheLock) {
-      Namespace namespace = publicNamespaceCache.get(source);
+      LibraryInfo libraryInfo = getLibraryInfo(source);
+      if (libraryInfo == null) {
+        return null;
+      }
+      Namespace namespace = libraryInfo.getPublicNamespace();
       if (namespace == null) {
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createPublicNamespace(library);
-        publicNamespaceCache.put(source, namespace);
+        libraryInfo.setPublicNamespace(namespace);
       }
       return namespace;
     }
@@ -364,8 +450,14 @@ public class AnalysisContextImpl implements AnalysisContext {
    * @return the public namespace corresponding to the library defined by the given source
    */
   public Namespace getPublicNamespace(Source source) {
+    // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
+    // API of the interface.
     synchronized (cacheLock) {
-      Namespace namespace = publicNamespaceCache.get(source);
+      LibraryInfo libraryInfo = getLibraryInfo(source);
+      if (libraryInfo == null) {
+        return null;
+      }
+      Namespace namespace = libraryInfo.getPublicNamespace();
       if (namespace == null) {
         LibraryElement library = getLibraryElement(source);
         if (library == null) {
@@ -373,7 +465,7 @@ public class AnalysisContextImpl implements AnalysisContext {
         }
         NamespaceBuilder builder = new NamespaceBuilder();
         namespace = builder.createPublicNamespace(library);
-        publicNamespaceCache.put(source, namespace);
+        libraryInfo.setPublicNamespace(namespace);
       }
       return namespace;
     }
@@ -389,10 +481,10 @@ public class AnalysisContextImpl implements AnalysisContext {
     synchronized (cacheLock) {
       for (Map.Entry<Source, SourceInfo> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
         Source newSource = entry.getKey();
-        SourceInfo existingInfo = sourceMap.get(newSource);
+        SourceInfo existingInfo = getSourceInfo(newSource);
         if (existingInfo == null) {
           // TODO(brianwilkerson) Decide whether we really need to copy the info.
-          sourceMap.put(newSource, new SourceInfo(entry.getValue()));
+          sourceMap.put(newSource, entry.getValue().copy());
         } else {
           // TODO(brianwilkerson) Decide whether/how to merge the info's.
         }
@@ -402,33 +494,32 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public CompilationUnit parse(Source source) throws AnalysisException {
-    synchronized (cacheLock) {
-      CompilationUnit unit = parseCache.get(source);
-      if (unit == null) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        ScanResult scanResult = internalScan(source, errorListener);
-        Parser parser = new Parser(source, errorListener);
-        unit = parser.parseCompilationUnit(scanResult.token);
-        unit.setParsingErrors(errorListener.getErrors(source));
-        unit.setLineInfo(new LineInfo(scanResult.lineStarts));
-        parseCache.put(source, unit);
-      }
-      return unit;
-    }
+    return parseCompilationUnit(source);
   }
 
-  // TODO (danrubel): Either remove this method 
-  // or ensure that the unit's syntax errors are cached in the unit itself
-  public CompilationUnit parse(Source source, AnalysisErrorListener errorListener)
-      throws AnalysisException {
+  @Override
+  public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
-      CompilationUnit unit = parseCache.get(source);
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+      if (compilationUnitInfo == null) {
+        return null;
+      }
+      CompilationUnit unit = compilationUnitInfo.getResolvedCompilationUnit();
       if (unit == null) {
-        ScanResult scanResult = internalScan(source, errorListener);
-        Parser parser = new Parser(source, errorListener);
-        unit = parser.parseCompilationUnit(scanResult.token);
-        unit.setLineInfo(new LineInfo(scanResult.lineStarts));
-        parseCache.put(source, unit);
+        unit = compilationUnitInfo.getParsedCompilationUnit();
+        if (unit == null) {
+          RecordingErrorListener errorListener = new RecordingErrorListener();
+          ScanResult scanResult = internalScan(source, errorListener);
+          Parser parser = new Parser(source, errorListener);
+          unit = parser.parseCompilationUnit(scanResult.token);
+          LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+          AnalysisError[] errors = errorListener.getErrors(source);
+          unit.setParsingErrors(errors);
+          unit.setLineInfo(lineInfo);
+          compilationUnitInfo.setLineInfo(lineInfo);
+          compilationUnitInfo.setParsedCompilationUnit(unit);
+          compilationUnitInfo.setParseErrors(errors);
+        }
       }
       return unit;
     }
@@ -437,18 +528,54 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public HtmlParseResult parseHtml(Source source) throws AnalysisException {
     synchronized (cacheLock) {
+      SourceInfo sourceInfo = getSourceInfo(source);
+      if (sourceInfo == null) {
+        return null;
+      }
       HtmlParseResult result = htmlParseCache.get(source);
       if (result == null) {
         result = new HtmlParser(source).parse(scanHtml(source));
+        LineInfo lineInfo = new LineInfo(result.getLineStarts());
         htmlParseCache.put(source, result);
+        sourceInfo.setLineInfo(lineInfo);
       }
       return result;
     }
   }
 
   @Override
+  public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
+      if (htmlUnitInfo == null) {
+        return null;
+      }
+      HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+      if (unit == null) {
+        unit = htmlUnitInfo.getParsedUnit();
+        if (unit == null) {
+          HtmlParseResult result = new HtmlParser(source).parse(scanHtml(source));
+          unit = result.getHtmlUnit();
+          htmlUnitInfo.setLineInfo(new LineInfo(result.getLineStarts()));
+          htmlUnitInfo.setParsedUnit(unit);
+        }
+      }
+      return unit;
+    }
+  }
+
+  @Override
   public ChangeNotice[] performAnalysisTask() {
-    return ChangeNotice.EMPTY_ARRAY;
+    synchronized (cacheLock) {
+      performSingleAnalysisTask();
+      if (pendingNotices.isEmpty()) {
+        return ChangeNoticeImpl.EMPTY_ARRAY;
+      }
+      ChangeNotice[] notices = pendingNotices.values().toArray(
+          new ChangeNotice[pendingNotices.size()]);
+      pendingNotices.clear();
+      return notices;
+    }
   }
 
   /**
@@ -460,16 +587,91 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     synchronized (cacheLock) {
-      libraryElementCache.putAll(elementMap);
+      for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
+        LibraryInfo libraryInfo = getLibraryInfo(entry.getKey());
+        if (libraryInfo != null) {
+          libraryInfo.setElement(entry.getValue());
+        }
+      }
+    }
+  }
+
+  /**
+   * Give the resolution errors and line info associated with the given source, add the information
+   * to the cache.
+   * 
+   * @param source the source with which the information is associated
+   * @param errors the resolution errors associated with the source
+   * @param lineInfo the line information associated with the source
+   */
+  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
+    synchronized (cacheLock) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+      if (compilationUnitInfo != null) {
+        compilationUnitInfo.setLineInfo(lineInfo);
+        compilationUnitInfo.setResolutionErrors(errors);
+      }
+      getNotice(source).setErrors(compilationUnitInfo.getAllErrors(), lineInfo);
+    }
+  }
+
+  /**
+   * Give the resolved compilation unit associated with the given source, add the unit to the cache.
+   * 
+   * @param source the source with which the unit is associated
+   * @param unit the compilation unit associated with the source
+   */
+  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
+    synchronized (cacheLock) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+      if (compilationUnitInfo != null) {
+        compilationUnitInfo.setResolvedCompilationUnit(unit);
+        getNotice(source).setCompilationUnit(unit);
+      }
     }
   }
 
   @Override
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
-    // TODO (jwren/brianwilkerson/danrubel) not implemented correctly, this method works only if
-    // the queried source has been previously resolved and happens to be in the parseCache. This was
-    // included for testing purposes.
-    return parse(source);
+    if (library == null) {
+      return null;
+    }
+    return resolveCompilationUnit(source, library.getSource());
+  }
+
+  @Override
+  public CompilationUnit resolveCompilationUnit(Source librarySource, Source unitSource)
+      throws AnalysisException {
+    synchronized (cacheLock) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
+      if (compilationUnitInfo == null) {
+        return null;
+      }
+      // TODO(brianwilkerson) This doesn't ensure that the compilation unit was resolved in the
+      // context of the specified library.
+      CompilationUnit unit = compilationUnitInfo.getResolvedCompilationUnit();
+      if (unit == null) {
+        computeLibraryElement(librarySource);
+        unit = compilationUnitInfo.getResolvedCompilationUnit();
+      }
+      return unit;
+    }
+  }
+
+  @Override
+  public HtmlUnit resolveHtmlUnit(Source unitSource) throws AnalysisException {
+    synchronized (cacheLock) {
+      HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(unitSource);
+      if (htmlUnitInfo == null) {
+        return null;
+      }
+      HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+      if (unit == null) {
+        computeHtmlElement(unitSource);
+        unit = htmlUnitInfo.getResolvedUnit();
+      }
+      return unit;
+    }
   }
 
   @Override
@@ -478,19 +680,32 @@ public class AnalysisContextImpl implements AnalysisContext {
       return;
     } else if (factory.getContext() != null) {
       throw new IllegalStateException("Source factories cannot be shared between contexts");
-    } else if (sourceFactory != null) {
-      sourceFactory.setContext(null);
     }
-    factory.setContext(this);
-    sourceFactory = factory;
-    // TODO (danrubel): All sources need to be reanalyzed per comment in AnalysisContext
-    // or need to update clients to build and apply change set.
+    synchronized (cacheLock) {
+      if (sourceFactory != null) {
+        sourceFactory.setContext(null);
+      }
+      factory.setContext(this);
+      sourceFactory = factory;
+      for (SourceInfo sourceInfo : sourceMap.values()) {
+        if (sourceInfo instanceof HtmlUnitInfo) {
+          ((HtmlUnitInfo) sourceInfo).invalidateResolvedUnit();
+        } else if (sourceInfo instanceof CompilationUnitInfo) {
+          CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) sourceInfo;
+          compilationUnitInfo.invalidateResolvedUnit();
+          compilationUnitInfo.invalidateResolutionErrors();
+          if (sourceInfo instanceof LibraryInfo) {
+            LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
+            libraryInfo.invalidateElement();
+            libraryInfo.invalidatePublicNamespace();
+          }
+        }
+      }
+    }
   }
 
   @Override
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
-    // TODO(keertip): revisit to include dependent libraries that are not in changed sources but
-    // have to be re-resolved.
     List<Source> librarySources = new ArrayList<Source>();
     for (Source source : changedSources) {
       if (getOrComputeKindOf(source) == SourceKind.LIBRARY) {
@@ -516,15 +731,122 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  private SourceKind computeKindOf(Source source) {
-    try {
-      if (hasPartOfDirective(parse(source))) {
-        return SourceKind.PART;
+  /**
+   * Return the compilation unit information associated with the given source, or {@code null} if
+   * the source is not known to this context. This method should be used to access the compilation
+   * unit information rather than accessing the compilation unit map directly because sources in the
+   * SDK are implicitly part of every analysis context and are therefore only added to the map when
+   * first accessed.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source for which information is being sought
+   * @return the compilation unit information associated with the given source
+   */
+  private CompilationUnitInfo getCompilationUnitInfo(Source source) {
+    SourceInfo sourceInfo = getSourceInfo(source);
+    if (sourceInfo == null) {
+      sourceInfo = new CompilationUnitInfo();
+      sourceMap.put(source, sourceInfo);
+      return (CompilationUnitInfo) sourceInfo;
+    } else if (sourceInfo instanceof CompilationUnitInfo) {
+      return (CompilationUnitInfo) sourceInfo;
+    } else if (sourceInfo instanceof DartInfo) {
+      sourceInfo = internalComputeKindOf(source, sourceInfo);
+      if (sourceInfo instanceof CompilationUnitInfo) {
+        sourceMap.put(source, sourceInfo);
+        return (CompilationUnitInfo) sourceInfo;
       }
-    } catch (AnalysisException exception) {
-      return SourceKind.UNKNOWN;
     }
-    return SourceKind.LIBRARY;
+    return null;
+  }
+
+  /**
+   * Return the HTML unit information associated with the given source, or {@code null} if the
+   * source is not known to this context. This method should be used to access the HTML unit
+   * information rather than accessing the HTML unit map directly because sources in the SDK are
+   * implicitly part of every analysis context and are therefore only added to the map when first
+   * accessed.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source for which information is being sought
+   * @return the HTML unit information associated with the given source
+   */
+  private HtmlUnitInfo getHtmlUnitInfo(Source source) {
+    SourceInfo sourceInfo = getSourceInfo(source);
+    if (sourceInfo == null) {
+      sourceInfo = new HtmlUnitInfo();
+      sourceMap.put(source, sourceInfo);
+      return (HtmlUnitInfo) sourceInfo;
+    } else if (sourceInfo instanceof HtmlUnitInfo) {
+      return (HtmlUnitInfo) sourceInfo;
+    }
+    return null;
+  }
+
+  /**
+   * Return the library information associated with the given source, or {@code null} if the source
+   * is not known to this context. This method should be used to access the library information
+   * rather than accessing the library map directly because sources in the SDK are implicitly part
+   * of every analysis context and are therefore only added to the map when first accessed.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source for which information is being sought
+   * @return the library information associated with the given source
+   */
+  private LibraryInfo getLibraryInfo(Source source) {
+    SourceInfo sourceInfo = getSourceInfo(source);
+    if (sourceInfo == null) {
+      sourceInfo = new LibraryInfo();
+      sourceMap.put(source, sourceInfo);
+      return (LibraryInfo) sourceInfo;
+    } else if (sourceInfo instanceof LibraryInfo) {
+      return (LibraryInfo) sourceInfo;
+    } else if (sourceInfo instanceof DartInfo) {
+      sourceInfo = internalComputeKindOf(source, sourceInfo);
+      if (sourceInfo instanceof LibraryInfo) {
+        sourceMap.put(source, sourceInfo);
+        return (LibraryInfo) sourceInfo;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return a change notice for the given source, creating one if one does not already exist.
+   * 
+   * @param source the source for which changes are being reported
+   * @return a change notice for the given source
+   */
+  private ChangeNoticeImpl getNotice(Source source) {
+    ChangeNoticeImpl notice = pendingNotices.get(source);
+    if (notice == null) {
+      notice = new ChangeNoticeImpl(source);
+      pendingNotices.put(source, notice);
+    }
+    return notice;
+  }
+
+  /**
+   * Return the source information associated with the given source, or {@code null} if the source
+   * is not known to this context. This method should be used to access the source information
+   * rather than accessing the source map directly because sources in the SDK are implicitly part of
+   * every analysis context and are therefore only added to the map when first accessed.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source for which information is being sought
+   * @return the source information associated with the given source
+   */
+  private SourceInfo getSourceInfo(Source source) {
+    SourceInfo sourceInfo = sourceMap.get(source);
+    if (sourceInfo == null) {
+      sourceInfo = DartInfo.getInstance();
+      sourceMap.put(source, sourceInfo);
+    }
+    return sourceInfo;
   }
 
   /**
@@ -560,6 +882,31 @@ public class AnalysisContextImpl implements AnalysisContext {
     return false;
   }
 
+  private SourceInfo internalComputeKindOf(Source source, SourceInfo info) {
+    try {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ScanResult scanResult = internalScan(source, errorListener);
+      Parser parser = new Parser(source, errorListener);
+      CompilationUnit unit = parser.parseCompilationUnit(scanResult.token);
+      LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+      AnalysisError[] errors = errorListener.getErrors(source);
+      unit.setParsingErrors(errors);
+      unit.setLineInfo(lineInfo);
+      CompilationUnitInfo sourceInfo;
+      if (hasPartOfDirective(unit)) {
+        sourceInfo = new CompilationUnitInfo();
+      } else {
+        sourceInfo = new LibraryInfo();
+      }
+      sourceInfo.setLineInfo(lineInfo);
+      sourceInfo.setParsedCompilationUnit(unit);
+      sourceInfo.setParseErrors(errors);
+      return sourceInfo;
+    } catch (AnalysisException exception) {
+      return info;
+    }
+  }
+
   private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)
       throws AnalysisException {
     final ScanResult result = new ScanResult();
@@ -586,7 +933,77 @@ public class AnalysisContextImpl implements AnalysisContext {
     return result;
   }
 
-  private HtmlScanResult scanHtml(final Source source) throws AnalysisException {
+  /**
+   * Perform a single analysis task.
+   * <p>
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   */
+  private void performSingleAnalysisTask() {
+    //
+    // Look a source whose kind is not known.
+    //
+    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      SourceInfo sourceInfo = entry.getValue();
+      if (sourceInfo.getKind() == null) {
+        entry.setValue(internalComputeKindOf(entry.getKey(), sourceInfo));
+        return;
+      }
+    }
+    //
+    // Look a source that needs to be parsed.
+    //
+    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      SourceInfo sourceInfo = entry.getValue();
+      if (sourceInfo instanceof CompilationUnitInfo) {
+        CompilationUnitInfo unitInfo = (CompilationUnitInfo) sourceInfo;
+        if (unitInfo.hasInvalidParsedUnit()) {
+          try {
+            parseCompilationUnit(entry.getKey());
+          } catch (AnalysisException exception) {
+            unitInfo.setParsedCompilationUnit(null);
+            AnalysisEngine.getInstance().getLogger().logError(
+                "Could not parse " + entry.getKey().getFullName(),
+                exception);
+          }
+          return;
+        }
+      } else if (sourceInfo instanceof HtmlUnitInfo) {
+        HtmlUnitInfo unitInfo = (HtmlUnitInfo) sourceInfo;
+        if (unitInfo.hasInvalidParsedUnit()) {
+          try {
+            parseHtmlUnit(entry.getKey());
+          } catch (AnalysisException exception) {
+            unitInfo.setParsedUnit(null);
+            AnalysisEngine.getInstance().getLogger().logError(
+                "Could not parse " + entry.getKey().getFullName(),
+                exception);
+          }
+          return;
+        }
+      }
+    }
+    //
+    // Look for a library that needs to be resolved.
+    //
+    for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+      SourceInfo sourceInfo = entry.getValue();
+      if (sourceInfo instanceof LibraryInfo) {
+        LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
+        if (libraryInfo.hasInvalidElement()) {
+          try {
+            computeLibraryElement(entry.getKey());
+            return;
+          } catch (AnalysisException exception) {
+            AnalysisEngine.getInstance().getLogger().logError(
+                "Could not compute the library element for " + entry.getKey().getFullName(),
+                exception);
+          }
+        }
+      }
+    }
+  }
+
+  private HtmlScanResult scanHtml(Source source) throws AnalysisException {
     HtmlScanner scanner = new HtmlScanner(source);
     try {
       source.getContents(scanner);
@@ -597,49 +1014,51 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param source the source that has been added
    */
   private void sourceAvailable(Source source) {
     SourceInfo existingInfo = sourceMap.get(source);
     if (existingInfo == null) {
-      SourceKind kind = computeKindOf(source);
-      sourceMap.put(source, new SourceInfo(source, kind));
+      String name = source.getShortName();
+      if (AnalysisEngine.isHtmlFileName(name)) {
+        sourceMap.put(source, new HtmlUnitInfo());
+      } else if (AnalysisEngine.isDartFileName(name)) {
+        sourceMap.put(source, DartInfo.getInstance());
+      }
     }
   }
 
   /**
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param source the source that has been changed
    */
   private void sourceChanged(Source source) {
-    SourceInfo info = sourceMap.get(source);
-    if (info == null) {
-      // TODO(brianwilkerson) Figure out how to report this error.
-      return;
-    }
-    parseCache.remove(source);
-    htmlParseCache.remove(source);
-    // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
-    libraryElementCache.remove(source);
-    publicNamespaceCache.remove(source);
-    SourceKind oldKind = info.getKind();
-    SourceKind newKind = computeKindOf(source);
-    if (newKind != oldKind) {
-      info.setKind(newKind);
-    }
-    for (Source librarySource : info.getLibrarySources()) {
-      // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
-      // public namespace hasn't changed, which will be a fairly common case.
-      libraryElementCache.remove(librarySource);
-      publicNamespaceCache.remove(librarySource);
+    SourceInfo sourceInfo = sourceMap.get(source);
+    if (sourceInfo instanceof HtmlUnitInfo) {
+      HtmlUnitInfo htmlUnitInfo = (HtmlUnitInfo) sourceInfo;
+      htmlUnitInfo.invalidateLineInfo();
+      htmlUnitInfo.invalidateParsedUnit();
+      htmlUnitInfo.invalidateResolvedUnit();
+    } else if (sourceInfo instanceof CompilationUnitInfo) {
+      CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) sourceInfo;
+      for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
+        // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if
+        // the public namespace hasn't changed, which will be a fairly common case.
+        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
+        if (libraryInfo != null) {
+          libraryInfo.invalidateElement();
+          libraryInfo.invalidatePublicNamespace();
+        }
+      }
+      sourceMap.put(source, DartInfo.getInstance());
     }
   }
 
   /**
-   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
    * @param source the source that has been deleted
    */
@@ -647,20 +1066,17 @@ public class AnalysisContextImpl implements AnalysisContext {
     // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
     // there are no additional dependencies on the source), and if so remove all information
     // about the source.
-    SourceInfo info = sourceMap.get(source);
-    if (info == null) {
-      // TODO(brianwilkerson) Figure out how to report this error.
-      return;
-    }
-    parseCache.remove(source);
-    // TODO(brianwilkerson) Remove the two lines below once we are recording the library source.
-    libraryElementCache.remove(source);
-    publicNamespaceCache.remove(source);
-    for (Source librarySource : info.getLibrarySources()) {
-      // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if the
-      // public namespace hasn't changed, which will be a fairly common case.
-      libraryElementCache.remove(librarySource);
-      publicNamespaceCache.remove(librarySource);
+    CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+    if (compilationUnitInfo != null) {
+      for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
+        // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if
+        // the public namespace hasn't changed, which will be a fairly common case.
+        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
+        if (libraryInfo != null) {
+          libraryInfo.invalidateElement();
+          libraryInfo.invalidatePublicNamespace();
+        }
+      }
     }
     sourceMap.remove(source);
   }

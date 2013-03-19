@@ -19,23 +19,42 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * The interface {@code AnalysisContext} defines the behavior of objects that represent a context in
- * which analysis can be performed. The context includes such information as the version of the SDK
- * being analyzed against as well as the package-root used to resolve 'package:' URI's. (Both of
- * which are known indirectly through the {@link SourceFactory source factory}.)
+ * which a single analysis can be performed and incrementally maintained. The context includes such
+ * information as the version of the SDK being analyzed against as well as the package-root used to
+ * resolve 'package:' URI's. (Both of which are known indirectly through the {@link SourceFactory
+ * source factory}.)
  * <p>
- * They also represent the state of a given analysis, which includes knowing which sources have been
- * included in the analysis (either directly or indirectly) and the results of the analysis. Some
- * analysis results are cached in order to allow the context to balance between memory usage and
- * performance. TODO(brianwilkerson) Decide how this is reflected in the API: a getFoo() and
- * getOrComputeFoo() pair of methods, or a single getFoo(boolean).
+ * An analysis context also represents the state of the analysis, which includes knowing which
+ * sources have been included in the analysis (either directly or indirectly) and the results of the
+ * analysis. Sources must be added and removed from the context using the method
+ * {@link #applyChanges(ChangeSet)}, which is also used to notify the context when sources have been
+ * modified and, consequently, previously known results might have been invalidated.
+ * <p>
+ * There are two ways to access the results of the analysis. The most common is to use one of the
+ * 'get' methods to access the results. The 'get' methods have the advantage that they will always
+ * return quickly, but have the disadvantage that if the results are not currently available they
+ * will return either nothing or in some cases an incomplete result. The second way to access
+ * results is by using one of the 'compute' methods. The 'compute' methods will always attempt to
+ * compute the requested results but might block the caller for a significant period of time.
+ * <p>
+ * When results have been invalidated, have never been computed (as is the case for newly added
+ * sources), or have been removed from the cache, they are <b>not</b> automatically recreated. They
+ * will only be recreated if one of the 'compute' methods is invoked.
+ * <p>
+ * However, this is not always acceptable. Some clients need to keep the analysis results
+ * up-to-date. For such clients there is a mechanism that allows them to incrementally perform
+ * needed analysis and get notified of the consequent changes to the analysis results. This
+ * mechanism is realized by the method {@link #performAnalysisTask()}.
  * <p>
  * Analysis engine allows for having more than one context. This can be used, for example, to
  * perform one analysis based on the state of files on disk and a separate analysis based on the
@@ -52,6 +71,40 @@ public interface AnalysisContext {
   public void applyChanges(ChangeSet changeSet);
 
   /**
+   * Return an array containing all of the errors associated with the given source. If the errors
+   * are not already known then the source will be analyzed in order to determine the errors
+   * associated with it.
+   * 
+   * @param source the source whose errors are to be returned
+   * @return all of the errors associated with the given source
+   * @throws AnalysisException if the errors could not be determined because the analysis could not
+   *           be performed
+   */
+  public AnalysisError[] computeErrors(Source source) throws AnalysisException;
+
+  /**
+   * Return the kind of the given source, computing it's kind if it is not already known. Return
+   * {@link SourceKind#UNKNOWN} if the source is not contained in this context.
+   * 
+   * @param source the source whose kind is to be returned
+   * @return the kind of the given source
+   */
+  public SourceKind computeKindOf(Source source);
+
+  /**
+   * Return the element model corresponding to the library defined by the given source. If the
+   * element model does not yet exist it will be created. The process of creating an element model
+   * for a library can long-running, depending on the size of the library and the number of
+   * libraries that are imported into it that also need to have a model built for them.
+   * 
+   * @param source the source defining the library whose element model is to be returned
+   * @return the element model corresponding to the library defined by the given source
+   * @throws AnalysisException if the element model could not be determined because the analysis
+   *           could not be performed
+   */
+  public LibraryElement computeLibraryElement(Source source) throws AnalysisException;
+
+  /**
    * Create a new context in which analysis can be performed. Any sources in the specified container
    * will be removed from this context and added to the newly created context.
    * 
@@ -62,7 +115,11 @@ public interface AnalysisContext {
   public AnalysisContext extractContext(SourceContainer container);
 
   /**
-   * Return the element referenced by the given location.
+   * Return the element referenced by the given location, or {@code null} if the element is not
+   * immediately available or if there is no element with the given location. The latter condition
+   * can occur, for example, if the location describes an element from a different context or if the
+   * element has been removed from this context as a result of some change since it was originally
+   * obtained.
    * 
    * @param location the reference describing the element to be returned
    * @return the element referenced by the given location
@@ -72,16 +129,17 @@ public interface AnalysisContext {
   /**
    * Return an array containing all of the errors associated with the given source. The array will
    * be empty if the source is not known to this context or if there are no errors in the source.
+   * The errors contained in the array can be incomplete.
    * 
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
-   * @throws AnalysisException if the errors could not be determined because the analysis could not
-   *           be performed
    */
-  public AnalysisError[] getErrors(Source source) throws AnalysisException;
+  public AnalysisError[] getErrors(Source source);
 
   /**
-   * Return the element model corresponding to the HTML file defined by the given source.
+   * Return the element model corresponding to the HTML file defined by the given source, or
+   * {@code null} if the source does not represent an HTML file, the element representing the file
+   * has not yet been created, or the analysis of the HTML file failed for some reason.
    * 
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
@@ -90,6 +148,7 @@ public interface AnalysisContext {
 
   /**
    * Return an array containing all of the sources known to this context that represent HTML files.
+   * The contents of the array can be incomplete.
    * 
    * @return the sources known to this context that represent HTML files
    */
@@ -109,7 +168,8 @@ public interface AnalysisContext {
    * Return an array containing all of the sources known to this context that represent the defining
    * compilation unit of a library that can be run within a browser. The sources that are returned
    * represent libraries that have a 'main' method and are either referenced by an HTML file or
-   * import, directly or indirectly, a client-only library.
+   * import, directly or indirectly, a client-only library. The contents of the array can be
+   * incomplete.
    * 
    * @return the sources known to this context that represent the defining compilation unit of a
    *         library that can be run within a browser
@@ -118,7 +178,8 @@ public interface AnalysisContext {
 
   /**
    * Return an array containing all of the sources known to this context that represent the defining
-   * compilation unit of a library that can be run outside of a browser.
+   * compilation unit of a library that can be run outside of a browser. The contents of the array
+   * can be incomplete.
    * 
    * @return the sources known to this context that represent the defining compilation unit of a
    *         library that can be run outside of a browser
@@ -132,7 +193,7 @@ public interface AnalysisContext {
    * multiple identically named libraries. If the source represents the defining compilation unit of
    * a library, then the returned array will contain the given source as its only element. If the
    * source does not represent a Dart source or is not known to this context, the returned array
-   * will be empty.
+   * will be empty. The contents of the array can be incomplete.
    * 
    * @param source the source contained in the returned libraries
    * @return the sources for the libraries containing the given source
@@ -164,12 +225,22 @@ public interface AnalysisContext {
 
   /**
    * Return an array containing all of the sources known to this context that represent the defining
-   * compilation unit of a library.
+   * compilation unit of a library. The contents of the array can be incomplete.
    * 
    * @return the sources known to this context that represent the defining compilation unit of a
    *         library
    */
   public Source[] getLibrarySources();
+
+  /**
+   * Return the line information for the given source, or {@code null} if the line information is
+   * not known. The line information is used to map offsets from the beginning of the source to line
+   * and column pairs.
+   * 
+   * @param source the source whose line information is to be returned
+   * @return the line information for the given source
+   */
+  public LineInfo getLineInfo(Source source);
 
   /**
    * Return the kind of the given source, computing it's kind if it is not already known.
@@ -208,6 +279,16 @@ public interface AnalysisContext {
   public CompilationUnit parse(Source source) throws AnalysisException;
 
   /**
+   * Parse a single source to produce an AST structure. The resulting AST structure may or may not
+   * be resolved, and may have a slightly different structure depending upon whether it is resolved.
+   * 
+   * @param source the source to be parsed
+   * @return the AST structure representing the content of the source
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException;
+
+  /**
    * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
    * may not be resolved, and may have a slightly different structure depending upon whether it is
    * resolved.
@@ -218,6 +299,17 @@ public interface AnalysisContext {
    */
   @Deprecated
   public HtmlParseResult parseHtml(Source source) throws AnalysisException;
+
+  /**
+   * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
+   * may not be resolved, and may have a slightly different structure depending upon whether it is
+   * resolved.
+   * 
+   * @param source the HTML source to be parsed
+   * @return the parse result (not {@code null})
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException;
 
   /**
    * Perform the next unit of work required to keep the analysis results up-to-date and return
@@ -237,6 +329,28 @@ public interface AnalysisContext {
    * @throws AnalysisException if the analysis could not be performed
    */
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException;
+
+  /**
+   * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * 
+   * @param librarySource the source of the defining compilation unit of the library containing the
+   *          source to be resolved
+   * @param unitSource the source to be parsed and resolved
+   * @return the result of resolving the AST structure representing the content of the source in the
+   *         context of the given library
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public CompilationUnit resolveCompilationUnit(Source librarySource, Source unitSource)
+      throws AnalysisException;
+
+  /**
+   * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * 
+   * @param htmlSource the source to be parsed and resolved
+   * @return the result of resolving the AST structure representing the content of the source
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException;
 
   /**
    * Set the source factory used to create the sources that can be analyzed in this context to the

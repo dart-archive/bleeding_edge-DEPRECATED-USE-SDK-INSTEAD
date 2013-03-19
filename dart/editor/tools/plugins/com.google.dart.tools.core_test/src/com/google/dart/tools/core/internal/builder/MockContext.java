@@ -10,7 +10,9 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
+import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.parser.HtmlParseResult;
+import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -19,6 +21,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
+import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.CallList.Call;
 
@@ -193,6 +196,21 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public AnalysisError[] computeErrors(Source source) throws AnalysisException {
+    return AnalysisError.NO_ERRORS;
+  }
+
+  @Override
+  public SourceKind computeKindOf(Source source) {
+    return SourceKind.UNKNOWN;
+  }
+
+  @Override
+  public LibraryElement computeLibraryElement(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     calls.add(this, EXTRACT_CONTEXT, container);
     return new MockContext();
@@ -204,8 +222,8 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) throws AnalysisException {
-    return null;
+  public AnalysisError[] getErrors(Source source) {
+    return AnalysisError.NO_ERRORS;
   }
 
   @Override
@@ -254,6 +272,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public LineInfo getLineInfo(Source source) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public SourceKind getOrComputeKindOf(Source source) {
     throw new UnsupportedOperationException();
   }
@@ -274,18 +297,39 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public HtmlParseResult parseHtml(Source source) throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
   @Override
+  public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public ChangeNotice[] performAnalysisTask() {
-    return ChangeNotice.EMPTY_ARRAY;
+    return ChangeNoticeImpl.EMPTY_ARRAY;
   }
 
   @Override
   public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
     return null;
+  }
+
+  @Override
+  public CompilationUnit resolveCompilationUnit(Source librarySource, Source unitSource)
+      throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override

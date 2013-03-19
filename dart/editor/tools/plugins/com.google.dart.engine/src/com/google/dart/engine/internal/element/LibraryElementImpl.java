@@ -183,7 +183,7 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
 
   @Override
   public String getIdentifier() {
-    return definingCompilationUnit.getSource().getFullName();
+    return definingCompilationUnit.getSource().getEncoding();
   }
 
   @Override
@@ -221,6 +221,14 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return prefixes.toArray(new PrefixElement[prefixes.size()]);
+  }
+
+  @Override
+  public Source getSource() {
+    if (definingCompilationUnit == null) {
+      return null;
+    }
+    return definingCompilationUnit.getSource();
   }
 
   @Override

@@ -80,7 +80,7 @@ public class LibraryElementBuilder {
    * @throws AnalysisException if the analysis could not be performed
    */
   public LibraryElementImpl buildLibrary(Library library) throws AnalysisException {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext, errorListener);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext);
     Source librarySource = library.getLibrarySource();
     CompilationUnit definingCompilationUnit = library.getDefiningCompilationUnit();
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(
@@ -108,7 +108,7 @@ public class LibraryElementBuilder {
         hasPartDirective = true;
         StringLiteral partUri = ((PartDirective) directive).getUri();
         Source partSource = library.getSource(partUri);
-        if (partSource != null) {
+        if (partSource != null && partSource.exists()) {
           CompilationUnitElementImpl part = builder.buildCompilationUnit(partSource);
           //
           // Validate that the part contains a part-of directive with the same name as the library.

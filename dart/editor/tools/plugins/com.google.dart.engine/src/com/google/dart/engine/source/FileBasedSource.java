@@ -82,12 +82,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean exists() {
-    return file.exists();
-  }
-
-  @Override
-  public AnalysisContext getContext() {
-    return factory.getContext();
+    return factory.getContents(this) != null || (file.exists() && !file.isDirectory());
   }
 
   @Override
@@ -129,6 +124,11 @@ public class FileBasedSource implements Source {
     }
     byteBuffer.rewind();
     receiver.accept(UTF_8_CHARSET.decode(byteBuffer));
+  }
+
+  @Override
+  public AnalysisContext getContext() {
+    return factory.getContext();
   }
 
   @Override

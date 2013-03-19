@@ -94,16 +94,15 @@ public class AbstractDartTest extends TestCase {
       SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
       {
         ChangeSet changeSet = new ChangeSet();
-        changeSet.added(SOURCE);
+        changeSet.added(SOURCE, "");
         ANALYSIS_CONTEXT.applyChanges(changeSet);
       }
     }
     // update source
     {
       ChangeSet changeSet = new ChangeSet();
-      changeSet.changed(SOURCE);
+      changeSet.changed(SOURCE, code);
       ANALYSIS_CONTEXT.applyChanges(changeSet);
-      ANALYSIS_CONTEXT.getSourceFactory().setContents(SOURCE, code);
     }
     // parse and resolve
     LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);

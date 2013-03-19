@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.source.Source;
@@ -33,20 +32,12 @@ public class CompilationUnitBuilder {
   private AnalysisContextImpl analysisContext;
 
   /**
-   * The listener to which errors will be reported.
-   */
-  private AnalysisErrorListener errorListener;
-
-  /**
    * Initialize a newly created compilation unit element builder.
    * 
    * @param analysisContext the analysis context in which the element model will be built
-   * @param errorListener the listener to which errors will be reported
    */
-  public CompilationUnitBuilder(AnalysisContextImpl analysisContext,
-      AnalysisErrorListener errorListener) {
+  public CompilationUnitBuilder(AnalysisContextImpl analysisContext) {
     this.analysisContext = analysisContext;
-    this.errorListener = errorListener;
   }
 
   /**
@@ -57,7 +48,7 @@ public class CompilationUnitBuilder {
    * @throws AnalysisException if the analysis could not be performed
    */
   public CompilationUnitElementImpl buildCompilationUnit(Source source) throws AnalysisException {
-    return buildCompilationUnit(source, analysisContext.parse(source, errorListener));
+    return buildCompilationUnit(source, analysisContext.parse(source));
   }
 
   /**
@@ -70,6 +61,9 @@ public class CompilationUnitBuilder {
    */
   public CompilationUnitElementImpl buildCompilationUnit(Source source, CompilationUnit unit)
       throws AnalysisException {
+    if (unit == null) {
+      return null;
+    }
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
     unit.accept(builder);

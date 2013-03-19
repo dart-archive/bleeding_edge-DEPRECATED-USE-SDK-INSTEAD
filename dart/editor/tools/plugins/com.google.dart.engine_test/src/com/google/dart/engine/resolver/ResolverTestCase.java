@@ -17,6 +17,7 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.ErrorCode;
@@ -82,7 +83,9 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected Source addSource(String filePath, String contents) {
     Source source = new FileBasedSource(sourceFactory, createFile(filePath));
-    sourceFactory.setContents(source, contents);
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source, contents);
+    analysisContext.applyChanges(changeSet);
     return source;
   }
 
@@ -92,6 +95,9 @@ public class ResolverTestCase extends EngineTestCase {
    * @throws AssertionFailedError if any errors have been gathered
    */
   protected void assertNoErrors() {
+    // TODO(brianwilkerson) This method no longer does anything because the error listener is never
+    // used. We need to pass in a list of libraries and ask the context for the errors associated
+    // with the compilation units in those libraries.
     errorListener.assertNoErrors();
   }
 
@@ -121,13 +127,13 @@ public class ResolverTestCase extends EngineTestCase {
       ClassElementImpl type = new ClassElementImpl(identifier(typeName));
       String fileName = typeName + ".dart";
       CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-      compilationUnit.setSource(new FileBasedSource(sourceFactory, createFile(fileName)));
+      compilationUnit.setSource(createSource(fileName));
       compilationUnit.setTypes(new ClassElement[] {type});
       sourcedCompilationUnits[i] = compilationUnit;
     }
     String fileName = libraryName + ".dart";
     CompilationUnitElementImpl compilationUnit = new CompilationUnitElementImpl(fileName);
-    compilationUnit.setSource(new FileBasedSource(sourceFactory, createFile(fileName)));
+    compilationUnit.setSource(createSource(fileName));
 
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier(libraryName));
     library.setDefiningCompilationUnit(compilationUnit);
@@ -175,8 +181,20 @@ public class ResolverTestCase extends EngineTestCase {
   protected void verify(Source... sources) throws Exception {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source : sources) {
-      analysisContext.parse(source, errorListener).accept(verifier);
+      analysisContext.parse(source).accept(verifier);
     }
     verifier.assertResolved();
+  }
+
+  /**
+   * Create a source object representing a file with the given name and give it an empty content.
+   * 
+   * @param fileName the name of the file for which a source is to be created
+   * @return the source that was created
+   */
+  private FileBasedSource createSource(String fileName) {
+    FileBasedSource source = new FileBasedSource(sourceFactory, createFile(fileName));
+    sourceFactory.setContents(source, "");
+    return source;
   }
 }

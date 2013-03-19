@@ -19,6 +19,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.HideCombinator;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -26,7 +27,6 @@ import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 
@@ -114,7 +114,9 @@ public class NamespaceBuilder {
    * @param namespace the namespace containing the names to be added to this namespace
    */
   private void addAll(Map<String, Element> definedNames, Namespace namespace) {
-    addAll(definedNames, namespace.getDefinedNames());
+    if (namespace != null) {
+      addAll(definedNames, namespace.getDefinedNames());
+    }
   }
 
   /**

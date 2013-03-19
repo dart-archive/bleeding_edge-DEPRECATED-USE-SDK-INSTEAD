@@ -142,7 +142,7 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
 
   @Override
   public String getIdentifier() {
-    return getSource().getFullName();
+    return getSource().getEncoding();
   }
 
   @Override
