@@ -62,6 +62,11 @@ public abstract class ExecutableElementHandle extends ElementHandle implements E
   }
 
   @Override
+  public boolean isOperator() {
+    return getActualElement().isOperator();
+  }
+
+  @Override
   public boolean isStatic() {
     return getActualElement().isStatic();
   }

@@ -130,6 +130,11 @@ public abstract class ExecutableElementImpl extends ElementImpl implements Execu
     return type;
   }
 
+  @Override
+  public boolean isOperator() {
+    return false;
+  }
+
   /**
    * Set the functions defined within this executable element to the given functions.
    * 

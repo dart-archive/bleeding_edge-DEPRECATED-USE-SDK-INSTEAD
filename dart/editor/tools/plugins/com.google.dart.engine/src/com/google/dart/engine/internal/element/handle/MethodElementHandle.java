@@ -48,11 +48,6 @@ public class MethodElementHandle extends ExecutableElementHandle implements Meth
   }
 
   @Override
-  public boolean isOperator() {
-    return getActualElement().isOperator();
-  }
-
-  @Override
   public boolean isStatic() {
     return getActualElement().isStatic();
   }

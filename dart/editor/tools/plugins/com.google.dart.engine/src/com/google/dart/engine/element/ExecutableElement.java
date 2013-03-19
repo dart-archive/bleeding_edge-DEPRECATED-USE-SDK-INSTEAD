@@ -58,6 +58,15 @@ public interface ExecutableElement extends Element {
   public FunctionType getType();
 
   /**
+   * Return {@code true} if this executable element is an operator. The test may be based on the
+   * name of the executable element, in which case the result will be correct when the name is
+   * legal.
+   * 
+   * @return {@code true} if this executable element is an operator
+   */
+  public boolean isOperator();
+
+  /**
    * Return {@code true} if this element is a static element. A static element is an element that is
    * not associated with a particular instance, but rather with an entire library or class.
    * 
