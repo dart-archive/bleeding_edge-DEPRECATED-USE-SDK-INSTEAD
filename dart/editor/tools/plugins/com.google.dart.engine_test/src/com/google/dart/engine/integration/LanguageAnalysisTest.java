@@ -139,6 +139,11 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       "/private3_test.dart", // missing a part-of directive
       "/private_test.dart", // missing a part-of directive
       "/super_assign_test.dart", // type propagation required
+      "/super_call4_test.dart", // invocations through noSuchMethod
+      "/super_getter_setter_test.dart", //invocations through noSuchMethod
+      "/super_operator_index5_test.dart", //invocations through noSuchMethod
+      "/super_operator_index6_test.dart", //invocations through noSuchMethod
+      "/super_operator_index7_test.dart", //invocations through noSuchMethod
       "/ternary_test.dart", // no unary plus operator
       "/top_level_entry_test.dart", // missing a part-of directive
       "/top_level_multiple_files_test.dart", // missing a part-of directive
