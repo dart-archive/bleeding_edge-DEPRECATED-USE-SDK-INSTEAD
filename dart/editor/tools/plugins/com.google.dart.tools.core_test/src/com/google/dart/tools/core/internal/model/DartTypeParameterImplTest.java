@@ -28,7 +28,9 @@ import junit.framework.TestCase;
  * Test for {@link DartTypeParameterImpl}.
  */
 public class DartTypeParameterImplTest extends TestCase {
-  public void issue9271_test_inFunctionTypeAlias() throws Exception {
+
+  // dartbug.com/9271
+  public void test_inFunctionTypeAlias() throws Exception {
     TestProject testProject = new TestProject();
     try {
       CompilationUnit unit = testProject.setUnitContent(
@@ -59,6 +61,7 @@ public class DartTypeParameterImplTest extends TestCase {
     }
   }
 
+  // dartbug.com/9310
   public void test_inType() throws Exception {
     TestProject testProject = new TestProject();
     try {
