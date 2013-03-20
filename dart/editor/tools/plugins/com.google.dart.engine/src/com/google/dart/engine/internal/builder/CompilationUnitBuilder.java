@@ -48,7 +48,7 @@ public class CompilationUnitBuilder {
    * @throws AnalysisException if the analysis could not be performed
    */
   public CompilationUnitElementImpl buildCompilationUnit(Source source) throws AnalysisException {
-    return buildCompilationUnit(source, analysisContext.parse(source));
+    return buildCompilationUnit(source, analysisContext.parseCompilationUnit(source));
   }
 
   /**

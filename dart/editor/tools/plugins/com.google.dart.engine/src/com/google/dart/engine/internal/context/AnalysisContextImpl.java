@@ -325,7 +325,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     return getSources(SourceKind.HTML);
   }
 
-  //@Override
+  @Override
   public SourceKind getKindOf(Source source) {
     synchronized (cacheLock) {
       SourceInfo sourceInfo = getSourceInfo(source);
@@ -334,11 +334,6 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       return sourceInfo.getKind();
     }
-  }
-
-  @Override
-  public SourceKind getKnownKindOf(Source source) {
-    return getKindOf(source);
   }
 
   @Override
@@ -399,7 +394,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       LineInfo lineInfo = sourceInfo.getLineInfo();
       if (lineInfo == null) {
         try {
-          parse(source);
+          parseCompilationUnit(source);
           lineInfo = sourceInfo.getLineInfo();
         } catch (AnalysisException exception) {
           AnalysisEngine.getInstance().getLogger().logError(
@@ -409,11 +404,6 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       return lineInfo;
     }
-  }
-
-  @Override
-  public SourceKind getOrComputeKindOf(Source source) {
-    return computeKindOf(source);
   }
 
   /**
@@ -493,11 +483,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit parse(Source source) throws AnalysisException {
-    return parseCompilationUnit(source);
-  }
-
-  @Override
   public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
@@ -526,24 +511,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public HtmlParseResult parseHtml(Source source) throws AnalysisException {
-    synchronized (cacheLock) {
-      SourceInfo sourceInfo = getSourceInfo(source);
-      if (sourceInfo == null) {
-        return null;
-      }
-      HtmlParseResult result = htmlParseCache.get(source);
-      if (result == null) {
-        result = new HtmlParser(source).parse(scanHtml(source));
-        LineInfo lineInfo = new LineInfo(result.getLineStarts());
-        htmlParseCache.put(source, result);
-        sourceInfo.setLineInfo(lineInfo);
-      }
-      return result;
-    }
-  }
-
-  @Override
   public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
       HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
@@ -567,8 +534,11 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public ChangeNotice[] performAnalysisTask() {
     synchronized (cacheLock) {
-      if (!performSingleAnalysisTask()) {
+      if (!performSingleAnalysisTask() && pendingNotices.isEmpty()) {
         return null;
+      }
+      if (pendingNotices.isEmpty()) {
+        return ChangeNoticeImpl.EMPTY_ARRAY;
       }
       ChangeNotice[] notices = pendingNotices.values().toArray(
           new ChangeNotice[pendingNotices.size()]);
@@ -631,7 +601,8 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
+  public CompilationUnit resolveCompilationUnit(Source source, LibraryElement library)
+      throws AnalysisException {
     if (library == null) {
       return null;
     }
@@ -639,7 +610,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit resolveCompilationUnit(Source librarySource, Source unitSource)
+  public CompilationUnit resolveCompilationUnit(Source unitSource, Source librarySource)
       throws AnalysisException {
     synchronized (cacheLock) {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
@@ -707,7 +678,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
     List<Source> librarySources = new ArrayList<Source>();
     for (Source source : changedSources) {
-      if (getOrComputeKindOf(source) == SourceKind.LIBRARY) {
+      if (computeKindOf(source) == SourceKind.LIBRARY) {
         librarySources.add(source);
       }
     }
@@ -937,12 +908,11 @@ public class AnalysisContextImpl implements AnalysisContext {
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
    * 
-   * @return {@code true} if work was done and their might be {@link #pendingNotices} for the
-   *         client, or {@code false} if no more work needs to be done.
+   * @return {@code true} if work was done, implying that there might be more work to be done
    */
   private boolean performSingleAnalysisTask() {
     //
-    // Look a source whose kind is not known.
+    // Look for a source whose kind is not known.
     //
     for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
       SourceInfo sourceInfo = entry.getValue();
@@ -952,7 +922,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
     }
     //
-    // Look a source that needs to be parsed.
+    // Look for a source that needs to be parsed.
     //
     for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
       SourceInfo sourceInfo = entry.getValue();

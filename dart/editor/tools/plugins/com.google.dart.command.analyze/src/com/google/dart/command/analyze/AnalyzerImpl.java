@@ -94,7 +94,7 @@ class AnalyzerImpl {
     Source librarySource = new FileBasedSource(sourceFactory, sourceFile);
     LibraryElement library = context.getLibraryElement(librarySource);
 
-    CompilationUnit unit = context.resolve(librarySource, library);
+    CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
 
     // TODO: implement options.getShowSdkWarnings() && library.getName().startsWith("dart.")
 

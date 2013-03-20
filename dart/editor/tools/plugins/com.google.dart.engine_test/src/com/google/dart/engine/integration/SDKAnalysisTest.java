@@ -83,21 +83,23 @@ public class SDKAnalysisTest extends TestCase {
     //
     StaticTypeVerifier staticTypeVerifier = new StaticTypeVerifier();
     ResolutionVerifier resolutionVerifier = new ResolutionVerifier();
-    for (LibraryElement libraryElement : libraryEltArray) {
+    for (LibraryElement library : libraryEltArray) {
       // Reference the LibraryElement, and the CompilationUnitElements we want to verify was resolved
-      CompilationUnitElement definingCompilationUnitElement = libraryElement.getDefiningCompilationUnit();
-      CompilationUnitElement[] compilationUnitElements = libraryElement.getParts();
+      CompilationUnitElement definingCompilationUnitElement = library.getDefiningCompilationUnit();
+      CompilationUnitElement[] compilationUnitElements = library.getParts();
 
       // Reference the defining CompilationUnit, and visit with the verifiers.
-      CompilationUnit definingCompilationUnit = context.resolve(
+      CompilationUnit definingCompilationUnit = context.resolveCompilationUnit(
           definingCompilationUnitElement.getSource(),
-          libraryElement);
+          library);
       definingCompilationUnit.accept(staticTypeVerifier);
       definingCompilationUnit.accept(resolutionVerifier);
 
       // Next, do the same for all the parts of the defining compilation unit.
       for (CompilationUnitElement compilationUnitElement : compilationUnitElements) {
-        CompilationUnit compilationUnit = context.resolve(compilationUnitElement.getSource(), null);
+        CompilationUnit compilationUnit = context.resolveCompilationUnit(
+            compilationUnitElement.getSource(),
+            library);
         compilationUnit.accept(staticTypeVerifier);
         compilationUnit.accept(resolutionVerifier);
       }
@@ -117,7 +119,7 @@ public class SDKAnalysisTest extends TestCase {
       throws AnalysisException {
     LibraryElement library = element.getLibrary();
     AnalysisContext context = library.getContext();
-    CompilationUnit unit = context.resolve(element.getSource(), library);
+    CompilationUnit unit = context.resolveCompilationUnit(element.getSource(), library);
     AnalysisError[] errors = unit.getErrors();
     if (errors == null) {
       Assert.fail("The compilation unit \"" + element.getSource().getFullName()

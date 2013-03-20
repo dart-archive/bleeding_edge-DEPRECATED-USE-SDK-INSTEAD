@@ -20,7 +20,6 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -79,6 +78,7 @@ public interface AnalysisContext {
    * @return all of the errors associated with the given source
    * @throws AnalysisException if the errors could not be determined because the analysis could not
    *           be performed
+   * @see #getErrors(Source)
    */
   public AnalysisError[] computeErrors(Source source) throws AnalysisException;
 
@@ -88,6 +88,7 @@ public interface AnalysisContext {
    * 
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
+   * @see #getKindOf(Source)
    */
   public SourceKind computeKindOf(Source source);
 
@@ -101,6 +102,7 @@ public interface AnalysisContext {
    * @return the element model corresponding to the library defined by the given source
    * @throws AnalysisException if the element model could not be determined because the analysis
    *           could not be performed
+   * @see #getLibraryElement(Source)
    */
   public LibraryElement computeLibraryElement(Source source) throws AnalysisException;
 
@@ -133,6 +135,7 @@ public interface AnalysisContext {
    * 
    * @param source the source whose errors are to be returned
    * @return all of the errors associated with the given source
+   * @see #computeErrors(Source)
    */
   public AnalysisError[] getErrors(Source source);
 
@@ -155,14 +158,13 @@ public interface AnalysisContext {
   public Source[] getHtmlSources();
 
   /**
-   * Return the kind of the given source if it is already known, or {@code null} if the kind is not
-   * already known.
+   * Return the kind of the given source, or {@code null} if the kind is not known to this context.
    * 
    * @param source the source whose kind is to be returned
    * @return the kind of the given source
-   * @see #getOrComputeKindOf(Source)
+   * @see #computeKindOf(Source)
    */
-  public SourceKind getKnownKindOf(Source source);
+  public SourceKind getKindOf(Source source);
 
   /**
    * Return an array containing all of the sources known to this context that represent the defining
@@ -243,15 +245,6 @@ public interface AnalysisContext {
   public LineInfo getLineInfo(Source source);
 
   /**
-   * Return the kind of the given source, computing it's kind if it is not already known.
-   * 
-   * @param source the source whose kind is to be returned
-   * @return the kind of the given source
-   * @see #getKnownKindOf(Source)
-   */
-  public SourceKind getOrComputeKindOf(Source source);
-
-  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * 
    * @return the source factory used to create the sources that can be analyzed in this context
@@ -275,30 +268,7 @@ public interface AnalysisContext {
    * @return the AST structure representing the content of the source
    * @throws AnalysisException if the analysis could not be performed
    */
-  @Deprecated
-  public CompilationUnit parse(Source source) throws AnalysisException;
-
-  /**
-   * Parse a single source to produce an AST structure. The resulting AST structure may or may not
-   * be resolved, and may have a slightly different structure depending upon whether it is resolved.
-   * 
-   * @param source the source to be parsed
-   * @return the AST structure representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
   public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException;
-
-  /**
-   * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
-   * may not be resolved, and may have a slightly different structure depending upon whether it is
-   * resolved.
-   * 
-   * @param source the HTML source to be parsed
-   * @return the parse result (not {@code null})
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  @Deprecated
-  public HtmlParseResult parseHtml(Source source) throws AnalysisException;
 
   /**
    * Parse a single HTML source to produce an AST structure. The resulting HTML AST structure may or
@@ -317,32 +287,33 @@ public interface AnalysisContext {
    * returned array will be empty. If there are no more units of work required, then this method
    * returns {@code null}. This method can be long running.
    * 
-   * @return an array containing notices of changes to the analysis results or {@code null} if there
-   *         is no more work to be done.
+   * @return an array containing notices of changes to the analysis results
    */
   public ChangeNotice[] performAnalysisTask();
 
   /**
    * Parse and resolve a single source within the given context to produce a fully resolved AST.
    * 
-   * @param source the source to be parsed and resolved
-   * @param library the library defining the context in which the source file is to be resolved
-   * @return the result of resolving the AST structure representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException;
-
-  /**
-   * Parse and resolve a single source within the given context to produce a fully resolved AST.
-   * 
-   * @param librarySource the source of the defining compilation unit of the library containing the
-   *          source to be resolved
    * @param unitSource the source to be parsed and resolved
+   * @param library the library containing the source to be resolved
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
    */
-  public CompilationUnit resolveCompilationUnit(Source librarySource, Source unitSource)
+  public CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library)
+      throws AnalysisException;
+
+  /**
+   * Parse and resolve a single source within the given context to produce a fully resolved AST.
+   * 
+   * @param unitSource the source to be parsed and resolved
+   * @param librarySource the source of the defining compilation unit of the library containing the
+   *          source to be resolved
+   * @return the result of resolving the AST structure representing the content of the source in the
+   *         context of the given library
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public CompilationUnit resolveCompilationUnit(Source unitSource, Source librarySource)
       throws AnalysisException;
 
   /**

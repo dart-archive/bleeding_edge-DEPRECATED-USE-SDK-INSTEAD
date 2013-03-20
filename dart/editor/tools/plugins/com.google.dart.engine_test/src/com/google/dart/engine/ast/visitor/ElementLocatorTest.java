@@ -176,6 +176,6 @@ public class ElementLocatorTest extends ResolverTestCase {
     LibraryElement library = resolve(source);
     assertNoErrors();
     verify(source);
-    return getAnalysisContext().resolve(source, library);
+    return getAnalysisContext().resolveCompilationUnit(source, library);
   }
 }

@@ -842,7 +842,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     when(element.getContext()).thenReturn(analysisContext);
     when(element.getSource()).thenReturn(source);
     when(element.getLibrary()).thenReturn(library);
-    when(analysisContext.resolve(source, library)).thenReturn(compilationUnit);
+    when(analysisContext.resolveCompilationUnit(source, library)).thenReturn(compilationUnit);
     //
     assertSame(compilationUnit, CorrectionUtils.getResolvedUnit(element));
   }

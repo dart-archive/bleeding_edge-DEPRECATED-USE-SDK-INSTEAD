@@ -21,7 +21,6 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -41,21 +40,21 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertEquals(location, element.getLocation());
   }
 
-  public void fail_getKnownKindOf_unknown() {
+  public void fail_getKindOf_unknown() {
     AnalysisContextImpl context = new AnalysisContextImpl();
     Source source = new TestSource();
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
-    assertSame(SourceKind.UNKNOWN, context.getKnownKindOf(source));
+    assertSame(SourceKind.UNKNOWN, context.getKindOf(source));
   }
 
-  public void fail_parse_nonExistentSource() throws Exception {
+  public void fail_parseCompilationUnit_nonExistentSource() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory(new FileUriResolver());
     context.setSourceFactory(sourceFactory);
     Source source = new FileBasedSource(sourceFactory, createFile("/does/not/exist.dart"));
-    CompilationUnit unit = context.parse(source);
+    CompilationUnit unit = context.parseCompilationUnit(source);
     assertNotNull(unit);
   }
 
@@ -127,7 +126,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
-    CompilationUnit compilationUnit = context.parse(source);
+    CompilationUnit compilationUnit = context.parseCompilationUnit(source);
     assertLength(0, compilationUnit.getParsingErrors());
     // TODO (danrubel): assert no semantic errors
 //    assertEquals(null, compilationUnit.getSemanticErrors());
@@ -142,14 +141,14 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
-    CompilationUnit compilationUnit = context.parse(source);
+    CompilationUnit compilationUnit = context.parseCompilationUnit(source);
     assertTrue("Expected syntax errors", compilationUnit.getParsingErrors().length > 0);
     // TODO (danrubel): assert no semantic errors
 //  assertEquals(null, compilationUnit.getSemanticErrors());
 //  assertEquals(null, compilationUnit.getErrors());
   }
 
-  public void test_parseHtml_no_errors() throws Exception {
+  public void test_parseHtmlUnit_no_errors() throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory();
     context.setSourceFactory(sourceFactory);
@@ -158,13 +157,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);
-    HtmlParseResult result = context.parseHtml(source);
-    assertNotNull(result);
-    HtmlUnit unit = result.getHtmlUnit();
+    HtmlUnit unit = context.parseHtmlUnit(source);
     assertNotNull(unit);
     assertEquals("h1", unit.getTagNodes().get(0).getTagNodes().get(0).getTag().getLexeme());
-    assertEquals(3, result.getLineStarts().length);
-    assertNotNull(result.getToken());
   }
 
   public void test_resolveCompilationUnit() throws Exception {

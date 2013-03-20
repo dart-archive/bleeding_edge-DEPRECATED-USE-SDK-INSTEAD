@@ -130,7 +130,7 @@ public class Library {
   public CompilationUnit getAST(Source source) throws AnalysisException {
     CompilationUnit unit = astMap.get(source);
     if (unit == null) {
-      unit = analysisContext.parse(source);
+      unit = analysisContext.parseCompilationUnit(source);
       astMap.put(source, unit);
     }
     return unit;

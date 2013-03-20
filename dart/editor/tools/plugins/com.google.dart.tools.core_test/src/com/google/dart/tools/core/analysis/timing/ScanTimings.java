@@ -81,7 +81,7 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public CompilationUnit parse(Source source) throws AnalysisException {
+    public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
       return compilationUnit;
     }
   }

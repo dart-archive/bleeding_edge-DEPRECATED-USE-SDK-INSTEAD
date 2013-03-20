@@ -116,7 +116,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
       }
       CompilationUnit unit;
       try {
-        unit = context.parse(source);
+        unit = context.parseCompilationUnit(source);
       } catch (AnalysisException e) {
         DartCore.logError("Exception parsing source: " + source, e);
         return;
@@ -178,7 +178,7 @@ public class ProjectAnalyzer extends DeltaAdapter {
       // TODO (danrubel): do not show errors on sources in the "packages" directory
       CompilationUnit unit;
       try {
-        unit = context.resolve(source, library);
+        unit = context.resolveCompilationUnit(source, library);
       } catch (AnalysisException e) {
         DartCore.logError("Exception resolving source: " + source, e);
         return;

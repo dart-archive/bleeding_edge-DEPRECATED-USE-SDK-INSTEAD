@@ -371,7 +371,7 @@ public class CorrectionUtils {
    * @return the resolved {@link CompilationUnit} which declares given {@link Element}.
    */
   public static CompilationUnit getResolvedUnit(Element element) throws AnalysisException {
-    return element.getContext().resolve(element.getSource(), element.getLibrary());
+    return element.getContext().resolveCompilationUnit(element.getSource(), element.getLibrary());
   }
 
   /**

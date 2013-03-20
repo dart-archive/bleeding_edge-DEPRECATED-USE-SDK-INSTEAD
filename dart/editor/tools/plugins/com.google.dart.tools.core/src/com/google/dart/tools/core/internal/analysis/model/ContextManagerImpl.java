@@ -130,7 +130,7 @@ public abstract class ContextManagerImpl implements ContextManager {
       IPath location = file.getLocation();
       if (location != null) {
         Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
-        return context.getOrComputeKindOf(source);
+        return context.computeKindOf(source);
       }
     }
     return null;

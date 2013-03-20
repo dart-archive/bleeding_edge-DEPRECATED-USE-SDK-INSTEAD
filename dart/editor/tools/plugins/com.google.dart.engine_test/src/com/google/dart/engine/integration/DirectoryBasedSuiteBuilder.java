@@ -92,7 +92,7 @@ public abstract class DirectoryBasedSuiteBuilder {
       throws AnalysisException {
     LibraryElement library = element.getLibrary();
     AnalysisContext context = library.getContext();
-    CompilationUnit unit = context.resolve(element.getSource(), library);
+    CompilationUnit unit = context.resolveCompilationUnit(element.getSource(), library);
     AnalysisError[] errors = unit.getErrors();
     if (errors == null) {
       Assert.fail("The compilation unit \"" + element.getSource().getFullName()

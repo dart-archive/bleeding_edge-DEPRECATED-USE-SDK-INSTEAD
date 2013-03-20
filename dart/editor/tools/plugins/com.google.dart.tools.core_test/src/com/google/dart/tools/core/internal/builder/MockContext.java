@@ -11,7 +11,6 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
-import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -237,7 +236,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public SourceKind getKnownKindOf(Source source) {
+  public SourceKind getKindOf(Source source) {
     throw new UnsupportedOperationException();
   }
 
@@ -277,11 +276,6 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public SourceKind getOrComputeKindOf(Source source) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
   public SourceFactory getSourceFactory() {
     return factory;
   }
@@ -292,17 +286,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit parse(Source source) throws AnalysisException {
-    return null;
-  }
-
-  @Override
   public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public HtmlParseResult parseHtml(Source source) throws AnalysisException {
     throw new UnsupportedOperationException();
   }
 
@@ -317,7 +301,7 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit resolve(Source source, LibraryElement library) throws AnalysisException {
+  public CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) throws AnalysisException {
     return null;
   }
 

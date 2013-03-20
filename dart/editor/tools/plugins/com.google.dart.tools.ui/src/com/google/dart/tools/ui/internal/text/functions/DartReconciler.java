@@ -177,7 +177,7 @@ public class DartReconciler extends MonoReconciler {
     }
     // parse
     AnalysisContext context = source.getContext();
-    return context.parse(source);
+    return context.parseCompilationUnit(source);
   }
 
   /**
@@ -192,7 +192,7 @@ public class DartReconciler extends MonoReconciler {
     // resolve
     AnalysisContext context = source.getContext();
     LibraryElement libraryElement = context.getLibraryElement(source);
-    return context.resolve(source, libraryElement);
+    return context.resolveCompilationUnit(source, libraryElement);
   }
 
   /**

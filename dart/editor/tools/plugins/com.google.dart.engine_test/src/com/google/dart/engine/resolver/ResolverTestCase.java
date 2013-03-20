@@ -181,7 +181,7 @@ public class ResolverTestCase extends EngineTestCase {
   protected void verify(Source... sources) throws Exception {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source : sources) {
-      analysisContext.parse(source).accept(verifier);
+      analysisContext.parseCompilationUnit(source).accept(verifier);
     }
     verifier.assertResolved();
   }

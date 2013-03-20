@@ -78,7 +78,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * @throws AnalysisException if the analysis could not be performed
    */
   public HtmlElementImpl buildHtmlElement(Source source) throws AnalysisException {
-    return buildHtmlElement(source, context.parseHtml(source).getHtmlUnit());
+    return buildHtmlElement(source, context.parseHtmlUnit(source));
   }
 
   /**

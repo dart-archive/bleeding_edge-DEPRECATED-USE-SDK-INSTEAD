@@ -50,7 +50,7 @@ public class GeneratorUtils {
     Source librarySource = new FileBasedSource(sourceFactory, file.getLocation().toFile());
     LibraryElement library = context.getLibraryElement(librarySource);
 
-    CompilationUnit unit = context.resolve(librarySource, library);
+    CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
     AnalysisError[] errors = unit.getErrors();
     assertNotNull(errors);
 

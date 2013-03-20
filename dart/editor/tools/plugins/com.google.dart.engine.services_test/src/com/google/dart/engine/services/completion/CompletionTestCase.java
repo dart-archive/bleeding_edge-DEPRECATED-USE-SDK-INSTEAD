@@ -85,7 +85,7 @@ public class CompletionTestCase extends ResolverTestCase {
   private CompilationUnit analyze(String content) throws AnalysisException {
     Source source = addSource(NAME_OF_SOURCE_TO_ANALYZE, content);
     resolve(source);
-    CompilationUnit unit = getAnalysisContext().parse(source);
+    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
     return unit;
   }
 

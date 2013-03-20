@@ -373,7 +373,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
   private EvaluationResult getExpressionValue(String contents) throws Exception {
     Source source = addSource("/test.dart", "var x = " + contents + ";");
     LibraryElement library = resolve(source);
-    CompilationUnit unit = getAnalysisContext().resolve(source, library);
+    CompilationUnit unit = getAnalysisContext().resolveCompilationUnit(source, library);
     assertNotNull(unit);
     NodeList<CompilationUnitMember> declarations = unit.getDeclarations();
     assertSize(1, declarations);
