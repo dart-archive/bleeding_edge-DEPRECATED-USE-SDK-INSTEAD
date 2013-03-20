@@ -151,7 +151,7 @@ public class ProjectAnalyzerTest extends TestCase {
     LibraryElement library = mock(LibraryElement.class);
     when(context.parseCompilationUnit(source)).thenReturn(unit);
     when(context.sourcesToResolve(sources.toArray(new Source[sources.size()]))).thenReturn(sources);
-    when(context.getLibraryElement(source)).thenReturn(library);
+    when(context.computeLibraryElement(source)).thenReturn(library);
     when(context.resolveCompilationUnit(source, library)).thenReturn(unit);
 
     project = mock(Project.class);

@@ -203,27 +203,14 @@ public interface AnalysisContext {
   public Source[] getLibrariesContaining(Source source);
 
   /**
-   * Return the element model corresponding to the library defined by the given source. If the
-   * element model does not yet exist it will be created. The process of creating an element model
-   * for a library can long-running, depending on the size of the library and the number of
-   * libraries that are imported into it that also need to have a model built for them.
-   * 
-   * @param source the source defining the library whose element model is to be returned
-   * @return the element model corresponding to the library defined by the given source or
-   *         {@code null} if the element model could not be determined because the analysis could
-   *         not be performed
-   */
-  public LibraryElement getLibraryElement(Source source);
-
-  /**
    * Return the element model corresponding to the library defined by the given source, or
-   * {@code null} if the element model does not currently exist or if the analysis could not be
-   * performed.
+   * {@code null} if the element model does not currently exist or if the library cannot be analyzed
+   * for some reason.
    * 
    * @param source the source defining the library whose element model is to be returned
    * @return the element model corresponding to the library defined by the given source
    */
-  public LibraryElement getLibraryElementOrNull(Source source);
+  public LibraryElement getLibraryElement(Source source);
 
   /**
    * Return an array containing all of the sources known to this context that represent the defining

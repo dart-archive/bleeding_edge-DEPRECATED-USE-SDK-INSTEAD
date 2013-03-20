@@ -158,7 +158,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     Source source = new FileBasedSource(sourceFactory, sourceFile);
     long startTime = System.currentTimeMillis();
-    LibraryElement library = context.getLibraryElement(source);
+    LibraryElement library = context.computeLibraryElement(source);
     long endTime = System.currentTimeMillis();
     if (library == null) {
       Assert.fail("Could not analyze " + sourceFile.getAbsolutePath());

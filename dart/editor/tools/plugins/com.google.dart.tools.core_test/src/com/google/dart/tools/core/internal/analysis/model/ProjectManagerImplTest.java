@@ -52,20 +52,20 @@ public class ProjectManagerImplTest extends TestCase {
 
   private final class MockContextForTest extends MockContext {
     @Override
+    public LibraryElement computeLibraryElement(Source source) {
+      if (source.getShortName().equals("libraryA.dart")) {
+        return library(this, "libraryA");
+      }
+      return null;
+    }
+
+    @Override
     public Source[] getLibrariesContaining(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
         return new Source[] {source};
       }
 
       return new Source[] {};
-    }
-
-    @Override
-    public LibraryElement getLibraryElement(Source source) {
-      if (source.getShortName().equals("libraryA.dart")) {
-        return library(this, "libraryA");
-      }
-      return null;
     }
 
   }

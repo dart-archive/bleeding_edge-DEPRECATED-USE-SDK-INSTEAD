@@ -48,7 +48,7 @@ public class GeneratorUtils {
     context.setSourceFactory(sourceFactory);
 
     Source librarySource = new FileBasedSource(sourceFactory, file.getLocation().toFile());
-    LibraryElement library = context.getLibraryElement(librarySource);
+    LibraryElement library = context.computeLibraryElement(librarySource);
 
     CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
     AnalysisError[] errors = unit.getErrors();

@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ExportDirective;
@@ -99,7 +100,7 @@ public class Library {
     this.analysisContext = analysisContext;
     this.errorListener = errorListener;
     this.librarySource = librarySource;
-    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElementOrNull(librarySource);
+    this.libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
   }
 
   /**
@@ -228,7 +229,13 @@ public class Library {
    */
   public LibraryElementImpl getLibraryElement() {
     if (libraryElement == null) {
-      libraryElement = (LibraryElementImpl) analysisContext.getLibraryElement(librarySource);
+      try {
+        libraryElement = (LibraryElementImpl) analysisContext.computeLibraryElement(librarySource);
+      } catch (AnalysisException exception) {
+        AnalysisEngine.getInstance().getLogger().logError(
+            "Could not compute ilbrary element for " + librarySource.getFullName(),
+            exception);
+      }
     }
     return libraryElement;
   }

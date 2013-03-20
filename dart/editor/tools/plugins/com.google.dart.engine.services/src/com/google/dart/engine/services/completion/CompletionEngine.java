@@ -54,6 +54,7 @@ import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
@@ -1222,7 +1223,13 @@ public class CompletionEngine {
   private TypeProvider getTypeProvider() {
     AnalysisContext ctxt = context.getCompilationUnit().getElement().getContext();
     Source coreSource = ctxt.getSourceFactory().forUri(DartSdk.DART_CORE);
-    LibraryElement coreLibrary = ctxt.getLibraryElement(coreSource);
+    LibraryElement coreLibrary;
+    try {
+      coreLibrary = ctxt.computeLibraryElement(coreSource);
+    } catch (AnalysisException exception) {
+      // TODO(brianwilkerson) Figure out the right thing to do if the core cannot be resolved.
+      return null;
+    }
     TypeProvider provider = new TypeProviderImpl(coreLibrary);
     return provider;
   }

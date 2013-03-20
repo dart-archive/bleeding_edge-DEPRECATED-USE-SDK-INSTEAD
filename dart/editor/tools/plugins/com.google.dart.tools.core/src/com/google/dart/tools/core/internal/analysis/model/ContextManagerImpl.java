@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.FileBasedSource;
@@ -66,7 +67,12 @@ public abstract class ContextManagerImpl implements ContextManager {
               Source source = new FileBasedSource(
                   context.getSourceFactory(),
                   proxy.requestResource().getLocation().toFile());
-              LibraryElement element = context.getLibraryElement(source);
+              LibraryElement element = null;
+              try {
+                element = context.computeLibraryElement(source);
+              } catch (AnalysisException exception) {
+                // Fall through to handle this case by testing for null.
+              }
               if (element != null) {
                 elements.add(element);
               }
@@ -91,7 +97,11 @@ public abstract class ContextManagerImpl implements ContextManager {
       IPath location = file.getLocation();
       if (location != null) {
         Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
-        return context.getLibraryElement(source);
+        try {
+          return context.computeLibraryElement(source);
+        } catch (AnalysisException exception) {
+          return null;
+        }
       }
     }
     return null;
@@ -104,7 +114,7 @@ public abstract class ContextManagerImpl implements ContextManager {
       IPath location = file.getLocation();
       if (location != null) {
         Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
-        return context.getLibraryElementOrNull(source);
+        return context.getLibraryElement(source);
       }
     }
     return null;

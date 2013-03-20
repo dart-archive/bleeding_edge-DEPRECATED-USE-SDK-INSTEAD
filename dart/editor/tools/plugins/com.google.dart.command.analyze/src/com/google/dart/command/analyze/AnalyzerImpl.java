@@ -92,7 +92,7 @@ class AnalyzerImpl {
     context.setSourceFactory(sourceFactory);
 
     Source librarySource = new FileBasedSource(sourceFactory, sourceFile);
-    LibraryElement library = context.getLibraryElement(librarySource);
+    LibraryElement library = context.computeLibraryElement(librarySource);
 
     CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
 

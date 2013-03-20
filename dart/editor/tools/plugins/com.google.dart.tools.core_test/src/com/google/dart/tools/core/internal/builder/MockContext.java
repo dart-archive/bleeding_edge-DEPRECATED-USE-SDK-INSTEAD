@@ -206,7 +206,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public LibraryElement computeLibraryElement(Source source) throws AnalysisException {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override
@@ -261,11 +261,6 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public LibraryElement getLibraryElementOrNull(Source source) {
-    return null;
-  }
-
-  @Override
   public Source[] getLibrarySources() {
     return Source.EMPTY_ARRAY;
   }
@@ -301,7 +296,8 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public CompilationUnit resolveCompilationUnit(Source source, LibraryElement library) throws AnalysisException {
+  public CompilationUnit resolveCompilationUnit(Source source, LibraryElement library)
+      throws AnalysisException {
     return null;
   }
 

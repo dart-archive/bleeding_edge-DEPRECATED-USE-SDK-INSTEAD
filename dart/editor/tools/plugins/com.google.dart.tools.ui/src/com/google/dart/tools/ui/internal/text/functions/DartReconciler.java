@@ -191,7 +191,7 @@ public class DartReconciler extends MonoReconciler {
     }
     // resolve
     AnalysisContext context = source.getContext();
-    LibraryElement libraryElement = context.getLibraryElement(source);
+    LibraryElement libraryElement = context.computeLibraryElement(source);
     return context.resolveCompilationUnit(source, libraryElement);
   }
 

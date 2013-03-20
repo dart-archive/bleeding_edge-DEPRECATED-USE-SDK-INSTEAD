@@ -166,7 +166,12 @@ public class ProjectAnalyzer extends DeltaAdapter {
      * @param source the source to be resolved (not {@code null})
      */
     void resolveSource(Source source) {
-      LibraryElement library = context.getLibraryElement(source);
+      LibraryElement library = null;
+      try {
+        library = context.computeLibraryElement(source);
+      } catch (AnalysisException exception) {
+        // Fall through to handle this case by testing for null.
+      }
       if (library == null) {
         DartCore.logError("Failed to determine library for source: " + source);
         return;

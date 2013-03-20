@@ -105,7 +105,7 @@ public class AbstractDartTest extends TestCase {
       ANALYSIS_CONTEXT.applyChanges(changeSet);
     }
     // parse and resolve
-    LibraryElement library = ANALYSIS_CONTEXT.getLibraryElement(SOURCE);
+    LibraryElement library = ANALYSIS_CONTEXT.computeLibraryElement(SOURCE);
     CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolveCompilationUnit(SOURCE, library);
     return libraryUnit;
   }

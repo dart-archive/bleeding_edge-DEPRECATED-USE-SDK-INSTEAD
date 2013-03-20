@@ -53,7 +53,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
   private final class MockContextForTest extends MockContext {
     @Override
-    public LibraryElement getLibraryElement(Source source) {
+    public LibraryElement computeLibraryElement(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
         return library(this, "libraryA");
       }

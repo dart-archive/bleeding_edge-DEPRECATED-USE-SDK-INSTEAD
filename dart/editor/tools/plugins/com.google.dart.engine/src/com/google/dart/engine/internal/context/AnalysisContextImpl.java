@@ -361,15 +361,6 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
-    try {
-      return computeLibraryElement(source);
-    } catch (AnalysisException exception) {
-      return null;
-    }
-  }
-
-  @Override
-  public LibraryElement getLibraryElementOrNull(Source source) {
     synchronized (cacheLock) {
       LibraryInfo libraryInfo = getLibraryInfo(source);
       if (libraryInfo == null) {
@@ -438,8 +429,9 @@ public class AnalysisContextImpl implements AnalysisContext {
    * 
    * @param source the source defining the library whose public namespace is to be returned
    * @return the public namespace corresponding to the library defined by the given source
+   * @throws AnalysisException if the public namespace could not be computed
    */
-  public Namespace getPublicNamespace(Source source) {
+  public Namespace getPublicNamespace(Source source) throws AnalysisException {
     // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
     // API of the interface.
     synchronized (cacheLock) {
@@ -449,7 +441,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       Namespace namespace = libraryInfo.getPublicNamespace();
       if (namespace == null) {
-        LibraryElement library = getLibraryElement(source);
+        LibraryElement library = computeLibraryElement(source);
         if (library == null) {
           return null;
         }

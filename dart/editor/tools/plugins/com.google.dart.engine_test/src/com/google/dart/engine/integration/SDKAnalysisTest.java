@@ -46,7 +46,7 @@ public class SDKAnalysisTest extends TestCase {
     ArrayList<LibraryElement> libraries = new ArrayList<LibraryElement>();
     for (String dartUri : sdk.getUris()) {
 //      long startTime = System.currentTimeMillis();
-      libraries.add(context.getLibraryElement(new FileBasedSource(
+      libraries.add(context.computeLibraryElement(new FileBasedSource(
           sourceFactory,
           sdk.mapDartUri(dartUri))));
 //      long endTime = System.currentTimeMillis();
