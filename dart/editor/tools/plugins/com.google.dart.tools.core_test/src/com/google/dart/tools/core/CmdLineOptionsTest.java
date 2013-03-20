@@ -138,7 +138,7 @@ public class CmdLineOptionsTest extends TestCase {
     assertEquals(perf, options.getMeasurePerformance());
     if (startTime == 0) {
       long delta = System.currentTimeMillis() - options.getStartTime();
-      assertTrue("Expected getStartTime() to be within 10 ms", 0 <= delta && delta <= 10);
+      assertTrue("Expected getStartTime() to be within 100 ms", 0 <= delta && delta <= 100);
     } else {
       assertEquals(startTime, options.getStartTime());
     }
