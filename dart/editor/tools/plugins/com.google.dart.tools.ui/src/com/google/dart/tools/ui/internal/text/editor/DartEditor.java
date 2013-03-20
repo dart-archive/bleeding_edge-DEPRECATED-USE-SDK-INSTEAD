@@ -1931,7 +1931,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       boolean newUnit, Point selectionRange) {
     DartOutlinePage outlinePage = (DartOutlinePage) fOutlinePage;
     // may be update Outline
-    if (newUnit) {
+    if (newUnit && outlinePage != null) {
       outlinePage.setInput(unit);
     }
     // these notifications are asynchronous, so actual selection may be changed
@@ -1941,7 +1941,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     // apply selection
     if (selectionRange != null) {
       LightNodeElement element = computeHighlightRangeSourceElement(unit, selectionRange.x);
-      if (element != null) {
+      if (element != null && outlinePage != null) {
         outlinePage.select(element);
       }
     }
