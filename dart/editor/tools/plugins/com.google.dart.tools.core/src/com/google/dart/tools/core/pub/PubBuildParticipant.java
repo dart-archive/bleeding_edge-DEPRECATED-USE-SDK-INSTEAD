@@ -15,6 +15,7 @@ package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
@@ -50,7 +51,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
     if (reanalyze) {
       reanalyze = false;
-    } else if (DartCore.getPlugin().isAutoRunPubEnabled()) {
+    } else {
       event.traverse(this, false);
     }
   }
@@ -161,7 +162,12 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void runPub(IContainer container, final IProgressMonitor monitor) {
-    new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
+    if (DartCore.getPlugin().isAutoRunPubEnabled()) {
+      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
+    } else {
+      MessageConsole console = DartCore.getConsole();
+      console.printSeparator("");
+      console.println("Run Tools > Pub Install to install packages");
+    }
   }
-
 }
