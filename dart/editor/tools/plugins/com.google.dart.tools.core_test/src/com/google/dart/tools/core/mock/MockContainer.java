@@ -55,7 +55,7 @@ public abstract class MockContainer extends MockResource implements IContainer {
    * @param child the child to be added (not <code>null</code>)
    * @return the child added
    */
-  public MockResource add(MockResource child) {
+  public <R extends MockResource> R add(R child) {
     if (child == null) {
       throw new IllegalArgumentException();
     }

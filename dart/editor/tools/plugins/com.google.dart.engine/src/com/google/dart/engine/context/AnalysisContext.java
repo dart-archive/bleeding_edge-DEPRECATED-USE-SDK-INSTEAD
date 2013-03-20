@@ -314,9 +314,11 @@ public interface AnalysisContext {
   /**
    * Perform the next unit of work required to keep the analysis results up-to-date and return
    * information about the consequent changes to the analysis results. If there were no results the
-   * returned array will be empty. This method can be long running.
+   * returned array will be empty. If there are no more units of work required, then this method
+   * returns {@code null}. This method can be long running.
    * 
-   * @return an array containing notices of changes to the analysis results
+   * @return an array containing notices of changes to the analysis results or {@code null} if there
+   *         is no more work to be done.
    */
   public ChangeNotice[] performAnalysisTask();
 

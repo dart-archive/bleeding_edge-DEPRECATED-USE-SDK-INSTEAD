@@ -567,9 +567,8 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public ChangeNotice[] performAnalysisTask() {
     synchronized (cacheLock) {
-      performSingleAnalysisTask();
-      if (pendingNotices.isEmpty()) {
-        return ChangeNoticeImpl.EMPTY_ARRAY;
+      if (!performSingleAnalysisTask()) {
+        return null;
       }
       ChangeNotice[] notices = pendingNotices.values().toArray(
           new ChangeNotice[pendingNotices.size()]);
@@ -937,16 +936,19 @@ public class AnalysisContextImpl implements AnalysisContext {
    * Perform a single analysis task.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @return {@code true} if work was done and their might be {@link #pendingNotices} for the
+   *         client, or {@code false} if no more work needs to be done.
    */
-  private void performSingleAnalysisTask() {
+  private boolean performSingleAnalysisTask() {
     //
     // Look a source whose kind is not known.
     //
     for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
       SourceInfo sourceInfo = entry.getValue();
-      if (sourceInfo.getKind() == null) {
+      if (sourceInfo == DartInfo.getInstance() || sourceInfo.getKind() == null) {
         entry.setValue(internalComputeKindOf(entry.getKey(), sourceInfo));
-        return;
+        return true;
       }
     }
     //
@@ -965,7 +967,7 @@ public class AnalysisContextImpl implements AnalysisContext {
                 "Could not parse " + entry.getKey().getFullName(),
                 exception);
           }
-          return;
+          return true;
         }
       } else if (sourceInfo instanceof HtmlUnitInfo) {
         HtmlUnitInfo unitInfo = (HtmlUnitInfo) sourceInfo;
@@ -978,7 +980,7 @@ public class AnalysisContextImpl implements AnalysisContext {
                 "Could not parse " + entry.getKey().getFullName(),
                 exception);
           }
-          return;
+          return true;
         }
       }
     }
@@ -998,10 +1000,11 @@ public class AnalysisContextImpl implements AnalysisContext {
                 "Could not compute the library element for " + entry.getKey().getFullName(),
                 exception);
           }
-          return;
+          return true;
         }
       }
     }
+    return false;
   }
 
   private HtmlScanResult scanHtml(Source source) throws AnalysisException {

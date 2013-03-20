@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -26,8 +27,16 @@ import java.net.URI;
 
 public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
 
+  private final MockWorkspace workspace;
+
   public MockWorkspaceRoot() {
     super(null, "/");
+    this.workspace = null;
+  }
+
+  public MockWorkspaceRoot(MockWorkspace workspace) {
+    super(null, "/");
+    this.workspace = workspace;
   }
 
   @Override
@@ -101,5 +110,10 @@ public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
   @Override
   public int getType() {
     return IResource.ROOT;
+  }
+
+  @Override
+  public IWorkspace getWorkspace() {
+    return workspace;
   }
 }

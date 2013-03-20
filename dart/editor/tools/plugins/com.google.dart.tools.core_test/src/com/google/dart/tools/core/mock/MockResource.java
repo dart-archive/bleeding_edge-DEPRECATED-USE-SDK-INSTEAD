@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.tools.core.CallList;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IPathVariableManager;
@@ -33,12 +35,19 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public abstract class MockResource implements IResource {
+  public static final String CREATE_MARKER = "createMarker";
+  public static final String DELETE_MARKERS = "deleteMarkers";
+
   private IContainer parent;
   private String name;
   private boolean exists;
+  private CallList markerCallList;
+  private List<MockMarker> markers;
 
   public MockResource(IContainer parent, String name) {
     this(parent, name, true);
@@ -93,7 +102,10 @@ public abstract class MockResource implements IResource {
 
   @Override
   public IMarker createMarker(String type) throws CoreException {
-    return null;
+    getMarkerCallList().add(this, CREATE_MARKER, type);
+    MockMarker marker = new MockMarker(this, type);
+    getMarkers().add(marker);
+    return marker;
   }
 
   @Override
@@ -111,6 +123,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public void deleteMarkers(String type, boolean includeSubtypes, int depth) throws CoreException {
+    getMarkerCallList().add(this, DELETE_MARKERS, type, includeSubtypes, depth);
   }
 
   @Override
@@ -177,6 +190,20 @@ public abstract class MockResource implements IResource {
   @Override
   public IMarker getMarker(long id) {
     return null;
+  }
+
+  public CallList getMarkerCallList() {
+    if (markerCallList == null) {
+      markerCallList = new CallList();
+    }
+    return markerCallList;
+  }
+
+  public List<MockMarker> getMarkers() {
+    if (markers == null) {
+      markers = new ArrayList<MockMarker>();
+    }
+    return markers;
   }
 
   @Override
@@ -249,7 +276,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public IWorkspace getWorkspace() {
-    return null;
+    return getParent().getWorkspace();
   }
 
   @Override
@@ -395,6 +422,10 @@ public abstract class MockResource implements IResource {
   public void setTeamPrivateMember(boolean isTeamPrivate) throws CoreException {
   }
 
+  public File toFile() {
+    return getLocation().toFile();
+  }
+
   @Override
   public String toString() {
     return getClass().getSimpleName() + "[" + getFullPath() + "]";
@@ -402,9 +433,5 @@ public abstract class MockResource implements IResource {
 
   @Override
   public void touch(IProgressMonitor monitor) throws CoreException {
-  }
-
-  public File toFile() {
-    return getLocation().toFile();
   }
 }
