@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 import com.google.dart.tools.ui.internal.callhierarchy.MethodWrapper;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
 
@@ -24,7 +24,7 @@ import org.eclipse.ui.IWorkbenchSite;
 /**
  * This class is used for opening the declaration of an element from the call hierarchy view.
  */
-class OpenDeclarationAction extends OpenAction {
+class OpenDeclarationAction extends OpenAction_OLD {
 
   public OpenDeclarationAction(IWorkbenchSite site) {
     super(site);

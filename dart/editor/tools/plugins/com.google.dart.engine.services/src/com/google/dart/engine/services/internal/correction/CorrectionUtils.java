@@ -713,17 +713,6 @@ public class CorrectionUtils {
     return new Edit(range.getOffset(), range.getLength(), newSource);
   }
 
-  /**
-   * @return the enclosing node with given {@link Class}.
-   */
-  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
-    if (node != null) {
-      return node.getAncestor(clazz);
-    }
-    return null;
-  }
-
 //  /**
 //   * @return {@link TopInsertDesc}, description where to insert new directive or top-level
 //   *         declaration at the top of file.
@@ -780,6 +769,17 @@ public class CorrectionUtils {
 //    desc.insertEmptyLineAfter = insertEmptyLineAfter;
 //    return desc;
 //  }
+
+  /**
+   * @return the enclosing node with given {@link Class}.
+   */
+  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
+    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+    if (node != null) {
+      return node.getAncestor(clazz);
+    }
+    return null;
+  }
 
   /**
    * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
@@ -1134,5 +1134,4 @@ public class CorrectionUtils {
     // only whitespace in selection around range
     return false;
   }
-
 }

@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartVariable;
@@ -46,9 +49,9 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
-import com.google.dart.tools.ui.actions.OpenEditorActionGroup;
+import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
-import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentation;
@@ -1447,12 +1450,44 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   private class DartSelectionProvider extends SelectionProvider {
-    public DartSelectionProvider() {
+    private final Map<ISelectionChangedListener, ISelectionChangedListener> listeners = Maps.newHashMap();
+
+    @Override
+    public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
+      ISelectionChangedListener dartListener = newDartSelectionListener(listener);
+      super.addPostSelectionChangedListener(dartListener);
+    }
+
+    @Override
+    public void addSelectionChangedListener(ISelectionChangedListener listener) {
+      ISelectionChangedListener dartListener = newDartSelectionListener(listener);
+      super.addSelectionChangedListener(dartListener);
     }
 
     @Override
     public ISelection getSelection() {
-      ITextSelection textSelection = (ITextSelection) super.getSelection();
+      ISelection selection = super.getSelection();
+      return newDartSelection(selection);
+    }
+
+    @Override
+    public void removePostSelectionChangedListener(ISelectionChangedListener listener) {
+      ISelectionChangedListener dartListener = listeners.remove(listener);
+      if (dartListener != null) {
+        super.removePostSelectionChangedListener(dartListener);
+      }
+    }
+
+    @Override
+    public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+      ISelectionChangedListener dartListener = newDartSelectionListener(listener);
+      if (dartListener != null) {
+        super.removeSelectionChangedListener(dartListener);
+      }
+    }
+
+    private ISelection newDartSelection(ISelection selection) {
+      ITextSelection textSelection = (ITextSelection) selection;
       IDocument document = getSourceViewer().getDocument();
       AssistContext assistContext = getAssistContext(textSelection);
       return new DartSelection(
@@ -1461,6 +1496,20 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
           document,
           textSelection.getOffset(),
           textSelection.getLength());
+    }
+
+    private ISelectionChangedListener newDartSelectionListener(
+        final ISelectionChangedListener listener) {
+      ISelectionChangedListener dartListener = new ISelectionChangedListener() {
+        @Override
+        public void selectionChanged(SelectionChangedEvent event) {
+          listener.selectionChanged(new SelectionChangedEvent(
+              event.getSelectionProvider(),
+              newDartSelection(event.getSelection())));
+        }
+      };
+      listeners.put(listener, dartListener);
+      return dartListener;
     }
   }
 
@@ -1644,7 +1693,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   private IFile inputFile;
-  private DartReconciler reconciler;
 
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
 
@@ -1833,6 +1881,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private SelectionProvider selectionProvider = new DartSelectionProvider();
 
+  private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
+  private final CaretListener dartSelectionCaretListener = new CaretListener() {
+    @Override
+    public void caretMoved(CaretEvent event) {
+      Display.getCurrent().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          fireDartSelectionListeners();
+        }
+      });
+    }
+  };
+
   /**
    * Default constructor.
    */
@@ -1841,11 +1902,25 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * Specifies that given {@link ISelectionChangedListener} should be invoked on any
+   * {@link DartSelection} change - selection, {@link CompilationUnit}.
+   */
+  public void addDartSelectionListener(ISelectionChangedListener listener) {
+    dartSelectionListeners.add(listener);
+  }
+
+  /**
    * Notifies that {@link com.google.dart.engine.ast.CompilationUnit} of this {@link DartEditor} was
    * resolved.
    */
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     resolvedUnit = unit;
+    Display.getDefault().asyncExec(new Runnable() {
+      @Override
+      public void run() {
+        fireDartSelectionListeners();
+      }
+    });
   }
 
   /**
@@ -1913,6 +1988,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public void createPartControl(Composite parent) {
     super.createPartControl(parent);
+    getSourceViewer().getTextWidget().addCaretListener(dartSelectionCaretListener);
 
     fEditorSelectionChangedListener = new EditorSelectionChangedListener();
     fEditorSelectionChangedListener.install(getSelectionProvider());
@@ -2028,7 +2104,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     {
       IAction action = getAction(ITextEditorActionConstants.QUICK_ASSIST);
       if (action != null && action.isEnabled()) {
-        addAction(menu, RefactorActionGroup.GROUP_REORG, ITextEditorActionConstants.QUICK_ASSIST);
+        addAction(
+            menu,
+            RefactorActionGroup_OLD.GROUP_REORG,
+            ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
     if (elementSelection != null) {
@@ -2372,6 +2451,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  public void removeDartSelectionListener(ISelectionChangedListener listener) {
+    dartSelectionListeners.remove(listener);
+  }
+
   /**
    * Resets the foldings structure according to the folding preferences.
    */
@@ -2380,6 +2463,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (fProjectionModelUpdater != null) {
       fProjectionModelUpdater.initialize();
     }
+  }
+
+  public void selectEndReveal(com.google.dart.engine.element.Element element) {
+    if (element == null || element instanceof CompilationUnitElement) {
+      return;
+    }
+
+    markInNavigationHistory();
+
+    int offset = element.getNameOffset();
+    int length = element.getName().length();
+    selectAndReveal(offset, length);
   }
 
   /**
@@ -2395,31 +2490,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     uninstallSemanticHighlighting();
     super.setPreferenceStore(store);
     installSemanticHighlighting();
-  }
-
-  public void setReconciler(DartReconciler reconciler) {
-    this.reconciler = reconciler;
-  }
-
-  /**
-   * To replace {@link #setSelection(DartElement)}
-   */
-  public void setSelection(com.google.dart.engine.element.Element element) {
-
-    if (element == null || element instanceof CompilationUnitElement) {
-      return;
-    }
-
-    // TODO(scheglov)
-//    //TODO (pquitslund): this adaptation will be removed
-//
-//    SourceReferenceAdapter reference = new SourceReferenceAdapter(element);
-//
-//    setSelection(reference, true);
-//
-//    if (fOutlinePage != null) {
-//      ((DartOutlinePage) fOutlinePage).select(element);
-//    }
   }
 
   public void setSelection(DartElement element) {
@@ -2666,14 +2736,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       ActionGroup oeg, ovg;
       ActionGroup dsg, ddg;
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup(this),
           dsg = new DartSearchActionGroup(this), ddg = new DartdocActionGroup(this)});
       fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
     } else {
       ActionGroup oeg, ovg;
       ActionGroup dsg, ddg;
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-          oeg = new OpenEditorActionGroup(this), ovg = new OpenViewActionGroup(this),
+          oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup(this),
           dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
       fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
     }
@@ -3805,37 +3875,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (element == null) {
       return;
     }
-    // TODO(scheglov)
-//    if (node.getName() == null) {
-//      return;
-//    }
+    // prepare range
+    int offset = element.getNameOffset();
+    int length = element.getNameLength();
     // prepare ISourceViewer
     ISourceViewer sourceViewer = getSourceViewer();
     if (sourceViewer == null) {
       return;
     }
-    // highlight Element name
-    // TODO(scheglov)
-    int offset = element.getNameOffset();
-    int length = element.getNameLength();
+    // highlight range (not selection - just highlighting on left editor band)
     if (offset < 0) {
       return;
     }
-//    int offset = node.getNameOffset();
-//    int length = node.getName().length();
-//    if (offset < 0) {
-//      return;
-//    }
-    // Unnamed constructors have no name, but we don't want to show user empty selection.
-    // So, we highlight type name instead.
-    // TODO(scheglov)
-//    if (length == 0 && node instanceof ConstructorElement) {
-//      com.google.dart.engine.element.Element enclosing = node.getEnclosingElement();
-//      if (enclosing instanceof ClassElement && enclosing.getName() != null) {
-//        length = enclosing.getName().length();
-//      }
-//    }
-    // highlight range (not selection - just highlighting on left editor band)
     setHighlightRange(offset, length, moveCursor);
     // do we want to change selection?
     if (!moveCursor) {
@@ -4291,6 +4342,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     stores.add(EditorsUI.getPreferenceStore());
 
     return new ChainedPreferenceStore(stores.toArray(new IPreferenceStore[stores.size()]));
+  }
+
+  /**
+   * Notifies all listeners of {@link DartSelection}.
+   */
+  private void fireDartSelectionListeners() {
+    ISelection selection = getSelectionProvider().getSelection();
+    SelectionChangedEvent event = new SelectionChangedEvent(selectionProvider, selection);
+    for (ISelectionChangedListener listener : ImmutableList.copyOf(dartSelectionListeners)) {
+      listener.selectionChanged(event);
+    }
   }
 
   private IWorkbenchPart getActivePart() {

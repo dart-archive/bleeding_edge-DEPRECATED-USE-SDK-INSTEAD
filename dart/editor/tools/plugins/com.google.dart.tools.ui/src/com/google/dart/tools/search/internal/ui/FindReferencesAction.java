@@ -17,7 +17,9 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -35,7 +37,7 @@ import java.util.List;
 /**
  * Finds references of the selected {@link Element} in the workspace.
  */
-public class FindReferencesAction extends FindAction {
+public class FindReferencesAction extends AbstractDartSelectionAction {
   public FindReferencesAction(DartEditor editor) {
     super(editor);
   }
@@ -82,17 +84,19 @@ public class FindReferencesAction extends FindAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(final Element element) {
+  private void doSearch(Element element) {
     if (element == null) {
       return;
     }
+    element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
+      final Element searchElement = element;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected List<SearchMatch> runQuery() {
-          return searchEngine.searchReferences(element, null, null);
+          return searchEngine.searchReferences(searchElement, null, null);
         }
       });
     } catch (Throwable e) {

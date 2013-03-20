@@ -11,11 +11,10 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.search.internal.ui;
+package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
-import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
@@ -24,9 +23,9 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.IWorkbenchSite;
 
 /**
- * Abstract class for search actions.
+ * Abstract class selection-based actions.
  */
-public abstract class FindAction extends InstrumentedSelectionDispatchAction {
+public abstract class AbstractDartSelectionAction extends InstrumentedSelectionDispatchAction {
   /**
    * @return the {@link Element} covered by the given {@link DartSelection}, may be
    *         <code>null</code>.
@@ -44,22 +43,24 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
    *         <code>null</code>.
    */
   protected static Element getSelectionElement(IStructuredSelection selection) {
-    Element element = null;
     if (selection.size() == 1) {
       Object object = selection.getFirstElement();
+      if (object instanceof Element) {
+        return (Element) object;
+      }
       if (object instanceof LightNodeElement) {
-        element = ((LightNodeElement) object).getElement();
+        return ((LightNodeElement) object).getElement();
       }
     }
-    return element;
+    return null;
   }
 
-  public FindAction(DartEditor editor) {
+  public AbstractDartSelectionAction(DartEditor editor) {
     super(editor.getEditorSite());
     init();
   }
 
-  public FindAction(IWorkbenchSite site) {
+  public AbstractDartSelectionAction(IWorkbenchSite site) {
     super(site);
     init();
   }
@@ -69,5 +70,4 @@ public abstract class FindAction extends InstrumentedSelectionDispatchAction {
    * subclasses.
    */
   protected abstract void init();
-
 }

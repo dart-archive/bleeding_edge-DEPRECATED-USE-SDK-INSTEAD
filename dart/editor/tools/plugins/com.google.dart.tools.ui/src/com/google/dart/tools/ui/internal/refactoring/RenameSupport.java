@@ -18,14 +18,12 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.DartUIMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameRefactoringWizard;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameUserInterfaceStarter;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.ltk.core.refactoring.RefactoringCore;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.swt.widgets.Shell;
 
 import java.lang.reflect.InvocationTargetException;
@@ -48,13 +46,13 @@ public class RenameSupport {
   }
 
   //  private final org.eclipse.ltk.core.refactoring.Refactoring fRefactoring;
-  private final RenameRefactoring refactoring;
+//  private final RenameRefactoring refactoring;
   private final org.eclipse.ltk.core.refactoring.Refactoring ltkRefactoring;
 
 //  private RefactoringStatus fPreCheckStatus;
 
   private RenameSupport(RenameRefactoring refactoring, String newName) {
-    this.refactoring = refactoring;
+//    this.refactoring = refactoring;
     ltkRefactoring = new ServiceRenameRefactoring(refactoring);
     if (newName != null) {
       refactoring.setNewName(newName);
@@ -236,11 +234,11 @@ public class RenameSupport {
 //    }
   }
 
-  private void showInformation(Shell parent, RefactoringStatus status) {
-    String message = status.getMessageMatchingSeverity(RefactoringStatus.FATAL);
-    UserInteractions.openInformation.open(
-        parent,
-        DartUIMessages.RenameSupport_dialog_title,
-        message);
-  }
+//  private void showInformation(Shell parent, RefactoringStatus status) {
+//    String message = status.getMessageMatchingSeverity(RefactoringStatus.FATAL);
+//    UserInteractions.openInformation.open(
+//        parent,
+//        DartUIMessages.RenameSupport_dialog_title,
+//        message);
+//  }
 }

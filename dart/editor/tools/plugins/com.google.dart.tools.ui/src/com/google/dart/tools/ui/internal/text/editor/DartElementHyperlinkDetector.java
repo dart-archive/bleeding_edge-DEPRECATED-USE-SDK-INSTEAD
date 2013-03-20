@@ -26,6 +26,7 @@ import com.google.dart.tools.core.utilities.performance.PerformanceManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
 import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.action.IAction;
@@ -128,7 +129,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
           return new IHyperlink[] {new DartElementHyperlink(
               foundElement,
               wordRegion,
-              new OpenAction(dartEditor) {
+              new OpenAction_OLD(dartEditor) {
                 @Override
                 protected void selectInEditor(IEditorPart part, DartElement element) {
                   EditorUtility.revealInEditor(
@@ -142,7 +143,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
           return new IHyperlink[] {new DartElementHyperlink(
               foundElement,
               wordRegion,
-              (OpenAction) openAction)};
+              (OpenAction_OLD) openAction)};
         }
       }
     }

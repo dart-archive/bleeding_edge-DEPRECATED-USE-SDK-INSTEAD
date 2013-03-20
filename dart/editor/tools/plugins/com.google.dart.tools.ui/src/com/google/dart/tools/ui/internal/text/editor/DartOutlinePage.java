@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.text.editor;
 
+import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -238,8 +239,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
 
     // TODO(scheglov)
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(this), new RefactorActionGroup(this),
-        new DartSearchActionGroup(this)});
+        new OpenViewActionGroup(this), new RefactorActionGroup(site),
+        new DartSearchActionGroup(site)});
 
     IActionBars actionBars = site.getActionBars();
     fActionGroups.fillActionBars(actionBars);
@@ -329,7 +330,10 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
 
   public void select(LightNodeElement element) {
     if (fOutlineViewer != null) {
-      fOutlineViewer.setSelection(new StructuredSelection(element));
+      ISelection newSelection = new StructuredSelection(element);
+      if (!Objects.equal(fOutlineViewer.getSelection(), newSelection)) {
+        fOutlineViewer.setSelection(newSelection);
+      }
     }
   }
 

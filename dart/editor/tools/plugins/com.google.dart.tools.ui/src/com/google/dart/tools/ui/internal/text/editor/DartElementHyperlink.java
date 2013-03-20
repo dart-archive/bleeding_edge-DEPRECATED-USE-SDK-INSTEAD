@@ -19,7 +19,6 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
 import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
-import com.google.dart.tools.ui.actions.OpenAction;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.text.IRegion;
@@ -38,7 +37,8 @@ public class DartElementHyperlink implements IHyperlink {
   /**
    * Creates a new Dart element hyperlink.
    */
-  public DartElementHyperlink(Object /*Element*/element, IRegion region, OpenAction openAction) {
+  public DartElementHyperlink(Object /*Element*/element, IRegion region,
+      InstrumentedSelectionDispatchAction openAction) {
     Assert.isNotNull(element);
     Assert.isNotNull(region);
     Assert.isNotNull(openAction);

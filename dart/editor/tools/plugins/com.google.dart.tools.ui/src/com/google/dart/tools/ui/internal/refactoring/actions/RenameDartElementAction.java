@@ -13,26 +13,19 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.SimpleIdentifier;
-import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.ui.actions.ActionInstrumentationUtilities;
-import com.google.dart.tools.ui.actions.InstrumentedSelectionDispatchAction;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
 import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.reorg.RenameLinkedMode;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -42,26 +35,13 @@ import org.eclipse.ui.IWorkbenchSite;
  * 
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction extends InstrumentedSelectionDispatchAction implements
-    RenameDartElementAction_I {
-
-  private static Element getElement(IStructuredSelection selection) {
-    if (selection.size() != 1) {
-      return null;
-    }
-    Object first = selection.getFirstElement();
-    if (!(first instanceof Element)) {
-      return null;
-    }
-    return (Element) first;
-  }
-
-  private DartEditor fEditor;
+public class RenameDartElementAction extends AbstractDartSelectionAction {
+  private DartEditor editor;
 
   public RenameDartElementAction(DartEditor editor) {
-    this(editor.getEditorSite());
-    fEditor = editor;
-    setEnabled(SelectionConverter.canOperateOn(fEditor));
+    super(editor);
+    this.editor = editor;
+    setEnabled(SelectionConverter.canOperateOn(editor));
   }
 
   public RenameDartElementAction(IWorkbenchSite site) {
@@ -69,62 +49,41 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
   }
 
   @Override
-  public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-    // may be linked mode rename, open dialog or cancel 
-    RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
-    if (activeLinkedMode != null) {
-      if (activeLinkedMode.isCaretInLinkedPosition()) {
-        instrumentation.metric("ActiveLinkedMode", "CaretInLinkedPosition");
-        activeLinkedMode.startFullDialog();
-        return;
-      } else {
-        activeLinkedMode.cancel();
-      }
-    }
-    // dispatch depending on selection
-    super.doRun(event, instrumentation);
-  }
-
-  @Override
-  public void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    Element element = getElement(selection);
-    doRun(instrumentation, element, false);
-  }
-
-  @Override
-  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-    Element element = getElementFromEditor(selection);
-    doRun(instrumentation, element, true);
+  public void selectionChanged(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    setEnabled(element != null);
   }
 
   @Override
   public void selectionChanged(IStructuredSelection selection) {
-    Element element = getElement(selection);
+    Element element = getSelectionElement(selection);
     setEnabled(element != null);
   }
 
   @Override
-  public void selectionChanged(ITextSelection selection) {
-    Element element = getElementFromEditor(selection);
-    setEnabled(element != null);
+  protected void doRun(DartSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    RenameLinkedMode activeLinkedMode = RenameLinkedMode.getActiveLinkedMode();
+    if (activeLinkedMode != null) {
+      activeLinkedMode.startFullDialog();
+    } else {
+      AssistContext context = selection.getContext();
+      if (context == null) {
+        return;
+      }
+      new RenameLinkedMode(editor, context).start();
+    }
   }
 
-  private void doRun(UIInstrumentationBuilder instrumentation, Element element, boolean lightweight) {
-    // check Element
+  @Override
+  protected void doRun(IStructuredSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    Element element = getSelectionElement(selection);
     if (element == null) {
-      instrumentation.metric("Problem", "Element was null");
       return;
     }
-    ActionInstrumentationUtilities.recordElement(element, instrumentation);
-    // check if can be modified
-    if (!ActionUtil.isEditable(getShell(), element)) {
-      instrumentation.metric("Problem", "Editor not editable");
-      return;
-    }
-    // run rename
     try {
-      run(element, lightweight);
+      RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
     } catch (Throwable e) {
       ExceptionHandler.handle(
           e,
@@ -133,29 +92,7 @@ public class RenameDartElementAction extends InstrumentedSelectionDispatchAction
     }
   }
 
-//  private Element getElementFromEditor() {
-//    ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-//    return getElementFromEditor(selection);
-//  }
-
-  private Element getElementFromEditor(ITextSelection selection) {
-    CompilationUnit unit = fEditor.getInputUnit();
-    if (unit == null) {
-      return null;
-    }
-    int selectionOffset = selection.getOffset();
-    ASTNode selectedNode = new NodeLocator(selectionOffset).searchWithin(unit);
-    if (selectedNode instanceof SimpleIdentifier) {
-      return ((SimpleIdentifier) selectedNode).getElement();
-    }
-    return null;
-  }
-
-  private void run(Element element, boolean lightweight) throws CoreException {
-    if (lightweight && fEditor instanceof CompilationUnitEditor) {
-      new RenameLinkedMode((CompilationUnitEditor) fEditor).start();
-    } else {
-      RefactoringExecutionStarter.startRenameRefactoring(element, getShell());
-    }
+  @Override
+  protected void init() {
   }
 }

@@ -13,87 +13,69 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.dart.tools.ui.actions.AbstractDartSelectionActionGroup;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
+import com.google.dart.tools.ui.actions.OpenAction;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.actions.ActionGroup;
-import org.eclipse.ui.part.Page;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 /**
  * {@link ActionGroup} that adds the Dart search actions.
  */
-public class DartSearchActionGroup extends ActionGroup {
-  private IWorkbenchSite site;
+public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
   private FindReferencesAction findReferencesAction;
   private FindDeclarationsAction findDeclarationsAction;
+  private OpenAction openAction;
 
   public DartSearchActionGroup(DartEditor editor) {
-    this.site = editor.getSite();
+    super(editor);
     findReferencesAction = new FindReferencesAction(editor);
     findDeclarationsAction = new FindDeclarationsAction(editor);
+    openAction = new OpenAction(editor);
     initActions();
+    editor.setAction("OpenEditor", openAction);
+    addActions(findReferencesAction, findDeclarationsAction, openAction);
   }
 
-  public DartSearchActionGroup(Page page) {
-    this(page.getSite());
-  }
-
-  private DartSearchActionGroup(IWorkbenchSite site) {
-    this.site = site;
+  public DartSearchActionGroup(IWorkbenchSite site) {
+    super(site);
     findReferencesAction = new FindReferencesAction(site);
     findDeclarationsAction = new FindDeclarationsAction(site);
+    openAction = new OpenAction(site);
     initActions();
-    // TODO(scheglov)
-//    site.getSelectionProvider().addSelectionChangedListener(findReferencesAction);
+    addActions(findReferencesAction, findDeclarationsAction, openAction);
+    addActionSelectionListeners();
   }
 
   @Override
   public void dispose() {
-    disposeAction(findReferencesAction);
-    disposeAction(findDeclarationsAction);
+    super.dispose();
     findReferencesAction = null;
     findDeclarationsAction = null;
-    super.dispose();
+    openAction = null;
   }
 
   @Override
   public void fillContextMenu(IMenuManager menu) {
-    super.fillContextMenu(menu);
-    menu.add(new Separator());
-    {
-      ISelection selection = getContext().getSelection();
-      findReferencesAction.update(selection);
-      findDeclarationsAction.update(selection);
-      appendToGroup(menu, findReferencesAction);
-      appendToGroup(menu, findDeclarationsAction);
-    }
+    ISelection selection = getContext().getSelection();
+    updateActions(selection);
+    appendToGroup(menu, ITextEditorActionConstants.GROUP_OPEN);
   }
 
-  private void appendToGroup(IMenuManager menu, IAction action) {
-    if (action.isEnabled()) {
-      menu.appendToGroup(ITextEditorActionConstants.GROUP_OPEN, action);
-    }
-  }
-
-  private void disposeAction(ISelectionChangedListener action) {
-    ISelectionProvider provider = site.getSelectionProvider();
-    if (provider != null) {
-      provider.removeSelectionChangedListener(action);
-    }
-  }
-
+  /**
+   * Initializes definition attributes of actions.
+   */
   private void initActions() {
     findReferencesAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
+    openAction.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    openAction.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
   }
 }

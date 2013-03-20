@@ -103,9 +103,6 @@ public class DartReconciler extends MonoReconciler {
     super(strategy, false);
     this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
     this.file = this.editor != null ? this.editor.getInputFile() : null;
-    if (this.editor != null) {
-      this.editor.setReconciler(this);
-    }
   }
 
   @Override
@@ -170,7 +167,6 @@ public class DartReconciler extends MonoReconciler {
    * @return the parsed {@link CompilationUnit}, may be <code>null</code>/
    */
   private CompilationUnit getParsedUnit() throws AnalysisException {
-    // TODO(scheglov) replace when AnalysisContext will have better method
     Source source = getSource();
     if (source == null) {
       return null;
@@ -184,13 +180,12 @@ public class DartReconciler extends MonoReconciler {
    * @return the resolved {@link CompilationUnit}, may be <code>null</code>/
    */
   private CompilationUnit getResolvedUnit() throws Exception {
-    // TODO(scheglov) replace when AnalysisContext will have better method
     Source source = getSource();
     if (source == null) {
       return null;
     }
-    // resolve
     AnalysisContext context = source.getContext();
+    // resolve
     LibraryElement libraryElement = context.computeLibraryElement(source);
     return context.resolveCompilationUnit(source, libraryElement);
   }

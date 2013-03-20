@@ -43,6 +43,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.GenerateActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.actions.NewSelectionConverter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.DartStatusConstants;
@@ -1091,7 +1092,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
 
   /** The standard action groups added to the menu */
   private GenerateActionGroup fGenerateActionGroup;
-  private RefactorActionGroup fRefactorActionGroup;
+  private ActionGroup fRefactorActionGroup;
   //
   private CompositeActionGroup fContextMenuGroup;
   //
@@ -1307,7 +1308,7 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     return fReconcilerLock;
   }
 
-  public RefactorActionGroup getRefactorActionGroup() {
+  public ActionGroup getRefactorActionGroup() {
     return fRefactorActionGroup;
   }
 
@@ -1525,7 +1526,13 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
     }
 
     fGenerateActionGroup = new GenerateActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
-    fRefactorActionGroup = new RefactorActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      fRefactorActionGroup = new RefactorActionGroup(this);
+    } else {
+      fRefactorActionGroup = new RefactorActionGroup_OLD(
+          this,
+          ITextEditorActionConstants.GROUP_EDIT);
+    }
     //    ActionGroup surroundWith = new SurroundWithActionGroup(this,
     //        ITextEditorActionConstants.GROUP_EDIT);
 

@@ -17,7 +17,7 @@ import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -290,7 +290,7 @@ public class RenameInformationPopup implements IWidgetTokenKeeper, IWidgetTokenK
     }
   }
 
-  private final CompilationUnitEditor fEditor;
+  private final DartEditor fEditor;
   private final RenameLinkedMode fRenameLinkedMode;
   private int fSnapPosition;
   private boolean fSnapPositionChanged;
@@ -309,7 +309,7 @@ public class RenameInformationPopup implements IWidgetTokenKeeper, IWidgetTokenK
 
   private boolean fDelayJobFinished = false;
 
-  public RenameInformationPopup(CompilationUnitEditor editor, RenameLinkedMode renameLinkedMode) {
+  public RenameInformationPopup(DartEditor editor, RenameLinkedMode renameLinkedMode) {
     fEditor = editor;
     fRenameLinkedMode = renameLinkedMode;
     restoreSnapPosition();

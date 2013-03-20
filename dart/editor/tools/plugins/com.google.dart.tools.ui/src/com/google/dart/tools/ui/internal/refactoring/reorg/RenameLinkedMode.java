@@ -20,10 +20,11 @@ import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.NamingConventions;
+import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
-import com.google.dart.tools.ui.internal.text.editor.CompilationUnitEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
 
 import org.eclipse.core.commands.operations.IOperationHistory;
@@ -148,7 +149,8 @@ public class RenameLinkedMode {
     return null;
   }
 
-  private final CompilationUnitEditor fEditor;
+  private final DartEditor fEditor;
+  private final AssistContext context;
   private Element fDartElement;
 
   private RenameInformationPopup fInfoPopup;
@@ -170,7 +172,8 @@ public class RenameLinkedMode {
    */
   private IUndoableOperation fStartingUndoOperation;
 
-  public RenameLinkedMode(CompilationUnitEditor editor) {
+  public RenameLinkedMode(DartEditor editor, AssistContext context) {
+    this.context = context;
     Assert.isNotNull(editor);
     fEditor = editor;
     fFocusEditingSupport = new FocusEditingSupport();
@@ -210,9 +213,8 @@ public class RenameLinkedMode {
 //	}
 
   public LinkedPosition getCurrentLinkedPosition() {
-    Point selection = fEditor.getViewer().getSelectedRange();
-    int start = selection.x;
-    int end = start + selection.y;
+    int start = context.getSelectionOffset();
+    int end = start + context.getSelectionLength();
     LinkedPosition[] positions = fLinkedPositionGroup.getPositions();
     for (int i = 0; i < positions.length; i++) {
       LinkedPosition position = positions[i];
@@ -263,18 +265,14 @@ public class RenameLinkedMode {
     int offset = fOriginalSelection.x;
 
     try {
-      AssistContext assistContext = fEditor.getAssistContext();
-      if (assistContext == null) {
-        return;
-      }
-
       fLinkedPositionGroup = new LinkedPositionGroup();
-      ASTNode selectedNode = assistContext.getCoveredNode();
+      ASTNode selectedNode = context.getCoveredNode();
       if (!(selectedNode instanceof SimpleIdentifier)) {
         return;
       }
       SimpleIdentifier nameNode = (SimpleIdentifier) selectedNode;
       fDartElement = nameNode.getElement();
+      fDartElement = DartElementUtil.getVariableIfAccessor(fDartElement);
 
       if (viewer instanceof ITextViewerExtension6) {
         IUndoManager undoManager = ((ITextViewerExtension6) viewer).getUndoManager();
@@ -292,7 +290,9 @@ public class RenameLinkedMode {
       selectedNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
-          if (node.getElement() == fDartElement) {
+          Element element = node.getElement();
+          element = DartElementUtil.getVariableIfAccessor(element);
+          if (element == fDartElement) {
             sameNodes.add(node);
           }
           return super.visitSimpleIdentifier(node);

@@ -1,5 +1,8 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
@@ -181,6 +184,36 @@ public class DartElementUtil {
 //
 //    return isPrimaryType(type) || isCuOnlyType(type);
 //  }
+
+  /**
+   * @return the given {@link Element} or, its {@link PropertyInducingElement} if
+   *         {@link PropertyAccessorElement}.
+   */
+  public static Element getVariableIfAccessor(Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessorElement = (PropertyAccessorElement) element;
+      element = accessorElement.getVariable();
+    }
+    return element;
+  }
+
+  /**
+   * Each {@link PropertyInducingElement} has synthetic read and (may be) write
+   * {@link PropertyAccessorElement}. When we want to open or rename such
+   * {@link PropertyAccessorElement}, we actually should do this on original
+   * {@link PropertyInducingElement}.
+   * 
+   * @return the given {@link Element} or its {@link PropertyInducingElement}.
+   */
+  public static Element getVariableIfSyntheticAccessor(Element element) {
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessorElement = (PropertyAccessorElement) element;
+      if (accessorElement.isSynthetic()) {
+        element = accessorElement.getVariable();
+      }
+    }
+    return element;
+  }
 
   public static boolean isSourceAvailable(SourceReference sourceReference) {
     try {

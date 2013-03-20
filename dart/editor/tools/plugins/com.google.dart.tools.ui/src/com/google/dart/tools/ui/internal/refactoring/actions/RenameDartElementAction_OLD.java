@@ -45,8 +45,7 @@ import org.eclipse.ui.IWorkbenchSite;
 /**
  * @coverage dart.editor.ui.refactoring.ui
  */
-public class RenameDartElementAction_OLD extends InstrumentedSelectionDispatchAction implements
-    RenameDartElementAction_I {
+public class RenameDartElementAction_OLD extends InstrumentedSelectionDispatchAction {
 
   private static boolean canEnable(IStructuredSelection selection) throws CoreException {
     DartElement element = getDartElement(selection);

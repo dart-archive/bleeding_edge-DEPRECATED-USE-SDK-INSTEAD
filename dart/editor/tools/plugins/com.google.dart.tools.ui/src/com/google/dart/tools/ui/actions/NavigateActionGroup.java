@@ -37,7 +37,7 @@ import org.eclipse.ui.actions.ActionGroup;
  */
 public final class NavigateActionGroup extends ActionGroup {
 
-  private OpenEditorActionGroup openEditorActionGroup;
+  private OpenEditorActionGroup_OLD openEditorActionGroup;
 
   //private OpenViewActionGroup openViewActionGroup;
 
@@ -49,7 +49,7 @@ public final class NavigateActionGroup extends ActionGroup {
    * @param part the view part that owns this action group
    */
   public NavigateActionGroup(IViewPart part) {
-    openEditorActionGroup = new OpenEditorActionGroup(part);
+    openEditorActionGroup = new OpenEditorActionGroup_OLD(part);
     //openViewActionGroup = new OpenViewActionGroup(part);
   }
 
@@ -62,7 +62,7 @@ public final class NavigateActionGroup extends ActionGroup {
    *          provider.
    */
   public NavigateActionGroup(IWorkbenchPartSite site, ISelectionProvider specialSelectionProvider) {
-    openEditorActionGroup = new OpenEditorActionGroup(site, specialSelectionProvider);
+    openEditorActionGroup = new OpenEditorActionGroup_OLD(site, specialSelectionProvider);
     //openViewActionGroup = new OpenViewActionGroup(site, specialSelectionProvider);
   }
 

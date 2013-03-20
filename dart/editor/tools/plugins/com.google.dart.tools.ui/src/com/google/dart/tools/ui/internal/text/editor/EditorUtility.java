@@ -594,7 +594,7 @@ public class EditorUtility {
   public static void revealInEditor(IEditorPart part, Element element) {
 
     if (part instanceof DartEditor) {
-      ((DartEditor) part).setSelection(element);
+      ((DartEditor) part).selectEndReveal(element);
       return;
     }
 

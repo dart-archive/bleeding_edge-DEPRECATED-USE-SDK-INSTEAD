@@ -20,8 +20,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 
 /**
- * {@link TextSelection} (which we don't really need, just for now) for information about selection
- * in {@link DartEditor}.
+ * {@link TextSelection} with information about selection in {@link DartEditor}.
  */
 public class DartSelection extends TextSelection {
   private final DartEditor editor;

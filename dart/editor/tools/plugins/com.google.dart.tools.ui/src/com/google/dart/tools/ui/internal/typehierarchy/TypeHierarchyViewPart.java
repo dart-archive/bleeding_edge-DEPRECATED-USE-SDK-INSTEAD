@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.internal.typehierarchy;
 import com.google.common.base.Predicates;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.ui.actions.OpenAction;
+import com.google.dart.tools.ui.actions.OpenAction_OLD;
 
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -58,7 +58,7 @@ public class TypeHierarchyViewPart extends ViewPart {
   private TreeViewer typesViewer;
   private MethodsViewer methodsViewer;
 
-  private OpenAction fOpenAction;
+  private OpenAction_OLD fOpenAction;
 
   public TypeHierarchyViewPart() {
   }
@@ -99,7 +99,7 @@ public class TypeHierarchyViewPart extends ViewPart {
       restoreState(fMemento);
     }
 
-    fOpenAction = new OpenAction(getSite());
+    fOpenAction = new OpenAction_OLD(getSite());
   }
 
   @Override

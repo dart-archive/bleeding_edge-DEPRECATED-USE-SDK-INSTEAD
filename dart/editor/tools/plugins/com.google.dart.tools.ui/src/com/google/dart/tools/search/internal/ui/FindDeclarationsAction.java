@@ -18,6 +18,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.search.SearchMessages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
@@ -35,8 +36,7 @@ import java.util.List;
 /**
  * Finds references of the selected name in the workspace.
  */
-public class FindDeclarationsAction extends FindAction {
-
+public class FindDeclarationsAction extends AbstractDartSelectionAction {
   public FindDeclarationsAction(DartEditor editor) {
     super(editor);
   }
