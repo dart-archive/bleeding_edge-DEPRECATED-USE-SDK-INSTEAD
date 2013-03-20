@@ -35,6 +35,7 @@ import org.mockito.ArgumentCaptor;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class IndexImplTest extends EngineTestCase {
@@ -69,6 +70,19 @@ public class IndexImplTest extends EngineTestCase {
     ArgumentCaptor<IndexUnitOperation> argument = ArgumentCaptor.forClass(IndexUnitOperation.class);
     verify(queue).enqueue(argument.capture());
     assertSame(unit, argument.getValue().getUnit());
+  }
+
+  public void test_indexUnit_notResolved() throws Exception {
+    CompilationUnit unit = mock(CompilationUnit.class);
+    index.indexUnit(context, unit);
+    // verify
+    verifyZeroInteractions(queue);
+  }
+
+  public void test_indexUnit_null() throws Exception {
+    index.indexUnit(context, null);
+    // verify
+    verifyZeroInteractions(queue);
   }
 
   public void test_removeContext() throws Exception {

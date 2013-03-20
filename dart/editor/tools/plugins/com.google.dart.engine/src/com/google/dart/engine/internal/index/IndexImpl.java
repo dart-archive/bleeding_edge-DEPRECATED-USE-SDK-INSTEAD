@@ -54,6 +54,12 @@ public class IndexImpl implements Index {
 
   @Override
   public void indexUnit(AnalysisContext context, CompilationUnit unit) {
+    if (unit == null) {
+      return;
+    }
+    if (unit.getElement() == null) {
+      return;
+    }
     queue.enqueue(new IndexUnitOperation(store, context, unit));
   }
 
