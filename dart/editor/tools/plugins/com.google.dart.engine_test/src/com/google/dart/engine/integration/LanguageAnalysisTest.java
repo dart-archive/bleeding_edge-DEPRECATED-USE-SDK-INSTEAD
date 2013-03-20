@@ -126,17 +126,26 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
       "/function_malformed_result_type_test.dart", // wrong number of type arguments
       "/generic_instanceof_test.dart", // missing part-of directive
       "/implicit_scope_test.dart", //test implies that some statements create their own scope
+      "/import_combinators_test.dart", // missing a part-of directive
       "/lazy_static6_test.dart", // missing a part-of directive
       "/many_generic_instanceof_test.dart", // missing a part-of directive
       "/many_overridden_no_such_method_test.dart", // missing a part-of directive
       "/map_literal2_test.dart", // keys in a map must be constant
       "/multi_pass2_test.dart", // missing a part-of directive
       "/multi_pass_test.dart", // missing a part-of directive
+      "/null_no_such_method_test.dart", // valid and expected warning which isn't declared by test
+      "/overridden_no_such_method_test.dart", // missing a part-of directive
       "/private2_test.dart", // missing a part-of directive
+      "/private3_test.dart", // missing a part-of directive
+      "/private_test.dart", // missing a part-of directive
+      "/super_assign_test.dart", // type propagation required
       "/ternary_test.dart", // no unary plus operator
       "/top_level_entry_test.dart", // missing a part-of directive
+      "/top_level_multiple_files_test.dart", // missing a part-of directive
+      "/top_level_non_prefixed_library_test.dart", // missing a part-of directive
       "/type_error_test.dart", // invalid assumption about the type of an assignment statement
       "/type_vm_test.dart", // StaticTypeWarningCode.NON_BOOL_CONDITION is a warning, not an error
+      "/unary2_test.dart", // no unary plus operator
       "/unary_test.dart", // no unary plus operator
   };
 

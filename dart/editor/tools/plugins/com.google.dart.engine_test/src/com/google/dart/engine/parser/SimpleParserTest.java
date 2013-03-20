@@ -4066,11 +4066,41 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(operand.getOperand());
   }
 
+  public void test_parseUnaryExpression_decrement_super_propertyAccess() throws Exception {
+    PrefixExpression expression = parse("parseUnaryExpression", "--super.x");
+    assertNotNull(expression.getOperator());
+    assertEquals(TokenType.MINUS_MINUS, expression.getOperator().getType());
+    assertNotNull(expression.getOperand());
+    PropertyAccess operand = (PropertyAccess) expression.getOperand();
+    assertTrue(operand.getTarget() instanceof SuperExpression);
+    assertEquals("x", operand.getPropertyName().getName());
+  }
+
   public void test_parseUnaryExpression_increment_normal() throws Exception {
     PrefixExpression expression = parse("parseUnaryExpression", "++x");
     assertNotNull(expression.getOperator());
     assertEquals(TokenType.PLUS_PLUS, expression.getOperator().getType());
     assertNotNull(expression.getOperand());
+  }
+
+  public void test_parseUnaryExpression_increment_super_index() throws Exception {
+    PrefixExpression expression = parse("parseUnaryExpression", "++super[0]");
+    assertNotNull(expression.getOperator());
+    assertEquals(TokenType.PLUS_PLUS, expression.getOperator().getType());
+    assertNotNull(expression.getOperand());
+    IndexExpression operand = (IndexExpression) expression.getOperand();
+    assertTrue(operand.getRealTarget() instanceof SuperExpression);
+    assertTrue(operand.getIndex() instanceof IntegerLiteral);
+  }
+
+  public void test_parseUnaryExpression_increment_super_propertyAccess() throws Exception {
+    PrefixExpression expression = parse("parseUnaryExpression", "++super.x");
+    assertNotNull(expression.getOperator());
+    assertEquals(TokenType.PLUS_PLUS, expression.getOperator().getType());
+    assertNotNull(expression.getOperand());
+    PropertyAccess operand = (PropertyAccess) expression.getOperand();
+    assertTrue(operand.getTarget() instanceof SuperExpression);
+    assertEquals("x", operand.getPropertyName().getName());
   }
 
   public void test_parseUnaryExpression_minus_normal() throws Exception {

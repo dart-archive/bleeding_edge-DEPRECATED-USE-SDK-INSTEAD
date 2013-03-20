@@ -4632,6 +4632,10 @@ public class Parser {
     } else if (currentToken.getType().isIncrementOperator()) {
       Token operator = getAndAdvance();
       if (matches(Keyword.SUPER)) {
+        if (matches(peek(), TokenType.OPEN_SQUARE_BRACKET) || matches(peek(), TokenType.PERIOD)) {
+          // --> "prefixOperator 'super' assignableSelector selector*"
+          return new PrefixExpression(operator, parseUnaryExpression());
+        }
         //
         // Even though it is not valid to use an incrementing operator ('++' or '--') before 'super',
         // we can (and therefore must) interpret "--super" as semantically equivalent to "-(-super)".
