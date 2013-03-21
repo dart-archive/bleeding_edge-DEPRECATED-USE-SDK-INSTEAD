@@ -44,8 +44,9 @@ public class AnalysisWorkerTest extends TestCase {
 
     File file = fileRes.getLocation().toFile();
     FileBasedSource source = new FileBasedSource(context.getSourceFactory(), file);
+    context.getSourceFactory().setContents(source, "library a;#");
     ChangeSet changes = new ChangeSet();
-    changes.added(source, "library a;#");
+    changes.added(source);
     context.applyChanges(changes);
 
     Index index = mock(Index.class);

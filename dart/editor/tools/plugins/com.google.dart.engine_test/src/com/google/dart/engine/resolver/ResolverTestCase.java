@@ -83,8 +83,9 @@ public class ResolverTestCase extends EngineTestCase {
    */
   protected Source addSource(String filePath, String contents) {
     Source source = new FileBasedSource(sourceFactory, createFile(filePath));
+    sourceFactory.setContents(source, contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source, contents);
+    changeSet.added(source);
     analysisContext.applyChanges(changeSet);
     return source;
   }

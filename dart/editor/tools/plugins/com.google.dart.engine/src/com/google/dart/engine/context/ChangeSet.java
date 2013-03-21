@@ -17,9 +17,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Instances of the class {@code ChangeSet} indicate what sources have been added, changed, or
@@ -29,17 +27,17 @@ import java.util.Map;
  */
 public class ChangeSet {
   /**
-   * A table mapping the sources that have been added to their contents.
+   * A list containing the sources that have been added.
    */
-  private HashMap<Source, String> added = new HashMap<Source, String>();
+  private ArrayList<Source> added = new ArrayList<Source>();
 
   /**
-   * A table mapping the sources that have been changed to their contents.
+   * A list containing the sources that have been changed.
    */
-  private HashMap<Source, String> changed = new HashMap<Source, String>();
+  private ArrayList<Source> changed = new ArrayList<Source>();
 
   /**
-   * A list containing the sources that have been removed..
+   * A list containing the sources that have been removed.
    */
   private ArrayList<Source> removed = new ArrayList<Source>();
 
@@ -62,22 +60,7 @@ public class ChangeSet {
    * @param source the source that was added
    */
   public void added(Source source) {
-    added(source, null);
-  }
-
-  /**
-   * Record that the specified source has been added and that it has the given content. If the
-   * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous override is removed so that the default
-   * contents will be used.
-   * 
-   * @param source the source that was added
-   * @param content the content of the new source
-   */
-  public void added(Source source, String content) {
-    if (source != null) {
-      added.put(source, content);
-    }
+    added.add(source);
   }
 
   /**
@@ -87,39 +70,24 @@ public class ChangeSet {
    * @param source the source that was changed
    */
   public void changed(Source source) {
-    changed(source, null);
+    changed.add(source);
   }
 
   /**
-   * Record that the specified source has been changed and that it now has the given content. If the
-   * content is non-{@code null}, this has the effect of overriding the default contents of the
-   * source. If the contents are {@code null}, any previous override is removed so that the default
-   * contents will be used.
+   * Return a collection of the sources that have been added.
    * 
-   * @param source the source that was changed
-   * @param content the new content of the source
+   * @return a collection of the sources that have been added
    */
-  public void changed(Source source, String content) {
-    if (source != null) {
-      changed.put(source, content);
-    }
-  }
-
-  /**
-   * Return a table mapping the sources that have been added to their contents.
-   * 
-   * @return a table mapping the sources that have been added to their contents
-   */
-  public Map<Source, String> getAddedWithContent() {
+  public List<Source> getAdded() {
     return added;
   }
 
   /**
-   * Return a table mapping the sources that have been changed to their contents.
+   * Return a collection of sources that have been changed.
    * 
-   * @return a table mapping the sources that have been changed to their contents
+   * @return a collection of sources that have been changed
    */
-  public Map<Source, String> getChangedWithContent() {
+  public List<Source> getChanged() {
     return changed;
   }
 

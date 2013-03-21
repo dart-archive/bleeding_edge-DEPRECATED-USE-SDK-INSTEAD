@@ -86,8 +86,10 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_applyChanges_add() {
+    Source source = addSource("/test.dart", "");
+    sourceFactory.setContents(source, "main() {}");
     ChangeSet changeSet = new ChangeSet();
-    changeSet.changed(addSource("/test.dart", ""), "main() {}");
+    changeSet.changed(source);
     context.applyChanges(changeSet);
   }
 
@@ -355,8 +357,9 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   private Source addSource(String fileName, String contents) {
     Source source = new FileBasedSource(sourceFactory, createFile(fileName));
+    sourceFactory.setContents(source, contents);
     ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source, contents);
+    changeSet.added(source);
     context.applyChanges(changeSet);
     return source;
   }

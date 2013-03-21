@@ -344,6 +344,16 @@ public interface AnalysisContext {
   public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException;
 
   /**
+   * Set the contents of the given source to the given contents and mark the source as having
+   * changed. This has the effect of overriding the default contents of the source. If the contents
+   * are {@code null} the override is removed so that the default contents will be returned.
+   * 
+   * @param source the source whose contents are being overridden
+   * @param contents the new contents of the source
+   */
+  public void setContents(Source source, String contents);
+
+  /**
    * Set the source factory used to create the sources that can be analyzed in this context to the
    * given source factory. Clients can safely assume that all analysis results have been
    * invalidated.

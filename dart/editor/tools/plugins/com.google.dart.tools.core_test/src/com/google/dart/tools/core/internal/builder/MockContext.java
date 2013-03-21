@@ -31,7 +31,6 @@ import org.eclipse.core.resources.IResource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,16 +44,6 @@ public class MockContext implements AnalysisContext {
       super(target, CHANGED, expected);
     }
 
-    protected boolean equalArgument(List<?> list1, List<?> list2) {
-      ArrayList<Object> copy = new ArrayList<Object>(list2);
-      for (Object object : list1) {
-        if (!copy.remove(object)) {
-          return false;
-        }
-      }
-      return copy.isEmpty();
-    }
-
     @Override
     protected boolean equalArguments(Object[] otherArgs) {
       if (otherArgs.length != 1 || !(otherArgs[0] instanceof ChangeSet)) {
@@ -62,8 +51,8 @@ public class MockContext implements AnalysisContext {
       }
       ChangeSet changes = (ChangeSet) args[0];
       ChangeSet otherChanges = (ChangeSet) otherArgs[0];
-      return equalArgument(changes.getAddedWithContent(), otherChanges.getAddedWithContent())
-          && equalArgument(changes.getChangedWithContent(), otherChanges.getChangedWithContent())
+      return equalArgument(changes.getAdded(), otherChanges.getAdded())
+          && equalArgument(changes.getChanged(), otherChanges.getChanged())
           && equalArgument(changes.getRemoved(), otherChanges.getRemoved())
           && equalArgument(changes.getRemovedContainers(), otherChanges.getRemovedContainers());
     }
@@ -73,8 +62,8 @@ public class MockContext implements AnalysisContext {
       ChangeSet changes = (ChangeSet) args[0];
       writer.print(indent);
       writer.println("ChangeSet");
-      printCollection(writer, indent, "added", changes.getAddedWithContent().keySet());
-      printCollection(writer, indent, "changed", changes.getChangedWithContent().keySet());
+      printCollection(writer, indent, "added", changes.getAdded());
+      printCollection(writer, indent, "changed", changes.getChanged());
       printCollection(writer, indent, "removed", changes.getRemoved());
       printCollection(writer, indent, "removedContainers", changes.getRemovedContainers());
     }
@@ -90,6 +79,16 @@ public class MockContext implements AnalysisContext {
         writer.print("        ");
         writer.println(object != null ? object.toString() : "null");
       }
+    }
+
+    private boolean equalArgument(Collection<?> list1, Collection<?> list2) {
+      ArrayList<Object> copy = new ArrayList<Object>(list2);
+      for (Object object : list1) {
+        if (!copy.remove(object)) {
+          return false;
+        }
+      }
+      return copy.isEmpty();
     }
 
     private boolean equalArgument(Map<Source, String> firstMap, Map<Source, String> secondMap) {
@@ -319,6 +318,11 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public HtmlUnit resolveHtmlUnit(Source htmlSource) throws AnalysisException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void setContents(Source source, String contents) {
     throw new UnsupportedOperationException();
   }
 

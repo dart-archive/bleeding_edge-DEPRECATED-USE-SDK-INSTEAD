@@ -17,7 +17,6 @@ import com.google.common.base.Objects;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
@@ -215,10 +214,7 @@ public class DartReconciler extends MonoReconciler {
       return;
     }
     // notify AnalysisContext about changes
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source, code);
-    changeSet.changed(source, code);
-    source.getContext().applyChanges(changeSet);
+    source.getContext().setContents(source, code);
   }
 
   /**

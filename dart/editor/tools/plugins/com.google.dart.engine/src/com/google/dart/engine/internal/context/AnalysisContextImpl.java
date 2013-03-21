@@ -118,21 +118,8 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
     synchronized (cacheLock) {
       //
-      // First, update the contents of the sources while computing lists of sources that have been
-      // added, changed or removed.
+      // First, compute the list of sources that have been removed.
       //
-      ArrayList<Source> addedSources = new ArrayList<Source>();
-      for (Map.Entry<Source, String> entry : changeSet.getAddedWithContent().entrySet()) {
-        Source source = entry.getKey();
-        sourceFactory.setContents(source, entry.getValue());
-        addedSources.add(source);
-      }
-      ArrayList<Source> changedSources = new ArrayList<Source>();
-      for (Map.Entry<Source, String> entry : changeSet.getChangedWithContent().entrySet()) {
-        Source source = entry.getKey();
-        sourceFactory.setContents(source, entry.getValue());
-        changedSources.add(source);
-      }
       ArrayList<Source> removedSources = new ArrayList<Source>(changeSet.getRemoved());
       for (SourceContainer container : changeSet.getRemovedContainers()) {
         addSourcesInContainer(removedSources, container);
@@ -140,10 +127,10 @@ public class AnalysisContextImpl implements AnalysisContext {
       //
       // Then determine which cached results are no longer valid.
       //
-      for (Source source : addedSources) {
+      for (Source source : changeSet.getAdded()) {
         sourceAvailable(source);
       }
-      for (Source source : changedSources) {
+      for (Source source : changeSet.getChanged()) {
         sourceChanged(source);
       }
       for (Source source : removedSources) {
@@ -665,6 +652,14 @@ public class AnalysisContextImpl implements AnalysisContext {
         unit = htmlUnitInfo.getResolvedUnit();
       }
       return unit;
+    }
+  }
+
+  @Override
+  public void setContents(Source source, String contents) {
+    synchronized (cacheLock) {
+      sourceFactory.setContents(source, contents);
+      sourceChanged(source);
     }
   }
 
