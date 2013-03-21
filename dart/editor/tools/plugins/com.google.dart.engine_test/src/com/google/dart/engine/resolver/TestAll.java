@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(CompileTimeErrorCodeTest.class);
     suite.addTestSuite(ErrorResolverTest.class);
+    suite.addTestSuite(NonErrorResolverTest.class);
     suite.addTestSuite(SimpleResolverTest.class);
     suite.addTestSuite(StaticTypeWarningCodeTest.class);
     suite.addTestSuite(StaticWarningCodeTest.class);
