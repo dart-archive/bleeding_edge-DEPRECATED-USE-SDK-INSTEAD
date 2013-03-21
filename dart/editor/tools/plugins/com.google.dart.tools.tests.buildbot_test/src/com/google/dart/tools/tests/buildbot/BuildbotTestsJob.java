@@ -21,12 +21,14 @@ import junit.framework.TestCase;
 import junit.framework.TestFailure;
 import junit.framework.TestResult;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.PlatformUI;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -151,24 +153,28 @@ class BuildbotTestsJob extends Job {
 
   @Override
   protected IStatus run(final IProgressMonitor monitor) {
+    // First, refresh the workspace. Otherwise out-of-sync resources will cause problems.
+    try {
+      ResourcesPlugin.getWorkspace().getRoot().refreshLocal(
+          IResource.DEPTH_INFINITE,
+          new NullProgressMonitor());
+    } catch (CoreException e) {
+      BuildbotPlugin.getPlugin().log(e);
+    }
+
+    // Now, run the tests.
     JobTestRunner testRunner = new JobTestRunner(monitor, mainTest);
 
-    testRunner.runTests();
+    boolean testsPassed = testRunner.runTests();
 
     if (exitWhenFinished) {
-      exitWorkbench();
+      int exitCode = testsPassed ? 0 : 1;
+
+      // We do a hard exit.
+      System.exit(exitCode);
     }
 
     return Status.OK_STATUS;
-  }
-
-  private void exitWorkbench() {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        PlatformUI.getWorkbench().close();
-      }
-    });
   }
 
   private void printFailure(TestFailure failure) {

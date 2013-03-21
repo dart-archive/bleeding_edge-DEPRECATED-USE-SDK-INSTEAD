@@ -106,7 +106,12 @@ public abstract class AbstractTestRunner {
     this.mainTest = test;
   }
 
-  public final void runTests() {
+  /**
+   * Run the tests. Return true if they succeed; false if they fail.
+   * 
+   * @return true if the tests succeed and false if they fail
+   */
+  public final boolean runTests() {
     List<TestCase> tests = filterTests(flattenTests(mainTest));
 
     testsStarted(tests);
@@ -138,6 +143,8 @@ public abstract class AbstractTestRunner {
     long totalTestTime = System.currentTimeMillis() - totalStartTime;
 
     testsFinished(tests, failures, slowTests, totalTestTime);
+
+    return failures.size() == 0;
   }
 
   public final void setStatusFile(String filePath) {

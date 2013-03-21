@@ -16,7 +16,9 @@ package com.google.dart.tools.tests.buildbot;
 
 import com.google.dart.tools.core.CmdLineOptions;
 
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Plugin;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.osgi.framework.BundleContext;
 
@@ -35,6 +37,15 @@ public class BuildbotPlugin extends Plugin {
     return plugin;
   }
 
+  /**
+   * Log the given exception.
+   * 
+   * @param e
+   */
+  public void log(Throwable e) {
+    getPlugin().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, e.getMessage(), e));
+  }
+
   @Override
   public void start(BundleContext context) throws Exception {
     plugin = this;
@@ -44,7 +55,7 @@ public class BuildbotPlugin extends Plugin {
     // When the plugin is initialized, check for a --test command-line parameter to the
     // application. If it exists, run the buildbot test suite.
     if (shouldRunTests()) {
-      Job job = new BuildbotTestsJob(true, TestAll.suite());
+      Job job = new BuildbotTestsJob(shouldExit(), TestAll.suite());
 
       job.schedule(2000);
     }
@@ -55,6 +66,10 @@ public class BuildbotPlugin extends Plugin {
     super.stop(context);
 
     plugin = null;
+  }
+
+  private boolean shouldExit() {
+    return CmdLineOptions.getOptions().getAutoExit();
   }
 
   private boolean shouldRunTests() {
