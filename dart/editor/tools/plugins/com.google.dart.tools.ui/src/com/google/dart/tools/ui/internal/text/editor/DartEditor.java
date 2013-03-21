@@ -2486,6 +2486,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
+  /**
+   * {@link DartReconciler} calls this method when input {@link IFile} read-only state is changed.
+   */
+  public void setEditables(boolean isEditable) {
+    this.isEditable = isEditable;
+    isEditableStateKnown = true;
+    updateState(getEditorInput());
+  }
+
   public void setPreferences(IPreferenceStore store) {
     uninstallSemanticHighlighting();
     super.setPreferenceStore(store);
@@ -4500,7 +4509,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (p instanceof ICompilationUnitDocumentProvider) {
         ICompilationUnitDocumentProvider provider = (ICompilationUnitDocumentProvider) getDocumentProvider();
         if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          isEditable = !provider.isReadOnly(getInputElement());
+          if (inputFile != null) {
+            isEditable = !inputFile.isReadOnly();
+          } else {
+            isEditable = false;
+          }
         } else {
           CompilationUnit unit = provider.getWorkingCopy(getEditorInput());
           isEditable = !unit.isReadOnly();

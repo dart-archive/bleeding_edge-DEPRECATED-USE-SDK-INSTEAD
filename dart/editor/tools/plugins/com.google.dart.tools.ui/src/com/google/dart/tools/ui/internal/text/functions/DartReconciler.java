@@ -99,6 +99,8 @@ public class DartReconciler extends MonoReconciler {
   private String oldCode;
   private final Listener documentListener = new Listener();
 
+  private Boolean lastReadOnly = null;
+
   public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy) {
     super(strategy, false);
     this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
@@ -148,7 +150,7 @@ public class DartReconciler extends MonoReconciler {
       // notify editor that CompilationUnit is not valid anymore
       editor.applyCompilationUnitElement(null);
     }
-  }
+  };
 
   /**
    * Asynchronously notify {@link DartEditor} about parsed {@link CompilationUnit} and selection.
@@ -161,7 +163,7 @@ public class DartReconciler extends MonoReconciler {
         editor.applyParsedUnitAndSelection(unit, newUnit, selectionRange);
       }
     });
-  };
+  }
 
   /**
    * @return the parsed {@link CompilationUnit}, may be <code>null</code>/
@@ -186,6 +188,7 @@ public class DartReconciler extends MonoReconciler {
     }
     AnalysisContext context = source.getContext();
     // resolve
+    // TODO(scheglov) reconcile cycle should be quick, we don't want to perform "compute" here
     LibraryElement libraryElement = context.computeLibraryElement(source);
     return context.resolveCompilationUnit(source, libraryElement);
   }
@@ -262,6 +265,8 @@ public class DartReconciler extends MonoReconciler {
           Thread.sleep(50);
         } catch (InterruptedException e) {
         }
+        // update read-only flag
+        updateReadOnlyFlag();
         // process EditorState
         {
           // prepare EditorState to apply
@@ -292,6 +297,17 @@ public class DartReconciler extends MonoReconciler {
         }
       } catch (Throwable e) {
       }
+    }
+  }
+
+  /**
+   * Checks if input {@link IFile} read-only flag was changed, and notifies {@link DartEditor}.
+   */
+  private void updateReadOnlyFlag() {
+    boolean readOnly = file.isReadOnly();
+    if (lastReadOnly == null || lastReadOnly.booleanValue() != readOnly) {
+      lastReadOnly = readOnly;
+      editor.setEditables(!readOnly);
     }
   }
 }
