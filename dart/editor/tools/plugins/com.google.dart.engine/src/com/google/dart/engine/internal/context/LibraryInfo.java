@@ -25,6 +25,17 @@ import com.google.dart.engine.source.SourceKind;
  */
 public class LibraryInfo extends CompilationUnitInfo {
   /**
+   * Mask indicating that this library is launchable: that the file has a main method.
+   */
+  private static final int LAUNCHABLE = 1 << 1;
+
+  /**
+   * Mask indicating that the library is client code: that the library depends on the html library.
+   * If the library is not "client code", then it is referenced as "server code".
+   */
+  private static final int CLIENT_CODE = 1 << 2;
+
+  /**
    * The state of the cached library element.
    */
   private CacheState elementState = CacheState.INVALID;
@@ -43,6 +54,21 @@ public class LibraryInfo extends CompilationUnitInfo {
    * The public namespace of the library, or {@code null} if the namespace is not currently cached.
    */
   private Namespace publicNamespace;
+
+  /**
+   * The state of the cached client/ server flag.
+   */
+  private CacheState clientServerState = CacheState.INVALID;
+
+  /**
+   * The state of the cached launchable flag.
+   */
+  private CacheState launchableState = CacheState.INVALID;
+
+  /**
+   * An integer holding bit masks such as {@link #LAUNCHABLE} and {@link #CLIENT_CODE}.
+   */
+  private int bitmask = 0;
 
   /**
    * Initialize a newly created information holder to be empty.
@@ -98,12 +124,30 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
+   * Return {@code true} if the client/ server flag needs to be recomputed.
+   * 
+   * @return {@code true} if the client/ server flag needs to be recomputed
+   */
+  public boolean hasInvalidClientServer() {
+    return clientServerState == CacheState.INVALID;
+  }
+
+  /**
    * Return {@code true} if the library element needs to be recomputed.
    * 
    * @return {@code true} if the library element needs to be recomputed
    */
   public boolean hasInvalidElement() {
     return elementState == CacheState.INVALID;
+  }
+
+  /**
+   * Return {@code true} if the launchable flag needs to be recomputed.
+   * 
+   * @return {@code true} if the launchable flag needs to be recomputed
+   */
+  public boolean hasInvalidLaunchable() {
+    return launchableState == CacheState.INVALID;
   }
 
   /**
@@ -116,6 +160,14 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
+   * Mark the client/ server flag as needing to be recomputed.
+   */
+  public void invalidateClientServer() {
+    clientServerState = CacheState.INVALID;
+    bitmask &= ~CLIENT_CODE;
+  }
+
+  /**
    * Mark the library element as needing to be recomputed.
    */
   public void invalidateElement() {
@@ -124,11 +176,67 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
+   * Mark the launchable flag as needing to be recomputed.
+   */
+  public void invalidateLaunchable() {
+    launchableState = CacheState.INVALID;
+    bitmask &= ~LAUNCHABLE;
+  }
+
+  /**
    * Mark the public namespace as needing to be recomputed.
    */
   public void invalidatePublicNamespace() {
     publicNamespaceState = CacheState.INVALID;
     publicNamespace = null;
+  }
+
+  /**
+   * Return <code>true</code> if this library is client based code: the library depends on the html
+   * library.
+   * 
+   * @return <code>true</code> if this library is client based code: the library depends on the html
+   *         library
+   */
+  public boolean isClient() {
+    return (bitmask & CLIENT_CODE) != 0;
+  }
+
+  /**
+   * Return <code>true</code> if this library is launchable: the file includes a main method.
+   * 
+   * @return <code>true</code> if this library is launchable: the file includes a main method
+   */
+  public boolean isLaunchable() {
+    return (bitmask & LAUNCHABLE) != 0;
+  }
+
+  /**
+   * Return <code>true</code> if this library is server based code: the library does not depends on
+   * the html library.
+   * 
+   * @return <code>true</code> if this library is server based code: the library does not depends on
+   *         the html library
+   */
+  public boolean isServer() {
+    return (bitmask & CLIENT_CODE) == 0;
+  }
+
+  /**
+   * Sets the value of the client/ server flag.
+   * <p>
+   * <b>Note:</b> Do not use this method to invalidate the flag, use
+   * {@link #invalidateClientServer()}.
+   * 
+   * @param isClient the new value of the client flag
+   */
+  public void setClient(boolean isClient) {
+    if (isClient) {
+      bitmask |= CLIENT_CODE;
+    } else {
+      bitmask &= ~CLIENT_CODE;
+    }
+    clientServerState = CacheState.VALID;
   }
 
   /**
@@ -142,6 +250,22 @@ public class LibraryInfo extends CompilationUnitInfo {
   public void setElement(LibraryElement element) {
     this.element = element;
     elementState = CacheState.VALID;
+  }
+
+  /**
+   * Sets the value of the launchable flag.
+   * <p>
+   * <b>Note:</b> Do not use this method to invalidate the flag, use {@link #invalidateLaunchable()}.
+   * 
+   * @param isClient the new value of the client flag
+   */
+  public void setLaunchable(boolean launchable) {
+    if (launchable) {
+      bitmask |= LAUNCHABLE;
+    } else {
+      bitmask &= ~LAUNCHABLE;
+    }
+    launchableState = CacheState.VALID;
   }
 
   /**
