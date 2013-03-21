@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
@@ -40,6 +41,7 @@ import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
+import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -111,8 +113,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isEnclosingConstructorConst;
 
   /**
-   * The method or function that we are currently visiting, or {@code null} if we are not inside a
-   * method or function.
+   * This is set to <code>true</code> iff the visitor is currently visiting children nodes of a
+   * {@link CatchClause}.
+   * 
+   * @see #visitCatchClause(CatchClause)
+   */
+  private boolean isInCatchClause;
+
+  /**
+   * The method or function that we are currently visiting, or <code>null</code> if we are not
+   * inside a method or function.
    */
   private ExecutableElement currentFunction;
 
@@ -128,6 +138,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     this.currentLibrary = currentLibrary;
     this.typeProvider = typeProvider;
     isEnclosingConstructorConst = false;
+    isInCatchClause = false;
     dynamicType = typeProvider.getDynamicType();
     DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = new InterfaceType[] {
         typeProvider.getNumType(), typeProvider.getIntType(), typeProvider.getDoubleType(),
@@ -150,6 +161,17 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitAssignmentExpression(AssignmentExpression node) {
     checkForInvalidAssignment(node);
     return super.visitAssignmentExpression(node);
+  }
+
+  @Override
+  public Void visitCatchClause(CatchClause node) {
+    boolean previousIsInCatchClause = isInCatchClause;
+    try {
+      isInCatchClause = true;
+      return super.visitCatchClause(node);
+    } finally {
+      isInCatchClause = previousIsInCatchClause;
+    }
   }
 
   @Override
@@ -282,6 +304,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       currentFunction = previousFunction;
     }
+  }
+
+  @Override
+  public Void visitRethrowExpression(RethrowExpression node) {
+    checkForRethrowOutsideCatch(node);
+    return super.visitRethrowExpression(node);
   }
 
   @Override
@@ -752,6 +780,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         errorReporter.reportError(StaticTypeWarningCode.NON_BOOL_EXPRESSION, expression);
         return true;
       }
+    }
+    return false;
+  }
+
+  /**
+   * This checks that the rethrow is inside of a catch clause.
+   * 
+   * @param node the rethrow expression to evaluate
+   * @return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#RETHROW_OUTSIDE_CATCH
+   */
+  private boolean checkForRethrowOutsideCatch(RethrowExpression node) {
+    if (!isInCatchClause) {
+      errorReporter.reportError(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH, node);
+      return true;
     }
     return false;
   }

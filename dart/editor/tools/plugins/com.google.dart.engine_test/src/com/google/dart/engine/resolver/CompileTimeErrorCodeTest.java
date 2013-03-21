@@ -809,16 +809,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_rethrowOutsideCatch() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  rethrow;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
-    verify(source);
-  }
-
   public void fail_returnInGenerativeConstructor() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1482,6 +1472,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    verify(source);
+  }
+
+  public void test_rethrowOutsideCatch() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  rethrow;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
     verify(source);
   }
 

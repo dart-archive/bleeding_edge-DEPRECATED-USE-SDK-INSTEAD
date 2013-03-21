@@ -523,6 +523,18 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_rethrowOutsideCatch() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  void m() {",
+        "    try {} catch (e) {rethrow;}",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_returnOfInvalidType_dynamic() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
