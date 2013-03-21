@@ -50,19 +50,47 @@ public class CssAutoIndentStrategy extends WebEditorAutoIndentStrategy {
 
       StringBuffer buf = new StringBuffer(command.text);
 
+      String wsStart = "";
+
       if (end > start) {
         // append to input
-        buf.append(document.get(start, end - start));
+        wsStart = document.get(start, end - start);
+
+        buf.append(wsStart);
       }
 
       if (endsInBrace) {
         buf.append("  ");
+
+        // Insert \n, indent, and '}', then back up the caret position.
+        String eol = getEol(document, command.offset);
+
+        String closingBracket = eol + wsStart + "}";
+
+        buf.append(closingBracket);
+
+        command.shiftsCaret = false;
+        command.caretOffset = command.offset + buf.length() - closingBracket.length();
       }
 
       command.text = buf.toString();
     } catch (BadLocationException excp) {
       // stop work
     }
+  }
+
+  private String getEol(IDocument document, int offset) throws BadLocationException {
+    String eol = document.getLineDelimiter(document.getLineOfOffset(offset));
+
+    if (eol == null) {
+      eol = document.getLineDelimiter(0);
+    }
+
+    if (eol == null) {
+      eol = "\n";
+    }
+
+    return eol;
   }
 
 }

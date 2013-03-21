@@ -120,9 +120,13 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
     PresentationReconciler reconciler = new PresentationReconciler();
 
-    DefaultDamagerRepairer dr = new DefaultDamagerRepairer(getHtmlScanner());
-    reconciler.setDamager(dr, HtmlEditor.HTML_BRACKET_PARTITION);
-    reconciler.setRepairer(dr, HtmlEditor.HTML_BRACKET_PARTITION);
+    DefaultDamagerRepairer dr = new DefaultDamagerRepairer(new RuleBasedScanner());
+    reconciler.setDamager(dr, IDocument.DEFAULT_CONTENT_TYPE);
+    reconciler.setRepairer(dr, IDocument.DEFAULT_CONTENT_TYPE);
+
+    DefaultDamagerRepairer htmlDR = new DefaultDamagerRepairer(getHtmlScanner());
+    reconciler.setDamager(htmlDR, HtmlEditor.HTML_BRACKET_PARTITION);
+    reconciler.setRepairer(htmlDR, HtmlEditor.HTML_BRACKET_PARTITION);
 
     DefaultDamagerRepairer cssDR = new DefaultDamagerRepairer(getCssScanner());
     reconciler.setDamager(new DartIndiscriminateDamager(), HtmlEditor.HTML_STYLE_PARTITION);
@@ -136,10 +140,10 @@ public class HtmlSourceViewerConfiguration extends TextSourceViewerConfiguration
     reconciler.setDamager(new DartIndiscriminateDamager(), HtmlEditor.HTML_CODE_PARTITION);
     reconciler.setRepairer(codeDR, HtmlEditor.HTML_CODE_PARTITION);
 
-    HtmlDamagerRepairer ndr = new HtmlDamagerRepairer(new TextAttribute(
+    HtmlDamagerRepairer commentDR = new HtmlDamagerRepairer(new TextAttribute(
         DartWebPlugin.getPlugin().getEditorColor(DartWebPlugin.COLOR_COMMENTS)));
-    reconciler.setDamager(ndr, HtmlEditor.HTML_COMMENT_PARTITION);
-    reconciler.setRepairer(ndr, HtmlEditor.HTML_COMMENT_PARTITION);
+    reconciler.setDamager(commentDR, HtmlEditor.HTML_COMMENT_PARTITION);
+    reconciler.setRepairer(commentDR, HtmlEditor.HTML_COMMENT_PARTITION);
 
     return reconciler;
   }

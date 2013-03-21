@@ -18,8 +18,12 @@ import com.google.dart.tools.core.html.XmlDocument;
 import com.google.dart.tools.core.html.XmlNode;
 import com.google.dart.tools.ui.web.utils.WebEditor;
 
+import org.eclipse.jface.text.IDocumentExtension3;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
+import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
@@ -63,6 +67,17 @@ public class HtmlEditor extends WebEditor {
 
   public void selectAndReveal(XmlNode node) {
     selectAndReveal(node.getStartOffset(), node.getEndOffset() - node.getStartOffset());
+  }
+
+  @Override
+  protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
+    ICharacterPairMatcher matcher = new DefaultCharacterPairMatcher(
+        new char[] {'<', '>'},
+        IDocumentExtension3.DEFAULT_PARTITIONING);
+    support.setCharacterPairMatcher(matcher);
+    support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
+
+    super.configureSourceViewerDecorationSupport(support);
   }
 
   protected XmlDocument getModel() {

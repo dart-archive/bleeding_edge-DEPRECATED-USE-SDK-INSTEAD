@@ -50,10 +50,13 @@ class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
       int end = findEndOfWhiteSpace(document, start, command.offset);
 
       StringBuffer buf = new StringBuffer(command.text);
+      String wsStart = "";
 
       if (end > start) {
+        wsStart = document.get(start, end - start);
+
         // append to input
-        buf.append(document.get(start, end - start));
+        buf.append(wsStart);
       }
 
       if (endsInBracket) {
@@ -70,6 +73,16 @@ class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
           // Indent after an ">", but not if we're closing an element tag.
           if (!(startStr.startsWith("</") || startStr.endsWith("/>"))) {
             buf.append("  ");
+
+            // Insert </foo> and back up the caret position.
+            String eol = getEol(document, command.offset);
+
+            String closingTag = eol + wsStart + "</" + startTagName + ">";
+
+            buf.append(closingTag);
+
+            command.shiftsCaret = false;
+            command.caretOffset = command.offset + buf.length() - closingTag.length();
           }
         }
       }
@@ -78,6 +91,20 @@ class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
     } catch (BadLocationException excp) {
 
     }
+  }
+
+  private String getEol(IDocument document, int offset) throws BadLocationException {
+    String eol = document.getLineDelimiter(document.getLineOfOffset(offset));
+
+    if (eol == null) {
+      eol = document.getLineDelimiter(0);
+    }
+
+    if (eol == null) {
+      eol = "\n";
+    }
+
+    return eol;
   }
 
   private String getStartTagName(String line) {

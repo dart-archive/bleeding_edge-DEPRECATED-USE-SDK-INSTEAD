@@ -3,6 +3,7 @@ avi video/avi
 bmp image/bmp
 bz2 application/x-bzip2
 css text/css
+dart application/dart
 dtd application/xml-dtd
 doc application/msword
 es application/ecmascript
