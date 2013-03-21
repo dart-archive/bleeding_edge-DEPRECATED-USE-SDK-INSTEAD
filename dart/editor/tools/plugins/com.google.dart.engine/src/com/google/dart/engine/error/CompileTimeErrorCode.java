@@ -281,7 +281,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if <i>k</i>’s initializer list contains an initializer for a final variable <i>f</i>
    * whose declaration includes an initialization expression.
    */
-  FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION(""),
+  FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION(
+      "Values cannot be set in the constructor if they are final, and have already been set"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time

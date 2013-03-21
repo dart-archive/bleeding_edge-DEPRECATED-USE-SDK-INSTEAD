@@ -201,6 +201,28 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x = 0;",
+        "  A() : x = 1 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_fieldInitializedInInitializerAndDeclaration_finalFieldNotSet() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final int x;",
+        "  A() : x = 1 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_forEachLoops_nonConflicting() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",

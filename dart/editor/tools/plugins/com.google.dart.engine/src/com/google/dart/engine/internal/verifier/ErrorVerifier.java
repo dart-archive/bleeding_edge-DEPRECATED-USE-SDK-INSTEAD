@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
@@ -57,6 +58,8 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
@@ -184,6 +187,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       isEnclosingConstructorConst = false;
       currentFunction = previousFunction;
     }
+  }
+
+  @Override
+  public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    checkForFieldInitializedInInitializerAndDeclaration(node);
+    return super.visitConstructorFieldInitializer(node);
   }
 
   @Override
@@ -630,6 +639,32 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         }
         // otherwise, report the error
         errorReporter.reportError(errorCode, typeName, disallowedType.getName());
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed constructor field initializer is not also a final variable that
+   * already included an initialization.
+   * 
+   * @param node the constructor fieldInitializer to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+   */
+  private boolean checkForFieldInitializedInInitializerAndDeclaration(
+      ConstructorFieldInitializer node) {
+    SimpleIdentifier identifier = node.getFieldName();
+    Element element = identifier.getElement();
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
+      PropertyInducingElement propertyInducingElement = propertyAccessorElement.getVariable();
+      if (propertyInducingElement.getInitializer() != null
+          && (propertyInducingElement.isFinal() || propertyInducingElement.isConst())) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+            node);
         return true;
       }
     }

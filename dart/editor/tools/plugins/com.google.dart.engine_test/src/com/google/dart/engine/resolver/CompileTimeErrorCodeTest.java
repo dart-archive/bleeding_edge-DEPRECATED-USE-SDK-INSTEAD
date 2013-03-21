@@ -193,17 +193,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_fieldInitializedInInitializerAndDeclaration() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  final int x = 0;",
-        "  A() : x = 1 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
-    verify(source);
-  }
-
   public void fail_fieldInitializeInParameterAndInitializer() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1375,6 +1364,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A implements String {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_fieldInitializedInInitializerAndDeclaration_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  const int x = 0;",
+        "  A() : x = 1 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
+    verify(source);
+  }
+
+  public void test_fieldInitializedInInitializerAndDeclaration_final() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final int x = 0;",
+        "  A() : x = 1 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
     verify(source);
   }
 
