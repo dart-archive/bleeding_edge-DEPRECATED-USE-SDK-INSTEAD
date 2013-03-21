@@ -76,8 +76,8 @@ public class SDKAnalysisTest extends TestCase {
       for (CompilationUnitElement part : library.getParts()) {
         addErrors(errorList, part);
       }
-      assertErrors(errorList);
     }
+    assertErrors(errorList);
     //
     // Validate that the results were correctly formed.
     //
