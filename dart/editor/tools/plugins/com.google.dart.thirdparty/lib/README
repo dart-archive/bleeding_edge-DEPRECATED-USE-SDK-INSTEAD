@@ -1,0 +1,6 @@
+# Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+This directory is required for building the editor and should not be deleted.
+This file is here to ensure that git correctly handles the empty directory.
