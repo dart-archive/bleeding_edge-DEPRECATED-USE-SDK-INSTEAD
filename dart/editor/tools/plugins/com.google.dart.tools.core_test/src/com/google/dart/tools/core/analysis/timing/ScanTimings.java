@@ -36,9 +36,11 @@ import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
+import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.mock.MockWorkspace;
 
 import junit.framework.TestCase;
 
@@ -463,9 +465,11 @@ public class ScanTimings extends TestCase {
 
   private void scanWithParticipant(final IProject project) throws CoreException {
     IProgressMonitor monitor = new NullProgressMonitor();
+    MockWorkspace workspace = new MockWorkspace();
     final AnalysisEngineParticipant participant = new AnalysisEngineParticipant(
         true,
-        new MockProjectManagerForScan()) {
+        new MockProjectManagerForScan(),
+        new AnalysisMarkerManager(workspace)) {
 
       @Override
       protected DeltaProcessor createProcessor(Project project) {

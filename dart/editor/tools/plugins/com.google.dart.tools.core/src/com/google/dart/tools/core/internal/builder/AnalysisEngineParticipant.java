@@ -18,6 +18,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
@@ -44,6 +45,11 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private final boolean enabled;
 
   /**
+   * The marker manager used to translate errors to Eclipse markers (not {@code null}).
+   */
+  private final AnalysisMarkerManager markerManager;
+
+  /**
    * The project manager (not {@code null}) responsible for caching project information and from
    * which the receiver obtains the project to be analyzed.
    */
@@ -56,15 +62,20 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   private Project project;
 
   public AnalysisEngineParticipant() {
-    this(DartCoreDebug.ENABLE_NEW_ANALYSIS, DartCore.getProjectManager());
+    this(
+        DartCoreDebug.ENABLE_NEW_ANALYSIS,
+        DartCore.getProjectManager(),
+        AnalysisMarkerManager.getInstance());
   }
 
-  public AnalysisEngineParticipant(boolean enabled, ProjectManager projectManager) {
+  public AnalysisEngineParticipant(boolean enabled, ProjectManager projectManager,
+      AnalysisMarkerManager markerManager) {
     if (projectManager == null) {
       throw new IllegalArgumentException();
     }
     this.enabled = enabled;
     this.projectManager = projectManager;
+    this.markerManager = markerManager;
   }
 
   /**
@@ -78,90 +89,56 @@ public class AnalysisEngineParticipant implements BuildParticipant {
       return;
     }
 
+    final ProjectUpdater updater = new ProjectUpdater();
+
     // Traverse resources specified by the build event
     event.traverse(new BuildVisitor() {
       @Override
       public boolean visit(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
         IProject resource = (IProject) delta.getResource();
-
         if (project == null) {
           project = projectManager.getProject(resource);
         }
-
-        if (monitor.isCanceled()) {
-          return false;
-        }
-
-        // Update the project
         DeltaProcessor processor = createProcessor(project);
-        ProjectUpdater updater = new ProjectUpdater();
         processor.addDeltaListener(updater);
         processor.traverse(delta);
-        updater.applyChanges();
-
-        if (monitor.isCanceled()) {
-          return false;
-        }
-
-        // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(
-            projectManager.getIgnoreManager(),
-            projectManager.getIndex());
-        processor = createProcessor(project);
-        processor.addDeltaListener(analyzer);
-        processor.traverse(delta);
-        analyzer.analyze(monitor);
-
-        // Notify others
-        projectManager.projectAnalyzed(project);
-
         return false;
       }
 
       @Override
       public boolean visit(IResourceProxy proxy, IProgressMonitor monitor) throws CoreException {
         IProject resource = (IProject) proxy.requestResource();
-
         if (project == null) {
           project = projectManager.getProject(resource);
         }
-
-        if (monitor.isCanceled()) {
-          return false;
-        }
-
-        // Update the project
         DeltaProcessor processor = createProcessor(project);
-        ProjectUpdater updater = new ProjectUpdater();
         processor.addDeltaListener(updater);
         processor.traverse(resource);
-        updater.applyChanges();
-
-        if (monitor.isCanceled()) {
-          return false;
-        }
-
-        // Parse changed files
-        ProjectAnalyzer analyzer = new ProjectAnalyzer(
-            projectManager.getIgnoreManager(),
-            projectManager.getIndex());
-        processor = createProcessor(project);
-        processor.addDeltaListener(analyzer);
-        processor.traverse(resource);
-        analyzer.analyze(monitor);
-
-        // Notify others
-        projectManager.projectAnalyzed(project);
-
         return false;
       }
     }, false);
+
+    // Apply the changes to the project
+    updater.applyChanges();
 
     if (monitor.isCanceled()) {
       return;
     }
 
-    // TODO (danrubel): resolve all available sources
+    // Perform analysis on each context in the project
+    for (PubFolder pubFolder : project.getPubFolders()) {
+      analyzeContext(pubFolder.getContext(), monitor);
+    }
+    if (project.getPubFolder(project.getResource()) == null) {
+      analyzeContext(project.getDefaultContext(), monitor);
+    }
+
+    if (monitor.isCanceled()) {
+      return;
+    }
+
+    // Notify others
+    projectManager.projectAnalyzed(project);
   }
 
   /**
@@ -191,5 +168,15 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    */
   protected DeltaProcessor createProcessor(Project project) {
     return new DeltaProcessor(project);
+  }
+
+  /**
+   * Perform analysis on the specified context.
+   * 
+   * @param context the context to analyze (not {@code null})
+   * @param monitor the progress monitor (not {@code null})
+   */
+  private void analyzeContext(AnalysisContext context, IProgressMonitor monitor) {
+    new AnalysisWorker(project, context, projectManager.getIndex(), markerManager).performAnalysis();
   }
 }

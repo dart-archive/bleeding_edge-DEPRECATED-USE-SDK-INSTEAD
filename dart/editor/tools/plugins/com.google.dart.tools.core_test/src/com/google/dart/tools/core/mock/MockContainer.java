@@ -70,9 +70,14 @@ public abstract class MockContainer extends MockResource implements IContainer {
    * Create a {@link MockFile} and add it to the receiver as a child
    */
   public MockFile addFile(String name) {
-    MockFile file = new MockFile(this, name);
-    add(file);
-    return file;
+    return addFile(name, "");
+  }
+
+  /**
+   * Create a {@link MockFile} with contents and add it to the receiver as a child
+   */
+  public MockFile addFile(String name, String contents) {
+    return add(new MockFile(this, name, contents));
   }
 
   /**

@@ -19,20 +19,16 @@ import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.utilities.source.LineInfo;
-import com.google.dart.tools.core.CallList.Call;
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockProject;
-import com.google.dart.tools.core.mock.MockResource;
 import com.google.dart.tools.core.mock.MockWorkspace;
 import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import junit.framework.TestCase;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
@@ -78,8 +74,8 @@ public class AnalysisMarkerManagerTest extends TestCase {
     markerManager.waitForMarkers(10000);
 
     // Assert background thread exited before 2nd cycle
-    fileRes.getMarkerCallList().assertCall(newDeleteMarkersCall(fileRes));
-    fileRes.getMarkerCallList().assertNoCall(newDeleteMarkersCall(fileRes));
+    fileRes.assertMarkersDeleted();
+    fileRes.assertMarkersNotDeleted();
   }
 
   public void test_translateMarkers() throws Exception {
@@ -92,14 +88,14 @@ public class AnalysisMarkerManagerTest extends TestCase {
     markerManager.done();
     markerManager.waitForMarkers(10000);
 
-    fileRes.getMarkerCallList().assertCall(newDeleteMarkersCall(fileRes));
+    fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
   }
 
   @Override
   protected void setUp() {
     workspace = new MockWorkspace();
-    rootRes = (MockWorkspaceRoot) workspace.getRoot();
+    rootRes = workspace.getRoot();
     projectRes = rootRes.add(new MockProject(rootRes, getClass().getSimpleName()));
 
     fileRes = projectRes.add(new MockFile(projectRes, "a.dart", "library a;#") {
@@ -131,14 +127,5 @@ public class AnalysisMarkerManagerTest extends TestCase {
 
     File file = fileRes.getLocation().toFile();
     source = new FileBasedSource(context.getSourceFactory(), file);
-  }
-
-  private Call newDeleteMarkersCall(MockResource resource) {
-    return new Call(
-        resource,
-        MockFile.DELETE_MARKERS,
-        DartCore.DART_PROBLEM_MARKER_TYPE,
-        true,
-        IResource.DEPTH_ZERO);
   }
 }

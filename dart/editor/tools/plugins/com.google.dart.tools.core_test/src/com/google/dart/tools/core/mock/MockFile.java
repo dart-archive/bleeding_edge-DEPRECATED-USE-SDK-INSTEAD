@@ -13,6 +13,9 @@
  */
 package com.google.dart.tools.core.mock;
 
+import com.google.dart.tools.core.CallList.Call;
+import com.google.dart.tools.core.DartCore;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFileState;
@@ -62,6 +65,20 @@ public class MockFile extends MockResource implements IFile {
   @Override
   public void appendContents(InputStream source, int updateFlags, IProgressMonitor monitor)
       throws CoreException {
+  }
+
+  /**
+   * Assert that {@link #deleteMarkers(String, boolean, int)} was called.
+   */
+  public void assertMarkersDeleted() {
+    getMarkerCallList().assertCall(newDeleteMarkerCall());
+  }
+
+  /**
+   * Assert that {@link #deleteMarkers(String, boolean, int)} was NOT called.
+   */
+  public void assertMarkersNotDeleted() {
+    getMarkerCallList().assertNoCall(newDeleteMarkerCall());
   }
 
   @Override
@@ -165,5 +182,14 @@ public class MockFile extends MockResource implements IFile {
   @Override
   public void setContents(InputStream source, int updateFlags, IProgressMonitor monitor)
       throws CoreException {
+  }
+
+  private Call newDeleteMarkerCall() {
+    return new Call(
+        this,
+        MockFile.DELETE_MARKERS,
+        DartCore.DART_PROBLEM_MARKER_TYPE,
+        true,
+        IResource.DEPTH_ZERO);
   }
 }

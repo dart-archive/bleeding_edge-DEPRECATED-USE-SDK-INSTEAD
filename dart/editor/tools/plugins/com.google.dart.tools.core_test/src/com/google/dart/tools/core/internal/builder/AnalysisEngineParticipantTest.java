@@ -14,383 +14,201 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.element.HtmlElement;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.index.Index;
-import com.google.dart.engine.index.IndexFactory;
+import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
-import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.source.SourceFactory;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.analysis.model.Project;
-import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
-import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
+import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
+import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import com.google.dart.tools.core.mock.MockDelta;
+import com.google.dart.tools.core.mock.MockFile;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.mock.MockWorkspace;
+import com.google.dart.tools.core.mock.MockWorkspaceRoot;
 
 import static com.google.dart.tools.core.internal.builder.TestProjects.MONITOR;
-import static com.google.dart.tools.core.internal.builder.TestProjects.newPubProject3;
 
 import org.eclipse.core.resources.IContainer;
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.CoreException;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
   /**
-   * Mock {@link DeltaProcessor} for testing {@link AnalysisEngineParticipant}
+   * Mock {@link AnalysisContext} for testing {@link AnalysisEngineParticipant}
    */
-  private class MockDeltaProcessor extends DeltaProcessor {
-
-    private ArrayList<Object> called = new ArrayList<Object>();
-
-    public MockDeltaProcessor(Project project) {
-      super(project);
-    }
+  private class MockAnalysisContextImpl extends AnalysisContextImpl {
+    private ArrayList<Source> added = new ArrayList<Source>();
+    private ArrayList<Source> changed = new ArrayList<Source>();
 
     @Override
-    public void traverse(IContainer resource) throws CoreException {
-      called.add(resource);
+    public void applyChanges(ChangeSet changeSet) {
+      added.addAll(changeSet.getAdded());
+      changed.addAll(changeSet.getChanged());
+      super.applyChanges(changeSet);
     }
 
-    @Override
-    public void traverse(IResourceDelta delta) throws CoreException {
-      called.add(delta);
+    public void assertApplyChanges(Source[] sourcesAdded, Source[] sourcesChanged) {
+      assertEqualContents(sourcesAdded, added);
+      assertEqualContents(sourcesChanged, changed);
+      added.clear();
+      changed.clear();
     }
 
-    void assertNoCalls() {
-      if (called.size() > 0) {
-        fail("Unexpected call " + called.get(0));
+    private void assertEqualContents(Source[] expected, ArrayList<Source> actual) {
+      if (expected.length == actual.size()) {
+        boolean isEqual = true;
+        for (Source source : expected) {
+          if (!actual.contains(source)) {
+            isEqual = false;
+            break;
+          }
+        }
+        if (isEqual) {
+          return;
+        }
       }
-    }
-
-    void assertTraversed(Object arg) {
-      if (called.size() == 0) {
-        fail("Expected traverse " + arg);
+      PrintStringWriter msg = new PrintStringWriter();
+      msg.println("Expected:");
+      for (Source source : expected) {
+        msg.println("    " + source);
       }
-      Object call = called.remove(0);
-      assertSame(arg, call);
+      msg.println("Actual:");
+      for (Source source : actual) {
+        msg.println("    " + source);
+      }
+      fail(msg.toString().trim());
     }
   }
 
   /**
    * Mock {@link Project} for testing {@link AnalysisEngineParticipant}
    */
-  private class MockProjectImpl implements Project {
+  private class MockProjectImpl extends ProjectImpl {
 
-    private final IProject resource;
+    public MockProjectImpl(IProject resource, DartSdk sdk) {
+      super(resource, sdk, new AnalysisContextFactory() {
+        @Override
+        public AnalysisContext createContext() {
+          return new MockAnalysisContextImpl();
+        }
 
-    public MockProjectImpl(IProject resource) {
-      this.resource = resource;
-    }
-
-    @Override
-    public void discardContextsIn(IContainer container) {
-      throw new RuntimeException("Unexpected call");
-    }
-
-    @Override
-    public AnalysisContext getContext(IResource resource) {
-      throw new RuntimeException("Unexpected call");
-    }
-
-    @Override
-    public AnalysisContext getDefaultContext() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public HtmlElement getHtmlElement(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableClientLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableServerLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement[] getLibraries(IContainer container) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement getLibraryElement(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement getLibraryElementOrNull(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PubFolder getPubFolder(IResource resource) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PubFolder[] getPubFolders() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public IProject getResource() {
-      return resource;
-    }
-
-    @Override
-    public IResource getResource(Source source) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DartSdk getSdk() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source getSource(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public SourceKind getSourceKind(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void pubspecAdded(IContainer container) {
-      throw new RuntimeException("Unexpected call");
-    }
-
-    @Override
-    public void pubspecRemoved(IContainer container) {
-      throw new RuntimeException("Unexpected call");
+        @Override
+        public File[] getPackageRoots(IContainer container) {
+          return new File[] {};
+        }
+      });
     }
   }
 
   /**
    * Mock {@link ProjectManager} for testing {@link AnalysisEngineParticipant}
    */
-  private final class MockProjectManager implements ProjectManager {
-    private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
-    private final DartIgnoreManager ignoreManager = new DartIgnoreManager();
+  private final class MockProjectManagerImpl extends ProjectManagerImpl {
     private final ArrayList<Project> analyzed = new ArrayList<Project>();
-    private MockProjectImpl project;
 
-    @Override
-    public void addProjectListener(ProjectListener listener) {
-      throw new UnsupportedOperationException();
+    public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
+        DartIgnoreManager ignoreManager) {
+      super(resource, sdk, ignoreManager);
     }
 
-    public void assertProjectAnalyzed(Project expected) {
+    public void assertProjectAnalyzed() {
       assertEquals(1, analyzed.size());
-      assertSame(expected, analyzed.get(0));
+      assertSame(project, analyzed.get(0));
       analyzed.clear();
     }
 
     @Override
-    public AnalysisContext getContext(IResource resource) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public HtmlElement getHtmlElement(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public IResource getHtmlFileForLibrary(Source source) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DartIgnoreManager getIgnoreManager() {
-      return ignoreManager;
-    }
-
-    @Override
-    public Index getIndex() {
-      return index;
-    }
-
-    @Override
-    public Source[] getLaunchableClientLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableClientLibrarySources(IProject project) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableServerLibrarySources() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLaunchableServerLibrarySources(IProject project) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement[] getLibraries(IContainer container) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement getLibraryElement(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public LibraryElement getLibraryElementOrNull(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source[] getLibrarySources(IResource resource) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Project getProject(IProject resource) {
-      if (project == null) {
-        project = new MockProjectImpl(resource);
+      if (projectRes != resource) {
+        fail("Unexpected call: " + resource);
       }
       return project;
     }
 
     @Override
     public Project[] getProjects() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public PubFolder getPubFolder(IResource resource) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public IWorkspaceRoot getResource() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public IResource getResource(Source source) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public DartSdk getSdk() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public AnalysisContext getSdkContext() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Source getSource(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public SourceKind getSourceKind(IFile file) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public SearchEngine newSearchEngine() {
-      throw new UnsupportedOperationException();
+      return new Project[] {project};
     }
 
     @Override
     public void projectAnalyzed(Project project) {
       analyzed.add(project);
     }
-
-    @Override
-    public void removeProjectListener(ProjectListener listener) {
-      throw new UnsupportedOperationException();
-    }
   }
 
-  /**
-   * Specialized {@link AnalysisEngineParticipant} that returns a mock context for recording what
-   * analysis is requested rather than a context that would actually analyze the source.
-   */
-  private class Target extends AnalysisEngineParticipant {
-    private MockDeltaProcessor processor;
+  private MockWorkspace workspace;
+  private MockWorkspaceRoot rootRes;
+  private MockProject projectRes;
+  private MockFile fileRes;
 
-    Target() {
-      super(true, manager);
-    }
+  private AnalysisMarkerManager markerManager;
 
-    @Override
-    protected DeltaProcessor createProcessor(Project project) {
-      assertNotNull(project);
-      if (processor == null) {
-        processor = new MockDeltaProcessor(project);
-      }
-      return processor;
-    }
-  }
+  private DartSdk sdk;
+  private MockProjectManagerImpl manager;
+  private MockProjectImpl project;
+  private Source fileSource;
 
-  private MockProject projectContainer;
-  private MockProjectManager manager = new MockProjectManager();
-  private Target participant;
+  private AnalysisEngineParticipant participant;
 
-  public void test_build_delta() throws Exception {
-    MockDelta delta = new MockDelta(projectContainer);
-    participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
-    participant.processor.assertTraversed(delta);
-    participant.processor.assertTraversed(delta);
-    participant.processor.assertNoCalls();
-    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
+  public void test_build() throws Exception {
 
-    participant.build(new BuildEvent(projectContainer, delta, MONITOR), MONITOR);
-    participant.processor.assertTraversed(delta);
-    participant.processor.assertTraversed(delta);
-    participant.processor.assertNoCalls();
-    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
-  }
+    // new project
+    MockDelta delta = null;
+    participant.build(new BuildEvent(projectRes, delta, MONITOR), MONITOR);
 
-  public void test_build_noDelta() throws Exception {
-    participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer);
-    participant.processor.assertTraversed(projectContainer);
-    participant.processor.assertNoCalls();
-    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
+    manager.assertProjectAnalyzed();
+    ((MockAnalysisContextImpl) project.getDefaultContext()).assertApplyChanges(
+        new Source[] {fileSource},
+        new Source[] {});
+    markerManager.waitForMarkers(10000);
+    fileRes.assertMarkersDeleted();
+    fileRes.assertMarkersNotDeleted();
 
-    participant.build(new BuildEvent(projectContainer, null, MONITOR), MONITOR);
-    participant.processor.assertTraversed(projectContainer);
-    participant.processor.assertTraversed(projectContainer);
-    participant.processor.assertNoCalls();
-    manager.assertProjectAnalyzed(manager.getProject(projectContainer));
+    // file in project changed
+    delta = new MockDelta(projectRes);
+    delta.add(fileRes);
+    participant.build(new BuildEvent(projectRes, delta, MONITOR), MONITOR);
+
+    manager.assertProjectAnalyzed();
+    ((MockAnalysisContextImpl) project.getDefaultContext()).assertApplyChanges(
+        new Source[] {},
+        new Source[] {fileSource});
+    markerManager.waitForMarkers(10000);
+    fileRes.assertMarkersDeleted();
   }
 
   @Override
   protected void setUp() throws Exception {
-    projectContainer = newPubProject3();
-    participant = new Target();
+    workspace = new MockWorkspace();
+    rootRes = workspace.getRoot();
+    projectRes = rootRes.addProject(getClass().getSimpleName());
+    String fileContents = "library a;#";
+    fileRes = projectRes.addFile("a.dart", fileContents);
+
+    markerManager = new AnalysisMarkerManager(workspace);
+
+    sdk = DartSdk.getDefaultSdk();
+    manager = new MockProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
+    project = new MockProjectImpl(projectRes, sdk);
+
+    AnalysisContext context = project.getDefaultContext();
+    File file = fileRes.getLocation().toFile();
+    SourceFactory factory = context.getSourceFactory();
+    fileSource = new FileBasedSource(factory, file);
+    factory.setContents(fileSource, fileContents);
+
+    participant = new AnalysisEngineParticipant(true, manager, markerManager);
   }
 }

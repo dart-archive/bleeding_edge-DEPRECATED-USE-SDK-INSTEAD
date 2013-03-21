@@ -39,6 +39,13 @@ public class MockWorkspaceRoot extends MockContainer implements IWorkspaceRoot {
     this.workspace = workspace;
   }
 
+  /**
+   * Create a {@link MockProject} and add it to the receiver as a child
+   */
+  public MockProject addProject(String name) {
+    return add(new MockProject(this, name));
+  }
+
   @Override
   public void delete(boolean deleteContent, boolean force, IProgressMonitor monitor)
       throws CoreException {

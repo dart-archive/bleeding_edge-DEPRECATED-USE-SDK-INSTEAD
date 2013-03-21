@@ -29,7 +29,6 @@ import org.eclipse.core.resources.ISavedState;
 import org.eclipse.core.resources.ISynchronizer;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceDescription;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.WorkspaceLock;
 import org.eclipse.core.runtime.CoreException;
@@ -163,7 +162,7 @@ public class MockWorkspace implements IWorkspace {
   }
 
   @Override
-  public IWorkspaceRoot getRoot() {
+  public MockWorkspaceRoot getRoot() {
     return root;
   }
 
