@@ -397,8 +397,8 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets031() throws Exception {
-    test( // TODO Make one test is! when the AST is correct.
-        "class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is !! !2)}}",
+    test(
+        "class Bar<T extends Foo> {m(x){if (x is !1) return;if (x is!!!2)}}",
         "1+Bar",
         "1+T",
         "2+T",
@@ -418,7 +418,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    // TODO Enable after type propagation is implemented.
+    // TODO Enable after type propagation and corelib analysis are implemented.
 //    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
   }
 
@@ -439,15 +439,115 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets038() throws Exception {
+    test("f(){int xa; String s = '$x!1';}", "1+xa");
+  }
+
+  public void testCommentSnippets038a() throws Exception {
     test("int xa; String s = '$x!1'", "1+xa");
   }
 
   public void testCommentSnippets039() throws Exception {
+    test("f(){int xa; String s = '$!1';}", "1+xa");
+  }
+
+  public void testCommentSnippets039a() throws Exception {
     test("int xa; String s = '$!1'", "1+xa");
   }
 
   public void testCommentSnippets040() throws Exception {
     test("class List{add(){}}class Map{}class X{m(){List list; list.!1 Map map;}}", "1+add");
+  }
+
+  public void testCommentSnippets041() throws Exception {
+    test("class List{add(){}length(){}}class X{m(){List list; list.!1 zox();}}", "1+add");
+  }
+
+  public void testCommentSnippets042() throws Exception {
+    test(
+        "class DateTime{static const int WED=3;int get day;}fd(){DateTime d=new DateTime.now();d.!1WED!2;}",
+        "1+day",
+        "2-WED");
+  }
+
+  public void testCommentSnippets043() throws Exception {
+    test("class L{var k;void.!1}", "1-k");
+  }
+
+  public void testCommentSnippets044() throws Exception {
+    test("class List{}class XXX {XXX.fisk();}main() {main(); new !1}}", "1+List", "1+XXX");
+  }
+
+  public void testCommentSnippets045() throws Exception {
+    // TODO Enable after corelib analysis is implemented.
+//    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+abs", "2-end");
+  }
+
+  public void testCommentSnippets046() throws Exception {
+    // TODO Enable once resolution works for library prefixes
+    // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
+//    test(
+//        src(
+//            "import 'dart:json' as json;",
+//            "class JsonParserX{}",
+//            "f1() {var x=new json.!1}",
+//            "f2() {var x=new json.JsonPa!2}",
+//            "f3() {var x=new json.JsonParser!3}"),
+//        "1+JsonParser",
+//        "1-JsonParserX",
+//        "2+JsonParser",
+//        "3-JsonParserX",
+//        "3+JsonParser",
+//        "3-JsonParserX");
+  }
+
+  public void testCommentSnippets047() throws Exception {
+    test("f(){int x;int y=!1;}", "1+x");
+  }
+
+  public void testCommentSnippets048() throws Exception {
+    test("import 'dart:json' as json;f() {var x=new js!1}", "1+json");
+  }
+
+  public void testCommentSnippets049() throws Exception {
+    test(//
+        src(//
+            "import 'dart:json' as json;",
+            "import 'dart:json' as jxx;",
+            "class JsonParserX{}",
+            "f1() {var x=new !2j!1s!3}"),
+        "1+json",
+        "1+jxx",
+        "2+json",
+        "2+jxx",
+        "2-JsonParser",
+        "3+json",
+        "3-jxx");
+  }
+
+  public void testCommentSnippets050() throws Exception {
+    test(//
+        src(//
+            "class xdr {",
+            "  xdr();",
+            "  const xdr.a(a,b,c);",
+            "  xdr.b();",
+            "  f() => 3;",
+            "}",
+            "class xa{}",
+            "k() {",
+            "  new x!1dr().f();",
+            "  const x!2dr.!3a(1, 2, 3);",
+            "}"),
+        "1+xdr",
+        "1+xa",
+        "1-xdr.a",
+//        "1+xdr.b",
+        "2-xa",
+        "2-xdr",
+        "2+xdr.a",
+        "2-xdr.b",
+        "3-b",
+        "3+a");
   }
 
   public void testSingle() throws Exception {

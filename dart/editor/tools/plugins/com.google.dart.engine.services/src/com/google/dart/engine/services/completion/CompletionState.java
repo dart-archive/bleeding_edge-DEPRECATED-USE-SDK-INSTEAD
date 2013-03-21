@@ -14,6 +14,9 @@ class CompletionState {
   boolean areLiteralsAllowed;
   boolean areLiteralsProhibited;
   boolean areOperatorsAllowed;
+  boolean areStaticReferencesProhibited;
+  boolean areInstanceReferencesProhibited;
+  boolean isCompileTimeConstantRequired;
 
   void includesLiterals() {
     if (!areLiteralsProhibited) {
@@ -39,9 +42,21 @@ class CompletionState {
     isForMixin = true;
   }
 
+  void prohibitsInstanceReferences() {
+    areInstanceReferencesProhibited = true;
+  }
+
   void prohibitsLiterals() {
     areLiteralsAllowed = false;
     areLiteralsProhibited = true;
+  }
+
+  void prohibitsStaticReferences() {
+    areStaticReferencesProhibited = true;
+  }
+
+  void requiresConst(boolean isConst) {
+    isCompileTimeConstantRequired = isConst;
   }
 
   void setContext(ASTNode base) {
@@ -50,5 +65,8 @@ class CompletionState {
 
   void sourceDeclarationIsStatic(boolean state) {
     isSourceDeclarationStatic = state;
+    if (state) {
+      prohibitsInstanceReferences();
+    }
   }
 }

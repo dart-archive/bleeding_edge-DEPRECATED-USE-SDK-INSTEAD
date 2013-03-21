@@ -4,7 +4,9 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.TypeName;
@@ -12,6 +14,8 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.Element;
 
 /**
  * @coverage com.google.dart.engine.services.completion
@@ -54,6 +58,12 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    state.requiresConst(node.isConst());
+    return super.visitInstanceCreationExpression(node);
+  }
+
+  @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     state.sourceDeclarationIsStatic(node.isStatic());
     return super.visitMethodDeclaration(node);
@@ -67,6 +77,19 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
       parent.accept(this);
     }
     return null;
+  }
+
+  @Override
+  public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (node.getIdentifier() == completionNode) {
+      Element element = node.getPrefix().getElement();
+      if (!(element instanceof ClassElement)) {
+        state.prohibitsStaticReferences();
+      } else {
+        state.prohibitsInstanceReferences();
+      }
+    }
+    return super.visitPrefixedIdentifier(node);
   }
 
   @Override
