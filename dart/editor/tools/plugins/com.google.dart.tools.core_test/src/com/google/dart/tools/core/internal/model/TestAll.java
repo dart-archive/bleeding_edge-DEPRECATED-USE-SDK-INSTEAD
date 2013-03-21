@@ -35,8 +35,7 @@ public class TestAll {
     suite.addTestSuite(DartProjectImplTest.class);
     suite.addTestSuite(DartProjectNatureTest.class);
     suite.addTestSuite(DartTypeImplTest.class);
-    // TODO (danrubel): Don't run flaky test on bots
-//      suite.addTestSuite(DartTypeParameterImplTest.class);
+    suite.addTestSuite(DartTypeParameterImplTest.class);
     suite.addTestSuite(DartVariableImplTest.class);
     suite.addTestSuite(HTMLFileImplTest.class);
     suite.addTestSuite(PackageLibraryManagerProviderAnyTest.class);
