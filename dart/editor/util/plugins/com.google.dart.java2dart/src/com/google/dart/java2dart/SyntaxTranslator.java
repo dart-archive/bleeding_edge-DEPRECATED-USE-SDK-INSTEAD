@@ -124,7 +124,6 @@ import static com.google.dart.java2dart.util.ASTFactory.postfixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.simpleFormalParameter;
-import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.string;
 import static com.google.dart.java2dart.util.ASTFactory.superConstructorInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.thisExpression;
@@ -680,13 +679,13 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ConstructorInvocation node) {
     IMethodBinding binding = node.resolveConstructorBinding();
-    SimpleIdentifier nameNode = simpleIdentifier("jtdTmp");
+    SimpleIdentifier nameNode = identifier("jtdTmp");
     context.getConstructorDescription(binding).implInvocations.add(nameNode);
     // invoke "impl"
     List<Expression> arguments = translateArguments(binding, node.arguments());
     if (isInEnumConstructor(node)) {
-      arguments.add(0, simpleIdentifier("___ordinal"));
-      arguments.add(0, simpleIdentifier("___name"));
+      arguments.add(0, identifier("___ordinal"));
+      arguments.add(0, identifier("___name"));
     }
     MethodInvocation invocation = methodInvocation(nameNode, arguments);
     context.putNodeBinding(invocation, binding);
@@ -781,7 +780,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       for (Object javaConst : node.enumConstants()) {
         org.eclipse.jdt.core.dom.EnumConstantDeclaration javaEnumConst = (org.eclipse.jdt.core.dom.EnumConstantDeclaration) javaConst;
         members.add((FieldDeclaration) translate(javaEnumConst));
-        valuesList.add(simpleIdentifier(javaEnumConst.getName().getIdentifier()));
+        valuesList.add(identifier(javaEnumConst.getName().getIdentifier()));
       }
       // values
       members.add(fieldDeclaration(
@@ -845,7 +844,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           typeName("String"),
           identifier("toString"),
           formalParameterList(),
-          expressionFunctionBody(simpleIdentifier("__name"))));
+          expressionFunctionBody(identifier("__name"))));
     }
     return done(classDeclaration(
         translateJavadoc(node),
@@ -1101,7 +1100,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       if (multipleConstructors) {
         constructorImpl = methodDeclaration(
             null,
-            simpleIdentifier(constructorImplName),
+            identifier(constructorImplName),
             parameterList,
             body);
       }
@@ -1113,7 +1112,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       Expression implInvocation = methodInvocation(constructorImplName, implInvArgs);
       Statement conStatement = expressionStatement(implInvocation);
       Block constructorBody = block(conStatement);
-      SimpleIdentifier nameNode = simpleIdentifier(constructorDeclName);
+      SimpleIdentifier nameNode = identifier(constructorDeclName);
       context.getConstructorDescription(binding).declName = constructorDeclName;
       context.getConstructorDescription(binding).implName = multipleConstructors
           ? constructorImplName : constructorDeclName;
@@ -1122,7 +1121,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       }
       ConstructorDeclaration constructor = constructorDeclaration(
           translateJavadoc(node),
-          simpleIdentifier(node.getName().getIdentifier()),
+          identifier(node.getName().getIdentifier()),
           nameNode,
           parameterList,
           initializers,
@@ -1636,7 +1635,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
     }
     ClassDeclaration innerClass = classDeclaration(
         null,
-        simpleIdentifier(innerClassName),
+        identifier(innerClassName),
         extendsClause,
         null,
         implementsClause,
@@ -1657,7 +1656,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
                   null,
                   typeName(additionalParameters[2 * i + 0]),
                   additionalParameters[2 * i + 1]));
-              arguments.add(simpleIdentifier(additionalParameters[2 * i + 1]));
+              arguments.add(identifier(additionalParameters[2 * i + 1]));
             }
             // "declared" parameters
             ITypeBinding[] parameterTypes = superMethod.getParameterTypes();
@@ -1665,7 +1664,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
               TypeName dartParameterType = typeName(parameterTypes[i].getName());
               String parameterName = "arg" + i;
               parameters.add(simpleFormalParameter(dartParameterType, parameterName));
-              arguments.add(simpleIdentifier(parameterName));
+              arguments.add(identifier(parameterName));
             }
             // done, we found and processed "super" constructor
             break;
@@ -1680,7 +1679,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
       ConstructorDeclaration innerConstructor = constructorDeclaration(
           null,
           null,
-          simpleIdentifier(innerClassName),
+          identifier(innerClassName),
           null,
           parameterList,
           ImmutableList.<ConstructorInitializer> of(superCI),

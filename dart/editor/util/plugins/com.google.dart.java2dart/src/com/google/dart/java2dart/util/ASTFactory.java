@@ -81,9 +81,9 @@ public final class ASTFactory {
   public static ExpressionStatement assignmentStatement(String leftHandIdentifier,
       String rightHandIdentifier) {
     return expressionStatement(assignmentExpression(
-        simpleIdentifier(leftHandIdentifier),
+        identifier(leftHandIdentifier),
         TokenType.EQ,
-        simpleIdentifier(rightHandIdentifier)));
+        identifier(rightHandIdentifier)));
   }
 
   public static BinaryExpression binaryExpression(Expression leftOperand, TokenType operator,
@@ -1102,11 +1102,6 @@ public final class ASTFactory {
     return simpleFormalParameter(null, type, parameterName);
   }
 
-  // TODO(scheglov) inline it
-  public static SimpleIdentifier simpleIdentifier(String lexeme) {
-    return identifier(lexeme);
-  }
-
   public static StringInterpolation string(InterpolationElement... elements) {
     return string(list(elements));
   }
@@ -1306,7 +1301,12 @@ public final class ASTFactory {
 
   public static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type,
       List<VariableDeclaration> variables) {
-    return new VariableDeclarationList(keyword == null ? null : token(keyword), type, variables);
+    return new VariableDeclarationList(
+        null,
+        null,
+        keyword == null ? null : token(keyword),
+        type,
+        variables);
   }
 
   public static VariableDeclarationList variableDeclarationList(Keyword keyword, TypeName type,

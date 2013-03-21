@@ -48,7 +48,6 @@ import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpressi
 import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
 
@@ -253,7 +252,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
         Object binding = context.getNodeBinding(node);
         if (JavaUtils.isTypeNamed(binding, "java.util.Arrays")) {
-          replaceNode(node, simpleIdentifier("JavaArrays"));
+          replaceNode(node, identifier("JavaArrays"));
           return null;
         }
         return super.visitSimpleIdentifier(node);

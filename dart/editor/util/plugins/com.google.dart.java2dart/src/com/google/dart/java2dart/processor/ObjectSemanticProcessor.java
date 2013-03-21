@@ -50,7 +50,6 @@ import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.namedExpression;
 import static com.google.dart.java2dart.util.ASTFactory.prefixExpression;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
-import static com.google.dart.java2dart.util.ASTFactory.simpleIdentifier;
 import static com.google.dart.java2dart.util.ASTFactory.string;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
 import static com.google.dart.java2dart.util.TokenFactory.token;
@@ -276,7 +275,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass(node, "format", "java.lang.String")) {
-          replaceNode(node.getTarget(), simpleIdentifier("JavaString"));
+          replaceNode(node.getTarget(), identifier("JavaString"));
           return null;
         }
         if (name.equals("longValue") && node.getTarget() instanceof MethodInvocation) {
@@ -374,7 +373,7 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           }
         }
         if (isMethodInClass2(node, "append(char)", "java.lang.StringBuilder")) {
-          replaceNode(nameNode, simpleIdentifier("appendChar"));
+          replaceNode(nameNode, identifier("appendChar"));
           return null;
         }
         if (isMethodInClass(node, "length", "java.lang.AbstractStringBuilder")) {
@@ -453,17 +452,17 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           String name = nameNode.getName();
           // Exception -> JavaException
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.Exception")) {
-            replaceNode(nameNode, simpleIdentifier("JavaException"));
+            replaceNode(nameNode, identifier("JavaException"));
           }
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.Throwable")) {
-            replaceNode(nameNode, simpleIdentifier("Exception"));
+            replaceNode(nameNode, identifier("Exception"));
           }
           if (JavaUtils.isTypeNamed(typeBinding, "java.lang.IndexOutOfBoundsException")) {
-            replaceNode(nameNode, simpleIdentifier("RangeError"));
+            replaceNode(nameNode, identifier("RangeError"));
           }
           // StringBuilder -> JavaStringBuilder
           if (name.equals("StringBuilder")) {
-            replaceNode(nameNode, simpleIdentifier("JavaStringBuilder"));
+            replaceNode(nameNode, identifier("JavaStringBuilder"));
           }
           // Class<T> -> Type
           if (name.equals("Class")) {
