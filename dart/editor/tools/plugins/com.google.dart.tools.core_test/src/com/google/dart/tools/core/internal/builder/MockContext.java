@@ -200,6 +200,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
+    return null;
+  }
+
+  @Override
   public SourceKind computeKindOf(Source source) {
     return SourceKind.UNKNOWN;
   }
@@ -207,6 +212,11 @@ public class MockContext implements AnalysisContext {
   @Override
   public LibraryElement computeLibraryElement(Source source) throws AnalysisException {
     return null;
+  }
+
+  @Override
+  public LineInfo computeLineInfo(Source source) throws AnalysisException {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -267,7 +277,7 @@ public class MockContext implements AnalysisContext {
 
   @Override
   public LineInfo getLineInfo(Source source) {
-    throw new UnsupportedOperationException();
+    return null;
   }
 
   @Override

@@ -83,6 +83,21 @@ public interface AnalysisContext {
   public AnalysisError[] computeErrors(Source source) throws AnalysisException;
 
   /**
+   * Return the element model corresponding to the HTML file defined by the given source. If the
+   * element model does not yet exist it will be created. The process of creating an element model
+   * for an HTML file can long-running, depending on the size of the file and the number of
+   * libraries that are defined in it (via script tags) that also need to have a model built for
+   * them.
+   * 
+   * @param source the source defining the HTML file whose element model is to be returned
+   * @return the element model corresponding to the HTML file defined by the given source
+   * @throws AnalysisException if the element model could not be determined because the analysis
+   *           could not be performed
+   * @see #getHtmlElement(Source)
+   */
+  public HtmlElement computeHtmlElement(Source source) throws AnalysisException;
+
+  /**
    * Return the kind of the given source, computing it's kind if it is not already known. Return
    * {@link SourceKind#UNKNOWN} if the source is not contained in this context.
    * 
@@ -105,6 +120,20 @@ public interface AnalysisContext {
    * @see #getLibraryElement(Source)
    */
   public LibraryElement computeLibraryElement(Source source) throws AnalysisException;
+
+  /**
+   * Return the line information for the given source, or {@code null} if the source is not of a
+   * recognized kind (neither a Dart nor HTML file). If the line information was not previously
+   * known it will be created. The line information is used to map offsets from the beginning of the
+   * source to line and column pairs.
+   * 
+   * @param source the source whose line information is to be returned
+   * @return the line information for the given source
+   * @throws AnalysisException if the line information could not be determined because the analysis
+   *           could not be performed
+   * @see #getLineInfo(Source)
+   */
+  public LineInfo computeLineInfo(Source source) throws AnalysisException;
 
   /**
    * Create a new context in which analysis can be performed. Any sources in the specified container
@@ -146,6 +175,7 @@ public interface AnalysisContext {
    * 
    * @param source the source defining the HTML file whose element model is to be returned
    * @return the element model corresponding to the HTML file defined by the given source
+   * @see #computeHtmlElement(Source)
    */
   public HtmlElement getHtmlElement(Source source);
 
@@ -228,6 +258,7 @@ public interface AnalysisContext {
    * 
    * @param source the source whose line information is to be returned
    * @return the line information for the given source
+   * @see #computeLineInfo(Source)
    */
   public LineInfo getLineInfo(Source source);
 

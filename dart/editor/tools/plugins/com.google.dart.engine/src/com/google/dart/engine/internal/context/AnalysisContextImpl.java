@@ -94,13 +94,6 @@ public class AnalysisContextImpl implements AnalysisContext {
   private final HashMap<Source, SourceInfo> sourceMap = new HashMap<Source, SourceInfo>();
 
   /**
-   * A cache mapping sources to the html parse results that were produced for the contents of the
-   * source.
-   */
-  // TODO (brianwilkerson): Remove this after removing parseHtml(Source).
-  private HashMap<Source, HtmlParseResult> htmlParseCache = new HashMap<Source, HtmlParseResult>();
-
-  /**
    * A table mapping sources to the change notices that are waiting to be returned related to that
    * source.
    */
@@ -178,7 +171,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  //@Override
+  @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
     if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
       return null;
@@ -190,8 +183,16 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       HtmlElement element = htmlUnitInfo.getElement();
       if (element == null) {
+        HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
+        if (unit == null) {
+          unit = htmlUnitInfo.getParsedUnit();
+          if (unit == null) {
+            unit = parseHtmlUnit(source);
+          }
+        }
         HtmlUnitBuilder builder = new HtmlUnitBuilder(this);
-        element = builder.buildHtmlElement(source, parseHtmlUnit(source));
+        element = builder.buildHtmlElement(source, unit);
+        htmlUnitInfo.setResolvedUnit(unit);
         htmlUnitInfo.setElement(element);
       }
       return element;
@@ -206,7 +207,6 @@ public class AnalysisContextImpl implements AnalysisContext {
         return SourceKind.UNKNOWN;
       } else if (sourceInfo instanceof DartInfo) {
         sourceInfo = internalComputeKindOf(source, sourceInfo);
-        sourceMap.put(source, sourceInfo);
       }
       return sourceInfo.getKind();
     }
@@ -240,6 +240,30 @@ public class AnalysisContextImpl implements AnalysisContext {
         }
       }
       return element;
+    }
+  }
+
+  @Override
+  public LineInfo computeLineInfo(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      SourceInfo sourceInfo = getSourceInfo(source);
+      if (sourceInfo == null) {
+        return null;
+      }
+      LineInfo lineInfo = sourceInfo.getLineInfo();
+      if (lineInfo == null) {
+        if (sourceInfo instanceof DartInfo) {
+          sourceInfo = internalComputeKindOf(source, sourceInfo);
+        }
+        if (sourceInfo instanceof HtmlUnitInfo) {
+          parseHtmlUnit(source);
+          lineInfo = sourceInfo.getLineInfo();
+        } else if (sourceInfo instanceof CompilationUnitInfo) {
+          parseCompilationUnit(source);
+          lineInfo = sourceInfo.getLineInfo();
+        }
+      }
+      return lineInfo;
     }
   }
 
@@ -298,25 +322,22 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public AnalysisError[] getErrors(Source source) {
     synchronized (cacheLock) {
-      CompilationUnitInfo info = getCompilationUnitInfo(source);
-      if (info == null) {
-        return AnalysisError.NO_ERRORS;
+      SourceInfo info = getSourceInfo(source);
+      if (info instanceof CompilationUnitInfo) {
+        return ((CompilationUnitInfo) info).getAllErrors();
       }
-      return info.getAllErrors();
+      return AnalysisError.NO_ERRORS;
     }
   }
 
   @Override
   public HtmlElement getHtmlElement(Source source) {
-    if (!AnalysisEngine.isHtmlFileName(source.getShortName())) {
-      return null;
-    }
     synchronized (cacheLock) {
-      HtmlUnitInfo info = getHtmlUnitInfo(source);
-      if (info == null) {
-        return null;
+      SourceInfo info = getSourceInfo(source);
+      if (info instanceof HtmlUnitInfo) {
+        return ((HtmlUnitInfo) info).getElement();
       }
-      return info.getElement();
+      return null;
     }
   }
 
@@ -338,35 +359,57 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public Source[] getLaunchableClientLibrarySources() {
-    // TODO(brianwilkerson) Implement this
-    return getLibrarySources();
+    // TODO(brianwilkerson) This needs to filter out libraries that do not reference dart:html,
+    // either directly or indirectly.
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        Source source = entry.getKey();
+        SourceInfo info = entry.getValue();
+        if (info.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
+          sources.add(source);
+        }
+      }
+    }
+    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
   public Source[] getLaunchableServerLibrarySources() {
-    // TODO(brianwilkerson) Implement this
-    return getLibrarySources();
+    // TODO(brianwilkerson) This needs to filter out libraries that reference dart:html, either
+    // directly or indirectly.
+    ArrayList<Source> sources = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        Source source = entry.getKey();
+        SourceInfo info = entry.getValue();
+        if (info.getKind() == SourceKind.LIBRARY && !source.isInSystemLibrary()) {
+          sources.add(source);
+        }
+      }
+    }
+    return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
-      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
-      if (compilationUnitInfo == null) {
-        return Source.EMPTY_ARRAY;
+      SourceInfo info = getSourceInfo(source);
+      if (info instanceof CompilationUnitInfo) {
+        return ((CompilationUnitInfo) info).getLibrarySources();
       }
-      return compilationUnitInfo.getLibrarySources();
+      return Source.EMPTY_ARRAY;
     }
   }
 
   @Override
   public LibraryElement getLibraryElement(Source source) {
     synchronized (cacheLock) {
-      LibraryInfo libraryInfo = getLibraryInfo(source);
-      if (libraryInfo == null) {
-        return null;
+      SourceInfo info = getSourceInfo(source);
+      if (info instanceof LibraryInfo) {
+        return ((LibraryInfo) info).getElement();
       }
-      return libraryInfo.getElement();
+      return null;
     }
   }
 
@@ -378,22 +421,11 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public LineInfo getLineInfo(Source source) {
     synchronized (cacheLock) {
-      SourceInfo sourceInfo = getSourceInfo(source);
-      if (sourceInfo == null) {
-        return null;
+      SourceInfo info = getSourceInfo(source);
+      if (info != null) {
+        return info.getLineInfo();
       }
-      LineInfo lineInfo = sourceInfo.getLineInfo();
-      if (lineInfo == null) {
-        try {
-          parseCompilationUnit(source);
-          lineInfo = sourceInfo.getLineInfo();
-        } catch (AnalysisException exception) {
-          AnalysisEngine.getInstance().getLogger().logError(
-              "Could not parse " + source.getFullName(),
-              exception);
-        }
-      }
-      return lineInfo;
+      return null;
     }
   }
 
@@ -694,6 +726,27 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
+   * Create a source information object suitable for the given source. Return the source information
+   * object that was created, or {@code null} if the source should not be tracked by this context.
+   * 
+   * @param source the source for which an information object is being created
+   * @return the source information object that was created
+   */
+  private SourceInfo createSourceInfo(Source source) {
+    String name = source.getShortName();
+    if (AnalysisEngine.isHtmlFileName(name)) {
+      HtmlUnitInfo info = new HtmlUnitInfo();
+      sourceMap.put(source, info);
+      return info;
+    } else if (AnalysisEngine.isDartFileName(name)) {
+      DartInfo info = DartInfo.getInstance();
+      sourceMap.put(source, info);
+      return info;
+    }
+    return null;
+  }
+
+  /**
    * Return the compilation unit information associated with the given source, or {@code null} if
    * the source is not known to this context. This method should be used to access the compilation
    * unit information rather than accessing the compilation unit map directly because sources in the
@@ -716,7 +769,6 @@ public class AnalysisContextImpl implements AnalysisContext {
     } else if (sourceInfo instanceof DartInfo) {
       sourceInfo = internalComputeKindOf(source, sourceInfo);
       if (sourceInfo instanceof CompilationUnitInfo) {
-        sourceMap.put(source, sourceInfo);
         return (CompilationUnitInfo) sourceInfo;
       }
     }
@@ -769,7 +821,6 @@ public class AnalysisContextImpl implements AnalysisContext {
     } else if (sourceInfo instanceof DartInfo) {
       sourceInfo = internalComputeKindOf(source, sourceInfo);
       if (sourceInfo instanceof LibraryInfo) {
-        sourceMap.put(source, sourceInfo);
         return (LibraryInfo) sourceInfo;
       }
     }
@@ -805,8 +856,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   private SourceInfo getSourceInfo(Source source) {
     SourceInfo sourceInfo = sourceMap.get(source);
     if (sourceInfo == null) {
-      sourceInfo = DartInfo.getInstance();
-      sourceMap.put(source, sourceInfo);
+      sourceInfo = createSourceInfo(source);
     }
     return sourceInfo;
   }
@@ -863,6 +913,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       sourceInfo.setLineInfo(lineInfo);
       sourceInfo.setParsedCompilationUnit(unit);
       sourceInfo.setParseErrors(errors);
+      sourceMap.put(source, sourceInfo);
       return sourceInfo;
     } catch (AnalysisException exception) {
       return info;
@@ -909,7 +960,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
       SourceInfo sourceInfo = entry.getValue();
       if (sourceInfo == DartInfo.getInstance() || sourceInfo.getKind() == null) {
-        entry.setValue(internalComputeKindOf(entry.getKey(), sourceInfo));
+        internalComputeKindOf(entry.getKey(), sourceInfo);
         return true;
       }
     }
@@ -987,12 +1038,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   private void sourceAvailable(Source source) {
     SourceInfo existingInfo = sourceMap.get(source);
     if (existingInfo == null) {
-      String name = source.getShortName();
-      if (AnalysisEngine.isHtmlFileName(name)) {
-        sourceMap.put(source, new HtmlUnitInfo());
-      } else if (AnalysisEngine.isDartFileName(name)) {
-        sourceMap.put(source, DartInfo.getInstance());
-      }
+      createSourceInfo(source);
     }
   }
 

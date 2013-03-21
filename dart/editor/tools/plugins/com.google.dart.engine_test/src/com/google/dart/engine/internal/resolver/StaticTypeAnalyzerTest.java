@@ -55,10 +55,12 @@ import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
+import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 
 import static com.google.dart.engine.ast.ASTFactory.adjacentStrings;
 import static com.google.dart.engine.ast.ASTFactory.argumentDefinitionTest;
@@ -936,13 +938,18 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   private StaticTypeAnalyzer createAnalyzer() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk())));
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk()));
+    context.setSourceFactory(sourceFactory);
+    FileBasedSource source = new FileBasedSource(
+        sourceFactory,
+        FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
+    definingCompilationUnit.setSource(source);
     LibraryElementImpl definingLibrary = new LibraryElementImpl(context, null);
     definingLibrary.setDefiningCompilationUnit(definingCompilationUnit);
-    Library library = new Library(context, listener, null);
+    Library library = new Library(context, listener, source);
     library.setLibraryElement(definingLibrary);
-    ResolverVisitor visitor = new ResolverVisitor(library, null, typeProvider);
+    ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
     try {
       Field analyzerField = visitor.getClass().getDeclaredField("typeAnalyzer");
       analyzerField.setAccessible(true);

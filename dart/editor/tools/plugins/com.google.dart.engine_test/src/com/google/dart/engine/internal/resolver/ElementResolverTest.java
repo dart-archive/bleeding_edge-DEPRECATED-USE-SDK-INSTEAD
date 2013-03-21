@@ -565,15 +565,16 @@ public class ElementResolverTest extends EngineTestCase {
     AnalysisContextImpl context = new AnalysisContextImpl();
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk()));
     context.setSourceFactory(sourceFactory);
-    CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.setSource(new FileBasedSource(
+    FileBasedSource source = new FileBasedSource(
         sourceFactory,
-        FileUtilities2.createFile("/test.dart")));
+        FileUtilities2.createFile("/test.dart"));
+    CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
+    definingCompilationUnit.setSource(source);
     definingLibrary = library(context, "test");
     definingLibrary.setDefiningCompilationUnit(definingCompilationUnit);
-    Library library = new Library(context, listener, null);
+    Library library = new Library(context, listener, source);
     library.setLibraryElement(definingLibrary);
-    visitor = new ResolverVisitor(library, null, typeProvider);
+    visitor = new ResolverVisitor(library, source, typeProvider);
     try {
       Field resolverField = visitor.getClass().getDeclaredField("elementResolver");
       resolverField.setAccessible(true);
