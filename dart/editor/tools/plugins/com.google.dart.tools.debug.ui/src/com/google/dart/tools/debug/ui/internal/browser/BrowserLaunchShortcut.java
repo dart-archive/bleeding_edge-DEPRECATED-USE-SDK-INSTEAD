@@ -20,7 +20,6 @@ import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -121,7 +120,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
   @Override
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return NewLaunchUtils.isLaunchableWith(resource, config);
+      return super.testSimilar(resource, config);
     }
     return LaunchUtils.isLaunchableWith(resource, config);
   }

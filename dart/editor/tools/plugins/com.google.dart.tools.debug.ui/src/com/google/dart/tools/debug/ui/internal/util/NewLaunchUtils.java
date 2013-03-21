@@ -32,9 +32,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Utility methods for launching that use the engine model to get information
@@ -56,29 +54,11 @@ public class NewLaunchUtils {
       }
     }
 
-    List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
-
-    if (configs.size() > 0) {
-      return LaunchUtils.chooseLatest(configs);
-    }
-
-    // No existing configs - check if the current resource is not launchable.
-    if (LaunchUtils.getApplicableLaunchShortcuts(resource).size() == 0) {
-      // Try and locate a launchable library that references this library.
-      Source[] libraries = getLibrariesSource(resource);
-
-      if (libraries.length > 0) {
-        Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
-        ProjectManager manager = DartCore.getProjectManager();
-
-        for (Source librarySource : libraries) {
-          IResource libResource = manager.getResource(librarySource);
-          libraryConfigs.addAll(LaunchUtils.getExistingLaunchesFor(libResource));
-
-        }
-        if (libraryConfigs.size() > 0) {
-          return LaunchUtils.chooseLatest(libraryConfigs);
-        }
+    IResource launchResource = getPrimaryLaunchTarget(resource);
+    if (launchResource != null) {
+      List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
+      if (configs.size() > 0) {
+        return LaunchUtils.chooseLatest(configs);
       }
     }
 
@@ -143,6 +123,41 @@ public class NewLaunchUtils {
       return manager.getLibrarySources(resource);
     }
     return new Source[] {};
+  }
+
+  /**
+   * Get a launchable resource - html, dart, manifest.json that is most likely to be associated with
+   * the given resource.
+   */
+  public static IResource getPrimaryLaunchTarget(IResource resource) {
+    // html file - is launchable 
+    if (DartCore.isHTMLLikeFileName(resource.getName())) {
+      // TODO(keertip): add check for chrome apps - manifest.json
+      return resource;
+    }
+    // dart file - get library and check if it has html file associated, else if it is server app
+    if (DartCore.isDartLikeFileName(resource.getName())) {
+      IFile file = (IFile) resource;
+      ProjectManager manager = DartCore.getProjectManager();
+      Source[] sources = manager.getLibrarySources(file);
+      for (Source source : sources) {
+        // for browser apps
+        IResource launchResource = manager.getHtmlFileForLibrary(source);
+        if (resource != null) {
+          return launchResource;
+        }
+        // for server apps
+        IFile libfile = (IFile) manager.getResource(source);
+        LibraryElement element = manager.getLibraryElement(libfile);
+        if (element != null && !element.isBrowserApplication()) {
+          return libfile;
+        }
+      }
+
+      // TODO(keertip): figure out association for other files like css etc.
+
+    }
+    return null;
   }
 
   /**

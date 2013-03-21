@@ -14,11 +14,13 @@
 
 package com.google.dart.tools.debug.ui.launch;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
+import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
@@ -166,11 +168,22 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
   protected void launchResource(IResource resource, UIInstrumentationBuilder instrumentation)
       throws DartModelException {
-    ILaunchConfiguration config = LaunchUtils.getLaunchFor(resource);
 
+    ILaunchConfiguration config = null;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      config = NewLaunchUtils.getLaunchFor(resource);
+    } else {
+      config = LaunchUtils.getLaunchFor(resource);
+    }
     if (config != null) {
       launch(config, instrumentation);
     } else {
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        IResource launchResource = NewLaunchUtils.getPrimaryLaunchTarget(resource);
+        if (launchResource != null) {
+          resource = launchResource;
+        }
+      }
       List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
 
       if (candidates.size() == 0) {

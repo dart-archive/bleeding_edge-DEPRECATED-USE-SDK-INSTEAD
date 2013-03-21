@@ -13,24 +13,17 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
-import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.ui.IWorkbenchWindow;
-
-import java.util.List;
 
 /**
  * Action to generate JavaScript and launch in default browser
@@ -60,15 +53,6 @@ public class RunInBrowserAction extends DartRunAbstractAction {
       if (resource != null) {
         instrumentation.metric("Resource-Class", resource.getClass().toString());
         instrumentation.data("Resource-Name", resource.getName());
-        List<ILaunchConfiguration> launchConfigs = LaunchUtils.getExistingLaunchesFor(resource);
-
-        for (ILaunchConfiguration config : launchConfigs) {
-          DebugInstrumentationUtilities.recordLaunchConfiguration(config, instrumentation);
-          if (config.getType().getIdentifier().equals(DartDebugCorePlugin.BROWSER_LAUNCH_CONFIG_ID)) {
-            DebugUITools.launch(config, ILaunchManager.RUN_MODE);
-            return;
-          }
-        }
 
         // new launch config
         ILaunchShortcut shortcut = LaunchUtils.getBrowserLaunchShortcut();

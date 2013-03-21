@@ -13,17 +13,16 @@
  */
 package com.google.dart.tools.debug.ui.internal.util;
 
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.Source;
+import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.HTMLFileImpl;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
@@ -45,7 +44,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -226,24 +225,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @return the launch configuration or <code>null</code> if none
    */
   protected final ILaunchConfiguration findConfig(IResource resource) {
-    List<ILaunchConfiguration> candidateConfigs = Collections.emptyList();
-
-    try {
-      ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
-          getConfigurationType());
-
-      candidateConfigs = new ArrayList<ILaunchConfiguration>(configs.length);
-
-      for (int i = 0; i < configs.length; i++) {
-        ILaunchConfiguration config = configs[i];
-
-        if (testSimilar(resource, config)) {
-          candidateConfigs.add(config);
-        }
-      }
-    } catch (CoreException e) {
-      DartUtil.logError(e);
-    }
+    List<ILaunchConfiguration> candidateConfigs = Arrays.asList(getAssociatedLaunchConfigurations(resource));
 
     int candidateCount = candidateConfigs.size();
 
@@ -331,14 +313,7 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    */
   protected boolean isBrowserApplication(IResource resource) {
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      LibraryElement[] elements = NewLaunchUtils.getLibraries(resource);
-      for (LibraryElement element : elements) {
-        if (element.isBrowserApplication()) {
-          return true;
-        }
-      }
-    } else {
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
       if (libraries.length > 0) {
@@ -370,7 +345,16 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    * @param config
    * @return whether the launch configuration is used to launch the given resource
    */
-  protected abstract boolean testSimilar(IResource resource, ILaunchConfiguration config);
+  protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
+    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+
+    IResource appResource = launchWrapper.getApplicationResource();
+
+    if (ObjectUtils.equals(appResource, resource)) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * @return the html file used to launch the given library
@@ -394,27 +378,10 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       if (!resource.isAccessible()) {
         return null;
       }
-
-      if (DartUtil.isWebPage(resource)) {
-        return resource;
-      }
-
-      ProjectManager manager = DartCore.getProjectManager();
-      Source[] sources = manager.getLibrarySources(resource);
-
-      Set<IResource> htmlFiles = new HashSet<IResource>();
-      for (Source source : sources) {
-        IResource htmlFile = manager.getHtmlFileForLibrary(source);
-        if (htmlFile != null) {
-          htmlFiles.add(resource);
-        }
-      }
-      if (!htmlFiles.isEmpty()) {
-        return htmlFiles.iterator().next();
-      }
+      return NewLaunchUtils.getPrimaryLaunchTarget(resource);
     }
-
     return null;
+
   }
 
 }
