@@ -289,7 +289,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if <i>k</i>’s initializer list contains an initializer for a variable that is initialized
    * by means of an initializing formal of <i>k</i>.
    */
-  FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER(""),
+  FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER(
+      "Fields cannot be initialized in both the parameter list and the initializers"),
 
   /**
    * 7.6.1 Generative Constructors: It is a compile-time error if an initializing formal is used by

@@ -214,6 +214,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     checkForFieldInitializedInInitializerAndDeclaration(node);
+    checkForFieldInitializedInParameterAndInitializer(node);
     return super.visitConstructorFieldInitializer(node);
   }
 
@@ -677,7 +678,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * This verifies that the passed constructor field initializer is not also a final variable that
    * already included an initialization.
    * 
-   * @param node the constructor fieldInitializer to test
+   * @param node the constructor field initializer to test
    * @return return <code>true</code> if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
    */
@@ -694,6 +695,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
             node);
         return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed constructor field initializer is not also a field formal
+   * parameter in the constructor declaration.
+   * 
+   * @param node the constructor field initializer to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+   */
+  private boolean checkForFieldInitializedInParameterAndInitializer(ConstructorFieldInitializer node) {
+    SimpleIdentifier identifier = node.getFieldName();
+    Element element = identifier.getElement();
+    ASTNode parent = node.getParent();
+    if (element != null && parent instanceof ConstructorDeclaration) {
+      ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;
+      NodeList<FormalParameter> formalParameters = constructorDeclaration.getParameters().getParameters();
+      for (FormalParameter formalParameter : formalParameters) {
+        if (formalParameter instanceof FieldFormalParameter) {
+          FieldFormalParameter fieldFormalParameter = (FieldFormalParameter) formalParameter;
+          if (fieldFormalParameter.getIdentifier().getName().equals(element.getName())) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+                node);
+            return true;
+          }
+        }
       }
     }
     return false;
