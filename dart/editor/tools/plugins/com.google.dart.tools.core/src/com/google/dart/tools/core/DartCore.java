@@ -23,6 +23,7 @@ import com.google.dart.tools.core.analysis.AnalysisServerImpl;
 import com.google.dart.tools.core.analysis.AnalysisServerMock;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.MessageConsoleImpl;
 import com.google.dart.tools.core.internal.OptionManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
@@ -752,10 +753,20 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @param project
    * @return the name of the directory, <code>null</code> if there is no self linked packages folder
    */
-  public static String getSelfLinkedPackageName(IProject project) {
-
-    DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
-    return dartProject.getSelfLinkedPackageDirName();
+  public static String getSelfLinkedPackageName(IResource resource) {
+    String packageName = null;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      try {
+        PubFolder folder = DartCore.getProjectManager().getPubFolder(resource);
+        packageName = folder.getPubspec().getName();
+      } catch (Exception e) {
+        DartCore.logError(e);
+      }
+    } else {
+      DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(resource.getProject());
+      packageName = dartProject.getSelfLinkedPackageDirName();
+    }
+    return packageName;
   }
 
   /**

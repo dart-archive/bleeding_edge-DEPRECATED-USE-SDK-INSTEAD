@@ -16,6 +16,7 @@ package com.google.dart.tools.core.pub;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.MessageConsole;
+import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.builder.BuildEvent;
 import com.google.dart.tools.core.builder.BuildParticipant;
 import com.google.dart.tools.core.builder.BuildVisitor;
@@ -140,16 +141,24 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    * @param pubspec the pubspec.yaml file
    * @param project IProject project for the pubspec file
    * @param monitor the progress monitor
-   * @throws IOException
-   * @throws CoreException
    */
   protected void processPubspecContents(IResource pubspec, IProject project,
       IProgressMonitor monitor) {
 
-    //TODO (pquitslund): add new world support for pub
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       DartProjectImpl dartProject = (DartProjectImpl) DartCore.create(project);
       dartProject.recomputePackageInfo(pubspec);
+    } else {
+      try {
+        PubFolder pubFolder = DartCore.getProjectManager().getPubFolder(pubspec);
+        if (pubFolder != null) {
+          pubFolder.invalidatePubspec();
+        }
+      } catch (CoreException e) {
+        DartCore.logError(e);
+      } catch (IOException e) {
+        DartCore.logError(e);
+      }
     }
 
   }
@@ -163,7 +172,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    */
   protected void runPub(IContainer container, final IProgressMonitor monitor) {
     if (DartCore.getPlugin().isAutoRunPubEnabled()) {
-      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
+      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).schedule();
     } else {
       MessageConsole console = DartCore.getConsole();
       console.printSeparator("");

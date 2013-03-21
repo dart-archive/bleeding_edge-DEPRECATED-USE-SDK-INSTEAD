@@ -37,7 +37,7 @@ public class AnalysisWorkerTest extends TestCase {
     MockProject projectRes = rootRes.add(new MockProject(rootRes, getClass().getSimpleName()));
     MockFile fileRes = projectRes.add(new MockFile(projectRes, "a.dart", "library a;#"));
 
-    DartSdk sdk = DartSdk.getDefaultSdk();
+    DartSdk sdk = mock(DartSdk.class);
     ProjectManager manager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
     Project project = manager.getProject(projectRes);
     AnalysisContext context = project.getDefaultContext();

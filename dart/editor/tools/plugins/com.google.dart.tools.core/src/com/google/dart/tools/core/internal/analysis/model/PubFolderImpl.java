@@ -85,4 +85,9 @@ public class PubFolderImpl implements PubFolder {
   public DartSdk getSdk() {
     return sdk;
   }
+
+  @Override
+  public void invalidatePubspec() throws IOException, CoreException {
+    pubspec = null;
+  }
 }

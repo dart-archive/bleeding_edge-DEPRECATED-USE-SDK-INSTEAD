@@ -54,4 +54,9 @@ public interface PubFolder {
    * @return the sdk (not {@code null})
    */
   DartSdk getSdk();
+
+  /**
+   * Updates the pubspec model, called when the pubspec.yaml file is changed
+   */
+  void invalidatePubspec() throws CoreException, IOException;
 }

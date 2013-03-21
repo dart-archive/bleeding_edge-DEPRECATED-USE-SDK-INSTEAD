@@ -216,7 +216,7 @@ class BreakpointManager implements IBreakpointListener {
       } else if (libIndex != -1) {
         // check if source is located in the "lib" directory and if there is a link to it from the 
         // packages directory breakpoint should be /packages/...
-        String packageName = DartCore.getSelfLinkedPackageName(breakpoint.getFile().getProject());
+        String packageName = DartCore.getSelfLinkedPackageName(breakpoint.getFile());
 
         if (packageName != null) {
           regex = PACKAGES_DIRECTORY_PATH + packageName + "/"
