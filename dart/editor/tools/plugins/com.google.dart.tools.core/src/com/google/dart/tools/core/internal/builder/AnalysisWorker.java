@@ -17,20 +17,14 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-
-import java.util.ArrayList;
 
 /**
  * Instances of {@code AnalysisWorker} perform analysis by repeatedly calling
@@ -38,51 +32,6 @@ import java.util.ArrayList;
  * based upon the analysis results.
  */
 public class AnalysisWorker {
-
-  /**
-   * The result of a parse or resolve operation.
-   */
-  private static class Results {
-    private final IResource resource;
-    private final LineInfo lineInfo;
-    private final AnalysisError[] errors;
-
-    public Results(IResource resource, LineInfo lineInfo, AnalysisError[] errors) {
-      this.resource = resource;
-      this.lineInfo = lineInfo;
-      this.errors = errors;
-    }
-
-    /**
-     * Set markers on the specified resource to represent the cached analysis errors
-     */
-    public void showErrors() throws CoreException {
-      resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
-      for (AnalysisError error : errors) {
-        int severity;
-        ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
-        if (errorSeverity == ErrorSeverity.ERROR) {
-          severity = IMarker.SEVERITY_ERROR;
-        } else if (errorSeverity == ErrorSeverity.WARNING) {
-          severity = IMarker.SEVERITY_WARNING;
-//        } else if (errorSeverity == ErrorSeverity.INFO) {
-//          severity = IMarker.SEVERITY_INFO;
-        } else {
-          continue;
-        }
-
-        int lineNum = lineInfo.getLocation(error.getOffset()).getLineNumber();
-
-        IMarker marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
-        marker.setAttribute(IMarker.SEVERITY, severity);
-        marker.setAttribute(IMarker.CHAR_START, error.getOffset());
-        marker.setAttribute(IMarker.CHAR_END, error.getOffset() + error.getLength());
-        marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
-//        marker.setAttribute("errorCode", error.getErrorCode());
-        marker.setAttribute(IMarker.MESSAGE, error.getMessage());
-      }
-    }
-  }
 
   /**
    * The project containing the source for this context.
@@ -95,9 +44,9 @@ public class AnalysisWorker {
   protected final AnalysisContext context;
 
   /**
-   * A collection of analysis errors that have yet to be translated to markers.
+   * The marker manager used to translate errors into Eclipse markers (not {@code null}).
    */
-  private ArrayList<Results> results;
+  private final AnalysisMarkerManager markerManager;
 
   /**
    * The index to be updated (not {@code null}).
@@ -105,16 +54,36 @@ public class AnalysisWorker {
   private final Index index;
 
   /**
+   * Construct a new instance for performing analysis which updates the
+   * {@link ProjectManager#getIndex() default index} and uses the
+   * {@link AnalysisMarkerManager#getInstance() default marker manager} to translate errors into
+   * Eclipse markers.
+   * 
+   * @param project the project containing sources for the specified context (not {@code null})
+   * @param context the context used to perform the analysis (not {@code null})
+   */
+  public AnalysisWorker(Project project, AnalysisContext context) {
+    this(
+        project,
+        context,
+        DartCore.getProjectManager().getIndex(),
+        AnalysisMarkerManager.getInstance());
+  }
+
+  /**
    * Construct a new instance for performing analysis.
    * 
    * @param project the project containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
    * @param index the index to be updated (not {@code null})
+   * @param the marker manager used to translate errors into Eclipse markers (not {@code null})
    */
-  public AnalysisWorker(Project project, AnalysisContext context, Index index) {
+  public AnalysisWorker(Project project, AnalysisContext context, Index index,
+      AnalysisMarkerManager markerManager) {
     this.project = project;
     this.context = context;
     this.index = index;
+    this.markerManager = markerManager;
   }
 
   /**
@@ -126,7 +95,7 @@ public class AnalysisWorker {
     while (processResults(changes) && checkContext()) {
       changes = context.performAnalysisTask();
     }
-    showCachedErrors(DartCore.DART_PROBLEM_MARKER_TYPE);
+    markerManager.done();
   }
 
   /**
@@ -160,10 +129,7 @@ public class AnalysisWorker {
         if (lineInfo == null) {
           DartCore.logError("Missing line information for: " + source);
         } else {
-          if (results == null) {
-            results = new ArrayList<Results>();
-          }
-          results.add(new Results(res, lineInfo, errors));
+          markerManager.queueErrors(res, lineInfo, errors);
         }
       }
     }
@@ -193,31 +159,5 @@ public class AnalysisWorker {
       processChange(change);
     }
     return true;
-  }
-
-  /**
-   * Add markers for the cached analysis errors.
-   * 
-   * @param markerType the type of marker to be created (not {@code null})
-   */
-  private void showCachedErrors(final String markerType) {
-    if (results == null) {
-      return;
-    }
-    final ArrayList<Results> resultsToShow = results;
-    results = null;
-    IWorkspaceRunnable op = new IWorkspaceRunnable() {
-      @Override
-      public void run(IProgressMonitor monitor) throws CoreException {
-        for (Results result : resultsToShow) {
-          result.showErrors();
-        }
-      }
-    };
-    try {
-      project.getResource().getWorkspace().run(op, null);
-    } catch (CoreException e) {
-      DartCore.logError("Exception translating errors/warnings into markers", e);
-    }
   }
 }

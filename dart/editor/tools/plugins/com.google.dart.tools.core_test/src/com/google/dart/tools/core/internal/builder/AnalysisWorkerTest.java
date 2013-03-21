@@ -30,33 +30,6 @@ import static org.mockito.Mockito.verify;
 import java.io.File;
 
 public class AnalysisWorkerTest extends TestCase {
-//
-//  private static final class MockContext extends AnalysisContextImpl {
-//    private ArrayList<Source> sourcesToAnalyze = new ArrayList<Source>();
-//
-//    @Override
-//    public void applyChanges(ChangeSet changeSet) {
-//      super.applyChanges(changeSet);
-//      sourcesToAnalyze.addAll(changeSet.getAddedWithContent().keySet());
-//    }
-//
-//    @Override
-//    public ChangeNotice[] performAnalysisTask() {
-//      if (sourcesToAnalyze.size() == 0) {
-//        return null;
-//      }
-//      Source source = sourcesToAnalyze.remove(0);
-//      CompilationUnit unit = null;
-//      try {
-//        unit = parse(source);
-//      } catch (AnalysisException e) {
-//        fail("Failed to parse " + source + " : " + e);
-//      }
-//      return new ChangeNotice[] {
-//          new ChangeNotice(source, unit),
-//          new ChangeNotice(source, unit.getErrors(), unit.getLineInfo())};
-//    }
-//  }
 
   public void test_performAnalysis() throws Exception {
     MockWorkspace workspace = new MockWorkspace();
@@ -77,8 +50,10 @@ public class AnalysisWorkerTest extends TestCase {
 
     Index index = mock(Index.class);
 
-    AnalysisWorker worker = new AnalysisWorker(project, context, index);
+    AnalysisMarkerManager markerManager = new AnalysisMarkerManager(workspace);
+    AnalysisWorker worker = new AnalysisWorker(project, context, index, markerManager);
     worker.performAnalysis();
+    markerManager.waitForMarkers(10000);
 
     assertMarkersDeleted(fileRes);
     assertTrue(fileRes.getMarkers().size() > 0);
