@@ -3506,6 +3506,11 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(expression.getRightOperand());
   }
 
+  public void test_parseRethrowExpression() throws Exception {
+    RethrowExpression expression = parse("parseRethrowExpression", "rethrow;");
+    assertNotNull(expression.getKeyword());
+  }
+
   public void test_parseReturnStatement_noValue() throws Exception {
     ReturnStatement statement = parse("parseReturnStatement", "return;");
     assertNotNull(statement.getKeyword());
@@ -3722,28 +3727,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(statement.getRightBracket());
   }
 
-  public void test_parseThrowExpression_expression() throws Exception {
-    ThrowExpression statement = parse("parseThrowExpression", "throw x;");
-    assertNotNull(statement.getKeyword());
-    assertNotNull(statement.getExpression());
+  public void test_parseThrowExpression() throws Exception {
+    ThrowExpression expression = parse("parseThrowExpression", "throw x;");
+    assertNotNull(expression.getKeyword());
+    assertNotNull(expression.getExpression());
   }
 
-  public void test_parseThrowExpression_noExpression() throws Exception {
-    ThrowExpression statement = parse("parseThrowExpression", "throw;");
-    assertNotNull(statement.getKeyword());
-    assertNull(statement.getExpression());
-  }
-
-  public void test_parseThrowExpressionWithoutCascade_expression() throws Exception {
-    ThrowExpression statement = parse("parseThrowExpressionWithoutCascade", "throw x;");
-    assertNotNull(statement.getKeyword());
-    assertNotNull(statement.getExpression());
-  }
-
-  public void test_parseThrowExpressionWithoutCascade_noExpression() throws Exception {
-    ThrowExpression statement = parse("parseThrowExpressionWithoutCascade", "throw;");
-    assertNotNull(statement.getKeyword());
-    assertNull(statement.getExpression());
+  public void test_parseThrowExpressionWithoutCascade() throws Exception {
+    ThrowExpression expression = parse("parseThrowExpressionWithoutCascade", "throw x;");
+    assertNotNull(expression.getKeyword());
+    assertNotNull(expression.getExpression());
   }
 
   public void test_parseTryStatement_catch() throws Exception {

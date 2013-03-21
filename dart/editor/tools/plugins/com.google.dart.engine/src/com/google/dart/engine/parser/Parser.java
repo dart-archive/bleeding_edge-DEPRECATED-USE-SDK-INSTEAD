@@ -2164,6 +2164,8 @@ public class Parser {
   private Expression parseExpression() {
     if (matches(Keyword.THROW)) {
       return parseThrowExpression();
+    } else if (matches(Keyword.RETHROW)) {
+      return parseRethrowExpression();
     }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
@@ -2224,6 +2226,8 @@ public class Parser {
   private Expression parseExpressionWithoutCascade() {
     if (matches(Keyword.THROW)) {
       return parseThrowExpressionWithoutCascade();
+    } else if (matches(Keyword.RETHROW)) {
+      return parseRethrowExpression();
     }
     //
     // assignableExpression is a subset of conditionalExpression, so we can parse a conditional
@@ -3519,6 +3523,8 @@ public class Parser {
         return parseForStatement();
       } else if (keyword == Keyword.IF) {
         return parseIfStatement();
+      } else if (keyword == Keyword.RETHROW) {
+        return new ExpressionStatement(parseRethrowExpression(), expect(TokenType.SEMICOLON));
       } else if (keyword == Keyword.RETURN) {
         return parseReturnStatement();
       } else if (keyword == Keyword.SWITCH) {
@@ -3995,6 +4001,20 @@ public class Parser {
   }
 
   /**
+   * Parse a rethrow expression.
+   * 
+   * <pre>
+   * rethrowExpression ::=
+   *     'rethrow'
+   * </pre>
+   * 
+   * @return the rethrow expression that was parsed
+   */
+  private Expression parseRethrowExpression() {
+    return new RethrowExpression(expect(Keyword.RETHROW));
+  }
+
+  /**
    * Parse a return statement.
    * 
    * <pre>
@@ -4100,24 +4120,6 @@ public class Parser {
     return expression;
   }
 
-  /**
-   * Parse a simple identifier.
-   * 
-   * <pre>
-   * identifier ::=
-   *     IDENTIFIER
-   * </pre>
-   * 
-   * @return the simple identifier that was parsed
-   */
-  private SimpleIdentifier parseSimpleIdentifier() {
-    if (matchesIdentifier()) {
-      return new SimpleIdentifier(getAndAdvance());
-    }
-    reportError(ParserErrorCode.MISSING_IDENTIFIER);
-    return createSyntheticIdentifier();
-  }
-
 //  /**
 //   * Parse a simple identifier.
 //   * 
@@ -4141,6 +4143,24 @@ public class Parser {
 //    }
 //    return createSyntheticIdentifier();
 //  }
+
+  /**
+   * Parse a simple identifier.
+   * 
+   * <pre>
+   * identifier ::=
+   *     IDENTIFIER
+   * </pre>
+   * 
+   * @return the simple identifier that was parsed
+   */
+  private SimpleIdentifier parseSimpleIdentifier() {
+    if (matchesIdentifier()) {
+      return new SimpleIdentifier(getAndAdvance());
+    }
+    reportError(ParserErrorCode.MISSING_IDENTIFIER);
+    return createSyntheticIdentifier();
+  }
 
   /**
    * Parse a statement.
@@ -4358,7 +4378,7 @@ public class Parser {
    * 
    * <pre>
    * throwExpression ::=
-   *     'throw' expression? ';'
+   *     'throw' expression
    * </pre>
    * 
    * @return the throw expression that was parsed
@@ -4366,6 +4386,9 @@ public class Parser {
   private Expression parseThrowExpression() {
     Token keyword = expect(Keyword.THROW);
     if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      // TODO(brianwilkerson) Uncomment the lines below once 'rethrow' is supported everywhere.
+//      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
+//      return new ThrowExpression(keyword, createSyntheticIdentifier());
       return new ThrowExpression(keyword, null);
     }
     Expression expression = parseExpression();
@@ -4377,7 +4400,7 @@ public class Parser {
    * 
    * <pre>
    * throwExpressionWithoutCascade ::=
-   *     'throw' expressionWithoutCascade? ';'
+   *     'throw' expressionWithoutCascade
    * </pre>
    * 
    * @return the throw expression that was parsed
@@ -4385,6 +4408,9 @@ public class Parser {
   private Expression parseThrowExpressionWithoutCascade() {
     Token keyword = expect(Keyword.THROW);
     if (matches(TokenType.SEMICOLON) || matches(TokenType.CLOSE_PAREN)) {
+      // TODO(brianwilkerson) Uncomment the lines below once 'rethrow' is supported everywhere.
+//      reportError(ParserErrorCode.MISSING_EXPRESSION_IN_THROW, currentToken);
+//      return new ThrowExpression(keyword, createSyntheticIdentifier());
       return new ThrowExpression(keyword, null);
     }
     Expression expression = parseExpressionWithoutCascade();

@@ -78,6 +78,17 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.INVALID_COMMENT_REFERENCE);
   }
 
+  public void fail_missingExpressionInThrow_withCascade() throws Exception {
+    parse("parseThrowExpression", "throw;", ParserErrorCode.MISSING_EXPRESSION_IN_THROW);
+  }
+
+  public void fail_missingExpressionInThrow_withoutCascade() throws Exception {
+    parse(
+        "parseThrowExpressionWithoutCascade",
+        "throw;",
+        ParserErrorCode.MISSING_EXPRESSION_IN_THROW);
+  }
+
   public void fail_missingFunctionParameters_local_nonVoid_block() throws Exception {
     // The parser does not recognize this as a function declaration, so it tries to parse it as an
     // expression statement. It isn't clear what the best error message is in this case.

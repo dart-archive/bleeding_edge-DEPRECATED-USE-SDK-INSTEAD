@@ -20,7 +20,7 @@ import com.google.dart.engine.scanner.Token;
  * 
  * <pre>
  * throwExpression ::=
- *     'throw' {@link Expression expression}? ';'
+ *     'throw' {@link Expression expression}
  * </pre>
  * 
  * @coverage dart.engine.ast
@@ -32,9 +32,7 @@ public class ThrowExpression extends Expression {
   private Token keyword;
 
   /**
-   * The expression computing the exception to be thrown, or {@code null} if the current exception
-   * is to be re-thrown. (The latter case can only occur if the throw statement is inside a catch
-   * clause.)
+   * The expression computing the exception to be thrown.
    */
   private Expression expression;
 
@@ -68,9 +66,7 @@ public class ThrowExpression extends Expression {
   }
 
   /**
-   * Return the expression computing the exception to be thrown, or {@code null} if the current
-   * exception is to be re-thrown. (The latter case can only occur if the throw statement is inside
-   * a catch clause.)
+   * Return the expression computing the exception to be thrown.
    * 
    * @return the expression computing the exception to be thrown
    */

@@ -662,6 +662,12 @@ public enum CompileTimeErrorCode implements ErrorCode {
   RESERVED_WORD_AS_IDENTIFIER(""),
 
   /**
+   * 12.8.1 Rethrow: It is a compile-time error if an expression of the form <i>rethrow;</i> is not
+   * enclosed within a on-catch clause.
+   */
+  RETHROW_OUTSIDE_CATCH(""),
+
+  /**
    * 13.11 Return: It is a compile-time error if a return statement of the form <i>return e;</i>
    * appears in a generative constructor.
    */
@@ -694,12 +700,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if a generative constructor of class Object includes a superinitializer.
    */
   SUPER_INITIALIZER_IN_OBJECT(""),
-
-  /**
-   * 12.8 Throw: It is a compile-time error if an expression of the form throw; is not enclosed
-   * within a on-catch clause.
-   */
-  THROW_WITHOUT_VALUE_OUTSIDE_ON(""),
 
   /**
    * 12.11 Instance Creation: It is a compile-time error if a constructor of a non-generic type

@@ -820,6 +820,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void fail_rethrowOutsideCatch() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  rethrow;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH);
+    verify(source);
+  }
+
   public void fail_returnInGenerativeConstructor() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -919,16 +929,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         ));
     resolve(source);
     assertErrors(CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT);
-    verify(source);
-  }
-
-  public void fail_throwWithoutValueOutsideOn() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  throw;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.THROW_WITHOUT_VALUE_OUTSIDE_ON);
     verify(source);
   }
 

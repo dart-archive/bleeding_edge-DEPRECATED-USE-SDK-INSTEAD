@@ -729,6 +729,12 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitRethrowExpression(RethrowExpression node) {
+    writer.print("rethrow");
+    return null;
+  }
+
+  @Override
   public Void visitReturnStatement(ReturnStatement node) {
     Expression expression = node.getExpression();
     if (expression == null) {

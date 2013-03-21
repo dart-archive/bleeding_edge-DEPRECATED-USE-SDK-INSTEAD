@@ -45,6 +45,7 @@ import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.StringInterpolation;
@@ -687,6 +688,15 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     recordType(propertyName, dynamicType);
     return recordType(node, dynamicType);
+  }
+
+  /**
+   * The Dart Language Specification, 12.9: <blockquote>The static type of a rethrow expression is
+   * bottom.</blockquote>
+   */
+  @Override
+  public Void visitRethrowExpression(RethrowExpression node) {
+    return recordType(node, typeProvider.getBottomType());
   }
 
   /**

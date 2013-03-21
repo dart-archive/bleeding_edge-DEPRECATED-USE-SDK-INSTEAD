@@ -395,6 +395,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitRethrowExpression(RethrowExpression node) {
+    return null;
+  }
+
+  @Override
   public R visitReturnStatement(ReturnStatement node) {
     return null;
   }

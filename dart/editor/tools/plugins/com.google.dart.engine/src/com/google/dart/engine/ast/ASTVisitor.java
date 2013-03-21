@@ -168,6 +168,8 @@ public interface ASTVisitor<R> {
 
   public R visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node);
 
+  public R visitRethrowExpression(RethrowExpression node);
+
   public R visitReturnStatement(ReturnStatement node);
 
   public R visitScriptTag(ScriptTag node);

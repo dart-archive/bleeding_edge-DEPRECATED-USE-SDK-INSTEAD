@@ -90,6 +90,7 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_CLASS_BODY("A class definition must have a body, even if it is empty"),
   MISSING_CONST_FINAL_VAR_OR_TYPE(
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
+  MISSING_EXPRESSION_IN_THROW("Throw expressions must compute the object to be thrown"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
   MISSING_FUNCTION_PARAMETERS("Functions must have an explicit list of parameters"),
   MISSING_IDENTIFIER("Expected an identifier"),

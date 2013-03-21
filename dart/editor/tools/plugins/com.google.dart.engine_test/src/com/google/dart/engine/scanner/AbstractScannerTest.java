@@ -283,6 +283,10 @@ public abstract class AbstractScannerTest extends TestCase {
     assertKeywordToken("else");
   }
 
+  public void test_keyword_enum() throws Exception {
+    assertKeywordToken("enum");
+  }
+
   public void test_keyword_export() throws Exception {
     assertKeywordToken("export");
   }
@@ -353,6 +357,10 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_keyword_part() throws Exception {
     assertKeywordToken("part");
+  }
+
+  public void test_keyword_rethrow() throws Exception {
+    assertKeywordToken("rethrow");
   }
 
   public void test_keyword_return() throws Exception {

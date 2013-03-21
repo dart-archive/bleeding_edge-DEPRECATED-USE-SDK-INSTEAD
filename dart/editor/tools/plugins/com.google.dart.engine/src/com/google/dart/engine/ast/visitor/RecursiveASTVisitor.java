@@ -472,6 +472,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitRethrowExpression(RethrowExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitReturnStatement(ReturnStatement node) {
     node.visitChildren(this);
     return null;

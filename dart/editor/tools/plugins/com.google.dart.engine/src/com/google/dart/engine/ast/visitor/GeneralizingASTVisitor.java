@@ -470,6 +470,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitRethrowExpression(RethrowExpression node) {
+    return visitExpression(node);
+  }
+
+  @Override
   public R visitReturnStatement(ReturnStatement node) {
     return visitStatement(node);
   }
