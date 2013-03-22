@@ -1895,6 +1895,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   };
 
+  //Patched to address dartbug.com/7998
+  private ISelectionChangedListener patchedSelectionChangedListener;
+
   /**
    * Default constructor.
    */
@@ -1989,6 +1992,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   @Override
   public void createPartControl(Composite parent) {
     super.createPartControl(parent);
+    patchSelectionChangeParticipation();
     getSourceViewer().getTextWidget().addCaretListener(dartSelectionCaretListener);
 
     fEditorSelectionChangedListener = new EditorSelectionChangedListener();
@@ -3346,6 +3350,48 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return EditorUtility.getEditorInputDartElement(this, false);
   }
 
+  protected ISelectionChangedListener getPatchedSelectionChangedListener() {
+
+    if (patchedSelectionChangedListener == null) {
+      patchedSelectionChangedListener = new ISelectionChangedListener() {
+
+        private Runnable runnable = new Runnable() {
+          @Override
+          public void run() {
+            ISourceViewer sourceViewer = getSourceViewer();
+            // check whether editor has not been disposed yet
+            if (sourceViewer != null && sourceViewer.getDocument() != null) {
+              updateSelectionDependentActions();
+            }
+          }
+        };
+
+        private Display display;
+
+        @Override
+        public void selectionChanged(SelectionChangedEvent event) {
+          Display current = Display.getCurrent();
+          if (current != null) {
+            // Don't execute asynchronously if we're in a thread that has a display.
+            // Fix for: https://bugs.eclipse.org/bugs/show_bug.cgi?id=368354 (the rationale
+            // is that the actions were not being enabled because they were previously
+            // updated in an async call).
+            // but just patching getSelectionChangedListener() properly.
+            runnable.run();
+          } else {
+            if (display == null) {
+              display = getSite().getShell().getDisplay();
+            }
+            display.asyncExec(runnable);
+          }
+          handleCursorPositionChanged();
+        }
+      };
+    }
+
+    return patchedSelectionChangedListener;
+  }
+
   /**
    * Returns the signed current selection. The length will be negative if the resulting selection is
    * right-to-left (RtoL).
@@ -4554,6 +4600,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private boolean isSemanticHighlightingEnabled() {
     return true;
 //    return SemanticHighlightings.isEnabled(getPreferenceStore());
+  }
+
+  private void patchSelectionChangeParticipation() {
+    // To address dartbug.com/7998
+    //TODO (pquitslund): revisit when we move to 3.8 and see if this hack is still needed
+    getSelectionProvider().removeSelectionChangedListener(getSelectionChangedListener());
+    getSelectionProvider().addSelectionChangedListener(getPatchedSelectionChangedListener());
   }
 
   private void performSaveActions() {
