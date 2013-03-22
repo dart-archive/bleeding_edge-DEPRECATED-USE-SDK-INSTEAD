@@ -197,7 +197,12 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public Source[] getLibrarySources(IResource resource) {
+    public Source[] getLibrarySources(IFile resource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Source[] getLibrarySources(IProject project) {
       throw new UnsupportedOperationException();
     }
 

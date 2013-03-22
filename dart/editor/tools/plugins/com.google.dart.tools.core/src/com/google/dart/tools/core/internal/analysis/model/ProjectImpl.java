@@ -34,6 +34,7 @@ import static org.eclipse.core.resources.IResource.PROJECT;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -216,6 +217,16 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 //    for (AnalysisContext context : contexts){
 //      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources));
 //    }
+    return sources.toArray(new Source[sources.size()]);
+  }
+
+  @Override
+  public Source[] getLibrarySources() {
+    Set<Source> sources = new HashSet<Source>();
+    for (PubFolder pubfolder : getPubFolders()) {
+      sources.addAll(Arrays.asList(pubfolder.getContext().getLibrarySources()));
+    }
+    sources.addAll(Arrays.asList(getDefaultContext().getLibrarySources()));
     return sources.toArray(new Source[sources.size()]);
   }
 

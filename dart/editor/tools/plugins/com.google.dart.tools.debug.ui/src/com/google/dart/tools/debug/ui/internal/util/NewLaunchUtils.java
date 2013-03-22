@@ -107,7 +107,7 @@ public class NewLaunchUtils {
     ProjectManager manager = DartCore.getProjectManager();
     if (resource instanceof IFile) {
       if (DartCore.isDartLikeFileName(resource.getName())) {
-        return manager.getLibrarySources(resource);
+        return manager.getLibrarySources((IFile) resource);
       }
       if (DartCore.isHTMLLikeFileName(resource.getName())) {
         HtmlElement htmlElement = manager.getHtmlElement((IFile) resource);
@@ -120,7 +120,8 @@ public class NewLaunchUtils {
       resource = resource.getParent();
     }
     if (resource instanceof IContainer) {
-      return manager.getLibrarySources(resource);
+      // TODO(keertip): filter results to just container
+      return manager.getLibrarySources(resource.getProject());
     }
     return new Source[] {};
   }

@@ -20,6 +20,7 @@ import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -73,12 +74,20 @@ public interface ProjectManager extends ContextManager {
   Source[] getLaunchableServerLibrarySources(IProject project);
 
   /**
-   * Answer with all the library sources that the given resource is part of or is the library file
+   * Answer with all the library sources that the given file is part of or is the library file
    * 
-   * @return the {@link Source}[] for all the libraries that the given resource is part of or is the
+   * @return the {@link Source}[] for all the libraries that the given file is part of or is the
    *         library file
    */
-  Source[] getLibrarySources(IResource resource);
+  Source[] getLibrarySources(IFile file);
+
+  /**
+   * Answer with all the library sources that are in the given project. These include all the sdk
+   * and external libraries referenced by code in the project
+   * 
+   * @return the {@link Source}[] for all the libraries that are in the given project.
+   */
+  Source[] getLibrarySources(IProject project);
 
   /**
    * Answer the project for the specified Eclipse resource

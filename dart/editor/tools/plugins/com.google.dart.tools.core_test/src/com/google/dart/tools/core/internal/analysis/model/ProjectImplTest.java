@@ -52,12 +52,18 @@ import java.io.File;
 public class ProjectImplTest extends AbstractDartCoreTest {
 
   private final class MockContextForTest extends MockContext {
+
     @Override
     public LibraryElement computeLibraryElement(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
         return library(this, "libraryA");
       }
       return null;
+    }
+
+    @Override
+    public Source[] getLibrarySources() {
+      return Source.EMPTY_ARRAY;
     }
   }
 
@@ -182,6 +188,15 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     libraries = project.getLibraries(container);
     assertTrue(libraries.length == 1);
     assertTrue(libraries[0].getName().equals("libraryA"));
+  }
+
+  public void test_getLibrarySources() {
+    // TODO(keertip): make this more meaningful
+    MockFolder folder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(folder, "libraryA.dart", "library libraryA;\n\n main(){}");
+    folder.add(file);
+    Source[] sources = project.getLibrarySources();
+    assertNotNull(sources);
   }
 
   public void test_getPackageRoots() throws Exception {

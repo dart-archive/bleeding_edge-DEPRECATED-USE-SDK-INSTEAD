@@ -47,10 +47,14 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectManagerImplTest extends TestCase {
 
   private final class MockContextForTest extends MockContext {
+
+    private List<Source> sources = new ArrayList<Source>();
+
     @Override
     public LibraryElement computeLibraryElement(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
@@ -62,10 +66,15 @@ public class ProjectManagerImplTest extends TestCase {
     @Override
     public Source[] getLibrariesContaining(Source source) {
       if (source.getShortName().equals("libraryA.dart")) {
+        sources.add(source);
         return new Source[] {source};
       }
+      return Source.EMPTY_ARRAY;
+    }
 
-      return new Source[] {};
+    @Override
+    public Source[] getLibrarySources() {
+      return sources.toArray(new Source[sources.size()]);
     }
 
   }
@@ -203,8 +212,8 @@ public class ProjectManagerImplTest extends TestCase {
     MockFolder mockFolder = projectContainer.getMockFolder("web");
     MockFile file = new MockFile(mockFolder, "libraryA.dart", "library libraryA;\n\n main(){}");
     mockFolder.add(file);
-    Source[] sources = manager.getLibrarySources(mockFolder);
     Source[] libraries = manager.getLibrarySources(file);
+    Source[] sources = manager.getLibrarySources(mockFolder.getProject());
     assertEquals(1, sources.length);
     assertEquals(sources.length, libraries.length);
     assertEquals(sources[0].getShortName(), libraries[0].getShortName());
