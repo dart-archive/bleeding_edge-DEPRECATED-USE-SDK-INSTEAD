@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
 public class CompileTimeErrorCodeTest extends ResolverTestCase {
@@ -1442,6 +1443,26 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
     // We cannot verify resolution with undefined labels
+  }
+
+  // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
+  // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+  public void test_nativeFunctionBodyInNonSDKCode_function() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "int m(a) native 'string';"));
+    resolve(source);
+    assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
+  }
+
+  // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
+  // through the ErrorVerifier, it is not a CompileTimeErrorCode.
+  public void test_nativeFunctionBodyInNonSDKCode_method() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A{",
+        "  static int m(a) native 'string';",
+        "}"));
+    resolve(source);
+    assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
   }
 
   public void test_newWithInvalidTypeParameters() throws Exception {

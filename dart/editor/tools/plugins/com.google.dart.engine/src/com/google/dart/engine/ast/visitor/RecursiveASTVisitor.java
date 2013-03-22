@@ -418,6 +418,12 @@ public class RecursiveASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitNativeFunctionBody(NativeFunctionBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitNullLiteral(NullLiteral node) {
     node.visitChildren(this);
     return null;

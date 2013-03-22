@@ -1202,6 +1202,10 @@ public class ToSourceVisitorTest extends EngineTestCase {
         namedFormalParameter(simpleFormalParameter(Keyword.VAR, "a"), integer(0L)));
   }
 
+  public void test_visitNativeFunctionBody() {
+    assertSource("native 'str';", nativeFunctionBody("str"));
+  }
+
   public void test_visitNullLiteral() {
     assertSource("null", nullLiteral());
   }

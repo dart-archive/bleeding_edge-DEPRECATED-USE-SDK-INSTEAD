@@ -115,6 +115,7 @@ public enum ParserErrorCode implements ErrorCode {
       "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
   MULTIPLE_WITH_CLAUSES("Each class definition can have at most one with clause"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
+  NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE("Native functions cannot be declared in non-SDK code"),
   NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),
   NON_IDENTIFIER_LIBRARY_NAME("The name of a library must be an identifier"),
   NON_PART_OF_DIRECTIVE_IN_PART("The part-of directive must be the only directive in a part"),

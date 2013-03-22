@@ -415,6 +415,11 @@ public class GeneralizingASTVisitor<R> implements ASTVisitor<R> {
     return visitUriBasedDirective(node);
   }
 
+  @Override
+  public R visitNativeFunctionBody(NativeFunctionBody node) {
+    return visitFunctionBody(node);
+  }
+
   public R visitNode(ASTNode node) {
     node.visitChildren(this);
     return null;

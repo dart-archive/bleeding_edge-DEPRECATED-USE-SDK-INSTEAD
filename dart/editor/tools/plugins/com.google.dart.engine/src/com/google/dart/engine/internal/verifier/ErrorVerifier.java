@@ -39,6 +39,7 @@ import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.NativeFunctionBody;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.NormalFormalParameter;
 import com.google.dart.engine.ast.RethrowExpression;
@@ -69,6 +70,7 @@ import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.Token;
@@ -121,6 +123,11 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean isInCatchClause;
 
   /**
+   * This is set to <code>true</code> iff the visitor is currently visiting code in the SDK.
+   */
+  private boolean isInSystemLibrary;
+
+  /**
    * The method or function that we are currently visiting, or <code>null</code> if we are not
    * inside a method or function.
    */
@@ -136,6 +143,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       TypeProvider typeProvider) {
     this.errorReporter = errorReporter;
     this.currentLibrary = currentLibrary;
+    this.isInSystemLibrary = currentLibrary.getSource().isInSystemLibrary();
     this.typeProvider = typeProvider;
     isEnclosingConstructorConst = false;
     isInCatchClause = false;
@@ -306,6 +314,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     } finally {
       currentFunction = previousFunction;
     }
+  }
+
+  @Override
+  public Void visitNativeFunctionBody(NativeFunctionBody node) {
+    checkForNativeFunctionBodyInNonSDKCode(node);
+    return super.visitNativeFunctionBody(node);
   }
 
   @Override
@@ -791,6 +805,21 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           rhs,
           leftType.getName(),
           rightType.getName());
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Checks to ensure that native function bodies can only in SDK code.
+   * 
+   * @param node the native function body to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see ParserErrorCode#NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE
+   */
+  private boolean checkForNativeFunctionBodyInNonSDKCode(NativeFunctionBody node) {
+    if (!isInSystemLibrary) {
+      errorReporter.reportError(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, node);
       return true;
     }
     return false;

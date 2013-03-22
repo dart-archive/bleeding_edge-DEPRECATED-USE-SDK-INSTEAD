@@ -763,6 +763,13 @@ public final class ASTFactory {
         : token(TokenType.COLON), expression);
   }
 
+  public static NativeFunctionBody nativeFunctionBody(String nativeMethodName) {
+    return new NativeFunctionBody(
+        token("native"),
+        string(nativeMethodName),
+        token(TokenType.SEMICOLON));
+  }
+
   public static NullLiteral nullLiteral() {
     return new NullLiteral(token(Keyword.NULL));
   }

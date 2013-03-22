@@ -350,6 +350,11 @@ public class SimpleASTVisitor<R> implements ASTVisitor<R> {
   }
 
   @Override
+  public R visitNativeFunctionBody(NativeFunctionBody node) {
+    return null;
+  }
+
+  @Override
   public R visitNullLiteral(NullLiteral node) {
     return null;
   }

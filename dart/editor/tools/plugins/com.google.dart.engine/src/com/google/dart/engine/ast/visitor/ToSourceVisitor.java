@@ -657,6 +657,14 @@ public class ToSourceVisitor implements ASTVisitor<Void> {
   }
 
   @Override
+  public Void visitNativeFunctionBody(NativeFunctionBody node) {
+    writer.print("native ");
+    visit(node.getStringLiteral());
+    writer.print(';');
+    return null;
+  }
+
+  @Override
   public Void visitNullLiteral(NullLiteral node) {
     writer.print("null");
     return null;

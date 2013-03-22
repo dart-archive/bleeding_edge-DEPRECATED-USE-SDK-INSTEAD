@@ -70,6 +70,7 @@ public class Parser {
   private static final String OF = "of"; //$NON-NLS-1$
   private static final String ON = "on"; //$NON-NLS-1$
   private static final String SHOW = "show"; //$NON-NLS-1$
+  private static final String NATIVE = "native"; //$NON-NLS-1$
 
   /**
    * Initialize a newly created parser.
@@ -2657,11 +2658,11 @@ public class Parser {
         return new ExpressionFunctionBody(functionDefinition, expression, semicolon);
       } else if (matches(TokenType.OPEN_CURLY_BRACKET)) {
         return new BlockFunctionBody(parseBlock());
-      } else if (matches("native")) {
-        // TODO(brianwilkerson) Decide whether we want to model native methods.
-        advance();
-        parseStringLiteral();
-        return new EmptyFunctionBody(getAndAdvance());
+      } else if (matches(NATIVE)) {
+        Token nativeToken = getAndAdvance();
+        StringLiteral stringLiteral = parseStringLiteral();
+        // TODO (jwren) missing generated errors if the string literal is not a SimpleStringLiteral
+        return new NativeFunctionBody(nativeToken, stringLiteral, expect(TokenType.SEMICOLON));
       } else {
         // Invalid function body
         reportError(ParserErrorCode.MISSING_FUNCTION_BODY);

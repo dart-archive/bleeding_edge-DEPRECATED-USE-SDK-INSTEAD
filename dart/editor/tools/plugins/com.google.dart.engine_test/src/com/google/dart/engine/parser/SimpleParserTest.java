@@ -2486,6 +2486,16 @@ public class SimpleParserTest extends ParserTestCase {
     assertNotNull(functionBody.getSemicolon());
   }
 
+  public void test_parseFunctionBody_nativeFunctionBody() throws Exception {
+    NativeFunctionBody functionBody = parse(
+        "parseFunctionBody",
+        new Object[] {false, false},
+        "native 'str';");
+    assertNotNull(functionBody.getNativeToken());
+    assertNotNull(functionBody.getStringLiteral());
+    assertNotNull(functionBody.getSemicolon());
+  }
+
   public void test_parseFunctionDeclaration_function() throws Exception {
     Comment comment = Comment.createDocumentationComment(new Token[0]);
     TypeName returnType = new TypeName(new SimpleIdentifier(null), null);
