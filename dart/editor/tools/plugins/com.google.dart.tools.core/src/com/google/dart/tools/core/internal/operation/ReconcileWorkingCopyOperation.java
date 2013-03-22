@@ -13,11 +13,7 @@
  */
 package com.google.dart.tools.core.internal.operation;
 
-import com.google.common.base.Objects;
 import com.google.dart.compiler.DartCompilationError;
-import com.google.dart.compiler.ErrorCode;
-import com.google.dart.compiler.ErrorSeverity;
-import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 import com.google.dart.compiler.util.apache.StringUtils;
@@ -30,10 +26,7 @@ import com.google.dart.tools.core.internal.model.PerWorkingCopyInfo;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaBuilder;
 import com.google.dart.tools.core.internal.model.delta.DartElementDeltaImpl;
 import com.google.dart.tools.core.internal.problem.CategorizedProblem;
-import com.google.dart.tools.core.internal.problem.DefaultProblem;
-import com.google.dart.tools.core.internal.problem.ProblemSeverities;
 import com.google.dart.tools.core.internal.util.Messages;
-import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartModelStatus;
@@ -42,11 +35,8 @@ import com.google.dart.tools.core.problem.ProblemRequestor;
 import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 
-import org.eclipse.core.resources.IResource;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -156,24 +146,24 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
           DartCore.logInformation("Could not reconcile \""
               + source.getCorrespondingResource().getLocation() + "\"", exception);
         }
-        // filter out some problems
-        IResource unitResource = workingCopy.getResource();
-        for (Iterator<DartCompilationError> I = parseErrors.iterator(); I.hasNext();) {
-          DartCompilationError error = I.next();
-          // TODO(scheglov) hack to skip for now, remove later
-          if (isAnalysisAsYouTypeNotAssignableProblem(error)) {
-            I.remove();
-            continue;
-          }
-          // keep only errors from current unit
-          IResource errorResource = ResourceUtil.getResource(error.getSource());
-          if (!Objects.equal(errorResource, unitResource)) {
-            I.remove();
-            continue;
-          }
-        }
-        // convert DartCompilationError-s to Problem-s
-        convertErrors(parseErrors, problems);
+//        // filter out some problems
+//        IResource unitResource = workingCopy.getResource();
+//        for (Iterator<DartCompilationError> I = parseErrors.iterator(); I.hasNext();) {
+//          DartCompilationError error = I.next();
+//          // TODO(scheglov) hack to skip for now, remove later
+//          if (isAnalysisAsYouTypeNotAssignableProblem(error)) {
+//            I.remove();
+//            continue;
+//          }
+//          // keep only errors from current unit
+//          IResource errorResource = ResourceUtil.getResource(error.getSource());
+//          if (!Objects.equal(errorResource, unitResource)) {
+//            I.remove();
+//            continue;
+//          }
+//        }
+//        // convert DartCompilationError-s to Problem-s
+//        convertErrors(parseErrors, problems);
         if (progressMonitor != null) {
           progressMonitor.worked(1);
         }
@@ -301,38 +291,38 @@ public class ReconcileWorkingCopyOperation extends DartModelOperation {
     return status;
   }
 
-  private void convertErrors(List<DartCompilationError> parseErrors,
-      HashMap<String, CategorizedProblem[]> problems) {
-    int count = parseErrors.size();
-    CategorizedProblem[] problemArray = new CategorizedProblem[count];
-    int nextIndex = 0;
-    String[] arguments = new String[0];
-    for (DartCompilationError error : parseErrors) {
-      int startPosition = error.getStartPosition();
-      Source source = error.getSource();
-      ErrorCode errorCode = error.getErrorCode();
-      int severity;
-      ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
-      if (errorSeverity == ErrorSeverity.ERROR) {
-        severity = ProblemSeverities.Error;
-      } else if (errorSeverity == ErrorSeverity.WARNING) {
-        severity = ProblemSeverities.Warning;
-      } else {
-        severity = ProblemSeverities.Info;
-      }
-      problemArray[nextIndex++] = new DefaultProblem(
-          (source == null ? "" : error.getSource().getName()).toCharArray(),
-          error.getMessage(),
-          errorCode,
-          arguments,
-          severity,
-          startPosition,
-          startPosition + error.getLength(),
-          error.getLineNumber(),
-          error.getColumnNumber());
-    }
-    problems.put(DartCore.DART_PROBLEM_MARKER_TYPE, problemArray);
-  }
+//  private void convertErrors(List<DartCompilationError> parseErrors,
+//      HashMap<String, CategorizedProblem[]> problems) {
+//    int count = parseErrors.size();
+//    CategorizedProblem[] problemArray = new CategorizedProblem[count];
+//    int nextIndex = 0;
+//    String[] arguments = new String[0];
+//    for (DartCompilationError error : parseErrors) {
+//      int startPosition = error.getStartPosition();
+//      Source source = error.getSource();
+//      ErrorCode errorCode = error.getErrorCode();
+//      int severity;
+//      ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
+//      if (errorSeverity == ErrorSeverity.ERROR) {
+//        severity = ProblemSeverities.Error;
+//      } else if (errorSeverity == ErrorSeverity.WARNING) {
+//        severity = ProblemSeverities.Warning;
+//      } else {
+//        severity = ProblemSeverities.Info;
+//      }
+//      problemArray[nextIndex++] = new DefaultProblem(
+//          (source == null ? "" : error.getSource().getName()).toCharArray(),
+//          error.getMessage(),
+//          errorCode,
+//          arguments,
+//          severity,
+//          startPosition,
+//          startPosition + error.getLength(),
+//          error.getLineNumber(),
+//          error.getColumnNumber());
+//    }
+//    problems.put(DartCore.DART_PROBLEM_MARKER_TYPE, problemArray);
+//  }
 
   private void notifyParticipants(final CompilationUnitImpl workingCopy) {
     DartCore.notYetImplemented();
