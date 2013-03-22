@@ -233,6 +233,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     checkForConstFormalParameter(node);
+    checkForFieldInitializerOutsideConstructor(node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -725,6 +726,29 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             return true;
           }
         }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * This verifies that the passed field formal parameter is in a constructor declaration.
+   * 
+   * @param node the field formal parameter to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR
+   */
+  private boolean checkForFieldInitializerOutsideConstructor(FieldFormalParameter node) {
+    ASTNode parent = node.getParent();
+    if (parent != null) {
+      ASTNode grandparent = parent.getParent();
+      // If this is not an error case, then parent is a FormalParameterList and the grandparent is a
+      // ConstructorDeclaration, or the parent is a DefaultFormalParameter and grandparent is a
+      // FormalParameter [with ConstructorDeclaration being its parent],
+      if (grandparent != null && !(grandparent instanceof ConstructorDeclaration)
+          && !(grandparent.getParent() instanceof ConstructorDeclaration)) {
+        errorReporter.reportError(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, node);
+        return true;
       }
     }
     return false;

@@ -193,17 +193,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_fieldInitializerOutsideConstructor() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  int x;",
-        "  m(this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
-    verify(source);
-  }
-
   public void fail_finalInitializedInDeclarationAndConstructor_assignment() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1376,6 +1365,28 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_fieldInitializerOutsideConstructor() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  m(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_fieldInitializerOutsideConstructor_defaultParameters() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  m([this.x]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR);
     verify(source);
   }
 
