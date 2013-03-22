@@ -16,24 +16,43 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.source.SourceKind;
 
 /**
- * The unique instance of the class {@code DartInfo} acts as a placeholder for Dart compilation
- * units that have not yet had their kind computed.
+ * Instances of the class {@code DartInfo} acts as a placeholder for Dart compilation units that
+ * have not yet had their kind computed.
  * 
  * @coverage dart.engine
  */
 public class DartInfo extends SourceInfo {
   /**
-   * The unique instance of this class.
+   * The instance of this class used to represent a compilation unit for which an attempt was made
+   * to compute the kind but the kind could not be computed.
    */
-  private static final DartInfo UniqueInstance = new DartInfo();
+  private static final DartInfo ErrorInstance = new DartInfo();
 
   /**
-   * Return the unique instance of this class.
-   * 
-   * @return the unique instance of this class
+   * The instance of this class used to represent a compilation unit for which no attempt has been
+   * made to compute the kind.
    */
-  public static DartInfo getInstance() {
-    return UniqueInstance;
+  private static final DartInfo PendingInstance = new DartInfo();
+
+  /**
+   * Return an instance of this class representing a compilation unit for which an attempt was made
+   * to compute the kind but the kind could not be computed.
+   * 
+   * @return an instance of this class used to indicate that the computation of the kind resulted in
+   *         an error and there is no point trying again
+   */
+  public static DartInfo getErrorInstance() {
+    return ErrorInstance;
+  }
+
+  /**
+   * Return an instance of this class representing a compilation unit for which no attempt has been
+   * made to compute the kind.
+   * 
+   * @return an instance of this class used to indicate that the computation of the kind is pending
+   */
+  public static DartInfo getPendingInstance() {
+    return PendingInstance;
   }
 
   /**

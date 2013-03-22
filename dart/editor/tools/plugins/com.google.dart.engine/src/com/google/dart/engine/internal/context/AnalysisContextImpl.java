@@ -208,8 +208,8 @@ public class AnalysisContextImpl implements AnalysisContext {
       SourceInfo sourceInfo = getSourceInfo(source);
       if (sourceInfo == null) {
         return SourceKind.UNKNOWN;
-      } else if (sourceInfo instanceof DartInfo) {
-        sourceInfo = internalComputeKindOf(source, sourceInfo);
+      } else if (sourceInfo == DartInfo.getPendingInstance()) {
+        sourceInfo = internalComputeKindOf(source);
       }
       return sourceInfo.getKind();
     }
@@ -255,8 +255,8 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       LineInfo lineInfo = sourceInfo.getLineInfo();
       if (lineInfo == null) {
-        if (sourceInfo instanceof DartInfo) {
-          sourceInfo = internalComputeKindOf(source, sourceInfo);
+        if (sourceInfo == DartInfo.getPendingInstance()) {
+          sourceInfo = internalComputeKindOf(source);
         }
         if (sourceInfo instanceof HtmlUnitInfo) {
           parseHtmlUnit(source);
@@ -844,7 +844,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       sourceMap.put(source, info);
       return info;
     } else if (AnalysisEngine.isDartFileName(name)) {
-      DartInfo info = DartInfo.getInstance();
+      DartInfo info = DartInfo.getPendingInstance();
       sourceMap.put(source, info);
       return info;
     }
@@ -871,8 +871,8 @@ public class AnalysisContextImpl implements AnalysisContext {
       return (CompilationUnitInfo) sourceInfo;
     } else if (sourceInfo instanceof CompilationUnitInfo) {
       return (CompilationUnitInfo) sourceInfo;
-    } else if (sourceInfo instanceof DartInfo) {
-      sourceInfo = internalComputeKindOf(source, sourceInfo);
+    } else if (sourceInfo == DartInfo.getPendingInstance()) {
+      sourceInfo = internalComputeKindOf(source);
       if (sourceInfo instanceof CompilationUnitInfo) {
         return (CompilationUnitInfo) sourceInfo;
       }
@@ -923,8 +923,8 @@ public class AnalysisContextImpl implements AnalysisContext {
       return (LibraryInfo) sourceInfo;
     } else if (sourceInfo instanceof LibraryInfo) {
       return (LibraryInfo) sourceInfo;
-    } else if (sourceInfo instanceof DartInfo) {
-      sourceInfo = internalComputeKindOf(source, sourceInfo);
+    } else if (sourceInfo == DartInfo.getPendingInstance()) {
+      sourceInfo = internalComputeKindOf(source);
       if (sourceInfo instanceof LibraryInfo) {
         return (LibraryInfo) sourceInfo;
       }
@@ -1027,7 +1027,16 @@ public class AnalysisContextImpl implements AnalysisContext {
     return false;
   }
 
-  private SourceInfo internalComputeKindOf(Source source, SourceInfo info) {
+  /**
+   * Compute the kind of the given source. This method should only be invoked when the kind is not
+   * already known. In such a case the source is currently being represented by a {@link DartInfo}.
+   * After this method has run the source will be represented by a new information object that is
+   * appropriate to the computed kind of the source.
+   * 
+   * @param source the source for which a kind is to be computed
+   * @return the new source info that was created to represent the source
+   */
+  private SourceInfo internalComputeKindOf(Source source) {
     try {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ScanResult scanResult = internalScan(source, errorListener);
@@ -1049,7 +1058,9 @@ public class AnalysisContextImpl implements AnalysisContext {
       sourceMap.put(source, sourceInfo);
       return sourceInfo;
     } catch (AnalysisException exception) {
-      return info;
+      DartInfo sourceInfo = DartInfo.getErrorInstance();
+      sourceMap.put(source, sourceInfo);
+      return sourceInfo;
     }
   }
 
@@ -1122,8 +1133,8 @@ public class AnalysisContextImpl implements AnalysisContext {
     //
     for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
       SourceInfo sourceInfo = entry.getValue();
-      if (sourceInfo == DartInfo.getInstance() || sourceInfo.getKind() == null) {
-        internalComputeKindOf(entry.getKey(), sourceInfo);
+      if (sourceInfo == DartInfo.getPendingInstance()) {
+        internalComputeKindOf(entry.getKey());
         return true;
       }
     }
@@ -1230,7 +1241,7 @@ public class AnalysisContextImpl implements AnalysisContext {
           libraryInfo.invalidateClientServer();
         }
       }
-      sourceMap.put(source, DartInfo.getInstance());
+      sourceMap.put(source, DartInfo.getPendingInstance());
     }
   }
 

@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
-import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -55,38 +54,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void fail_mergeContext() {
     fail("Implement this");
-  }
-
-  public void fail_performAnalysisTask_IOException() throws Exception {
-    final boolean[] ioExceptionOccurred = new boolean[] {false};
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
-      @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
-        ioExceptionOccurred[0] = true;
-        if (ioExceptionOccurred[0]) {
-          throw new IOException("Some random I/O Exception");
-        }
-        super.getContents(receiver);
-      }
-    };
-    sourceFactory.setContents(source, "library lib;");
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
-    context.applyChanges(changeSet);
-
-    // Simulate a typical analysis worker
-    int count = 0;
-    final int maxCount = 1000000;
-    ChangeNotice[] notices = context.performAnalysisTask();
-    while (notices != null && count < maxCount) {
-      notices = context.performAnalysisTask();
-      count++;
-    }
-
-    assertTrue(ioExceptionOccurred[0]);
-    assertTrue(count < maxCount);
   }
 
   @Override
@@ -378,6 +345,28 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.parseHtmlUnit(source);
     assertNotNull(unit);
+  }
+
+  public void test_performAnalysisTask_IOException() throws Exception {
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        throw new IOException("Some random I/O Exception");
+      }
+    };
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
+
+    // Simulate a typical analysis worker
+    int maxCount = 5;
+    context.performAnalysisTask();
+    for (int count = 0; count < maxCount; count++) {
+      if (context.performAnalysisTask() == null) {
+        return;
+      }
+    }
+    fail("Did not finish analysis after " + maxCount + " iterations");
   }
 
   public void test_resolveCompilationUnit_library() throws Exception {
