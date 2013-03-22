@@ -391,6 +391,7 @@
             id="com.google.dart.tools.ui.dart">
       </category>
 
+      <!-- removed pending rethink/rewrite using new model
       <view
             allowMultiple="false"
             category="com.google.dart.tools.ui.dart"
@@ -400,6 +401,7 @@
             name="Apps"
             restorable="true">
       </view>
+      -->
 
       <view
             name="%callHierarchyViewName"

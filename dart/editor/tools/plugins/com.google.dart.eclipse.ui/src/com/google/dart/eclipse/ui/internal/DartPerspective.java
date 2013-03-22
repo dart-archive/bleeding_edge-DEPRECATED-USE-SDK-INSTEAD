@@ -51,13 +51,17 @@ public class DartPerspective implements IPerspectiveFactory {
     IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.22f, editorArea);
 
     topLeft.addView(IPageLayout.ID_PROJECT_EXPLORER);
-    topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
+    //TODO (pquitslund): re-contribute if/when apps view is re-enabled
+    //topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
     topLeft.addPlaceholder(DartUI.ID_TYPE_HIERARCHY);
     topLeft.addPlaceholder(IPageLayout.ID_RES_NAV);
 
     // Bottom left: Property Sheet view
-    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(BL,
-        IPageLayout.BOTTOM, 0.50f, TL);
+    IPlaceholderFolderLayout propertiesfolder = layout.createPlaceholderFolder(
+        BL,
+        IPageLayout.BOTTOM,
+        0.50f,
+        TL);
     propertiesfolder.addPlaceholder(IPageLayout.ID_PROP_SHEET);
     //propertiesfolder.addPlaceholder(DartUI.ID_DARTUNIT_VIEW);
 

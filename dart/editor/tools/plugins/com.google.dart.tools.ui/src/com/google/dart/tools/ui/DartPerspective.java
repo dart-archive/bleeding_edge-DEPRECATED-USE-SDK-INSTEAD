@@ -49,7 +49,8 @@ public class DartPerspective implements IPerspectiveFactory {
     IFolderLayout topLeft = layout.createFolder(TL, IPageLayout.LEFT, 0.25f, editorArea);
 
     topLeft.addView(DartUI.ID_FILE_EXPLORER);
-    topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
+    //TODO (pquitslund): re-contribute if/when apps view is re-enabled
+    //topLeft.addPlaceholder(DartUI.ID_APPS_VIEW);
 
     // Bottom left: Outline view and Property Sheet view
     IPlaceholderFolderLayout outlinefolder = layout.createPlaceholderFolder(
