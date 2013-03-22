@@ -1124,14 +1124,7 @@ public final class MigrateCleanUpTest extends AbstractCleanUpTest {
         "  new List(5);",
         "}",
         "");
-    String expected = makeSource(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  new List();",
-        "  new List.fixedLength(5);",
-        "}",
-        "");
-    assertCleanUp(cleanUp, initial, expected);
+    assertNoFix(cleanUp, initial);
   }
 
   public void test_1M3_corelib_mapList() throws Exception {

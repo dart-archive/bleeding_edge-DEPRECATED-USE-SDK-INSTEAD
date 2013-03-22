@@ -335,19 +335,6 @@ public class Migrate_1M3_corelib_CleanUp extends AbstractMigrateCleanUp {
             }
           }
         }
-        // new List(5)  --->  new List.fixedLength(5)
-        if (element != null && element.getConstructorType().getName().equals("List")
-            && StringUtils.isEmpty(element.getName()) && args.size() == 1) {
-          DartExpression arg = args.get(0);
-          if (arg != null) {
-            Type argType = arg.getType();
-            if (argType != null && argType.toString().equals("int")) {
-              addReplaceEdit(
-                  SourceRangeFactory.forEndStart(node.getConstructor(), arg),
-                  ".fixedLength(");
-            }
-          }
-        }
         // named constructors rename
         if (constructor instanceof DartPropertyAccess) {
           DartPropertyAccess prop = (DartPropertyAccess) constructor;
