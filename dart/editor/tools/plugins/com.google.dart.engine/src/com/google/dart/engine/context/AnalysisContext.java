@@ -280,6 +280,34 @@ public interface AnalysisContext {
   public SourceFactory getSourceFactory();
 
   /**
+   * Return {@code true} if the given source is known to be the defining compilation unit of a
+   * library that can be run on a client (references 'dart:html', either directly or indirectly).
+   * <p>
+   * <b>Note:</b> In addition to the expected case of returning {@code false} if the source is known
+   * to be a library that cannot be run on a client, this method will also return {@code false} if
+   * the source is not known to be a library or if we do not know whether it can be run on a client.
+   * 
+   * @param librarySource the source being tested
+   * @return {@code true} if the given source is known to be a library that can be run on a client
+   */
+  public boolean isClientLibrary(Source librarySource);
+
+  /**
+   * Return {@code true} if the given source is known to be the defining compilation unit of a
+   * library that can be run on the server (does not reference 'dart:html', either directly or
+   * indirectly).
+   * <p>
+   * <b>Note:</b> In addition to the expected case of returning {@code false} if the source is known
+   * to be a library that cannot be run on the server, this method will also return {@code false} if
+   * the source is not known to be a library or if we do not know whether it can be run on the
+   * server.
+   * 
+   * @param librarySource the source being tested
+   * @return {@code true} if the given source is known to be a library that can be run on the server
+   */
+  public boolean isServerLibrary(Source librarySource);
+
+  /**
    * Add the sources contained in the specified context to this context's collection of sources.
    * This method is called when an existing context's pubspec has been removed, and the contained
    * sources should be reanalyzed as part of this context.

@@ -290,6 +290,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public boolean isClientLibrary(Source librarySource) {
+    return false;
+  }
+
+  @Override
+  public boolean isServerLibrary(Source librarySource) {
+    return false;
+  }
+
+  @Override
   public void mergeContext(AnalysisContext context) {
     calls.add(this, MERGE_CONTEXT, context);
   }

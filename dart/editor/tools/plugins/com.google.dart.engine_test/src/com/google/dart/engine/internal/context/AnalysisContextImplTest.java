@@ -330,6 +330,28 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(sourceFactory, context.getSourceFactory());
   }
 
+  public void test_isClientLibrary() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.dart", createSource("import 'dart:html';", "", "main() {}"));
+    assertFalse(context.isClientLibrary(source));
+    assertFalse(context.isServerLibrary(source));
+    context.computeLibraryElement(source);
+    assertTrue(context.isClientLibrary(source));
+    assertFalse(context.isServerLibrary(source));
+  }
+
+  public void test_isServerLibrary() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/test.dart", createSource("library lib;", "", "main() {}"));
+    assertFalse(context.isClientLibrary(source));
+    assertFalse(context.isServerLibrary(source));
+    context.computeLibraryElement(source);
+    assertFalse(context.isClientLibrary(source));
+    assertTrue(context.isServerLibrary(source));
+  }
+
   public void test_parseCompilationUnit_errors() throws Exception {
     Source source = addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);

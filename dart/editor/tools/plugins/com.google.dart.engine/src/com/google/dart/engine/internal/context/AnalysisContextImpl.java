@@ -516,6 +516,32 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public boolean isClientLibrary(Source librarySource) {
+    SourceInfo sourceInfo = getSourceInfo(librarySource);
+    if (sourceInfo instanceof LibraryInfo) {
+      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
+      if (libraryInfo.hasInvalidLaunchable() || libraryInfo.hasInvalidClientServer()) {
+        return false;
+      }
+      return libraryInfo.isLaunchable() && libraryInfo.isClient();
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isServerLibrary(Source librarySource) {
+    SourceInfo sourceInfo = getSourceInfo(librarySource);
+    if (sourceInfo instanceof LibraryInfo) {
+      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
+      if (libraryInfo.hasInvalidLaunchable() || libraryInfo.hasInvalidClientServer()) {
+        return false;
+      }
+      return libraryInfo.isLaunchable() && libraryInfo.isServer();
+    }
+    return false;
+  }
+
+  @Override
   public void mergeContext(AnalysisContext context) {
     synchronized (cacheLock) {
       for (Map.Entry<Source, SourceInfo> entry : ((AnalysisContextImpl) context).sourceMap.entrySet()) {
