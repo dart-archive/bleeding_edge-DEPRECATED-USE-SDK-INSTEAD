@@ -171,7 +171,9 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>(exports.length);
     for (ExportElement element : exports) {
       LibraryElement library = element.getExportedLibrary();
-      libraries.add(library);
+      if (library != null) {
+        libraries.add(library);
+      }
     }
     return libraries.toArray(new LibraryElement[libraries.size()]);
   }
@@ -190,8 +192,10 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   public LibraryElement[] getImportedLibraries() {
     HashSet<LibraryElement> libraries = new HashSet<LibraryElement>(imports.length);
     for (ImportElement element : imports) {
-      LibraryElement prefix = element.getImportedLibrary();
-      libraries.add(prefix);
+      LibraryElement library = element.getImportedLibrary();
+      if (library != null) {
+        libraries.add(library);
+      }
     }
     return libraries.toArray(new LibraryElement[libraries.size()]);
   }

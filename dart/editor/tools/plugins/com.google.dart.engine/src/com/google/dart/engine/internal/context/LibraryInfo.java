@@ -15,7 +15,10 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+
+import java.util.ArrayList;
 
 /**
  * Instances of the class {@code LibraryInfo} maintain the information cached by an analysis context
@@ -71,10 +74,28 @@ public class LibraryInfo extends CompilationUnitInfo {
   private int bitmask = 0;
 
   /**
+   * The sources for the HTML files that reference this library (via a script tag), or {@code null}
+   * if there are no HTML files that reference the library or if the HTML files are not yet known.
+   */
+  private ArrayList<Source> htmlSources = null;
+
+  /**
    * Initialize a newly created information holder to be empty.
    */
   public LibraryInfo() {
     super();
+  }
+
+  /**
+   * Add the given source to the list of sources for the HTML files that reference this library.
+   * 
+   * @param source the source to be added to the list
+   */
+  public void addHtmlSource(Source source) {
+    if (htmlSources == null) {
+      htmlSources = new ArrayList<Source>();
+    }
+    htmlSources.add(source);
   }
 
   /**
@@ -106,6 +127,18 @@ public class LibraryInfo extends CompilationUnitInfo {
    */
   public LibraryElement getElement() {
     return element;
+  }
+
+  /**
+   * Return the sources for the HTML files that reference this library.
+   * 
+   * @return the sources for the HTML files that reference this library
+   */
+  public Source[] getHtmlSources() {
+    if (htmlSources == null) {
+      return Source.EMPTY_ARRAY;
+    }
+    return htmlSources.toArray(new Source[htmlSources.size()]);
   }
 
   @Override
@@ -220,6 +253,21 @@ public class LibraryInfo extends CompilationUnitInfo {
    */
   public boolean isServer() {
     return (bitmask & CLIENT_CODE) == 0;
+  }
+
+  /**
+   * Remove the given source from the list of sources for the HTML files that reference this
+   * library.
+   * 
+   * @param source the source to be removed to the list
+   */
+  public void removeHtmlSource(Source source) {
+    if (htmlSources != null) {
+      htmlSources.remove(source);
+      if (htmlSources.isEmpty()) {
+        htmlSources = null;
+      }
+    }
   }
 
   /**

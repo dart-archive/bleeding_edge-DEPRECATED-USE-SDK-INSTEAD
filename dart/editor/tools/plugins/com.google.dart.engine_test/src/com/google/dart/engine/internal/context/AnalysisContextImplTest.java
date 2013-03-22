@@ -53,32 +53,40 @@ public class AnalysisContextImplTest extends EngineTestCase {
     fail("Implement this");
   }
 
-  public void fail_getLaunchableClientLibrarySources() throws Exception {
-    // Fails because we are not correctly determining whether a source is part of the SDK
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source[] sources = context.getLaunchableClientLibrarySources();
-    assertLength(0, sources);
-    Source source = addSource("/test.dart", createSource("import 'dart:html';", "main() {}"));
-    context.computeLibraryElement(source);
-    sources = context.getLaunchableClientLibrarySources();
-    assertLength(1, sources);
-  }
-
-  public void fail_getLibrariesContaining() throws Exception {
-    // Fails because we're not currently caching this information
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source librarySource = addSource("/lib.dart", createSource("library lib;", "part 'part.dart';"));
-    Source partSource = addSource("/part.dart", "part of lib;");
-    context.computeLibraryElement(librarySource);
-    Source[] result = context.getLibrariesContaining(partSource);
-    assertLength(1, result);
-    assertEquals(librarySource, result[0]);
-  }
-
   public void fail_mergeContext() {
     fail("Implement this");
+  }
+
+  public void fail_performAnalysisTask_IOException() throws Exception {
+    final boolean[] ioExceptionOccurred = new boolean[] {false};
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        ioExceptionOccurred[0] = true;
+        if (ioExceptionOccurred[0]) {
+          throw new IOException("Some random I/O Exception");
+        }
+        super.getContents(receiver);
+      }
+    };
+    sourceFactory.setContents(source, "library lib;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
+
+    // Simulate a typical analysis worker
+    int count = 0;
+    final int maxCount = 1000000;
+    ChangeNotice[] notices = context.performAnalysisTask();
+    while (notices != null && count < maxCount) {
+      notices = context.performAnalysisTask();
+      count++;
+    }
+
+    assertTrue(ioExceptionOccurred[0]);
+    assertTrue(count < maxCount);
   }
 
   @Override
@@ -235,6 +243,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(SourceKind.UNKNOWN, context.getKindOf(source));
   }
 
+  public void test_getLaunchableClientLibrarySources() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source[] sources = context.getLaunchableClientLibrarySources();
+    assertLength(0, sources);
+    Source source = addSource("/test.dart", createSource("import 'dart:html';", "main() {}"));
+    context.computeLibraryElement(source);
+    sources = context.getLaunchableClientLibrarySources();
+    assertLength(1, sources);
+  }
+
   public void test_getLaunchableServerLibrarySources() throws Exception {
     context = AnalysisContextFactory.contextWithCore();
     sourceFactory = context.getSourceFactory();
@@ -244,6 +263,17 @@ public class AnalysisContextImplTest extends EngineTestCase {
     context.computeLibraryElement(source);
     sources = context.getLaunchableServerLibrarySources();
     assertLength(1, sources);
+  }
+
+  public void test_getLibrariesContaining() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source librarySource = addSource("/lib.dart", createSource("library lib;", "part 'part.dart';"));
+    Source partSource = addSource("/part.dart", "part of lib;");
+    context.computeLibraryElement(librarySource);
+    Source[] result = context.getLibrariesContaining(partSource);
+    assertLength(1, result);
+    assertEquals(librarySource, result[0]);
   }
 
   public void test_getLibraryElement() throws Exception {
@@ -326,38 +356,6 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.parseHtmlUnit(source);
     assertNotNull(unit);
-  }
-
-  public void test_performAnalysisTask_IOException() throws Exception {
-    final boolean[] ioExceptionOccurred = new boolean[] {false};
-    context = AnalysisContextFactory.contextWithCore();
-    sourceFactory = context.getSourceFactory();
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
-      @Override
-      public void getContents(ContentReceiver receiver) throws Exception {
-        ioExceptionOccurred[0] = true;
-        if (ioExceptionOccurred[0]) {
-          throw new IOException("Some random I/O Exception");
-        }
-        super.getContents(receiver);
-      }
-    };
-    sourceFactory.setContents(source, "library lib;");
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.added(source);
-    context.applyChanges(changeSet);
-
-    // Simulate a typical analysis worker
-    int count = 0;
-    final int maxCount = 1000000;
-    ChangeNotice[] notices = context.performAnalysisTask();
-    while (notices != null && count < maxCount) {
-      notices = context.performAnalysisTask();
-      count++;
-    }
-
-    assertTrue(ioExceptionOccurred[0]);
-    assertTrue(count < maxCount);
   }
 
   public void test_resolveCompilationUnit_library() throws Exception {

@@ -240,6 +240,11 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public Source[] getHtmlFilesReferencing(Source source) {
+    return Source.EMPTY_ARRAY;
+  }
+
+  @Override
   public Source[] getHtmlSources() {
     return Source.EMPTY_ARRAY;
   }

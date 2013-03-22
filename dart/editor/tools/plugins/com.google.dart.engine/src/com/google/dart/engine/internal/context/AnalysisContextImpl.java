@@ -21,6 +21,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
@@ -28,6 +29,9 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.html.ast.XmlAttributeNode;
+import com.google.dart.engine.html.ast.XmlTagNode;
+import com.google.dart.engine.html.ast.visitor.SimpleXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
@@ -42,6 +46,7 @@ import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -51,6 +56,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -103,6 +109,16 @@ public class AnalysisContextImpl implements AnalysisContext {
    * The object used to synchronize access to all of the caches.
    */
   private Object cacheLock = new Object();
+
+  /**
+   * The name of the 'src' attribute in a HTML tag.
+   */
+  private static final String ATTRIBUTE_SRC = "src";
+
+  /**
+   * The name of the 'script' tag in an HTML file.
+   */
+  private static final String TAG_SCRIPT = "script";
 
   /**
    * Initialize a newly created analysis context.
@@ -329,6 +345,28 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public Source[] getHtmlFilesReferencing(Source source) {
+    synchronized (cacheLock) {
+      SourceInfo info = getSourceInfo(source);
+      if (info instanceof LibraryInfo) {
+        return ((LibraryInfo) info).getHtmlSources();
+      } else if (info instanceof CompilationUnitInfo) {
+        ArrayList<Source> sources = new ArrayList<Source>();
+        for (Source librarySource : ((CompilationUnitInfo) info).getLibrarySources()) {
+          LibraryInfo libraryInfo = getLibraryInfo(librarySource);
+          for (Source htmlSource : libraryInfo.getHtmlSources()) {
+            sources.add(htmlSource);
+          }
+        }
+        if (!sources.isEmpty()) {
+          return sources.toArray(new Source[sources.size()]);
+        }
+      }
+      return Source.EMPTY_ARRAY;
+    }
+  }
+
+  @Override
   public Source[] getHtmlSources() {
     return getSources(SourceKind.HTML);
   }
@@ -536,6 +574,17 @@ public class AnalysisContextImpl implements AnalysisContext {
           unit = result.getHtmlUnit();
           htmlUnitInfo.setLineInfo(new LineInfo(result.getLineStarts()));
           htmlUnitInfo.setParsedUnit(unit);
+          for (SourceInfo sourceInfo : sourceMap.values()) {
+            if (sourceInfo instanceof LibraryInfo) {
+              ((LibraryInfo) sourceInfo).removeHtmlSource(source);
+            }
+          }
+          for (Source librarySource : getLibrarySources(source, unit)) {
+            LibraryInfo libraryInfo = getLibraryInfo(librarySource);
+            if (libraryInfo != null) {
+              libraryInfo.addHtmlSource(source);
+            }
+          }
         }
       }
       return unit;
@@ -566,11 +615,44 @@ public class AnalysisContextImpl implements AnalysisContext {
    *          the elements representing the libraries
    */
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
     synchronized (cacheLock) {
       for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
+        LibraryElement library = entry.getValue();
+        //
+        // Cache the element in the library's info.
+        //
         LibraryInfo libraryInfo = getLibraryInfo(entry.getKey());
         if (libraryInfo != null) {
-          libraryInfo.setElement(entry.getValue());
+          libraryInfo.setElement(library);
+          libraryInfo.setLaunchable(library.getEntryPoint() != null);
+          libraryInfo.setClient(isClient(library, htmlSource, new HashSet<LibraryElement>()));
+        }
+        Source librarySource = library.getSource();
+        if (librarySource != null) {
+          //
+          // Remove this library from being a defining compilation unit for any existing units.
+          //
+          for (SourceInfo info : sourceMap.values()) {
+            if (info instanceof CompilationUnitInfo) {
+              ((CompilationUnitInfo) info).removeLibrarySource(librarySource);
+            }
+          }
+          //
+          // Cache this library as a defining compilation unit of both it's defining compilation
+          // unit and all of it's parts.
+          //
+          if (libraryInfo != null) {
+            libraryInfo.addLibrarySource(librarySource);
+          }
+          for (CompilationUnitElement part : library.getParts()) {
+            Source partSource = part.getSource();
+            CompilationUnitInfo partInfo = partSource == null ? null
+                : getCompilationUnitInfo(partSource);
+            if (partInfo != null) {
+              partInfo.addLibrarySource(librarySource);
+            }
+          }
         }
       }
     }
@@ -687,6 +769,8 @@ public class AnalysisContextImpl implements AnalysisContext {
             LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
             libraryInfo.invalidateElement();
             libraryInfo.invalidatePublicNamespace();
+            libraryInfo.invalidateLaunchable();
+            libraryInfo.invalidateClientServer();
           }
         }
       }
@@ -823,6 +907,34 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
+   * Return the sources of libraries that are referenced in the specified HTML file.
+   * 
+   * @param htmlSource the source of the HTML file being analyzed
+   * @param htmlUnit the AST for the HTML file being analyzed
+   * @return the sources of libraries that are referenced in the HTML file
+   */
+  private ArrayList<Source> getLibrarySources(final Source htmlSource, HtmlUnit htmlUnit) {
+    final ArrayList<Source> libraries = new ArrayList<Source>();
+    htmlUnit.accept(new SimpleXmlVisitor<Void>() {
+      @Override
+      public Void visitXmlTagNode(XmlTagNode node) {
+        if (node.getTag().getLexeme().equalsIgnoreCase(TAG_SCRIPT)) {
+          for (XmlAttributeNode attribute : node.getAttributes()) {
+            if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
+              Source librarySource = htmlSource.resolve(attribute.getValue().getLexeme());
+              if (librarySource.exists()) {
+                libraries.add(librarySource);
+              }
+            }
+          }
+        }
+        return null;
+      }
+    });
+    return libraries;
+  }
+
+  /**
    * Return a change notice for the given source, creating one if one does not already exist.
    * 
    * @param source the source for which changes are being reported
@@ -942,6 +1054,36 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
+   * Return {@code true} if this library is, or depends on, dart:html.
+   * 
+   * @param library the library being tested
+   * @param visitedLibraries a collection of the libraries that have been visited, used to prevent
+   *          infinite recursion
+   * @return {@code true} if this library is, or depends on, dart:html
+   */
+  private boolean isClient(LibraryElement library, Source htmlSource,
+      HashSet<LibraryElement> visitedLibraries) {
+    if (visitedLibraries.contains(library)) {
+      return false;
+    }
+    if (library.getSource().equals(htmlSource)) {
+      return true;
+    }
+    visitedLibraries.add(library);
+    for (LibraryElement imported : library.getImportedLibraries()) {
+      if (isClient(imported, htmlSource, visitedLibraries)) {
+        return true;
+      }
+    }
+    for (LibraryElement exported : library.getExportedLibraries()) {
+      if (isClient(exported, htmlSource, visitedLibraries)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Perform a single analysis task.
    * <p>
    * <b>Note:</b> This method must only be invoked while we are synchronized on {@link #cacheLock}.
@@ -1058,6 +1200,8 @@ public class AnalysisContextImpl implements AnalysisContext {
         if (libraryInfo != null) {
           libraryInfo.invalidateElement();
           libraryInfo.invalidatePublicNamespace();
+          libraryInfo.invalidateLaunchable();
+          libraryInfo.invalidateClientServer();
         }
       }
       sourceMap.put(source, DartInfo.getInstance());
@@ -1082,6 +1226,8 @@ public class AnalysisContextImpl implements AnalysisContext {
         if (libraryInfo != null) {
           libraryInfo.invalidateElement();
           libraryInfo.invalidatePublicNamespace();
+          libraryInfo.invalidateLaunchable();
+          libraryInfo.invalidateClientServer();
         }
       }
     }

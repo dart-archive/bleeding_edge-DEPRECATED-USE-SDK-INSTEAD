@@ -286,9 +286,11 @@ public class CompilationUnitInfo extends SourceInfo {
    * @param source the source to be removed to the list
    */
   public void removeLibrarySource(Source source) {
-    librarySources.remove(source);
-    if (librarySources.isEmpty()) {
-      librarySources = null;
+    if (librarySources != null) {
+      librarySources.remove(source);
+      if (librarySources.isEmpty()) {
+        librarySources = null;
+      }
     }
   }
 

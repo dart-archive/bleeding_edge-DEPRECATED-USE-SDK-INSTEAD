@@ -180,6 +180,16 @@ public interface AnalysisContext {
   public HtmlElement getHtmlElement(Source source);
 
   /**
+   * Return the sources for the HTML files that reference the given compilation unit. If the source
+   * does not represent a Dart source or is not known to this context, the returned array will be
+   * empty. The contents of the array can be incomplete.
+   * 
+   * @param source the source referenced by the returned HTML files
+   * @return the sources for the HTML files that reference the given compilation unit
+   */
+  public Source[] getHtmlFilesReferencing(Source source);
+
+  /**
    * Return an array containing all of the sources known to this context that represent HTML files.
    * The contents of the array can be incomplete.
    * 

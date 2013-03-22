@@ -45,27 +45,43 @@ public final class AnalysisContextFactory {
         new DartUriResolver(DartSdk.getDefaultSdk()),
         new FileUriResolver());
     context.setSourceFactory(sourceFactory);
-
+    //
+    // dart:core
+    //
     TestTypeProvider provider = new TestTypeProvider();
-
-    CompilationUnitElementImpl unit = new CompilationUnitElementImpl("core.dart");
-    unit.setTypes(new ClassElement[] {
+    CompilationUnitElementImpl coreUnit = new CompilationUnitElementImpl("core.dart");
+    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
+    coreUnit.setSource(coreSource);
+    coreUnit.setTypes(new ClassElement[] {
         provider.getBoolType().getElement(), provider.getDoubleType().getElement(),
         provider.getFunctionType().getElement(), provider.getIntType().getElement(),
         provider.getListType().getElement(), provider.getMapType().getElement(),
         provider.getNumType().getElement(), provider.getObjectType().getElement(),
         provider.getStackTraceType().getElement(), provider.getStringType().getElement(),
         provider.getTypeType().getElement()});
-    LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("dart", "core"));
-    library.setDefiningCompilationUnit(unit);
+    LibraryElementImpl coreLibrary = new LibraryElementImpl(context, libraryIdentifier(
+        "dart",
+        "core"));
+    coreLibrary.setDefiningCompilationUnit(coreUnit);
+    //
+    // dart:html
+    //
+    CompilationUnitElementImpl htmlUnit = new CompilationUnitElementImpl("html_dartium.dart");
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    htmlUnit.setSource(htmlSource);
+    LibraryElementImpl htmlLibrary = new LibraryElementImpl(context, libraryIdentifier(
+        "dart",
+        "dom",
+        "html"));
+    htmlLibrary.setDefiningCompilationUnit(htmlUnit);
 
     HashMap<Source, LibraryElement> elementMap = new HashMap<Source, LibraryElement>();
-    Source coreSource = sourceFactory.forUri(DartSdk.DART_CORE);
-    elementMap.put(coreSource, library);
+    elementMap.put(coreSource, coreLibrary);
+    elementMap.put(htmlSource, htmlLibrary);
+
+    context.setContents(coreSource, "");
+    context.setContents(htmlSource, "");
     context.recordLibraryElements(elementMap);
-
-    unit.setSource(coreSource);
-
     return context;
   }
 

@@ -14,9 +14,10 @@
 package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.TestSource;
 
 public class LibraryInfoTest extends EngineTestCase {
-
   public void test_client_flag() throws Exception {
     LibraryInfo info = new LibraryInfo();
     // true
@@ -32,6 +33,18 @@ public class LibraryInfoTest extends EngineTestCase {
     assertFalse(info.isClient());
     assertTrue(info.isServer());
     assertFalse(info.hasInvalidClientServer());
+  }
+
+  public void test_getHtmlSources() {
+    Source source = new TestSource();
+    LibraryInfo info = new LibraryInfo();
+    assertLength(0, info.getHtmlSources());
+    info.addHtmlSource(source);
+    assertLength(1, info.getHtmlSources());
+    info.removeHtmlSource(source);
+    assertLength(0, info.getHtmlSources());
+    info.removeHtmlSource(source);
+    assertLength(0, info.getHtmlSources());
   }
 
   public void test_launchable_flag() throws Exception {
