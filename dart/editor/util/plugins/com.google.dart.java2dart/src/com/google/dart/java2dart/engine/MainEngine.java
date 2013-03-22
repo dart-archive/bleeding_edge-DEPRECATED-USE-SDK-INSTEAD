@@ -544,12 +544,24 @@ public class MainEngine {
         importDirective(
             "resolver.dart",
             null,
-            importShowCombinator("Namespace", "NamespaceBuilder", "LibraryResolver")));
+            importShowCombinator(
+                "Namespace",
+                "NamespaceBuilder",
+                "LibraryResolver",
+                "HtmlUnitBuilder")));
     unit.getDirectives().add(
         importDirective(
             "html.dart",
             null,
-            importShowCombinator("HtmlScanner", "HtmlScanResult", "HtmlParser", "HtmlParseResult")));
+            importShowCombinator(
+                "XmlTagNode",
+                "XmlAttributeNode",
+                "SimpleXmlVisitor",
+                "HtmlScanner",
+                "HtmlScanResult",
+                "HtmlParser",
+                "HtmlParseResult",
+                "HtmlUnit")));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "AnalysisEngine.java") || isEnginePath(file, "utilities/logging/")
@@ -619,7 +631,7 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("source.dart", null));
     unit.getDirectives().add(importDirective("scanner.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "utilities_dart.dart", null));
+    unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     for (CompilationUnitMember member : dartUnit.getDeclarations()) {
       File file = context.getMemberToFile().get(member);
       if (isEnginePath(file, "parser/") || isEnginePath(file, "internal/parser/")
@@ -826,11 +838,11 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("java_io.dart", null));
     unit.getDirectives().add(importDirective("java_engine.dart", null));
     unit.getDirectives().add(importDirective("java_engine_io.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "error.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "parser.dart", null));
-    unit.getDirectives().add(importDirective(src_package + "ast.dart", null));
+    unit.getDirectives().add(importDirective("source_io.dart", null));
+    unit.getDirectives().add(importDirective("error.dart", null));
+    unit.getDirectives().add(importDirective("scanner.dart", null));
+    unit.getDirectives().add(importDirective("parser.dart", null));
+    unit.getDirectives().add(importDirective("ast.dart", null));
     unit.getDirectives().add(
         importDirective(src_package + "engine.dart", null, importShowCombinator("AnalysisEngine")));
     for (Entry<File, List<CompilationUnitMember>> entry : context.getFileToMembers().entrySet()) {

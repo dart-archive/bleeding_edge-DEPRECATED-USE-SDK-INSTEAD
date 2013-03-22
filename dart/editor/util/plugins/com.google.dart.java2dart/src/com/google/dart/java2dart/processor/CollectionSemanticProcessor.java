@@ -261,11 +261,11 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitTypeName(TypeName node) {
         super.visitTypeName(node);
-        Object binding = context.getNodeTypeBinding(node);
+        ITypeBinding binding = context.getNodeTypeBinding(node);
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
           String name = nameNode.getName();
-          if ("ArrayList".equals(name)) {
+          if (JavaUtils.isTypeNamed(binding, "java.util.ArrayList")) {
             nameNode.setToken(token("List"));
             return null;
           }

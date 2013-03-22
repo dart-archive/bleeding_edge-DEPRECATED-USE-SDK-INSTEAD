@@ -1647,6 +1647,34 @@ public class SemanticTest extends AbstractSemanticTest {
         getFormattedSource(unit));
   }
 
+  public void test_tryCatch_Exception() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "public class Test {",
+            "  void main() {",
+            "    try {",
+            "    } catch (Exception e) {",
+            "    }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    // do translate
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class Test {",
+            "  void main() {",
+            "    try {",
+            "    } catch (e) {",
+            "    }",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
   public void test_varArgs() throws Exception {
     setFileLines(
         "test/Test.java",

@@ -46,7 +46,6 @@ import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -641,7 +640,7 @@ public class AnalysisContextImpl implements AnalysisContext {
    *          the elements representing the libraries
    */
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
-    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    Source htmlSource = sourceFactory.forUri("dart:html"); // was DartSdk.DART_HTML
     synchronized (cacheLock) {
       for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
         LibraryElement library = entry.getValue();

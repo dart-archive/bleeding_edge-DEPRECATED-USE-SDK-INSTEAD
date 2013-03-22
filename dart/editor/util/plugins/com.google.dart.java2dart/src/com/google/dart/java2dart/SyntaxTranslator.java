@@ -150,6 +150,7 @@ import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.Type;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -493,10 +494,17 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.CatchClause node) {
-    TypeName exceptionType = translate(node.getException().getType());
     SimpleIdentifier exceptionParameter = translateSimpleName(node.getException().getName());
     Block block = translate(node.getBody());
-    return done(catchClause(exceptionType, exceptionParameter, null, block));
+    // "catch (e) {}" or "on Type catch (e) {}"
+    Type javaExceptionType = node.getException().getType();
+    ITypeBinding javaExceptionBinding = javaExceptionType.resolveBinding();
+    if (JavaUtils.isTypeNamed(javaExceptionBinding, "java.lang.Exception")) {
+      return done(catchClause(null, exceptionParameter, null, block));
+    } else {
+      TypeName exceptionType = translate(javaExceptionType);
+      return done(catchClause(exceptionType, exceptionParameter, null, block));
+    }
   }
 
   @Override
@@ -1628,7 +1636,7 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         putReference(superTypeBinding, (SimpleIdentifier) superType.getName());
         implementsClause = implementsClause(superType);
       } else {
-        TypeName superType = typeName(superTypeBinding.getName());
+        TypeName superType = translateTypeName(superTypeBinding);
         putReference(superTypeBinding, (SimpleIdentifier) superType.getName());
         extendsClause = extendsClause(superType);
       }
@@ -1830,10 +1838,21 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
         return typeName(identifier("List"), translateTypeName(binding.getComponentType()));
       }
       String name = binding.getName();
+      name = StringUtils.substringBefore(name, "<");
+      if (JavaUtils.isTypeNamed(binding, "java.util.ArrayList")) {
+        name = "List";
+      }
+      if (JavaUtils.isTypeNamed(binding, "java.lang.Void")) {
+        name = "Object";
+      }
       if ("boolean".equals(name)) {
         return typeName("bool");
       }
-      TypeName result = typeName(name);
+      List<TypeName> arguments = Lists.newArrayList();
+      for (ITypeBinding typeArgument : binding.getTypeArguments()) {
+        arguments.add(translateTypeName(typeArgument));
+      }
+      TypeName result = typeName(identifier(name), arguments);
       context.putNodeTypeBinding(result, binding);
       context.putNodeTypeBinding(result.getName(), binding);
       putReference(binding, (SimpleIdentifier) result.getName());
