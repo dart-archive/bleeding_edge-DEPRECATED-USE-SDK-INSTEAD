@@ -55,7 +55,7 @@ public class NewSelectionConverter {
    */
   public static Element getElementAtOffset(DartEditor editor, int caret) {
 
-    CompilationUnit cu = editor.getInputUnit();
+    CompilationUnit cu = editor.getParsedUnit();
     if (cu == null) {
       return null;
     }

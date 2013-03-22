@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,810 +13,513 @@
  */
 package com.google.dart.tools.ui.internal.text.functions;
 
-import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.model.TypeMember;
-import com.google.dart.tools.ui.DartElementComparator;
-import com.google.dart.tools.ui.DartElementLabels;
-import com.google.dart.tools.ui.DartPluginImages;
-import com.google.dart.tools.ui.DartX;
-import com.google.dart.tools.ui.IWorkingCopyProvider;
-import com.google.dart.tools.ui.NewStandardDartElementContentProvider;
-import com.google.dart.tools.ui.OldStandardDartElementContentProvider;
-import com.google.dart.tools.ui.OverrideIndicatorLabelDecorator;
-import com.google.dart.tools.ui.ProblemsLabelDecorator;
-import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
-import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
-import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
-import com.google.dart.tools.ui.internal.util.SWTUtil;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
+import com.google.dart.tools.ui.internal.text.editor.LightNodeElements;
+import com.google.dart.tools.ui.internal.util.GridDataFactory;
 import com.google.dart.tools.ui.internal.util.StringMatcher;
-import com.google.dart.tools.ui.internal.viewsupport.AppearanceAwareLabelProvider;
-import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
-import com.google.dart.tools.ui.internal.viewsupport.MemberFilter;
 
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.viewers.AbstractTreeViewer;
-import org.eclipse.jface.viewers.ILabelDecorator;
-import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.PopupDialog;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.events.KeyAdapter;
 import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
-import org.eclipse.ui.IDecoratorManager;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.keys.KeySequence;
-import org.eclipse.ui.keys.SWTKeySupport;
+import org.eclipse.ui.texteditor.ITextEditor;
+
+import java.util.List;
 
 /**
  * Show outline in light-weight control.
  */
-@SuppressWarnings("deprecation")
-public class DartOutlineInformationControl extends AbstractInformationControl {
-
-  private class LexicalSortingAction extends Action {
-
-    private static final String STORE_LEXICAL_SORTING_CHECKED = "LexicalSortingAction.isChecked"; //$NON-NLS-1$
-
-    private TreeViewer fOutlineViewer;
-
-    private LexicalSortingAction(TreeViewer outlineViewer) {
-      super(
-          TextMessages.JavaOutlineInformationControl_LexicalSortingAction_label,
-          IAction.AS_CHECK_BOX);
-      setToolTipText(TextMessages.JavaOutlineInformationControl_LexicalSortingAction_tooltip);
-      setDescription(TextMessages.JavaOutlineInformationControl_LexicalSortingAction_description);
-
-      DartPluginImages.setLocalImageDescriptors(this, "alphab_sort_co.gif"); //$NON-NLS-1$
-
-      fOutlineViewer = outlineViewer;
-
-      boolean checked = getDialogSettings().getBoolean(STORE_LEXICAL_SORTING_CHECKED);
-      setChecked(checked);
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(
-          this,
-          DartHelpContextIds.LEXICAL_SORTING_BROWSING_ACTION);
-    }
-
-    @Override
-    public void run() {
-      valueChanged(isChecked(), true);
-    }
-
-    private void valueChanged(final boolean on, boolean store) {
-      setChecked(on);
-      BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
-        @Override
-        public void run() {
-          fOutlineViewer.refresh(false);
-        }
-      });
-
-      if (store) {
-        getDialogSettings().put(STORE_LEXICAL_SORTING_CHECKED, on);
-      }
-    }
-  }
-
-  private class NewOutlineContentProvider extends NewStandardDartElementContentProvider implements
-      OutlineContentProvider {
-
-    private boolean showInheritedMembers;
-
-    /**
-     * Creates a new Outline content provider.
-     * 
-     * @param showInheritedMembers <code>true</code> iff inherited members are shown
-     */
-    private NewOutlineContentProvider(boolean showInheritedMembers) {
-      super(true);
-      this.showInheritedMembers = showInheritedMembers;
-    }
-
-    @Override
-    public boolean showInheritedMembers() {
-      return showInheritedMembers;
-    }
-  }
-
-  private class NewOutlineLabelProvider extends NewDartElementLabelProvider implements
-      OutlineLabelProvider {
-
-    @Override
-    public void setShowDefiningType(boolean state) {
-      //TODO (pquitslund): support (or remove)
-    }
-
-  }
-
-  private class OldOutlineContentProvider extends OldStandardDartElementContentProvider implements
-      OutlineContentProvider {
-
-    private boolean fShowInheritedMembers;
-
-    /**
-     * Creates a new Outline content provider.
-     * 
-     * @param showInheritedMembers <code>true</code> iff inherited members are shown
-     */
-    private OldOutlineContentProvider(boolean showInheritedMembers) {
-      super(true);
-      fShowInheritedMembers = showInheritedMembers;
-    }
-
-    @Override
-    public void dispose() {
-      super.dispose();
-      DartX.todo();
-      // if (fCategoryFilterActionGroup != null) {
-      // fCategoryFilterActionGroup.dispose();
-      // fCategoryFilterActionGroup= null;
-      // }
-//      fTypeHierarchies.clear();
-    }
-
-    @Override
-    public Object[] getChildren(Object element) {
-//      if (fShowOnlyMainType) {
-//        if (element instanceof ITypeRoot) {
-//          element = ((ITypeRoot) element).findPrimaryType();
-//        }
-//
-//        if (element == null)
-//          return NO_CHILDREN;
-//      }
-//
-//      if (fShowInheritedMembers && element instanceof Type) {
-//        Type type = (Type) element;
-//        if (type.getDeclaringType() == null) {
-//          TypeHierarchyImpl th = getSuperTypeHierarchy(type);
-//          if (th != null) {
-//            List children = new ArrayList();
-//            Type[] superClasses = th.getAllSuperclasses(type);
-//            children.addAll(Arrays.asList(super.getChildren(type)));
-//            for (int i = 0, scLength = superClasses.length; i < scLength; i++)
-//              children.addAll(Arrays.asList(super.getChildren(superClasses[i])));
-//            return children.toArray();
-//          }
-//        }
-//      }
-      return super.getChildren(element);
-    }
-
-    @Override
-    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-      super.inputChanged(viewer, oldInput, newInput);
-//      fTypeHierarchies.clear();
-    }
-
-    @Override
-    public boolean showInheritedMembers() {
-      return fShowInheritedMembers;
-    }
-
-//    public void toggleShowInheritedMembers() {
-//      Tree tree = getTreeViewer().getTree();
-//
-//      tree.setRedraw(false);
-//      fShowInheritedMembers = !fShowInheritedMembers;
-//      getTreeViewer().refresh();
-//      getTreeViewer().expandToLevel(2);
-//
-//      // reveal selection
-//      Object selectedElement = getSelectedElement();
-//      if (selectedElement != null) {
-//        getTreeViewer().reveal(selectedElement);
-//      }
-//
-//      tree.setRedraw(true);
-//    }
-  }
-
-  private class OldOutlineLabelProvider extends AppearanceAwareLabelProvider implements
-      OutlineLabelProvider {
-
-    private boolean fShowDefiningType;
-
-    private OldOutlineLabelProvider() {
-      super(AppearanceAwareLabelProvider.DEFAULT_TEXTFLAGS | DartElementLabels.F_APP_TYPE_SIGNATURE
-          | DartElementLabels.ALL_CATEGORY, AppearanceAwareLabelProvider.DEFAULT_IMAGEFLAGS);
-    }
-
-    @Override
-    public Color getForeground(Object element) {
-      if (outlineContentProvider.showInheritedMembers()) {
-        if (element instanceof DartElement) {
-          DartElement je = (DartElement) element;
-          je = je.getAncestor(CompilationUnit.class);
-          if (fInput.equals(je)) {
-            return null;
-          }
-        }
-        return JFaceResources.getColorRegistry().get(ColoredViewersManager.INHERITED_COLOR_NAME);
-      }
-      return null;
-    }
-
-    @Override
-    public String getText(Object element) {
-      String text = super.getText(element);
-      if (fShowDefiningType) {
-        try {
-          Type type = getDefiningType(element);
-          if (type != null) {
-            StringBuffer buf = new StringBuffer(super.getText(type));
-            buf.append(DartElementLabels.CONCAT_STRING);
-            buf.append(text);
-            return buf.toString();
-          }
-        } catch (DartModelException e) {
-        }
-      }
-      return text;
-    }
-
-//    public boolean isShowDefiningType() {
-//      return fShowDefiningType;
-//    }
-
-    @Override
-    public void setShowDefiningType(boolean showDefiningType) {
-      fShowDefiningType = showDefiningType;
-    }
-
-    private Type getDefiningType(Object element) throws DartModelException {
-      int kind = ((DartElement) element).getElementType();
-
-      if (kind != DartElement.METHOD && kind != DartElement.FIELD) {
-        return null;
-      }
-      Type declaringType = ((TypeMember) element).getDeclaringType();
-      if (kind != DartElement.METHOD) {
-        return declaringType;
-      }
-      if (declaringType == null) {
-        return null;
-      }
-      DartX.todo();
-      return null;
-//      TypeHierarchyImpl hierarchy = getSuperTypeHierarchy(declaringType);
-//      if (hierarchy == null) {
-//        return declaringType;
-//      }
-//      DartFunction method = (DartFunction) element;
-//      MethodOverrideTester tester = new MethodOverrideTester(declaringType,
-//          hierarchy);
-//      DartFunction res = tester.findDeclaringMethod(method, true);
-//      if (res == null || method.equals(res)) {
-//        return declaringType;
-//      }
-//      return res.getDeclaringType();
-    }
-  }
-
+public class DartOutlineInformationControl extends PopupDialog implements IInformationControl {
   /**
-   * String matcher that can match two patterns.
+   * {@link ViewerFilter} that allows only branches with elements satisfying {@link #stringMatcher}.
    */
-  private static class OrStringMatcher extends StringMatcher {
-
-    private StringMatcher fMatcher1;
-    private StringMatcher fMatcher2;
-
-    private OrStringMatcher(String pattern1, String pattern2, boolean ignoreCase, boolean foo) {
-      super("", false, false); //$NON-NLS-1$
-      fMatcher1 = new StringMatcher(pattern1, ignoreCase, false);
-      fMatcher2 = new StringMatcher(pattern2, ignoreCase, false);
-    }
-
+  private class NameFilter extends ViewerFilter {
     @Override
-    public boolean match(String text) {
-      return fMatcher2.match(text) || fMatcher1.match(text);
+    public boolean select(Viewer _viewer, Object parentElement, Object _element) {
+      LightNodeElement element = (LightNodeElement) _element;
+      // no filter
+      if (stringMatcher == null) {
+        return true;
+      }
+      // make be "element" matches
+      String elementName = LightNodeElements.LABEL_PROVIDER.getText(element);
+      if (elementName != null && stringMatcher.match(elementName)) {
+        return true;
+      }
+      // ...or has matching children
+      return hasMatchingChild(element);
     }
 
+    private boolean hasMatchingChild(LightNodeElement element) {
+      for (LightNodeElement child : element.getChildren()) {
+        if (select(viewer, element, child)) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
-
-  private interface OutlineContentProvider extends ITreeContentProvider, IWorkingCopyProvider {
-    abstract boolean showInheritedMembers();
-  }
-
-  private interface OutlineLabelProvider extends ILabelProvider {
-
-    void addLabelDecorator(ILabelDecorator problemsLabelDecorator);
-
-    void setShowDefiningType(boolean state);
-
-  }
-
-  private class OutlineSorter extends DartElementComparator /* AbstractHierarchyViewerSorter */{
-
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter
-     * #isSortAlphabetically()
-     */
-//    public boolean isSortAlphabetically() {
-//      return fLexicalSortingAction.isChecked();
-//    }
-
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter
-     * #isSortByDefiningType()
-     */
-//    public boolean isSortByDefiningType() {
-//      return fSortByDefiningTypeAction.isChecked();
-//    }
-
-    /*
-     * @see org.eclipse.wst.jsdt.internal.ui.typehierarchy.AbstractHierarchyViewerSorter
-     * #getHierarchy(org.eclipse.wst.jsdt.core.IType)
-     */
-//    protected TypeHierarchyImpl getHierarchy(Type type) {
-//      return getSuperTypeHierarchy(type);
-//    }
-  }
-
   private class OutlineTreeViewer extends TreeViewer {
-
-    private boolean fIsFiltering = false;
-
     private OutlineTreeViewer(Tree tree) {
       super(tree);
-
+      setUseHashlookup(true);
     }
 
     @Override
-    protected Object[] getFilteredChildren(Object parent) {
-      Object[] result = getRawChildren(parent);
-      int unfilteredChildren = result.length;
-      ViewerFilter[] filters = getFilters();
-      if (filters != null) {
-        for (int i = 0; i < filters.length; i++) {
-          result = filters[i].filter(this, parent, result);
-        }
+    protected Widget internalGetWidgetToSelect(Object elementOrTreePath) {
+      if (elementOrTreePath instanceof TreeItem) {
+        return (TreeItem) elementOrTreePath;
       }
-      fIsFiltering = unfilteredChildren != result.length;
-      return result;
+      return super.internalGetWidgetToSelect(elementOrTreePath);
     }
 
-    @Override
-    protected void internalExpandToLevel(Widget node, int level) {
-      if (!fIsFiltering && node instanceof TreeItem && getMatcher() == null) {
-        TreeItem treeItem = (TreeItem) node;
-        if (treeItem.getParentItem() != null && treeItem.getData() instanceof DartElement) {
-          DartElement je = (DartElement) treeItem.getData();
-          if (je.getElementType() == DartElement.IMPORT_CONTAINER || isInnerType(je)) {
-            setExpanded(treeItem, false);
-            return;
-          }
-        }
-      }
-      super.internalExpandToLevel(node, level);
-    }
-
-    private boolean isInnerType(DartElement element) {
-      return false;
-//      if (element != null && element.getElementType() == DartElement.TYPE) {
-//        Type type = (Type) element;
-//        try {
-//          return type.isMember();
-//        } catch (DartModelException e) {
-//          DartElement parent = type.getParent();
-//          if (parent != null) {
-//            int parentElementType = parent.getElementType();
-//            return (parentElementType != DartElement.JAVASCRIPT_UNIT && parentElementType != DartElement.CLASS_FILE);
-//          }
-//        }
-//      }
-//      return false;
+    TreeItem findItem2(Object o) {
+      return (TreeItem) super.findItem(o);
     }
   }
-
-//  private class ShowOnlyMainTypeAction extends Action {
-//
-//    private static final String STORE_GO_INTO_TOP_LEVEL_TYPE_CHECKED = "GoIntoTopLevelTypeAction.isChecked"; //$NON-NLS-1$
-//
-//    private TreeViewer fOutlineViewer;
-//
-//    private ShowOnlyMainTypeAction(TreeViewer outlineViewer) {
-//      super(
-//          TextMessages.JavaOutlineInformationControl_GoIntoTopLevelType_label,
-//          IAction.AS_CHECK_BOX);
-//      setToolTipText(TextMessages.JavaOutlineInformationControl_GoIntoTopLevelType_tooltip);
-//      setDescription(TextMessages.JavaOutlineInformationControl_GoIntoTopLevelType_description);
-//
-//      JavaPluginImages.setLocalImageDescriptors(this,
-//          "gointo_toplevel_type.gif"); //$NON-NLS-1$
-//
-//      PlatformUI.getWorkbench().getHelpSystem().setHelp(this,
-//          DartHelpContextIds.GO_INTO_TOP_LEVEL_TYPE_ACTION);
-//
-//      fOutlineViewer = outlineViewer;
-//
-//      boolean showclass = getDialogSettings().getBoolean(
-//          STORE_GO_INTO_TOP_LEVEL_TYPE_CHECKED);
-//      setTopLevelTypeOnly(showclass);
-//    }
-//
-//    /*
-//     * @see org.eclipse.jface.action.Action#run()
-//     */
-//    public void run() {
-//      setTopLevelTypeOnly(!fShowOnlyMainType);
-//    }
-//
-//    private void setTopLevelTypeOnly(boolean show) {
-//      fShowOnlyMainType = show;
-//      setChecked(show);
-//
-//      Tree tree = fOutlineViewer.getTree();
-//      tree.setRedraw(false);
-//
-//      fOutlineViewer.refresh(false);
-//      if (!fShowOnlyMainType)
-//        fOutlineViewer.expandToLevel(2);
-//
-//      // reveal selection
-//      Object selectedElement = getSelectedElement();
-//      if (selectedElement != null)
-//        fOutlineViewer.reveal(selectedElement);
-//
-//      tree.setRedraw(true);
-//
-//      getDialogSettings().put(STORE_GO_INTO_TOP_LEVEL_TYPE_CHECKED, show);
-//    }
-//  }
-
-  private class SortByDefiningTypeAction extends Action {
-
-    private static final String STORE_SORT_BY_DEFINING_TYPE_CHECKED = "SortByDefiningType.isChecked"; //$NON-NLS-1$
-
-    private TreeViewer fOutlineViewer;
-
-    /**
-     * Creates the action.
-     * 
-     * @param outlineViewer the outline viewer
-     */
-    private SortByDefiningTypeAction(TreeViewer outlineViewer) {
-      super(TextMessages.JavaOutlineInformationControl_SortByDefiningTypeAction_label);
-      setDescription(TextMessages.JavaOutlineInformationControl_SortByDefiningTypeAction_description);
-      setToolTipText(TextMessages.JavaOutlineInformationControl_SortByDefiningTypeAction_tooltip);
-
-      DartPluginImages.setLocalImageDescriptors(this, "definingtype_sort_co.gif"); //$NON-NLS-1$
-
-      fOutlineViewer = outlineViewer;
-
-      PlatformUI.getWorkbench().getHelpSystem().setHelp(
-          this,
-          DartHelpContextIds.SORT_BY_DEFINING_TYPE_ACTION);
-
-      boolean state = getDialogSettings().getBoolean(STORE_SORT_BY_DEFINING_TYPE_CHECKED);
-      setChecked(state);
-      innerLabelProvider.setShowDefiningType(state);
-    }
-
-    @Override
-    public void run() {
-      BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
-        @Override
-        public void run() {
-          innerLabelProvider.setShowDefiningType(isChecked());
-          getDialogSettings().put(STORE_SORT_BY_DEFINING_TYPE_CHECKED, isChecked());
-
-          setMatcherString(fPattern, false);
-          fOutlineViewer.refresh(true);
-
-          // reveal selection
-          Object selectedElement = getSelectedElement();
-          if (selectedElement != null) {
-            fOutlineViewer.reveal(selectedElement);
-          }
-        }
-      });
-    }
-  }
-
-  //TODO (pquitslund): replace with appropriate call on Element when it exists
-  private static CompilationUnitElement getCompilationUnit(Element element) {
-
-    if (element instanceof CompilationUnitElement) {
-      return (CompilationUnitElement) element;
-    }
-
-    if (element instanceof LibraryElement) {
-      return ((LibraryElement) element).getDefiningCompilationUnit();
-    }
-
-    return element.getAncestor(CompilationUnitElement.class);
-  }
-
-  private KeyAdapter fKeyAdapter;
-
-  private OutlineContentProvider outlineContentProvider;
-
-  private Object /*Element*/fInput = null;
-
-  private OutlineSorter fOutlineSorter;
-
-//  private boolean fShowOnlyMainType;
-
-  private OutlineLabelProvider innerLabelProvider;
-
-  private LexicalSortingAction fLexicalSortingAction;
-
-//  private ShowOnlyMainTypeAction fShowOnlyMainTypeAction;
-
-//  private Map fTypeHierarchies = new HashMap();
-
-  private SortByDefiningTypeAction fSortByDefiningTypeAction;
 
   /**
-   * Category filter action group. DartX.todo()
+   * @return the deepest {@link LightNodeElement} enclosing given offset, may be <code>null</code>.
    */
-  // private CategoryFilterActionGroup fCategoryFilterActionGroup;
-  private String fPattern;
-
-  /**
-   * Creates a new Dart outline information control.
-   */
-  public DartOutlineInformationControl(Shell parent, int shellStyle, int treeStyle, String commandId) {
-    super(parent, shellStyle, treeStyle, commandId, true);
-  }
-
-  @Override
-  public void setInput(Object information) {
-
-    if (information == null || information instanceof String) {
-      inputChanged(null, null);
-      return;
+  private static LightNodeElement findElementEnclosingOffset(List<LightNodeElement> elements,
+      int offset) {
+    for (LightNodeElement element : elements) {
+      if (element.contains(offset)) {
+        LightNodeElement deeperElement = findElementEnclosingOffset(element.getChildren(), offset);
+        if (deeperElement != null) {
+          return deeperElement;
+        }
+        return element;
+      }
     }
+    return null;
+  }
 
-    if (information instanceof Element) {
-      Element element = (Element) information;
-      CompilationUnitElement cu = getCompilationUnit(element);
-      fInput = cu;
-    } else if (information instanceof DartElement) {
-      DartElement element = (DartElement) information;
-      CompilationUnit cu = element.getAncestor(CompilationUnit.class);
-      fInput = cu;
+  private final DartEditor editor;
+  private Text filterText;
+  private OutlineTreeViewer viewer;
+
+  private StringMatcher stringMatcher;
+
+  public DartOutlineInformationControl(Shell parent, int shellStyle, ITextEditor textEditor) {
+    super(parent, shellStyle, true, true, true, true, true, "titleText", "infoText");
+    editor = textEditor instanceof DartEditor ? (DartEditor) textEditor : null;
+    create();
+  }
+
+  @Override
+  public void addDisposeListener(DisposeListener listener) {
+    getShell().addDisposeListener(listener);
+  }
+
+  @Override
+  public void addFocusListener(FocusListener listener) {
+    getShell().addFocusListener(listener);
+  }
+
+  @Override
+  public Point computeSizeHint() {
+    return getShell().getSize();
+  }
+
+  @Override
+  public void dispose() {
+    close();
+  }
+
+  @Override
+  public boolean isFocusControl() {
+    return viewer.getControl().isFocusControl() || filterText.isFocusControl();
+  }
+
+  @Override
+  public void removeDisposeListener(DisposeListener listener) {
+    getShell().removeDisposeListener(listener);
+  }
+
+  @Override
+  public void removeFocusListener(FocusListener listener) {
+    getShell().removeFocusListener(listener);
+  }
+
+  @Override
+  public void setBackgroundColor(Color background) {
+    applyBackgroundColor(background, getContents());
+  }
+
+  @Override
+  public void setFocus() {
+    getShell().forceFocus();
+    filterText.setFocus();
+  }
+
+  @Override
+  public void setForegroundColor(Color foreground) {
+    applyForegroundColor(foreground, getContents());
+  }
+
+  @Override
+  public void setInformation(String information) {
+    // ignore
+  }
+
+  @Override
+  public void setLocation(Point location) {
+    if (!getPersistSize() || getDialogSettings() == null) {
+      getShell().setLocation(location);
     }
-
-    inputChanged(fInput, information);
-    DartX.todo();
-    // fCategoryFilterActionGroup.setInput(getInputForCategories());
   }
 
   @Override
-  protected Text createFilterText(Composite parent) {
-    Text text = super.createFilterText(parent);
-    text.addKeyListener(getKeyAdapter());
-    return text;
+  public void setSize(int width, int height) {
+    getShell().setSize(width, height);
   }
 
   @Override
-  protected TreeViewer createTreeViewer(Composite parent, int style) {
-    Tree tree = new Tree(parent, SWT.SINGLE | (style & ~SWT.MULTI));
-    GridData gd = new GridData(GridData.FILL_BOTH);
-    gd.heightHint = tree.getItemHeight() * 12;
-    tree.setLayoutData(gd);
+  public void setSizeConstraints(int maxWidth, int maxHeight) {
+    // ignore
+  }
 
-    final TreeViewer treeViewer = new OutlineTreeViewer(tree);
-    ColoredViewersManager.install(treeViewer);
-
-    // Hard-coded filters
-    treeViewer.addFilter(new NamePatternFilter());
-    treeViewer.addFilter(new MemberFilter());
-
-    innerLabelProvider = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewOutlineLabelProvider()
-        : new OldOutlineLabelProvider();
-    innerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(null));
-    IDecoratorManager decoratorMgr = PlatformUI.getWorkbench().getDecoratorManager();
-    if (decoratorMgr.getEnabled("com.google.dart.tools.ui.override.decorator")) {
-      innerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));
+  @Override
+  public void setVisible(boolean visible) {
+    if (visible) {
+      open();
+    } else {
+      saveDialogBounds(getShell());
+      getShell().setVisible(false);
     }
-
-    treeViewer.setLabelProvider(innerLabelProvider);
-
-    fLexicalSortingAction = new LexicalSortingAction(treeViewer);
-    fSortByDefiningTypeAction = new SortByDefiningTypeAction(treeViewer);
-//    fShowOnlyMainTypeAction = new ShowOnlyMainTypeAction(treeViewer);
-    DartX.todo();
-    // fCategoryFilterActionGroup= new CategoryFilterActionGroup(treeViewer,
-    // getId(), getInputForCategories());
-
-    outlineContentProvider = DartCoreDebug.ENABLE_NEW_ANALYSIS ? new NewOutlineContentProvider(
-        false) : new OldOutlineContentProvider(false);
-    treeViewer.setContentProvider(outlineContentProvider);
-    fOutlineSorter = new OutlineSorter();
-    treeViewer.setComparator(fOutlineSorter);
-    treeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
-
-    treeViewer.getTree().addKeyListener(getKeyAdapter());
-
-    Font newFont = JFaceResources.getFont(FontPreferencePage.BASE_FONT_KEY);
-    Font oldFont = treeViewer.getTree().getFont();
-    Font font = SWTUtil.changeFontSize(oldFont, newFont);
-    treeViewer.getTree().setFont(font);
-
-    return treeViewer;
   }
 
   @Override
-  protected void fillViewMenu(IMenuManager viewMenu) {
-    super.fillViewMenu(viewMenu);
-//    viewMenu.add(fShowOnlyMainTypeAction);
-
-    viewMenu.add(new Separator("Sorters")); //$NON-NLS-1$
-    viewMenu.add(fLexicalSortingAction);
-
-    viewMenu.add(fSortByDefiningTypeAction);
-    DartX.todo();
-    // fCategoryFilterActionGroup.setInput(getInputForCategories());
-    // fCategoryFilterActionGroup.contributeToViewMenu(viewMenu);
-  }
-
-  @Override
-  protected String getId() {
-    return "com.google.dart.tools.ui.functions.QuickOutline"; //$NON-NLS-1$
-  }
-
-  @Override
-  protected String getStatusFieldText() {
-//TODO re-enable when we have support for showing inherited members
-//    KeySequence[] sequences = getInvokingCommandKeySequences();
-//    if (sequences == null || sequences.length == 0) {
-//      return ""; //$NON-NLS-1$
-//    }
-//
-//    String keySequence = sequences[0].format();
-//
-//    if (fOutlineContentProvider.isShowingInheritedMembers()) {
-//      return Messages.format(
-//          DartUIMessages.JavaOutlineControl_statusFieldText_hideInheritedMembers, keySequence);
-//    } else {
-//      return Messages.format(
-//          DartUIMessages.JavaOutlineControl_statusFieldText_showInheritedMembers, keySequence);
-//    }
-    return "";
-  }
-
-  @Override
-  protected void handleStatusFieldClicked() {
-    toggleShowInheritedMembers();
-  }
-
-  @Override
-  protected void setMatcherString(String pattern, boolean update) {
-    fPattern = pattern;
-    if (pattern.length() == 0 || !fSortByDefiningTypeAction.isChecked()) {
-      super.setMatcherString(pattern, update);
-      return;
+  protected Control createDialogArea(Composite parent) {
+    final Tree tree = new Tree(parent, SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+    GridDataFactory.create(tree).hintHeightChars(20).grab().fill();
+    if (editor == null) {
+      return tree;
     }
+    // create TreeViewer
+    viewer = new OutlineTreeViewer(tree);
+    viewer.addFilter(new NameFilter());
+    viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
+    viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
+    viewer.setInput(editor.getParsedUnit());
+    selectElementEnclosingEditorSelection();
+    // close on ESC
+    tree.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.character == 0x1B) {
+          dispose();
+        }
+      }
+    });
+    // goto on Enter
+    tree.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetDefaultSelected(SelectionEvent e) {
+        gotoSelectedElement();
+      }
+    });
+    // select item under mouse
+    tree.addMouseMoveListener(new MouseMoveListener() {
+      TreeItem lastItem = null;
 
-    boolean ignoreCase = pattern.toLowerCase().equals(pattern);
-    String pattern2 = "*" + DartElementLabels.CONCAT_STRING + pattern; //$NON-NLS-1$
-    fStringMatcher = new OrStringMatcher(pattern, pattern2, ignoreCase, false);
-
-    if (update) {
-      stringMatcherUpdated();
-    }
-
-  }
-
-  protected void toggleShowInheritedMembers() {
-//TODO re-enable when we have support for showing inherited members
-//    long flags = fInnerLabelProvider.getTextFlags();
-//    flags ^= DartElementLabels.ALL_POST_QUALIFIED;
-//    fInnerLabelProvider.setTextFlags(flags);
-//    fOutlineContentProvider.toggleShowInheritedMembers();
-//    updateStatusFieldText();
-    DartX.todo();
-    // fCategoryFilterActionGroup.setInput(getInputForCategories());
-  }
-
-//  private DartElement[] getInputForCategories() {
-//    if (fInput == null) {
-//      return new DartElement[0];
-//    }
-//
-////    if (fOutlineContentProvider.isShowingInheritedMembers()) {
-////      DartElement p = fInput;
-////      if (p instanceof ITypeRoot) {
-////        p = ((ITypeRoot) p).findPrimaryType();
-////      }
-////      while (p != null && !(p instanceof Type)) {
-////        p = p.getParent();
-////      }
-////      if (!(p instanceof Type))
-////        return new DartElement[]{fInput};
-////
-////      TypeHierarchyImpl hierarchy = getSuperTypeHierarchy((Type) p);
-////      if (hierarchy == null)
-////        return new DartElement[]{fInput};
-////
-////      Type[] supertypes = hierarchy.getAllSuperclasses((Type) p);
-////      DartElement[] result = new DartElement[supertypes.length + 1];
-////      result[0] = fInput;
-////      System.arraycopy(supertypes, 0, result, 1, supertypes.length);
-////      return result;
-////    } else {
-//    return new DartElement[] {fInput};
-////    }
-//  }
-
-  private KeyAdapter getKeyAdapter() {
-    if (fKeyAdapter == null) {
-      fKeyAdapter = new KeyAdapter() {
-        @Override
-        public void keyPressed(KeyEvent e) {
-          int accelerator = SWTKeySupport.convertEventToUnmodifiedAccelerator(e);
-          KeySequence keySequence = KeySequence.getInstance(SWTKeySupport.convertAcceleratorToKeyStroke(accelerator));
-          KeySequence[] sequences = getInvokingCommandKeySequences();
-          if (sequences == null) {
-            return;
-          }
-          for (int i = 0; i < sequences.length; i++) {
-            if (sequences[i].equals(keySequence)) {
-              e.doit = false;
-              toggleShowInheritedMembers();
-              return;
+      @Override
+      public void mouseMove(MouseEvent e) {
+        if (tree.equals(e.getSource())) {
+          Object o = tree.getItem(new Point(e.x, e.y));
+          if (o instanceof TreeItem) {
+            if (!o.equals(lastItem)) {
+              lastItem = (TreeItem) o;
+              tree.setSelection(new TreeItem[] {lastItem});
             }
           }
         }
-      };
-    }
-    return fKeyAdapter;
+      }
+    });
+    // goto after click
+    tree.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseUp(MouseEvent e) {
+        // has selection
+        if (tree.getSelectionCount() < 1) {
+          return;
+        }
+        // first (usually left) button
+        if (e.button != 1) {
+          return;
+        }
+        // select element under mouse
+        Object targetItem = tree.getItem(new Point(e.x, e.y));
+        if (targetItem != null) {
+          gotoSelectedElement();
+        }
+      }
+    });
+    // done
+    return tree;
   }
 
-//  private IProgressMonitor getProgressMonitor() {
-//    IWorkbenchPage wbPage = DartToolsPlugin.getActivePage();
-//    if (wbPage == null) {
-//      return null;
-//    }
-//
-//    IEditorPart editor = wbPage.getActiveEditor();
-//    if (editor == null) {
-//      return null;
-//    }
-//
-//    return editor.getEditorSite().getActionBars().getStatusLineManager().getProgressMonitor();
-//  }
+  protected void createHorizontalSeparator(Composite parent) {
+    Label separator = new Label(parent, SWT.SEPARATOR | SWT.HORIZONTAL | SWT.LINE_DOT);
+    separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+  }
 
-//  private TypeHierarchyImpl getSuperTypeHierarchy(Type type) {
-//    TypeHierarchyImpl th = (TypeHierarchyImpl) fTypeHierarchies.get(type);
-//    if (th == null) {
-//      try {
-//        th = SuperTypeHierarchyCache.getTypeHierarchy(type,
-//            getProgressMonitor());
-//      } catch (DartModelException e) {
-//        return null;
-//      } catch (OperationCanceledException e) {
-//        return null;
-//      }
-//      fTypeHierarchies.put(type, th);
-//    }
-//    return th;
-//  }
+  @Override
+  protected Control createTitleControl(Composite parent) {
+    filterText = new Text(parent, SWT.NONE);
+    GridDataFactory.create(filterText).grabHorizontal().fillHorizontal().alignVerticalMiddle();
+    Dialog.applyDialogFont(filterText);
+    filterText.setText("");
+    // navigation
+    filterText.addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        if (e.keyCode == 0x0D) {
+          gotoSelectedElement();
+        }
+        if (e.keyCode == SWT.ARROW_DOWN) {
+          viewer.getTree().setFocus();
+        }
+        if (e.keyCode == SWT.ARROW_UP) {
+          viewer.getTree().setFocus();
+        }
+        if (e.character == 0x1B) {
+          dispose();
+        }
+      }
+    });
+    // filter change
+    filterText.addModifyListener(new ModifyListener() {
+      @Override
+      public void modifyText(ModifyEvent e) {
+        String text = filterText.getText();
+        // treat as prefix
+        int length = text.length();
+        if (length > 0 && text.charAt(length - 1) != '*') {
+          text = text + '*';
+        }
+        // update filter
+        setMatcherString(text);
+      }
+    });
+    return filterText;
+  }
 
+  @Override
+  protected IDialogSettings getDialogSettings() {
+    String sectionName = "com.google.dart.tools.ui.functions.QuickOutline";
+    IDialogSettings pluginSettings = DartToolsPlugin.getDefault().getDialogSettings();
+    IDialogSettings settings = pluginSettings.getSection(sectionName);
+    if (settings == null) {
+      settings = pluginSettings.addNewSection(sectionName);
+    }
+    return settings;
+  }
+
+  @Override
+  protected boolean hasInfoArea() {
+    return false;
+  }
+
+  /**
+   * Expands {@link #viewer} us much as possible while still in the given time budget.
+   */
+  private void expandTreeItemsTimeBoxed(long nanoBudget) {
+    int numIterations = 5;
+    int childrenLimit = 10;
+    TreeItem[] rootTreeItems = viewer.getTree().getItems();
+    for (int i = 0; i < numIterations; i++) {
+      if (nanoBudget < 0) {
+        break;
+      }
+      nanoBudget = expandTreeItemsTimeBoxed(rootTreeItems, childrenLimit, nanoBudget);
+      childrenLimit *= 2;
+    }
+  }
+
+  /**
+   * Expands given {@link TreeItem}s if they have not too much children and we have time budget.
+   */
+  private long expandTreeItemsTimeBoxed(TreeItem[] items, int childrenLimit, long nanoBudget) {
+    if (nanoBudget < 0) {
+      return -1;
+    }
+    for (TreeItem item : items) {
+      Object itemData = item.getData();
+      // prepare LightNodeElement
+      if (!(itemData instanceof LightNodeElement)) {
+        continue;
+      }
+      LightNodeElement element = (LightNodeElement) itemData;
+      // has children, not too many?
+      int numChildren = element.children.size();
+      if (numChildren == 0 || numChildren > childrenLimit) {
+        continue;
+      }
+      // expand single item
+      {
+        long startNano = System.nanoTime();
+        viewer.setExpandedState(item, true);
+        nanoBudget -= System.nanoTime() - startNano;
+      }
+      // expand children
+      nanoBudget = expandTreeItemsTimeBoxed(item.getItems(), childrenLimit, nanoBudget);
+      if (nanoBudget < 0) {
+        break;
+      }
+    }
+    return nanoBudget;
+  }
+
+  /**
+   * @return the first {@link TreeItem} matching {@link #stringMatcher}.
+   */
+  private TreeItem findFirstMatchingItem(TreeItem[] items) {
+    for (TreeItem item : items) {
+      // no filter  - first is good
+      if (stringMatcher == null) {
+        return item;
+      }
+      // check "element" for filter
+      {
+        String label = item.getText();
+        if (stringMatcher.match(label)) {
+          return item;
+        }
+      }
+      // not "element", but may be one of its children
+      item = findFirstMatchingItem(item.getItems());
+      if (item != null) {
+        return item;
+      }
+    }
+    // no matching elements
+    return null;
+  }
+
+  /**
+   * Opens selected {@link LightNodeElement} in the {@link #editor}.
+   */
+  private void gotoSelectedElement() {
+    if (viewer != null) {
+      IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
+      LightNodeElement element = (LightNodeElement) selection.getFirstElement();
+      editor.setSelection(element, true);
+      dispose();
+    }
+  }
+
+  /**
+   * Attempts to find {@link LightNodeElement} corresponding to the selection in {@link #editor} and
+   * select it in {@link #viewer}.
+   */
+  private void selectElementEnclosingEditorSelection() {
+    // may be small unit, expand as possible
+    expandTreeItemsTimeBoxed(50L * 1000000L);
+    // prepare "element" to select
+    final LightNodeElement element;
+    {
+      List<LightNodeElement> elements = LightNodeElements.getRootElements(viewer);
+      ITextSelection editorSelection = (ITextSelection) editor.getSelectionProvider().getSelection();
+      int editorOffset = editorSelection.getOffset();
+      element = findElementEnclosingOffset(elements, editorOffset);
+    }
+    // select "element"
+    if (element != null) {
+      // select "element" to expect its parents
+      viewer.setSelection(new StructuredSelection(element), true);
+      // make root of "element" top item 
+      {
+        LightNodeElement parent = element.getParent();
+        while (parent != null) {
+          if (parent.getParent() == null) {
+            TreeItem parentItem = viewer.findItem2(parent);
+            if (parentItem != null) {
+              viewer.getTree().setTopItem(parentItem);
+            }
+            break;
+          }
+          parent = parent.getParent();
+        }
+      }
+      // schedule "element" selection again for case when parent of "element" has many children
+      Display.getCurrent().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          viewer.setSelection(new StructuredSelection(element), true);
+        }
+      });
+    }
+  }
+
+  /**
+   * Selects the first {@link TreeItem} which matches the {@link #stringMatcher}.
+   */
+  private void selectFirstMatch() {
+    Tree tree = viewer.getTree();
+    TreeItem item = findFirstMatchingItem(tree.getItems());
+    if (item != null) {
+      viewer.setSelection(new StructuredSelection(item), true);
+    } else {
+      viewer.setSelection(StructuredSelection.EMPTY);
+    }
+  }
+
+  /**
+   * Sets the patterns to filter out {@link #viewer}.
+   * <p>
+   * The following characters have special meaning: ? => any character * => any string
+   */
+  private void setMatcherString(String pattern) {
+    // update "stringMatcher"
+    if (pattern.length() == 0) {
+      stringMatcher = null;
+    } else {
+      boolean ignoreCase = pattern.toLowerCase().equals(pattern);
+      stringMatcher = new StringMatcher(pattern, ignoreCase, false);
+    }
+    // refresh "viewer"
+    viewer.getControl().setRedraw(false);
+    try {
+      viewer.collapseAll();
+      viewer.refresh(false);
+      expandTreeItemsTimeBoxed(75L * 1000000L);
+      selectFirstMatch();
+    } finally {
+      viewer.getControl().setRedraw(true);
+    }
+  }
 }

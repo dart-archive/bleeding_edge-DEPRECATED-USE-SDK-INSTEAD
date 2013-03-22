@@ -1695,6 +1695,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   private IFile inputFile;
 
+  private volatile com.google.dart.engine.ast.CompilationUnit parsedUnit;
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
 
   private SourceRange textSelectionRange;
@@ -1933,6 +1934,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public void applyParsedUnitAndSelection(com.google.dart.engine.ast.CompilationUnit unit,
       boolean newUnit, Point selectionRange) {
+    parsedUnit = unit;
     DartOutlinePage outlinePage = (DartOutlinePage) fOutlinePage;
     // may be update Outline
     if (newUnit && outlinePage != null) {
@@ -2314,6 +2316,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     return SWT.LEFT_TO_RIGHT; // Dart editors are always left to right by default
   }
 
+  public com.google.dart.engine.ast.CompilationUnit getParsedUnit() {
+    return parsedUnit;
+  }
+
   public IPreferenceStore getPreferences() {
     return super.getPreferenceStore();
   }
@@ -2528,6 +2534,43 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       if (fOutlinePage != null) {
         ((DartOutlinePage_OLD) fOutlinePage).select(reference);
       }
+    }
+  }
+
+  public void setSelection(LightNodeElement element, boolean moveCursor) {
+    // validate LightNodeElement
+    if (element == null) {
+      return;
+    }
+    // prepare range
+    int offset = element.getNameOffset();
+    int length = element.getNameLength();
+    // prepare ISourceViewer
+    ISourceViewer sourceViewer = getSourceViewer();
+    if (sourceViewer == null) {
+      return;
+    }
+    // highlight range (not selection - just highlighting on left editor band)
+    if (offset < 0) {
+      return;
+    }
+    setHighlightRange(offset, length, moveCursor);
+    // do we want to change selection?
+    if (!moveCursor) {
+      return;
+    }
+    // prepare StyledText
+    StyledText textWidget = sourceViewer.getTextWidget();
+    if (textWidget == null) {
+      return;
+    }
+    // set selection in StyledText
+    try {
+      textWidget.setRedraw(false);
+      sourceViewer.revealRange(offset, length);
+      sourceViewer.setSelectedRange(offset, length);
+    } finally {
+      textWidget.setRedraw(true);
     }
   }
 
@@ -3926,43 +3969,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     if (getSourceViewer() instanceof DartSourceViewer) {
       ((DartSourceViewer) getSourceViewer()).setPreferenceStore(store);
-    }
-  }
-
-  protected void setSelection(LightNodeElement element, boolean moveCursor) {
-    // validate LightNodeElement
-    if (element == null) {
-      return;
-    }
-    // prepare range
-    int offset = element.getNameOffset();
-    int length = element.getNameLength();
-    // prepare ISourceViewer
-    ISourceViewer sourceViewer = getSourceViewer();
-    if (sourceViewer == null) {
-      return;
-    }
-    // highlight range (not selection - just highlighting on left editor band)
-    if (offset < 0) {
-      return;
-    }
-    setHighlightRange(offset, length, moveCursor);
-    // do we want to change selection?
-    if (!moveCursor) {
-      return;
-    }
-    // prepare StyledText
-    StyledText textWidget = sourceViewer.getTextWidget();
-    if (textWidget == null) {
-      return;
-    }
-    // set selection in StyledText
-    try {
-      textWidget.setRedraw(false);
-      sourceViewer.revealRange(offset, length);
-      sourceViewer.setSelectedRange(offset, length);
-    } finally {
-      textWidget.setRedraw(true);
     }
   }
 

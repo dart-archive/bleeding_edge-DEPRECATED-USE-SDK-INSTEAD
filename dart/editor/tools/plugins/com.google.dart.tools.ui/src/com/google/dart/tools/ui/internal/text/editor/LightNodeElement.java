@@ -47,6 +47,13 @@ public class LightNodeElement {
     }
   }
 
+  /**
+   * @return <code>true</code> underlying {@link ASTNode} contains given "offset".
+   */
+  public boolean contains(int offset) {
+    return node.getOffset() <= offset && offset <= node.getEnd();
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof LightNodeElement) {

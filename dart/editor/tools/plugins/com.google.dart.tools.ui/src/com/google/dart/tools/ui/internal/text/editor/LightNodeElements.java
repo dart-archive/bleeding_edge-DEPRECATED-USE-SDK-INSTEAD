@@ -33,7 +33,6 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -186,6 +185,8 @@ public class LightNodeElements {
     }
   }
 
+  public static final LabelProvider LABEL_PROVIDER = new NodeLabelProvider();
+
   /**
    * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if
    *         given is not declaration and does not have reasonable declaration child.
@@ -234,10 +235,10 @@ public class LightNodeElements {
   }
 
   /**
-   * @return the {@link ILabelProvider} to use for {@link LightNodeElement}s.
+   * @return the root {@link LightNodeElement}s created by {@link #newTreeContentProvider()}.
    */
-  public static ILabelProvider newLabelProvider() {
-    return new NodeLabelProvider();
+  public static List<LightNodeElement> getRootElements(TreeViewer viewer) {
+    return ((NodeContentProvider) viewer.getContentProvider()).elements;
   }
 
   /**
