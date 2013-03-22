@@ -207,7 +207,7 @@ public class LaunchUtils {
   }
 
   public static ILaunchShortcut getBrowserLaunchShortcut() {
-    for (ILaunchShortcut shortcut : shortcuts) {
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
       if (shortcut instanceof BrowserLaunchShortcut) {
         return shortcut;
       }
@@ -216,7 +216,7 @@ public class LaunchUtils {
   }
 
   public static ILaunchShortcut getDartiumLaunchShortcut() {
-    for (ILaunchShortcut shortcut : shortcuts) {
+    for (ILaunchShortcut shortcut : getAllLaunchShortcuts()) {
       if (shortcut instanceof DartiumLaunchShortcut) {
         return shortcut;
       }
