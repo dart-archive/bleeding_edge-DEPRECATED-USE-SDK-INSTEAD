@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContextFactory;
+import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -34,6 +35,8 @@ import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
+
+import java.io.IOException;
 
 public class AnalysisContextImplTest extends EngineTestCase {
   /**
@@ -323,6 +326,38 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.parseHtmlUnit(source);
     assertNotNull(unit);
+  }
+
+  public void test_performAnalysisTask_IOException() throws Exception {
+    final boolean[] ioExceptionOccurred = new boolean[] {false};
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
+      @Override
+      public void getContents(ContentReceiver receiver) throws Exception {
+        ioExceptionOccurred[0] = true;
+        if (ioExceptionOccurred[0]) {
+          throw new IOException("Some random I/O Exception");
+        }
+        super.getContents(receiver);
+      }
+    };
+    sourceFactory.setContents(source, "library lib;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.added(source);
+    context.applyChanges(changeSet);
+
+    // Simulate a typical analysis worker
+    int count = 0;
+    final int maxCount = 1000000;
+    ChangeNotice[] notices = context.performAnalysisTask();
+    while (notices != null && count < maxCount) {
+      notices = context.performAnalysisTask();
+      count++;
+    }
+
+    assertTrue(ioExceptionOccurred[0]);
+    assertTrue(count < maxCount);
   }
 
   public void test_resolveCompilationUnit_library() throws Exception {
