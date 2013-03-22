@@ -264,13 +264,21 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     themeDetailsLayout.marginWidth = 0;
     themeDetailsLayout.marginHeight = 0;
     themeDetails = new Composite(themeSelection, SWT.NONE);
-    try {
-      createPreviewer(themeDetails);
-    } catch (Exception ex) {
-      Activator.logError(ex);
+
+    //TODO (pquitslund): implement theme preview based on new model
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      try {
+
+        createPreviewer(themeDetails);
+
+        themeDetails.setLayoutData(gridData);
+        themeDetails.setLayout(themeDetailsLayout);
+
+      } catch (Exception ex) {
+        Activator.logError(ex);
+      }
     }
-    themeDetails.setLayoutData(gridData);
-    themeDetails.setLayout(themeDetailsLayout);
+
     authorLabel = new Label(themeDetails, SWT.NONE);
     GridDataFactory.swtDefaults().grab(true, false).applyTo(authorLabel);
     websiteLink = new Link(themeDetails, SWT.NONE);
