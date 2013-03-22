@@ -2,7 +2,9 @@ package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
+import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.InstanceCreationExpression;
@@ -14,6 +16,7 @@ import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.ClassElement;
@@ -25,6 +28,7 @@ import com.google.dart.engine.element.Element;
 class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   CompletionState state;
   ASTNode completionNode;
+  ASTNode child;
   boolean inTypeName;
   boolean inIdentifier;
   boolean inExpression;
@@ -45,6 +49,16 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
     inExpression = true;
     state.includesLiterals();
     return super.visitExpression(node);
+  }
+
+  @Override
+  public Void visitFunctionExpression(FunctionExpression node) {
+    if (node.getParent() instanceof Declaration) {
+      // Function expressions that are part of a declaration are not to be treated as expressions.
+      return visitNode(node);
+    } else {
+      return visitExpression(node);
+    }
   }
 
   @Override
@@ -82,6 +96,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
     // Walk UP the tree, not down.
     ASTNode parent = node.getParent();
     if (parent != null) {
+      child = node;
       parent.accept(this);
     }
     return null;
@@ -89,7 +104,7 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
 
   @Override
   public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (node.getIdentifier() == completionNode) {
+    if (node == completionNode || node.getIdentifier() == completionNode) {
       Element element = node.getPrefix().getElement();
       if (!(element instanceof ClassElement)) {
         state.prohibitsStaticReferences();
@@ -136,6 +151,14 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
     state.includesUndefinedDeclarationTypes();
     return super.visitVariableDeclarationList(node);
+  }
+
+  @Override
+  public Void visitWhileStatement(WhileStatement node) {
+    if (child == node.getCondition()) {
+      state.includesLiterals();
+    }
+    return super.visitWhileStatement(node);
   }
 
   @Override

@@ -205,6 +205,22 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+var", "1+dynamic", "1-f", "2+var", "2-dynamic", "3+false", "3+true", "4+toString");
   }
 
+  public void test013() throws Exception {
+    test(src(//
+        "class Q {",
+        "  bool x;",
+        "  List zs;",
+        "  mth() {",
+        "    while (x!1); ",
+        "    do{}while(x);",
+        "    for(z in zs) {}",
+        "    switch(b) {}",
+        "    try {",
+        "    } catch(a){}",
+        "  }",
+        "}"), "1+x"); // TODO Define tests at each identifier in mth()
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -474,7 +490,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets044() throws Exception {
-    test("class List{}class XXX {XXX.fisk();}main() {main(); new !1}}", "1+List", "1+XXX");
+    test("class List{}class XXX {XXX.fisk();}main() {main(); new !1}}", "1+List", "1+XXX.fisk");
   }
 
   public void testCommentSnippets045() throws Exception {
@@ -958,9 +974,229 @@ public class CompletionTests extends CompletionTestCase {
         "3+int");
   }
 
-//  public void testCommentSnippets077() throws Exception {
-//    test("import 'dart:io';f() => new Fil!1", "1+File", "1-FileMode._internal");
-//  }
+  public void testCommentSnippets077() throws Exception {
+    test(
+        src(
+            "class FileMode {",
+            "  static const READ = const FileMode._internal(0);",
+            "  static const WRITE = const FileMode._internal(1);",
+            "  static const APPEND = const FileMode._internal(2);",
+            "  const FileMode._internal(int this._mode);",
+            "  factory FileMode._internal1(int this._mode);",
+            "  factory FileMode(_mode);",
+            "  final int _mode;",
+            "}",
+            "class File {",
+            "  factory File(String path) => null;",
+            "  factory File.fromPath(Path path) => null;",
+            "}",
+            "f() => new Fil!1"),
+        "1+File",
+        "1+File.fromPath",
+        "1+FileMode",
+        "1-FileMode._internal1",
+        "1-FileMode._internal");
+  }
+
+  public void testCommentSnippets078() throws Exception {
+    test("class Map{static from()=>null;clear(){}}void main() { Map.!1 }", "1+from", "1-clear"); // static method, instance method
+  }
+
+  public void testCommentSnippets079() throws Exception {
+    test("class Map{static from()=>null;clear(){}}void main() { Map s; s.!1 }", "1-from", "1+clear"); // static method, instance method
+  }
+
+  public void testCommentSnippets080() throws Exception {
+    test("class RuntimeError{var message;}void main() { RuntimeError.!1 }", "1-message"); // field
+  }
+
+  public void testCommentSnippets081() throws Exception {
+    test("class Foo {this.!1}", "1-Object");
+  }
+
+  public void testCommentSnippets082() throws Exception {
+    String source = src(
+        "class HttpRequest {}",
+        "class HttpResponse {}",
+        "main() {",
+        "  var v = (HttpRequest req, HttpResp!1)",
+        "}");
+    test(source, "1+HttpResponse");
+  }
+
+  public void testCommentSnippets083() throws Exception {
+    test("main() {(.!1)}", "1-toString");
+  }
+
+  public void testCommentSnippets083a() throws Exception {
+    test("main() { .!1 }", "1-toString");
+  }
+
+  public void testCommentSnippets083b() throws Exception {
+    test("main() { null.!1 }", "1-toString");
+  }
+
+  public void testCommentSnippets084() throws Exception {
+    test(
+        "class List{}class Map{}typedef X = !1Lis!2t with !3Ma!4p;",
+        "1+Map",
+        "2+List",
+        "2-Map",
+        "3+List",
+        "4+Map",
+        "4-List");
+  }
+
+  public void testCommentSnippets085() throws Exception {
+    test(
+        "class List{}class Map{}class Z extends List with !1Ma!2p {}",
+        "1+List",
+        "1+Map",
+        "2+Map",
+        "2-List");
+  }
+
+  public void testCommentSnippets086() throws Exception {
+    test("class Q{f(){xy() {};x!1y();}}", "1+xy");
+  }
+
+  public void testCommentSnippets087() throws Exception {
+    test("class Map{}class Q extends Object with !1Map {}", "1+Map", "1-HashMap");
+  }
+
+  public void testCommentSnippets088() throws Exception {
+    String source = src(
+        "class A {",
+        "  int f;",
+        "  B m(){}",
+        "}",
+        "class B extends A {",
+        "  num f;",
+        "  A m(){}",
+        "}",
+        "class Z {",
+        "  B q;",
+        "  f() {q.!1}",
+        "}");
+    test(source, "1+f", "1+m"); // f->num, m()->A
+  }
+
+  public void testCompletion_alias_field() throws Exception {
+    test("typedef int fnint(int k); fn!1int x;", "1+fnint");
+  }
+
+  public void testCompletion_constructor_field() throws Exception {
+    test("class X { X(this.field); int f!1ield;}", "1+field");
+  }
+
+  public void testCompletion_forStmt_vars() throws Exception {
+    test(
+        "class int{}class Foo { mth() { for (in!1t i = 0; i!2 < 5; i!3++); }}",
+        "1+int",
+        "2+i",
+        "3+i",
+        "2-int",
+        "3-int");
+  }
+
+  public void testCompletion_function() throws Exception {
+    test(
+        "class String{}class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1) => a.compareTo(b)); }}",
+        "1+String");
+  }
+
+  public void testCompletion_function_partial() throws Exception {
+    test(
+        "class String{}class Foo { int boo = 7; mth() { PNGS.sort((String a, Str!1)); }}",
+        "1+String");
+  }
+
+  public void testCompletion_ifStmt_field1() throws Exception {
+    test("class Foo { int myField = 7; mth() { if (!1) {}}}", "1+myField");
+  }
+
+  public void testCompletion_ifStmt_field1a() throws Exception {
+    test("class Foo { int myField = 7; mth() { if (!1) }}", "1+myField");
+  }
+
+  public void testCompletion_ifStmt_field2() throws Exception {
+    test("class Foo { int myField = 7; mth() { if (m!1) {}}}", "1+myField");
+  }
+
+  public void testCompletion_ifStmt_field2a() throws Exception {
+    test("class Foo { int myField = 7; mth() { if (m!1) }}", "1+myField");
+  }
+
+  public void testCompletion_ifStmt_field2b() throws Exception {
+    test("class Foo { myField = 7; mth() { if (m!1) {}}}", "1+myField");
+  }
+
+  public void testCompletion_ifStmt_localVar() throws Exception {
+    test("class Foo { mth() { int value = 7; if (v!1) {}}}", "1+value");
+  }
+
+  public void testCompletion_ifStmt_localVara() throws Exception {
+    test("class Foo { mth() { value = 7; if (v!1) {}}}", "1-value");
+  }
+
+  public void testCompletion_ifStmt_topLevelVar() throws Exception {
+    test("int topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
+  }
+
+  public void testCompletion_ifStmt_topLevelVara() throws Exception {
+    test("topValue = 7; class Foo { mth() { if (t!1) {}}}", "1+topValue");
+  }
+
+  public void testCompletion_keyword_in() throws Exception {
+    test("class Foo { int input = 7; mth() { if (in!1) {}}}", "1+input");
+  }
+
+  public void testCompletion_newMemberType1() throws Exception {
+    test(
+        "class Collection{}class List extends Collection{}class Foo { !1 }",
+        "1+Collection",
+        "1+List");
+  }
+
+  public void testCompletion_newMemberType2() throws Exception {
+    test(
+        "class Collection{}class List extends Collection{}class Foo {!1}",
+        "1+Collection",
+        "1+List");
+  }
+
+  public void testCompletion_newMemberType3() throws Exception {
+    test(
+        "class Collection{}class List extends Collection{}class Foo {L!1}",
+        "1-Collection",
+        "1+List");
+  }
+
+  public void testCompletion_newMemberType4() throws Exception {
+    test(
+        "class Collection{}class List extends Collection{}class Foo {C!1}",
+        "1+Collection",
+        "1-List");
+  }
+
+  public void testCompletion_staticField1() throws Exception {
+    test(
+        "class num{}class Sunflower {static final n!2um MAX_D = 300;nu!3m xc, yc;Sun!4flower() {x!Xc = y!Yc = MA!1 }}",
+        "1+MAX_D",
+        "X+xc",
+        "Y+yc",
+        "2+num",
+        "3+num",
+        "4+Sunflower");
+  }
+
+  public void testCompletion_topLevelField_init2() throws Exception {
+    test("class DateTime{static var JUN;}final num M = Dat!1eTime.JUN;", "1+DateTime", "1-void");
+  }
+
+  public void testCompletion_while() throws Exception {
+    test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
+  }
 
   // TODO Test for disallowed instance refs from within static methods; test which permits operators.
   public void testSingle() throws Exception {

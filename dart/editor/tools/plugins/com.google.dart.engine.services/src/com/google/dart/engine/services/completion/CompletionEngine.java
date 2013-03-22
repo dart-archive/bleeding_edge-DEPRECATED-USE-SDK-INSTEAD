@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.InterpolationExpression;
@@ -54,6 +55,7 @@ import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.TypeParameterList;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
@@ -81,7 +83,6 @@ import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
-import com.google.dart.engine.search.SearchListener;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.search.SearchPattern;
 import com.google.dart.engine.search.SearchPatternFactory;
@@ -139,7 +140,9 @@ public class CompletionEngine {
     }
 
     void addTopLevelNames() {
-      mergeNames(findAllTypes());
+      if (!state.areLiteralsAllowed) {
+        mergeNames(findAllTypes());
+      }
       mergeNames(findAllVariables());
       mergeNames(findAllFunctions());
       mergeNames(findAllPrefixes());
@@ -186,22 +189,6 @@ public class CompletionEngine {
     }
   }
 
-  static class SearchCollector implements SearchListener {
-    ArrayList<Element> results = new ArrayList<Element>();
-    boolean isComplete = false;
-
-    @Override
-    public void matchFound(SearchMatch match) {
-      Element element = match.getElement();
-      results.add(element);
-    }
-
-    @Override
-    public void searchComplete() {
-      isComplete = true;
-    }
-  }
-
   private class Filter {
     String prefix;
     boolean isPrivateDisallowed = true;
@@ -225,6 +212,15 @@ public class CompletionEngine {
       }
     }
 
+    boolean isPermitted(String name) {
+      if (isPrivateDisallowed) {
+        if (name.length() > 0 && Identifier.isPrivateName(name)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     boolean match(Element elem) {
       return match(elem.getName());
     }
@@ -232,15 +228,13 @@ public class CompletionEngine {
     boolean match(String name) {
       // Return true if the filter passes. Return false for private elements that should not be visible
       // in the current context, or for library elements that are not accessible in the context (NYI).
-      if (isPrivateDisallowed) {
-        if (name.length() > 0 && Identifier.isPrivateName(name)) {
-          return false;
-        }
-      }
-      return name.startsWith(prefix);
+      return isPermitted(name) && name.startsWith(prefix);
     }
   }
 
+  /**
+   * An Ident is a wrapper for a String that provides type equivalence with SimpleIdentifier.
+   */
   private class Ident extends EphemeralIdentifier {
     private String name;
 
@@ -255,10 +249,14 @@ public class CompletionEngine {
 
     @Override
     public String getName() {
-      return name == null ? super.getName() : name;
+      return name == null ? "" : name;
     }
   }
 
+  /**
+   * An IdentifierCompleter is used to classify the parent of the completion node when it has
+   * previously been determined that the completion node is a SimpleIdentifier.
+   */
   private class IdentifierCompleter extends AstNodeClassifier {
     SimpleIdentifier completionNode;
 
@@ -288,6 +286,15 @@ public class CompletionEngine {
         analyzeLocalName(completionNode);
       } else if (node.getRightOperand() == completionNode) {
         analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+      if (node.getReturnType() == completionNode) {
+        filter = new Filter(completionNode);
+        pName(completionNode.getName(), ProposalKind.CONSTRUCTOR);
       }
       return null;
     }
@@ -364,6 +371,15 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitIfStatement(IfStatement node) {
+      if (node.getCondition() == completionNode) {
+        // { if (!) }
+        analyzeLocalName(new Ident(node));
+      }
+      return null;
+    }
+
+    @Override
     public Void visitInterpolationExpression(InterpolationExpression node) {
       if (node.getExpression() instanceof SimpleIdentifier) {
         SimpleIdentifier ident = (SimpleIdentifier) node.getExpression();
@@ -397,7 +413,7 @@ public class CompletionEngine {
           analyzePrefixedAccess(receiverType, node.getMethodName());
         }
       } else if (node.getTarget() == completionNode) {
-        // { x!.y() } -- only reached when node.getTarget() is a simple identifier. (TODO: verify)
+        // { x!.y() } -- only reached when node.getTarget() is a simple identifier.
         if (completionNode instanceof SimpleIdentifier) {
           SimpleIdentifier ident = completionNode;
           analyzeReceiver(ident);
@@ -410,7 +426,6 @@ public class CompletionEngine {
     public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
       if (node.getPrefix() == completionNode) {
         // { x!.y }
-//        state.sourceDeclarationIsStatic(isDefinedInStaticMethod(node));
         analyzeLocalName(node.getPrefix());
       } else {
         // { v.! }
@@ -421,6 +436,9 @@ public class CompletionEngine {
 
     @Override
     public Void visitPropertyAccess(PropertyAccess node) {
+      if (node.getTarget() != null && node.getTarget().getLength() == 0) {
+        return null; // { . }
+      }
       // { o.!hashCode }
       if (node.getPropertyName() == completionNode) {
         Type receiverType = typeOf(node.getRealTarget());
@@ -478,8 +496,20 @@ public class CompletionEngine {
       }
       return null;
     }
+
+    @Override
+    public Void visitWhileStatement(WhileStatement node) {
+      if (node.getCondition() == completionNode) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
   }
 
+  /**
+   * A TerminalNodeCompleter is used to classify the completion node when nothing else is known
+   * about it.
+   */
   private class TerminalNodeCompleter extends AstNodeClassifier {
 
     @Override
@@ -525,7 +555,7 @@ public class CompletionEngine {
         }
       }
       // TODO { abstract ! class ! A ! extends B implements C, D ! {}}
-      return null; // visitCompilationUnitMember(node);
+      return null;
     }
 
     @Override
@@ -534,7 +564,7 @@ public class CompletionEngine {
         pKeyword(node.getKeyword());
       }
       // TODO { typedef ! A ! = ! B ! with C, D !; }
-      return null; // TODO visitTypeAlias(node);
+      return null;
     }
 
     @Override
@@ -627,7 +657,7 @@ public class CompletionEngine {
         analyzeLocalName(ident);
       } else {
         Ident ident = new Ident(node);
-        analyzeTypeName(ident, ident);
+        analyzeConstructorTypeName(ident);
       }
       return null;
     }
@@ -691,16 +721,16 @@ public class CompletionEngine {
         pKeyword(node.getKeyword());
       } else if (node.getName().getName().isEmpty()
           && isCompletionBefore(node.getKeyword().getOffset())) {
-        // { < ! extends X>
+        // { < ! extends X> }
         analyzeTypeName(node.getName(), typeDeclarationName(node));
       }
-      // { <! X ! extends ! Y !>
+      // { <! X ! extends ! Y !> }
       return null;
     }
 
     @Override
     public Void visitTypeParameterList(TypeParameterList node) {
-      // { <X extends A,! B,! >
+      // { <X extends A,! B,! > }
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
       }
@@ -722,17 +752,19 @@ public class CompletionEngine {
         pKeyword(node.getWithKeyword());
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
-//        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
       } else {
         // { X with ! Y }
-//        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
       }
       return null;
     }
   }
 
+  /**
+   * A TypeNameCompleter is used to classify the parent of a SimpleIdentifier after it has been
+   * identified as a TypeName by the IdentifierCompleter.
+   */
   private class TypeNameCompleter extends AstNodeClassifier {
     SimpleIdentifier identifier;
     TypeName typeName;
@@ -753,17 +785,15 @@ public class CompletionEngine {
       if (typeName == node.getType()) {
         if (node.getPeriod() != null) {
           if (isCompletionAfter(node.getPeriod().getEnd())) {
+            // Is this branch reachable? Probably only in IdentifierCompleter.
             "".toString(); // TODO This currently is just a place-holder for a breakpoint.
           } else {
             // { new Cla!ss.cons() }
             namedConstructorReference((ClassElement) identifier.getElement(), identifier);
           }
         } else {
-          // { new ! } { new Na!me(); } { new Na!me.cons(); }
-          analyzeTypeName(identifier, null);
-          if (identifier.getElement() instanceof ClassElement) {
-            namedConstructorReference((ClassElement) identifier.getElement(), identifier);
-          }
+          // { new ! } { new Na!me(); } { new js!on. }
+          analyzeConstructorTypeName(identifier);
         }
       }
       return null;
@@ -777,7 +807,6 @@ public class CompletionEngine {
 
     @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
-//      state.includesUndefinedTypes();
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
@@ -807,7 +836,6 @@ public class CompletionEngine {
 
     @Override
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
-//      state.includesUndefinedTypes();
       analyzeTypeName(identifier, null);
       return null;
     }
@@ -831,7 +859,6 @@ public class CompletionEngine {
 
     @Override
     public Void visitVariableDeclarationList(VariableDeclarationList node) {
-//      state.includesUndefinedTypes();
       if (node.getParent() instanceof Statement) {
         analyzeLocalName(identifier);
       } else {
@@ -842,7 +869,6 @@ public class CompletionEngine {
 
     @Override
     public Void visitWithClause(WithClause node) {
-//      state.mustBeMixin();
       analyzeTypeName(identifier, typeDeclarationName(node));
       return null;
     }
@@ -888,6 +914,20 @@ public class CompletionEngine {
       completionNode.accept(visitor);
     }
     requestor.endReporting();
+  }
+
+  void analyzeConstructorTypeName(SimpleIdentifier identifier) {
+    filter = new Filter(identifier);
+    Element[] types = findAllTypes();
+    for (Element type : types) {
+      if (type instanceof ClassElement) {
+        namedConstructorReference((ClassElement) type, identifier);
+      }
+    }
+    Element[] prefixes = findAllPrefixes();
+    for (Element prefix : prefixes) {
+      pName(prefix);
+    }
   }
 
   void analyzeDeclarationName(VariableDeclaration varDecl) {
@@ -995,6 +1035,9 @@ public class CompletionEngine {
     if (receiverType != null) {
       // Complete x.!y
       Element rcvrTypeElem = receiverType.getElement();
+      if (rcvrTypeElem == null) {
+        return; // { f() => null. }
+      }
       if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
         rcvrTypeElem = getObjectClassElement();
       }
@@ -1118,7 +1161,8 @@ public class CompletionEngine {
     // Complete identifier when it refers to a named constructor defined in classElement.
     filter = new Filter(identifier);
     for (ConstructorElement cons : classElement.getConstructors()) {
-      if (state.isCompileTimeConstantRequired == cons.isConst() /*&& filterAllows(cons)*/) {
+      if (state.isCompileTimeConstantRequired == cons.isConst()
+          && filter.isPermitted(cons.getName())) {
         pNamedConstructor(classElement, cons, identifier);
       }
     }
