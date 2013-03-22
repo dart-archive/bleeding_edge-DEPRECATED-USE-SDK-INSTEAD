@@ -116,6 +116,35 @@ public class OptionManager {
   }
 
   /**
+   * Utility method for returning one option value only. Equivalent to
+   * <code>getOptions().get(optionName)</code> Note that it may answer <code>null</code> if this
+   * option does not exist.
+   * <p>
+   * Helper constants have been defined on DartPreferenceConstants for each of the option IDs
+   * (categorized in Code assist option ID, Compiler option ID and Core option ID) and some of their
+   * acceptable values (categorized in Option value). Some options accept open value sets beyond the
+   * documented constant values.
+   * <p>
+   * Note: each release may add new options.
+   * 
+   * @param optionName the name of the option whose value is to be returned
+   * @return the value of a given option
+   */
+  public String getOption(String optionName) {
+    DartCore.notYetImplemented();
+    // if (DartCore.CORE_ENCODING.equals(optionName)){
+    // return DartCore.getEncoding();
+    // }
+    String propertyName = optionName;
+    if (optionNames.contains(propertyName)) {
+      IPreferencesService service = Platform.getPreferencesService();
+      String value = service.get(optionName, null, preferencesLookup);
+      return value == null ? null : value.trim();
+    }
+    return null;
+  }
+
+  /**
    * Return the table of the current options. Initially, all options have their default values, and
    * this method returns a table that includes all known options.
    * <p>

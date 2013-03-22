@@ -674,7 +674,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * @return the value of a given option
    */
   public static String getOption(String optionName) {
-    return DartModelManager.getInstance().getOption(optionName);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return OptionManager.getInstance().getOption(optionName);
+    } else {
+      return DartModelManager.getInstance().getOption(optionName);
+    }
   }
 
   /**
