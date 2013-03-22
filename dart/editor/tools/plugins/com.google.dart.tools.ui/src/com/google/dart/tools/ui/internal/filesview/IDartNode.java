@@ -28,6 +28,6 @@ public interface IDartNode {
 
   public String getLabel();
 
-  public IDartNode getParent();
+  public Object getParent();
 
 }

@@ -15,8 +15,8 @@ package com.google.dart.tools.ui;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.ui.internal.DartWorkbenchAdapter;
 import com.google.dart.tools.ui.internal.IResourceLocator;
+import com.google.dart.tools.ui.internal.NewDartWorkbenchAdapter;
 import com.google.dart.tools.ui.internal.ResourceLocator;
 
 import org.eclipse.core.resources.IFile;
@@ -47,11 +47,11 @@ public class NewDartElementAdapterFactory implements IAdapterFactory, IContribut
       IContributorResourceAdapter2.class, ITaskListResourceAdapter.class, IContainmentAdapter.class};
 
   private static IResourceLocator resourceLocator;
-  private static DartWorkbenchAdapter dartWorkbenchAdapter;
+  private static IWorkbenchAdapter dartWorkbenchAdapter;
 
-  private static DartWorkbenchAdapter getDartWorkbenchAdapter() {
+  private static IWorkbenchAdapter getDartWorkbenchAdapter() {
     if (dartWorkbenchAdapter == null) {
-      dartWorkbenchAdapter = new DartWorkbenchAdapter();
+      dartWorkbenchAdapter = new NewDartWorkbenchAdapter();
     }
     return dartWorkbenchAdapter;
   }

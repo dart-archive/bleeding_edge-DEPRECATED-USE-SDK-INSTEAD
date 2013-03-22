@@ -14,7 +14,12 @@
 package com.google.dart.eclipse.ui.internal.navigator;
 
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
@@ -42,6 +47,7 @@ import org.eclipse.ui.navigator.ICommonContentProvider;
 import org.eclipse.ui.navigator.INavigatorContentService;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,6 +99,8 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
         return fileStore.childStores(EFS.NONE, null);
       } else if (element instanceof DartLibraryImpl) {
         return getLibraryChildren((DartLibraryImpl) element);
+      } else if (element instanceof LibraryNode) {
+        return ((LibraryNode) element).getFiles();
       }
     } catch (CoreException e) {
       //fall through
@@ -201,6 +209,18 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     return fileStoreMap;
   }
 
+  private Set<LibraryElement> getImportedSystemLibraries(LibraryElement[] libraries) {
+    Set<LibraryElement> results = new HashSet<LibraryElement>();
+    for (LibraryElement element : libraries) {
+      for (LibraryElement importedLibrary : element.getImportedLibraries()) {
+        if (importedLibrary.getSource().isInSystemLibrary()) {
+          results.add(importedLibrary);
+        }
+      }
+    }
+    return results;
+  }
+
   private Object[] getLibraryChildren(DartLibraryImpl library) throws CoreException {
     IFileStore libraryFileStore = getLibraryFileStore(library);
 
@@ -233,15 +253,45 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     List<Object> children = new ArrayList<Object>();
 
     if (DartProjectNature.hasDartNature(project)) {
-      DartProject dartProject = DartCore.create(project);
-      if (DartSdkManager.getManager().hasSdk()) {
-        for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
-          children.add(library);
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        // TODO(keertip): change this to get library sources instead and check if sources are
+        // in workspace. This will also catch external packages. 
+        ProjectManager manager = DartCore.getProjectManager();
+        LibraryElement[] libraries = manager.getLibraries(project);
+        if (DartSdkManager.getManager().hasSdk()) {
+          for (LibraryElement element : getImportedSystemLibraries(libraries)) {
+            children.add(new LibraryNode(project, getSourceFileStore(element.getSource()),
+                element.getName()));
+          }
+        }
+      } else {
+        DartProject dartProject = DartCore.create(project);
+        if (DartSdkManager.getManager().hasSdk()) {
+          for (DartLibrary library : getSystemLibraries(dartProject.getDartLibraries())) {
+            children.add(library);
+          }
         }
       }
     }
 
     return children.toArray();
+  }
+
+  private IFileStore getSourceFileStore(Source element) throws CoreException {
+    if (element instanceof FileBasedSource) {
+      URI uri;
+      try {
+        uri = new URI(element.getEncoding());
+        if ("file".equals(uri.getScheme())) {
+          IFileStore fileStore = EFS.getStore(uri);
+          return fileStore.getParent();
+        }
+      } catch (URISyntaxException e) {
+        DartCore.logError(e);
+      }
+    }
+
+    return null;
   }
 
   private Set<DartLibrary> getSystemLibraries(DartLibrary[] libraries) throws CoreException {

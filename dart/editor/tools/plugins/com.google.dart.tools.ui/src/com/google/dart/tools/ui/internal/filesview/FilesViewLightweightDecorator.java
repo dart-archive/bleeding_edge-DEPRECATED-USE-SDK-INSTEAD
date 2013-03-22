@@ -15,6 +15,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
@@ -65,11 +66,13 @@ public class FilesViewLightweightDecorator implements ILightweightLabelDecorator
       IFile file = (IFile) element;
 
       try {
-        DartElement dartElement = DartCore.create(file);
+        if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+          DartElement dartElement = DartCore.create(file);
 
-        if (dartElement != null) {
-          if (file.equals(dartElement.getDartProject().getCorrespondingResource())) {
-            decoration.addOverlay(DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
+          if (dartElement != null) {
+            if (file.equals(dartElement.getDartProject().getCorrespondingResource())) {
+              decoration.addOverlay(DESC_READ_ONLY, IDecoration.BOTTOM_RIGHT);
+            }
           }
         }
       } catch (CoreException exception) {
