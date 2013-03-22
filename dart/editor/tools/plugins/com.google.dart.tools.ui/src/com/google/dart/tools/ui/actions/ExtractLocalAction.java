@@ -1,14 +1,21 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.ui.actions;
 
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.code.ExtractLocalRefactoring_OLD;
-import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
 import com.google.dart.tools.ui.internal.refactoring.ExtractLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
@@ -16,90 +23,59 @@ import com.google.dart.tools.ui.internal.refactoring.ServiceExtractLocalRefactor
 import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
+import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Extracts an expression into a new local variable and replaces all occurrences of the expression
- * with the local variable.
+ * {@link Action} for "Extract Local" refactoring.
  */
-public class ExtractLocalAction extends InstrumentedSelectionDispatchAction {
-
-  private final DartEditor editor;
-
+public class ExtractLocalAction extends AbstractDartSelectionAction {
   public ExtractLocalAction(DartEditor editor) {
-    super(editor.getEditorSite());
-    this.editor = editor;
-    setText(RefactoringMessages.ExtractLocalAction_label);
-    setEnabled(SelectionConverter.getInputAsCompilationUnit(editor) != null);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.EXTRACT_LOCAL_ACTION);
+    super(editor);
   }
 
   @Override
-  public void selectionChanged(DartTextSelection selection) {
-    setEnabled(editor != null && editor.isEditable()
-        && RefactoringAvailabilityTester.isExtractLocalAvailable(selection));
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
-    if (editor == null || !editor.isEditable()) {
+  public void selectionChanged(DartSelection selection) {
+    AssistContext context = selection.getContext();
+    if (context == null) {
       setEnabled(false);
       return;
     }
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      AssistContext context = editor.getAssistContext();
-      if (context == null) {
-        setEnabled(false);
-        return;
-      }
-      setEnabled(selection.getLength() != 0);
-    } else {
-      setEnabled(SelectionConverter.getInputAsCompilationUnit(editor) != null);
+    setEnabled(selection.getLength() != 0);
+  }
+
+  @Override
+  protected void doRun(DartSelection selection, Event event,
+      UIInstrumentationBuilder instrumentation) {
+    AssistContext context = selection.getContext();
+    if (context == null) {
+      return;
+    }
+    try {
+      com.google.dart.engine.services.refactoring.ExtractLocalRefactoring newRefactoring = RefactoringFactory.createExtractLocalRefactoring(context);
+      ServiceExtractLocalRefactoring ltkRefactoring = new ServiceExtractLocalRefactoring(
+          newRefactoring);
+      new RefactoringStarter().activate(
+          new ExtractLocalWizard(ltkRefactoring),
+          getShell(),
+          RefactoringMessages.ExtractLocalAction_dialog_title,
+          RefactoringSaveHelper.SAVE_ALL);
+      // TODO(scheglov) may be SAVE_NOTHING
+    } catch (Throwable e) {
+      ExceptionHandler.handle(
+          e,
+          "Extract Local",
+          "Unexpected exception occurred. See the error log for more details.");
     }
   }
 
   @Override
-  protected void doRun(ITextSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    if (!ActionUtil.isEditable(editor)) {
-      instrumentation.metric("Problem", "Editor not editable");
-      return;
-    }
-
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      try {
-        AssistContext context = editor.getAssistContext();
-        if (context == null) {
-          return;
-        }
-        com.google.dart.engine.services.refactoring.ExtractLocalRefactoring newRefactoring = RefactoringFactory.createExtractLocalRefactoring(context);
-        ServiceExtractLocalRefactoring ltkRefactoring = new ServiceExtractLocalRefactoring(
-            newRefactoring);
-        new RefactoringStarter().activate(
-            new ExtractLocalWizard(ltkRefactoring),
-            getShell(),
-            RefactoringMessages.ExtractLocalAction_dialog_title,
-            RefactoringSaveHelper.SAVE_ALL);
-        // TODO(scheglov) may be SAVE_NOTHING
-      } catch (Throwable e) {
-        DartToolsPlugin.log(e);
-        instrumentation.metric("Problem", "Exception during activation.");
-      }
-    } else {
-      ExtractLocalRefactoring_OLD refactoring = new ExtractLocalRefactoring_OLD(
-          SelectionConverter.getInputAsCompilationUnit(editor),
-          selection.getOffset(),
-          selection.getLength());
-      new RefactoringStarter().activate(
-          new ExtractLocalWizard(refactoring),
-          getShell(),
-          RefactoringMessages.ExtractLocalAction_dialog_title,
-          RefactoringSaveHelper.SAVE_ALL);
-      // TODO(scheglov) replace with SAVE_NOTHING, when parsing working copy will be fixed by Dan
-    }
+  protected void init() {
+    setText(RefactoringMessages.ExtractLocalAction_label);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.EXTRACT_LOCAL_ACTION);
   }
 }

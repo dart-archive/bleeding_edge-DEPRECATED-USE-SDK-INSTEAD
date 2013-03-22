@@ -1487,13 +1487,14 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     private ISelection newDartSelection(ISelection selection) {
+      if (selection == null) {
+        return new DartSelection(DartEditor.this, null, -1, 0);
+      }
       ITextSelection textSelection = (ITextSelection) selection;
-      IDocument document = getSourceViewer().getDocument();
       AssistContext assistContext = getAssistContext(textSelection);
       return new DartSelection(
           DartEditor.this,
           assistContext,
-          document,
           textSelection.getOffset(),
           textSelection.getLength());
     }
@@ -2110,15 +2111,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
             ITextEditorActionConstants.QUICK_ASSIST);
       }
     }
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && selection instanceof DartSelection) {
+      showSelectionLabel.update((DartSelection) selection);
+      showSelectionLabel.setEnabled(false);
+      if (showSelectionLabel.getText() != null) {
+        menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
+      }
+    }
     if (elementSelection != null) {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        // TODO(scheglov) For 'elementOrIdentifier' do:
-      } else {
-        if (ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
-          showSelectionLabel.update(elementSelection);
-          showSelectionLabel.setEnabled(false);
-          menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
-        }
+      if (ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
+        showSelectionLabel.update(elementSelection);
+        showSelectionLabel.setEnabled(false);
+        menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
       }
     }
   }
@@ -4399,6 +4403,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private AssistContext getAssistContext(ITextSelection textSelection) {
     try {
       if (inputFile == null) {
+        return null;
+      }
+      if (textSelection == null) {
         return null;
       }
       // prepare input CompilationUnit

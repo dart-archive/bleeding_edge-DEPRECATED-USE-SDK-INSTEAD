@@ -40,6 +40,7 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     initActions();
     editor.setAction("OpenEditor", openAction);
     addActions(findReferencesAction, findDeclarationsAction, openAction);
+    addActionDartSelectionListeners();
   }
 
   public DartSearchActionGroup(IWorkbenchSite site) {

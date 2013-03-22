@@ -22,6 +22,7 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -38,6 +39,7 @@ import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.actions.ActionMessages;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartElementSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
 
 import org.eclipse.core.resources.IFolder;
@@ -164,6 +166,31 @@ public class ActionUtil {
     } catch (DartModelException ex) {
       // should not happen
       text.append(sep);
+      text.append(STRING_SELECTION);
+    }
+    text.append(STRING_SPACE);
+    text.append(STRING_DO);
+    return text.toString();
+  }
+
+  public static String constructSelectionLabel(DartSelection selection) {
+    AssistContext context = selection.getContext();
+    if (context == null) {
+      return null;
+    }
+    StringBuffer text = new StringBuffer(STRING_FOR);
+    text.append(STRING_SPACE);
+    Element element = context.getCoveredElement();
+    if (element != null) {
+      String name = element.getName();
+      if (name.length() > MAX_NAME_LENGTH) {
+        text.append(element.getKind().getDisplayName());
+      } else {
+        text.append('\"');
+        text.append(name);
+        text.append('\"');
+      }
+    } else {
       text.append(STRING_SELECTION);
     }
     text.append(STRING_SPACE);

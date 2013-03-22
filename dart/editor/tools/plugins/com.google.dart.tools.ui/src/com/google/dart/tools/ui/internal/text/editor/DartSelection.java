@@ -16,7 +16,6 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.services.assist.AssistContext;
 
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextSelection;
 
 /**
@@ -26,9 +25,8 @@ public class DartSelection extends TextSelection {
   private final DartEditor editor;
   private final AssistContext context;
 
-  public DartSelection(DartEditor editor, AssistContext context, IDocument document, int offset,
-      int length) {
-    super(document, offset, length);
+  public DartSelection(DartEditor editor, AssistContext context, int offset, int length) {
+    super(offset, length);
     this.editor = editor;
     this.context = context;
   }

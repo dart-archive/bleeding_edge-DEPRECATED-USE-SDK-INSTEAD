@@ -193,7 +193,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
         DartEditorActionDefinitionIds.RENAME_ELEMENT);
     editor.setAction("RenameElement", fRenameAction); //$NON-NLS-1$
 
-    fExtractLocalAction = new ExtractLocalAction(editor);
+    fExtractLocalAction = new ExtractLocalAction_OLD(editor);
     initUpdatingAction(
         fExtractLocalAction,
         provider,
@@ -202,7 +202,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
         DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
     editor.setAction("ExtractLocalVariable", fExtractLocalAction); //$NON-NLS-1$
 
-    fExtractMethodAction = new ExtractMethodAction(editor);
+    fExtractMethodAction = new ExtractMethodAction_OLD(editor);
     initUpdatingAction(
         fExtractMethodAction,
         provider,
@@ -287,7 +287,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
 //    initAction(fUseSupertypeAction, selection, IJavaEditorActionDefinitionIds.USE_SUPERTYPE);
 //    editor.setAction("UseSupertype", fUseSupertypeAction); //$NON-NLS-1$
 
-    fInlineAction = new InlineAction(editor);
+    fInlineAction = new InlineAction_OLD(editor);
     initUpdatingAction(
         fInlineAction,
         provider,
@@ -403,7 +403,7 @@ public class RefactorActionGroup_OLD extends ActionGroup {
 //    fConvertAnonymousToNestedAction= new ConvertAnonymousToNestedAction(fSite);
 //    initUpdatingAction(fConvertAnonymousToNestedAction, fSelectionProvider, selectionProvider, selection, IJavaEditorActionDefinitionIds.CONVERT_ANONYMOUS_TO_NESTED);
 
-    fInlineAction = new InlineAction(fSite);
+    fInlineAction = new InlineAction_OLD(fSite);
     initUpdatingAction(
         fInlineAction,
         fSelectionProvider,

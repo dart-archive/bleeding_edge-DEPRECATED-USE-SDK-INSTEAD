@@ -29,13 +29,19 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   public static final String GROUP_REORG = "reorgGroup";
 
   private RenameAction renameAction;
+  private ExtractLocalAction extractLocalAction;
+  private ExtractMethodAction extractMethodAction;
+  private InlineAction inlineAction;
 
   public RefactorActionGroup(DartEditor editor) {
     super(editor);
     renameAction = new RenameAction(editor);
+    extractLocalAction = new ExtractLocalAction(editor);
+    extractMethodAction = new ExtractMethodAction(editor);
+    inlineAction = new InlineAction(editor);
     initActions();
     editor.setAction("RenameElement", renameAction);
-    addActions(renameAction);
+    addActions(renameAction, extractLocalAction, extractMethodAction, inlineAction);
     addActionDartSelectionListeners();
   }
 
@@ -51,12 +57,18 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   public void dispose() {
     super.dispose();
     renameAction = null;
+    extractLocalAction = null;
+    extractMethodAction = null;
+    inlineAction = null;
   }
 
   @Override
   public void fillActionBars(IActionBars actionBars) {
     super.fillActionBars(actionBars);
     actionBars.setGlobalActionHandler(JdtActionConstants.RENAME, renameAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_LOCAL, extractLocalAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.EXTRACT_METHOD, extractMethodAction);
+    actionBars.setGlobalActionHandler(JdtActionConstants.INLINE, inlineAction);
   }
 
   @Override
@@ -74,5 +86,17 @@ public class RefactorActionGroup extends AbstractDartSelectionActionGroup {
   private void initActions() {
     renameAction.setActionDefinitionId(DartEditorActionDefinitionIds.RENAME_ELEMENT);
     renameAction.setId(DartEditorActionDefinitionIds.RENAME_ELEMENT);
+    if (extractLocalAction != null) {
+      extractLocalAction.setActionDefinitionId(DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
+      extractLocalAction.setId(DartEditorActionDefinitionIds.EXTRACT_LOCAL_VARIABLE);
+    }
+    if (extractMethodAction != null) {
+      extractMethodAction.setActionDefinitionId(DartEditorActionDefinitionIds.EXTRACT_METHOD);
+      extractMethodAction.setId(DartEditorActionDefinitionIds.EXTRACT_METHOD);
+    }
+    if (inlineAction != null) {
+      inlineAction.setActionDefinitionId(DartEditorActionDefinitionIds.INLINE);
+      inlineAction.setId(DartEditorActionDefinitionIds.INLINE);
+    }
   }
 }

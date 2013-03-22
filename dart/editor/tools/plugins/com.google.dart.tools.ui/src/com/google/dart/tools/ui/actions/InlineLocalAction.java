@@ -1,116 +1,75 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.InlineLocalRefactoring;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_I;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
+import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.ServiceInlineLocalRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Inlines the value of a local variable at all places where a read reference is used.
+ * {@link Action} for "Inline Local" refactoring.
  */
-public class InlineLocalAction extends InstrumentedSelectionDispatchAction {
-
-  private DartEditor fEditor;
-
+public class InlineLocalAction extends AbstractDartSelectionAction {
   public InlineLocalAction(DartEditor editor) {
-    this(editor.getEditorSite());
-    fEditor = editor;
-    setEnabled(SelectionConverter.canOperateOn(fEditor));
+    super(editor);
   }
-
-  InlineLocalAction(IWorkbenchSite site) {
-    super(site);
-    setText(RefactoringMessages.InlineLocalAction_label);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
-  }
-
-//  @Override
-//  public void doRun(IStructuredSelection selection, Event event,
-//      UIInstrumentationBuilder instrumentation) {
-//    instrumentation.metric("Problem", "InlineLocal called on StructuredSelection");
-//    //do nothing
-//  }
-//
-//  @Override
-//  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-//    if (!ActionUtil.isEditable(fEditor)) {
-//      instrumentation.metric("Problem", "Editor not editable");
-//      return;
-//    }
-//    try {
-//      AssistContext assistContext = fEditor.getAssistContext();
-//      RefactoringExecutionStarter.startInlineTempRefactoring(assistContext, getShell());
-//    } catch (Throwable e) {
-//      DartToolsPlugin.log(e);
-//    }
-//  }
 
   @Override
-  public void selectionChanged(DartTextSelection selection) {
-    try {
-      setEnabled(RefactoringAvailabilityTester.isInlineTempAvailable(selection));
-    } catch (DartModelException e) {
+  public void selectionChanged(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    if (element == null) {
       setEnabled(false);
+      return;
     }
+    setEnabled(element.getKind() == ElementKind.LOCAL_VARIABLE);
   }
 
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    setEnabled(false);
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      try {
-        AssistContext context = fEditor.getAssistContext();
-        if (context == null) {
-          setEnabled(false);
-          return;
-        }
-        InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
-        setEnabled(!refactoring.checkAllConditions(null).hasError());
-      } catch (Throwable e) {
-        setEnabled(false);
-      }
-    } else {
-      setEnabled(true);
-    }
-  }
-
-  public boolean tryInlineTemp(Shell shell) {
+  public boolean tryInlineTemp(AssistContext context, Shell shell) {
     try {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        AssistContext context = fEditor.getAssistContext();
-        if (context == null) {
-          return false;
-        }
-        return RefactoringExecutionStarter.startInlineTempRefactoring(context, getShell());
-      } else {
-        CompilationUnit unit = SelectionConverter.getInputAsCompilationUnit(fEditor);
-        ITextSelection selection = (ITextSelection) fEditor.getSelectionProvider().getSelection();
-        return RefactoringExecutionStarter_OLD.startInlineTempRefactoring(unit, selection, shell);
-      }
+      InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
+      InlineLocalRefactoring_I ltkRefactoring = new ServiceInlineLocalRefactoring(refactoring);
+      new RefactoringStarter().activate(
+          new InlineLocalWizard(ltkRefactoring),
+          shell,
+          RefactoringMessages.InlineLocalAction_dialog_title,
+          RefactoringSaveHelper.SAVE_NOTHING);
+      return true;
     } catch (Throwable e) {
       DartToolsPlugin.log(e);
       return false;
     }
+  }
+
+  @Override
+  protected void init() {
+    setText(RefactoringMessages.InlineLocalAction_label);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }
 }
