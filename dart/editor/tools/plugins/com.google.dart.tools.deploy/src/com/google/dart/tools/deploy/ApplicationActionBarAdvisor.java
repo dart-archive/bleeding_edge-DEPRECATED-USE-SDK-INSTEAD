@@ -794,8 +794,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
   private void addViewActions(MenuManager menu) {
     IViewDescriptor viewDesc;
 
-    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
-    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
+    //TODO (pquitslund): re-enable if/when apps view is re-enabled
+//    viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(DartUI.ID_APPS_VIEW);
+//    menu.add(new AccessibleShowViewAction(window, viewDesc, false));
 
     viewDesc = WorkbenchPlugin.getDefault().getViewRegistry().find(BreakpointsView.VIEW_ID);
     menu.add(new AccessibleShowViewAction(window, viewDesc, false));
