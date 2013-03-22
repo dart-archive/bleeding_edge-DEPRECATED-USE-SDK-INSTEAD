@@ -97,6 +97,10 @@ public class HttpUrlConnector {
 
     String line = dataInput.readLine();
 
+    if (line == null) {
+      throw new IOException();
+    }
+
     parseHeaderLine(line);
 
     line = dataInput.readLine();
