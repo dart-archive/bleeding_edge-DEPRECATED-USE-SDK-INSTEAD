@@ -28,6 +28,7 @@ import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.Declaration;
 import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameter;
@@ -47,6 +48,7 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.TypeParameterList;
@@ -67,6 +69,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
@@ -318,7 +321,25 @@ public class CompletionEngine {
 
     @Override
     public Void visitExpression(Expression node) {
-      analyzeLocalName(new Ident(node));
+      SimpleIdentifier ident;
+      if (completionNode instanceof SimpleIdentifier) {
+        ident = completionNode;
+      } else {
+        ident = new Ident(node);
+      }
+      analyzeLocalName(ident);
+      return null;
+    }
+
+    @Override
+    public Void visitExpressionStatement(ExpressionStatement node) {
+      SimpleIdentifier ident;
+      if (completionNode instanceof SimpleIdentifier) {
+        ident = completionNode;
+      } else {
+        ident = new Ident(node);
+      }
+      analyzeLocalName(ident);
       return null;
     }
 
@@ -424,7 +445,6 @@ public class CompletionEngine {
         if (node.getKeyword() == null && node.getType() == null) {
           Ident ident = new Ident(node);
           analyzeTypeName(node.getIdentifier(), ident);
-          return null;
         }
       }
       return null;
@@ -453,7 +473,6 @@ public class CompletionEngine {
     public Void visitVariableDeclaration(VariableDeclaration node) {
       if (node.getName() == completionNode) {
         analyzeDeclarationName(node);
-        return null;
       } else if (node.getInitializer() == completionNode) {
         analyzeLocalName((SimpleIdentifier) node.getInitializer());
       }
@@ -465,7 +484,10 @@ public class CompletionEngine {
 
     @Override
     public Void visitArgumentList(ArgumentList node) {
-      if (node.getArguments().isEmpty()) {
+      if (node.getArguments().isEmpty()
+          && isCompletionBetween(
+              node.getLeftParenthesis().getEnd(),
+              node.getRightParenthesis().getOffset())) {
         analyzeLocalName(new Ident(node));
       }
       return null;
@@ -476,7 +498,6 @@ public class CompletionEngine {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         // { {! stmt; !} }
         analyzeLocalName(new Ident(node));
-        return null;
       }
       return null;
     }
@@ -491,20 +512,15 @@ public class CompletionEngine {
     public Void visitClassDeclaration(ClassDeclaration node) {
       if (isCompletingKeyword(node.getClassKeyword())) {
         pKeyword(node.getClassKeyword()); // Other keywords are legal but not handled here.
-        return null;
-      }
-      if (isCompletingKeyword(node.getAbstractKeyword())) {
+      } else if (isCompletingKeyword(node.getAbstractKeyword())) {
         pKeyword(node.getAbstractKeyword());
-        return null;
-      }
-      if (!node.getLeftBracket().isSynthetic()) {
+      } else if (!node.getLeftBracket().isSynthetic()) {
         if (isCompletionAfter(node.getLeftBracket().getEnd())) {
           if (node.getRightBracket().isSynthetic()
               || isCompletionBefore(node.getRightBracket().getOffset())) {
             if (!hasErrorBeforeCompletionLocation()) {
               analyzeLocalName(new Ident(node));
             }
-            return null;
           }
         }
       }
@@ -516,7 +532,6 @@ public class CompletionEngine {
     public Void visitClassTypeAlias(ClassTypeAlias node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-        return null;
       }
       // TODO { typedef ! A ! = ! B ! with C, D !; }
       return null; // TODO visitTypeAlias(node);
@@ -535,19 +550,23 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitExpressionStatement(ExpressionStatement node) {
+      analyzeLocalName(new Ident(node));
+      return null;
+    }
+
+    @Override
     public Void visitExtendsClause(ExtendsClause node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-        return null;
       } else if (node.getSuperclass() == null) {
         // { X extends ! }
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       } else {
         // { X extends ! Y }
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       }
+      return null;
     }
 
     @Override
@@ -566,16 +585,13 @@ public class CompletionEngine {
           if (isCompletionBetween(last.getEnd(), node.getRightParenthesis().getOffset())) {
             List<FormalParameter> newParams = copyWithout(params, last);
             analyzeNewParameterName(newParams, last.getIdentifier(), null);
-            return null;
           } else {
             Ident ident = new Ident(node);
             analyzeTypeName(ident, ident);
-            return null;
           }
         } else {
           Ident ident = new Ident(node);
           analyzeTypeName(ident, ident);
-          return null;
         }
       }
       return null;
@@ -585,7 +601,6 @@ public class CompletionEngine {
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-        return null;
       }
       return null;
     }
@@ -594,16 +609,14 @@ public class CompletionEngine {
     public Void visitImplementsClause(ImplementsClause node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-        return null;
       } else if (node.getInterfaces().isEmpty()) {
         // { X implements ! }
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       } else {
         // { X implements ! Y }
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       }
+      return null;
     }
 
     @Override
@@ -612,12 +625,11 @@ public class CompletionEngine {
         pKeyword(node.getKeyword());
         Ident ident = new Ident(node, node.getKeyword());
         analyzeLocalName(ident);
-        return null;
       } else {
         Ident ident = new Ident(node);
         analyzeTypeName(ident, ident);
-        return null;
       }
+      return null;
     }
 
     @Override
@@ -666,15 +678,21 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitTypeArgumentList(TypeArgumentList node) {
+      if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
+        analyzeTypeName(new Ident(node), null);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitTypeParameter(TypeParameter node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
-        return null;
       } else if (node.getName().getName().isEmpty()
           && isCompletionBefore(node.getKeyword().getOffset())) {
         // { < ! extends X>
         analyzeTypeName(node.getName(), typeDeclarationName(node));
-        return null;
       }
       // { <! X ! extends ! Y !>
       return null;
@@ -685,7 +703,6 @@ public class CompletionEngine {
       // { <X extends A,! B,! >
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       }
       return null;
     }
@@ -703,18 +720,16 @@ public class CompletionEngine {
     public Void visitWithClause(WithClause node) {
       if (isCompletingKeyword(node.getWithKeyword())) {
         pKeyword(node.getWithKeyword());
-        return null;
       } else if (node.getMixinTypes().isEmpty()) {
         // { X with ! }
 //        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       } else {
         // { X with ! Y }
 //        state.mustBeMixin();
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
-        return null;
       }
+      return null;
     }
   }
 
@@ -738,13 +753,17 @@ public class CompletionEngine {
       if (typeName == node.getType()) {
         if (node.getPeriod() != null) {
           if (isCompletionAfter(node.getPeriod().getEnd())) {
+            "".toString(); // TODO This currently is just a place-holder for a breakpoint.
           } else {
             // { new Cla!ss.cons() }
             namedConstructorReference((ClassElement) identifier.getElement(), identifier);
           }
         } else {
-          // { new ! } { new Na!me(); }
+          // { new ! } { new Na!me(); } { new Na!me.cons(); }
           analyzeTypeName(identifier, null);
+          if (identifier.getElement() instanceof ClassElement) {
+            namedConstructorReference((ClassElement) identifier.getElement(), identifier);
+          }
         }
       }
       return null;
@@ -790,6 +809,14 @@ public class CompletionEngine {
     public Void visitSimpleFormalParameter(SimpleFormalParameter node) {
 //      state.includesUndefinedTypes();
       analyzeTypeName(identifier, null);
+      return null;
+    }
+
+    @Override
+    public Void visitTypeArgumentList(TypeArgumentList node) {
+      if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
+        analyzeTypeName(identifier, null);
+      }
       return null;
     }
 
@@ -910,6 +937,7 @@ public class CompletionEngine {
   void analyzeLocalName(SimpleIdentifier identifier) {
     // Completion x!
     filter = new Filter(identifier);
+    // TODO Filter out types that have no static members.
     Collection<List<Element>> uniqueNames = collectIdentifiersVisibleAt(identifier);
     for (List<Element> uniques : uniqueNames) {
       Element candidate = uniques.get(0);
@@ -918,6 +946,19 @@ public class CompletionEngine {
           if (!((FieldElement) candidate).isStatic()) {
             continue;
           }
+        } else if (candidate instanceof PropertyAccessorElement) {
+          if (!((PropertyAccessorElement) candidate).isStatic()) {
+            continue;
+          }
+        }
+      }
+      if (state.isOptionalArgumentRequired) {
+        if (!(candidate instanceof ParameterElement)) {
+          continue;
+        }
+        ParameterElement param = (ParameterElement) candidate;
+        if (!param.getParameterKind().isOptional()) {
+          continue;
         }
       }
       pName(candidate);
@@ -1355,7 +1396,23 @@ public class CompletionEngine {
     setParameterInfo(element, prop);
     prop.setCompletion(name).setReturnType(element.getType().getReturnType().getName());
     Element container = element.getEnclosingElement();
-    if (container != null) { // TODO: may be null for functions ??
+    if (container != null) {
+      prop.setDeclaringType(container.getName());
+    }
+    requestor.accept(prop);
+  }
+
+  private void pExecutable(TopLevelVariableElement element, SimpleIdentifier identifier) {
+    // Create a completion proposal for the element: top-level variable.
+    String name = element.getName();
+    if (name.isEmpty() || filterDisallows(element)) {
+      return; // Simple constructors are not handled here
+    }
+    ProposalKind kind = proposalKindOf(element);
+    CompletionProposal prop = createProposal(kind);
+    prop.setCompletion(name).setReturnType(element.getType().getName());
+    Element container = element.getEnclosingElement();
+    if (container != null) {
       prop.setDeclaringType(container.getName());
     }
     requestor.accept(prop);
@@ -1531,9 +1588,12 @@ public class CompletionEngine {
         case LOCAL_VARIABLE:
         case METHOD:
         case SETTER:
-        case TOP_LEVEL_VARIABLE:
           ExecutableElement candidate = (ExecutableElement) uniques.get(0);
           pExecutable(candidate, identifier);
+          break;
+        case TOP_LEVEL_VARIABLE:
+          TopLevelVariableElement var = (TopLevelVariableElement) uniques.get(0);
+          pExecutable(var, identifier);
           break;
         case CLASS:
           pName(element);
@@ -1596,7 +1656,7 @@ public class CompletionEngine {
             break;
         }
         params.add(param.getName());
-        types.add(param.getType().getName());
+        types.add(param.getType().toString());
       }
     }
     prop.setParameterNames(params.toArray(new String[params.size()]));

@@ -541,7 +541,7 @@ public class CompletionTests extends CompletionTestCase {
         "1+xdr",
         "1+xa",
         "1-xdr.a",
-//        "1+xdr.b",
+        "1+xdr.b",
         "2-xa",
         "2-xdr",
         "2+xdr.a",
@@ -550,6 +550,419 @@ public class CompletionTests extends CompletionTestCase {
         "3+a");
   }
 
+  public void testCommentSnippets051() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void r() {",
+//        "  var v;",
+//        "  if (v is String) {",
+//        "    v.!1length;",
+//        "    v.!2getKeys;",
+//        "  }",
+//        "}");
+//    test(source, "1+length", "2-getKeys");
+  }
+
+  public void testCommentSnippets052() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void r() {",
+//        "  List<String> values = ['a','b','c'];",
+//        "  for (var v in values) {",
+//        "    v.!1toUpperCase;",
+//        "    v.!2getKeys;",
+//        "  }",
+//        "}");
+//    test(source, "1+toUpperCase", "2-getKeys");
+  }
+
+  public void testCommentSnippets053() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void r() {",
+//        "  var v;",
+//        "  while (v is String) {",
+//        "    v.!1toUpperCase;",
+//        "    v.!2getKeys;",
+//        "  }",
+//        "}");
+//    test(source, "1+toUpperCase", "2-getKeys");
+  }
+
+  public void testCommentSnippets054() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void r() {",
+//        "  var v;",
+//        "  for (; v is String; v.!1isEmpty) {",
+//        "    v.!2toUpperCase;",
+//        "    v.!3getKeys;",
+//        "  }",
+//        "}");
+//    test(source, "1+isEmpty", "2+toUpperCase", "3-getKeys");
+  }
+
+  public void testCommentSnippets055() throws Exception {
+    String source = src(
+        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+        "void r() {",
+        "  String v;",
+        "  if (v is Object) {",
+        "    v.!1toUpperCase;",
+        "  }",
+        "}");
+    test(source, "1+toUpperCase");
+  }
+
+  public void testCommentSnippets056() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void f(var v) {",
+//        "  if (v is!! String) {",
+//        "    return;",
+//        "  }",
+//        "  v.!1toUpperCase;",
+//        "}");
+//    test(source, "1+toUpperCase");
+  }
+
+  public void testCommentSnippets057() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//    String source = src(
+//        "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void f(var v) {",
+//        "  if ((v as String).length == 0) {",
+//        "    v.!1toUpperCase;",
+//        "  }",
+//        "}");
+//    test(source, "1+toUpperCase");
+  }
+
+  public void testCommentSnippets058() throws Exception {
+    String source = src(
+        "typedef void callback(int k);",
+        "void x(callback q){}",
+        "void r() {",
+        "  callback v;",
+        "  x(!1);",
+        "}");
+    test(source, "1+v");
+  }
+
+  public void testCommentSnippets059() throws Exception {
+    test("f(){((int x) => x+4).!1call(1);}", "1-call");
+  }
+
+  public void testCommentSnippets060() throws Exception {
+    String source = src(
+        "class Map{}",
+        "abstract class MM extends Map{factory MM() => new Map();}",
+        "class Z {",
+        "  MM x;",
+        "  f() {",
+        "    x!1",
+        "  }",
+        "}");
+    test(source, "1+x", "1-x[]");
+  }
+
+  public void testCommentSnippets061() throws Exception {
+    test(
+        "class A{m(){!1f(3);!2}}n(){!3f(3);!4}f(x)=>x*3;",
+        "1+f",
+        "1+n",
+        "2+f",
+        "2+n",
+        "3+f",
+        "3+n",
+        "4+f",
+        "4+n");
+  }
+
+  public void testCommentSnippets062() throws Exception {
+    // TODO Enable after corelib analysis is implemented.
+//    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
+  }
+
+  public void testCommentSnippets063() throws Exception {
+    // TODO Enable after type propagation is implemented.
+//  String source = src(
+//      "class String{int length(){} String toUpperCase(){} bool isEmpty(){}}class Map{getKeys(){}}",
+//        "void r(var v) {",
+//        "  v.!1toUpperCase;",
+//        "  assert(v is String);",
+//        "  v.!2toUpperCase;",
+//        "}");
+//    test(source, "1-toUpperCase", "2+toUpperCase");
+  }
+
+  public void testCommentSnippets064() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.!9h()..!1a()..!2b().!7g();",
+        "    x.!8j..!3b()..!4c..!6c..!5a();",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+a", "2+b", "1-g", "2-h", "3+b", "4+c", "5+a", "6+c", "7+g", "8+j", "9+h");
+  }
+
+  public void testCommentSnippets065() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+a");
+  }
+
+  public void testCommentSnippets066() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..a()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
+  public void testCommentSnippets067() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.h()..a()..c..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
+  public void testCommentSnippets068() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..b()..c..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+c");
+  }
+
+  public void testCommentSnippets069() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..b()..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+c");
+  }
+
+  public void testCommentSnippets070() throws Exception {
+    String source = src(
+        "class Spline {",
+        "  Line c;",
+        "  Spline a() {",
+        "    return this;",
+        "  }",
+        "  Line b() {",
+        "    return null;",
+        "  }",
+        "  Spline f() {",
+        "    Line x = new Line();",
+        "    x.j..!1;",
+        "  }",
+        "}",
+        "class Line {",
+        "  Spline j;",
+        "  Line g() {",
+        "    return this;",
+        "  }",
+        "  Spline h() {",
+        "    return null;",
+        "  }",
+        "}");
+    test(source, "1+b");
+  }
+
+  public void testCommentSnippets071() throws Exception {
+    String source = src(
+        "f(int x, [int a,int b, int c]) {",
+        "  int q;",
+        "  bool f = !!?!1a??b:!!?!2c == ?a?!!?c:?!3b;",
+        "}");
+    test(source, "1+a", "2+c", "2-q", "3+b");
+  }
+
+  public void testCommentSnippets072() throws Exception {
+    String source = src(
+        "class X {",
+        "  int _p;",
+        "  set p(int x) => _p = x;",
+        "}",
+        "f() {",
+        "  X x = new X();",
+        "  x.!1p = 3;",
+        "}");
+    test(source, "1+p");
+  }
+
+  public void testCommentSnippets073() throws Exception {
+    String source = src(
+        "class X {",
+        "  m() {",
+        "    JSON.stri!1;",
+        "    X f = null;",
+        "  }",
+        "}",
+        "class JSON {",
+        "  static stringify() {}",
+        "}");
+    test(source, "1+stringify");
+  }
+
+  public void testCommentSnippets074() throws Exception {
+    String source = src(//
+        "class X {",
+        "  m() {",
+        "    _x!1",
+        "  }",
+        "  _x1(){}",
+        "}");
+    test(source, "1+_x1");
+  }
+
+  public void testCommentSnippets075() throws Exception {
+    test("p(x)=>0;var E;f()=>!1p(!2E);", "1+p", "2+E");
+  }
+
+  public void testCommentSnippets076() throws Exception {
+    test(
+        "class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3int>>();}",
+        "1+List",
+        "2+int",
+        "3+int");
+  }
+
+  public void testCommentSnippets076a() throws Exception {
+    test(
+        "class Map<K,V>{}class List<E>{}class int{}main() {var m=new Map<Lis!1t<Map<int,in!2t>>,List<!3>>();}",
+        "1+List",
+        "2+int",
+        "3+int");
+  }
+
+//  public void testCommentSnippets077() throws Exception {
+//    test("import 'dart:io';f() => new Fil!1", "1+File", "1-FileMode._internal");
+//  }
+
+  // TODO Test for disallowed instance refs from within static methods; test which permits operators.
   public void testSingle() throws Exception {
     test("class A {int x; !2mth() {int y = this.x;}}class B{}", "2+B");
   }

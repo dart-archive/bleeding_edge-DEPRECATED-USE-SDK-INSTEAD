@@ -1,6 +1,7 @@
 package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
@@ -9,6 +10,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
@@ -30,6 +32,12 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   ContextAnalyzer(CompletionState state, ASTNode completionNode) {
     this.state = state;
     this.completionNode = completionNode;
+  }
+
+  @Override
+  public Void visitArgumentDefinitionTest(ArgumentDefinitionTest node) {
+    state.requiresOptionalArgument();
+    return super.visitArgumentDefinitionTest(node);
   }
 
   @Override
@@ -102,6 +110,12 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     inIdentifier = true;
     return super.visitSimpleIdentifier(node);
+  }
+
+  @Override
+  public Void visitTypeArgumentList(TypeArgumentList node) {
+    state.prohibitsUndefinedTypes();
+    return super.visitTypeArgumentList(node);
   }
 
   @Override

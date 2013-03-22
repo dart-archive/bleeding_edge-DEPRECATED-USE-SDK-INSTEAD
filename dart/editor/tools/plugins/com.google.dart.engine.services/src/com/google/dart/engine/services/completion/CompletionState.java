@@ -16,7 +16,9 @@ class CompletionState {
   boolean areOperatorsAllowed;
   boolean areStaticReferencesProhibited;
   boolean areInstanceReferencesProhibited;
+  boolean areUndefinedTypesProhibited;
   boolean isCompileTimeConstantRequired;
+  boolean isOptionalArgumentRequired;
 
   void includesLiterals() {
     if (!areLiteralsProhibited) {
@@ -29,8 +31,10 @@ class CompletionState {
   }
 
   void includesUndefinedDeclarationTypes() {
-    isVoidAllowed = true;
-    isDynamicAllowed = true;
+    if (!areUndefinedTypesProhibited) {
+      isVoidAllowed = true;
+      isDynamicAllowed = true;
+    }
   }
 
   void includesUndefinedTypes() {
@@ -55,8 +59,17 @@ class CompletionState {
     areStaticReferencesProhibited = true;
   }
 
+  void prohibitsUndefinedTypes() {
+    areUndefinedTypesProhibited = true;
+  }
+
   void requiresConst(boolean isConst) {
     isCompileTimeConstantRequired = isConst;
+  }
+
+  void requiresOptionalArgument() {
+    isOptionalArgumentRequired = true;
+    prohibitsLiterals();
   }
 
   void setContext(ASTNode base) {
