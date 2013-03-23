@@ -687,7 +687,8 @@ public class MainEngine {
     unit.getDirectives().add(importDirective("scanner.dart", "sc"));
     unit.getDirectives().add(importDirective("utilities_dart.dart", null));
     unit.getDirectives().add(importDirective("ast.dart", null));
-    unit.getDirectives().add(importDirective("parser.dart", null, importShowCombinator("Parser")));
+    unit.getDirectives().add(
+        importDirective("parser.dart", null, importShowCombinator("Parser", "ParserErrorCode")));
     unit.getDirectives().add(
         importDirective(
             "element.dart",
@@ -750,12 +751,14 @@ public class MainEngine {
     unit.getDirectives().add(importDirective(src_package + "source_io.dart", null));
     unit.getDirectives().add(importDirective(src_package + "error.dart", null));
     unit.getDirectives().add(importDirective(src_package + "scanner.dart", null));
+    unit.getDirectives().add(
+        importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
+    unit.getDirectives().add(
+        importDirective(src_package + "parser.dart", null, importShowCombinator("ParserErrorCode")));
     unit.getDirectives().add(importDirective(src_package + "element.dart", null));
     unit.getDirectives().add(importDirective(src_package + "resolver.dart", null));
     unit.getDirectives().add(importDirective(src_package + "engine.dart", null));
     unit.getDirectives().add(importDirective(src_package + "java_engine_io.dart", null));
-    unit.getDirectives().add(
-        importDirective(src_package + "ast.dart", null, importHideCombinator("Annotation")));
     unit.getDirectives().add(
         importDirective(src_package + "sdk.dart", null, importShowCombinator("DartSdk")));
     unit.getDirectives().add(importDirective("package:unittest/unittest.dart", "_ut"));
