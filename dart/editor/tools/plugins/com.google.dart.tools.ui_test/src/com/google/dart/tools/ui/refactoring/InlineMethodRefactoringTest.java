@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
+import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_OLD;
@@ -35,7 +36,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
   private int selection;
   private InlineMethodRefactoring_OLD refactoring;
   private RefactoringStatus refactoringStatus;
-  private InlineMethodRefactoring_OLD.Mode mode = InlineMethodRefactoring_OLD.Mode.INLINE_ALL;
+  private InlineMethodRefactoring.Mode mode = InlineMethodRefactoring.Mode.INLINE_ALL;
   private boolean deleteSource = true;
 
   public void test_access() throws Exception {
@@ -430,7 +431,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
     selection = findOffset("test(a, b) {");
     createRefactoring();
-    assertSame(InlineMethodRefactoring_OLD.Mode.INLINE_ALL, refactoring.getInitialMode());
+    assertSame(InlineMethodRefactoring.Mode.INLINE_ALL, refactoring.getInitialMode());
   }
 
   /**
@@ -447,7 +448,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
     selection = findOffset("test(1, 2)");
     createRefactoring();
-    assertSame(InlineMethodRefactoring_OLD.Mode.INLINE_SINGLE, refactoring.getInitialMode());
+    assertSame(InlineMethodRefactoring.Mode.INLINE_SINGLE, refactoring.getInitialMode());
   }
 
   public void test_method_qualifiedUnvocation_instanceField() throws Exception {
@@ -720,7 +721,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "  var res2 = test(10, 20);",
         "}");
     selection = findOffset("test(1, 2)");
-    mode = InlineMethodRefactoring_OLD.Mode.INLINE_SINGLE;
+    mode = InlineMethodRefactoring.Mode.INLINE_SINGLE;
     // this flag should be ignored
     deleteSource = true;
     // do refactoring
