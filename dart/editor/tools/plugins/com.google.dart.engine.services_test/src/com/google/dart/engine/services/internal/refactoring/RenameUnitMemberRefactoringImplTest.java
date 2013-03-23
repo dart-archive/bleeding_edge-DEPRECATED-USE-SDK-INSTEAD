@@ -14,7 +14,10 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.Source;
 
 /**
  * Test for {@link RenameUnitMemberRefactoringImpl}.
@@ -257,6 +260,68 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
         "  NewName t1 = new NewName();",
         "  NewName t2 = new NewName.named();",
         "}");
+  }
+
+  // XXX
+  public void test_createChange_ClassElement_multipleUnits() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library libA;",
+        "class Test {",
+        "  Test() {}",
+        "  Test.named() {}",
+        "}",
+        "class Other {",
+        "  factory Other.a() = Test;",
+        "  factory Other.b() = Test.named;",
+        "}",
+        "main() {",
+        "  Test t1 = new Test();",
+        "  Test t2 = new Test.named();",
+        "}");
+    CompilationUnit unitB = indexUnit(
+        "/B.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'Test.dart';",
+            "main() {",
+            "  Test t = new Test();",
+            "}"));
+    Source sourceB = unitB.getElement().getSource();
+    // configure refactoring
+    createRenameRefactoring("Test {");
+    assertEquals("Rename Class", refactoring.getRefactoringName());
+    refactoring.setNewName("NewName");
+    // validate change
+    assertRefactoringStatusOK();
+    Change refactoringChange = refactoring.createChange(pm);
+    assertChangeResult(
+        refactoringChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "class NewName {",
+            "  NewName() {}",
+            "  NewName.named() {}",
+            "}",
+            "class Other {",
+            "  factory Other.a() = NewName;",
+            "  factory Other.b() = NewName.named;",
+            "}",
+            "main() {",
+            "  NewName t1 = new NewName();",
+            "  NewName t2 = new NewName.named();",
+            "}"));
+    assertChangeResult(
+        refactoringChange,
+        sourceB,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "import 'Test.dart';",
+            "main() {",
+            "  NewName t = new NewName();",
+            "}"));
   }
 
   public void test_createChange_ClassElement_typedef() throws Exception {

@@ -14,7 +14,10 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+import com.google.dart.engine.source.Source;
 
 /**
  * Test for {@link RenameClassMemberRefactoringImpl}.
@@ -369,6 +372,75 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "  c.newName();",
         "  d.newName();",
         "}");
+  }
+
+  public void test_createChange_multipleUnits() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "library libA;",
+        "class A {",
+        "  int test;",
+        "  main() {",
+        "    print(test);",
+        "    test = 1;",
+        "    test += 2;",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.test);",
+        "  a.test = 1;",
+        "  a.test += 2;",
+        "}");
+    CompilationUnit unitB = indexUnit(
+        "/B.dart",
+        makeSource(
+            "import 'Test.dart';",
+            "main() {",
+            "  A a = new A();",
+            "  print(a.test);",
+            "  a.test = 1;",
+            "  a.test += 2;",
+            "}"));
+    Source sourceB = unitB.getElement().getSource();
+    // configure refactoring
+    createRenameRefactoring("test;");
+    assertEquals("Rename Field", refactoring.getRefactoringName());
+    refactoring.setNewName("newName");
+    // validate change
+    assertRefactoringStatusOK();
+    Change refactoringChange = refactoring.createChange(pm);
+    assertChangeResult(
+        refactoringChange,
+        testSource,
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library libA;",
+            "class A {",
+            "  int newName;",
+            "  main() {",
+            "    print(newName);",
+            "    newName = 1;",
+            "    newName += 2;",
+            "  }",
+            "}",
+            "main() {",
+            "  A a = new A();",
+            "  print(a.newName);",
+            "  a.newName = 1;",
+            "  a.newName += 2;",
+            "}"));
+    assertChangeResult(
+        refactoringChange,
+        sourceB,
+        makeSource(
+            "import 'Test.dart';",
+            "main() {",
+            "  A a = new A();",
+            "  print(a.newName);",
+            "  a.newName = 1;",
+            "  a.newName += 2;",
+            "}"));
   }
 
   public void test_createChange_PropertyAccessorElement_getter() throws Exception {

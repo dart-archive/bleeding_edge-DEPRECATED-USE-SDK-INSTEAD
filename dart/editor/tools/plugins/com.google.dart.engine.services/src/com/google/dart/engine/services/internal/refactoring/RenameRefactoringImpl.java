@@ -33,6 +33,13 @@ import static com.google.dart.engine.utilities.source.SourceRangeFactory.rangeEl
  */
 public abstract class RenameRefactoringImpl extends RefactoringImpl implements RenameRefactoring {
   /**
+   * @return the {@link Edit} to replace the given {@link SearchMatch} reference.
+   */
+  protected static Edit createReferenceEdit(SearchMatch reference, String newText) {
+    return new Edit(reference.getSourceRange(), newText);
+  }
+
+  /**
    * @return if given unqualified {@link SearchMatch} intersects with visibility range of
    *         {@link LocalElement}.
    */
@@ -48,16 +55,14 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   }
 
   protected final SearchEngine searchEngine;
-  protected final Element element;
 
-  protected final Source elementSource;
+  protected final Element element;
 
   protected String newName;
 
   public RenameRefactoringImpl(SearchEngine searchEngine, Element element) {
     this.searchEngine = searchEngine;
     this.element = element;
-    this.elementSource = element.getSource();
   }
 
   @Override
@@ -99,7 +104,7 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
   /**
    * @return the {@link Edit} to rename declaration if the given {@link Element}.
    */
-  protected Edit createDeclarationRenameEdit(Element element) {
+  protected final Edit createDeclarationRenameEdit(Element element) {
     return new Edit(rangeElementName(element), newName);
   }
 
@@ -107,6 +112,6 @@ public abstract class RenameRefactoringImpl extends RefactoringImpl implements R
    * @return the {@link Edit} to set new name for the given {@link SearchMatch} reference.
    */
   protected final Edit createReferenceRenameEdit(SearchMatch reference) {
-    return new Edit(reference.getSourceRange(), newName);
+    return createReferenceEdit(reference, newName);
   }
 }

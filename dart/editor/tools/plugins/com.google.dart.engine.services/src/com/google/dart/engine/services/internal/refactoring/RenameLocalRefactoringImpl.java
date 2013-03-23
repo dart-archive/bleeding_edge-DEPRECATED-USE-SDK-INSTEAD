@@ -82,7 +82,7 @@ public class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    SourceChange change = new SourceChange(getRefactoringName(), elementSource);
+    SourceChange change = new SourceChange(getRefactoringName(), element.getSource());
     // update declaration
     change.addEdit("Update declaration", createDeclarationRenameEdit());
     // update references

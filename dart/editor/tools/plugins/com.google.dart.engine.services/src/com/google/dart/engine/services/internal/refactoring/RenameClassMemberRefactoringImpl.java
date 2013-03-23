@@ -22,12 +22,15 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.source.Source;
 
 /**
  * {@link Refactoring} for renaming {@link FieldElement} and {@link MethodElement}.
@@ -81,18 +84,29 @@ public class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    SourceChange change = new SourceChange(getRefactoringName(), elementSource);
-    // update declaration
-    for (Element renameElement : validator.renameElements) {
-      if (!renameElement.isSynthetic()) {
-        change.addEdit("Update declaration", createDeclarationRenameEdit(renameElement));
+    try {
+      SourceChangeManager changeManager = new SourceChangeManager();
+      // update declaration
+      for (Element renameElement : validator.renameElements) {
+        if (!renameElement.isSynthetic()) {
+          Source elementSource = renameElement.getSource();
+          SourceChange elementChange = changeManager.get(elementSource);
+          elementChange.addEdit("Update declaration", createDeclarationRenameEdit(renameElement));
+        }
       }
+      // update references
+      for (SearchMatch reference : validator.renameElementsReferences) {
+        Source refSource = reference.getElement().getSource();
+        SourceChange refChange = changeManager.get(refSource);
+        refChange.addEdit("Update reference", createReferenceRenameEdit(reference));
+      }
+      // return CompositeChange
+      CompositeChange compositeChange = new CompositeChange(getRefactoringName());
+      compositeChange.add(changeManager.getChanges());
+      return compositeChange;
+    } finally {
+      pm.done();
     }
-    // update references
-    for (SearchMatch reference : validator.renameElementsReferences) {
-      change.addEdit("Update reference", createReferenceRenameEdit(reference));
-    }
-    return change;
   }
 
   @Override

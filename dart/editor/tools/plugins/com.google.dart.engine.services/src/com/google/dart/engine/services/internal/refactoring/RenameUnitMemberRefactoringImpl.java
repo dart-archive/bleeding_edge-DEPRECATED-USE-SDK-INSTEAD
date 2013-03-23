@@ -17,18 +17,21 @@ package com.google.dart.engine.services.internal.refactoring;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.source.Source;
 
 import java.util.List;
 
@@ -85,15 +88,28 @@ public class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    SourceChange change = new SourceChange(getRefactoringName(), elementSource);
-    // update declaration
-    change.addEdit("Update declaration", createDeclarationRenameEdit());
-    // update references
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-    for (SearchMatch reference : references) {
-      change.addEdit("Update reference", createReferenceRenameEdit(reference));
+    try {
+      SourceChangeManager changeManager = new SourceChangeManager();
+      // update declaration
+      {
+        Source elementSource = element.getSource();
+        SourceChange elementChange = changeManager.get(elementSource);
+        elementChange.addEdit("Update declaration", createDeclarationRenameEdit());
+      }
+      // update references
+      List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+      for (SearchMatch reference : references) {
+        Source refSource = reference.getElement().getSource();
+        SourceChange refChange = changeManager.get(refSource);
+        refChange.addEdit("Update reference", createReferenceRenameEdit(reference));
+      }
+      // return CompositeChange
+      CompositeChange compositeChange = new CompositeChange(getRefactoringName());
+      compositeChange.add(changeManager.getChanges());
+      return compositeChange;
+    } finally {
+      pm.done();
     }
-    return change;
   }
 
   @Override

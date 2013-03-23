@@ -664,7 +664,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
     assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.OK, null);
     Change change = refactoring.createChange(pm);
-    assertChangeResult(change, makeSource(lines));
+    assertTestChangeResult(change, makeSource(lines));
   }
 
   /**
@@ -709,9 +709,7 @@ public class ExtractLocalRefactoringImplTest extends RefactoringImplTest {
    */
   @SuppressWarnings("unused")
   private void printRefactoringResultSource() throws Exception {
-    Change change = refactoring.createChange(pm);
-    String changedCode = getTestSourceChangeResult(change);
-    printSourceLines(changedCode);
+    printRefactoringTestSourceResult(refactoring);
   }
 
   /**

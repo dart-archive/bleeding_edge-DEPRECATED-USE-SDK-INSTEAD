@@ -28,10 +28,9 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
   protected RenameRefactoring refactoring;
 
   /**
-   * Checks that all conditions are <code>OK</code> and applying {@link Change} to the
-   * {@link #testUnit} is same source as given lines.
+   * Asserts that {@link #refactoring} status is OK.
    */
-  protected final void assertSuccessfulRename(String... lines) throws Exception {
+  protected final void assertRefactoringStatusOK() throws Exception {
     assertRefactoringStatus(
         refactoring.checkInitialConditions(pm),
         RefactoringStatusSeverity.OK,
@@ -40,8 +39,16 @@ public abstract class RenameRefactoringImplTest extends RefactoringImplTest {
         refactoring.checkFinalConditions(pm),
         RefactoringStatusSeverity.OK,
         null);
+  }
+
+  /**
+   * Checks that all conditions are <code>OK</code> and applying {@link Change} to the
+   * {@link #testUnit} is same source as given lines.
+   */
+  protected final void assertSuccessfulRename(String... lines) throws Exception {
+    assertRefactoringStatusOK();
     Change change = refactoring.createChange(pm);
-    assertChangeResult(change, makeSource(lines));
+    assertTestChangeResult(change, makeSource(lines));
   }
 
   /**

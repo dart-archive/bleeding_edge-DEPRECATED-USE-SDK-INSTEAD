@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
 import com.google.dart.engine.services.correction.CorrectionImage;
 import com.google.dart.engine.services.status.RefactoringStatus;
@@ -54,15 +55,25 @@ public class ServiceUtils {
    * @return the LTK change for the given Services {@link Change}.
    */
   public static org.eclipse.ltk.core.refactoring.Change toLTK(Change change) {
-    // TODO(scheglov) support more Engine changes
-    SourceChange sourceChange = (SourceChange) change;
-    Source source = sourceChange.getSource();
-    IFile file = (IFile) DartCore.getProjectManager().getResource(source);
-    TextFileChange ltkChange = new TextFileChange(source.getShortName(), file);
-    ltkChange.setEdit(new MultiTextEdit());
-    List<Edit> edits = sourceChange.getEdits();
-    for (Edit edit : edits) {
-      ltkChange.addEdit(new ReplaceEdit(edit.offset, edit.length, edit.replacement));
+    // leaf SourceChange
+    if (change instanceof SourceChange) {
+      SourceChange sourceChange = (SourceChange) change;
+      Source source = sourceChange.getSource();
+      IFile file = (IFile) DartCore.getProjectManager().getResource(source);
+      TextFileChange ltkChange = new TextFileChange(source.getShortName(), file);
+      ltkChange.setEdit(new MultiTextEdit());
+      List<Edit> edits = sourceChange.getEdits();
+      for (Edit edit : edits) {
+        ltkChange.addEdit(new ReplaceEdit(edit.offset, edit.length, edit.replacement));
+      }
+      return ltkChange;
+    }
+    // should be CompositeChange
+    CompositeChange compositeChange = (CompositeChange) change;
+    org.eclipse.ltk.core.refactoring.CompositeChange ltkChange = new org.eclipse.ltk.core.refactoring.CompositeChange(
+        compositeChange.getName());
+    for (Change child : compositeChange.getChildren()) {
+      ltkChange.add(toLTK(child));
     }
     // TODO(scheglov) edit groups
     return ltkChange;

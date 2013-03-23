@@ -19,18 +19,20 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.MethodElement;
-import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.change.Change;
+import com.google.dart.engine.services.change.CompositeChange;
 import com.google.dart.engine.services.change.SourceChange;
+import com.google.dart.engine.services.change.SourceChangeManager;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.source.Source;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getChildren;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
@@ -73,26 +75,35 @@ public class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @Override
   public Change createChange(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
-    SourceChange change = new SourceChange(getRefactoringName(), elementSource);
-    String replacement = newName.isEmpty() ? "" : "." + newName;
-    List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
-    // update declaration
-    if (!element.isSynthetic()) {
-      for (SearchMatch reference : references) {
-        if (reference.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
-          Edit edit = new Edit(reference.getSourceRange(), replacement);
-          change.addEdit("Update declaration", edit);
+    try {
+      SourceChangeManager changeManager = new SourceChangeManager();
+      String replacement = newName.isEmpty() ? "" : "." + newName;
+      List<SearchMatch> references = searchEngine.searchReferences(element, null, null);
+      // update declaration
+      if (!element.isSynthetic()) {
+        for (SearchMatch reference : references) {
+          if (reference.getKind() == MatchKind.CONSTRUCTOR_DECLARATION) {
+            Source refSource = reference.getElement().getSource();
+            SourceChange refChange = changeManager.get(refSource);
+            refChange.addEdit("Update declaration", createReferenceEdit(reference, replacement));
+          }
         }
       }
-    }
-    // update references
-    for (SearchMatch reference : references) {
-      if (reference.getKind() == MatchKind.CONSTRUCTOR_REFERENCE) {
-        Edit edit = new Edit(reference.getSourceRange(), replacement);
-        change.addEdit("Update reference", edit);
+      // update references
+      for (SearchMatch reference : references) {
+        if (reference.getKind() == MatchKind.CONSTRUCTOR_REFERENCE) {
+          Source refSource = reference.getElement().getSource();
+          SourceChange refChange = changeManager.get(refSource);
+          refChange.addEdit("Update reference", createReferenceEdit(reference, replacement));
+        }
       }
+      // return CompositeChange
+      CompositeChange compositeChange = new CompositeChange(getRefactoringName());
+      compositeChange.add(changeManager.getChanges());
+      return compositeChange;
+    } finally {
+      pm.done();
     }
-    return change;
   }
 
   @Override

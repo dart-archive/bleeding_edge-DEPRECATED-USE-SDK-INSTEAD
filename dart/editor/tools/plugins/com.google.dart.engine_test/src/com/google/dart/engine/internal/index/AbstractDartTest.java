@@ -53,7 +53,6 @@ public class AbstractDartTest extends TestCase {
   private static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
       defaultSdk));
   private static AnalysisContext ANALYSIS_CONTEXT;
-  private static Source SOURCE;
 
   /**
    * @return {@link ASTNode} which has required offset and type.
@@ -85,27 +84,25 @@ public class AbstractDartTest extends TestCase {
   /**
    * @return the resolved {@link CompilationUnit} for given Dart code.
    */
-  public static CompilationUnit parseUnit(String code) throws Exception {
+  public static CompilationUnit parseUnit(String path, String code) throws Exception {
     // initialize AnslysisContext
     if (ANALYSIS_CONTEXT == null) {
       ANALYSIS_CONTEXT = AnalysisEngine.getInstance().createAnalysisContext();
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
-      // use single Source
-      SOURCE = new FileBasedSource(sourceFactory, FileUtilities2.createFile("/Test.dart"));
-      {
-        sourceFactory.setContents(SOURCE, "");
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.added(SOURCE);
-        ANALYSIS_CONTEXT.applyChanges(changeSet);
-      }
     }
-    // update source
+    // configure Source
+    Source source = new FileBasedSource(sourceFactory, FileUtilities2.createFile(path));
     {
-      ANALYSIS_CONTEXT.setContents(SOURCE, code);
+      sourceFactory.setContents(source, "");
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.added(source);
+      ANALYSIS_CONTEXT.applyChanges(changeSet);
     }
+    // update Source
+    ANALYSIS_CONTEXT.setContents(source, code);
     // parse and resolve
-    LibraryElement library = ANALYSIS_CONTEXT.computeLibraryElement(SOURCE);
-    CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolveCompilationUnit(SOURCE, library);
+    LibraryElement library = ANALYSIS_CONTEXT.computeLibraryElement(source);
+    CompilationUnit libraryUnit = ANALYSIS_CONTEXT.resolveCompilationUnit(source, library);
     return libraryUnit;
   }
 
@@ -241,7 +238,7 @@ public class AbstractDartTest extends TestCase {
    */
   protected final void parseTestUnit(String... lines) throws Exception {
     testCode = makeSource(lines);
-    testUnit = parseUnit(testCode);
+    testUnit = parseUnit("/Test.dart", testCode);
     testSource = testUnit.getElement().getSource();
     testUnitElement = testUnit.getElement();
     testLibraryElement = testUnitElement.getEnclosingElement();

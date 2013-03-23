@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.formatter.edit.Edit;
@@ -30,6 +31,7 @@ import com.google.dart.engine.services.refactoring.NullProgressMonitor;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.Refactoring;
 import com.google.dart.engine.services.refactoring.RenameRefactoring;
+import com.google.dart.engine.source.Source;
 
 import java.util.List;
 
@@ -37,39 +39,62 @@ import java.util.List;
  * Abstract test for testing {@link RenameRefactoring}s.
  */
 public abstract class RefactoringImplTest extends AbstractDartTest {
-  protected final ProgressMonitor pm = new NullProgressMonitor();
-  private Index index;
-  protected SearchEngine searchEngine;
-
   /**
-   * Assert result of applying given {@link Change} to the {@link #testCode}.
+   * @return the result of applying given {@link SourceChange} to the {@link #testCode}.
    */
-  protected final void assertChangeResult(Change change, String expected) {
-    String changedCode = getTestSourceChangeResult(change);
-    assertEquals(expected, changedCode);
+  private static String getChangeResult(Source source, SourceChange change) throws Exception {
+    String sourceCode = CorrectionUtils.getSourceContent(source);
+    List<Edit> sourceEdits = change.getEdits();
+    return CorrectionUtils.applyReplaceEdits(sourceCode, sourceEdits);
   }
 
   /**
-   * @return the result of applying given {@link SourceChange} (casted) to the {@link #testCode}.
+   * @return the {@link SourceChange} for the given {@link Source}.
    */
-  protected final String getTestSourceChangeResult(Change change) {
+  private static SourceChange getSourceChange(Change change, Source source) {
+    // may be SourceChange
+    if (change instanceof SourceChange) {
+      SourceChange sourceChange = (SourceChange) change;
+      if (sourceChange.getSource() == source) {
+        return sourceChange;
+      }
+    }
     // may be CompositeChange
     if (change instanceof CompositeChange) {
       CompositeChange compositeChange = (CompositeChange) change;
       for (Change child : compositeChange.getChildren()) {
-        if (child instanceof SourceChange) {
-          SourceChange sourceChange = (SourceChange) child;
-          if (sourceChange.getSource() == testUnit.getElement().getSource()) {
-            List<Edit> sourceEdits = sourceChange.getEdits();
-            return CorrectionUtils.applyReplaceEdits(testCode, sourceEdits);
-          }
+        SourceChange sourceChange = getSourceChange(child, source);
+        if (sourceChange != null) {
+          return sourceChange;
         }
       }
     }
-    // expect SourceChange
-    SourceChange sourceChange = (SourceChange) change;
-    List<Edit> sourceEdits = sourceChange.getEdits();
-    return CorrectionUtils.applyReplaceEdits(testCode, sourceEdits);
+    // not found
+    return null;
+  }
+
+  protected final ProgressMonitor pm = new NullProgressMonitor();
+
+  private Index index;
+
+  protected SearchEngine searchEngine;
+
+  /**
+   * Assert result of applying given {@link Change} to the "source".
+   */
+  protected final void assertChangeResult(Change compositeChange, Source source, String expected)
+      throws Exception {
+    SourceChange sourceChange = getSourceChange(compositeChange, source);
+    String sourceResult = getChangeResult(source, sourceChange);
+    assertEquals(expected, sourceResult);
+  }
+
+  /**
+   * Assert result of applying given {@link Change} to the {@link #testCode}.
+   */
+  protected final void assertTestChangeResult(Change compositeChange, String expected)
+      throws Exception {
+    assertChangeResult(compositeChange, testSource, expected);
   }
 
   /**
@@ -82,12 +107,23 @@ public abstract class RefactoringImplTest extends AbstractDartTest {
   }
 
   /**
-   * Prints given multi-line source of the result of applying of {@link SourceChange} (casted) to
-   * the {@link #testCode}.
+   * Parses and index given source code.
+   */
+  protected final CompilationUnit indexUnit(String path, String code) throws Exception {
+    CompilationUnit unit = parseUnit(path, code);
+    AnalysisContext context = unit.getElement().getContext();
+    index.indexUnit(context, unit);
+    return unit;
+  }
+
+  /**
+   * Prints lines of result applying {@link Refactoring} to the the {@link #testSource}.
    */
   protected final void printRefactoringTestSourceResult(Refactoring refactoring) throws Exception {
-    Change change = refactoring.createChange(pm);
-    printSourceLines(getTestSourceChangeResult(change));
+    Change refactoringChange = refactoring.createChange(pm);
+    SourceChange testChange = getSourceChange(refactoringChange, testSource);
+    String testResult = getChangeResult(testSource, testChange);
+    printSourceLines(testResult);
   }
 
   @Override

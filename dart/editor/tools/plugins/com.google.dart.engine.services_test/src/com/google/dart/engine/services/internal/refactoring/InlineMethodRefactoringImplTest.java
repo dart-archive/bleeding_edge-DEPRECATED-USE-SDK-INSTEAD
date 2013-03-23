@@ -794,7 +794,7 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
   protected final void assertSuccessfulRefactoring(String... lines) throws Exception {
     assertRefactoringStatus(refactoringStatus, RefactoringStatusSeverity.OK, null);
     Change change = refactoring.createChange(pm);
-    assertChangeResult(change, makeSource(lines));
+    assertTestChangeResult(change, makeSource(lines));
   }
 
 //  private void assert_fatalError_selection() {
@@ -821,8 +821,6 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
    */
   @SuppressWarnings("unused")
   private void printRefactoringResultSource() throws Exception {
-    Change change = refactoring.createChange(pm);
-    String changedCode = getTestSourceChangeResult(change);
-    printSourceLines(changedCode);
+    printRefactoringTestSourceResult(refactoring);
   }
 }

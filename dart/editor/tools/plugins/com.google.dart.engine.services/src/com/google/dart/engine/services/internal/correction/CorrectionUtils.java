@@ -390,6 +390,25 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the {@link String} content of the given {@link Source}.
+   */
+  public static String getSourceContent(Source source) throws Exception {
+    final String result[] = {null};
+    source.getContents(new Source.ContentReceiver() {
+      @Override
+      public void accept(CharBuffer contents) {
+        result[0] = contents.toString();
+      }
+
+      @Override
+      public void accept(String contents) {
+        result[0] = contents;
+      }
+    });
+    return result[0];
+  }
+
+  /**
    * @return given {@link DartStatement} if not {@link DartBlock}, all children
    *         {@link DartStatement}s if {@link DartBlock}.
    */
@@ -684,24 +703,13 @@ public class CorrectionUtils {
   }
 
   private final CompilationUnit unit;
-
-  private String buffer;
+  private final String buffer;
 
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
     this.unit = unit;
-    unit.getElement().getSource().getContents(new Source.ContentReceiver() {
-      @Override
-      public void accept(CharBuffer contents) {
-        buffer = contents.toString();
-      }
-
-      @Override
-      public void accept(String contents) {
-        buffer = contents;
-      }
-    });
+    this.buffer = getSourceContent(unit.getElement().getSource());
   }
 
   /**
