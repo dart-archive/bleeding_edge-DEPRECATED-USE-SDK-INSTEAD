@@ -29,7 +29,7 @@ import com.google.dart.tools.internal.corext.refactoring.code.ConvertGetterToMet
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertMethodToGetterRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.ConvertOptionalParametersToNamedRefactoring;
 import com.google.dart.tools.internal.corext.refactoring.code.InlineLocalRefactoring_OLD;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_OLD;
 import com.google.dart.tools.ui.cleanup.ICleanUp;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoring;
 import com.google.dart.tools.ui.internal.cleanup.CleanUpRefactoringWizard;
@@ -318,7 +318,7 @@ public final class RefactoringExecutionStarter_OLD {
       DartElement[] elements = unit.codeSelect(offset, length);
       if (elements.length == 1 && elements[0] instanceof DartFunction) {
         DartFunction method = (DartFunction) elements[0];
-        InlineMethodRefactoring refactoring = new InlineMethodRefactoring(method, unit, offset);
+        InlineMethodRefactoring_OLD refactoring = new InlineMethodRefactoring_OLD(method, unit, offset);
         if (refactoring != null) {
           new RefactoringStarter().activate(
               new InlineMethodWizard(refactoring),

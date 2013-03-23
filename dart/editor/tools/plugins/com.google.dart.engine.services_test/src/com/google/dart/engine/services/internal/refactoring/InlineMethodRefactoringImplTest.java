@@ -13,12 +13,16 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.change.Change;
 import com.google.dart.engine.services.refactoring.ExtractLocalRefactoring;
 import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusSeverity;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 /**
  * Test for {@link InlineMethodRefactoringImpl}.
@@ -99,6 +103,10 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
     createRefactoring();
     // name
     assertEquals("Inline Function", refactoring.getRefactoringName());
+    // element
+    ExecutableElement element = refactoring.getElement();
+    assertThat(element).isInstanceOf(FunctionElement.class);
+    assertEquals("test", element.getName());
   }
 
   public void test_access_MethodElement() throws Exception {
@@ -189,6 +197,22 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         refactoringStatus,
         RefactoringStatusSeverity.ERROR,
         "Ambiguous return value.");
+  }
+
+  public void test_canDeleteSource() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "test(a, b) {",
+        "  return a + b;",
+        "}",
+        "main() {",
+        "  var res = test(1, 2);",
+        "}");
+    selection = findOffset("test(1, 2)");
+    createRefactoring();
+    // check
+    // TODO(scheglov) currently always "true"
+    assertEquals(true, refactoring.canDeleteSource());
   }
 
   public void test_function_expressionFunctionBody() throws Exception {

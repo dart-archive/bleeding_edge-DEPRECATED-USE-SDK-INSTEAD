@@ -35,7 +35,7 @@ public class InlineAction_OLD extends InstrumentedSelectionDispatchAction {
 
   private DartEditor fEditor;
   private final InlineLocalAction_OLD fInlineTemp;
-  private final InlineMethodAction fInlineMethod;
+  private final InlineMethodAction_OLD fInlineMethod;
 
 //  private final InlineConstantAction fInlineConstant;
 
@@ -45,7 +45,7 @@ public class InlineAction_OLD extends InstrumentedSelectionDispatchAction {
     setText(RefactoringMessages.InlineAction_Inline);
     fEditor = editor;
     fInlineTemp = new InlineLocalAction_OLD(editor);
-    fInlineMethod = new InlineMethodAction(editor);
+    fInlineMethod = new InlineMethodAction_OLD(editor);
 //    fInlineConstant = new InlineConstantAction(editor);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
     setEnabled(SelectionConverter.getInputAsCompilationUnit(fEditor) != null);
@@ -55,7 +55,7 @@ public class InlineAction_OLD extends InstrumentedSelectionDispatchAction {
     super(site);
     setText(RefactoringMessages.InlineAction_Inline);
     fInlineTemp = new InlineLocalAction_OLD(site);
-    fInlineMethod = new InlineMethodAction(site);
+    fInlineMethod = new InlineMethodAction_OLD(site);
 //    fInlineConstant = new InlineConstantAction(site);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }

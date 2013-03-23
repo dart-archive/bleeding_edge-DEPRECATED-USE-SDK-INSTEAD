@@ -185,6 +185,12 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   @Override
+  public boolean canDeleteSource() {
+    // TODO(scheglov) check that declaration and all references can be updated 
+    return true;
+  }
+
+  @Override
   public RefactoringStatus checkFinalConditions(ProgressMonitor pm) throws Exception {
     pm = checkProgressMonitor(pm);
     pm.beginTask("Checking final conditions", 5);
@@ -328,6 +334,11 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     } finally {
       pm.done();
     }
+  }
+
+  @Override
+  public ExecutableElement getElement() {
+    return methodElement;
   }
 
   @Override

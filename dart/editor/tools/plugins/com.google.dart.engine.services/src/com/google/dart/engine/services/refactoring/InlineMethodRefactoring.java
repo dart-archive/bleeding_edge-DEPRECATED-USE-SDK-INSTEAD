@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.services.refactoring;
 
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.MethodElement;
 
@@ -25,6 +26,16 @@ public interface InlineMethodRefactoring extends Refactoring {
     INLINE_ALL,
     INLINE_SINGLE;
   }
+
+  /**
+   * @return <code>true</code> if it is possible to inline all references and remove declaration.
+   */
+  boolean canDeleteSource();
+
+  /**
+   * @return the {@link ExecutableElement} to inline.
+   */
+  ExecutableElement getElement();
 
   /**
    * @return the initial inlining {@link Mode}.

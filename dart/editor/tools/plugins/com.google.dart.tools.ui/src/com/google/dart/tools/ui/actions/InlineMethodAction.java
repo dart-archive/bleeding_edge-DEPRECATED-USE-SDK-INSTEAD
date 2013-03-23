@@ -1,146 +1,76 @@
+/*
+ * Copyright (c) 2013, the Dart project authors.
+ * 
+ * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * 
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.google.dart.tools.ui.actions;
 
-import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Method;
-import com.google.dart.tools.core.model.SourceRange;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailabilityTester;
-import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter_OLD;
-import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ElementKind;
+import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
+import com.google.dart.engine.services.refactoring.RefactoringFactory;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_I;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.ActionUtil;
-import com.google.dart.tools.ui.internal.actions.SelectionConverter;
+import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.ServiceInlineMethodRefactoring;
+import com.google.dart.tools.ui.internal.refactoring.actions.RefactoringStarter;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
-import com.google.dart.tools.ui.internal.util.DartModelUtil;
-import com.google.dart.tools.ui.internal.util.ExceptionHandler;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
-import org.eclipse.core.runtime.Assert;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Event;
+import org.eclipse.jface.action.Action;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * Inlines a method.
+ * {@link Action} for "Inline Method" refactoring.
  */
-public class InlineMethodAction extends InstrumentedSelectionDispatchAction {
-
-  private DartEditor fEditor;
-
+public class InlineMethodAction extends AbstractDartSelectionAction {
   public InlineMethodAction(DartEditor editor) {
-    this(editor.getEditorSite());
-    fEditor = editor;
-    setEnabled(SelectionConverter.canOperateOn(fEditor));
+    super(editor);
   }
 
-  public InlineMethodAction(IWorkbenchSite site) {
-    super(site);
-    setText(RefactoringMessages.InlineMethodAction_inline_Method);
+  @Override
+  public void selectionChanged(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    if (element == null) {
+      setEnabled(false);
+      return;
+    }
+    ElementKind elementKind = element.getKind();
+    setEnabled(elementKind == ElementKind.METHOD || elementKind == ElementKind.FUNCTION);
+  }
+
+  @Override
+  protected void init() {
+    setText(RefactoringMessages.InlineLocalAction_label);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }
 
-  @Override
-  public void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-
+  boolean tryInline(AssistContext context, Shell shell) {
     try {
-      Assert.isTrue(RefactoringAvailabilityTester.isInlineMethodAvailable(selection));
-      Method method = (Method) selection.getFirstElement();
-      SourceRange nameRange = method.getNameRange();
-      instrumentation.data("MethodsName", method.getElementName());
-      instrumentation.record(method.getCompilationUnit());
-
-      run(nameRange.getOffset(), nameRange.getLength(), method.getCompilationUnit());
-    } catch (DartModelException e) {
-      ExceptionHandler.handle(
-          e,
-          getShell(),
+      InlineMethodRefactoring refactoring = RefactoringFactory.createInlineMethodRefactoring(context);
+      InlineMethodRefactoring_I ltkRefactoring = new ServiceInlineMethodRefactoring(refactoring);
+      new RefactoringStarter().activate(
+          new InlineMethodWizard(ltkRefactoring),
+          shell,
           RefactoringMessages.InlineMethodAction_dialog_title,
-          RefactoringMessages.InlineMethodAction_unexpected_exception);
-    }
-  }
-
-  @Override
-  public void doRun(ITextSelection selection, Event event, UIInstrumentationBuilder instrumentation) {
-    DartElement element = SelectionConverter.getInput(fEditor);
-    if (element == null) {
-      instrumentation.metric("Problem", "Element was null");
-      return;
-    }
-    CompilationUnit unit = element.getAncestor(CompilationUnit.class);
-    if (unit == null) {
-      instrumentation.metric("Problem", "CompilationUnit was null");
-      return;
-    }
-    if (!DartElementUtil.isSourceAvailable(unit)) {
-      instrumentation.metric("Problem", "SourceNotAvailable");
-      return;
-    }
-
-    instrumentation.record(unit);
-    run(selection.getOffset(), selection.getLength(), unit);
-  }
-
-  @Override
-  public void selectionChanged(DartTextSelection selection) {
-    try {
-      setEnabled(RefactoringAvailabilityTester.isInlineMethodAvailable(selection));
-    } catch (DartModelException e) {
-      setEnabled(false);
-    }
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    try {
-      setEnabled(RefactoringAvailabilityTester.isInlineMethodAvailable(selection));
-    } catch (DartModelException e) {
-      if (DartModelUtil.isExceptionToBeLogged(e)) {
-        DartToolsPlugin.log(e);
-      }
-    }
-  }
-
-  @Override
-  public void selectionChanged(ITextSelection selection) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(scheglov)
-      setEnabled(false);
-    } else {
-      setEnabled(true);
-    }
-  }
-
-  public boolean tryInlineMethod(CompilationUnit unit, ITextSelection selection, Shell shell) {
-    return RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(
-        unit,
-        selection.getOffset(),
-        selection.getLength(),
-        shell);
-  }
-
-  private void run(int offset, int length, CompilationUnit unit) {
-    if (!ActionUtil.isEditable(fEditor, getShell(), unit)) {
-      return;
-    }
-    if (!RefactoringExecutionStarter_OLD.startInlineMethodRefactoring(
-        unit,
-        offset,
-        length,
-        getShell())) {
-      MessageDialog.openInformation(
-          getShell(),
-          RefactoringMessages.InlineMethodAction_dialog_title,
-          RefactoringMessages.InlineMethodAction_no_method_invocation_or_declaration_selected);
+          RefactoringSaveHelper.SAVE_ALL);
+      return true;
+    } catch (Throwable e) {
+      DartToolsPlugin.log(e);
+      return false;
     }
   }
 }

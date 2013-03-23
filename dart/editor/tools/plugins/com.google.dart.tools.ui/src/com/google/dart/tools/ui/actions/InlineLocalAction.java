@@ -51,7 +51,13 @@ public class InlineLocalAction extends AbstractDartSelectionAction {
     setEnabled(element.getKind() == ElementKind.LOCAL_VARIABLE);
   }
 
-  public boolean tryInlineTemp(AssistContext context, Shell shell) {
+  @Override
+  protected void init() {
+    setText(RefactoringMessages.InlineLocalAction_label);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
+  }
+
+  boolean tryInline(AssistContext context, Shell shell) {
     try {
       InlineLocalRefactoring refactoring = RefactoringFactory.createInlineLocalRefactoring(context);
       InlineLocalRefactoring_I ltkRefactoring = new ServiceInlineLocalRefactoring(refactoring);
@@ -65,11 +71,5 @@ public class InlineLocalAction extends AbstractDartSelectionAction {
       DartToolsPlugin.log(e);
       return false;
     }
-  }
-
-  @Override
-  protected void init() {
-    setText(RefactoringMessages.InlineLocalAction_label);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.INLINE_ACTION);
   }
 }

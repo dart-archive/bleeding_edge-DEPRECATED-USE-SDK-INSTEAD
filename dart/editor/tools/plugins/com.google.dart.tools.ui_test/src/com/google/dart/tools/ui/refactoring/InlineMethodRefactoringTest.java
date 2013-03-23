@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartFunction;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_OLD;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -27,15 +27,15 @@ import org.eclipse.ltk.core.refactoring.PerformChangeOperation;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 
 /**
- * Test for {@link InlineMethodRefactoring}.
+ * Test for {@link InlineMethodRefactoring_OLD}.
  */
 public final class InlineMethodRefactoringTest extends RefactoringTest {
   private static final IProgressMonitor pm = new NullProgressMonitor();
 
   private int selection;
-  private InlineMethodRefactoring refactoring;
+  private InlineMethodRefactoring_OLD refactoring;
   private RefactoringStatus refactoringStatus;
-  private InlineMethodRefactoring.Mode mode = InlineMethodRefactoring.Mode.INLINE_ALL;
+  private InlineMethodRefactoring_OLD.Mode mode = InlineMethodRefactoring_OLD.Mode.INLINE_ALL;
   private boolean deleteSource = true;
 
   public void test_access() throws Exception {
@@ -96,7 +96,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
   }
 
   /**
-   * Test for {@link InlineMethodRefactoring#canEnableDeleteSource()}
+   * Test for {@link InlineMethodRefactoring_OLD#canEnableDeleteSource()}
    */
   @SuppressWarnings("deprecation")
   public void test_canEnableDeleteSource_false() throws Exception {
@@ -125,7 +125,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
   }
 
   /**
-   * Test for {@link InlineMethodRefactoring#canEnableDeleteSource()}
+   * Test for {@link InlineMethodRefactoring_OLD#canEnableDeleteSource()}
    */
   public void test_canEnableDeleteSource_true() throws Exception {
     setTestUnitContent(
@@ -417,7 +417,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
   }
 
   /**
-   * Test for {@link InlineMethodRefactoring#getInitialMode()}
+   * Test for {@link InlineMethodRefactoring_OLD#getInitialMode()}
    */
   public void test_getInitialMode_all() throws Exception {
     setTestUnitContent(
@@ -430,11 +430,11 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
     selection = findOffset("test(a, b) {");
     createRefactoring();
-    assertSame(InlineMethodRefactoring.Mode.INLINE_ALL, refactoring.getInitialMode());
+    assertSame(InlineMethodRefactoring_OLD.Mode.INLINE_ALL, refactoring.getInitialMode());
   }
 
   /**
-   * Test for {@link InlineMethodRefactoring#getInitialMode()}
+   * Test for {@link InlineMethodRefactoring_OLD#getInitialMode()}
    */
   public void test_getInitialMode_single() throws Exception {
     setTestUnitContent(
@@ -447,7 +447,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "}");
     selection = findOffset("test(1, 2)");
     createRefactoring();
-    assertSame(InlineMethodRefactoring.Mode.INLINE_SINGLE, refactoring.getInitialMode());
+    assertSame(InlineMethodRefactoring_OLD.Mode.INLINE_SINGLE, refactoring.getInitialMode());
   }
 
   public void test_method_qualifiedUnvocation_instanceField() throws Exception {
@@ -720,7 +720,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
         "  var res2 = test(10, 20);",
         "}");
     selection = findOffset("test(1, 2)");
-    mode = InlineMethodRefactoring.Mode.INLINE_SINGLE;
+    mode = InlineMethodRefactoring_OLD.Mode.INLINE_SINGLE;
     // this flag should be ignored
     deleteSource = true;
     // do refactoring
@@ -760,7 +760,7 @@ public final class InlineMethodRefactoringTest extends RefactoringTest {
    */
   private void createRefactoring() throws Exception {
     DartFunction method = findElement(selection);
-    refactoring = new InlineMethodRefactoring(method, testUnit, selection);
+    refactoring = new InlineMethodRefactoring_OLD(method, testUnit, selection);
     refactoring.setCurrentMode(mode);
     refactoring.setDeleteSource(deleteSource);
     refactoringStatus = refactoring.checkAllConditions(pm);

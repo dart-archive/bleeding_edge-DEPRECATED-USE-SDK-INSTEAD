@@ -22,7 +22,6 @@ import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
@@ -32,21 +31,18 @@ import org.eclipse.ui.PlatformUI;
  */
 public class InlineAction extends AbstractDartSelectionAction {
   private final InlineLocalAction inlineLocal;
+  private final InlineMethodAction inlineMethod;
 
   public InlineAction(DartEditor editor) {
     super(editor);
     inlineLocal = new InlineLocalAction(editor);
+    inlineMethod = new InlineMethodAction(editor);
   }
 
   @Override
   public void selectionChanged(SelectionChangedEvent event) {
     inlineLocal.selectionChanged(event);
-    setEnabled(computeEnabledState());
-  }
-
-  @Override
-  public void update(ISelection selection) {
-    inlineLocal.update(selection);
+    inlineMethod.selectionChanged(event);
     setEnabled(computeEnabledState());
   }
 
@@ -57,7 +53,10 @@ public class InlineAction extends AbstractDartSelectionAction {
     if (context == null) {
       return;
     }
-    if (inlineLocal.isEnabled() && inlineLocal.tryInlineTemp(context, getShell())) {
+    if (inlineLocal.isEnabled() && inlineLocal.tryInline(context, getShell())) {
+      return;
+    }
+    if (inlineMethod.isEnabled() && inlineMethod.tryInline(context, getShell())) {
       return;
     }
     instrumentation.metric("Problem", "No valid selection, showing dialog");
@@ -74,6 +73,6 @@ public class InlineAction extends AbstractDartSelectionAction {
   }
 
   private boolean computeEnabledState() {
-    return inlineLocal.isEnabled();
+    return inlineLocal.isEnabled() || inlineMethod.isEnabled();
   }
 }

@@ -13,15 +13,13 @@
  */
 package com.google.dart.tools.ui.internal.refactoring;
 
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring;
+import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
+import com.google.dart.tools.internal.corext.refactoring.code.InlineMethodRefactoring_I;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -38,7 +36,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   public static final String PAGE_NAME = "InlineMethodInputPage";//$NON-NLS-1$
   private static final String DESCRIPTION = RefactoringMessages.InlineMethodInputPage_description;
 
-  private InlineMethodRefactoring fRefactoring;
+  private InlineMethodRefactoring_I fRefactoring;
   private Button fRemove;
 
   public InlineMethodInputPage() {
@@ -50,7 +48,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   @Override
   public void createControl(Composite parent) {
     initializeDialogUnits(parent);
-    fRefactoring = (InlineMethodRefactoring) getRefactoring();
+    fRefactoring = (InlineMethodRefactoring_I) getRefactoring();
 
     Composite result = new Composite(parent, SWT.NONE);
     setControl(result);
@@ -60,9 +58,7 @@ public class InlineMethodInputPage extends UserInputWizardPage {
 
     boolean all = fRefactoring.getInitialMode() == InlineMethodRefactoring.Mode.INLINE_ALL;
     Label label = new Label(result, SWT.NONE);
-    String methodLabel = DartElementLabels.getElementLabel(
-        fRefactoring.getMethod(),
-        DartElementLabels.ALL_DEFAULT | DartElementLabels.M_FULLY_QUALIFIED);
+    String methodLabel = fRefactoring.getMethodLabel();
     label.setText(Messages.format(
         RefactoringMessages.InlineMethodInputPage_inline_method,
         methodLabel));
@@ -127,13 +123,6 @@ public class InlineMethodInputPage extends UserInputWizardPage {
   }
 
   private void changeRefactoring(InlineMethodRefactoring.Mode mode) {
-    RefactoringStatus status;
-    try {
-      status = fRefactoring.setCurrentMode(mode);
-    } catch (DartModelException e) {
-      status = RefactoringStatus.createFatalErrorStatus(e.getMessage());
-    }
-    setPageComplete(status);
+    fRefactoring.setCurrentMode(mode);
   }
-
 }

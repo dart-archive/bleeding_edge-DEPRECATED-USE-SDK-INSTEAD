@@ -42,6 +42,7 @@ import com.google.dart.compiler.resolver.FieldElement;
 import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.VariableElement;
 import com.google.dart.compiler.util.apache.StringUtils;
+import com.google.dart.engine.services.refactoring.InlineMethodRefactoring.Mode;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.dom.StructuralPropertyDescriptor;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
@@ -60,6 +61,7 @@ import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompa
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
 import static com.google.dart.tools.core.dom.PropertyDescriptorHelper.DART_CLASS_MEMBER_NAME;
@@ -86,12 +88,7 @@ import java.util.Set;
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class InlineMethodRefactoring extends Refactoring {
-  public enum Mode {
-    INLINE_ALL,
-    INLINE_SINGLE;
-  }
-
+public class InlineMethodRefactoring_OLD extends Refactoring implements InlineMethodRefactoring_I {
   private static class ParameterOccurrence {
     final int parentPrecedence;
     final SourceRange range;
@@ -199,7 +196,7 @@ public class InlineMethodRefactoring extends Refactoring {
 
   private SourcePart methodStatementsPart;
 
-  public InlineMethodRefactoring(DartFunction method, CompilationUnit selectionUnit,
+  public InlineMethodRefactoring_OLD(DartFunction method, CompilationUnit selectionUnit,
       int selectionOffset) {
     this.method = method;
     this.methodUnit = method.getAncestor(CompilationUnit.class);
@@ -207,6 +204,7 @@ public class InlineMethodRefactoring extends Refactoring {
     this.selectionOffset = selectionOffset;
   }
 
+  @Override
   public boolean canEnableDeleteSource() {
     return !methodUnit.isReadOnly();
   }
@@ -447,6 +445,7 @@ public class InlineMethodRefactoring extends Refactoring {
     }
   }
 
+  @Override
   public Mode getInitialMode() {
     return initialMode;
   }
@@ -456,15 +455,22 @@ public class InlineMethodRefactoring extends Refactoring {
   }
 
   @Override
+  public String getMethodLabel() {
+    return DartElementLabels.getElementLabel(method, DartElementLabels.ALL_DEFAULT
+        | DartElementLabels.M_FULLY_QUALIFIED);
+  }
+
+  @Override
   public String getName() {
     return RefactoringCoreMessages.InlineMethodRefactoring_name;
   }
 
-  public RefactoringStatus setCurrentMode(Mode mode) throws DartModelException {
+  @Override
+  public void setCurrentMode(Mode mode) {
     currentMode = mode;
-    return new RefactoringStatus();
   }
 
+  @Override
   public void setDeleteSource(boolean delete) {
     this.deleteSource = delete;
   }
