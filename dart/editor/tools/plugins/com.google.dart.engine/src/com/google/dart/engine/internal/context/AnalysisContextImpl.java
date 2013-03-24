@@ -510,6 +510,27 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
+    if (library == null) {
+      return null;
+    }
+    return getResolvedCompilationUnit(unitSource, library.getSource());
+  }
+
+  @Override
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
+    synchronized (cacheLock) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
+      if (compilationUnitInfo == null) {
+        return null;
+      }
+      // TODO(brianwilkerson) This doesn't ensure that the compilation unit was resolved in the
+      // context of the specified library.
+      return compilationUnitInfo.getResolvedCompilationUnit();
+    }
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return sourceFactory;
   }

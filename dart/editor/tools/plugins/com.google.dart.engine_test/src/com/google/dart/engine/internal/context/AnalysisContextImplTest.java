@@ -293,6 +293,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertInstanceOf(ClassElement.class, namespace.get("A"));
   }
 
+  public void test_getResolvedCompilationUnit_library() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/lib.dart", "library libb;");
+    LibraryElement library = context.computeLibraryElement(source);
+    assertNotNull(context.getResolvedCompilationUnit(source, library));
+    context.setContents(source, "library lib;");
+    assertNull(context.getResolvedCompilationUnit(source, library));
+  }
+
+  public void test_getResolvedCompilationUnit_source() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source source = addSource("/lib.dart", "library lib;");
+    assertNull(context.getResolvedCompilationUnit(source, source));
+    context.resolveCompilationUnit(source, source);
+    assertNotNull(context.getResolvedCompilationUnit(source, source));
+  }
+
   public void test_getSourceFactory() {
     assertSame(sourceFactory, context.getSourceFactory());
   }

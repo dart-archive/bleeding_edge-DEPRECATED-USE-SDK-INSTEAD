@@ -285,6 +285,16 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
+    return null;
+  }
+
+  @Override
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
+    return null;
+  }
+
+  @Override
   public SourceFactory getSourceFactory() {
     return factory;
   }

@@ -273,6 +273,29 @@ public interface AnalysisContext {
   public LineInfo getLineInfo(Source source);
 
   /**
+   * Return a fully resolved AST for a single compilation unit within the given library, or
+   * {@code null} if the resolved AST is not already computed.
+   * 
+   * @param unitSource the source of the compilation unit
+   * @param library the library containing the compilation unit
+   * @return a fully resolved AST for the compilation unit
+   * @see #resolveCompilationUnit(Source, LibraryElement)
+   */
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library);
+
+  /**
+   * Return a fully resolved AST for a single compilation unit within the given library, or
+   * {@code null} if the resolved AST is not already computed.
+   * 
+   * @param unitSource the source of the compilation unit
+   * @param librarySource the source of the defining compilation unit of the library containing the
+   *          compilation unit
+   * @return a fully resolved AST for the compilation unit
+   * @see #resolveCompilationUnit(Source, Source)
+   */
+  public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource);
+
+  /**
    * Return the source factory used to create the sources that can be analyzed in this context.
    * 
    * @return the source factory used to create the sources that can be analyzed in this context
@@ -355,6 +378,7 @@ public interface AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
+   * @see #getResolvedCompilationUnit(Source, LibraryElement)
    */
   public CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library)
       throws AnalysisException;
@@ -368,6 +392,7 @@ public interface AnalysisContext {
    * @return the result of resolving the AST structure representing the content of the source in the
    *         context of the given library
    * @throws AnalysisException if the analysis could not be performed
+   * @see #getResolvedCompilationUnit(Source, Source)
    */
   public CompilationUnit resolveCompilationUnit(Source unitSource, Source librarySource)
       throws AnalysisException;
