@@ -115,60 +115,62 @@ public class CreateApplicationWizard extends BasicNewResourceWizard {
     IPath containerPath = path.removeLastSegments(1);
 
     IResource container = ResourceUtil.getResource(containerPath.toFile());
-    IPath newFolderPath = container.getFullPath().append(path.lastSegment());
 
-    final IFolder newFolderHandle = IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getFolder(
-        newFolderPath);
+    if (container != null) {
+      IPath newFolderPath = container.getFullPath().append(path.lastSegment());
 
-    IRunnableWithProgress op = new IRunnableWithProgress() {
-      @Override
-      public void run(IProgressMonitor monitor) throws InvocationTargetException {
-        AbstractOperation op;
-        op = new CreateFolderOperation(
-            newFolderHandle,
-            null,
-            IDEWorkbenchMessages.WizardNewFolderCreationPage_title);
-        try {
+      final IFolder newFolderHandle = IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getFolder(
+          newFolderPath);
 
-          IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+      IRunnableWithProgress op = new IRunnableWithProgress() {
+        @Override
+        public void run(IProgressMonitor monitor) throws InvocationTargetException {
+          AbstractOperation op;
+          op = new CreateFolderOperation(
+              newFolderHandle,
+              null,
+              IDEWorkbenchMessages.WizardNewFolderCreationPage_title);
+          try {
 
-          if (status.isOK()) {
-            createdFile = createProjectContent(
-                newProject,
-                newFolderHandle,
-                newFolderHandle.getName(),
-                sampleContent);
+            IStatus status = op.execute(monitor, WorkspaceUndoUtil.getUIInfoAdapter(getShell()));
+
+            if (status.isOK()) {
+              createdFile = createProjectContent(
+                  newProject,
+                  newFolderHandle,
+                  newFolderHandle.getName(),
+                  sampleContent);
+            }
+
+          } catch (ExecutionException e) {
+            throw new InvocationTargetException(e);
+          } catch (CoreException e) {
+            throw new InvocationTargetException(e);
           }
-
-        } catch (ExecutionException e) {
-          throw new InvocationTargetException(e);
-        } catch (CoreException e) {
-          throw new InvocationTargetException(e);
         }
+      };
+
+      try {
+        getContainer().run(true, true, op);
+      } catch (InterruptedException e) {
+
+      } catch (InvocationTargetException e) {
+        // ExecutionExceptions are handled above, but unexpected runtime
+        // exceptions and errors may still occur.
+        IDEWorkbenchPlugin.log(getClass(), "createNewFolder()", e.getTargetException()); //$NON-NLS-1$
+        MessageDialog.open(
+            MessageDialog.ERROR,
+            getContainer().getShell(),
+            IDEWorkbenchMessages.WizardNewFolderCreationPage_internalErrorTitle,
+            NLS.bind(
+                IDEWorkbenchMessages.WizardNewFolder_internalError,
+                e.getTargetException().getMessage()),
+            SWT.SHEET);
+
       }
-    };
 
-    try {
-      getContainer().run(true, true, op);
-    } catch (InterruptedException e) {
-
-    } catch (InvocationTargetException e) {
-      // ExecutionExceptions are handled above, but unexpected runtime
-      // exceptions and errors may still occur.
-      IDEWorkbenchPlugin.log(getClass(), "createNewFolder()", e.getTargetException()); //$NON-NLS-1$
-      MessageDialog.open(
-          MessageDialog.ERROR,
-          getContainer().getShell(),
-          IDEWorkbenchMessages.WizardNewFolderCreationPage_internalErrorTitle,
-          NLS.bind(
-              IDEWorkbenchMessages.WizardNewFolder_internalError,
-              e.getTargetException().getMessage()),
-          SWT.SHEET);
-
+      newProject = newFolderHandle.getProject();
     }
-
-    newProject = newFolderHandle.getProject();
-
   }
 
   /**
