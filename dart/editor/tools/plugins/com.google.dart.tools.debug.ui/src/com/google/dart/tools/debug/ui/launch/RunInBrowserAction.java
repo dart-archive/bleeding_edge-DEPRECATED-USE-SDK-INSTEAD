@@ -42,7 +42,7 @@ public class RunInBrowserAction extends DartRunAbstractAction {
     super(window, "Run as JavaScript", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.browser");
-    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
   }
 
   @Override

@@ -43,7 +43,7 @@ public class DartRunLastAction extends DartRunAbstractAction {
     super(window, "Run", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.last");
-    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
   }
 
   public DartRunLastAction(IWorkbenchWindow window, String name, int flags) {

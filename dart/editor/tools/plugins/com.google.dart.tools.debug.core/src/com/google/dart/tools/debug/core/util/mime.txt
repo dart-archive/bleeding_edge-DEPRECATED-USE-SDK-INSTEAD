@@ -2,6 +2,7 @@ au audio/basic
 avi video/avi
 bmp image/bmp
 bz2 application/x-bzip2
+crx application/x-chrome-extension
 css text/css
 dart application/dart
 dtd application/xml-dtd

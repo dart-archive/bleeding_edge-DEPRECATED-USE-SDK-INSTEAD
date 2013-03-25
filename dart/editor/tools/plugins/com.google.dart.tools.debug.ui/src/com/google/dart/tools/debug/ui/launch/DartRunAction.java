@@ -54,7 +54,7 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
     super(window, "Run", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.selection");
-    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
     setToolTipText("Run");
 
 //    window.getSelectionService().addSelectionListener(this);

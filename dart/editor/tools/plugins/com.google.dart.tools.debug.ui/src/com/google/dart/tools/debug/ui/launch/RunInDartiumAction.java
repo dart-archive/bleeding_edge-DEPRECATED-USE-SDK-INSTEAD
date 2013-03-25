@@ -42,7 +42,7 @@ public class RunInDartiumAction extends DartRunAbstractAction {
     super(window, "Run in Dartium", noMenu ? IAction.AS_PUSH_BUTTON : IAction.AS_DROP_DOWN_MENU);
 
     setActionDefinitionId("com.google.dart.tools.debug.ui.run.dartium");
-    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.gif"));
+    setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
   }
 
   @Override
