@@ -94,7 +94,7 @@
                 '-Wall',
                 '-g',
                 # TODO(gram): handle release mode.
-                '-Lthird_party/skia-desktop/trunk/out/Debug',
+                '-Lthird_party/skia/trunk/out/Debug',
               ],
              },
            }

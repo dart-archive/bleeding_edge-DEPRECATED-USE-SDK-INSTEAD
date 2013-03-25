@@ -328,6 +328,7 @@ log("ratio = ${ratio}");
   gl.uniform3f(sphere3Center, x3, y3, z3);
 
   gl.drawArrays(WebGLRenderingContext.TRIANGLE_STRIP, 0, 4);
+  glSwapBuffers();
 
   t += 0.03;
   if (t > Math.PI * 200) {
@@ -345,7 +346,7 @@ void setup(canvas, int w, int h) {
   gl.clearDepth(1.0);
   initBuffers();
   resize(w, h);
-  requestAnimationFrame(update);
+  window.requestAnimationFrame(update);
   log("Done setup");
 }
 
@@ -358,7 +359,7 @@ void resize(int width, int height) {
 
 void update(when) {
   drawScene();
-  requestAnimationFrame(update);
+  window.requestAnimationFrame(update);
 }
 
 onMotionDown(num when, num x, num y) {
