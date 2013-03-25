@@ -114,7 +114,8 @@ public interface ContextManager {
   /**
    * Answer the source kind for the given file.
    * 
-   * @return the {@link SourceKind} of the given file
+   * @return the {@link SourceKind} of the given file, may be {@link SourceKind#UNKNOWN} if not
+   *         analyzed yet.
    */
   SourceKind getSourceKind(IFile file);
 }
