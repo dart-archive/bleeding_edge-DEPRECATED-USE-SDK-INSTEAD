@@ -16,7 +16,6 @@ package com.google.dart.tools.core.internal;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartPreferenceConstants;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
-import com.google.dart.tools.core.internal.model.DartModelManager.EclipsePreferencesListener;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
@@ -39,15 +38,22 @@ import java.util.Map;
  */
 public class OptionManager {
 
+  private static class EclipsePreferencesListener implements
+      IEclipsePreferences.IPreferenceChangeListener {
+    @Override
+    public void preferenceChange(IEclipsePreferences.PreferenceChangeEvent event) {
+      //TODO (pquitslund): respond to preference updates
+    }
+  }
+
   private HashMap<String, String> optionsCache;
   private HashSet<String> optionNames = new HashSet<String>(20);
 
   private final IEclipsePreferences[] preferencesLookup = new IEclipsePreferences[2];
-
   private EclipsePreferencesListener instancePreferencesListener = new EclipsePreferencesListener();
   private IEclipsePreferences.IPreferenceChangeListener propertyListener;
   private IEclipsePreferences.IPreferenceChangeListener resourcesPropertyListener;
-
+  
   private static final int PREF_INSTANCE = 0;
   private static final int PREF_DEFAULT = 1;
 
