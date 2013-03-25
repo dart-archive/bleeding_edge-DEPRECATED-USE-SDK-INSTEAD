@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.resolver;
 
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
@@ -30,6 +31,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ExportElementImpl;
@@ -213,6 +215,7 @@ public class LibraryResolver {
     //} else {
     //  resolveReferencesAndTypes(targetLibrary);
     //}
+    performConstantEvaluation();
     if (fullAnalysis) {
       //
       // Run additional analyses, such as constant expression analysis.
@@ -545,6 +548,29 @@ public class LibraryResolver {
       identifiers[i] = names.get(i).getName();
     }
     return identifiers;
+  }
+
+  /**
+   * Compute a value for all of the constants in the libraries being analyzed.
+   */
+  private void performConstantEvaluation() {
+    ConstantValueComputer computer = new ConstantValueComputer();
+    for (Library library : librariesInCycles) {
+      for (Source source : library.getCompilationUnitSources()) {
+        try {
+          CompilationUnit unit = library.getAST(source);
+          if (unit != null) {
+            computer.add(unit);
+          }
+        } catch (AnalysisException exception) {
+          AnalysisEngine.getInstance().getLogger().logError(
+              "Internal Error: Could not access AST for " + source.getFullName()
+                  + " during constant evaluation",
+              exception);
+        }
+      }
+    }
+    computer.computeValues();
   }
 
   /**

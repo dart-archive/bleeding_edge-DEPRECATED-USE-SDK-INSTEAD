@@ -138,7 +138,8 @@ public class Library {
   }
 
   /**
-   * Return a collection containing the sources for the compilation units in this library.
+   * Return a collection containing the sources for the compilation units in this library, including
+   * the defining compilation unit.
    * 
    * @return the sources for the compilation units in this library
    */

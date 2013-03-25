@@ -287,6 +287,22 @@ public class EngineTestCase extends TestCase {
   }
 
   /**
+   * Assert that the given set is non-{@code null} and has the expected number of elements.
+   * 
+   * @param expectedSize the expected number of elements
+   * @param set the set being tested
+   * @throws AssertionFailedError if the set is {@code null} or does not have the expected number of
+   *           elements
+   */
+  public static void assertSize(int expectedSize, Set<?> set) {
+    if (set == null) {
+      fail("Expected set of size " + expectedSize + "; found null");
+    } else if (set.size() != expectedSize) {
+      fail("Expected set of size " + expectedSize + "; contained " + set.size() + " elements");
+    }
+  }
+
+  /**
    * Convert the given array of lines into a single source string.
    * 
    * @param lines the lines to be merged into a single source string

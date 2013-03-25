@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.engine.internal;
+package com.google.dart.engine.internal.constant;
 
 import com.google.dart.engine.ExtendedTestSuite;
 
@@ -21,16 +21,10 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.engine.internal.builder.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.constant.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.context.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.element.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.index.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.resolver.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.scope.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.sdk.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.search.TestAll.suite());
-    suite.addTest(com.google.dart.engine.internal.type.TestAll.suite());
+    suite.addTestSuite(ConstantFinderTest.class);
+    suite.addTestSuite(ConstantValueComputerTest.class);
+    suite.addTestSuite(DirectedGraphTest.class);
+    suite.addTestSuite(ReferenceFinderTest.class);
     return suite;
   }
 }

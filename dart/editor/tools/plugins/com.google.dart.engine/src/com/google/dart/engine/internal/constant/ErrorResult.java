@@ -16,7 +16,6 @@ package com.google.dart.engine.internal.constant;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorCode;
 
 import java.util.ArrayList;
@@ -138,10 +137,6 @@ public class ErrorResult extends EvaluationResultImpl {
 
   public ArrayList<ErrorData> getErrorData() {
     return errors;
-  }
-
-  public AnalysisError[] getErrors() {
-    return errors.toArray(new AnalysisError[errors.size()]);
   }
 
   @Override

@@ -120,13 +120,42 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
     super.visitVariableDeclaration(node);
     Expression initializer = node.getInitializer();
     if (initializer != null && node.isConst()) {
-      EvaluationResultImpl result = validate(
-          initializer,
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
       VariableElementImpl element = (VariableElementImpl) node.getElement();
-      element.setEvaluationResult(result);
+      EvaluationResultImpl result = element.getEvaluationResult();
+      if (result == null) {
+        //
+        // Normally we don't need to visit const variable declarations because we have already
+        // computed their values. But if we missed it for some reason, this gives us a second
+        // chance.
+        //
+        result = validate(
+            initializer,
+            CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+        element.setEvaluationResult(result);
+      } else if (result instanceof ErrorResult) {
+        reportErrors(result, CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE);
+      }
     }
     return null;
+  }
+
+  /**
+   * If the given result represents one or more errors, report those errors. Except for special
+   * cases, use the given error code rather than the one reported in the error.
+   * 
+   * @param result the result containing any errors that need to be reported
+   * @param errorCode the error code to be used if the result represents an error
+   */
+  private void reportErrors(EvaluationResultImpl result, ErrorCode errorCode) {
+    if (result instanceof ErrorResult) {
+      for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
+        if (data.getErrorCode() == CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO) {
+          errorReporter.reportError(data.getErrorCode(), data.getNode());
+        } else {
+          errorReporter.reportError(errorCode, data.getNode());
+        }
+      }
+    }
   }
 
   /**
@@ -139,15 +168,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
    */
   private EvaluationResultImpl validate(Expression expression, ErrorCode errorCode) {
     EvaluationResultImpl result = expression.accept(new ConstantVisitor());
-    if (result instanceof ErrorResult) {
-      for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        if (data.getErrorCode() == CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO) {
-          errorReporter.reportError(data.getErrorCode(), data.getNode());
-        } else {
-          errorReporter.reportError(errorCode, data.getNode());
-        }
-      }
-    }
+    reportErrors(result, errorCode);
     return result;
   }
 
