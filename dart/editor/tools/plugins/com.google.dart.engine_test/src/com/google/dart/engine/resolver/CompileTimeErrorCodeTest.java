@@ -1117,14 +1117,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_compileTimeConstantRaisesExceptionDivideByZero() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "const int INF = 0 / 0;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO);
-    verify(source);
-  }
-
   public void test_conflictingConstructorNameAndMember_field() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

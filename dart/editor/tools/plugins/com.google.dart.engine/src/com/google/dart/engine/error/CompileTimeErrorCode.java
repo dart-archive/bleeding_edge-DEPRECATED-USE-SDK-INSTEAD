@@ -89,12 +89,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
   COMPILE_TIME_CONSTANT_RAISES_EXCEPTION(""),
 
   /**
-   * 12.1 Constants: It is a compile-time error if evaluation of a compile-time constant would raise
-   * an exception.
-   */
-  COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO("Cannot divide by zero"),
-
-  /**
    * 7.6 Constructors: A constructor name always begins with the name of its immediately enclosing
    * class, and may optionally be followed by a dot and an identifier <i>id</i>. It is a
    * compile-time error if <i>id</i> is the name of a member declared in the immediately enclosing

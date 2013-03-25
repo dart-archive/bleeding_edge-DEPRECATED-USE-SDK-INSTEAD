@@ -150,7 +150,7 @@ public class ConstantEvaluatorTest extends ResolverTestCase {
 
   public void test_divide_int_int_byZero() throws Exception {
     EvaluationResult result = getExpressionValue("3 / 0");
-    assertFalse(result.isValid());
+    assertTrue(result.isValid());
   }
 
   public void test_equal_boolean_boolean() throws Exception {

@@ -149,11 +149,7 @@ public class ConstantVerifier extends RecursiveASTVisitor<Void> {
   private void reportErrors(EvaluationResultImpl result, ErrorCode errorCode) {
     if (result instanceof ErrorResult) {
       for (ErrorResult.ErrorData data : ((ErrorResult) result).getErrorData()) {
-        if (data.getErrorCode() == CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO) {
-          errorReporter.reportError(data.getErrorCode(), data.getNode());
-        } else {
-          errorReporter.reportError(errorCode, data.getNode());
-        }
+        errorReporter.reportError(errorCode, data.getNode());
       }
     }
   }

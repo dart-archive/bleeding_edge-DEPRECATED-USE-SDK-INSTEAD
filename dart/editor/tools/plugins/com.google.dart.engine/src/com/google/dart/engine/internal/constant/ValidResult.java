@@ -351,9 +351,8 @@ public class ValidResult extends EvaluationResultImpl {
     } else if (leftValue instanceof BigInteger) {
       if (value instanceof BigInteger) {
         if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return error(
-              node.getRightOperand(),
-              CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO);
+          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
+              / ((BigInteger) value).doubleValue()));
         }
         return valueOf(((BigInteger) leftValue).divide((BigInteger) value));
       } else if (value instanceof Double) {
@@ -480,9 +479,8 @@ public class ValidResult extends EvaluationResultImpl {
     } else if (leftValue instanceof BigInteger) {
       if (value instanceof BigInteger) {
         if (((BigInteger) value).equals(BigInteger.ZERO)) {
-          return error(
-              node.getRightOperand(),
-              CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO);
+          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
+              / ((BigInteger) value).doubleValue()));
         }
         return valueOf(((BigInteger) leftValue).divide((BigInteger) value));
       } else if (value instanceof Double) {
@@ -664,12 +662,11 @@ public class ValidResult extends EvaluationResultImpl {
     } else if (value == null) {
       return error(node.getRightOperand());
     } else if (leftValue instanceof BigInteger) {
-      if (((BigInteger) value).equals(BigInteger.ZERO)) {
-        return error(
-            node.getRightOperand(),
-            CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION_DIVIDE_BY_ZERO);
-      }
       if (value instanceof BigInteger) {
+        if (((BigInteger) value).equals(BigInteger.ZERO)) {
+          return valueOf(Double.valueOf(((BigInteger) leftValue).doubleValue()
+              % ((BigInteger) value).doubleValue()));
+        }
         return valueOf(((BigInteger) leftValue).remainder((BigInteger) value));
       } else if (value instanceof Double) {
         return valueOf(((BigInteger) leftValue).doubleValue() % ((Double) value).doubleValue());
