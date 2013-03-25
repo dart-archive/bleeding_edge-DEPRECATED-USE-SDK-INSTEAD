@@ -1452,6 +1452,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "int m(a) native 'string';"));
     resolve(source);
     assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
+    verify(source);
   }
 
   // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated
@@ -1463,6 +1464,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE);
+    verify(source);
   }
 
   public void test_newWithInvalidTypeParameters() throws Exception {
