@@ -1257,7 +1257,20 @@ public class AnalysisContextImpl implements AnalysisContext {
           } catch (AnalysisException exception) {
             libraryInfo.setElement(null);
             AnalysisEngine.getInstance().getLogger().logError(
-                "Could not compute the library element for " + entry.getKey().getFullName(),
+                "Could not resolve " + entry.getKey().getFullName(),
+                exception);
+          }
+          return true;
+        }
+      } else if (sourceInfo instanceof HtmlUnitInfo) {
+        HtmlUnitInfo unitInfo = (HtmlUnitInfo) sourceInfo;
+        if (unitInfo.hasInvalidResolvedUnit()) {
+          try {
+            resolveHtmlUnit(entry.getKey());
+          } catch (AnalysisException exception) {
+            unitInfo.setResolvedUnit(null);
+            AnalysisEngine.getInstance().getLogger().logError(
+                "Could not resolve " + entry.getKey().getFullName(),
                 exception);
           }
           return true;
