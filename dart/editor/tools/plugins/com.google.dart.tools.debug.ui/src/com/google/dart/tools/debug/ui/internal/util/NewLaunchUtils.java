@@ -142,16 +142,14 @@ public class NewLaunchUtils {
       ProjectManager manager = DartCore.getProjectManager();
       Source[] sources = manager.getLibrarySources(file);
       for (Source source : sources) {
-        // for browser apps
-        IResource launchResource = manager.getHtmlFileForLibrary(source);
-        if (resource != null) {
-          return launchResource;
-        }
-        // for server apps
-        IFile libfile = (IFile) manager.getResource(source);
-        LibraryElement element = manager.getLibraryElement(libfile);
-        if (element != null && !element.isBrowserApplication()) {
-          return libfile;
+
+        if (manager.isClientLibrary(source)) { // browser apps
+          IResource launchResource = manager.getHtmlFileForLibrary(source);
+          if (launchResource != null) {
+            return launchResource;
+          }
+        } else if (manager.isServerLibrary(source)) { // server apps
+          return manager.getResource(source);
         }
       }
 

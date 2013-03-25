@@ -36,6 +36,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -86,12 +89,11 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public IResource getHtmlFileForLibrary(Source source) {
 
-    // TODO(keertip): implement when there is API in the context to get to the 
-    // html file that has a reference to a particular library source
-
-    //AnalysisContext context = getContext(getResource(source));
-    // Source htmlSource = context.getHtmlForLibrary(source);
-    // return getResource(source);
+    AnalysisContext context = getContext(getResource(source));
+    Source[] htmlSource = context.getHtmlFilesReferencing(source);
+    if (htmlSource.length > 0) {
+      return getResource(htmlSource[0]);
+    }
     return null;
   }
 
@@ -200,6 +202,18 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public AnalysisContext getSdkContext() {
     return sdkContext;
+  }
+
+  @Override
+  public boolean isClientLibrary(Source librarySource) {
+    AnalysisContext context = getContext(getResource(librarySource));
+    return context.isClientLibrary(librarySource);
+  }
+
+  @Override
+  public boolean isServerLibrary(Source librarySource) {
+    AnalysisContext context = getContext(getResource(librarySource));
+    return context.isServerLibrary(librarySource);
   }
 
   @Override

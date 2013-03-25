@@ -261,6 +261,16 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public boolean isClientLibrary(Source librarySource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isServerLibrary(Source librarySource) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public SearchEngine newSearchEngine() {
       throw new UnsupportedOperationException();
     }

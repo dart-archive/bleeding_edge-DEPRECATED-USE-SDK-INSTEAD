@@ -126,6 +126,24 @@ public interface ProjectManager extends ContextManager {
   AnalysisContext getSdkContext();
 
   /**
+   * Answer if the given source is known to be the defining compilation unit of a library that can
+   * be run on a client
+   * 
+   * @param librarySource the source
+   * @return {@code true} if the given source is known to be a library that can be run on a client
+   */
+  boolean isClientLibrary(Source librarySource);
+
+  /**
+   * Answer if the given source is known to be the defining compilation unit of a library that can
+   * be run on the server
+   * 
+   * @param librarySource the source
+   * @return {@code true} if the given source is known to be a library that can be run on the server
+   */
+  boolean isServerLibrary(Source librarySource);
+
+  /**
    * Create and answer a new search engine backed by the global index
    * 
    * @return a search engine (not {@code null})
@@ -145,4 +163,5 @@ public interface ProjectManager extends ContextManager {
    * @param listener the object that should not be notified (not {@code null})
    */
   void removeProjectListener(ProjectListener listener);
+
 }

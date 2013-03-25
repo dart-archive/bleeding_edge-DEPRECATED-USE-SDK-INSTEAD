@@ -77,6 +77,22 @@ public class ProjectManagerImplTest extends TestCase {
       return sources.toArray(new Source[sources.size()]);
     }
 
+    @Override
+    public boolean isClientLibrary(Source librarySource) {
+      if (librarySource.getShortName().equals("libraryA.dart")) {
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public boolean isServerLibrary(Source librarySource) {
+      if (librarySource.getShortName().equals("libraryB.dart")) {
+        return true;
+      }
+      return false;
+    }
+
   }
 
   private final class MockProjectListener implements ProjectListener {
@@ -292,6 +308,42 @@ public class ProjectManagerImplTest extends TestCase {
     assertNull(source);
     source = factory.forUri("file:/does/not/exist.dart");
     assertNull(source);
+  }
+
+  public void test_isClientLibrary() {
+    MockFolder mockFolder = projectContainer.getMockFolder("web");
+    MockFile file = new MockFile(
+        mockFolder,
+        "libraryA.dart",
+        "library libraryA;\nimport 'dart:html';\n main(){}");
+    mockFolder.add(file);
+    Project project = manager.getProject(projectContainer);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory(),
+        file.toFile());
+    boolean result = manager.isClientLibrary(source);
+    assertTrue(result);
+    result = manager.isServerLibrary(source);
+    assertFalse(result);
+
+  }
+
+  public void test_isServerLibrary() {
+    MockFolder mockFolder = projectContainer.getMockFolder("web");
+    MockFile serverFile = new MockFile(
+        mockFolder,
+        "libraryB.dart",
+        "library libraryB;\nimport 'dart:io';\n main(){}");
+    mockFolder.add(serverFile);
+    Project project = manager.getProject(projectContainer);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory(),
+        serverFile.toFile());
+    boolean result = manager.isClientLibrary(source);
+    assertFalse(result);
+    result = manager.isServerLibrary(source);
+    assertTrue(result);
+
   }
 
   public void test_listener() throws Exception {
