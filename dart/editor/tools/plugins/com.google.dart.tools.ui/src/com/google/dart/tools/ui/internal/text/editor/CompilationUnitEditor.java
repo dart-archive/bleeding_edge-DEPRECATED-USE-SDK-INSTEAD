@@ -64,7 +64,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -119,6 +118,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
@@ -132,7 +132,6 @@ import org.eclipse.ui.actions.ActionGroup;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.ide.FileStoreEditorInput;
-import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
 import org.eclipse.ui.texteditor.IDocumentProvider;
@@ -1152,21 +1151,22 @@ public class CompilationUnitEditor extends DartEditor implements IDartReconcilin
   @Override
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
     super.applyCompilationUnitElement(unit);
-    new UIJob("Update Editor Image") {
-      @Override
-      public IStatus runInUIThread(IProgressMonitor monitor) {
-        ExecutionUtils.runLog(new RunnableEx() {
-          @Override
-          public void run() throws Exception {
-            CompilationUnitElement element = getInputElement();
-            if (element != null && fJavaEditorErrorTickUpdater != null) {
-              fJavaEditorErrorTickUpdater.updateEditorImage(element);
+    if (unit != null) {
+      Display.getDefault().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          ExecutionUtils.runLog(new RunnableEx() {
+            @Override
+            public void run() throws Exception {
+              CompilationUnitElement element = getInputElement();
+              if (element != null && fJavaEditorErrorTickUpdater != null) {
+                fJavaEditorErrorTickUpdater.updateEditorImage(element);
+              }
             }
-          }
-        });
-        return Status.OK_STATUS;
-      }
-    }.schedule();
+          });
+        }
+      });
+    }
   }
 
   /*

@@ -281,7 +281,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     new UIJob("Update Outline") {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        viewer.setInput(input);
+        if (viewer != null) {
+          viewer.setInput(input);
+        }
         return Status.OK_STATUS;
       }
     }.schedule(100);

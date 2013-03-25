@@ -18,7 +18,6 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.CompilationUnitElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -187,9 +186,11 @@ public class DartReconciler extends MonoReconciler {
     }
     AnalysisContext context = source.getContext();
     // resolve
-    // TODO(scheglov) reconcile cycle should be quick, we don't want to perform "compute" here
-    LibraryElement libraryElement = context.computeLibraryElement(source);
-    return context.resolveCompilationUnit(source, libraryElement);
+    Source[] librarySources = context.getLibrariesContaining(source);
+    if (librarySources.length != 0) {
+      return context.getResolvedCompilationUnit(source, librarySources[0]);
+    }
+    return null;
   }
 
   /**
@@ -213,8 +214,10 @@ public class DartReconciler extends MonoReconciler {
     if (source == null) {
       return;
     }
-    // notify AnalysisContext about changes
+    // notify AnalysisContext about change
     source.getContext().setContents(source, code);
+    // schedule re-analyzing
+    DartReconcilerWorker.scheduleAnalysis(project, source);
   }
 
   /**
@@ -251,6 +254,8 @@ public class DartReconciler extends MonoReconciler {
         Thread.currentThread().setName("Reconciler: " + source.getShortName());
       }
     }
+    // schedule initial resolution
+    DartReconcilerWorker.scheduleAnalysis(project, getSource());
     // run loop and wait for CompilationUnit changes
     CompilationUnit lastParsedUnit = null;
     CompilationUnitElement previousUnitElement = null;
