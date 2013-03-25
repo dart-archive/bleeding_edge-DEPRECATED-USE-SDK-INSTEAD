@@ -37,6 +37,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -84,7 +85,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
 
     @Override
     public void run() {
-      fOutlineViewer.collapseAll();
+      viewer.collapseAll();
     }
   }
 
@@ -96,14 +97,14 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       tree.addListener(SWT.EraseItem, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          SWTUtil.eraseSelection(event, tree, fEditor.getPreferences());
+          SWTUtil.eraseSelection(event, tree, editor.getPreferences());
         }
       });
       updateColors();
     }
 
     private void updateColors() {
-      SWTUtil.setColors(getTree(), DartOutlinePage.this.fEditor.getPreferences());
+      SWTUtil.setColors(getTree(), DartOutlinePage.this.editor.getPreferences());
     }
 
     private void updateTreeFont() {
@@ -114,12 +115,27 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
+  private class ExpandAllAction extends Action {
+    ExpandAllAction() {
+      super("Expand All"); //$NON-NLS-1$
+      setDescription("Expand All"); //$NON-NLS-1$
+      setToolTipText("Expand All"); //$NON-NLS-1$
+      DartPluginImages.setLocalImageDescriptors(this, "expandall.gif"); //$NON-NLS-1$
+      PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.EXPAND_ALL_ACTION);
+    }
+
+    @Override
+    public void run() {
+      viewer.expandAll();
+    }
+  }
+
   private class FontPropertyChangeListener implements IPropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-      if (fOutlineViewer != null) {
+      if (viewer != null) {
         if (FontPreferencePage.BASE_FONT_KEY.equals(event.getProperty())) {
-          fOutlineViewer.updateTreeFont();
+          viewer.updateTreeFont();
         }
       }
     }
@@ -148,13 +164,13 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     private void valueChanged(final boolean on, boolean store) {
       setChecked(on);
       // set comparator
-      BusyIndicator.showWhile(fOutlineViewer.getControl().getDisplay(), new Runnable() {
+      BusyIndicator.showWhile(viewer.getControl().getDisplay(), new Runnable() {
         @Override
         public void run() {
           if (on) {
-            fOutlineViewer.setComparator(NameElementComparator.INSTANCE);
+            viewer.setComparator(NameElementComparator.INSTANCE);
           } else {
-            fOutlineViewer.setComparator(SourcePositionElementComparator.INSTANCE);
+            viewer.setComparator(SourcePositionElementComparator.INSTANCE);
           }
         }
       });
@@ -166,64 +182,60 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
-  private String fContextMenuID;
-
-  private DartEditor fEditor;
-  private IPropertyChangeListener fPropertyChangeListener;
+  private final ListenerList selectionChangedListeners = new ListenerList(ListenerList.IDENTITY);
+  private final String contextMenuID;
+  private DartEditor editor;
+  private DartOutlineViewer viewer;
+  private IPropertyChangeListener propertyChangeListener;
   private IPropertyChangeListener fontPropertyChangeListener = new FontPropertyChangeListener();
-  private DartOutlineViewer fOutlineViewer;
-  private Menu fMenu;
-
-  private CompositeActionGroup fActionGroups;
-
-  private ListenerList fSelectionChangedListeners = new ListenerList(ListenerList.IDENTITY);
+  private Menu contextMenu;
+  private CompositeActionGroup actionGroups;
 
   private CompilationUnit input;
 
   public DartOutlinePage(String contextMenuID, DartEditor editor) {
     Assert.isNotNull(editor);
-    fContextMenuID = contextMenuID;
-    fEditor = editor;
+    this.contextMenuID = contextMenuID;
+    this.editor = editor;
     // listen for property changes
-    fPropertyChangeListener = new IPropertyChangeListener() {
+    propertyChangeListener = new IPropertyChangeListener() {
       @Override
       public void propertyChange(PropertyChangeEvent event) {
         doPropertyChange(event);
       }
     };
-    DartOutlinePage.this.fEditor.getPreferences().addPropertyChangeListener(fPropertyChangeListener);
+    editor.getPreferences().addPropertyChangeListener(propertyChangeListener);
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
   @Override
   public void addSelectionChangedListener(ISelectionChangedListener listener) {
-    if (fOutlineViewer != null) {
-      fOutlineViewer.addSelectionChangedListener(listener);
+    if (viewer != null) {
+      viewer.addSelectionChangedListener(listener);
     } else {
-      fSelectionChangedListeners.add(listener);
+      selectionChangedListeners.add(listener);
     }
   }
 
   @Override
   public void createControl(Composite parent) {
     Tree tree = new Tree(parent, SWT.MULTI | SWT.FULL_SELECTION);
-
-    fOutlineViewer = new DartOutlineViewer(tree);
-    ColoredViewersManager.install(fOutlineViewer);
-
-    fOutlineViewer.setContentProvider(LightNodeElements.newTreeContentProvider());
-    fOutlineViewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
-    fOutlineViewer.updateTreeFont();
-
+    // create "viewer"
+    viewer = new DartOutlineViewer(tree);
+    ColoredViewersManager.install(viewer);
+    viewer.setContentProvider(LightNodeElements.newTreeContentProvider());
+    viewer.setLabelProvider(LightNodeElements.LABEL_PROVIDER);
+    viewer.updateTreeFont();
+    // install listeners added before UI creation
     {
-      Object[] listeners = fSelectionChangedListeners.getListeners();
+      Object[] listeners = selectionChangedListeners.getListeners();
       for (Object listener : listeners) {
-        fSelectionChangedListeners.remove(listener);
-        fOutlineViewer.addSelectionChangedListener((ISelectionChangedListener) listener);
+        selectionChangedListeners.remove(listener);
+        viewer.addSelectionChangedListener((ISelectionChangedListener) listener);
       }
     }
-
-    MenuManager manager = new MenuManager(fContextMenuID, fContextMenuID);
+    // prepare context menu
+    MenuManager manager = new MenuManager(contextMenuID, contextMenuID);
     manager.setRemoveAllWhenShown(true);
     manager.addMenuListener(new IMenuListener() {
       @Override
@@ -231,41 +243,45 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
         contextMenuAboutToShow(m);
       }
     });
-    fMenu = manager.createContextMenu(tree);
-    tree.setMenu(fMenu);
-
+    contextMenu = manager.createContextMenu(tree);
+    tree.setMenu(contextMenu);
+    // register "viewer" as selection provide for this view
     IPageSite site = getSite();
-    site.setSelectionProvider(fOutlineViewer);
-
+    site.setSelectionProvider(viewer);
     // TODO(scheglov)
-    fActionGroups = new CompositeActionGroup(new ActionGroup[] {
+    actionGroups = new CompositeActionGroup(new ActionGroup[] {
         new OpenViewActionGroup(this), new RefactorActionGroup(site),
         new DartSearchActionGroup(site)});
-
-    IActionBars actionBars = site.getActionBars();
-    fActionGroups.fillActionBars(actionBars);
-    registerToolbarActions(actionBars);
-
+    // configure actions
+    {
+      IActionBars actionBars = site.getActionBars();
+      {
+        IToolBarManager toolBarManager = actionBars.getToolBarManager();
+        toolBarManager.add(new LexicalSortingAction());
+        toolBarManager.add(new ExpandAllAction());
+        toolBarManager.add(new CollapseAllAction());
+      }
+      actionGroups.fillActionBars(actionBars);
+    }
     // handle TreeViewer actions
-    fOutlineViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+    viewer.addSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {
-        fEditor.doSelectionChanged(event.getSelection());
+        editor.doSelectionChanged(event.getSelection());
       }
     });
-    fOutlineViewer.addDoubleClickListener(new IDoubleClickListener() {
+    viewer.addDoubleClickListener(new IDoubleClickListener() {
       @Override
       public void doubleClick(DoubleClickEvent event) {
-        fEditor.doSelectionChanged(event.getSelection());
-        getSite().getPage().activate(fEditor);
+        editor.doSelectionChanged(event.getSelection());
+        getSite().getPage().activate(editor);
       }
     });
-
-    // Schedule update in 100ms from now, to make impression that editor opens instantaneously.
+    // schedule update in 100ms from now, to make impression that editor opens instantaneously
     new UIJob("Update Outline") {
       @Override
       public IStatus runInUIThread(IProgressMonitor monitor) {
-        fOutlineViewer.setInput(input);
+        viewer.setInput(input);
         return Status.OK_STATUS;
       }
     }.schedule(100);
@@ -273,108 +289,110 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
 
   @Override
   public void dispose() {
-    if (fEditor == null) {
+    // clear "editor"
+    if (editor == null) {
       return;
     }
-    fEditor.outlinePageClosed();
-    fEditor = null;
-
-    if (fPropertyChangeListener != null) {
-      DartToolsPlugin.getDefault().getPreferenceStore().removePropertyChangeListener(
-          fPropertyChangeListener);
-      fPropertyChangeListener = null;
+    editor.outlinePageClosed();
+    editor = null;
+    // remove property listeners
+    if (propertyChangeListener != null) {
+      IPreferenceStore preferenceStore = DartToolsPlugin.getDefault().getPreferenceStore();
+      preferenceStore.removePropertyChangeListener(propertyChangeListener);
+      propertyChangeListener = null;
     }
     if (fontPropertyChangeListener != null) {
       JFaceResources.getFontRegistry().removeListener(fontPropertyChangeListener);
       fontPropertyChangeListener = null;
     }
-
-    if (fMenu != null && !fMenu.isDisposed()) {
-      fMenu.dispose();
-      fMenu = null;
+    // dispose "contextMenu"
+    if (contextMenu != null && !contextMenu.isDisposed()) {
+      contextMenu.dispose();
+      contextMenu = null;
     }
-
-    if (fActionGroups != null) {
-      fActionGroups.dispose();
+    // dispose actions
+    if (actionGroups != null) {
+      actionGroups.dispose();
     }
-
-    fOutlineViewer = null;
-
+    // done
+    viewer = null;
     super.dispose();
   }
 
   @Override
   public Control getControl() {
-    if (fOutlineViewer != null) {
-      return fOutlineViewer.getControl();
+    if (viewer != null) {
+      return viewer.getControl();
     }
     return null;
   }
 
   @Override
   public ISelection getSelection() {
-    if (fOutlineViewer == null) {
+    if (viewer == null) {
       return StructuredSelection.EMPTY;
     }
-    return fOutlineViewer.getSelection();
+    return viewer.getSelection();
   }
 
   @Override
   public void removeSelectionChangedListener(ISelectionChangedListener listener) {
-    if (fOutlineViewer != null) {
-      fOutlineViewer.removeSelectionChangedListener(listener);
+    if (viewer != null) {
+      viewer.removeSelectionChangedListener(listener);
     } else {
-      fSelectionChangedListeners.remove(listener);
+      selectionChangedListeners.remove(listener);
     }
   }
 
   public void select(LightNodeElement element) {
-    if (fOutlineViewer != null) {
+    if (viewer != null) {
       ISelection newSelection = new StructuredSelection(element);
-      if (!Objects.equal(fOutlineViewer.getSelection(), newSelection)) {
-        fOutlineViewer.setSelection(newSelection);
+      if (!Objects.equal(viewer.getSelection(), newSelection)) {
+        viewer.setSelection(newSelection);
       }
     }
   }
 
   @Override
   public void setFocus() {
-    if (fOutlineViewer != null) {
-      fOutlineViewer.getControl().setFocus();
+    if (viewer != null) {
+      viewer.getControl().setFocus();
     }
   }
 
   public void setInput(CompilationUnit input) {
     this.input = input;
-    if (fOutlineViewer != null) {
-      fOutlineViewer.setInput(input);
+    if (viewer != null) {
+      Control control = viewer.getControl();
+      control.setRedraw(false);
+      try {
+        Object[] expandedElements = viewer.getExpandedElements();
+        viewer.setInput(input);
+        viewer.setExpandedElements(expandedElements);
+      } finally {
+        control.setRedraw(true);
+      }
     }
   }
 
   @Override
   public void setSelection(ISelection selection) {
-    if (fOutlineViewer != null) {
-      fOutlineViewer.setSelection(selection);
+    if (viewer != null) {
+      viewer.setSelection(selection);
     }
   }
 
-  protected void contextMenuAboutToShow(IMenuManager menu) {
+  private void contextMenuAboutToShow(IMenuManager menu) {
     DartToolsPlugin.createStandardGroups(menu);
     IStructuredSelection selection = (IStructuredSelection) getSelection();
-    fActionGroups.setContext(new ActionContext(selection));
-    fActionGroups.fillContextMenu(menu);
+    actionGroups.setContext(new ActionContext(selection));
+    actionGroups.fillContextMenu(menu);
   }
 
   private void doPropertyChange(PropertyChangeEvent event) {
-    if (fOutlineViewer != null) {
-      fOutlineViewer.updateColors();
-      fOutlineViewer.refresh(false);
+    if (viewer != null) {
+      viewer.updateColors();
+      viewer.refresh(false);
     }
-  }
-
-  private void registerToolbarActions(IActionBars actionBars) {
-    IToolBarManager toolBarManager = actionBars.getToolBarManager();
-    toolBarManager.add(new LexicalSortingAction());
-    toolBarManager.add(new CollapseAllAction());
   }
 }
