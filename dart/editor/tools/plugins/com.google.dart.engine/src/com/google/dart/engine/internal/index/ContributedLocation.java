@@ -16,7 +16,7 @@ package com.google.dart.engine.internal.index;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.source.Source;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Instances of the class {@link ContributedLocation} record the {@link Source} that was being
@@ -25,8 +25,8 @@ import java.util.List;
  * @coverage dart.engine.index
  */
 public class ContributedLocation {
-  private final List<ContributedLocation> locationOwner;
-  private final List<ContributedLocation> declarationOwner;
+  private final Set<ContributedLocation> declarationOwner;
+  private final Set<ContributedLocation> locationOwner;
 
   /**
    * The location that is part of the relationship contributed by the contributor.
@@ -36,23 +36,23 @@ public class ContributedLocation {
   /**
    * Initialize a newly created contributed location with the given information.
    * 
-   * @param declarationOwner {@link List} to remove from when declaration {@link Source} is removed
-   * @param locationOwner {@link List} to remove from when location {@link Source} is removed
+   * @param declarationOwner {@link Set} to remove from when declaration {@link Source} is removed
+   * @param locationOwner {@link Set} to remove from when location {@link Source} is removed
    * @param location the location that is part of the relationship contributed by the contributor
    */
-  public ContributedLocation(List<ContributedLocation> declarationOwner,
-      List<ContributedLocation> locationOwner, Location location) {
-    this.locationOwner = locationOwner;
+  public ContributedLocation(Set<ContributedLocation> declarationOwner,
+      Set<ContributedLocation> locationOwner, Location location) {
     this.declarationOwner = declarationOwner;
+    this.locationOwner = locationOwner;
     this.location = location;
     locationOwner.add(this);
     declarationOwner.add(this);
   }
 
   /**
-   * @return the owner {@link List} to remove from when declaration {@link Source} is removed.
+   * @return the owner {@link Set} to remove from when declaration {@link Source} is removed.
    */
-  public List<ContributedLocation> getDeclarationOwner() {
+  public Set<ContributedLocation> getDeclarationOwner() {
     return declarationOwner;
   }
 
@@ -66,9 +66,9 @@ public class ContributedLocation {
   }
 
   /**
-   * @return the owner {@link List} to remove from when location {@link Source} is removed.
+   * @return the owner {@link Set} to remove from when location {@link Source} is removed.
    */
-  public List<ContributedLocation> getLocationOwner() {
+  public Set<ContributedLocation> getLocationOwner() {
     return locationOwner;
   }
 }

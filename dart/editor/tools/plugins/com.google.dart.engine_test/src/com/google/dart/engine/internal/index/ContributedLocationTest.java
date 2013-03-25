@@ -13,18 +13,18 @@
  */
 package com.google.dart.engine.internal.index;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.index.Location;
 
 import static org.mockito.Mockito.mock;
 
-import java.util.List;
+import java.util.Set;
 
 public class ContributedLocationTest extends EngineTestCase {
   public void test_new() throws Exception {
-    List<ContributedLocation> declarationOwner = Lists.newArrayList();
-    List<ContributedLocation> locationOwner = Lists.newArrayList();
+    Set<ContributedLocation> declarationOwner = Sets.newHashSet();
+    Set<ContributedLocation> locationOwner = Sets.newHashSet();
     Location location = mock(Location.class);
     ContributedLocation contributedLocation = new ContributedLocation(
         declarationOwner,

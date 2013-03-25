@@ -27,6 +27,7 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Helper to write {@link MemoryIndexStoreImpl} to {@link OutputStream}.
@@ -62,10 +63,10 @@ class MemoryIndexWriter {
     // do write Element(s)
     dos.writeInt(elementsToWrite.size());
     for (Element element : elementsToWrite) {
-      Map<Relationship, List<ContributedLocation>> relations = impl.relationshipMap.get(element);
+      Map<Relationship, Set<ContributedLocation>> relations = impl.relationshipMap.get(element);
       writeElementLocation(element);
       // write relations
-      for (Entry<Relationship, List<ContributedLocation>> relEntry : relations.entrySet()) {
+      for (Entry<Relationship, Set<ContributedLocation>> relEntry : relations.entrySet()) {
         // write relation
         dos.writeUTF(relEntry.getKey().getIdentifier());
         // prepare Location(s) to write

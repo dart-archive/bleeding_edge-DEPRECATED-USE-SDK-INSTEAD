@@ -227,7 +227,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.getRelationshipCount());
-      assertEquals(2, store.getDeclarationCount(contextA));
+      assertEquals(1, store.getDeclarationCount(contextA));
       assertEquals(1, store.getLocationCount(contextB));
       assertEquals(1, store.getLocationCount(contextC));
       // we get locations from all contexts
@@ -259,7 +259,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.getRelationshipCount());
-      assertEquals(2, store.getDeclarationCount(contextA));
+      assertEquals(1, store.getDeclarationCount(contextA));
       assertEquals(1, store.getLocationCount(contextB));
       assertEquals(1, store.getLocationCount(contextC));
       // we get locations from all contexts
@@ -471,7 +471,15 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    when(sourceA.toString()).thenReturn("sourceA");
+    when(sourceB.toString()).thenReturn("sourceB");
+    when(sourceC.toString()).thenReturn("sourceC");
+    when(sourceD.toString()).thenReturn("sourceD");
     when(location.getElement()).thenReturn(elementC);
+    when(elementA.toString()).thenReturn("elementA");
+    when(elementB.toString()).thenReturn("elementB");
+    when(elementC.toString()).thenReturn("elementC");
+    when(elementD.toString()).thenReturn("elementD");
     when(elementA.getContext()).thenReturn(contextA);
     when(elementB.getContext()).thenReturn(contextA);
     when(elementC.getContext()).thenReturn(contextA);

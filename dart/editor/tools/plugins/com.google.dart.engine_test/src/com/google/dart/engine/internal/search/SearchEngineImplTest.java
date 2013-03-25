@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.search;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
@@ -22,6 +23,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
@@ -30,7 +32,6 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
@@ -109,16 +110,22 @@ public class SearchEngineImplTest extends EngineTestCase {
 
   private static void assertMatches(List<SearchMatch> matches, ExpectedMatch... expectedMatches) {
     assertThat(matches).hasSize(expectedMatches.length);
-    for (int i = 0; i < expectedMatches.length; i++) {
-      ExpectedMatch expectedMatch = expectedMatches[i];
-      SearchMatch match = matches.get(i);
+    for (SearchMatch match : matches) {
+      boolean found = false;
       String msg = match.toString();
-      assertEquals(msg, expectedMatch.element, match.getElement());
-      assertSame(msg, expectedMatch.kind, match.getKind());
-      assertSame(msg, expectedMatch.quality, match.getQuality());
-      assertEquals(msg, expectedMatch.range, match.getSourceRange());
-      assertEquals(msg, expectedMatch.prefix, match.getImportPrefix());
-      assertEquals(msg, expectedMatch.qualified, match.isQualified());
+      for (ExpectedMatch expectedMatch : expectedMatches) {
+        if (Objects.equal(match.getElement(), expectedMatch.element)
+            && match.getKind() == expectedMatch.kind && match.getQuality() == expectedMatch.quality
+            && Objects.equal(match.getSourceRange(), expectedMatch.range)
+            && Objects.equal(match.getImportPrefix(), expectedMatch.prefix)
+            && match.isQualified() == expectedMatch.qualified) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        fail("Not found: " + msg);
+      }
     }
   }
 
@@ -652,7 +659,9 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(FunctionTypeAliasElement.class, referencedElement);
+    List<SearchMatch> matches = searchReferencesSync(
+        FunctionTypeAliasElement.class,
+        referencedElement);
     assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
     // verify
     assertMatches(
