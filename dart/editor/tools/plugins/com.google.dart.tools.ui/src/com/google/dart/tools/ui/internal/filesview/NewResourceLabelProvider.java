@@ -27,6 +27,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.LabelProviderChangedEvent;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
@@ -230,7 +231,11 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
   }
 
   private void uiExec(Runnable runnable) {
-    Display.getDefault().asyncExec(runnable);
+    try {
+      Display.getDefault().asyncExec(runnable);
+    } catch (SWTException e) {
+      // Ignore -- might occur if async events get dispatched after the WS is closed
+    }
   }
 
 }
