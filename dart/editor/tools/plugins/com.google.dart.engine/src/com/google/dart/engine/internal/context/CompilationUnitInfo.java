@@ -275,6 +275,9 @@ public class CompilationUnitInfo extends SourceInfo {
    * Mark the resolved compilation unit as needing to be recomputed.
    */
   public void invalidateResolvedUnit() {
+    if (resolvedUnit != null) {
+      resolvedUnit.accept(new ResolutionEraser());
+    }
     resolvedUnitState = CacheState.INVALID;
     resolvedUnit = null;
   }
