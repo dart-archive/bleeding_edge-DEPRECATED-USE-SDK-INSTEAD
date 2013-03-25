@@ -41,6 +41,11 @@ public class FileBasedSource implements Source {
   private final File file;
 
   /**
+   * The cached URI of the {@link #file}.
+   */
+  private final String fileUriString;
+
+  /**
    * A flag indicating whether this source is in one of the system libraries.
    */
   private final boolean inSystemLibrary;
@@ -72,6 +77,7 @@ public class FileBasedSource implements Source {
     this.factory = factory;
     this.file = file;
     this.inSystemLibrary = inSystemLibrary;
+    this.fileUriString = file.toURI().toString();
   }
 
   @Override
@@ -133,7 +139,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public String getEncoding() {
-    return file.toURI().toString();
+    return fileUriString;
   }
 
   @Override
