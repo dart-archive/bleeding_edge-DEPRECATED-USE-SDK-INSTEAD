@@ -51,12 +51,12 @@ import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.source.Source;
@@ -558,7 +558,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    * Test for {@link CorrectionUtils#getLineThis(int)}.
    */
   public void test_getLineThis() throws Exception {
-    parseTestUnit("//aaa\r\n//bbbb\r\nccccc");
+    parseTestUnit("//aaa\r\n//bbbb\r\n//ccccc");
     CorrectionUtils utils = getTestCorrectionUtils();
     // 0
     assertEquals(0, utils.getLineThis(0));
@@ -1489,9 +1489,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
    */
   private void assert_getNodePrefix(String nodePattern, String expectedPrefix) throws Exception {
     // find node
-    VariableDeclarationStatement node = findNode(
-        nodePattern,
-        VariableDeclarationStatement.class);
+    VariableDeclarationStatement node = findNode(nodePattern, VariableDeclarationStatement.class);
     // assert prefix
     CorrectionUtils utils = getTestCorrectionUtils();
     assertEquals(expectedPrefix, utils.getNodePrefix(node));
