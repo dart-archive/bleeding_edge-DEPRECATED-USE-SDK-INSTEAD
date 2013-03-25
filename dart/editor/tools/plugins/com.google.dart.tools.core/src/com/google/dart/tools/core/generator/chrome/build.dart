@@ -27,10 +27,10 @@ void main() {
 }
 
 void callDart2js(String path) {
-  print("dart2js --disallow-unsafe-eval -enable-checked-mode ${path}");
+  print("dart2js --disallow-unsafe-eval ${path}");
 
   Process.run(dart2jsPath.toNativePath(),
-    ['--disallow-unsafe-eval', '--enable-checked-mode', '-o${path}.js', path]
+    ['--disallow-unsafe-eval', '-o${path}.js', path]
   ).then((result) {
     if (result.stdout.length > 0) {
       print("${result.stdout.replaceAll('\r\n', '\n')}");

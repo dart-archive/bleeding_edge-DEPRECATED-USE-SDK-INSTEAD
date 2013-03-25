@@ -42,6 +42,40 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//[ {
+//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/1",
+//  "faviconUrl": "",
+//  "id": "1",
+//  "thumbnailUrl": "/thumb/chrome://newtab/",
+//  "title": "New Tab",
+//  "type": "page",
+//  "url": "chrome://newtab/",
+//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/1"
+//}, {
+//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/2",
+//  "faviconUrl": "",
+//  "id": "2",
+//  "thumbnailUrl": "/thumb/chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
+//  "title": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
+//  "type": "other",
+//  "url": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/_generated_background_page.html",
+//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/2"
+//}, {
+//  "devtoolsFrontendUrl": "/devtools/devtools.html?ws=localhost:1234/devtools/page/3",
+//  "faviconUrl": "",
+//  "id": "3",
+//  "thumbnailUrl": "/thumb/chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/packy.html",
+//  "title": "Packy",
+//  "type": "other",
+//  "url": "chrome-extension://becjelbpddbpmopbobpojhgneicbhlgj/packy.html",
+//  "webSocketDebuggerUrl": "ws://localhost:1234/devtools/page/3"
+//} ]
+
+// TODO(devoncarew): connect debugger to chrome-extension://becj... * ...bhlgj/_generated_background_page.html ?
+// will we get console.log output, even though it starts running before we connect?
+
+// TODO: kill browser process each time the app is run?
+
 /**
  * A ILaunchConfigurationDelegate implementation that can launch Chrome applications. We
  * conceptually launch the manifest.json file which specifies a Chrome app. We currently send
@@ -98,15 +132,15 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     commandsList.add("--no-default-browser-check");
     commandsList.add("--enable-extension-activity-logging");
     commandsList.add("--enable-extension-activity-ui");
-    commandsList.add("--load-extension=" + extensionPath);
+    //commandsList.add("--load-extension=" + extensionPath);
+    commandsList.add("--load-and-launch-app=" + extensionPath);
+    commandsList.add("--remote-debugging-port=1234");
 
-    // Use the about:extensions url to see a list of chrome extensions (and their ids).
-
-    // This don't work, but it would be nice if it did.
-    //commandsList.add("--app-id=mbadbcdklbggkebhdfmignehollhhdhi");
-
-    // This is a proposed flag, but does not yet exist.
-    //commandsList.add("--load-and-launch-app=" + extensionPath);
+    // TODO: the launch story isn't great (at least on the mac)
+    // if you don't kill chromium after you launch, the next launch will give you the process
+    // lock error. I don't think this is the same on windows or linux.
+    // Kill process before re-launch? refresh the background page?
+    // the load-and-launch flag also opens a blank chromium tab as well...
 
     if (enableDebugging) {
       // TODO(devoncarew):
