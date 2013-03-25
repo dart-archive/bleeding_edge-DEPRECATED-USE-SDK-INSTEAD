@@ -851,6 +851,22 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
+   * Return {@code true} if the given array of sources contains the given source.
+   * 
+   * @param sources the sources being searched
+   * @param targetSource the source being searched for
+   * @return {@code true} if the given source is in the array
+   */
+  private boolean contains(Source[] sources, Source targetSource) {
+    for (Source source : sources) {
+      if (source.equals(targetSource)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Create a source information object suitable for the given source. Return the source information
    * object that was created, or {@code null} if the source should not be tracked by this context.
    * 
@@ -1111,6 +1127,43 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
+   * In response to a change to at least one of the compilation units in the given library,
+   * invalidate any results that are dependent on the result of resolving that library.
+   * 
+   * @param librarySource the source of the library being invalidated
+   * @param libraryInfo the information for the library being invalidated
+   */
+  private void invalidateLibraryResolution(Source librarySource, LibraryInfo libraryInfo) {
+    // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these caches if
+    // the public namespace hasn't changed, which will be a fairly common case.
+    if (libraryInfo != null) {
+      LibraryElement libraryElement = libraryInfo.getElement();
+      libraryInfo.invalidateElement();
+      libraryInfo.invalidateLaunchable();
+      libraryInfo.invalidatePublicNamespace();
+      libraryInfo.invalidateResolutionErrors();
+      libraryInfo.invalidateResolvedUnit();
+      if (libraryElement == null) {
+        for (SourceInfo info : sourceMap.values()) {
+          if (info instanceof CompilationUnitInfo && !(info instanceof LibraryInfo)) {
+            CompilationUnitInfo partInfo = (CompilationUnitInfo) info;
+            if (contains(partInfo.getLibrarySources(), librarySource)) {
+              partInfo.invalidateResolutionErrors();
+              partInfo.invalidateResolvedUnit();
+            }
+          }
+        }
+      } else {
+        for (CompilationUnitElement partElement : libraryElement.getParts()) {
+          CompilationUnitInfo partInfo = getCompilationUnitInfo(partElement.getSource());
+          partInfo.invalidateResolutionErrors();
+          partInfo.invalidateResolvedUnit();
+        }
+      }
+    }
+  }
+
+  /**
    * Return {@code true} if this library is, or depends on, dart:html.
    * 
    * @param library the library being tested
@@ -1245,21 +1298,19 @@ public class AnalysisContextImpl implements AnalysisContext {
     SourceInfo sourceInfo = sourceMap.get(source);
     if (sourceInfo instanceof HtmlUnitInfo) {
       HtmlUnitInfo htmlUnitInfo = (HtmlUnitInfo) sourceInfo;
+      htmlUnitInfo.invalidateElement();
       htmlUnitInfo.invalidateLineInfo();
       htmlUnitInfo.invalidateParsedUnit();
       htmlUnitInfo.invalidateResolvedUnit();
+    } else if (sourceInfo instanceof LibraryInfo) {
+      LibraryInfo libraryInfo = (LibraryInfo) sourceInfo;
+      invalidateLibraryResolution(source, libraryInfo);
+      sourceMap.put(source, DartInfo.getPendingInstance());
     } else if (sourceInfo instanceof CompilationUnitInfo) {
       CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) sourceInfo;
       for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
-        // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if
-        // the public namespace hasn't changed, which will be a fairly common case.
         LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-        if (libraryInfo != null) {
-          libraryInfo.invalidateElement();
-          libraryInfo.invalidatePublicNamespace();
-          libraryInfo.invalidateLaunchable();
-          libraryInfo.invalidateClientServer();
-        }
+        invalidateLibraryResolution(librarySource, libraryInfo);
       }
       sourceMap.put(source, DartInfo.getPendingInstance());
     }
@@ -1277,15 +1328,8 @@ public class AnalysisContextImpl implements AnalysisContext {
     CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
     if (compilationUnitInfo != null) {
       for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
-        // TODO(brianwilkerson) This could be optimized. There's no need to flush these caches if
-        // the public namespace hasn't changed, which will be a fairly common case.
         LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-        if (libraryInfo != null) {
-          libraryInfo.invalidateElement();
-          libraryInfo.invalidatePublicNamespace();
-          libraryInfo.invalidateLaunchable();
-          libraryInfo.invalidateClientServer();
-        }
+        invalidateLibraryResolution(librarySource, libraryInfo);
       }
     }
     sourceMap.remove(source);

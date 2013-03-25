@@ -15,6 +15,8 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.ClassElement;
@@ -23,6 +25,7 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.internal.scope.Namespace;
@@ -69,6 +72,38 @@ public class AnalysisContextImplTest extends EngineTestCase {
     ChangeSet changeSet = new ChangeSet();
     changeSet.changed(source);
     context.applyChanges(changeSet);
+  }
+
+  public void test_applyChanges_change_multiple() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int a = 0;"));
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        "int b = a;"));
+    context.computeLibraryElement(librarySource);
+
+    context.setContents(librarySource, createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int aa = 0;"));
+    context.setContents(partSource, createSource(//
+        "part of lib;",
+        "int b = aa;"));
+    context.computeLibraryElement(librarySource);
+
+    CompilationUnit libraryUnit = context.resolveCompilationUnit(librarySource, librarySource);
+    CompilationUnit partUnit = context.resolveCompilationUnit(partSource, librarySource);
+    TopLevelVariableDeclaration declaration = (TopLevelVariableDeclaration) libraryUnit.getDeclarations().get(
+        0);
+    Element declarationElement = declaration.getVariables().getVariables().get(0).getName().getElement();
+    TopLevelVariableDeclaration use = (TopLevelVariableDeclaration) partUnit.getDeclarations().get(
+        0);
+    Element useElement = ((SimpleIdentifier) use.getVariables().getVariables().get(0).getInitializer()).getElement();
+    assertSame(declarationElement, ((PropertyAccessorElement) useElement).getVariable());
   }
 
   public void test_applyChanges_empty() {
@@ -409,6 +444,25 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.html", "<html></html>");
     HtmlUnit unit = context.resolveHtmlUnit(source);
     assertNotNull(unit);
+  }
+
+  public void test_setContents_libraryWithPart() throws Exception {
+    context = AnalysisContextFactory.contextWithCore();
+    sourceFactory = context.getSourceFactory();
+    Source librarySource = addSource("/lib.dart", createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int a = 0;"));
+    Source partSource = addSource("/part.dart", createSource(//
+        "part of lib;",
+        "int b = a;"));
+    context.computeLibraryElement(librarySource);
+
+    context.setContents(librarySource, createSource(//
+        "library lib;",
+        "part 'part.dart';",
+        "int aa = 0;"));
+    assertNull(context.getResolvedCompilationUnit(partSource, librarySource));
   }
 
   public void test_setSourceFactory() {
