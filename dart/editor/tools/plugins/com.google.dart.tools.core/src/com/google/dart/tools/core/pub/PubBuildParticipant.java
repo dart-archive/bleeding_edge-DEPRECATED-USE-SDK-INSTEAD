@@ -172,7 +172,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    */
   protected void runPub(IContainer container, final IProgressMonitor monitor) {
     if (DartCore.getPlugin().isAutoRunPubEnabled()) {
-      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).schedule();
+      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
     } else {
       MessageConsole console = DartCore.getConsole();
       console.printSeparator("");
