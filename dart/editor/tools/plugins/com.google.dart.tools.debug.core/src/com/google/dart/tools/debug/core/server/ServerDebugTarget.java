@@ -57,9 +57,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     @Override
     public void handleResolved(VmBreakpoint bp) {
       if (bp.getLocation() != null) {
-        final String url = getUrlForResource(dartBreakpoint.getFile());
+        final String url = getAbsoluteUrlForResource(dartBreakpoint.getFile());
+        final String pubUrl = getPubUrlForResource(dartBreakpoint.getFile());
 
-        if (bp.getLocation().getUrl().equals(url)) {
+        if (bp.getLocation().getUrl().equals(url)
+            || (pubUrl != null && bp.getLocation().getUrl().equals(pubUrl))) {
           if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
             ignoredBreakpoints.add(dartBreakpoint);
 
@@ -137,13 +139,16 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
     if (supportsBreakpoint(breakpoint)) {
       VmBreakpoint vmBreakpoint = findBreakpoint((DartBreakpoint) breakpoint);
-
-      if (vmBreakpoint != null) {
-        try {
+      VmBreakpoint pubBreakoint = findPubBreakpoint((DartBreakpoint) breakpoint);
+      try {
+        if (vmBreakpoint != null) {
           getConnection().removeBreakpoint(mainIsolate, vmBreakpoint);
-        } catch (IOException exception) {
-          DartDebugCorePlugin.logError(exception);
         }
+        if (pubBreakoint != null) {
+          getConnection().removeBreakpoint(mainIsolate, pubBreakoint);
+        }
+      } catch (IOException exception) {
+        DartDebugCorePlugin.logError(exception);
       }
     }
   }
@@ -408,11 +413,15 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private void addBreakpoint(VmIsolate isolate, DartBreakpoint breakpoint) {
     if (breakpoint.isBreakpointEnabled()) {
-      String url = getUrlForResource(breakpoint.getFile());
+      String url = getAbsoluteUrlForResource(breakpoint.getFile());
       int line = breakpoint.getLine();
-
       try {
         getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
+
+        url = getPubUrlForResource(breakpoint.getFile());
+        if (url != null) {
+          getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
+        }
       } catch (IOException exception) {
         DartDebugCorePlugin.logError(exception);
       }
@@ -436,7 +445,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   }
 
   private VmBreakpoint findBreakpoint(DartBreakpoint breakpoint) {
-    final String url = getUrlForResource(breakpoint.getFile());
+    final String url = getAbsoluteUrlForResource(breakpoint.getFile());
     final int line = breakpoint.getLine();
 
     for (VmBreakpoint bp : getConnection().getBreakpoints()) {
@@ -445,7 +454,21 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
         return bp;
       }
     }
+    return null;
+  }
 
+  private VmBreakpoint findPubBreakpoint(DartBreakpoint breakpoint) {
+    final int line = breakpoint.getLine();
+    final String pubUrl = getPubUrlForResource(breakpoint.getFile());
+
+    if (pubUrl != null) {
+      for (VmBreakpoint bp : getConnection().getBreakpoints()) {
+        if (line == bp.getLocation().getLineNumber()
+            && NetUtils.compareUrls(pubUrl, bp.getLocation().getUrl())) {
+          return bp;
+        }
+      }
+    }
     return null;
   }
 
@@ -495,6 +518,10 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     maybeResume(isolate);
   }
 
+  private String getAbsoluteUrlForResource(IFile file) {
+    return file.getLocation().toFile().toURI().toString();
+  }
+
   private DartBreakpoint getBreakpointFor(VmLocation location) {
     IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
         DartDebugCorePlugin.DEBUG_MODEL_ID);
@@ -532,26 +559,30 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return pauseType;
   }
 
-  private String getUrlForResource(IFile file) {
+  private String getPubUrlForResource(IFile file) {
     String locationUrl = file.getLocation().toFile().toURI().toString();
 
     int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
     if (index != -1) {
       locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC
           + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
-
+      return locationUrl;
     }
 
-    index = locationUrl.indexOf(DartCore.LIB_DIRECTORY_PATH);
+    index = locationUrl.lastIndexOf(DartCore.LIB_DIRECTORY_PATH);
+
     if (index != -1) {
-      String packageName = DartCore.getSelfLinkedPackageName(file);
-      if (packageName != null) {
-        locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC + packageName + File.separator
-            + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
+      File packagesDir = new File(locationUrl.substring(0, index), DartCore.PACKAGES_DIRECTORY_NAME);
+      if (packagesDir.exists()) {
+        String packageName = DartCore.getSelfLinkedPackageName(file);
+        if (packageName != null) {
+          locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC + packageName + File.separator
+              + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
+          return locationUrl;
+        }
       }
     }
-
-    return locationUrl;
+    return null;
   }
 
   private synchronized boolean maybeResume(VmIsolate isolate) {
