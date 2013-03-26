@@ -70,6 +70,7 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+import com.google.dart.engine.type.TypeVariableType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -598,7 +599,9 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordType(prefixedIdentifier, variableType);
       return recordType(node, variableType);
     } else if (element instanceof PropertyAccessorElement) {
-      Type propertyType = getType((PropertyAccessorElement) element);
+      Type propertyType = getType(
+          (PropertyAccessorElement) element,
+          node.getPrefix().getStaticType());
       recordType(prefixedIdentifier, propertyType);
       return recordType(node, propertyType);
     } else if (element instanceof MethodElement) {
@@ -680,7 +683,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       recordType(propertyName, type);
       return recordType(node, type);
     } else if (element instanceof PropertyAccessorElement) {
-      Type propertyType = getType((PropertyAccessorElement) element);
+      Type propertyType = getType((PropertyAccessorElement) element, node.getTarget() != null
+          ? node.getTarget().getStaticType() : null);
       recordType(propertyName, propertyType);
       return recordType(node, propertyType);
     } else {
@@ -764,7 +768,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     } else if (element instanceof MethodElement) {
       return recordType(node, ((MethodElement) element).getType());
     } else if (element instanceof PropertyAccessorElement) {
-      return recordType(node, getType((PropertyAccessorElement) element));
+      return recordType(node, getType((PropertyAccessorElement) element, null));
     } else if (element instanceof ExecutableElement) {
       return recordType(node, ((ExecutableElement) element).getType());
     } else if (element instanceof PrefixElement) {
@@ -876,9 +880,13 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * Return the type that should be recorded for a node that resolved to the given accessor.
    * 
    * @param accessor the accessor that the node resolved to
+   * @param context if the accessor element has context [by being the RHS of a
+   *          {@link PrefixedIdentifier} or {@link PropertyAccess}], and the return type of the
+   *          accessor is a parameter type, then the type of the LHS can be used to get more
+   *          specific type information
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
-  private Type getType(PropertyAccessorElement accessor) {
+  private Type getType(PropertyAccessorElement accessor, Type context) {
     FunctionType functionType = accessor.getType();
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. I think this can go away when everything
@@ -899,7 +907,27 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       }
       return dynamicType;
     }
-    return functionType.getReturnType();
+    Type returnType = functionType.getReturnType();
+    if (returnType instanceof TypeVariableType && context instanceof InterfaceType) {
+      // if the return type is a TypeVariable, we try to use the context [that the function is being
+      // called on] to get a more accurate returnType type
+      InterfaceType interfaceTypeContext = ((InterfaceType) context);
+//      Type[] argumentTypes = interfaceTypeContext.getTypeArguments();
+      TypeVariableElement[] parameterElements = interfaceTypeContext.getElement() != null
+          ? interfaceTypeContext.getElement().getTypeVariables() : null;
+      if (parameterElements != null) {
+        for (int i = 0; i < parameterElements.length; i++) {
+          TypeVariableElement varElt = parameterElements[i];
+          if (returnType.getName().equals(varElt.getName())) {
+            return interfaceTypeContext.getTypeArguments()[i];
+          }
+        }
+        // TODO(jwren) troubleshoot why call to substitute doesn't work
+//        Type[] parameterTypes = TypeVariableTypeImpl.getTypes(parameterElements);
+//        return returnType.substitute(argumentTypes, parameterTypes);
+      }
+    }
+    return returnType;
   }
 
   /**
