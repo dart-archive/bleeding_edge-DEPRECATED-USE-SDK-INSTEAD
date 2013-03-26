@@ -140,6 +140,11 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertSame(SourceKind.LIBRARY, context.computeKindOf(source));
   }
 
+  public void test_computeKindOf_libraryAndPart() {
+    Source source = addSource("/test.dart", "library lib; part of lib;");
+    assertSame(SourceKind.LIBRARY, context.computeKindOf(source));
+  }
+
   public void test_computeKindOf_part() {
     Source source = addSource("/test.dart", "part of lib;");
     assertSame(SourceKind.PART, context.computeKindOf(source));

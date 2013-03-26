@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.context;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
@@ -1049,18 +1050,22 @@ public class AnalysisContextImpl implements AnalysisContext {
   }
 
   /**
-   * Return {@code true} if the given compilation unit has a part-of directive.
+   * Return {@code true} if the given compilation unit has a part-of directive but no library
+   * directive.
    * 
    * @param unit the compilation unit being tested
    * @return {@code true} if the compilation unit has a part-of directive
    */
   private boolean hasPartOfDirective(CompilationUnit unit) {
+    boolean hasPartOf = false;
     for (Directive directive : unit.getDirectives()) {
       if (directive instanceof PartOfDirective) {
-        return true;
+        hasPartOf = true;
+      } else if (directive instanceof LibraryDirective) {
+        return false;
       }
     }
-    return false;
+    return hasPartOf;
   }
 
   /**
