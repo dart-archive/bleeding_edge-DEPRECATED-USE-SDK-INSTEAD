@@ -91,15 +91,15 @@ public class LightNodeElements {
           TopLevelVariableDeclaration topVarDecl = (TopLevelVariableDeclaration) unitMember;
           List<VariableDeclaration> variables = topVarDecl.getVariables().getVariables();
           for (VariableDeclaration variable : variables) {
-            LightNodeElement namedNode = createLightNodeElement(null, variable, true);
-            if (namedNode != null) {
-              elements.add(namedNode);
+            LightNodeElement element = createLightNodeElement(null, variable, true);
+            if (element != null) {
+              elements.add(element);
             }
           }
         } else {
-          LightNodeElement namedNode = createLightNodeElement(null, unitMember, true);
-          if (namedNode != null) {
-            elements.add(namedNode);
+          LightNodeElement element = createLightNodeElement(null, unitMember, true);
+          if (element != null) {
+            elements.add(element);
           }
         }
       }
@@ -168,10 +168,10 @@ public class LightNodeElements {
     }
 
     @Override
-    public Image getImage(Object element) {
-      LightNodeElement namedNode = (LightNodeElement) element;
-      boolean isPrivate = namedNode.isPrivate();;
-      ASTNode node = namedNode.getNode();
+    public Image getImage(Object o) {
+      LightNodeElement element = (LightNodeElement) o;
+      boolean isPrivate = element.isPrivate();;
+      ASTNode node = element.getNode();
       ImageDescriptor descriptor = getImageDescriptor(node, isPrivate);
       if (descriptor != null) {
         return registry.get(descriptor);
@@ -201,37 +201,50 @@ public class LightNodeElements {
     ClassDeclaration enclosingClass = node.getAncestor(ClassDeclaration.class);
     if (enclosingClass != null) {
       parent = createLightNodeElement(null, enclosingClass, false);
+      {
+        MethodDeclaration method = node.getAncestor(MethodDeclaration.class);
+        if (method != null) {
+          childNode = method;
+        }
+      }
       if (childNode == null) {
         childNode = node.getAncestor(VariableDeclaration.class);
       }
       if (childNode == null) {
-        childNode = node.getAncestor(ClassMember.class);
+        FieldDeclaration fieldDeclaration = node.getAncestor(FieldDeclaration.class);
+        if (fieldDeclaration != null) {
+          List<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
+          if (!fields.isEmpty()) {
+            childNode = fields.get(0);
+          }
+        }
       }
     } else {
+      {
+        FunctionDeclaration function = node.getAncestor(FunctionDeclaration.class);
+        if (function != null) {
+          childNode = function;
+        }
+      }
       if (childNode == null) {
         childNode = node.getAncestor(VariableDeclaration.class);
       }
-      if (childNode != null) {
-        childNode = childNode.getAncestor(CompilationUnitMember.class);
-      }
       if (childNode == null) {
-        childNode = node.getAncestor(CompilationUnitMember.class);
+        TopLevelVariableDeclaration decl = node.getAncestor(TopLevelVariableDeclaration.class);
+        if (decl != null) {
+          List<VariableDeclaration> vars = decl.getVariables().getVariables();
+          if (!vars.isEmpty()) {
+            childNode = vars.get(0);
+          }
+        }
       }
     }
-    // first field in FieldDeclaration
-    if (childNode instanceof FieldDeclaration) {
-      FieldDeclaration fieldDeclaration = (FieldDeclaration) childNode;
-      List<VariableDeclaration> fields = fieldDeclaration.getFields().getVariables();
-      if (!fields.isEmpty()) {
-        childNode = fields.get(0);
-      }
+    // try to create LightNodeElement
+    LightNodeElement element = createLightNodeElement(parent, childNode, false);
+    if (element == null) {
+      element = parent;
     }
-    // try to create NamedNode
-    LightNodeElement namedNode = createLightNodeElement(parent, childNode, false);
-    if (namedNode == null) {
-      namedNode = parent;
-    }
-    return namedNode;
+    return element;
   }
 
   /**
