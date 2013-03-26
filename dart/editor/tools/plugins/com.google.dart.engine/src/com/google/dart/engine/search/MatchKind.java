@@ -25,6 +25,16 @@ import com.google.dart.engine.element.LibraryElement;
  */
 public enum MatchKind {
   /**
+   * A declaration of a class.
+   */
+  CLASS_DECLARATION,
+
+  /**
+   * A declaration of a class alias.
+   */
+  CLASS_ALIAS_DECLARATION,
+
+  /**
    * A declaration of a constructor.
    */
   CONSTRUCTOR_DECLARATION,
@@ -50,6 +60,11 @@ public enum MatchKind {
   FIELD_WRITE,
 
   /**
+   * A declaration of a function.
+   */
+  FUNCTION_DECLARATION,
+
+  /**
    * A reference to a function in which the function is being executed.
    */
   FUNCTION_EXECUTION,
@@ -58,6 +73,11 @@ public enum MatchKind {
    * A reference to a function in which the function is being referenced.
    */
   FUNCTION_REFERENCE,
+
+  /**
+   * A declaration of a function type.
+   */
+  FUNCTION_TYPE_DECLARATION,
 
   /**
    * A reference to a function type.
@@ -107,10 +127,6 @@ public enum MatchKind {
    * A reference to a named parameter in invocation.
    */
   NAMED_PARAMETER_REFERENCE,
-  /**
-   * The kind that is used when the match does not represent a reference to an element.
-   */
-  NOT_A_REFERENCE,
 
   /**
    * A reference to a property accessor.
@@ -131,6 +147,11 @@ public enum MatchKind {
    * A reference to a {@link CompilationUnitElement}.
    */
   UNIT_REFERENCE,
+
+  /**
+   * A declaration of a variable.
+   */
+  VARIABLE_DECLARATION,
 
   /**
    * A reference to a variable in which the variable's value is being read.

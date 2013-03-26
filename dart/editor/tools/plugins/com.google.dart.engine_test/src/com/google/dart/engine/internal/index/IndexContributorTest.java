@@ -315,6 +315,46 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(classA, findOffset(".foo() {}"), ".foo"));
   }
 
+  public void test_isDefinedBy_NameElement_method() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  m() {}",
+        "}");
+    // prepare elements
+    Element methodElement = findElement("m() {}");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("m");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(methodElement, findOffset("m() {}"), "m"));
+  }
+
+  public void test_isDefinedBy_NameElement_operator() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  operator +(o) {}",
+        "}");
+    // prepare elements
+    Element methodElement = findElement("+(o) {}");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("+");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(methodElement, findOffset("+(o) {}"), "+"));
+  }
+
   public void test_isExtendedBy_ClassDeclaration() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

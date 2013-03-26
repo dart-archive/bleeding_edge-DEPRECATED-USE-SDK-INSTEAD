@@ -30,10 +30,8 @@ import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.element.TypeVariableElement;
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.index.IndexStore;
@@ -172,8 +170,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.FUNCTION_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
   }
 
   public void test_searchFunctionDeclarations_async() throws Exception {
@@ -185,8 +183,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.FUNCTION_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
   }
 
   public void test_searchFunctionDeclarations_inUniverse() throws Exception {
@@ -210,8 +208,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.FUNCTION_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
   }
 
   public void test_searchFunctionDeclarations_useFilter() throws Exception {
@@ -227,7 +225,7 @@ public class SearchEngineImplTest extends EngineTestCase {
         }
       };
       List<SearchMatch> matches = searchFunctionDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.FUNCTION_DECLARATION, 1, 2));
     }
     // search "elementB"
     {
@@ -238,7 +236,7 @@ public class SearchEngineImplTest extends EngineTestCase {
         }
       };
       List<SearchMatch> matches = searchFunctionDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
     }
   }
 
@@ -250,13 +248,13 @@ public class SearchEngineImplTest extends EngineTestCase {
     {
       pattern = SearchPatternFactory.createExactPattern("A", true);
       List<SearchMatch> matches = searchFunctionDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.FUNCTION_DECLARATION, 1, 2));
     }
     // search "B"
     {
       pattern = SearchPatternFactory.createExactPattern("B", true);
       List<SearchMatch> matches = searchFunctionDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.FUNCTION_DECLARATION, 10, 20));
     }
   }
 
@@ -272,8 +270,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(ClassElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -298,8 +295,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
     // search matches, in "libraryA"
     scope = SearchScopeFactory.createLibraryScope(libraryA);
-    List<SearchMatch> matches = searchReferencesSync(ClassElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.TYPE_REFERENCE, 1, 2));
   }
@@ -316,8 +312,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(ClassElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -333,10 +328,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(
-        CompilationUnitElement.class,
-        referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.UNIT_REFERENCE, 1, 2));
   }
@@ -357,8 +349,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(ConstructorElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -408,8 +399,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(PropertyInducingElement.class, fieldElement);
-    assertEquals(matches, searchReferencesSync(Element.class, fieldElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, fieldElement);
     // verify
     assertMatches(
         matches,
@@ -431,8 +421,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(FunctionElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -452,8 +441,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(ImportElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -469,8 +457,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(LibraryElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.LIBRARY_REFERENCE, 1, 2));
   }
@@ -507,8 +494,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(MethodElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -538,8 +524,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(ParameterElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -561,8 +546,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(PropertyAccessorElement.class, accessor);
-    assertEquals(matches, searchReferencesSync(Element.class, accessor));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, accessor);
     // verify
     assertMatches(matches, new ExpectedMatch(
         elementA,
@@ -584,8 +568,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(accessor, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(PropertyAccessorElement.class, accessor);
-    assertEquals(matches, searchReferencesSync(Element.class, accessor));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, accessor);
     // verify
     assertMatches(matches, new ExpectedMatch(
         elementA,
@@ -636,10 +619,7 @@ public class SearchEngineImplTest extends EngineTestCase {
           location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(
-        PropertyInducingElement.class,
-        topVariableElement);
-    assertEquals(matches, searchReferencesSync(Element.class, topVariableElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, topVariableElement);
     // verify
     assertMatches(
         matches,
@@ -659,10 +639,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(
-        FunctionTypeAliasElement.class,
-        referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -682,8 +659,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(TypeVariableElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -707,8 +683,7 @@ public class SearchEngineImplTest extends EngineTestCase {
       indexStore.recordRelationship(referencedElement, IndexConstants.IS_READ_WRITTEN_BY, location);
     }
     // search matches
-    List<SearchMatch> matches = searchReferencesSync(VariableElement.class, referencedElement);
-    assertEquals(matches, searchReferencesSync(Element.class, referencedElement));
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
     // verify
     assertMatches(
         matches,
@@ -758,7 +733,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     // search matches
     List<SearchMatch> matches = searchTypeDeclarationsAsync();
     // verify
-    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.CLASS_DECLARATION, 1, 2));
   }
 
   public void test_searchTypeDeclarations_class() throws Exception {
@@ -772,7 +747,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     // search matches
     List<SearchMatch> matches = searchTypeDeclarationsSync();
     // verify
-    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.CLASS_DECLARATION, 1, 2));
   }
 
   public void test_searchTypeDeclarations_classAlias() throws Exception {
@@ -786,7 +761,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     // search matches
     List<SearchMatch> matches = searchTypeDeclarationsSync();
     // verify
-    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.CLASS_ALIAS_DECLARATION, 1, 2));
   }
 
   public void test_searchTypeDeclarations_functionType() throws Exception {
@@ -800,7 +775,7 @@ public class SearchEngineImplTest extends EngineTestCase {
     // search matches
     List<SearchMatch> matches = searchTypeDeclarationsSync();
     // verify
-    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+    assertMatches(matches, new ExpectedMatch(elementA, MatchKind.FUNCTION_TYPE_DECLARATION, 1, 2));
   }
 
   public void test_searchVariableDeclarations() throws Exception {
@@ -812,8 +787,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.VARIABLE_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.VARIABLE_DECLARATION, 10, 20));
   }
 
   public void test_searchVariableDeclarations_async() throws Exception {
@@ -825,8 +800,8 @@ public class SearchEngineImplTest extends EngineTestCase {
     // verify
     assertMatches(
         matches,
-        new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+        new ExpectedMatch(elementA, MatchKind.VARIABLE_DECLARATION, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.VARIABLE_DECLARATION, 10, 20));
   }
 
   public void test_searchVariableDeclarations_usePattern() throws Exception {
@@ -837,13 +812,13 @@ public class SearchEngineImplTest extends EngineTestCase {
     {
       pattern = SearchPatternFactory.createExactPattern("A", true);
       List<SearchMatch> matches = searchVariableDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.NOT_A_REFERENCE, 1, 2));
+      assertMatches(matches, new ExpectedMatch(elementA, MatchKind.VARIABLE_DECLARATION, 1, 2));
     }
     // search "B"
     {
       pattern = SearchPatternFactory.createExactPattern("B", true);
       List<SearchMatch> matches = searchVariableDeclarationsSync();
-      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.NOT_A_REFERENCE, 10, 20));
+      assertMatches(matches, new ExpectedMatch(elementB, MatchKind.VARIABLE_DECLARATION, 10, 20));
     }
   }
 
