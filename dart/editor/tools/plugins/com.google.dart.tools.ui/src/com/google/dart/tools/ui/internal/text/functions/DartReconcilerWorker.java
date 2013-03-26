@@ -41,6 +41,7 @@ public class DartReconcilerWorker {
   }
 
   private static final BlockingQueue<Task> taskQueue = new LinkedBlockingDeque<Task>();
+  private static volatile boolean stopped = false;
   private static Thread thread = null;
 
   /**
@@ -49,11 +50,18 @@ public class DartReconcilerWorker {
    * @param source the {@link Source} to analyze, may be <code>null</code> - will be ignored.
    */
   public static void scheduleAnalysis(Project project, Source source) {
+    // may be stopped
+    if (stopped) {
+      return;
+    }
+    // check here to don't check in clients
     if (source == null) {
       return;
     }
+    // OK, schedule task
     AnalysisContext context = source.getContext();
     taskQueue.offer(new Task(project, context));
+    // ensure that thread in running
     ensureThreadStarted();
   }
 
@@ -68,7 +76,6 @@ public class DartReconcilerWorker {
           mainLoop();
         }
       };
-      thread.setDaemon(true);
       thread.start();
     }
   }
@@ -77,14 +84,22 @@ public class DartReconcilerWorker {
    * The loop executing {@link Task}s from the {@value #taskQueue}.
    */
   private static void mainLoop() {
-    while (true) {
+    while (!stopped) {
       try {
         Task task = taskQueue.take();
-        new AnalysisWorker(task.project, task.context).performAnalysis();
+        AnalysisWorker worker = new AnalysisWorker(task.project, task.context);
+        worker.performAnalysis();
       } catch (Throwable e) {
         DartCore.logError(e);
         ExecutionUtils.sleep(10);
       }
     }
+  }
+
+  /**
+   * Call this method to cancel the background thread.
+   */
+  public void stop() {
+    stopped = true;
   }
 }
