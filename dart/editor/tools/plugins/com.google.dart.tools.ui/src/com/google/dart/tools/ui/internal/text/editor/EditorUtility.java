@@ -480,11 +480,9 @@ public class EditorUtility {
     }
 
     if (inputElement instanceof Element) {
-
       CompilationUnitElement cu = getCompilationUnit((Element) inputElement);
-
       IWorkbenchPage page = DartToolsPlugin.getActivePage();
-      if (page != null) {
+      if (cu != null && page != null) {
         IEditorPart editor = page.getActiveEditor();
         if (editor != null) {
           Element editorCU = EditorUtility.getEditorInputDartElement2(editor, false);
@@ -693,16 +691,18 @@ public class EditorUtility {
 
   //TODO (pquitslund): replace with appropriate call on Element when it exists
   private static CompilationUnitElement getCompilationUnit(Element element) {
-
-    if (element instanceof CompilationUnitElement) {
-      return (CompilationUnitElement) element;
+    // may be part of CompilationUnitElement
+    CompilationUnitElement unit = element.getAncestor(CompilationUnitElement.class);
+    if (unit != null) {
+      return unit;
     }
-
-    if (element instanceof LibraryElement) {
-      return ((LibraryElement) element).getDefiningCompilationUnit();
+    // may be part of LibraryElement
+    LibraryElement library = element.getAncestor(LibraryElement.class);
+    if (library != null) {
+      return library.getDefiningCompilationUnit();
     }
-
-    return element.getAncestor(CompilationUnitElement.class);
+    // not found
+    return null;
   }
 
   private static IEditorInput getEditorInput(DartElement element) {
