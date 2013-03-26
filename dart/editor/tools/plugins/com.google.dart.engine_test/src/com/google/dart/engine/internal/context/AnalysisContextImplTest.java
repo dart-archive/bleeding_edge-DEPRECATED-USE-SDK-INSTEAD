@@ -211,6 +211,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
     assertNotNull(element);
   }
 
+  public void test_getHtmlFilesReferencing_library() throws Exception {
+    Source htmlSource = addSource(
+        "/test.html",
+        "<html><head><script src='test.dart'/></head></html>");
+    Source librarySource = addSource("/test.dart", "library lib;");
+    Source[] result = context.getHtmlFilesReferencing(librarySource);
+    assertLength(0, result);
+    context.parseHtmlUnit(htmlSource);
+    result = context.getHtmlFilesReferencing(librarySource);
+    assertLength(1, result);
+    assertEquals(htmlSource, result[0]);
+  }
+
   public void test_getHtmlSources() {
     Source[] sources = context.getHtmlSources();
     assertLength(0, sources);

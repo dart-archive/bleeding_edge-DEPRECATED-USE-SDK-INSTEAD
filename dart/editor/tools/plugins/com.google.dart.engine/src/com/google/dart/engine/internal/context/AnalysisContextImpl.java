@@ -31,7 +31,7 @@ import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.html.ast.HtmlUnit;
 import com.google.dart.engine.html.ast.XmlAttributeNode;
 import com.google.dart.engine.html.ast.XmlTagNode;
-import com.google.dart.engine.html.ast.visitor.SimpleXmlVisitor;
+import com.google.dart.engine.html.ast.visitor.RecursiveXmlVisitor;
 import com.google.dart.engine.html.parser.HtmlParseResult;
 import com.google.dart.engine.html.parser.HtmlParser;
 import com.google.dart.engine.html.scanner.HtmlScanResult;
@@ -977,20 +977,20 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   private ArrayList<Source> getLibrarySources(final Source htmlSource, HtmlUnit htmlUnit) {
     final ArrayList<Source> libraries = new ArrayList<Source>();
-    htmlUnit.accept(new SimpleXmlVisitor<Void>() {
+    htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
       @Override
       public Void visitXmlTagNode(XmlTagNode node) {
         if (node.getTag().getLexeme().equalsIgnoreCase(TAG_SCRIPT)) {
           for (XmlAttributeNode attribute : node.getAttributes()) {
             if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
-              Source librarySource = htmlSource.resolve(attribute.getValue().getLexeme());
+              Source librarySource = htmlSource.resolve(attribute.getText());
               if (librarySource.exists()) {
                 libraries.add(librarySource);
               }
             }
           }
         }
-        return null;
+        return super.visitXmlTagNode(node);
       }
     });
     return libraries;
