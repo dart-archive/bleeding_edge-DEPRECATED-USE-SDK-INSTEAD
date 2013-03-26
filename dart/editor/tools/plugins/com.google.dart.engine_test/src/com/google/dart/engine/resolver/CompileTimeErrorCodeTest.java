@@ -183,17 +183,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_fieldInitializedByMultipleInitializers() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  int x;",
-        "  A() : x = 0, x = 1 {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
-    verify(source);
-  }
-
   public void fail_finalInitializedInDeclarationAndConstructor_assignment() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1325,6 +1314,31 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class A implements String {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
+    verify(source);
+  }
+
+  public void test_fieldInitializedByMultipleInitializers() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  A() : x = 0, x = 1 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
+    verify(source);
+  }
+
+  public void test_fieldInitializedByMultipleInitializers_multiple() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  int y;",
+        "  A() : x = 0, x = 1, y = 0, y = 1 {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
     verify(source);
   }
 

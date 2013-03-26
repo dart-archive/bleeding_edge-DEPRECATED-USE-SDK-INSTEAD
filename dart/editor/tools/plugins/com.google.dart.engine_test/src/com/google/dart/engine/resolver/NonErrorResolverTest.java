@@ -165,6 +165,18 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_fieldInitializedByMultipleInitializers() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  int y;",
+        "  A() : x = 0, y = 0 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_fieldInitializedInInitializerAndDeclaration_fieldNotFinal() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",

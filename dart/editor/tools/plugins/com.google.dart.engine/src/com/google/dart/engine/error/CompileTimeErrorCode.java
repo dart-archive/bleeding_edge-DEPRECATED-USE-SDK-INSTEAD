@@ -268,7 +268,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if more than one initializer corresponding to a given instance variable appears in
    * <i>k</i>’s list.
    */
-  FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS(""),
+  FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS(
+      "The field '%s' cannot be initialized twice in the same constructor"),
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile time

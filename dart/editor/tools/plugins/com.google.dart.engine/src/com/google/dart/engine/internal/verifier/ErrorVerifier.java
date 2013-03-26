@@ -23,6 +23,7 @@ import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
+import com.google.dart.engine.ast.ConstructorInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
@@ -78,6 +79,9 @@ import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -212,6 +216,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       isEnclosingConstructorConst = node.getConstKeyword() != null;
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
+      checkForFieldInitializedByMultipleInitializers(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -687,6 +692,52 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return false;
+  }
+
+  /**
+   * This verifies that the passed constructor declaration does not have two constructor field
+   * Initializers with the same name.
+   * 
+   * @param node the constructor declaration to test
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
+   */
+  private boolean checkForFieldInitializedByMultipleInitializers(ConstructorDeclaration node) {
+    NodeList<ConstructorInitializer> initializers = node.getInitializers();
+    if (initializers.isEmpty()) {
+      return false;
+    }
+    boolean foundError = false;
+    HashMap<String, ArrayList<ConstructorFieldInitializer>> conflictingNamesMap = new HashMap<String, ArrayList<ConstructorFieldInitializer>>(
+        initializers.size());
+    for (ConstructorInitializer constructorInitializer : initializers) {
+      if (constructorInitializer instanceof ConstructorFieldInitializer) {
+        ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) constructorInitializer;
+        SimpleIdentifier simpleIdentifier = fieldInitializer.getFieldName();
+        if (!simpleIdentifier.isSynthetic()) {
+          String key = simpleIdentifier.getName();
+          if (conflictingNamesMap.get(key) == null) {
+            ArrayList<ConstructorFieldInitializer> newList = new ArrayList<ConstructorFieldInitializer>(
+                1);
+            newList.add(fieldInitializer);
+            conflictingNamesMap.put(key, newList);
+          } else {
+            conflictingNamesMap.get(key).add(fieldInitializer);
+          }
+        }
+      }
+    }
+    for (String key : conflictingNamesMap.keySet()) {
+      ArrayList<ConstructorFieldInitializer> list = conflictingNamesMap.get(key);
+      if (list.size() > 1) {
+        errorReporter.reportError(
+            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+            list.get(1),
+            key);
+        foundError = true;
+      }
+    }
+    return foundError;
   }
 
   /**
