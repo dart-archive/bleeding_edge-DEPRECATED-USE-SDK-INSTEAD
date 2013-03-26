@@ -80,8 +80,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -226,8 +225,10 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    checkForFieldInitializedInInitializerAndDeclaration(node);
-    checkForFieldInitializedInParameterAndInitializer(node);
+    SimpleIdentifier identifier = node.getFieldName();
+    Element element = identifier.getElement();
+    checkForFieldInitializedInInitializerAndDeclaration(node, identifier, element);
+    checkForFieldInitializedInParameterAndInitializer(node, identifier, element);
     return super.visitConstructorFieldInitializer(node);
   }
 
@@ -708,33 +709,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     boolean foundError = false;
-    HashMap<String, ArrayList<ConstructorFieldInitializer>> conflictingNamesMap = new HashMap<String, ArrayList<ConstructorFieldInitializer>>(
-        initializers.size());
+    HashSet<String> keySet = new HashSet<String>();
     for (ConstructorInitializer constructorInitializer : initializers) {
       if (constructorInitializer instanceof ConstructorFieldInitializer) {
         ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) constructorInitializer;
         SimpleIdentifier simpleIdentifier = fieldInitializer.getFieldName();
         if (!simpleIdentifier.isSynthetic()) {
           String key = simpleIdentifier.getName();
-          if (conflictingNamesMap.get(key) == null) {
-            ArrayList<ConstructorFieldInitializer> newList = new ArrayList<ConstructorFieldInitializer>(
-                1);
-            newList.add(fieldInitializer);
-            conflictingNamesMap.put(key, newList);
+          if (keySet.contains(key)) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                fieldInitializer,
+                key);
+            foundError = true;
           } else {
-            conflictingNamesMap.get(key).add(fieldInitializer);
+            keySet.add(key);
           }
         }
-      }
-    }
-    for (String key : conflictingNamesMap.keySet()) {
-      ArrayList<ConstructorFieldInitializer> list = conflictingNamesMap.get(key);
-      if (list.size() > 1) {
-        errorReporter.reportError(
-            CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-            list.get(1),
-            key);
-        foundError = true;
       }
     }
     return foundError;
@@ -745,13 +736,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * already included an initialization.
    * 
    * @param node the constructor field initializer to test
+   * @param identifier the simple identifier of the constructor field initializer
+   * @param element the element associated with the constructor field initializer
    * @return return <code>true</code> if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
    */
   private boolean checkForFieldInitializedInInitializerAndDeclaration(
-      ConstructorFieldInitializer node) {
-    SimpleIdentifier identifier = node.getFieldName();
-    Element element = identifier.getElement();
+      ConstructorFieldInitializer node, SimpleIdentifier identifier, Element element) {
     if (element instanceof PropertyAccessorElement) {
       PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
       PropertyInducingElement propertyInducingElement = propertyAccessorElement.getVariable();
@@ -771,12 +762,13 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * parameter in the constructor declaration.
    * 
    * @param node the constructor field initializer to test
+   * @param identifier the simple identifier of the constructor field initializer
+   * @param element the element associated with the constructor field initializer
    * @return return <code>true</code> if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
    */
-  private boolean checkForFieldInitializedInParameterAndInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier identifier = node.getFieldName();
-    Element element = identifier.getElement();
+  private boolean checkForFieldInitializedInParameterAndInitializer(
+      ConstructorFieldInitializer node, SimpleIdentifier identifier, Element element) {
     ASTNode parent = node.getParent();
     if (element != null && parent instanceof ConstructorDeclaration) {
       ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;

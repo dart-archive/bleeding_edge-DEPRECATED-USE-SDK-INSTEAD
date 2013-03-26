@@ -1328,7 +1328,20 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializedByMultipleInitializers_multiple() throws Exception {
+  public void test_fieldInitializedByMultipleInitializers_multipleInits() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  A() : x = 0, x = 1, x = 2 {}",
+        "}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+        CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
+    verify(source);
+  }
+
+  public void test_fieldInitializedByMultipleInitializers_multipleNames() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  int x;",
