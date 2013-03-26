@@ -53,6 +53,7 @@ import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.net.URI;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -984,9 +985,20 @@ public class AnalysisContextImpl implements AnalysisContext {
         if (node.getTag().getLexeme().equalsIgnoreCase(TAG_SCRIPT)) {
           for (XmlAttributeNode attribute : node.getAttributes()) {
             if (attribute.getName().getLexeme().equalsIgnoreCase(ATTRIBUTE_SRC)) {
-              Source librarySource = htmlSource.resolve(attribute.getText());
-              if (librarySource.exists()) {
-                libraries.add(librarySource);
+              try {
+                URI uri = new URI(null, null, attribute.getText(), null);
+                String fileName = uri.getPath();
+                if (AnalysisEngine.isDartFileName(fileName)) {
+                  Source librarySource = htmlSource.resolve(fileName);
+                  if (librarySource.exists()) {
+                    libraries.add(librarySource);
+                  }
+                }
+              } catch (Exception exception) {
+                AnalysisEngine.getInstance().getLogger().logError(
+                    "Invalid URL ('" + attribute.getText() + "') in script tag in '"
+                        + htmlSource.getFullName() + "'",
+                    exception);
               }
             }
           }
