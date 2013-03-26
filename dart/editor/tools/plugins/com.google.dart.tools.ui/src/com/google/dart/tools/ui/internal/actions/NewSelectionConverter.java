@@ -26,8 +26,8 @@ import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
-import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 
 import org.eclipse.jface.text.ITextSelection;
 
@@ -43,7 +43,11 @@ public class NewSelectionConverter {
    * @return the associated element, or {@code null} if none can be found
    */
   public static Element getElementAtOffset(DartEditor editor) {
-    return getElementAtOffset(editor, true);
+    AssistContext context = editor.getAssistContext();
+    if (context == null) {
+      return null;
+    }
+    return context.getCoveredElement();
   }
 
   /**
@@ -168,18 +172,4 @@ public class NewSelectionConverter {
     });
     return result[0];
   }
-
-  private static Element getElementAtOffset(DartEditor editor, boolean primaryOnly) {
-    return getElementAtOffset(
-        getInput(editor, primaryOnly),
-        (ITextSelection) editor.getSelectionProvider().getSelection());
-  }
-
-  private static Element getInput(DartEditor editor, boolean primaryOnly) {
-    if (editor == null) {
-      return null;
-    }
-    return EditorUtility.getEditorInputDartElement2(editor, primaryOnly);
-  }
-
 }

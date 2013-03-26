@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,8 +13,9 @@
  */
 package com.google.dart.tools.ui.internal.typehierarchy;
 
-import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
+import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.internal.text.functions.AbstractInformationControl;
 import com.google.dart.tools.ui.internal.viewsupport.ColoringLabelProvider;
@@ -32,19 +33,19 @@ import org.eclipse.swt.widgets.Tree;
 /**
  * Show hierarchy in light-weight control.
  */
-public class HierarchyInformationControl extends AbstractInformationControl {
-  private TypeHierarchyContentProvider contentProvider;
-  private HierarchyLabelProvider labelProvider;
+public class HierarchyInformationControl_OLD extends AbstractInformationControl {
 
-  public HierarchyInformationControl(Shell parent, int shellStyle, int treeStyle) {
+  private TypeHierarchyContentProvider_OLD contentProvider;
+  private HierarchyLabelProvider_OLD labelProvider;
+
+  public HierarchyInformationControl_OLD(Shell parent, int shellStyle, int treeStyle) {
     super(parent, shellStyle, treeStyle, DartEditorActionDefinitionIds.OPEN_HIERARCHY, true);
   }
 
   @Override
   public void setInput(Object _input) {
-    Element input = (Element) _input;
-    ClassElement enclosingClass = input.getAncestor(ClassElement.class);
-    Object selection = enclosingClass != null ? enclosingClass : input;
+    DartElement input = (DartElement) _input;
+    Object selection = input instanceof TypeMember ? input.getAncestor(Type.class) : input;
     inputChanged(new Object[] {input}, selection);
   }
 
@@ -60,14 +61,14 @@ public class HierarchyInformationControl extends AbstractInformationControl {
     treeViewer.addFilter(new ViewerFilter() {
       @Override
       public boolean select(Viewer viewer, Object parentElement, Object element) {
-        return element instanceof ClassElement;
+        return element instanceof Type;
       }
     });
 
-    contentProvider = new TypeHierarchyContentProvider();
+    contentProvider = new TypeHierarchyContentProvider_OLD();
     treeViewer.setContentProvider(contentProvider);
 
-    labelProvider = new HierarchyLabelProvider(contentProvider.getLightPredicate());
+    labelProvider = new HierarchyLabelProvider_OLD(contentProvider.getLightPredicate());
     ColoringLabelProvider coloringLabelProvider = new ColoringLabelProvider(labelProvider);
     treeViewer.setLabelProvider(coloringLabelProvider);
     coloringLabelProvider.setOwnerDrawEnabled(true);

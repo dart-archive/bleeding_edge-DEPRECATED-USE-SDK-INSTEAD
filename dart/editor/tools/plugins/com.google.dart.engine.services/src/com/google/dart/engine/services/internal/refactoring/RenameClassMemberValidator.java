@@ -26,14 +26,13 @@ import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.services.util.HierarchyUtils;
 
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getChildren;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementKindName;
 import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getElementQualifiedName;
-import static com.google.dart.engine.services.internal.correction.CorrectionUtils.getSuperClassElements;
 
 import java.text.MessageFormat;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,7 +45,7 @@ class RenameClassMemberValidator {
   private final ClassElement elementClass;
   private final String oldName;
   private final String newName;
-  private Set<ClassElement> superClasses;
+  private List<ClassElement> superClasses;
   private Set<ClassElement> subClasses;
   private Set<ClassElement> hierarchyClasses;
   Set<Element> renameElements = Sets.newHashSet();
@@ -140,37 +139,14 @@ class RenameClassMemberValidator {
   }
 
   /**
-   * @return the {@link Set} with all direct and indirect sub {@link ClassElement}s of the given.
-   */
-  private Set<ClassElement> getSubClassElements(ClassElement seed) {
-    Set<ClassElement> subClasses = Sets.newHashSet();
-    // prepare queue
-    LinkedList<ClassElement> subClassQueue = Lists.newLinkedList();
-    subClassQueue.add(seed);
-    // process queue
-    while (!subClassQueue.isEmpty()) {
-      ClassElement subClass = subClassQueue.removeFirst();
-      if (subClasses.add(subClass)) {
-        List<SearchMatch> subMatches = searchEngine.searchSubtypes(subClass, null, null);
-        for (SearchMatch subMatch : subMatches) {
-          ClassElement subClassNew = (ClassElement) subMatch.getElement();
-          subClassQueue.addLast(subClassNew);
-        }
-      }
-    }
-    subClasses.remove(seed);
-    return subClasses;
-  }
-
-  /**
    * Fills {@link #hierarchyClasses} with super- and sub- {@link ClassElement}s; and
    * {@link #renameElements} with all {@link Element}s which should be renamed, i.e. overridden in
    * super- and overrides in sub-classes.
    */
   private void prepareHierarchyClasses() {
     // prepare super/sub-classes
-    superClasses = getSuperClassElements(elementClass);
-    subClasses = getSubClassElements(elementClass);
+    superClasses = HierarchyUtils.getSuperClasses(elementClass);
+    subClasses = HierarchyUtils.getSubClasses(searchEngine, elementClass);
     // full hierarchy
     hierarchyClasses = Sets.newHashSet();
     hierarchyClasses.add(elementClass);

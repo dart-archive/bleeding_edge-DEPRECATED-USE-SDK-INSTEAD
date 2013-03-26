@@ -913,51 +913,6 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     assertEquals("  ", CorrectionUtils.getStringPrefix("  01234"));
   }
 
-  public void test_getSuperClassElements() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "class B extends A {}",
-        "class C extends B {}",
-        "class D extends B implements A {}",
-        "class M {}",
-        "class E extends A with M {}",
-        "");
-    CompilationUnitElement unitElement = testUnit.getElement();
-    ClassElement classA = (ClassElement) CorrectionUtils.getChildren(unitElement, "A").get(0);
-    ClassElement classB = (ClassElement) CorrectionUtils.getChildren(unitElement, "B").get(0);
-    ClassElement classC = (ClassElement) CorrectionUtils.getChildren(unitElement, "C").get(0);
-    ClassElement classD = (ClassElement) CorrectionUtils.getChildren(unitElement, "D").get(0);
-    ClassElement classE = (ClassElement) CorrectionUtils.getChildren(unitElement, "E").get(0);
-    ClassElement classM = (ClassElement) CorrectionUtils.getChildren(unitElement, "M").get(0);
-    ClassElement classObject = classA.getSupertype().getElement();
-    // A
-    {
-      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classA);
-      assertThat(supers).containsOnly(classObject);
-    }
-    // B
-    {
-      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classB);
-      assertThat(supers).containsOnly(classObject, classA);
-    }
-    // C
-    {
-      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classC);
-      assertThat(supers).containsOnly(classObject, classA, classB);
-    }
-    // D
-    {
-      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classD);
-      assertThat(supers).containsOnly(classObject, classA, classB);
-    }
-    // E
-    {
-      Set<ClassElement> supers = CorrectionUtils.getSuperClassElements(classE);
-      assertThat(supers).containsOnly(classObject, classA, classM);
-    }
-  }
-
   /**
    * Test for {@link CorrectionUtils#getText()}.
    */

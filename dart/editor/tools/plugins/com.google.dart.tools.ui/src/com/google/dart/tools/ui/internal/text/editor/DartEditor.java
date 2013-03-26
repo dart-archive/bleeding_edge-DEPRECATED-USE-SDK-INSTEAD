@@ -4473,7 +4473,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         return null;
       }
       // prepare input CompilationUnit
-      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
+      com.google.dart.engine.ast.CompilationUnit unit = resolvedUnit;
       if (unit == null) {
         return null;
       }

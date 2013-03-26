@@ -60,6 +60,7 @@ import com.google.dart.engine.services.refactoring.InlineMethodRefactoring;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
 import com.google.dart.engine.services.status.RefactoringStatusContext;
+import com.google.dart.engine.services.util.HierarchyUtils;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.SourceRange;
 
@@ -541,7 +542,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
         ClassElement enclosingClassElement = enclosingClassNode.getElement();
         if (enclosingClassElement != null) {
           Set<ClassElement> elements = Sets.newHashSet(enclosingClassElement);
-          elements.addAll(CorrectionUtils.getSuperClassElements(enclosingClassElement));
+          elements.addAll(HierarchyUtils.getSuperClasses(enclosingClassElement));
           for (ClassElement classElement : elements) {
             List<Element> classMembers = CorrectionUtils.getChildren(classElement);
             for (Element classMemberElement : classMembers) {

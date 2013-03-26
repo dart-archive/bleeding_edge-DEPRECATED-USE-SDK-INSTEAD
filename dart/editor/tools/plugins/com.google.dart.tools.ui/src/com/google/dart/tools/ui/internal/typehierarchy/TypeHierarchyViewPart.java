@@ -170,8 +170,8 @@ public class TypeHierarchyViewPart extends ViewPart {
 
   private Control createTypeViewerControl(Composite parent) {
     typesViewer = new TreeViewer(parent, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
-    typesViewer.setContentProvider(new TypeHierarchyContentProvider());
-    typesViewer.setLabelProvider(new HierarchyLabelProvider(Predicates.alwaysFalse()));
+    typesViewer.setContentProvider(new TypeHierarchyContentProvider_OLD());
+    typesViewer.setLabelProvider(new HierarchyLabelProvider_OLD(Predicates.alwaysFalse()));
     typesViewer.addPostSelectionChangedListener(new ISelectionChangedListener() {
       @Override
       public void selectionChanged(SelectionChangedEvent event) {

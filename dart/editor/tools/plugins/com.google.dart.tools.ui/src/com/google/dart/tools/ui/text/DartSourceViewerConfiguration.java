@@ -52,6 +52,7 @@ import com.google.dart.tools.ui.internal.text.functions.LegacyDartReconciler;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.text.functions.SingleTokenDartScanner;
 import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl;
+import com.google.dart.tools.ui.internal.typehierarchy.HierarchyInformationControl_OLD;
 import com.google.dart.tools.ui.text.editor.tmp.JavaScriptCore;
 
 import org.eclipse.core.runtime.Assert;
@@ -136,6 +137,30 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
         new PreferencesAdapter(javaTextTools.getCorePreferenceStore()), generalTextStore});
   }
 
+  private static IInformationControlCreator getHierarchyPresenterControlCreator(
+      ISourceViewer sourceViewer) {
+    return new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell parent) {
+        int shellStyle = SWT.RESIZE;
+        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
+        return new HierarchyInformationControl(parent, shellStyle, treeStyle);
+      }
+    };
+  }
+
+  private static IInformationControlCreator getHierarchyPresenterControlCreator_OLD(
+      ISourceViewer sourceViewer) {
+    return new IInformationControlCreator() {
+      @Override
+      public IInformationControl createInformationControl(Shell parent) {
+        int shellStyle = SWT.RESIZE;
+        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
+        return new HierarchyInformationControl_OLD(parent, shellStyle, treeStyle);
+      }
+    };
+  }
+
   private DartTextTools fJavaTextTools;
   private ITextEditor fTextEditor;
   /**
@@ -150,6 +175,7 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * The Dart multi-line comment scanner.
    */
   private AbstractDartScanner fMultilineCommentScanner;
+
   /**
    * The Dart single-line comment scanner.
    */
@@ -158,7 +184,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * The Dart string scanner.
    */
   private AbstractDartScanner fStringScanner;
-
   /**
    * The Dart multi-line scanner
    */
@@ -167,10 +192,12 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    * The Doc scanner.
    */
   private AbstractDartScanner fJavaDocScanner;
+
   /**
    * The color manager.
    */
   private IColorManager fColorManager;
+
   /**
    * The double click strategy.
    */
@@ -417,13 +444,20 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
   public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer,
       boolean doCodeResolve) {
     // Do not create hierarchy presenter if there's no CU.
-    if (getEditor() != null && getEditor().getEditorInput() != null
-        && DartUI.getEditorInputDartElement(getEditor().getEditorInput()) == null) {
-      return null;
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (getEditor() != null && getEditor().getEditorInput() != null
+          && DartUI.getEditorInputDartElement(getEditor().getEditorInput()) == null) {
+        return null;
+      }
     }
 
-    InformationPresenter presenter = new InformationPresenter(
-        getHierarchyPresenterControlCreator(sourceViewer));
+    IInformationControlCreator hierarchyPresenterControlCreator;
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator(sourceViewer);
+    } else {
+      hierarchyPresenterControlCreator = getHierarchyPresenterControlCreator_OLD(sourceViewer);
+    }
+    InformationPresenter presenter = new InformationPresenter(hierarchyPresenterControlCreator);
     presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
     presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
     IInformationProvider provider = new DartElementProvider(getEditor(), doCodeResolve);
@@ -776,17 +810,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
    */
   protected RuleBasedScanner getStringScanner() {
     return fStringScanner;
-  }
-
-  private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
-    return new IInformationControlCreator() {
-      @Override
-      public IInformationControl createInformationControl(Shell parent) {
-        int shellStyle = SWT.RESIZE;
-        int treeStyle = SWT.V_SCROLL | SWT.H_SCROLL;
-        return new HierarchyInformationControl(parent, shellStyle, treeStyle);
-      }
-    };
   }
 
   /**

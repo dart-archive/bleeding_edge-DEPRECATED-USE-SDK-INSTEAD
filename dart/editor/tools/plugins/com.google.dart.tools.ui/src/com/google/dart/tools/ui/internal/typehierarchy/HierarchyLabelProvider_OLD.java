@@ -14,9 +14,9 @@
 package com.google.dart.tools.ui.internal.typehierarchy;
 
 import com.google.common.base.Predicate;
+import com.google.dart.tools.ui.DartElementLabelProvider;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.StyledString;
@@ -25,10 +25,11 @@ import org.eclipse.swt.graphics.Image;
 /**
  * Label provider for the hierarchy viewers.
  */
-public class HierarchyLabelProvider extends NewDartElementLabelProvider {
+public class HierarchyLabelProvider_OLD extends DartElementLabelProvider {
+
   private final Predicate<Object> lightPredicate;
 
-  public HierarchyLabelProvider(Predicate<Object> lightPredicate) {
+  public HierarchyLabelProvider_OLD(Predicate<Object> lightPredicate) {
     this.lightPredicate = lightPredicate;
   }
 
@@ -49,4 +50,5 @@ public class HierarchyLabelProvider extends NewDartElementLabelProvider {
     }
     return styledText;
   }
+
 }

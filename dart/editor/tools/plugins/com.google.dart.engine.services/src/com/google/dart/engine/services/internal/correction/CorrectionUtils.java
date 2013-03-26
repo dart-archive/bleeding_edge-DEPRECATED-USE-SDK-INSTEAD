@@ -37,7 +37,6 @@ import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
@@ -53,7 +52,6 @@ import com.google.dart.engine.services.internal.util.ExecutionUtils;
 import com.google.dart.engine.services.internal.util.RunnableObjectEx;
 import com.google.dart.engine.services.internal.util.TokenUtils;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
@@ -140,7 +138,7 @@ public class CorrectionUtils {
   /**
    * @return all direct children of the given {@link Element}.
    */
-  public static List<Element> getChildren(final Element parent) {
+  public static List<Element> getChildren(Element parent) {
     return getChildren(parent, null);
   }
 
@@ -428,18 +426,6 @@ public class CorrectionUtils {
       return s;
     }
     return s.substring(0, index);
-  }
-
-  /**
-   * @return the {@link Set} with all direct and indirect super {@link ClassElement}s of the given.
-   */
-  public static Set<ClassElement> getSuperClassElements(ClassElement classElement) {
-    Set<ClassElement> classes = Sets.newHashSet();
-    for (InterfaceType superType : classElement.getAllSupertypes()) {
-      ClassElement superClass = superType.getElement();
-      classes.add(superClass);
-    }
-    return classes;
   }
 
   /**
