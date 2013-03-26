@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.core.jobs;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -55,7 +56,7 @@ public class CleanLibrariesJob extends Job {
     CanonicalizationManager.getManager().reset();
 
     try {
-      if (resetModel) {
+      if (resetModel && !DartCoreDebug.ENABLE_NEW_ANALYSIS) {
         PackageLibraryManagerProvider.resetLibraryManager();
 
         AnalysisIndexManager.startIndexing();
