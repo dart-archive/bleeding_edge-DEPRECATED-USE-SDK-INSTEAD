@@ -76,9 +76,6 @@ public class LibraryImportScope extends Scope {
 
   @Override
   protected Element lookup(String name, LibraryElement referencingLibrary) {
-    if (isPrivateName(name)) {
-      return null;
-    }
     Element foundElement = localLookup(name, referencingLibrary);
     if (foundElement != null) {
       return foundElement;

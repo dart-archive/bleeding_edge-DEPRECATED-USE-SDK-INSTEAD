@@ -105,6 +105,23 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importWithPrefix() throws Exception {
+    addSource("/two.dart", createSource(//
+        "library two;",
+        "f(int x) {",
+        "  return x * x;",
+        "}"));
+    Source source = addSource("/one.dart", createSource(//
+        "library one;",
+        "import 'two.dart' as _two;",
+        "main() {",
+        "  _two.f(0);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_indexExpression_typeParameters() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
