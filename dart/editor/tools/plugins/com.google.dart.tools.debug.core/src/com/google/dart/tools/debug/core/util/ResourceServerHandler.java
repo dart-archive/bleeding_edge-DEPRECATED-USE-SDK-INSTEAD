@@ -232,6 +232,7 @@ class ResourceServerHandler implements Runnable {
    */
   private static final String[][] embeddedResources = new String[][] {
       {"/favicon.ico", TYPE_GIF, "/resources/favicon.ico"},
+      {"/dart_16_16.gif", TYPE_GIF, "/resources/dart_16_16.gif"},
       {"/dart_32_32.gif", TYPE_GIF, "/resources/dart_32_32.gif"},
       {"/agent.html", TYPE_HTML, "agent.html"},
       {"/agent.js", TYPE_JS, "agent.js"},

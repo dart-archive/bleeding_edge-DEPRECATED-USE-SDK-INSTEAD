@@ -16,16 +16,16 @@ package com.google.dart.tools.debug.core.util;
 
 import com.google.common.io.CharStreams;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
-import com.google.dart.tools.core.model.HTMLFile;
+import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,50 +127,36 @@ public class ResourceServer implements IResourceResolver {
 
     String template = CharStreams.toString(new InputStreamReader(in));
 
-    List<HTMLFile> appFiles = getAllHtmlFiles();
+    List<IFile> files = getAllHtmlFiles();
 
     // Sort by project name, then html file name
-    Collections.sort(appFiles, new Comparator<HTMLFile>() {
+    Collections.sort(files, new Comparator<IFile>() {
       @Override
-      public int compare(HTMLFile o1, HTMLFile o2) {
-        String str1 = o1.getDartProject().getElementName() + " " + o1.getElementName();
-        String str2 = o2.getDartProject().getElementName() + " " + o2.getElementName();
+      public int compare(IFile o1, IFile o2) {
+        String str1 = o1.getFullPath().toPortableString();
+        String str2 = o2.getFullPath().toPortableString();
 
         return str1.compareToIgnoreCase(str2);
       }
     });
 
-    if (appFiles.size() == 0) {
+    if (files.size() == 0) {
       template = replaceTemplate(template, "count", "No");
       template = replaceTemplate(template, "apps", "");
     } else {
-      template = replaceTemplate(template, "count", Integer.toString(appFiles.size()));
+      template = replaceTemplate(template, "count", Integer.toString(files.size()));
 
       StringBuilder builder = new StringBuilder();
 
-      for (HTMLFile htmlFile : appFiles) {
-        try {
-          if (htmlFile.getReferencedLibraries().length < 1) {
-            continue;
-          }
+      for (IFile file : files) {
+        String hrefStart = "<a href=\"" + getPathFor(file) + "\">";
 
-          IResource htmlResource = htmlFile.getCorrespondingResource();
-          DartLibrary library = htmlFile.getReferencedLibraries()[0];
-          IResource libraryResource = library.getCorrespondingResource();
-
-          String href = "<a href=\"" + getPathFor(htmlFile) + "\">";
-
-          builder.append("<div class=\"app\"><table><tr>");
-          builder.append("<td rowspan=2>" + href
-              + "<img src=\"dart_32_32.gif\" width=32 height=32></a></td>");
-          builder.append("<td class=\"title\">" + htmlResource.getProject().getName() + " - "
-              + href + htmlFile.getElementName() + "</a></td</tr>");
-          builder.append("<tr><td class=\"info\">"
-              + webSafe(libraryResource.getFullPath().toOSString()) + "</td></tr>");
-          builder.append("</table></div>");
-        } catch (DartModelException dme) {
-
-        }
+        builder.append("<div class=\"app\"><table><tr>");
+        builder.append("<td rowspan=2>" + hrefStart
+            + "<img src=\"dart_16_16.gif\" width=16 height=16></a></td>");
+        builder.append("<td class=\"title\">" + hrefStart
+            + webSafe(file.getFullPath().toOSString()) + "</a></td</tr>");
+        builder.append("</table></div>");
       }
 
       template = replaceTemplate(template, "apps", builder.toString());
@@ -188,36 +174,35 @@ public class ResourceServer implements IResourceResolver {
     }
   }
 
-  private List<HTMLFile> getAllHtmlFiles() {
-    Set<HTMLFile> files = new HashSet<HTMLFile>();
+  private List<IFile> getAllHtmlFiles() {
+    final List<IFile> files = new ArrayList<IFile>();
 
     for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-      DartProject dartProject = DartCore.create(project);
-
-      if (dartProject != null) {
+      if (DartProjectNature.hasDartNature(project)) {
         try {
-          for (DartLibrary library : dartProject.getDartLibraries()) {
-            List<HTMLFile> htmlFiles = library.getChildrenOfType(HTMLFile.class);
+          project.accept(new IResourceVisitor() {
+            @Override
+            public boolean visit(IResource resource) throws CoreException {
+              if (resource instanceof IFile && DartCore.isHTMLLikeFileName(resource.getName())) {
+                files.add((IFile) resource);
+              }
 
-            files.addAll(htmlFiles);
-          }
-        } catch (DartModelException ex) {
+              return true;
+            }
+          });
+        } catch (CoreException e) {
 
         }
       }
     }
 
-    return new ArrayList<HTMLFile>(files);
+    return files;
   }
 
-  private String getPathFor(HTMLFile htmlFile) throws IOException {
-    try {
-      String url = getUrlForResource(htmlFile.getCorrespondingResource());
+  private String getPathFor(IFile file) throws IOException {
+    String url = getUrlForResource(file);
 
-      return URI.create(url).getPath();
-    } catch (DartModelException ex) {
-      throw new IOException(ex);
-    }
+    return URI.create(url).getPath();
   }
 
   private String getUrlForUri(URI fileUri) {
