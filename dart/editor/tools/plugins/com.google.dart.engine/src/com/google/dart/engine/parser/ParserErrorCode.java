@@ -46,6 +46,8 @@ public enum ParserErrorCode implements ErrorCode {
   DUPLICATE_LABEL_IN_SWITCH_STATEMENT("The label %s was already used in this switch statement"),
   DUPLICATED_MODIFIER("The modifier '%s' was already specified."),
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
+  EXPECTED_CLASS_MEMBER("Expected a class member"),
+  EXPECTED_EXECUTABLE("Expected a method, getter, setter or operator declaration"),
   EXPECTED_LIST_OR_MAP_LITERAL("Expected a list or map literal"),
   EXPECTED_STRING_LITERAL("Expected a string literal"),
   EXPECTED_TOKEN("Expected to find '%s'"),
@@ -79,6 +81,7 @@ public enum ParserErrorCode implements ErrorCode {
       "Comment references should contain a possibly prefixed identifier and can start with 'new', but should not contain anything else"),
   INVALID_HEX_ESCAPE(
       "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits"),
+  INVALID_OPERATOR("The string '%s' is not a valid operator"),
   INVALID_OPERATOR_FOR_SUPER("The operator '%s' cannot be used with 'super'"),
   INVALID_UNICODE_ESCAPE(
       "An escape sequence starting with '\\u' must be followed by 4 hexidecimal digits or from 1 to 6 digits between '{' and '}'"),
@@ -88,12 +91,14 @@ public enum ParserErrorCode implements ErrorCode {
   MISSING_ASSIGNABLE_SELECTOR("Missing selector such as \".<identifier>\" or \"[0]\""),
   MISSING_CATCH_OR_FINALLY("A try statement must have either a catch or finally clause"),
   MISSING_CLASS_BODY("A class definition must have a body, even if it is empty"),
+  MISSING_CLOSING_PARENTHESIS("The closing parenthesis is missing"),
   MISSING_CONST_FINAL_VAR_OR_TYPE(
       "Variables must be declared using the keywords 'const', 'final', 'var' or a type name"),
   MISSING_EXPRESSION_IN_THROW("Throw expressions must compute the object to be thrown"),
   MISSING_FUNCTION_BODY("A function body must be provided"),
   MISSING_FUNCTION_PARAMETERS("Functions must have an explicit list of parameters"),
   MISSING_IDENTIFIER("Expected an identifier"),
+  MISSING_KEYWORD_OPERATOR("Operator declarations must be preceeded by the keyword 'operator'"),
   MISSING_NAME_IN_LIBRARY_DIRECTIVE("Library directives must include a library name"),
   MISSING_NAME_IN_PART_OF_DIRECTIVE("Library directives must include a library name"),
   MISSING_STATEMENT("Expected a statement"),
@@ -114,6 +119,7 @@ public enum ParserErrorCode implements ErrorCode {
   MULTIPLE_VARIABLES_IN_FOR_EACH(
       "A single loop variable must be declared in a for-each loop before the 'in', but %s were found"),
   MULTIPLE_WITH_CLAUSES("Each class definition can have at most one with clause"),
+  NAMED_FUNCTION_EXPRESSION("Function expressions cannot be named"),
   NAMED_PARAMETER_OUTSIDE_GROUP("Named parameters must be enclosed in curly braces ('{' and '}')"),
   NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE("Native functions cannot be declared in non-SDK code"),
   NON_CONSTRUCTOR_FACTORY("Only constructors can be declared to be a 'factory'"),
@@ -129,6 +135,7 @@ public enum ParserErrorCode implements ErrorCode {
   STATIC_CONSTRUCTOR("Constructors cannot be static"),
   STATIC_OPERATOR("Operators cannot be static"),
   STATIC_TOP_LEVEL_DECLARATION("Top-level declarations cannot be declared to be 'static'"),
+  TOP_LEVEL_OPERATOR("Operators must be declared within a class"),
   UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP("There is no '%s' to open a parameter group"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   USE_OF_UNARY_PLUS_OPERATOR("There is no unary plus operator in Dart"),

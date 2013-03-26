@@ -250,7 +250,9 @@ public class ParserTestCase extends EngineTestCase {
     //
     // Partially test the results.
     //
-    assertNotNull(result);
+    if (!listener.hasErrors()) {
+      assertNotNull(result);
+    }
     return (E) result;
   }
 

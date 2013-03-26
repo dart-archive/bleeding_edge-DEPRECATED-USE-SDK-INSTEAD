@@ -86,7 +86,20 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
   /**
    * An array containing the relative paths of test files that are expected to fail.
    */
-  private static final String[] FAILING_TESTS = {};
+  private static final String[] FAILING_TESTS = {
+      "/07_Classes/6_Constructors/1_Generative_Constructors_A04_t15.dart", // invalid syntax: cascade
+      "/11_Expressions/01_Constants_A01_t01.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t01.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t02.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t03.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t04.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t08.dart", // invalid syntax: unary plus
+      "/11_Expressions/03_Numbers_A01_t10.dart", // invalid syntax: unary plus
+      "/11_Expressions/08_Throw_A05_t01.dart", // invalid syntax: old catch clause
+      "/11_Expressions/22_Equality_A02_t03.dart", // invalid syntax: 'new' followed by string literal
+      "/12_Statements/02_Expression_Statements_A01_t06.dart", // invalid syntax: unary plus
+      "/14_Types/5_Function_Types_A04_t01.dart", // invalid syntax: empty optional parameters list
+  };
 
   /**
    * Build a JUnit test suite that will analyze all of the tests in the co19 test suite.

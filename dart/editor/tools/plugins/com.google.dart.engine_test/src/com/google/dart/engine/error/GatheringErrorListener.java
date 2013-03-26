@@ -258,6 +258,15 @@ public class GatheringErrorListener implements AnalysisErrorListener {
     return false;
   }
 
+  /**
+   * Return {@code true} if at least one error has been gathered.
+   * 
+   * @return {@code true} if at least one error has been gathered
+   */
+  public boolean hasErrors() {
+    return errors.size() > 0;
+  }
+
   @Override
   public void onError(AnalysisError error) {
     if (rawSource != null) {

@@ -223,6 +223,20 @@ public class Parser {
   }
 
   /**
+   * Create a synthetic token representing the given keyword.
+   * 
+   * @return the synthetic token that was created
+   */
+  private Token createSyntheticToken(Keyword keyword) {
+    return new KeywordToken(keyword, currentToken.getOffset()) {
+      @Override
+      public int getLength() {
+        return 0;
+      }
+    };
+  }
+
+  /**
    * Create a synthetic token with the given type.
    * 
    * @return the synthetic token that was created
@@ -433,6 +447,23 @@ public class Parser {
     TokenType type = token.getType();
     return type == TokenType.EQ || type == TokenType.COMMA || type == TokenType.SEMICOLON
         || matches(token, Keyword.IN);
+  }
+
+  /**
+   * Return {@code true} if the given token appears to be the beginning of an operator declaration.
+   * 
+   * @param startToken the token that might be the start of an operator declaration
+   * @return {@code true} if the given token appears to be the beginning of an operator declaration
+   */
+  private boolean isOperator(Token startToken) {
+    if (startToken.isOperator()) {
+      Token token = startToken.getNext();
+      while (token.isOperator()) {
+        token = token.getNext();
+      }
+      return matches(token, TokenType.OPEN_PAREN);
+    }
+    return false;
   }
 
   /**
@@ -1209,7 +1240,7 @@ public class Parser {
             modifiers.getExternalKeyword(),
             modifiers.getStaticKeyword(),
             returnType);
-      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
+      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
         validateModifiersForOperator(modifiers);
         return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
       } else if (matchesIdentifier()
@@ -1225,10 +1256,14 @@ public class Parser {
             modifiers.getStaticKeyword(),
             returnType);
       } else {
+        //
         // We have found an error of some kind. Try to recover.
+        //
         if (matchesIdentifier()) {
           if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            //
             // We appear to have a variable declaration with a type of "void".
+            //
             reportError(ParserErrorCode.VOID_VARIABLE, returnType);
             return parseInitializedIdentifierList(
                 commentAndMetadata,
@@ -1237,7 +1272,14 @@ public class Parser {
                 returnType);
           }
         }
-        // TODO(brianwilkerson) Report this error.
+        if (isOperator(peek())) {
+          //
+          // We appear to have found an operator declaration without the 'operator' keyword.
+          //
+          validateModifiersForOperator(modifiers);
+          return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), returnType);
+        }
+        reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
         return null;
       }
     } else if (matches(Keyword.GET) && matchesIdentifier(peek())) {
@@ -1254,13 +1296,18 @@ public class Parser {
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
-        && matches(peek(2), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
     } else if (!matchesIdentifier()) {
-      // TODO(brianwilkerson) Report an error and recover.
-      // reportError(ParserErrorCode.?);
+      if (isOperator(peek())) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), null);
+      }
+      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
       return null;
     } else if (matches(peek(), TokenType.PERIOD) && matchesIdentifier(peek(2))
         && matches(peek(3), TokenType.OPEN_PAREN)) {
@@ -1319,13 +1366,31 @@ public class Parser {
           modifiers.getExternalKeyword(),
           modifiers.getStaticKeyword(),
           type);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
-        && matches(peek(2), TokenType.OPEN_PAREN)) {
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
       validateModifiersForOperator(modifiers);
       return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
     } else if (!matchesIdentifier()) {
-      // TODO(brianwilkerson) Report an error and recover.
-      // reportError(ParserErrorCode.?);
+      if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+        //
+        // We appear to have found an incomplete declaration at the end of the class. At this point
+        // it consists of a type name, so we'll treat it as a field declaration with a missing
+        // field name and semicolon.
+        //
+        return parseInitializedIdentifierList(
+            commentAndMetadata,
+            modifiers.getStaticKeyword(),
+            validateModifiersForField(modifiers),
+            type);
+      }
+      if (isOperator(peek())) {
+        //
+        // We appear to have found an operator declaration without the 'operator' keyword.
+        //
+        validateModifiersForOperator(modifiers);
+        return parseOperator(commentAndMetadata, modifiers.getExternalKeyword(), type);
+      }
+      reportError(ParserErrorCode.EXPECTED_CLASS_MEMBER, currentToken);
+      return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForGetterOrSetterOrMethod(modifiers);
       return parseMethodDeclaration(
@@ -1726,8 +1791,10 @@ public class Parser {
       if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
-      } else if (matches(Keyword.OPERATOR) && peek().isOperator()) {
-        // TODO(brianwilkerson) Report this error and recover.
+      } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+        reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
+        // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
+        // even though we can't add it to the AST structure.
         return null;
       } else if (matchesIdentifier()
           && matchesAny(
@@ -1738,10 +1805,14 @@ public class Parser {
         validateModifiersForTopLevelFunction(modifiers);
         return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
       } else {
+        //
         // We have found an error of some kind. Try to recover.
+        //
         if (matchesIdentifier()) {
           if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+            //
             // We appear to have a variable declaration with a type of "void".
+            //
             reportError(ParserErrorCode.VOID_VARIABLE, returnType);
             return new TopLevelVariableDeclaration(
                 commentAndMetadata.getComment(),
@@ -1752,18 +1823,19 @@ public class Parser {
                     null), expect(TokenType.SEMICOLON));
           }
         }
-        // TODO(brianwilkerson) Report this error.
+        reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
         return null;
       }
     } else if ((matches(Keyword.GET) || matches(Keyword.SET)) && matchesIdentifier(peek())) {
       validateModifiersForTopLevelFunction(modifiers);
       return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
-    } else if (matches(Keyword.OPERATOR) && peek().isOperator()
-        && matches(peek(2), TokenType.OPEN_PAREN)) {
-      // TODO(brianwilkerson) Report this error and recover.
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
+      // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
+      // even though we can't (?) add it to the AST structure.
       return null;
     } else if (!matchesIdentifier()) {
-      // TODO(brianwilkerson) Report this error and recover.
+      reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
       return null;
     } else if (matches(peek(), TokenType.OPEN_PAREN)) {
       validateModifiersForTopLevelFunction(modifiers);
@@ -1782,8 +1854,13 @@ public class Parser {
           commentAndMetadata,
           modifiers.getExternalKeyword(),
           returnType);
+    } else if (matches(Keyword.OPERATOR) && isOperator(peek())) {
+      reportError(ParserErrorCode.TOP_LEVEL_OPERATOR, currentToken);
+      // TODO(brianwilkerson) Recovery: We probably want to try parsing an operator at this point
+      // even though we can't (?) add it to the AST structure.
+      return null;
     } else if (!matchesIdentifier()) {
-      // TODO(brianwilkerson) Report this error and recover.
+      reportError(ParserErrorCode.EXPECTED_EXECUTABLE, currentToken);
       return null;
     }
     if (matchesAny(peek(), TokenType.OPEN_PAREN, TokenType.FUNCTION, TokenType.OPEN_CURLY_BRACKET)) {
@@ -2368,14 +2445,6 @@ public class Parser {
    * @return the formal parameters that were parsed
    */
   private FormalParameterList parseFormalParameterList() {
-    if (matches(TokenType.EQ) && matches(peek(), TokenType.OPEN_PAREN)) {
-      Token previous = currentToken.getPrevious();
-      if ((matches(previous, TokenType.EQ_EQ) || matches(previous, TokenType.BANG_EQ))
-          && currentToken.getOffset() == previous.getOffset() + 2) {
-        // TODO(brianwilkerson) Report this error
-        advance();
-      }
-    }
     Token leftParenthesis = expect(TokenType.OPEN_PAREN);
     if (matches(TokenType.CLOSE_PAREN)) {
       return new FormalParameterList(leftParenthesis, null, null, null, getAndAdvance());
@@ -2409,8 +2478,7 @@ public class Parser {
         if (((BeginToken) leftParenthesis).getEndToken() != null) {
           reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
         } else {
-          // TODO(brianwilkerson) Report an error.
-          // reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+          reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, currentToken.getPrevious());
           break;
         }
       }
@@ -2774,7 +2842,7 @@ public class Parser {
    * 
    * <pre>
    * functionExpression ::=
-   *     (returnType? identifier)? formalParameterList functionExpressionBody
+   *     formalParameterList functionExpressionBody
    * </pre>
    * 
    * @return the function expression that was parsed
@@ -2831,7 +2899,9 @@ public class Parser {
           parameters,
           semicolon);
     } else if (!matches(TokenType.OPEN_PAREN)) {
-      // TODO(brianwilkerson) Report this error and recover.
+      reportError(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS);
+      // TODO(brianwilkerson) Recover from this error. At the very least we should skip to the start
+      // of the next valid compilation unit member.
       return null;
     }
     FormalParameterList parameters = parseFormalParameterList();
@@ -3548,15 +3618,26 @@ public class Parser {
                 TokenType.FUNCTION)) {
           return parseFunctionDeclarationStatement(commentAndMetadata, returnType);
         } else {
+          //
           // We have found an error of some kind. Try to recover.
+          //
           if (matchesIdentifier()) {
             if (matchesAny(peek(), TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON)) {
+              //
               // We appear to have a variable declaration with a type of "void".
+              //
               reportError(ParserErrorCode.VOID_VARIABLE, returnType);
               return parseVariableDeclarationStatement(commentAndMetadata);
             }
+          } else if (matches(TokenType.CLOSE_CURLY_BRACKET)) {
+            //
+            // We appear to have found an incomplete statement at the end of a block. Parse it as a
+            // variable declaration.
+            //
+            return parseVariableDeclarationStatement(commentAndMetadata, null, returnType);
           }
-          // TODO(brianwilkerson) Report this error.
+          reportError(ParserErrorCode.MISSING_STATEMENT);
+          // TODO(brianwilkerson) Recover from this error.
           return null;
         }
       } else if (keyword == Keyword.CONST) {
@@ -3584,9 +3665,10 @@ public class Parser {
           || keyword == Keyword.NULL || keyword == Keyword.SUPER || keyword == Keyword.THIS) {
         return new ExpressionStatement(parseExpression(), expect(TokenType.SEMICOLON));
       } else {
-        // Expected a statement
-        // TODO(brianwilkerson) Report an error.
-        // reportError(ParserErrorCode.?);
+        //
+        // We have found an error of some kind. Try to recover.
+        //
+        reportError(ParserErrorCode.MISSING_STATEMENT);
         return null;
       }
     } else if (matches(TokenType.SEMICOLON)) {
@@ -3691,11 +3773,27 @@ public class Parser {
    */
   private MethodDeclaration parseOperator(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, TypeName returnType) {
-    Token operatorKeyword = expect(Keyword.OPERATOR);
+    Token operatorKeyword;
+    if (matches(Keyword.OPERATOR)) {
+      operatorKeyword = getAndAdvance();
+    } else {
+      reportError(ParserErrorCode.MISSING_KEYWORD_OPERATOR, currentToken);
+      operatorKeyword = createSyntheticToken(Keyword.OPERATOR);
+    }
     if (!currentToken.isUserDefinableOperator()) {
       reportError(ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, currentToken.getLexeme());
     }
     SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
+    if (matches(TokenType.EQ)) {
+      Token previous = currentToken.getPrevious();
+      if ((matches(previous, TokenType.EQ_EQ) || matches(previous, TokenType.BANG_EQ))
+          && currentToken.getOffset() == previous.getOffset() + 2) {
+        reportError(
+            ParserErrorCode.INVALID_OPERATOR,
+            previous.getLexeme() + currentToken.getLexeme());
+        advance();
+      }
+    }
     FormalParameterList parameters = parseFormalParameterList();
     validateFormalParameterList(parameters);
     FunctionBody body = parseFunctionBody(true, false);
@@ -3915,6 +4013,16 @@ public class Parser {
     } else if (matches(TokenType.OPEN_SQUARE_BRACKET) || matches(TokenType.INDEX)) {
       return parseListLiteral(null, null);
     } else if (matchesIdentifier()) {
+      // TODO(brianwilkerson) The code below was an attempt to recover from an error case, but it
+      // needs to be applied as a recovery only after we know that parsing it as an identifier
+      // doesn't work. Leaving the code as a reminder of how to recover.
+//      if (isFunctionExpression(peek())) {
+//        //
+//        // Function expressions were allowed to have names at one point, but this is now illegal.
+//        //
+//        reportError(ParserErrorCode.NAMED_FUNCTION_EXPRESSION, getAndAdvance());
+//        return parseFunctionExpression();
+//      }
       return parsePrefixedIdentifier();
     } else if (matches(Keyword.NEW)) {
       return parseNewExpression();
@@ -3933,7 +4041,9 @@ public class Parser {
     } else if (matches(TokenType.QUESTION)) {
       return parseArgumentDefinitionTest();
     } else if (matches(Keyword.VOID)) {
+      //
       // Recover from having a return type of "void" where a return type is not expected.
+      //
       // TODO(brianwilkerson) Improve this error message.
       reportError(ParserErrorCode.UNEXPECTED_TOKEN, currentToken.getLexeme());
       advance();
@@ -4773,11 +4883,40 @@ public class Parser {
    *     variableDeclarationList ';'
    * </pre>
    * 
+   * @param commentAndMetadata the metadata to be associated with the variable declaration
+   *          statement, or <code>null</code> if there is no attempt at parsing the comment and
+   *          metadata
    * @return the variable declaration statement that was parsed
    */
   private VariableDeclarationStatement parseVariableDeclarationStatement(
       CommentAndMetadata commentAndMetadata) {
     VariableDeclarationList variableList = parseVariableDeclarationList(commentAndMetadata);
+    Token semicolon = expect(TokenType.SEMICOLON);
+    return new VariableDeclarationStatement(variableList, semicolon);
+  }
+
+  /**
+   * Parse a variable declaration statement.
+   * 
+   * <pre>
+   * variableDeclarationStatement ::=
+   *     variableDeclarationList ';'
+   * </pre>
+   * 
+   * @param commentAndMetadata the metadata to be associated with the variable declaration
+   *          statement, or <code>null</code> if there is no attempt at parsing the comment and
+   *          metadata
+   * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
+   *          there is no keyword
+   * @param type the type of the variables in the list
+   * @return the variable declaration statement that was parsed
+   */
+  private VariableDeclarationStatement parseVariableDeclarationStatement(
+      CommentAndMetadata commentAndMetadata, Token keyword, TypeName type) {
+    VariableDeclarationList variableList = parseVariableDeclarationList(
+        commentAndMetadata,
+        keyword,
+        type);
     Token semicolon = expect(TokenType.SEMICOLON);
     return new VariableDeclarationStatement(variableList, semicolon);
   }

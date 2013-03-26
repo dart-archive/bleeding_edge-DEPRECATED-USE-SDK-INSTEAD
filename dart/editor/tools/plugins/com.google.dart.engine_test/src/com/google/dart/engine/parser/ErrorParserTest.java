@@ -14,6 +14,8 @@
 package com.google.dart.engine.parser;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SuperExpression;
@@ -78,6 +80,15 @@ public class ErrorParserTest extends ParserTestCase {
         ParserErrorCode.INVALID_COMMENT_REFERENCE);
   }
 
+  public void fail_missingClosingParenthesis() throws Exception {
+    // It is possible that it is not possible to generate this error (that it's being reported in
+    // code that cannot actually be reached), but that hasn't been proven yet.
+    parse(
+        "parseFormalParameterList",
+        "(int a, int b ;",
+        ParserErrorCode.MISSING_CLOSING_PARENTHESIS);
+  }
+
   public void fail_missingExpressionInThrow_withCascade() throws Exception {
     parse("parseThrowExpression", "throw;", ParserErrorCode.MISSING_EXPRESSION_IN_THROW);
   }
@@ -99,6 +110,14 @@ public class ErrorParserTest extends ParserTestCase {
     // The parser does not recognize this as a function declaration, so it tries to parse it as an
     // expression statement. It isn't clear what the best error message is in this case.
     parse("parseStatement", "int f => x;", ParserErrorCode.MISSING_FUNCTION_PARAMETERS);
+  }
+
+  public void fail_namedFunctionExpression() throws Exception {
+    Expression expression = parse(
+        "parsePrimaryExpression",
+        "f() {}",
+        ParserErrorCode.NAMED_FUNCTION_EXPRESSION);
+    assertInstanceOf(FunctionExpression.class, expression);
   }
 
   public void fail_unexpectedToken_invalidPostfixExpression() throws Exception {
@@ -347,6 +366,50 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseSwitchStatement", "switch (e) {break;}", ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
   }
 
+  public void test_expectedClassMember_inClass_afterType() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "heart 2 heart",
+        ParserErrorCode.EXPECTED_CLASS_MEMBER);
+  }
+
+  public void test_expectedClassMember_inClass_beforeType() throws Exception {
+    parse("parseClassMember", new Object[] {"C"}, "4 score", ParserErrorCode.EXPECTED_CLASS_MEMBER);
+  }
+
+  public void test_expectedExecutable_inClass_afterVoid() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "void 2 void",
+        ParserErrorCode.EXPECTED_EXECUTABLE);
+  }
+
+  public void test_expectedExecutable_topLevel_afterType() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "heart 2 heart",
+        ParserErrorCode.EXPECTED_EXECUTABLE);
+  }
+
+  public void test_expectedExecutable_topLevel_afterVoid() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "void 2 void",
+        ParserErrorCode.EXPECTED_EXECUTABLE);
+  }
+
+  public void test_expectedExecutable_topLevel_beforeType() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "4 score",
+        ParserErrorCode.EXPECTED_EXECUTABLE);
+  }
+
   public void test_expectedStringLiteral() throws Exception {
     StringLiteral expression = parse(
         "parseStringLiteral",
@@ -587,6 +650,14 @@ public class ErrorParserTest extends ParserTestCase {
     parse("parseStringLiteral", "'\\x0'", ParserErrorCode.INVALID_HEX_ESCAPE);
   }
 
+  public void test_invalidOperator() throws Exception {
+    parse(
+        "parseClassMember",
+        new Object[] {"C"},
+        "void operator ===(x) {}",
+        ParserErrorCode.INVALID_OPERATOR);
+  }
+
   public void test_invalidOperatorForSuper() throws Exception {
     parse("parseUnaryExpression", "++super", ParserErrorCode.INVALID_OPERATOR_FOR_SUPER);
   }
@@ -731,6 +802,14 @@ public class ErrorParserTest extends ParserTestCase {
         "1",
         ParserErrorCode.MISSING_IDENTIFIER);
     assertTrue(expression.isSynthetic());
+  }
+
+  public void test_missingKeywordOperator() throws Exception {
+    parse(
+        "parseOperator",
+        new Object[] {emptyCommentAndMetadata(), null, null},
+        "+(x) {}",
+        ParserErrorCode.MISSING_KEYWORD_OPERATOR);
   }
 
   public void test_missingNameInLibraryDirective() throws Exception {
@@ -951,6 +1030,30 @@ public class ErrorParserTest extends ParserTestCase {
 
   public void test_staticTopLevelDeclaration_variable() throws Exception {
     parse("parseCompilationUnit", "static var x;", ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION);
+  }
+
+  public void test_topLevelOperator_withoutType() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "operator +(bool x, bool y) => x | y;",
+        ParserErrorCode.TOP_LEVEL_OPERATOR);
+  }
+
+  public void test_topLevelOperator_withType() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "bool operator +(bool x, bool y) => x | y;",
+        ParserErrorCode.TOP_LEVEL_OPERATOR);
+  }
+
+  public void test_topLevelOperator_withVoid() throws Exception {
+    parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "void operator +(bool x, bool y) => x | y;",
+        ParserErrorCode.TOP_LEVEL_OPERATOR);
   }
 
   public void test_unexpectedTerminatorForParameterGroup_named() throws Exception {
