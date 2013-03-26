@@ -157,6 +157,19 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_duplicateDefinition_emptyName() throws Exception {
+    // Note: This code has two FunctionElements '() {}' with an empty name, this tests that the
+    // empty string is not put into the scope (more than once).
+    Source source = addSource("/test.dart", createSource(//
+        "Map _globalMap = {",
+        "  'a' : () {},",
+        "  'b' : () {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_duplicateDefinition_getter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "bool get a => true;"));

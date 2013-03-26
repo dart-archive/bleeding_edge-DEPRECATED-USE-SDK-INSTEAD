@@ -82,10 +82,12 @@ public abstract class Scope {
    */
   public void define(Element element) {
     String name = getName(element);
-    if (definedNames.containsKey(name)) {
-      getErrorListener().onError(getErrorForDuplicate(definedNames.get(name), element));
-    } else {
-      definedNames.put(name, element);
+    if (name != null && !name.isEmpty()) {
+      if (definedNames.containsKey(name)) {
+        getErrorListener().onError(getErrorForDuplicate(definedNames.get(name), element));
+      } else {
+        definedNames.put(name, element);
+      }
     }
   }
 
