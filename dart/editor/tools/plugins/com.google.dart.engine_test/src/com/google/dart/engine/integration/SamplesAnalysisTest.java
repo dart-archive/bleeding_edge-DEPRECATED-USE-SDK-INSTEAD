@@ -24,7 +24,6 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
-import com.google.dart.engine.utilities.io.FileUtilities;
 
 import junit.framework.Assert;
 import junit.framework.Test;
@@ -32,29 +31,9 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
-  public class AnalysisTestWithSource extends AnalysisTest {
-    private String contents;
-
-    public AnalysisTestWithSource(File sourceFile, String contents) {
-      super(sourceFile);
-      this.contents = contents;
-    }
-
-    @Override
-    public void testFile() throws Exception {
-      testSingleFile(getSourceFile(), contents);
-    }
-
-    @Override
-    protected String getTestName() {
-      return getSourceFile().getName();
-    }
-  }
-
   public class ReportingTest extends TestCase {
     public ReportingTest(String methodName) {
       super(methodName);
@@ -121,7 +100,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
       suite.addTest(tester.new ReportingTest("reportResults"));
       return suite;
     }
-    return new TestSuite("Analyze language files (no tests: directory not found)");
+    return new TestSuite("Analyze sample files (no tests: directory not found)");
   }
 
   private long fileCount = 0L;
@@ -134,7 +113,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
     TestSuite suite = new TestSuite(suiteName);
     for (String sample : SAMPLES) {
       File file = new File(directory, sample);
-      if (file.exists() && file.getName().endsWith(".dart")) {
+      if (file.exists()) {
         addTestForFile(suite, file);
       } else {
         throw new IllegalStateException("Dart file does not exist at " + file.toString());
@@ -144,44 +123,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
   }
 
   @Override
-  protected void addTestForFile(TestSuite suite, File file) {
-    try {
-      suite.addTest(new AnalysisTestWithSource(file, FileUtilities.getContents(file)));
-      return;
-    } catch (IOException exception) {
-      suite.addTest(new TestSuite("Analyze " + file.getAbsolutePath() + " (could not read file)"));
-    }
-  }
-
-  @Override
-  protected void testSingleFile(File sourceFile) throws IOException {
-    // This method should never be called.
-    throw new InternalError("Wrong test method invoked for file " + sourceFile.getAbsolutePath());
-  }
-
-  protected void testSingleFile(File sourceFile, String contents) throws Exception {
-    //
-    // Uncomment the lines below to stop reporting failures for files containing directives or
-    // interface declarations.
-    //
-    if (contents.indexOf("#library") >= 0 || contents.indexOf("#import") >= 0
-        || contents.indexOf("#source") >= 0 || contents.indexOf("interface") >= 0
-        || contents.indexOf("===") >= 0 || contents.indexOf("!==") >= 0) {
-      skippedTests++;
-      return;
-    }
-    //
-    // Determine whether the test is expected to pass or fail.
-    //
-    boolean errorExpected = sourceFile.getName().endsWith("_negative_test.dart")
-        || contents.indexOf("compile-time error") > 0
-        || contents.indexOf("static type warning") > 0 || contents.indexOf("static warning") > 0;
-    // Uncomment the lines below to stop reporting failures for files that are expected to contain
-    // errors.
-//    if (errorExpected) {
-//      skippedTests++;
-//      return;
-//    }
+  protected void testSingleFile(File sourceFile) throws Exception {
     //
     // Create the analysis context in which the file will be analyzed.
     //
@@ -193,7 +135,6 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
     // Analyze the file.
     //
     Source source = new FileBasedSource(sourceFactory, sourceFile);
-    sourceFactory.setContents(source, contents);
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.computeLibraryElement(source);
     long endTime = System.currentTimeMillis();
@@ -213,7 +154,6 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
     for (CompilationUnitElement part : library.getParts()) {
       addErrors(errorList, part);
     }
-    assertErrors(errorExpected, false, errorList);
+    assertErrors(false, false, errorList);
   }
-
 }
