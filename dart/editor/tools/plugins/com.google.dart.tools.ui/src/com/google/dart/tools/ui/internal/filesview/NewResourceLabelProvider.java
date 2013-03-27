@@ -51,6 +51,8 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
   private List<ILabelProviderListener> listeners = new ArrayList<ILabelProviderListener>();
 
+  private boolean disposed;
+
   @Override
   public void addListener(ILabelProviderListener listener) {
     listeners.add(listener);
@@ -62,18 +64,22 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
 
   @Override
   public void dispose() {
+    disposed = true;
+
     workbenchLabelProvider.dispose();
+
+    if (listeners.size() > 0) {
+      DartCore.getProjectManager().removeProjectListener(this);
+    }
   }
 
   @Override
   public Image getImage(Object element) {
-
     if (element instanceof IResource) {
 
       IResource resource = (IResource) element;
 
       if (!DartCore.isAnalyzed(resource)) {
-
         if (resource instanceof IFile) {
           return DartToolsPlugin.getImage(IGNORE_FILE_ICON);
         }
@@ -81,11 +87,9 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
         if (resource instanceof IFolder) {
           return DartToolsPlugin.getImage(IGNORE_FOLDER_ICON);
         }
-
       }
 
       if (resource instanceof IFile) {
-
         IFile file = (IFile) resource;
 
         if (DartCore.isBuildDart(file)) {
@@ -93,25 +97,23 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
         }
 
         SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
+
         if (kind == SourceKind.LIBRARY) {
           return DartToolsPlugin.getImage(LIBRARY_ICON);
         }
-
       }
 
       if (element instanceof IFolder) {
-
         IFolder folder = (IFolder) element;
 
         if (DartCore.isPackagesDirectory(folder)) {
           return DartToolsPlugin.getImage(PACKAGES_FOLDER_ICON);
         }
+
         if (DartCore.isPackagesResource(folder)) {
           return DartToolsPlugin.getImage(PACKAGE_ICON);
         }
-
       }
-
     }
 
     return workbenchLabelProvider.getImage(element);
@@ -143,7 +145,6 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
         }
 
         if (resource instanceof IFile) {
-
           // Append the library name to library units.
 
           ProjectManager projectManager = DartCore.getProjectManager();
@@ -211,17 +212,22 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
     if (listeners.isEmpty()) {
       DartCore.getProjectManager().removeProjectListener(this);
     }
-
   }
 
   private void notifyListeners() {
+    if (disposed) {
+      return;
+    }
+
     try {
       for (final ILabelProviderListener listener : listeners) {
         uiExec(new Runnable() {
           @Override
           public void run() {
-            listener.labelProviderChanged(new LabelProviderChangedEvent(
-                NewResourceLabelProvider.this));
+            if (!disposed) {
+              listener.labelProviderChanged(new LabelProviderChangedEvent(
+                  NewResourceLabelProvider.this));
+            }
           }
         });
       }

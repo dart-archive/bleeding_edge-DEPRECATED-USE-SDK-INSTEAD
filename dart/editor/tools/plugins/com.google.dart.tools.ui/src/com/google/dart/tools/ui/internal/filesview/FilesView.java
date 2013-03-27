@@ -319,6 +319,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     if (pubUpdateListener != null) {
       PubManager.getInstance().removeListener(pubUpdateListener);
     }
+
+    resourceLabelProvider.dispose();
+
     super.dispose();
   }
 
