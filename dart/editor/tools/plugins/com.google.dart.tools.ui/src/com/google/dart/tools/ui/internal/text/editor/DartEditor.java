@@ -1893,12 +1893,17 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private SelectionProvider selectionProvider = new DartSelectionProvider();
 
   private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
+  private long lastCaretMovedEventId = 0;
   private final CaretListener dartSelectionCaretListener = new CaretListener() {
     @Override
     public void caretMoved(CaretEvent event) {
+      final long id = ++lastCaretMovedEventId;
       Display.getCurrent().asyncExec(new Runnable() {
         @Override
         public void run() {
+          if (id != lastCaretMovedEventId) {
+            return;
+          }
           fireDartSelectionListeners();
         }
       });
