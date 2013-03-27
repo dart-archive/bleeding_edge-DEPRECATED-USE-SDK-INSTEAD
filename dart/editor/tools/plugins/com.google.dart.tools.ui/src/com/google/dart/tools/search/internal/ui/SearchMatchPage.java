@@ -28,6 +28,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.text.editor.NewDartElementLabelProvider;
@@ -417,7 +418,7 @@ public abstract class SearchMatchPage extends SearchPage {
         }
       }, null);
     } catch (Throwable e) {
-      ExceptionHandler.handle(e, "Search", "Exception during creating markers.");
+      DartToolsPlugin.log(e);
     }
   }
 
@@ -429,13 +430,16 @@ public abstract class SearchMatchPage extends SearchPage {
     if (!item.sourceRanges.isEmpty()) {
       Source source = item.element.getSource();
       IResource resource = DartCore.getProjectManager().getResource(source);
-      if (resource != null) {
+      if (resource != null && resource.exists()) {
         markerResources.add(resource);
-        List<SourceRange> sourceRanges = item.sourceRanges;
-        for (SourceRange sourceRange : sourceRanges) {
-          IMarker marker = resource.createMarker(SearchView.SEARCH_MARKER);
-          marker.setAttribute(IMarker.CHAR_START, sourceRange.getOffset());
-          marker.setAttribute(IMarker.CHAR_END, sourceRange.getEnd());
+        try {
+          List<SourceRange> sourceRanges = item.sourceRanges;
+          for (SourceRange sourceRange : sourceRanges) {
+            IMarker marker = resource.createMarker(SearchView.SEARCH_MARKER);
+            marker.setAttribute(IMarker.CHAR_START, sourceRange.getOffset());
+            marker.setAttribute(IMarker.CHAR_END, sourceRange.getEnd());
+          }
+        } catch (Throwable e) {
         }
       }
     }
@@ -540,12 +544,17 @@ public abstract class SearchMatchPage extends SearchPage {
         @Override
         public void run(IProgressMonitor monitor) throws CoreException {
           for (IResource resource : markerResources) {
-            resource.deleteMarkers(SearchView.SEARCH_MARKER, false, IResource.DEPTH_ZERO);
+            if (resource.exists()) {
+              try {
+                resource.deleteMarkers(SearchView.SEARCH_MARKER, false, IResource.DEPTH_ZERO);
+              } catch (Throwable e) {
+              }
+            }
           }
         }
       }, null);
     } catch (Throwable e) {
-      ExceptionHandler.handle(e, "Search", "Exception during deleting markers.");
+      DartToolsPlugin.log(e);
     }
   }
 }
