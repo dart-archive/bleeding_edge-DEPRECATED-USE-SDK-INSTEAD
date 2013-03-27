@@ -507,7 +507,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     pubPublishAction = RunPubAction.createPubPublishAction(window);
 
-    organizeImportsAction = new OrganizeImportsAction(window);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // TODO(scheglov)
+    } else {
+      organizeImportsAction = new OrganizeImportsAction(window);
+    }
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 
@@ -871,7 +875,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FIND_EXT));
     menu.add(new Separator());
 
-    menu.add(organizeImportsAction);
+    if (organizeImportsAction != null) {
+      menu.add(organizeImportsAction);
+    }
     //menu.add(actionFactory.getBookmarkItem());
     //menu.add(actionFactory.getTaskItem());
     //menu.add(new GroupMarker(IWorkbenchActionConstants.ADD_EXT));
