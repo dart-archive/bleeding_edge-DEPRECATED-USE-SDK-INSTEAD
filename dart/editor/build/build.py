@@ -694,14 +694,9 @@ def InstallDartium(buildroot, buildout, buildos, gsu):
           dart_zip.AddDirectoryTree(add_path, zip_rel_path)
         if 'mac' in buildos:
           paths = glob.glob(join(unzip_dir, 'dartium-*'))
-          # For mac we explicitly add both chromium and drt since
-          # they are not located in the same output directory.
-          add_path = join(paths[0], 'Chromium.app')
-          zip_rel_path = 'dart/Chromium.app'
-          dart_zip.AddDirectoryTree(add_path, zip_rel_path)
-
-          add_path = join(paths[0], 'DumpRenderTree.app')
-          zip_rel_path = 'dart/DumpRenderTree.app'
+          add_path = paths[0]
+          zip_rel_path = 'dart/chromium'
+          # add to the rcp zip
           dart_zip.AddDirectoryTree(add_path, zip_rel_path)
 
  

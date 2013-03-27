@@ -665,7 +665,6 @@ public class BrowserManager {
         enableDebugging,
         devToolsPortNumber);
     builder.command(arguments);
-    builder.directory(DartSdkManager.getManager().getSdk().getDartiumWorkingDirectory());
     builder.redirectErrorStream(true);
 
     describe(arguments, argDescription);
