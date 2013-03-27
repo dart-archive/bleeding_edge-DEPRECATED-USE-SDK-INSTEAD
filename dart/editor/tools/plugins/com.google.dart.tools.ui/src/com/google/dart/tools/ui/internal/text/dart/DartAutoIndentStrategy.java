@@ -25,6 +25,7 @@ import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.parser.DartScanner;
 import com.google.dart.compiler.parser.Token;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.dom.NodeFinder;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
@@ -1011,7 +1012,20 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   }
 
   private boolean isClosed(IDocument document, int offset, int length) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return isClosed_new(document, offset, length);
+    } else {
+      return isClosed_old(document, offset, length);
+    }
+  }
 
+  private boolean isClosed_new(IDocument document, int offset, int length) {
+    // TODO: implement
+
+    return true;
+  }
+
+  private boolean isClosed_old(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
     if (info == null) {
       return false;
@@ -1019,12 +1033,14 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     String source = new String(info.buffer);
     DartUnit compilationUnit;
+
     try {
       compilationUnit = DartCompilerUtilities.parseSource("editor-auto-indent", source);
     } catch (DartModelException e) {
       DartToolsPlugin.log("Parser Exception", e);
       return true;
     }
+
     if (compilationUnit == null) {
       // TODO Try a different structure: remove the method wrapper ____f
       // and reparse the source
