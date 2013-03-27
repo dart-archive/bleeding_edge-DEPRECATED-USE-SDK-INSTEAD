@@ -13,8 +13,10 @@
  */
 package com.google.dart.engine.html.ast;
 
+import com.google.dart.engine.html.ast.visitor.ToSourceVisitor;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +27,6 @@ import java.util.List;
  * @coverage dart.engine.html
  */
 public abstract class XmlNode {
-
   /**
    * The parent of the node, or {@code null} if the node is the root of an AST structure.
    */
@@ -103,6 +104,13 @@ public abstract class XmlNode {
    */
   public XmlNode getParent() {
     return parent;
+  }
+
+  @Override
+  public String toString() {
+    PrintStringWriter writer = new PrintStringWriter();
+    accept(new ToSourceVisitor(writer));
+    return writer.toString();
   }
 
   /**
