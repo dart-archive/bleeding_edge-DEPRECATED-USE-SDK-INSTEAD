@@ -13,12 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
-import com.google.dart.compiler.util.apache.FilenameUtils;
-import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.ui.DartToolsPlugin;
 
 import org.eclipse.core.resources.IFile;
@@ -96,11 +92,13 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
           return DartToolsPlugin.getImage(BUILD_FILE_ICON);
         }
 
-        SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
-
-        if (kind == SourceKind.LIBRARY) {
-          return DartToolsPlugin.getImage(LIBRARY_ICON);
-        }
+        // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
+        // TODO(scheglov) restore once AnalysisContext is fixed.
+//        SourceKind kind = DartCore.getProjectManager().getSourceKind(file);
+//
+//        if (kind == SourceKind.LIBRARY) {
+//          return DartToolsPlugin.getImage(LIBRARY_ICON);
+//        }
       }
 
       if (element instanceof IFolder) {
@@ -144,34 +142,36 @@ public class NewResourceLabelProvider extends ResourceLabelProvider {
           }
         }
 
-        if (resource instanceof IFile) {
-          // Append the library name to library units.
-
-          ProjectManager projectManager = DartCore.getProjectManager();
-          SourceKind kind = projectManager.getSourceKind((IFile) resource);
-
-          if (kind == SourceKind.LIBRARY) {
-
-            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
-
-            if (libraryElement != null) {
-
-              String name = libraryElement.getName();
-
-              if (name == null || name.length() == 0) {
-
-                if (libraryElement.getEntryPoint() != null) {
-                  name = FilenameUtils.removeExtension(resource.getName());
-                }
-
-              }
-
-              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
-            }
-
-          }
-
-        }
+        // TODO(scheglov) disable for now, even "get" operation gets blocked currently.
+        // TODO(scheglov) restore once AnalysisContext is fixed.
+//        if (resource instanceof IFile) {
+//          // Append the library name to library units.
+//
+//          ProjectManager projectManager = DartCore.getProjectManager();
+//          SourceKind kind = projectManager.getSourceKind((IFile) resource);
+//
+//          if (kind == SourceKind.LIBRARY) {
+//
+//            LibraryElement libraryElement = projectManager.getLibraryElementOrNull((IFile) resource);
+//
+//            if (libraryElement != null) {
+//
+//              String name = libraryElement.getName();
+//
+//              if (name == null || name.length() == 0) {
+//
+//                if (libraryElement.getEntryPoint() != null) {
+//                  name = FilenameUtils.removeExtension(resource.getName());
+//                }
+//
+//              }
+//
+//              string.append(" [" + name + "]", StyledString.QUALIFIER_STYLER); //$NON-NLS-1$ //$NON-NLS-2$
+//            }
+//
+//          }
+//
+//        }
       } catch (Throwable th) {
         DartToolsPlugin.log(th);
       }
