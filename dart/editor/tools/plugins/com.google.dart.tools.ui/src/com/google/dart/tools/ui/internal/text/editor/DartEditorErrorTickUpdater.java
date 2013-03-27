@@ -15,9 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.ProblemsLabelDecorator;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.internal.viewsupport.DartUILabelProvider;
@@ -52,11 +50,6 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
     DartToolsPlugin.getDefault().getProblemMarkerManager().removeListener(this);
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see IProblemChangedListener#problemsChanged(IResource[], boolean)
-   */
   @Override
   public void problemsChanged(IResource[] changedResources, boolean isMarkerChange) {
     if (!isMarkerChange) {
@@ -65,12 +58,11 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
 
     IEditorInput input = fJavaEditor.getEditorInput();
     if (input != null) { // might run async, tests needed
-      DartElement jelement = (DartElement) input.getAdapter(DartElement.class);
-      if (jelement != null) {
-        IResource resource = jelement.getResource();
+      IResource resource = (IResource) input.getAdapter(IResource.class);
+      if (resource != null) {
         for (int i = 0; i < changedResources.length; i++) {
           if (changedResources[i].equals(resource)) {
-            updateEditorImage(jelement);
+            updateEditorImage(resource);
           }
         }
       }
@@ -79,15 +71,14 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
 
   public void updateEditorImage(Object jelement) {
     Image titleImage = fJavaEditor.getTitleImage();
+
     if (titleImage == null) {
       return;
     }
+
     Image newImage;
-    DartX.todo();
-    if (jelement instanceof CompilationUnit /*
-                                             * && !jelement.getDartProject().
-                                             * isOnIncludepath(jelement)
-                                             */) {
+
+    if (jelement instanceof CompilationUnit) {
       if (jelement instanceof ExternalCompilationUnitImpl) {
         newImage = fLabelProvider.getImage(jelement);
       } else {
@@ -96,6 +87,7 @@ public class DartEditorErrorTickUpdater implements IProblemChangedListener {
     } else {
       newImage = fLabelProvider.getImage(jelement);
     }
+
     if (titleImage != newImage) {
       postImageChange(newImage);
     }

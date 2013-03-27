@@ -18,7 +18,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FieldElement;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.tools.ui.DartElementImageDescriptor;
 import com.google.dart.tools.ui.DartPluginImages;
@@ -57,13 +56,9 @@ public class NewDartElementImageProvider {
   public static final Point BIG_SIZE = new Point(22, 16);
 
   private static ImageDescriptor DESC_READ_ONLY;
-  private static ImageDescriptor DESC_LAUNCHABLE;
-  private static ImageDescriptor DESC_MAIN_TYPE;
 
   static {
     DESC_READ_ONLY = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/lock_ovr.png"); //$NON-NLS-1$
-    DESC_LAUNCHABLE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/run_co.gif"); //$NON-NLS-1$
-    DESC_MAIN_TYPE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/owned_ovr.gif"); //$NON-NLS-1$
   }
 
   public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
@@ -166,9 +161,6 @@ public class NewDartElementImageProvider {
 
       case FIELD:
         return getFieldImageDescriptor(false, isPrivate(element));
-
-      case HTML:
-        return decorate(DartPluginImages.DESC_DART_HTML_FILE, DESC_LAUNCHABLE);
 
       case IMPORT:
         return DartPluginImages.DESC_OBJS_IMPCONT;
@@ -372,9 +364,7 @@ public class NewDartElementImageProvider {
   }
 
   private ImageDescriptor getCompilationUnitDescriptor(CompilationUnitElement element) {
-    return hasMain(element) ? decorate(DartPluginImages.DESC_DART_COMP_UNIT, DESC_MAIN_TYPE)
-        : DartPluginImages.DESC_DART_COMP_UNIT;
-
+    return DartPluginImages.DESC_DART_COMP_UNIT;
   }
 
   private Image getImageLabel(ImageDescriptor descriptor) {
@@ -393,15 +383,8 @@ public class NewDartElementImageProvider {
     return descriptorRegistry;
   }
 
-  private boolean hasMain(CompilationUnitElement element) {
-    LibraryElement libraryElement = element.getEnclosingElement();
-    if (libraryElement != null && libraryElement.getEntryPoint() != null) {
-      return true;
-    }
-    return false;
-  }
-
   private boolean isPrivate(Element elem) {
     return Identifier.isPrivateName(elem.getName());
   }
+
 }

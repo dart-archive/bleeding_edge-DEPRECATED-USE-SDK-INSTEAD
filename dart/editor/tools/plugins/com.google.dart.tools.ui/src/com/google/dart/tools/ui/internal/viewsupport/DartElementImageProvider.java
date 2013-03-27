@@ -70,9 +70,6 @@ public class DartElementImageProvider {
 
   private static ImageDescriptor DESC_READ_ONLY;
 
-  private static ImageDescriptor DESC_LAUNCHABLE;
-  private static ImageDescriptor DESC_MAIN_TYPE;
-
   private static final NewDartElementImageProvider newImageProvider = new NewDartElementImageProvider();
 
   public static Image getDecoratedImage(ImageDescriptor baseImage, int adornments, Point size) {
@@ -166,8 +163,6 @@ public class DartElementImageProvider {
     DESC_OBJ_PROJECT_CLOSED = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT_CLOSED);
     DESC_OBJ_PROJECT = images.getImageDescriptor(IDE.SharedImages.IMG_OBJ_PROJECT);
     DESC_READ_ONLY = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/lock_ovr.png");
-    DESC_LAUNCHABLE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/run_co.gif");
-    DESC_MAIN_TYPE = DartToolsPlugin.getImageDescriptor("icons/full/ovr16/owned_ovr.gif");
   }
 
   private ImageDescriptorRegistry fRegistry;
@@ -206,9 +201,6 @@ public class DartElementImageProvider {
         TypeMember member = (TypeMember) element;
         Type declType = member.getDeclaringType();
         return getFieldImageDescriptor(false, member.isPrivate());
-      }
-      case DartElement.HTML_FILE: {
-        return decorate(DartPluginImages.DESC_DART_HTML_FILE, DESC_LAUNCHABLE);
       }
 //        case DartElement.LOCAL_VARIABLE:
 //          return JavaPluginImages.DESC_OBJS_LOCAL_VARIABLE;
@@ -434,19 +426,7 @@ public class DartElementImageProvider {
   }
 
   private ImageDescriptor getCompilationUnitDescriptor(CompilationUnit element) {
-    boolean hasMain;
-
-    try {
-      hasMain = element.hasMain();
-    } catch (DartModelException e) {
-      hasMain = false;
-    }
-
-    if (hasMain) {
-      return decorate(DartPluginImages.DESC_DART_COMP_UNIT, DESC_MAIN_TYPE);
-    } else {
-      return DartPluginImages.DESC_DART_COMP_UNIT;
-    }
+    return DartPluginImages.DESC_DART_COMP_UNIT;
   }
 
   private Image getImageLabel(ImageDescriptor descriptor) {
@@ -462,4 +442,5 @@ public class DartElementImageProvider {
     }
     return fRegistry;
   }
+
 }
