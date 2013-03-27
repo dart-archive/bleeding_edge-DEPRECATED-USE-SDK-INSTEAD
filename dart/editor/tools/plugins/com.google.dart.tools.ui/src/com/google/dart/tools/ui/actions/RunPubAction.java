@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.PubMessages;
@@ -153,16 +152,9 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     }
 
     IEditorInput editorInput = part.getEditorInput();
-    DartProject dartProject = EditorUtility.getDartProject(editorInput);
-    if (dartProject == null) {
-      instrumentation.metric("Problem", "dartProject was null");
-      return;
-    }
-
-    IProject project = dartProject.getProject();
+    IProject project = EditorUtility.getProject(editorInput);
     instrumentation.data("Project", project.getName());
     runPubJob(project);
-
   }
 
   @Override
