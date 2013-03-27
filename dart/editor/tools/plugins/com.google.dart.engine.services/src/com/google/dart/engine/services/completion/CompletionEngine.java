@@ -15,40 +15,57 @@ package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BooleanLiteral;
+import com.google.dart.engine.ast.BreakStatement;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
+import com.google.dart.engine.ast.Combinator;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.Declaration;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.EphemeralIdentifier;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ExpressionFunctionBody;
 import com.google.dart.engine.ast.ExpressionStatement;
 import com.google.dart.engine.ast.ExtendsClause;
 import com.google.dart.engine.ast.FieldFormalParameter;
+import com.google.dart.engine.ast.ForEachStatement;
+import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.ImplementsClause;
+import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.InterpolationExpression;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
+import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
+import com.google.dart.engine.ast.StringLiteral;
+import com.google.dart.engine.ast.SwitchMember;
+import com.google.dart.engine.ast.SwitchStatement;
+import com.google.dart.engine.ast.TryStatement;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
@@ -165,13 +182,15 @@ public class CompletionEngine {
     }
 
     private void filterStaticRefs(ExecutableElement[] elements) {
-      for (ExecutableElement mth : elements) {
-        if (state.areInstanceReferencesProhibited && !mth.isStatic()) {
-          remove(mth);
-        } else if (state.areStaticReferencesProhibited && mth.isStatic()) {
-          remove(mth);
-        } else if (!state.areOperatorsAllowed && mth.isOperator()) {
-          remove(mth);
+      for (ExecutableElement execElem : elements) {
+        if (state.areInstanceReferencesProhibited && !execElem.isStatic()) {
+          remove(execElem);
+        } else if (state.areStaticReferencesProhibited && execElem.isStatic()) {
+          remove(execElem);
+        } else if (!state.areOperatorsAllowed && execElem.isOperator()) {
+          remove(execElem);
+        } else if (state.areMethodsProhibited && !execElem.isOperator()) {
+          remove(execElem);
         }
       }
     }
@@ -327,6 +346,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitDoStatement(DoStatement node) {
+      if (node.getCondition() == completionNode) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitExpression(Expression node) {
       SimpleIdentifier ident;
       if (completionNode instanceof SimpleIdentifier) {
@@ -359,6 +386,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitForEachStatement(ForEachStatement node) {
+      if (node.getIterator() == completionNode) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
       if (node.getName() == completionNode) {
         if (node.getReturnType() == null) {
@@ -374,7 +409,7 @@ public class CompletionEngine {
     public Void visitIfStatement(IfStatement node) {
       if (node.getCondition() == completionNode) {
         // { if (!) }
-        analyzeLocalName(new Ident(node));
+        analyzeLocalName(new Ident(node, completionNode.getToken()));
       }
       return null;
     }
@@ -469,6 +504,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitSwitchStatement(SwitchStatement node) {
+      if (node.getExpression() == completionNode) {
+        analyzeLocalName(completionNode);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitTypeName(TypeName node) {
       ASTNode parent = node.getParent();
       if (parent != null) {
@@ -507,6 +550,26 @@ public class CompletionEngine {
   }
 
   /**
+   * An StringCompleter is used to classify the parent of the completion node when it has previously
+   * been determined that the completion node is a StringLiteral.
+   */
+  private class StringCompleter extends AstNodeClassifier {
+    StringLiteral completionNode;
+
+    StringCompleter(StringLiteral node) {
+      completionNode = node;
+    }
+
+    @Override
+    public Void visitImportDirective(ImportDirective node) {
+      if (completionNode == node.getUri()) {
+        importReference(node, completionNode);
+      }
+      return null;
+    }
+  }
+
+  /**
    * A TerminalNodeCompleter is used to classify the completion node when nothing else is known
    * about it.
    */
@@ -524,6 +587,14 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitAssertStatement(AssertStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
     public Void visitBlock(Block node) {
       if (isCompletionBetween(node.getLeftBracket().getEnd(), node.getRightBracket().getOffset())) {
         // { {! stmt; !} }
@@ -535,6 +606,24 @@ public class CompletionEngine {
     @Override
     public Void visitBooleanLiteral(BooleanLiteral node) {
       analyzeLiteralReference(node);
+      return null;
+    }
+
+    @Override
+    public Void visitBreakStatement(BreakStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitCatchClause(CatchClause node) {
+      if (isCompletingKeyword(node.getOnKeyword())) {
+        pKeyword(node.getOnKeyword());
+      } else if (isCompletingKeyword(node.getCatchKeyword())) {
+        pKeyword(node.getCatchKeyword());
+      }
       return null;
     }
 
@@ -568,14 +657,60 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitCombinator(Combinator node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
     public Void visitCompilationUnit(CompilationUnit node) {
       // This is not a good terminal node...
       return null;
     }
 
     @Override
+    public Void visitContinueStatement(ContinueStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitDirective(Directive node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitDoStatement(DoStatement node) {
+      if (isCompletingKeyword(node.getDoKeyword())) {
+        pKeyword(node.getDoKeyword());
+      } else if (isCompletingKeyword(node.getWhileKeyword())) {
+        pKeyword(node.getWhileKeyword());
+      } else if (isCompletionBetween(
+          node.getCondition().getEnd(),
+          node.getRightParenthesis().getOffset())) {
+        operatorAccess(node.getCondition(), new Ident(node));
+      }
+      return null;
+    }
+
+    @Override
     public Void visitExpression(Expression node) {
       analyzeLocalName(new Ident(node));
+      return null;
+    }
+
+    @Override
+    public Void visitExpressionFunctionBody(ExpressionFunctionBody node) {
+      if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
+        operatorAccess(node.getExpression(), new Ident(node));
+      }
       return null;
     }
 
@@ -600,8 +735,13 @@ public class CompletionEngine {
     }
 
     @Override
-    public Void visitFormalParameter(FormalParameter node) {
-      return super.visitFormalParameter(node);
+    public Void visitForEachStatement(ForEachStatement node) {
+      if (isCompletingKeyword(node.getForKeyword())) {
+        pKeyword(node.getForKeyword());
+      } else if (isCompletingKeyword(node.getInKeyword())) {
+        pKeyword(node.getInKeyword());
+      }
+      return null;
     }
 
     @Override
@@ -628,9 +768,31 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitForStatement(ForStatement node) {
+      if (isCompletingKeyword(node.getForKeyword())) {
+        pKeyword(node.getForKeyword());
+      }
+      return null;
+    }
+
+    @Override
     public Void visitFunctionTypeAlias(FunctionTypeAlias node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitIfStatement(IfStatement node) {
+      if (isCompletingKeyword(node.getIfKeyword())) {
+        pKeyword(node.getIfKeyword());
+      } else if (isCompletingKeyword(node.getElseKeyword())) {
+        pKeyword(node.getElseKeyword());
+      } else if (isCompletionBetween(
+          node.getCondition().getEnd(),
+          node.getRightParenthesis().getOffset())) {
+        operatorAccess(node.getCondition(), new Ident(node));
       }
       return null;
     }
@@ -645,6 +807,16 @@ public class CompletionEngine {
       } else {
         // { X implements ! Y }
         analyzeTypeName(new Ident(node), typeDeclarationName(node));
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitImportDirective(ImportDirective node) {
+      if (isCompletingKeyword(node.getAsToken())) {
+        pKeyword(node.getAsToken());
+      } else {
+        visitNamespaceDirective(node);
       }
       return null;
     }
@@ -675,6 +847,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitPartOfDirective(PartOfDirective node) {
+      if (isCompletingKeyword(node.getOfToken())) {
+        pKeyword(node.getOfToken());
+      } else {
+        visitDirective(node);
+      }
+      return null;
+    }
+
+    @Override
     public Void visitPrefixedIdentifier(PrefixedIdentifier node) {
       if (isCompletionAfter(node.getPeriod().getEnd())) {
         if (isCompletionBefore(node.getIdentifier().getOffset())) {
@@ -682,6 +864,16 @@ public class CompletionEngine {
           // obscure case but it occurs frequently when editing existing code.
           dispatchPrefixAnalysis(node, node.getIdentifier());
         }
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitReturnStatement(ReturnStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      } else if (isCompletionBetween(node.getExpression().getEnd(), node.getSemicolon().getOffset())) {
+        operatorAccess(node.getExpression(), new Ident(node));
       }
       return null;
     }
@@ -703,6 +895,40 @@ public class CompletionEngine {
       if (parent != null) {
         IdentifierCompleter visitor = new IdentifierCompleter(node);
         return parent.accept(visitor);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitStringLiteral(StringLiteral node) {
+      ASTNode parent = node.getParent();
+      if (parent instanceof Directive) {
+        StringCompleter visitor = new StringCompleter(node);
+        return parent.accept(visitor);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitSwitchMember(SwitchMember node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitSwitchStatement(SwitchStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitTryStatement(TryStatement node) {
+      if (isCompletingKeyword(node.getTryKeyword())) {
+        pKeyword(node.getTryKeyword());
       }
       return null;
     }
@@ -747,6 +973,27 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitVariableDeclarationList(VariableDeclarationList node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+        analyzeTypeName(new Ident(node, node.getKeyword()), null);
+      }
+      return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(WhileStatement node) {
+      if (isCompletingKeyword(node.getKeyword())) {
+        pKeyword(node.getKeyword());
+      } else if (isCompletionBetween(
+          node.getCondition().getEnd(),
+          node.getRightParenthesis().getOffset())) {
+        operatorAccess(node.getCondition(), new Ident(node));
+      }
+      return null;
+    }
+
+    @Override
     public Void visitWithClause(WithClause node) {
       if (isCompletingKeyword(node.getWithKeyword())) {
         pKeyword(node.getWithKeyword());
@@ -772,6 +1019,14 @@ public class CompletionEngine {
     TypeNameCompleter(SimpleIdentifier identifier, TypeName typeName) {
       this.identifier = identifier;
       this.typeName = typeName;
+    }
+
+    @Override
+    public Void visitCatchClause(CatchClause node) {
+      if (node.getExceptionType() == typeName) {
+        analyzeTypeName(identifier, null);
+      }
+      return null;
     }
 
     @Override
@@ -1157,6 +1412,36 @@ public class CompletionEngine {
     }
   }
 
+  void importReference(ImportDirective node, StringLiteral literal) {
+//    List<LibraryElement> packages = new ArrayList<LibraryElement>();
+//    List<LibraryElement> libraries = new ArrayList<LibraryElement>();
+//    List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
+//    LibraryElement currentLibrary = context.getCompilationUnit().getElement().getLibrary();
+//    String currentLibraryName = currentLibrary.getSource().getFullName();
+//    AnalysisContext ac = context.getCompilationUnit().getElement().getContext();
+//    Source[] sources = ac.getLibrarySources();
+//    List<LibraryElement> allLibs = new ArrayList<LibraryElement>();
+//    for (Source s : sources) {
+//      String sName = s.getFullName();
+//      if (currentLibraryName.equals(sName)) {
+//        continue;
+//      }
+//      LibraryElement lib = ac.getLibraryElement(s);
+//      if (lib == null) {
+//        continue;
+//      } else if (sName.contains(PACKAGES_PATH)) {
+//        packages.add(lib);
+//      } else if (isCUInLibFolder(lib.getDefiningCompilationUnit())) {
+//        librariesInLib.add(lib);
+//      } else {
+//        libraries.add(lib);
+//      }
+//    }
+//    createCompletionForSdkImports(node, literal);
+//    createCompletionForPubPackageImports(node, literal, packages, librariesInLib);
+//    createCompletionForCurrentPackageImports(node, literal, libraries, librariesInLib);
+  }
+
   void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
     // Complete identifier when it refers to a named constructor defined in classElement.
     filter = new Filter(identifier);
@@ -1166,6 +1451,12 @@ public class CompletionEngine {
         pNamedConstructor(classElement, cons, identifier);
       }
     }
+  }
+
+  void operatorAccess(Expression expr, SimpleIdentifier identifier) {
+    state.requiresOperators();
+    Type receiverType = typeOf(expr);
+    analyzePrefixedAccess(receiverType, identifier);
   }
 
   void prefixedAccess(ClassElement classElement, SimpleIdentifier identifier) {

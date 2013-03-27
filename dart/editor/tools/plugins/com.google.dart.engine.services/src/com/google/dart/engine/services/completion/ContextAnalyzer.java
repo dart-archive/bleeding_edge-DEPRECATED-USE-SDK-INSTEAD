@@ -2,8 +2,12 @@ package com.google.dart.engine.services.completion;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.Declaration;
+import com.google.dart.engine.ast.Directive;
+import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ForEachStatement;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
@@ -12,6 +16,7 @@ import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TypeArgumentList;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -45,10 +50,40 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
+  public Void visitCatchClause(CatchClause node) {
+    if (node.getExceptionType() == child) {
+      state.prohibitsLiterals();
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitDirective(Directive node) {
+    state.prohibitsLiterals();
+    return super.visitDirective(node);
+  }
+
+  @Override
+  public Void visitDoStatement(DoStatement node) {
+    if (child == node.getCondition()) {
+      state.includesLiterals();
+    }
+    return super.visitDoStatement(node);
+  }
+
+  @Override
   public Void visitExpression(Expression node) {
     inExpression = true;
     state.includesLiterals();
     return super.visitExpression(node);
+  }
+
+  @Override
+  public Void visitForEachStatement(ForEachStatement node) {
+    if (child == node.getIterator()) {
+      state.includesLiterals();
+    }
+    return super.visitForEachStatement(node);
   }
 
   @Override
@@ -88,6 +123,9 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
     state.sourceDeclarationIsStatic(node.isStatic());
+    if (child == node.getReturnType()) {
+      state.includesUndefinedDeclarationTypes();
+    }
     return super.visitMethodDeclaration(node);
   }
 
@@ -125,6 +163,14 @@ class ContextAnalyzer extends GeneralizingASTVisitor<Void> {
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     inIdentifier = true;
     return super.visitSimpleIdentifier(node);
+  }
+
+  @Override
+  public Void visitSwitchStatement(SwitchStatement node) {
+    if (child == node.getExpression()) {
+      state.includesLiterals();
+    }
+    return super.visitSwitchStatement(node);
   }
 
   @Override

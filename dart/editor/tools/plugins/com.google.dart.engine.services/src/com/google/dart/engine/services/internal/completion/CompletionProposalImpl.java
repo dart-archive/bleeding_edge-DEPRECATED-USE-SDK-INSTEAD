@@ -96,7 +96,7 @@ public class CompletionProposalImpl implements CompletionProposal {
   public CompletionProposal setCompletion(String x) {
     completion = x;
     if (replacementLength == 0) {
-      replacementLength = x.length();
+      setReplacementLength(x.length());
     }
     return this;
   }

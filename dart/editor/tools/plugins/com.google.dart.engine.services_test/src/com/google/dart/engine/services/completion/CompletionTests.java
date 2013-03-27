@@ -112,6 +112,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void test008() throws Exception {
+    // keywords
     String source = src(//
         "!1class Aclass {}",
         "class Bclass !2extends!3 !4Aclass {}",
@@ -145,6 +146,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void test009() throws Exception {
+    // keywords
     String source = src(//
         "class num{}",
         "typedef !1dy!2namic TestFn1();",
@@ -193,10 +195,12 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void test011() throws Exception {
+    // name generation with conflicts
     test("r2(var object, Object object1, Object !1);", "1+object2");
   }
 
   public void test012() throws Exception {
+    // reserved words
     test(src(//
         "class X {",
         "f() {",
@@ -206,19 +210,115 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void test013() throws Exception {
-    test(src(//
-        "class Q {",
-        "  bool x;",
-        "  List zs;",
-        "  mth() {",
-        "    while (x!1); ",
-        "    do{}while(x);",
-        "    for(z in zs) {}",
-        "    switch(b) {}",
-        "    try {",
-        "    } catch(a){}",
-        "  }",
-        "}"), "1+x"); // TODO Define tests at each identifier in mth()
+    // conditions & operators
+    test(
+        src(//
+            "class Q {",
+            "  bool x;",
+            "  List zs;",
+            "  int k;",
+            "  var a;",
+            "  mth() {",
+            "    while (!1x !9); ",
+            "    do{} while(!2x !8);",
+            "    for(z in !3zs) {}",
+            "    switch(!4k) {case 1:{}}",
+            "    try {",
+            "    } on !5Object catch(a){}",
+            "    if (!7x !6) {} else {};",
+            "  }",
+            "}"),
+        "1+x",
+        "1-Q",
+        "2+x",
+        "2-Q",
+        "3+zs",
+        "3-Q",
+        "4+k",
+        "4-Q",
+        "5+Q",
+        "5-a",
+        "6+==",
+        "7+x",
+        "8+==",
+        "9+==");
+  }
+
+  public void test014() throws Exception {
+    // keywords
+    test(
+        src(//
+            "class Q {",
+            "  bool x;",
+            "  List zs;",
+            "  int k;",
+            "  !Dvar a;",
+            "  !Evoid mth() {",
+            "    !1while (z) { !Gcontinue; }; ",
+            "    !2do{ !Hbreak; } !3while(x);",
+            "    !4for(z !5in zs) {}",
+            "    !6for (int i; i < 3; i++);",
+            "    !7switch(k) {!8case 1:{} !9default:{}}",
+            "    !Atry {",
+            "    } !Bon Object !Ccatch(a){}",
+            "    !Fassert true;",
+            "    !Jif (x) {} !Kelse {};",
+            "    !Lreturn;",
+            "  }",
+            "}"),
+        "1+while",
+        "2+do",
+        "3+while",
+        "4+for",
+        "5+in",
+        "6+for",
+        "7+switch",
+        "8+case",
+        "9+default",
+        "A+try",
+        "B+on",
+        "C+catch",
+        "D+var",
+        "E+void",
+        "F+assert",
+        "G+continue",
+        "H+break",
+        "J+if",
+        "K+else",
+        "L+return");
+  }
+
+  public void test015() throws Exception {
+    // operators in function
+    test("f(a,b,c) => a + b * c !1;", "1+==");
+  }
+
+  public void test016() throws Exception {
+    // operators in return
+    test("class X {dynamic f(a,b,c) {return a + b * c !1;}}", "1+==");
+  }
+
+  public void test017() throws Exception {
+    // keywords
+    test(
+        src(//
+            "!1library foo;",
+            "!2import 'x' !5as r;",
+            "!3export '!8uri' !6hide Q !7show X;",
+            "!4part 'x';"),
+        "1+library",
+        "2+import",
+        "3+export",
+        "4+part",
+        "5+as",
+        "6+hide",
+        "7+show",
+        "8-null");
+  }
+
+  public void test018() throws Exception {
+    // keywords
+    test("!1part !2of foo;", "1+part", "2+of");
   }
 
   public void testCommentSnippets001() throws Exception {
@@ -1198,7 +1298,7 @@ public class CompletionTests extends CompletionTestCase {
     test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
   }
 
-  // TODO Test for disallowed instance refs from within static methods; test which permits operators.
+  // TODO Test for disallowed instance refs from within static methods.
   public void testSingle() throws Exception {
     test("class A {int x; !2mth() {int y = this.x;}}class B{}", "2+B");
   }

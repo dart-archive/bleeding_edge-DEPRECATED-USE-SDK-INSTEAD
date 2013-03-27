@@ -19,6 +19,7 @@ class CompletionState {
   boolean areUndefinedTypesProhibited;
   boolean isCompileTimeConstantRequired;
   boolean isOptionalArgumentRequired;
+  boolean areMethodsProhibited;
 
   void includesLiterals() {
     if (!areLiteralsProhibited) {
@@ -65,6 +66,11 @@ class CompletionState {
 
   void requiresConst(boolean isConst) {
     isCompileTimeConstantRequired = isConst;
+  }
+
+  void requiresOperators() {
+    includesOperators();
+    areMethodsProhibited = true;
   }
 
   void requiresOptionalArgument() {
