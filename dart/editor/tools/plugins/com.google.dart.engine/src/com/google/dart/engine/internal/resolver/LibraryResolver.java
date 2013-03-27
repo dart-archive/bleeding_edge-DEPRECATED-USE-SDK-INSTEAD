@@ -198,8 +198,12 @@ public class LibraryResolver {
     //    which in turn requires that we have resolved the import directives.
     //
     buildElementModels();
+    LibraryElement coreElement = coreLibrary.getLibraryElement();
+    if (coreElement == null) {
+      throw new AnalysisException("Could not resolve dart:core");
+    }
     buildDirectiveModels();
-    typeProvider = new TypeProviderImpl(coreLibrary.getLibraryElement());
+    typeProvider = new TypeProviderImpl(coreElement);
     buildTypeHierarchies();
     //
     // Perform resolution and type analysis.
