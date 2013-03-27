@@ -16,6 +16,8 @@ package com.google.dart.tools.core.internal.completion;
 import com.google.dart.engine.services.completion.ProposalKind;
 import com.google.dart.tools.core.completion.CompletionProposal;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 /**
  * Wrap String-based completion proposals for use in legacy char[]-based client code.
  */
@@ -25,6 +27,11 @@ public class ProxyProposal extends CompletionProposal {
 
   public ProxyProposal(com.google.dart.engine.services.completion.CompletionProposal proposal) {
     this.proposal = proposal;
+  }
+
+  @Override
+  public char[][] findParameterNames(IProgressMonitor monitor) {
+    return getParameterNames();
   }
 
   @Override
