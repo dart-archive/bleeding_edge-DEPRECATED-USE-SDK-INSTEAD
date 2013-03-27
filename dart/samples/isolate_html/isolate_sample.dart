@@ -27,14 +27,15 @@ class MessageId {
  * them names in this app so we can show which isolate is doing
  * what.
  */
-SendPort createIsolate(String name) {
-  var sendPort = spawnDomFunction(isolateMain);
-  var message = {
-    'id' : MessageId.INIT,
-    'args' : [name, port.toSendPort()]
-  };
-  sendPort.send(message, null);
-  return sendPort;
+Future<SendPort> createIsolate(String name) {
+  return spawnDomFunction(isolateMain).then((sendPort) {
+    var message = {
+      'id' : MessageId.INIT,
+      'args' : [name, port.toSendPort()]
+    };
+    sendPort.send(message, null);
+    return sendPort;
+  });
 }
 
 // TODO(mattsh) get this off the System object once it's available
@@ -103,24 +104,28 @@ main() {
 
   var replyElement = query('.isolateMain .replyText');
 
-  ports['A'] = createIsolate('A');
-  ports['B'] = createIsolate('B');
+  createIsolate('A').then((sendPortA) {
+    ports['A'] = sendPortA;
+    createIsolate('B').then((sendPortB) {
+      ports['B'] = sendPortB;
 
-  for (var element in queryAll('.sendButton')) {
-    element.onClick.listen((Event e) {
-      replyElement.text = 'waiting for reply...';
+      for (var element in queryAll('.sendButton')) {
+        element.onClick.listen((Event e) {
+          replyElement.text = 'waiting for reply...';
 
-      var isolateName =
-          (e.currentTarget as Element).attributes['data-isolate-name'];
-      var greeting = query('input#greetingText').value;
-      var message = {'id': MessageId.GREETING, 'args': [greeting]};
-      ports[isolateName].call(message).then((var msg) {
-        replyElement.text = msg;
+          var isolateName =
+              (e.currentTarget as Element).attributes['data-isolate-name'];
+          var greeting = query('input#greetingText').value;
+          var message = {'id': MessageId.GREETING, 'args': [greeting]};
+          ports[isolateName].call(message).then((var msg) {
+            replyElement.text = msg;
+          });
+        });
+      }
+
+      port.receive((var message, SendPort replyTo) {
+        replyElement.text = message;
       });
     });
-  }
-
-  port.receive((var message, SendPort replyTo) {
-    replyElement.text = message;
   });
 }
