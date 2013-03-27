@@ -53,7 +53,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
     assertNull(element.getEntryPoint());
     assertLength(0, element.getImportedLibraries());
     assertLength(0, element.getImports());
-    assertNull(element.getLibrary());
+    assertSame(element, element.getLibrary());
     assertLength(0, element.getPrefixes());
     assertLength(0, element.getParts());
 

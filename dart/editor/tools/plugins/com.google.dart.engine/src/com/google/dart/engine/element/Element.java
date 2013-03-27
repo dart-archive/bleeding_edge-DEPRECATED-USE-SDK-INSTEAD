@@ -93,8 +93,9 @@ public interface Element {
   public ElementKind getKind();
 
   /**
-   * Return the library that contains this element. This will be {@code null} if this element is a
-   * library or HTML file because libraries and HTML files are not contained in other libraries.
+   * Return the library that contains this element. This will be the element itself if it is a
+   * library element. This will be {@code null} if this element is an HTML file because HTML files
+   * are not contained in libraries.
    * 
    * @return the library that contains this element
    */

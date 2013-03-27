@@ -211,6 +211,11 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @Override
+  public LibraryElement getLibrary() {
+    return this;
+  }
+
+  @Override
   public CompilationUnitElement[] getParts() {
     return parts;
   }
