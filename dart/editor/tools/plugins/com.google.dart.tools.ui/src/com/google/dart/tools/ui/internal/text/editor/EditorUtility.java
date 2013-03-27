@@ -498,8 +498,9 @@ public class EditorUtility {
     }
 
     IEditorInput input = getEditorInput(inputElement);
+
     if (input == null) {
-      throwPartInitException(DartEditorMessages.EditorUtility_no_editorInput);
+      return null;
     }
 
     return openInEditor(input, getEditorID(input), activate);
@@ -689,18 +690,21 @@ public class EditorUtility {
         modifierString, newModifierString});
   }
 
-  //TODO (pquitslund): replace with appropriate call on Element when it exists
   private static CompilationUnitElement getCompilationUnit(Element element) {
     // may be part of CompilationUnitElement
     CompilationUnitElement unit = element.getAncestor(CompilationUnitElement.class);
+
     if (unit != null) {
       return unit;
     }
+
     // may be part of LibraryElement
-    LibraryElement library = element.getAncestor(LibraryElement.class);
+    LibraryElement library = element.getLibrary();
+
     if (library != null) {
       return library.getDefiningCompilationUnit();
     }
+
     // not found
     return null;
   }
@@ -743,8 +747,12 @@ public class EditorUtility {
   }
 
   private static IEditorInput getEditorInput(Element element) {
-
     CompilationUnitElement cu = getCompilationUnit(element);
+
+    if (cu == null) {
+      return null;
+    }
+
     IResource resource = DartCore.getProjectManager().getResource(cu.getSource());
 
     if (resource instanceof IFile) {
@@ -755,8 +763,8 @@ public class EditorUtility {
     URI uri = new File(source.getFullName()).toURI();
 
     IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
-    return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
 
+    return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
   }
 
   private static void initializeHighlightRange(IEditorPart editorPart) {
