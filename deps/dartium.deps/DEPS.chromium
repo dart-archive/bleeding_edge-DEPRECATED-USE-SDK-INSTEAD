@@ -8,42 +8,46 @@ vars = {
   "sourceforge_url": "http://%(repo)s.svn.sourceforge.net/svnroot/%(repo)s",
   "webkit_trunk": "http://svn.webkit.org/repository/webkit/trunk",
   "nacl_trunk": "http://src.chromium.org/native_client/trunk",
-  "webkit_revision": "145978",
+  "webkit_revision": "146842",
   "chromium_git": "https://chromium.googlesource.com",
   "chromiumos_git": "https://chromium.googlesource.com/chromiumos",
   "swig_revision": "69281",
-  "nacl_revision": "11003",
+  "nacl_revision": "11040",
   # After changing nacl_revision, run 'glient sync' and check native_client/DEPS
   # to update other nacl_*_revision's.
-  "nacl_tools_revision": "10001",  # native_client/DEPS: tools_rev
+  "nacl_tools_revision": "11010",  # native_client/DEPS: tools_rev
   "gtm_revision": "578",
 
-  "libjingle_revision": "295",
+  "libjingle_revision": "299",
   "libphonenumber_revision": "456",
   "libvpx_revision": "187374",
   "lss_revision": "18",
 
   # These two FFmpeg variables must be updated together.  One is used for SVN
   # checkouts and the other for Git checkouts.
-  "ffmpeg_revision": "182844",
-  "ffmpeg_hash": "bb82a38d45e65c1fba378c15180b98ad76ebe1ca",
+  "ffmpeg_revision": "189952",
+  "ffmpeg_hash": "54b4fe19d390794c895226f7d014cd4deff24293",
 
   "sfntly_revision": "134",
-  "skia_revision": "8166",
+  "skia_revision": "8352",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling Skia
   # and V8 without interference from each other.
-  "v8_revision": "13956",
+  "v8_revision": "14067",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling WebRTC
   # and V8 without interference from each other.
-  "webrtc_revision": "3661",
+  "webrtc_revision": "3704",
   "jsoncpp_revision": "248",
   "nss_revision": "182578",
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling swarm_client
   # and whatever else without interference from each other.
-  "swarm_revision": "185899",
+  "swarm_revision": "190310",
+  # Three lines of non-changing comments so that
+  # the commit queue can handle CLs rolling openssl
+  # and whatever else without interference from each other.
+  "openssl_revision": "177803",
 }
 
 deps = {
@@ -66,10 +70,10 @@ deps = {
     (Var("googlecode_url") % "googlemock") + "/trunk@410",
 
   "src/third_party/angle":
-    (Var("googlecode_url") % "angleproject") + "/trunk@1994",
+    (Var("googlecode_url") % "angleproject") + "/trunk@2001",
 
   "src/third_party/trace-viewer":
-    (Var("googlecode_url") % "trace-viewer") + "/trunk@220",
+    (Var("googlecode_url") % "trace-viewer") + "/trunk@223",
 
   # Note that this is *not* where we check out WebKit -- this just
   # puts some extra files into place for the real WebKit checkout to
@@ -95,7 +99,7 @@ deps = {
 
   "src/third_party/cacheinvalidation/src":
     (Var("googlecode_url") % "google-cache-invalidation-api") +
-    "/trunk/src@284",
+    "/trunk/src@292",
 
   "src/third_party/leveldatabase/src":
     (Var("googlecode_url") % "leveldb") + "/trunk@72",
@@ -107,7 +111,7 @@ deps = {
     (Var("googlecode_url") % "grit-i18n") + "/trunk@115",
 
   "src/tools/gyp":
-    (Var("googlecode_url") % "gyp") + "/trunk@1589",
+    (Var("googlecode_url") % "gyp") + "/trunk@1602",
 
   "src/tools/swarm_client":
     "/trunk/tools/swarm_client@" + Var("swarm_revision"),
@@ -266,7 +270,7 @@ deps = {
     Var("libjingle_revision"),
 
   "src/third_party/libsrtp":
-    "/trunk/deps/third_party/libsrtp@174628",
+    "/trunk/deps/third_party/libsrtp@189528",
 
   "src/third_party/speex":
     "/trunk/deps/third_party/speex@177782",
@@ -299,7 +303,7 @@ deps = {
         "/trunk/jsoncpp/src/lib_json@" + Var("jsoncpp_revision"),
 
   "src/third_party/libyuv":
-    (Var("googlecode_url") % "libyuv") + "/trunk@590",
+    (Var("googlecode_url") % "libyuv") + "/trunk@618",
 
   "src/third_party/smhasher/src":
     (Var("googlecode_url") % "smhasher") + "/trunk@147",
@@ -508,7 +512,7 @@ deps_os = {
       "/trunk/deps/third_party/nss@" + Var("nss_revision"),
 
     "src/chrome/installer/mac/third_party/xz/xz":
-      "/trunk/deps/third_party/xz@87706",
+      "/trunk/deps/third_party/xz@189101",
   },
   "unix": {
     # Linux, really.
@@ -526,13 +530,13 @@ deps_os = {
        Var("lss_revision")),
 
     "src/third_party/openssl":
-      "/trunk/deps/third_party/openssl@177803",
+      "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
 
     "src/third_party/WebKit/Tools/gdb":
       Var("webkit_trunk") + "/Tools/gdb@" + Var("webkit_revision"),
 
     "src/third_party/gold":
-      "/trunk/deps/third_party/gold@149858",
+      "/trunk/deps/third_party/gold@168091",
 
     "src/third_party/libmtp":
       "/trunk/deps/third_party/libmtp@178673",
@@ -550,12 +554,22 @@ deps_os = {
     # For Linux and Chromium OS.
     "src/third_party/cros_system_api":
       Var("chromiumos_git") + "/platform/system_api.git" +
-      "@229425b55e789a8d5dd8a76e48115b47506910da",
+      "@c0a01e19debd52a18304df8f7803235480d9f33e",
 
     # Note that this is different from Android's freetype repo.
     "src/third_party/freetype2/src":
       Var("chromium_git") + "/chromium/src/third_party/freetype2.git" +
       "@d699c2994ecc178c4ed05ac2086061b2034c2178",
+
+    # Build tools for targeting ChromeOS.
+    "src/third_party/chromite":
+      Var("chromiumos_git") + "/chromite.git" +
+      "@1d8a25be640e27cbac454995239cd71f34b5f613",
+
+    # Dependency of chromite.git.
+    "src/third_party/pyelftools":
+      Var("chromiumos_git") + "/third_party/pyelftools.git" +
+      "@bdc1d380acd88d4bfaf47265008091483b0d614e",
   },
   "android": {
     "src/third_party/android_tools":
@@ -590,6 +604,13 @@ deps_os = {
 
     "src/third_party/jsr-305/src":
       (Var("googlecode_url") % "jsr-305") + "/trunk@51",
+
+    "src/third_party/lss":
+      ((Var("googlecode_url") % "linux-syscall-support") + "/trunk/lss@" +
+       Var("lss_revision")),
+
+    "src/third_party/openssl":
+      "/trunk/deps/third_party/openssl@" + Var("openssl_revision"),
 
     "src/third_party/eyesfree/src/android/java/src/com/googlecode/eyesfree/braille":
       (Var("googlecode_url") % "eyes-free") + "/trunk/braille/client/src/com/googlecode/eyesfree/braille@797",
