@@ -17,7 +17,6 @@ package com.google.dart.tools.core.dart2js;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.pub.IPackageRootProvider;
 import com.google.dart.tools.core.utilities.general.StringUtilities;
@@ -98,18 +97,18 @@ public class Dart2JSCompiler {
    * the given dart library, optionally poll the given monitor to check for user cancellation, and
    * write any output to the given console.
    * 
-   * @param library
+   * @param file
    * @param monitor
    * @param console
    * @throws OperationCanceledException
    */
-  public static CompilationResult compileLibrary(DartLibrary library, IProgressMonitor monitor,
+  public static CompilationResult compileLibrary(IFile file, IProgressMonitor monitor,
       final MessageConsole console) throws CoreException {
     long startTime = System.currentTimeMillis();
 
-    IPath path = library.getCorrespondingResource().getLocation();
+    IPath path = file.getLocation();
 
-    final IPath inputPath = library.getCorrespondingResource().getLocation();
+    final IPath inputPath = file.getLocation();
     final IPath outputPath = getJsAppArtifactPath(path);
 
     Dart2JSCompiler compiler = new Dart2JSCompiler();
@@ -119,7 +118,7 @@ public class Dart2JSCompiler {
     try {
       CompilationResult result = compiler.compile(inputPath, outputPath, monitor, console);
 
-      refreshResources(library.getCorrespondingResource());
+      refreshResources(file);
 
       displayCompilationResult(compiler, result, outputPath, startTime, console);
       return result;

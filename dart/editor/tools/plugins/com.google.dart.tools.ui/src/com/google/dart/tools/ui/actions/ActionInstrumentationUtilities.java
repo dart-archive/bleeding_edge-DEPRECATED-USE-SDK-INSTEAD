@@ -4,7 +4,6 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.TypeMember;
 
 import java.util.List;
@@ -119,17 +118,6 @@ public class ActionInstrumentationUtilities {
 
     instrumentation.data("Problem-Exception Message", e.getMessage());
     instrumentation.data("Problem-Exception StackTrace", e.getStackTrace().toString());
-
-  }
-
-  public static void recordLibrary(DartLibrary library, InstrumentationBuilder instrumentation) {
-
-    if (library == null) {
-      instrumentation.metric("Library", "null");
-      return;
-    }
-
-    instrumentation.data("Library-Name", library.getElementName());
 
   }
 

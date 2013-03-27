@@ -14,14 +14,20 @@
 
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartLibrary;
+import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.ImportedDartLibraryContainer;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -51,12 +57,12 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
     ISelectionListener, IPartListener {
 
   class DeployOptimizedJob extends InstrumentedJob {
-    private DartLibrary library;
+    private IFile file;
 
-    public DeployOptimizedJob(IWorkbenchPage page, DartLibrary library) {
+    public DeployOptimizedJob(IWorkbenchPage page, IFile file) {
       super(ActionMessages.GenerateJavascriptAction_jobTitle);
 
-      this.library = library;
+      this.file = file;
 
       // Synchronize on the workspace root to catch any builds that are in progress.
       setRule(ResourcesPlugin.getWorkspace().getRoot());
@@ -71,11 +77,11 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
       if (DartCore.getPlugin().getCompileWithDart2JS()) {
         try {
           monitor.beginTask(
-              ActionMessages.GenerateJavascriptAction_Compiling + library.getElementName(),
+              ActionMessages.GenerateJavascriptAction_Compiling + file.getName(),
               IProgressMonitor.UNKNOWN);
 
-          instrumentation.data("Library", library.getElementName());
-          Dart2JSCompiler.compileLibrary(library, monitor, DartCore.getConsole());
+          instrumentation.data("Library", file.getName());
+          Dart2JSCompiler.compileLibrary(file, monitor, DartCore.getConsole());
 
           instrumentation.metric("GenerateJavascript", "Complete");
 
@@ -89,7 +95,6 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
 
           return Status.CANCEL_STATUS;
         } catch (Exception exception) {
-
           instrumentation.metric("Problem-Exception", exception.getClass().toString());
           instrumentation.data("Problem-Exception", exception.toString());
 
@@ -101,7 +106,6 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
           monitor.done();
         }
       }
-      //TODO(devoncarew): Clarify whether the condition -> message mapping is still correct
       instrumentation.metric("Problem", "Dart SDK not installed");
       return new Status(Status.WARNING, "Deploy optimized", "Dart SDK not installed");
     }
@@ -179,21 +183,83 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
       }
     }
 
-    final DartLibrary library = getCurrentLibrary();
+    final IFile file = getCurrentLibrary();
 
-    if (library == null) {
+    if (file == null) {
       instrumentation.metric("Problem", "No library selected");
       MessageDialog.openError(
           window.getShell(),
           ActionMessages.GenerateJavascriptAction_unableToLaunch,
           ActionMessages.GenerateJavascriptAction_noneSelected);
     } else {
-      DeployOptimizedJob job = new DeployOptimizedJob(page, library);
+      DeployOptimizedJob job = new DeployOptimizedJob(page, file);
       job.schedule(isSaveNeeded ? 100 : 0);
     }
   }
 
-  private DartLibrary getCurrentLibrary() {
+  private IFile getCurrentLibrary() {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      LibraryElement library = getCurrentLibrary_newModel();
+
+      if (library != null) {
+        ProjectManager manager = DartCore.getProjectManager();
+
+        return (IFile) manager.getResource(library.getDefiningCompilationUnit().getSource());
+      }
+    } else {
+      DartLibrary library = getCurrentLibrary_oldModel();
+
+      if (library != null) {
+        try {
+          return (IFile) library.getDefiningCompilationUnit().getCorrespondingResource();
+        } catch (DartModelException e) {
+
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private LibraryElement getCurrentLibrary_newModel() {
+    ProjectManager manager = DartCore.getProjectManager();
+
+    IResource resource = null;
+    Element element = null;
+
+    if (selectedObject == null) {
+      IWorkbenchPage page = window.getActivePage();
+
+      if (page != null) {
+        IEditorPart part = page.getActiveEditor();
+
+        if (part != null) {
+          selectedObject = part.getEditorInput().getAdapter(IResource.class);
+        }
+      }
+    }
+
+    if (selectedObject instanceof IResource) {
+      resource = (IResource) selectedObject;
+    }
+
+    if (resource instanceof IFile) {
+      element = manager.getLibraryElement((IFile) resource);
+    }
+
+    if (selectedObject instanceof Element) {
+      element = (Element) selectedObject;
+    }
+
+    if (element != null) {
+      return element.getLibrary();
+    }
+
+    return null;
+  }
+
+  @Deprecated
+  private DartLibrary getCurrentLibrary_oldModel() {
     IResource resource = null;
     DartElement element = null;
 
@@ -208,6 +274,7 @@ public class GenerateJavascriptAction extends InstrumentedAction implements IWor
         }
       }
     }
+
     if (selectedObject instanceof IResource) {
       resource = (IResource) selectedObject;
     }

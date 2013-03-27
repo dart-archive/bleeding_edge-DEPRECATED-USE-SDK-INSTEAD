@@ -18,10 +18,10 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.MessageConsole;
 import com.google.dart.tools.core.dart2js.Dart2JSCompiler;
 import com.google.dart.tools.core.dart2js.ProcessRunner;
-import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -94,16 +94,16 @@ public class DartdocGenerator {
    * the given dart library, optionally poll the given monitor to check for user cancellation, and
    * write any output to the given console.
    * 
-   * @param library
+   * @param file
    * @param monitor
    * @param console
    * @throws OperationCanceledException
    */
-  public static CompilationResult generateDartdoc(DartLibrary library, IProgressMonitor monitor,
+  public static CompilationResult generateDartdoc(IFile file, IProgressMonitor monitor,
       final MessageConsole console) throws CoreException {
     long startTime = System.currentTimeMillis();
 
-    final IPath inputPath = library.getCorrespondingResource().getLocation();
+    final IPath inputPath = file.getLocation();
     final IPath outputPath = getDocsPath(inputPath);
     final IPath indexPath = getDocsIndexPath(inputPath);
 
@@ -115,7 +115,7 @@ public class DartdocGenerator {
     try {
       CompilationResult result = generator.dartdoc(inputPath, outputPath, monitor);
 
-      refreshResources(library.getCorrespondingResource());
+      refreshResources(file);
 
       displayCompilationResult(generator, result, indexPath, startTime, console);
       return result;

@@ -499,10 +499,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     deployOptimizedAction = new GenerateJavascriptAction(window);
 
-    //TODO (pquitslund): implement dartdoc generation for new elements
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      generateDartdocAction = new GenerateDartdocAction(window);
-    }
+    generateDartdocAction = new GenerateDartdocAction(window);
 
     pubInstallAction = RunPubAction.createPubInstallAction(window);
 
@@ -1062,10 +1059,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     menu.add(deployOptimizedAction);
 
-    //TODO (pquitslund): implement dartdoc generation for new elements
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      menu.add(generateDartdocAction);
-    }
+    menu.add(generateDartdocAction);
 
     menu.add(new Separator());
 
