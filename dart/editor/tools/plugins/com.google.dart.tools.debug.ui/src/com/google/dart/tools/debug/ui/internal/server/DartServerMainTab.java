@@ -73,6 +73,7 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
     public ServerAppResourceFilter() {
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
         ProjectManager manager = DartCore.getProjectManager();
+        // TODO(devoncarew): this currently returns an empty list
         Source[] librarySources = manager.getLaunchableServerLibrarySources();
         for (Source source : librarySources) {
           IResource resource = manager.getResource(source);
@@ -83,7 +84,6 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
       } else {
         try {
-
           List<DartLibrary> libraries = DartModelManager.getInstance().getDartModel().getUnreferencedLibraries();
           List<DartLibrary> bundledLibraries = Arrays.asList(DartModelManager.getInstance().getDartModel().getBundledLibraries());
 
@@ -103,13 +103,19 @@ public class DartServerMainTab extends AbstractLaunchConfigurationTab {
 
     @Override
     public boolean matches(IResource resource) {
-      if (DartCore.isDartLikeFileName(resource.getName())) {
-        if (serverLibraries.contains(resource)) {
-          return true;
-        }
-      }
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        // TODO(devoncarew): we don't use the serverLibraries set for now
 
-      return false;
+        return DartCore.isDartLikeFileName(resource.getName());
+      } else {
+        if (DartCore.isDartLikeFileName(resource.getName())) {
+          if (serverLibraries.contains(resource)) {
+            return true;
+          }
+        }
+
+        return false;
+      }
     }
   }
 
