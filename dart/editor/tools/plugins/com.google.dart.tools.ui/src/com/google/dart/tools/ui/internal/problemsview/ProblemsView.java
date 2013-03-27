@@ -1051,6 +1051,10 @@ public class ProblemsView extends ViewPart implements MarkersChangeService.Marke
       }
     }
 
+    if (tableViewer.getControl() == null || tableViewer.getControl().isDisposed()) {
+      return;
+    }
+
     display.asyncExec(new Runnable() {
       @Override
       public void run() {
