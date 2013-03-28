@@ -63,13 +63,6 @@ public class DartSdkTest extends TestCase {
     assertTrue(directory.exists());
   }
 
-  public void test_getPackageDirectory() {
-    DartSdk sdk = createDartSdk();
-    File directory = sdk.getPackageDirectory();
-    assertNotNull(directory);
-    assertTrue(directory.exists());
-  }
-
   public void test_getSdkVersion() {
     DartSdk sdk = createDartSdk();
     String version = sdk.getSdkVersion();

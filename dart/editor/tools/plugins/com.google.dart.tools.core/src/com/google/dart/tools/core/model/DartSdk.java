@@ -165,13 +165,6 @@ public class DartSdk {
   }
 
   /**
-   * @return the SDK's package directory path (pkg)
-   */
-  public File getPackageDirectory() {
-    return new File(getDirectory(), "pkg");
-  }
-
-  /**
    * @return the revision number of the SDK
    */
   public String getSdkVersion() {

@@ -221,7 +221,7 @@ public class DartdocGenerator {
     args.addAll(getCompilerArguments(inputPath, outputPath));
 
     builder.command(args);
-    builder.directory(DartSdkManager.getManager().getSdk().getPackageDirectory());
+    builder.directory(DartSdkManager.getManager().getSdk().getDirectory());
     builder.redirectErrorStream(true);
 
     ProcessRunner runner = new ProcessRunner(builder);

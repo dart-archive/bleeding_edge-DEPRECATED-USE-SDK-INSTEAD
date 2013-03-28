@@ -132,11 +132,6 @@ public class DartSdk {
   private static final String LIBRARIES_FILE = "libraries.dart"; //$NON-NLS-1$
 
   /**
-   * The name of the directory within the SDK directory that contains the packages.
-   */
-  private static final String PKG_DIRECTORY_NAME = "pkg"; //$NON-NLS-1$
-
-  /**
    * The name of the file within the SDK directory that contains the revision number of the SDK.
    */
   private static final String REVISION_FILE_NAME = "revision"; //$NON-NLS-1$
@@ -272,15 +267,6 @@ public class DartSdk {
    */
   public File getLibraryDirectory() {
     return new File(sdkDirectory, LIB_DIRECTORY_NAME);
-  }
-
-  /**
-   * Return the directory within the SDK directory that contains the packages.
-   * 
-   * @return the directory that contains the packages
-   */
-  public File getPackageDirectory() {
-    return new File(getDirectory(), PKG_DIRECTORY_NAME);
   }
 
   /**
