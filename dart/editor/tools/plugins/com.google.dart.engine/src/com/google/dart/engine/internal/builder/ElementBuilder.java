@@ -111,6 +111,18 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitBlock(Block node) {
+    boolean wasInField = inFieldContext;
+    inFieldContext = false;
+    try {
+      node.visitChildren(this);
+    } finally {
+      inFieldContext = wasInField;
+    }
+    return null;
+  }
+
+  @Override
   public Void visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.getExceptionParameter();
     if (exceptionParameter != null) {

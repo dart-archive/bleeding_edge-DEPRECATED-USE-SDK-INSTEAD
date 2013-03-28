@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.DefaultFormalParameter;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
@@ -28,6 +29,7 @@ import com.google.dart.engine.ast.FunctionTypedFormalParameter;
 import com.google.dart.engine.ast.LabeledStatement;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.SimpleFormalParameter;
+import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.TypeAlias;
 import com.google.dart.engine.ast.TypeParameter;
 import com.google.dart.engine.ast.VariableDeclaration;
@@ -857,6 +859,39 @@ public class ElementBuilderTest extends EngineTestCase {
     assertEquals(parameterName, typeVariable.getName());
     assertNull(typeVariable.getBound());
     assertFalse(typeVariable.isSynthetic());
+  }
+
+  public void test_visitVariableDeclaration_localNestedInField() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    //
+    // var f = () {var v;}
+    //
+    String variableName = "v";
+    VariableDeclaration variable = variableDeclaration(variableName, null);
+    Statement statement = variableDeclarationStatement(null, variable);
+    Expression initializer = functionExpression(formalParameterList(), blockFunctionBody(statement));
+
+    String fieldName = "f";
+    VariableDeclaration field = variableDeclaration(fieldName, initializer);
+    FieldDeclaration fieldDeclaration = fieldDeclaration(false, null, field);
+    fieldDeclaration.accept(builder);
+
+    FieldElement[] variables = holder.getFields();
+    assertLength(1, variables);
+    FieldElement fieldElement = variables[0];
+    assertNotNull(fieldElement);
+    FunctionElement initializerElement = fieldElement.getInitializer();
+    assertNotNull(initializerElement);
+    FunctionElement[] functionElements = initializerElement.getFunctions();
+    assertLength(1, functionElements);
+    LocalVariableElement[] variableElements = functionElements[0].getLocalVariables();
+    assertLength(1, variableElements);
+    LocalVariableElement variableElement = variableElements[0];
+    assertEquals(variableName, variableElement.getName());
+    assertFalse(variableElement.isConst());
+    assertFalse(variableElement.isFinal());
+    assertFalse(variableElement.isSynthetic());
   }
 
   public void test_visitVariableDeclaration_noInitializer() {
