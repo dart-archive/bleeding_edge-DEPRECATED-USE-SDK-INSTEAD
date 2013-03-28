@@ -2,6 +2,7 @@ package com.google.dart.tools.core.pub;
 
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.mock.MockProject;
+import com.google.dart.tools.core.test.util.PlainTestProject;
 
 import junit.framework.TestCase;
 
@@ -11,7 +12,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
-import java.io.File;
 import java.io.IOException;
 
 public class RunPubJobTest extends TestCase {
@@ -22,6 +22,15 @@ public class RunPubJobTest extends TestCase {
       return ResourcesPlugin.getWorkspace().getRoot().getLocation().append(getName());
     };
   };
+
+  public void test_runPubScript() throws Exception {
+
+    PlainTestProject project = new PlainTestProject("fooBar");
+
+    RunPubJob pubJob = new RunPubJob(project.getProject(), "help");
+    IStatus status = pubJob.runSilent(new NullProgressMonitor());
+    assertStatus(status, IStatus.OK, null);
+  }
 
   // Assert normal operation
   public void test_runSilent() {
@@ -50,9 +59,6 @@ public class RunPubJobTest extends TestCase {
         // Assert valid builder information
         assertNotNull(builder);
         assertEquals(PROJECT.getLocation().toFile(), builder.directory());
-        String sdkPath = builder.environment().get("DART_SDK");
-        assertNotNull(sdkPath);
-        assertTrue(new File(sdkPath).exists());
         assertTrue(builder.command().size() > 0);
 
         ProcessRunner processRunner = new ProcessRunner(builder) {
@@ -101,4 +107,5 @@ public class RunPubJobTest extends TestCase {
     }
     assertNotNull("Expected message", status.getMessage());
   }
+
 }
