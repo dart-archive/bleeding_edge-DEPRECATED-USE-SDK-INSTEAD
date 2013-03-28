@@ -17,9 +17,11 @@ import com.google.dart.engine.ast.ArgumentDefinitionTest;
 import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
+import com.google.dart.engine.ast.CascadeExpression;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.IndexExpression;
 import com.google.dart.engine.ast.IntegerLiteral;
@@ -188,6 +190,19 @@ public class ComplexParserTest extends ParserTestCase {
   public void test_bitwiseXorExpression_super() throws Exception {
     BinaryExpression expression = parseExpression("super ^ y ^ z");
     assertInstanceOf(BinaryExpression.class, expression.getLeftOperand());
+  }
+
+  public void test_cascade_withAssignment() throws Exception {
+    CascadeExpression cascade = parseExpression("new Map()..[3] = 4 ..[0] = 11;");
+    Expression target = cascade.getTarget();
+    for (Expression section : cascade.getCascadeSections()) {
+      assertInstanceOf(AssignmentExpression.class, section);
+      Expression lhs = ((AssignmentExpression) section).getLeftHandSide();
+      assertInstanceOf(IndexExpression.class, lhs);
+      IndexExpression index = (IndexExpression) lhs;
+      assertTrue(index.isCascaded());
+      assertSame(target, index.getRealTarget());
+    }
   }
 
   public void test_conditionalExpression_precedence_argumentDefinitionTest_not() throws Exception {
