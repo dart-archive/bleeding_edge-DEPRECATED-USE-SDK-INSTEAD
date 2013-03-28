@@ -63,9 +63,9 @@ public class AnalysisMarkerManager {
      * Set markers on the specified resource to represent the cached analysis errors
      */
     void showErrors() throws CoreException {
-      if (!resource.isAccessible()) {
-        return;
-      }
+//      if (!resource.isAccessible()) {
+//        return;
+//      }
       resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
       for (AnalysisError error : errors) {
         int severity;
