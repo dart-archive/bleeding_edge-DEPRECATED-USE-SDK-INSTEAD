@@ -240,7 +240,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * 
    * @param typeName the name of the type that cannot be extended
-   * @see #IMPLEMENTS_DISALLOWED_CLASS
+   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
    */
   EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
 
@@ -259,7 +259,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * 
    * @param typeName the name of the type that cannot be implemented
-   * @see #EXTENDS_DISALLOWED_CLASS
+   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
    */
   IMPLEMENTS_DISALLOWED_CLASS("Classes cannot implement '%s'"),
 
@@ -297,19 +297,28 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has been initialized
    * at its point of declaration is also initialized in a constructor.
+   * 
+   * @param name the name of the field in question
    */
-  FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR(""),
+  // TODO (jwren) only a subset of these are being caught
+  FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR(
+      "'%s' is final and was given a value when it was declared, so it cannot be set to a new value"),
 
   /**
    * 5 Variables: It is a compile-time error if a final instance variable that has is initialized by
    * means of an initializing formal of a constructor is also initialized elsewhere in the same
    * constructor.
+   * 
+   * @param name the name of the field in question
    */
-  FINAL_INITIALIZED_MULTIPLE_TIMES(""),
+  // TODO (jwren) only a subset of these are being caught
+  FINAL_INITIALIZED_MULTIPLE_TIMES("'%s' is a final field and so can only be set once"),
 
   /**
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is
-   * final and <i>v</i> is not initialized at its point of declaration.
+   * final and <i>v</i> is not initialized at its point of declaration.'
+   * 
+   * @param name the name of the field in question
    */
   FINAL_NOT_INITIALIZED(""),
 
@@ -364,11 +373,44 @@ public enum CompileTimeErrorCode implements ErrorCode {
   INCONSITENT_CASE_EXPRESSION_TYPES(""),
 
   /**
+   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
+   * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
+   * instance variable declared in the immediately surrounding class.
+   * 
+   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   */
+  INITIALIZER_FOR_NON_EXISTANT_FIELD(""),
+
+  /**
+   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
+   * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
+   * instance variable declared in the immediately surrounding class.
+   */
+  INITIALIZER_FOR_STATIC_FIELD(""),
+
+  /**
    * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
    * compile-time error if <i>id</i> is not the name of an instance variable of the immediately
    * enclosing class.
+   * 
+   * @param id the name of the initializing formal that is not an instance variable in the
+   *          immediately enclosing class
+   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_STATIC_FIELD
+   * @see CompileTimeErrorCode#INITIALIZER_FOR_NON_EXISTANT_FIELD
    */
-  INITIALIZER_FOR_NON_EXISTANT_FIELD(""),
+  INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD("'%s' is not a variable in the enclosing class"),
+
+  /**
+   * 7.6.1 Generative Constructors: An initializing formal has the form <i>this.id</i>. It is a
+   * compile-time error if <i>id</i> is not the name of an instance variable of the immediately
+   * enclosing class.
+   * 
+   * @param id the name of the initializing formal that is a static variable in the immediately
+   *          enclosing class
+   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   */
+  INITIALIZING_FORMAL_FOR_STATIC_FIELD(
+      "'%s' is a static variable in the enclosing class, variable initialized in a constructor cannot be static"),
 
   /**
    * TODO(brianwilkerson) Remove this when we have decided on how to report errors in compile-time
@@ -439,13 +481,6 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * type parameter.
    */
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP(""),
-
-  /**
-   * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It is a compile-time
-   * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
-   * instance variable declared in the immediately surrounding class.
-   */
-  INVALID_VARIABLE_IN_INITIALIZER(""), // TODO(brianwilkerson) This might want to be multiple errors (static, non-field).
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within

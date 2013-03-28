@@ -25,6 +25,7 @@ import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FunctionExpressionInvocation;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.Identifier;
@@ -56,6 +57,7 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
@@ -70,6 +72,8 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 import com.google.dart.engine.internal.scope.LabelScope;
@@ -265,6 +269,36 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       resolveCombinators(((ExportElement) element).getExportedLibrary(), node.getCombinators());
     }
     return null;
+  }
+
+  @Override
+  public Void visitFieldFormalParameter(FieldFormalParameter node) {
+    String fieldName = node.getIdentifier().getName();
+    ClassElement classElement = resolver.getEnclosingClass();
+    // Call getField directly on the ClassElementImpl since we only care about variables in the
+    // immediately enclosing class.
+    FieldElement fieldElement = ((ClassElementImpl) classElement).getField(fieldName);
+
+    if (fieldElement != null) {
+      if (!fieldElement.isSynthetic()) {
+        ParameterElement parameterElement = node.getElement();
+        if (parameterElement instanceof FieldFormalParameterElementImpl) {
+          ((FieldFormalParameterElementImpl) parameterElement).setField(fieldElement);
+          if (fieldElement.isStatic()) {
+            resolver.reportError(
+                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                node,
+                fieldName);
+          }
+        }
+      }
+    } else {
+      resolver.reportError(
+          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+          node,
+          fieldName);
+    }
+    return super.visitFieldFormalParameter(node);
   }
 
   @Override

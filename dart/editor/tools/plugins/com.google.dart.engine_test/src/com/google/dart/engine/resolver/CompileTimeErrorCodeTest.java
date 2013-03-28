@@ -183,37 +183,14 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_finalInitializedInDeclarationAndConstructor_assignment() throws Exception {
+  public void fail_finalNotInitialized_inConstructor() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        "  final x = 0;",
-        "  A() { x = 1; }",
+        "  final int x;",
+        "  A() {}",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR);
-    verify(source);
-  }
-
-  public void fail_finalInitializedInDeclarationAndConstructor_initializingFormal()
-      throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  final x = 0;",
-        "  A(this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR);
-    verify(source);
-  }
-
-  public void fail_finalInitializedMultipleTimes() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  final x;",
-        "  A(this.x) { x = 0; }",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 
@@ -321,13 +298,24 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_initializerForNonExistantField() throws Exception {
+  public void fail_initializerForNonExistant_initializer() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        "  A(this.x) {}",
+        "  A() : x = 0 {}",
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTANT_FIELD);
+    verify(source);
+  }
+
+  public void fail_initializerForStaticField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static x;",
+        "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD);
     verify(source);
   }
 
@@ -460,27 +448,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP);
-    verify(source);
-  }
-
-  public void fail_invalidVariableInInitializer_nonField() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  A(this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_VARIABLE_IN_INITIALIZER);
-    verify(source);
-  }
-
-  public void fail_invalidVariableInInitializer_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  static x = 0;",
-        "  A(this.x) {}",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.INVALID_VARIABLE_IN_INITIALIZER);
     verify(source);
   }
 
@@ -1377,7 +1344,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializeInParameterAndInitializer() throws Exception {
+  public void test_fieldInitializedInParameterAndInitializer() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  int x;",
@@ -1399,7 +1366,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_fieldInitializerOutsideConstructor_defaultParameters() throws Exception {
+  public void test_fieldInitializerOutsideConstructor_defaultParameter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
         "  int x;",
@@ -1410,12 +1377,128 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  /**
+   * This test doesn't test the FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR code, but tests the
+   * FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION code instead. It is provided here to show
+   * coverage over all of the permutations of initializers in constructor declarations.
+   * <p>
+   * Note: FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER covers a subset of
+   * FINAL_INITIALIZED_MULTIPLE_TIMES, since it more specific, we use it instead of the broader code
+   */
+  public void test_finalInitializedInDeclarationAndConstructor_initializers() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x = 0;",
+        "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION);
+    verify(source);
+  }
+
+  public void test_finalInitializedInDeclarationAndConstructor_initializingFormal()
+      throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x = 0;",
+        "  A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR);
+    verify(source);
+  }
+
+  public void test_finalInitializedMultipleTimes_initializers() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x;",
+        "  A() : x = 0, x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS);
+    verify(source);
+  }
+
+  /**
+   * This test doesn't test the FINAL_INITIALIZED_MULTIPLE_TIMES code, but tests the
+   * FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER code instead. It is provided here to show
+   * coverage over all of the permutations of initializers in constructor declarations.
+   * <p>
+   * Note: FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER covers a subset of
+   * FINAL_INITIALIZED_MULTIPLE_TIMES, since it more specific, we use it instead of the broader code
+   */
+  public void test_finalInitializedMultipleTimes_initializingFormal_initializer() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x;",
+        "  A(this.x) : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER);
+    verify(source);
+  }
+
+  public void test_finalInitializedMultipleTimes_initializingFormals() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x;",
+        "  A(this.x, this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
+    verify(source);
+  }
+
   public void test_implementsNonClass() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
         "class B implements A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_initializingFormalForNonExistantField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    verify(source);
+  }
+
+  public void test_initializingFormalForNonExistantField_notInEnclosingClass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "int x;",
+        "}",
+        "class B extends A {",
+        "  B(this.x) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    verify(source);
+  }
+
+  public void test_initializingFormalForNonExistantField_optional() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  A([this.x]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD);
+    verify(source);
+  }
+
+  public void test_initializingFormalForNonExistantField_static() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static x;",
+        "  A([this.x]) {}",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
     verify(source);
   }
 

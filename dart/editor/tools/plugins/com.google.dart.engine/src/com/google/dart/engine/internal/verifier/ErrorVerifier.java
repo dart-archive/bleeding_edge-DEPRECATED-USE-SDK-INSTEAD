@@ -63,12 +63,12 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.error.StaticWarningCode;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.TypeProvider;
 import com.google.dart.engine.parser.ParserErrorCode;
@@ -80,6 +80,7 @@ import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -89,6 +90,18 @@ import java.util.HashSet;
  * @coverage dart.engine.resolver
  */
 public class ErrorVerifier extends RecursiveASTVisitor<Void> {
+  /**
+   * This enum holds one of four states of a field initialization state through a constructor
+   * signature, not initialized, initialized in the field declaration, initialized in the field
+   * formal, and finally, initialized in the initializers list.
+   */
+  private enum INIT_STATE {
+    NOT_INIT,
+    INIT_IN_DECLARATION,
+    INIT_IN_FIELD_FORMAL,
+    INIT_IN_INITIALIZERS
+  }
+
   /**
    * The error reporter by which errors will be reported.
    */
@@ -135,6 +148,22 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * inside a method or function.
    */
   private ExecutableElement currentFunction;
+
+  /**
+   * This map is initialized when visiting the contents of a class declaration. If the visitor is
+   * not in an enclosing class declaration, then the map is set to <code>null</code>.
+   * <p>
+   * When set the map maps the set of {@link FieldElement}s in the class to an
+   * {@link INIT_STATE#NOT_INIT} or {@link INIT_STATE#INIT_IN_DECLARATION}. <code>checkFor*</code>
+   * methods, specifically {@link #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)},
+   * can make a copy of the map to compute error code states. <code>checkFor*</code> methods should
+   * only ever make a copy, or read from this map after it has been set in
+   * {@link #visitClassDeclaration(ClassDeclaration)}.
+   * 
+   * @see #visitClassDeclaration(ClassDeclaration)
+   * @see #checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
+   */
+  private HashMap<FieldElement, INIT_STATE> initialFieldElementsMap;
 
   /**
    * A list of types used by the {@link CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS} and
@@ -187,10 +216,24 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
-    checkForBuiltInIdentifierAsName(
-        node.getName(),
-        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
-    return super.visitClassDeclaration(node);
+    try {
+      checkForBuiltInIdentifierAsName(
+          node.getName(),
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
+      // initialize initialFieldElementsMap
+      ClassElement classElement = node.getElement();
+      if (classElement != null) {
+        FieldElement[] fieldElements = classElement.getFields();
+        initialFieldElementsMap = new HashMap<FieldElement, INIT_STATE>(fieldElements.length);
+        for (FieldElement fieldElement : fieldElements) {
+          initialFieldElementsMap.put(fieldElement, fieldElement.getInitializer() == null
+              ? INIT_STATE.NOT_INIT : INIT_STATE.INIT_IN_DECLARATION);
+        }
+      }
+      return super.visitClassDeclaration(node);
+    } finally {
+      initialFieldElementsMap = null;
+    }
   }
 
   @Override
@@ -216,6 +259,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
       checkForFieldInitializedByMultipleInitializers(node);
+      checkForAllFinalInitializedErrorCodes(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
@@ -227,7 +271,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     SimpleIdentifier identifier = node.getFieldName();
     Element element = identifier.getElement();
-    checkForFieldInitializedInInitializerAndDeclaration(node, identifier, element);
     checkForFieldInitializedInParameterAndInitializer(node, identifier, element);
     return super.visitConstructorFieldInitializer(node);
   }
@@ -376,6 +419,114 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitWhileStatement(WhileStatement node) {
     checkForNonBoolCondition(node.getCondition());
     return super.visitWhileStatement(node);
+  }
+
+  /**
+   * This verifies that the passed constructor declaration does not violate any of the error codes
+   * relating to the initialization of fields in the enclosing class.
+   * 
+   * @param node the {@link ConstructorDeclaration} to evaluate
+   * @return return <code>true</code> if and only if an error code is generated on the passed node
+   * @see #initialFieldElementsMap
+   * @see CompileTimeErrorCode#FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+   * @see CompileTimeErrorCode#FINAL_INITIALIZED_MULTIPLE_TIMES
+   */
+  private boolean checkForAllFinalInitializedErrorCodes(ConstructorDeclaration node) {
+    if (node.getFactoryKeyword() != null || node.getRedirectedConstructor() != null) {
+      return false;
+    }
+    boolean foundError = false;
+    HashMap<FieldElement, INIT_STATE> finalElementsMap = new HashMap<FieldElement, ErrorVerifier.INIT_STATE>(
+        initialFieldElementsMap);
+
+    // Visit all of the field formal parameters
+    NodeList<FormalParameter> formalParameters = node.getParameters().getParameters();
+    for (FormalParameter formalParameter : formalParameters) {
+      FormalParameter parameter = formalParameter;
+      if (parameter instanceof DefaultFormalParameter) {
+        parameter = ((DefaultFormalParameter) parameter).getParameter();
+      }
+      if (parameter instanceof FieldFormalParameter) {
+        FieldElement fieldElement = ((FieldFormalParameterElementImpl) formalParameter.getElement()).getField();
+        INIT_STATE state = finalElementsMap.get(fieldElement);
+        if (state == INIT_STATE.NOT_INIT) {
+          finalElementsMap.put(fieldElement, INIT_STATE.INIT_IN_FIELD_FORMAL);
+        } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
+          if (fieldElement.isFinal() || fieldElement.isConst()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+                formalParameter,
+                fieldElement.getName());
+            foundError = true;
+          }
+        } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
+          if (fieldElement.isFinal() || fieldElement.isConst()) {
+            errorReporter.reportError(
+                CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
+                formalParameter,
+                fieldElement.getName());
+            foundError = true;
+          }
+        }
+      }
+    }
+
+    // Visit all of the initializers
+    NodeList<ConstructorInitializer> initializers = node.getInitializers();
+    for (ConstructorInitializer constructorInitializer : initializers) {
+      if (constructorInitializer instanceof ConstructorFieldInitializer) {
+        ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) constructorInitializer;
+        Element element = constructorFieldInitializer.getFieldName().getElement();
+        if (element instanceof PropertyAccessorElement) {
+          PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
+          FieldElement fieldElement = (FieldElement) propertyAccessorElement.getVariable();
+          INIT_STATE state = finalElementsMap.get(fieldElement);
+          if (state == INIT_STATE.NOT_INIT) {
+            finalElementsMap.put(fieldElement, INIT_STATE.INIT_IN_INITIALIZERS);
+          } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
+            if (fieldElement.isFinal() || fieldElement.isConst()) {
+              errorReporter.reportError(
+                  CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                  node);
+              foundError = true;
+            }
+          } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
+            // Do nothing: CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
+            // This case taken care of in the checkForFieldInitializedInParameterAndInitializer check,
+            // catching the same error code here would miss the variables that are not const or final.
+            // TODO (jwren) Optimization: change the finalFieldElementsMap to hold non-final fields
+            // as well so that checkForFieldInitializedInParameterAndInitializer can be removed.
+          } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
+            // TODO (jwren) Optimization: change the finalFieldElementsMap to hold non-final fields
+            // as well so that checkForFieldInitializedByMultipleInitializers can be removed.
+//            errorReporter.reportError(
+//                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+//                constructorFieldInitializer);
+//            foundError = true;
+          }
+        }
+//        else if (element instanceof ParameterElementImpl) {
+        // TODO(jwren) Do we need to consider this branch?
+//        }
+      }
+    }
+
+    // Visit all of the states in the map to ensure that none were never initialized
+    // TODO(jwren) revisit this block- lots of false positives are generated by the SDK Analysis test
+//    Set<Entry<FieldElement, INIT_STATE>> set = finalElementsMap.entrySet();
+//    for (Entry<FieldElement, INIT_STATE> entry : set) {
+//      if (entry.getValue() == INIT_STATE.NOT_INIT) {
+//        FieldElement fieldElement = entry.getKey();
+//        if (fieldElement.isFinal() || fieldElement.isConst()) {
+//          errorReporter.reportError(
+//              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+//              node,
+//              fieldElement.getName());
+//          foundError = true;
+//        }
+//      }
+//    }
+    return foundError;
   }
 
   /**
@@ -729,32 +880,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       }
     }
     return foundError;
-  }
-
-  /**
-   * This verifies that the passed constructor field initializer is not also a final variable that
-   * already included an initialization.
-   * 
-   * @param node the constructor field initializer to test
-   * @param identifier the simple identifier of the constructor field initializer
-   * @param element the element associated with the constructor field initializer
-   * @return return <code>true</code> if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-   */
-  private boolean checkForFieldInitializedInInitializerAndDeclaration(
-      ConstructorFieldInitializer node, SimpleIdentifier identifier, Element element) {
-    if (element instanceof PropertyAccessorElement) {
-      PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
-      PropertyInducingElement propertyInducingElement = propertyAccessorElement.getVariable();
-      if (propertyInducingElement.getInitializer() != null
-          && (propertyInducingElement.isFinal() || propertyInducingElement.isConst())) {
-        errorReporter.reportError(
-            CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-            node);
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

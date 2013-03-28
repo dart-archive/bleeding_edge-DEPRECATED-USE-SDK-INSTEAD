@@ -147,6 +147,22 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return constructors;
   }
 
+  /**
+   * Given some name, this returns the {@link FieldElement} with the matching name, if there is no
+   * such field, then <code>null</code> is returned.
+   * 
+   * @param name some name to lookup a field element with
+   * @return the matching field element, or <code>null</code> if no such element was found
+   */
+  public FieldElement getField(String name) {
+    for (FieldElement fieldElement : fields) {
+      if (name.equals(fieldElement.getName())) {
+        return fieldElement;
+      }
+    }
+    return null;
+  }
+
   @Override
   public FieldElement[] getFields() {
     return fields;

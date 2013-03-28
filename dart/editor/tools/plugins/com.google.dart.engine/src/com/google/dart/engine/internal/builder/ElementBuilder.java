@@ -54,6 +54,7 @@ import com.google.dart.engine.internal.element.ConstParameterElementImpl;
 import com.google.dart.engine.internal.element.ConstTopLevelVariableElementImpl;
 import com.google.dart.engine.internal.element.ConstructorElementImpl;
 import com.google.dart.engine.internal.element.FieldElementImpl;
+import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
@@ -266,6 +267,8 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     if (node.isConst()) {
       parameter = new ConstParameterElementImpl(parameterName);
       parameter.setConst(true);
+    } else if (node.getParameter() instanceof FieldFormalParameter) {
+      parameter = new FieldFormalParameterElementImpl(parameterName);
     } else {
       parameter = new ParameterElementImpl(parameterName);
     }
@@ -299,7 +302,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     if (!(node.getParent() instanceof DefaultFormalParameter)) {
       SimpleIdentifier parameterName = node.getIdentifier();
-      ParameterElementImpl parameter = new ParameterElementImpl(parameterName);
+      FieldFormalParameterElementImpl parameter = new FieldFormalParameterElementImpl(parameterName);
       parameter.setConst(node.isConst());
       parameter.setInitializingFormal(true);
       parameter.setFinal(node.isFinal());

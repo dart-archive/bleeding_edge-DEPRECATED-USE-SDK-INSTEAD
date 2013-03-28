@@ -118,7 +118,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_constConstructorWithNonFinalField_const() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        "  const int x;",
+        "  const int x = 0;",
         "  const A() {}",
         "}"));
     resolve(source);
@@ -129,7 +129,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
   public void test_constConstructorWithNonFinalField_final() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        "  final int x;",
+        "  final int x = 0;",
         "  const A() {}",
         "}"));
     resolve(source);
@@ -228,6 +228,73 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "class A {",
         "  int x;",
         "  A([this.x]) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalInitializedInDeclarationAndConstructor_initializer() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x;",
+        "  A() : x = 1 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalInitializedInDeclarationAndConstructor_initializingFormal()
+      throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final x;",
+        "  A(this.x) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_atDeclaration() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final int x = 0;",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_fieldFormal() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final int x = 0;",
+        "  A() {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_initializer() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final int x;",
+        "  A() : x = 0 {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_initializingFormalForNonExistantField() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int x;",
+        "  A(this.x) {}",
         "}"));
     resolve(source);
     assertNoErrors();
