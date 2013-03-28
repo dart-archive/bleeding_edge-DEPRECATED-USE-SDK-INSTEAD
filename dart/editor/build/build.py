@@ -952,13 +952,15 @@ def CallBuildScript(mode, arch, target):
 def CreateZip(directory, targetFile):
   """zip the given directory into the file"""
   EnsureDirectoryExists(targetFile)
-  ExecuteCommand(['zip', '-yrq', targetFile, os.path.basename(directory)],
+  FileDelete(targetFile)
+  ExecuteCommand(['zip', '-yrq9', targetFile, os.path.basename(directory)],
                  os.path.dirname(directory))
 
 
 def CreateZipWindows(directory, targetFile):
   """zip the given directory into the file - win32 specific"""
   EnsureDirectoryExists(targetFile)
+  FileDelete(targetFile)
   ExecuteCommand([join(DART_PATH, 'third_party', '7zip', '7za'), 'a', '-tzip',
                   targetFile,
                   os.path.basename(directory)],
@@ -968,6 +970,7 @@ def CreateZipWindows(directory, targetFile):
 def CreateTgz(directory, targetFile):
   """tar gzip the given directory into the file"""
   EnsureDirectoryExists(targetFile)
+  FileDelete(targetFile)
   ExecuteCommand(['tar', 'czf', targetFile, os.path.basename(directory)],
                  os.path.dirname(directory))
 
