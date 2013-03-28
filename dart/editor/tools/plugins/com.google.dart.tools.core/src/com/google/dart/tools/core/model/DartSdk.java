@@ -164,6 +164,12 @@ public class DartSdk {
     return new File(new File(getLibraryDirectory(), "_internal"), "index.idx");
   }
 
+  public File getPubExecutable() {
+    String pubName = "pub" + (DartCore.isWindows() ? ".bat" : "");
+
+    return new File(new File(sdkPath, "bin"), pubName);
+  }
+
   /**
    * @return the revision number of the SDK
    */

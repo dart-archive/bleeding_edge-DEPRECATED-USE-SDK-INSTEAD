@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Runs the pub operation as an external process. The operation can be scheduled via the {@link Job}
@@ -88,20 +87,16 @@ public class RunPubJob extends Job {
     try {
       // Build the process description to run pub
       DartSdk sdk = DartSdkManager.getManager().getSdk();
-      File pubFile = new File(sdk.getDirectory().getAbsolutePath(), RunPubJob.PUB_PATH);
+      File pubFile = sdk.getPubExecutable();
 
       ProcessBuilder builder = new ProcessBuilder();
       builder.directory(container.getLocation().toFile());
       builder.redirectErrorStream(true);
 
       List<String> args = new ArrayList<String>();
-      args.add(sdk.getVmExecutable().getPath());
       args.add(pubFile.getAbsolutePath());
       args.add(command);
       builder.command(args);
-
-      Map<String, String> env = builder.environment();
-      env.put("DART_SDK", sdk.getDirectory().getAbsolutePath()); //$NON-NLS-1$
 
       // Run the pub command as an external process.
       ProcessRunner runner = newProcessRunner(builder);

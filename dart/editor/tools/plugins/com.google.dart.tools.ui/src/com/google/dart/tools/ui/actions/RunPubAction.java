@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,9 +193,8 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
 
   private List<String> buildPublishCommand(String arg) {
     DartSdk sdk = DartSdkManager.getManager().getSdk();
-    File pubFile = new File(sdk.getDirectory().getAbsolutePath(), RunPubJob.PUB_PATH);
+    File pubFile = sdk.getPubExecutable();
     List<String> args = new ArrayList<String>();
-    args.add(sdk.getVmExecutable().getPath());
     args.add(pubFile.getAbsolutePath());
     args.add(RunPubJob.PUBLISH_COMMAND);
     args.add(arg);
@@ -246,8 +244,6 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     builder.directory(container.getLocation().toFile());
     builder.redirectErrorStream(true);
     builder.command(args);
-    Map<String, String> env = builder.environment();
-    env.put("DART_SDK", DartSdkManager.getManager().getSdk().getDirectory().getAbsolutePath()); //$NON-NLS-1$
 
     final Process process;
     try {
