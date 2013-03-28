@@ -51,6 +51,7 @@ import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
+import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
 import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.ShowSelectionLabelAction;
 import com.google.dart.tools.ui.callhierarchy.OpenCallHierarchyAction;
@@ -2094,7 +2095,15 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     setContextMenuContext(menu, context); // This context contains a DartElementSelection for menus.
 
     // Quick Type Hierarchy
-    {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (selection instanceof DartSelection) {
+        DartSelection dartSelection = (DartSelection) selection;
+        if (ActionUtil.isOpenHierarchyAvailable(dartSelection)) {
+          IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
+          menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
+        }
+      }
+    } else {
       if (elementSelection != null && ActionUtil.isOpenHierarchyAvailable(elementSelection)) {
         IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
         menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
@@ -2820,7 +2829,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       ActionGroup oeg, ovg;
       ActionGroup dsg, ddg;
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-          oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup(this),
+          oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup_OLD(this),
           dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
       fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
     }

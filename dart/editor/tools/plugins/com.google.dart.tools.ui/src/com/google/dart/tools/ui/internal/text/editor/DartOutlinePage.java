@@ -250,7 +250,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     site.setSelectionProvider(viewer);
     // TODO(scheglov)
     actionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(this), new RefactorActionGroup(site),
+        new OpenViewActionGroup(site), new RefactorActionGroup(site),
         new DartSearchActionGroup(site)});
     // configure actions
     {

@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
@@ -458,6 +459,20 @@ public class ActionUtil {
 
   public static boolean isOpenHierarchyAvailable(DartElementSelection selection) {
     return !selection.isEmpty() && selection.getFirstElement() instanceof Type;
+  }
+
+  public static boolean isOpenHierarchyAvailable(DartSelection selection) {
+    if (selection == null) {
+      return false;
+    }
+    // prepare AssistContext
+    AssistContext context = selection.getContext();
+    if (context == null) {
+      return false;
+    }
+    // we need ClassElement 
+    Element coveredElement = context.getCoveredElement();
+    return coveredElement instanceof ClassElement;
   }
 
   public static boolean isProcessable(DartEditor editor) {

@@ -3267,7 +3267,6 @@
 
       <key
             sequence="F4"
-            contextId="com.google.dart.tools.ui.dartEditorScope"
             commandId="com.google.dart.tools.ui.edit.text.dart.open.type.hierarchy"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
 

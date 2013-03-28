@@ -34,7 +34,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.ProblemsLabelDecorator.ProblemsLabelChangedEvent;
-import com.google.dart.tools.ui.actions.OpenViewActionGroup;
+import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
 import com.google.dart.tools.ui.actions.RefactorActionGroup_OLD;
 import com.google.dart.tools.ui.internal.actions.AbstractToggleLinkingAction;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
@@ -903,7 +903,7 @@ public class DartOutlinePage_OLD extends Page implements IContentOutlinePage, IA
     // site
 
     fActionGroups = new CompositeActionGroup(new ActionGroup[] {
-        new OpenViewActionGroup(this), new RefactorActionGroup_OLD(this),
+        new OpenViewActionGroup_OLD(this), new RefactorActionGroup_OLD(this),
         new DartSearchActionGroup_OLD(this)});
 
     // register global actions

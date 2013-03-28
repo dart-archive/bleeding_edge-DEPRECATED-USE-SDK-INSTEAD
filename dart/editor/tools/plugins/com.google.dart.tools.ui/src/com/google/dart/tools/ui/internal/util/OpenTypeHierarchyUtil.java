@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.util;
 
+import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
@@ -108,7 +109,14 @@ public class OpenTypeHierarchyUtil {
     return openInViewPart(window, input);
   }
 
-  private static TypeHierarchyViewPart openInViewPart(IWorkbenchWindow window, DartElement input) {
+  public static TypeHierarchyViewPart open(Element element, IWorkbenchWindow window) {
+    if (element != null) {
+      return openInViewPart(window, element);
+    }
+    return null;
+  }
+
+  private static TypeHierarchyViewPart openInViewPart(IWorkbenchWindow window, Object input) {
     IWorkbenchPage page = window.getActivePage();
     try {
       TypeHierarchyViewPart result = (TypeHierarchyViewPart) page.findView(DartUI.ID_TYPE_HIERARCHY);

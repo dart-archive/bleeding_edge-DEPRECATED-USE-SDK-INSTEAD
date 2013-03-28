@@ -18,6 +18,11 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.engine.type.InterfaceType;
@@ -30,6 +35,37 @@ import java.util.Set;
  * Helper for {@link ClassElement} hierarchy.
  */
 public class HierarchyUtils {
+  /**
+   * @return direct non-synthetic members of the given {@link ClassElement}. This includes fields,
+   *         accessors (if not synthetic). Does not include constructors.
+   */
+  public static List<Element> getDirectMembers(final ClassElement clazz,
+      final boolean includeSynthetic) {
+    final List<Element> members = Lists.newArrayList();
+    clazz.accept(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        if (element == clazz) {
+          return super.visitElement(element);
+        }
+        if (!includeSynthetic && element.isSynthetic()) {
+          return null;
+        }
+        if (element instanceof ConstructorElement) {
+          return null;
+        }
+        if (element instanceof ExecutableElement) {
+          members.add(element);
+        }
+        if (element instanceof FieldElement) {
+          members.add(element);
+        }
+        return null;
+      }
+    });
+    return members;
+  }
+
   /**
    * @return the {@link List} with direct sub {@link ClassElement}s of the given.
    */
@@ -46,6 +82,20 @@ public class HierarchyUtils {
   }
 
   /**
+   * @return non-synthetic members of the given {@link ClassElement} and its super classes. This
+   *         includes fields, accessors (if not synthetic), method. Does not include constructors.
+   */
+  public static List<Element> getMembers(ClassElement clazz, boolean includeSynthetic) {
+    List<Element> members = Lists.newArrayList();
+    members.addAll(getDirectMembers(clazz, includeSynthetic));
+    List<ClassElement> superClasses = getSuperClasses(clazz);
+    for (ClassElement superClass : superClasses) {
+      members.addAll(getDirectMembers(superClass, includeSynthetic));
+    }
+    return members;
+  }
+
+  /**
    * @return the {@link Set} with all direct and indirect sub {@link ClassElement}s of the given.
    */
   public static Set<ClassElement> getSubClasses(SearchEngine searchEngine, ClassElement seed) {
@@ -57,11 +107,8 @@ public class HierarchyUtils {
     while (!subClassQueue.isEmpty()) {
       ClassElement subClass = subClassQueue.removeFirst();
       if (subClasses.add(subClass)) {
-        List<SearchMatch> subMatches = searchEngine.searchSubtypes(subClass, null, null);
-        for (SearchMatch subMatch : subMatches) {
-          ClassElement subClassNew = (ClassElement) subMatch.getElement();
-          subClassQueue.addLast(subClassNew);
-        }
+        List<ClassElement> directSubClasses = getDirectSubClasses(searchEngine, subClass);
+        subClassQueue.addAll(directSubClasses);
       }
     }
     // we don't need "seed" itself

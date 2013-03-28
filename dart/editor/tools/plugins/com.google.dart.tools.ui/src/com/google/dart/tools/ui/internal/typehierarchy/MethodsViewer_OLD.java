@@ -1,8 +1,9 @@
 package com.google.dart.tools.ui.internal.typehierarchy;
 
-import com.google.dart.engine.element.ClassElement;
-import com.google.dart.engine.element.Element;
-import com.google.dart.engine.services.util.HierarchyUtils;
+import com.google.dart.tools.core.model.Method;
+import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.core.model.TypeMember;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.DartElementComparator;
@@ -28,9 +29,9 @@ import org.eclipse.ui.PlatformUI;
 import java.util.List;
 
 /**
- * {@link MethodsViewer} shows a list of methods of {@link ClassElement}.
+ * {@link MethodsViewer_OLD} shows a list of methods of {@link Type}.
  */
-public class MethodsViewer extends TableViewer implements MethodsViewer_I {
+public class MethodsViewer_OLD extends TableViewer implements MethodsViewer_I {
   private class ShowInheritedMembersAction extends Action {
     public ShowInheritedMembersAction() {
       super(TypeHierarchyMessages.ShowInheritedMembersAction_label, IAction.AS_CHECK_BOX);
@@ -57,11 +58,11 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   private static final String TAG_SHOWINHERITED = "showinherited"; //$NON-NLS-1$
 
   private boolean showInheritedMembers;
-  private ClassElement inputType;
+  private Type inputType;
   private final IAction showInheritedMembersAction = new ShowInheritedMembersAction();
   private final MemberFilterActionGroup fMemberFilterActionGroup;
 
-  public MethodsViewer(Composite parent) {
+  public MethodsViewer_OLD(Composite parent) {
     super(parent, SWT.FULL_SELECTION);
     setContentProvider(new ArrayContentProvider());
     setLabelProvider(new DartElementLabelProvider());
@@ -74,8 +75,8 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
     addFilter(new ViewerFilter() {
       @Override
       public boolean select(Viewer viewer, Object parentElement, Object element) {
-        if (element instanceof Element) {
-          if (((Element) element).isSynthetic()) {
+        if (element instanceof Method) {
+          if (((Method) element).isImplicit()) {
             return false;
           }
         }
@@ -85,7 +86,7 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   }
 
   /**
-   * Fills the {@link ToolBarManager} with items for the {@link MethodsViewer}.
+   * Fills the {@link ToolBarManager} with items for the {@link MethodsViewer_OLD}.
    */
   @Override
   public void contributeToToolBar(IToolBarManager tbm) {
@@ -116,8 +117,8 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
   }
 
   @Override
-  public void setInputType(final/*ClassElement*/Object _inputType) {
-    this.inputType = (ClassElement) _inputType;
+  public void setInputType(Object _inputType) {
+    this.inputType = (Type) _inputType;
     // may be no type
     if (inputType == null) {
       setInput(null);
@@ -127,11 +128,11 @@ public class MethodsViewer extends TableViewer implements MethodsViewer_I {
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
       public void run() throws Exception {
-        List<Element> members;
+        List<TypeMember> members;
         if (showInheritedMembers) {
-          members = HierarchyUtils.getMembers(inputType, false);
+          members = RenameAnalyzeUtil.getAllTypeMembers(inputType);
         } else {
-          members = HierarchyUtils.getDirectMembers(inputType, false);
+          members = inputType.getChildrenOfType(TypeMember.class);
         }
         setInput(members);
       }
