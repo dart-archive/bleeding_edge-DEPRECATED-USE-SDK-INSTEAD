@@ -281,7 +281,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public boolean isAccessible() {
-    return false;
+    return exists();
   }
 
   @Override
