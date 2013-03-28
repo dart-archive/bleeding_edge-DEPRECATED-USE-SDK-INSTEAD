@@ -14,8 +14,10 @@
 package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.internal.model.HTMLFileImpl;
@@ -26,6 +28,8 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -71,11 +75,16 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
           getConfigurationType());
 
-      for (int i = 0; i < configs.length; i++) {
-        ILaunchConfiguration config = configs[i];
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        resource = getPrimaryLaunchTarget(resource);
+      }
+      if (resource != null) {
+        for (int i = 0; i < configs.length; i++) {
+          ILaunchConfiguration config = configs[i];
 
-        if (testSimilar(resource, config)) {
-          results.add(config);
+          if (testSimilar(resource, config)) {
+            results.add(config);
+          }
         }
       }
     } catch (CoreException e) {
@@ -313,7 +322,11 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
    */
   protected boolean isBrowserApplication(IResource resource) {
 
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (getPrimaryLaunchTarget(resource) != null) {
+        return true;
+      }
+    } else {
       DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
       if (libraries.length > 0) {
@@ -371,6 +384,43 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
     }
   }
 
+  private IResource getHtmlFileForLibrarySource(Source[] sources) {
+    ProjectManager manager = DartCore.getProjectManager();
+    for (Source source : sources) {
+      if (manager.isClientLibrary(source)) {
+        IResource launchResource = manager.getHtmlFileForLibrary(source);
+        if (launchResource != null) {
+          return launchResource;
+        }
+      }
+    }
+    return null;
+  }
+
+  private IResource getPrimaryLaunchTarget(IResource resource) {
+
+    // html file - is launchable 
+    if (DartCore.isHTMLLikeFileName(resource.getName())) {
+      return resource;
+    }
+
+    ProjectManager manager = DartCore.getProjectManager();
+
+    if (resource instanceof IProject) {
+      Source[] sources = manager.getLibrarySources((IProject) resource);
+      return getHtmlFileForLibrarySource(sources);
+    }
+
+    // dart file - get library and check if it has html file associated
+    if (DartCore.isDartLikeFileName(resource.getName())) {
+      IFile file = (IFile) resource;
+      Source[] sources = manager.getLibrarySources(file);
+      return getHtmlFileForLibrarySource(sources);
+    }
+    // TODO(keertip): figure out association for other files like css etc.
+    return null;
+  }
+
   private IResource getResourceToLaunch(Object originalResource) {
 
     if (originalResource instanceof IResource) {
@@ -378,10 +428,9 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       if (!resource.isAccessible()) {
         return null;
       }
-      return NewLaunchUtils.getPrimaryLaunchTarget(resource);
+      return getPrimaryLaunchTarget(resource);
     }
     return null;
-
   }
 
 }

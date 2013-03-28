@@ -20,7 +20,6 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -72,6 +71,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.IWorkbenchWindow;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 /**
  * A dialog to create, edit, and manage launch configurations.
@@ -567,7 +567,10 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
 
         ILaunchConfiguration config = null;
         if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          config = NewLaunchUtils.getLaunchFor(resource);
+          List<ILaunchConfiguration> configs = LaunchUtils.getExistingLaunchesFor(resource);
+          if (!configs.isEmpty()) {
+            config = configs.get(0);
+          }
         } else {
           config = LaunchUtils.getLaunchFor(resource);
         }

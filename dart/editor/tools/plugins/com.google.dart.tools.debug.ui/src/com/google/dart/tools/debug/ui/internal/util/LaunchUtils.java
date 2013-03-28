@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.ui.internal.util;
 
 import com.google.dart.compiler.util.apache.ObjectUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -305,12 +306,9 @@ public class LaunchUtils {
   public static ILaunchConfiguration getLaunchFor(IResource resource) throws DartModelException {
     // If it's a project, find any launches in that project.
     if (resource instanceof IProject) {
-      IProject project = (IProject) resource;
-
-      List<ILaunchConfiguration> launches = getLaunchesFor(project);
-
-      if (launches.size() > 0) {
-        return chooseLatest(launches);
+      ILaunchConfiguration config = getLaunchForProject((IProject) resource);
+      if (config != null) {
+        return config;
       }
     }
 
@@ -322,26 +320,37 @@ public class LaunchUtils {
 
     // No existing configs - check if the current resource is not launchable.
     if (getApplicableLaunchShortcuts(resource).size() == 0) {
-      // Try and locate a launchable library that references this library.
-      DartLibrary[] libraries = getDartLibraries(resource);
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        // Try and locate a launchable library that references this library.
+        DartLibrary[] libraries = getDartLibraries(resource);
 
-      if (libraries.length > 0) {
-        Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
+        if (libraries.length > 0) {
+          Set<ILaunchConfiguration> libraryConfigs = new HashSet<ILaunchConfiguration>();
 
-        for (DartLibrary library : libraries) {
-          for (DartLibrary referencingLib : library.getReferencingLibraries()) {
-            IResource libResource = referencingLib.getCorrespondingResource();
+          for (DartLibrary library : libraries) {
+            for (DartLibrary referencingLib : library.getReferencingLibraries()) {
+              IResource libResource = referencingLib.getCorrespondingResource();
 
-            libraryConfigs.addAll(getExistingLaunchesFor(libResource));
+              libraryConfigs.addAll(getExistingLaunchesFor(libResource));
+            }
           }
-        }
 
-        if (libraryConfigs.size() > 0) {
-          return chooseLatest(libraryConfigs);
+          if (libraryConfigs.size() > 0) {
+            return chooseLatest(libraryConfigs);
+          }
         }
       }
     }
 
+    return null;
+  }
+
+  public static ILaunchConfiguration getLaunchForProject(IProject project) {
+    List<ILaunchConfiguration> launches = getLaunchesFor(project);
+
+    if (launches.size() > 0) {
+      return chooseLatest(launches);
+    }
     return null;
   }
 

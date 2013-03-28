@@ -20,9 +20,9 @@ import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -171,31 +171,33 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
 
     ILaunchConfiguration config = null;
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      config = NewLaunchUtils.getLaunchFor(resource);
-    } else {
-      config = LaunchUtils.getLaunchFor(resource);
-    }
-    if (config != null) {
-      launch(config, instrumentation);
-    } else {
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        IResource launchResource = NewLaunchUtils.getPrimaryLaunchTarget(resource);
-        if (launchResource != null) {
-          resource = launchResource;
+      if (resource instanceof IProject) {
+        config = LaunchUtils.getLaunchForProject((IProject) resource);
+        if (config != null) {
+          launch(config, instrumentation);
+          return;
         }
       }
-      List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
-
-      if (candidates.size() == 0) {
-        // Selection is neither a server or browser app.
-        DartRunLastAction runLastAction = new DartRunLastAction();
-        runLastAction.run();
-      } else {
-        ISelection sel = new StructuredSelection(resource);
-
-        launch(candidates.get(0), sel, instrumentation);
+    } else {
+      config = LaunchUtils.getLaunchFor(resource);
+      if (config != null) {
+        launch(config, instrumentation);
+        return;
       }
     }
+
+    List<ILaunchShortcut> candidates = LaunchUtils.getApplicableLaunchShortcuts(resource);
+
+    if (candidates.size() == 0) {
+      // Selection is neither a server or browser app.
+      DartRunLastAction runLastAction = new DartRunLastAction();
+      runLastAction.run();
+    } else {
+      ISelection sel = new StructuredSelection(resource);
+
+      launch(candidates.get(0), sel, instrumentation);
+    }
+
   }
 
   private boolean chooseAndLaunch(List<ILaunchConfiguration> launches,

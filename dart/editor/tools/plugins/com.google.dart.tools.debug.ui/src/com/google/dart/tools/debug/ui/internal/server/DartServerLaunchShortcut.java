@@ -13,8 +13,11 @@
  */
 package com.google.dart.tools.debug.ui.internal.server;
 
-import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.compiler.util.apache.ObjectUtils;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -22,9 +25,9 @@ import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
-import com.google.dart.tools.debug.ui.internal.util.NewLaunchUtils;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -61,13 +64,9 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     }
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      LibraryElement[] elements = NewLaunchUtils.getLibraries(resource);
-      for (LibraryElement element : elements) {
-        if (element.isBrowserApplication()) {
-          return false;
-        }
+      if (getPrimaryLaunchTarget(resource) != null) {
+        return true;
       }
-      return true;
     } else {
       DartLibrary[] libraries = LaunchUtils.getDartLibraries(resource);
 
@@ -93,11 +92,16 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
           getConfigurationType());
 
-      for (int i = 0; i < configs.length; i++) {
-        ILaunchConfiguration config = configs[i];
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        resource = getPrimaryLaunchTarget(resource);
+      }
+      if (resource != null) {
+        for (int i = 0; i < configs.length; i++) {
+          ILaunchConfiguration config = configs[i];
 
-        if (testSimilar(resource, config)) {
-          results.add(config);
+          if (testSimilar(resource, config)) {
+            results.add(config);
+          }
         }
       }
     } catch (CoreException e) {
@@ -182,6 +186,13 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
     }
 
     // Launch an existing configuration if one exists
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      resource = getPrimaryLaunchTarget(resource);
+    }
+    if (resource == null) {
+      return;
+    }
+
     ILaunchConfiguration config = findConfig(resource);
     if (config != null) {
       DebugUITools.launch(config, mode);
@@ -217,9 +228,41 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      return NewLaunchUtils.isLaunchableWith(resource, config);
+      DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(config);
+      IResource appResource = launchWrapper.getApplicationResource();
+
+      if (ObjectUtils.equals(appResource, resource)) {
+        return true;
+      }
+      return false;
     }
     return LaunchUtils.isLaunchableWith(resource, config);
+  }
+
+  private IResource getPrimaryLaunchTarget(IResource resource) {
+
+    ProjectManager manager = DartCore.getProjectManager();
+    if (resource instanceof IProject) {
+      Source[] sources = manager.getLibrarySources((IProject) resource);
+      return getServerLibraryResource(sources);
+    }
+
+    if (DartCore.isDartLikeFileName(resource.getName())) {
+      IFile file = (IFile) resource;
+      Source[] sources = manager.getLibrarySources(file);
+      return getServerLibraryResource(sources);
+    }
+    return null;
+  }
+
+  private IResource getServerLibraryResource(Source[] sources) {
+    ProjectManager manager = DartCore.getProjectManager();
+    for (Source source : sources) {
+      if (manager.isServerLibrary(source)) {
+        return manager.getResource(source);
+      }
+    }
+    return null;
   }
 
 }

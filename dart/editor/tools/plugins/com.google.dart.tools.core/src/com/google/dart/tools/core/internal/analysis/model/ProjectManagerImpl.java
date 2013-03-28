@@ -36,9 +36,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -206,8 +203,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public boolean isClientLibrary(Source librarySource) {
-    AnalysisContext context = getContext(getResource(librarySource));
-    return context.isClientLibrary(librarySource);
+    IResource resource = getResource(librarySource);
+    if (resource != null) {
+      AnalysisContext context = getContext(resource);
+      return context.isClientLibrary(librarySource);
+    }
+    return false;
   }
 
   @Override
@@ -237,4 +238,5 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   public void removeProjectListener(ProjectListener listener) {
     listeners.remove(listener);
   }
+
 }
