@@ -80,7 +80,7 @@ public class LibraryElementBuilder {
    * @throws AnalysisException if the analysis could not be performed
    */
   public LibraryElementImpl buildLibrary(Library library) throws AnalysisException {
-    CompilationUnitBuilder builder = new CompilationUnitBuilder(analysisContext);
+    CompilationUnitBuilder builder = new CompilationUnitBuilder();
     Source librarySource = library.getLibrarySource();
     CompilationUnit definingCompilationUnit = library.getDefiningCompilationUnit();
     CompilationUnitElementImpl definingCompilationUnitElement = builder.buildCompilationUnit(

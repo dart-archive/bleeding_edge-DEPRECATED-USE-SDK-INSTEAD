@@ -15,7 +15,6 @@ package com.google.dart.engine.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.source.Source;
 
@@ -27,28 +26,12 @@ import com.google.dart.engine.source.Source;
  */
 public class CompilationUnitBuilder {
   /**
-   * The analysis context in which the element model will be built.
-   */
-  private AnalysisContextImpl analysisContext;
-
-  /**
    * Initialize a newly created compilation unit element builder.
    * 
    * @param analysisContext the analysis context in which the element model will be built
    */
-  public CompilationUnitBuilder(AnalysisContextImpl analysisContext) {
-    this.analysisContext = analysisContext;
-  }
-
-  /**
-   * Build the compilation unit element for the given source.
-   * 
-   * @param source the source describing the compilation unit
-   * @return the compilation unit element that was built
-   * @throws AnalysisException if the analysis could not be performed
-   */
-  public CompilationUnitElementImpl buildCompilationUnit(Source source) throws AnalysisException {
-    return buildCompilationUnit(source, analysisContext.parseCompilationUnit(source));
+  public CompilationUnitBuilder() {
+    super();
   }
 
   /**

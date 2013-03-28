@@ -139,7 +139,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
         CompilationUnit unit = parser.parseCompilationUnit(firstToken);
 
         try {
-          CompilationUnitBuilder builder = new CompilationUnitBuilder(context);
+          CompilationUnitBuilder builder = new CompilationUnitBuilder();
           CompilationUnitElementImpl elem = builder.buildCompilationUnit(htmlSource, unit);
           LibraryElementImpl library = new LibraryElementImpl(context, null);
           library.setDefiningCompilationUnit(elem);
