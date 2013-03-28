@@ -21,6 +21,7 @@ import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.Type;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.SignatureUtil;
 import com.google.dart.tools.ui.internal.text.dart.ContentAssistHistory.RHSHistory;
@@ -55,6 +56,7 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
 
   private IDartCompletionProposal[] fKeywordProposals = null;
   private CompletionContext fCoreContext = null;
+  private AssistContext assistContext;
 
   /**
    * Creates a new context.
@@ -82,7 +84,10 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   }
 
   public AssistContext getAssistContext() {
-    return ((DartEditor) fEditor).getAssistContext();
+    if (assistContext == null) {
+      assistContext = ((DartEditor) fEditor).getAssistContext();
+    }
+    return assistContext;
   }
 
   /**
@@ -236,6 +241,24 @@ public class DartContentAssistInvocationContext extends ContentAssistInvocationC
   public DartProject getProject() {
     CompilationUnit unit = getCompilationUnit();
     return unit == null ? null : unit.getDartProject();
+  }
+
+  /**
+   * Waits for {@link AssistContext} given number of milliseconds.
+   * 
+   * @return the {@link AssistContext}, may be <code>null</code> if timeout.
+   */
+  public AssistContext waitAssistContext(long ms) {
+    DartEditor dartEditor = (DartEditor) fEditor;
+    long endTime = System.currentTimeMillis() + ms;
+    while (System.currentTimeMillis() < endTime) {
+      assistContext = dartEditor.getAssistContext();
+      if (assistContext != null) {
+        return assistContext;
+      }
+      ExecutionUtils.sleep(5);
+    }
+    return null;
   }
 
   /**

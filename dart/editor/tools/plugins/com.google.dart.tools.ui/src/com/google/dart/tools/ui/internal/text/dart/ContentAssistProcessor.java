@@ -21,6 +21,7 @@ import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
+import com.google.dart.tools.ui.text.dart.DartContentAssistInvocationContext;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -405,6 +406,17 @@ public class ContentAssistProcessor implements IContentAssistProcessor {
   private List collectProposals(ITextViewer viewer, int offset, IProgressMonitor monitor,
       ContentAssistInvocationContext context) {
     List proposals = new ArrayList();
+    // wait for AssistContext
+    if (context instanceof DartContentAssistInvocationContext) {
+      DartContentAssistInvocationContext dartContext = (DartContentAssistInvocationContext) context;
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        if (dartContext.waitAssistContext(200) == null) {
+          DartToolsPlugin.log("Timeout during AssistContext wait.");
+          return Collections.emptyList();
+        }
+      }
+    }
+    //
     List providers = getCategories();
     for (Iterator it = providers.iterator(); it.hasNext();) {
       CompletionProposalCategory cat = (CompletionProposalCategory) it.next();

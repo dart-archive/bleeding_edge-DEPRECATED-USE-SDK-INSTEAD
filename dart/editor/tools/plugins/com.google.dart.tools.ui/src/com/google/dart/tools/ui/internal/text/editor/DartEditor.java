@@ -1892,8 +1892,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private ShowSelectionLabelAction showSelectionLabel = new ShowSelectionLabelAction();
 
   private SelectionProvider selectionProvider = new DartSelectionProvider();
+  private DartReconciler reconciler;
 
   private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
+
   private long lastCaretMovedEventId = 0;
   private final CaretListener dartSelectionCaretListener = new CaretListener() {
     @Override
@@ -1910,7 +1912,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       });
     }
   };
-
   //Patched to address dartbug.com/7998
   private ISelectionChangedListener patchedSelectionChangedListener;
 
@@ -2235,7 +2236,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   /**
    * @return the {@link AssistContext} with resolved {@link CompilationUnit}, selection and
-   *         {@link SearchEngine}. May be <code>null</code>.
+   *         {@link SearchEngine}. May be <code>null</code> if underlying {@link CompilationUnit} is
+   *         not resolved.
    */
   public AssistContext getAssistContext() {
     ITextSelection textSelection = (ITextSelection) getSelectionProvider().getSelection();
@@ -2333,6 +2335,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
+    if (reconciler != null && reconciler.hasPendingUnitChanges()) {
+      return null;
+    }
     // TODO(scheglov) should be set externally by DartReconciler
     return resolvedUnit;
   }
@@ -2539,6 +2544,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     uninstallSemanticHighlighting();
     super.setPreferenceStore(store);
     installSemanticHighlighting();
+  }
+
+  public void setReconciler(DartReconciler reconciler) {
+    this.reconciler = reconciler;
   }
 
   public void setSelection(DartElement element) {
@@ -4487,7 +4496,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         return null;
       }
       // prepare input CompilationUnit
-      com.google.dart.engine.ast.CompilationUnit unit = resolvedUnit;
+      com.google.dart.engine.ast.CompilationUnit unit = getInputUnit();
       if (unit == null) {
         return null;
       }

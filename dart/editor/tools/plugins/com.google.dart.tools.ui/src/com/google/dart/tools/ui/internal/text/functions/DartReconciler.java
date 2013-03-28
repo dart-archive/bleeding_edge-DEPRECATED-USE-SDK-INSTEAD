@@ -46,10 +46,12 @@ public class DartReconciler extends MonoReconciler {
   private static class EditorState {
     private final long time = System.currentTimeMillis();
     private final String code;
+    private final boolean codeChanged;
     private final Point selectionRange;
 
-    public EditorState(String code, Point selectionRange) {
+    public EditorState(String code, boolean codeChanged, Point selectionRange) {
       this.code = code;
+      this.codeChanged = codeChanged;
       this.selectionRange = selectionRange;
     }
   }
@@ -63,8 +65,7 @@ public class DartReconciler extends MonoReconciler {
 
     @Override
     public void documentChanged(DocumentEvent event) {
-      editor.applyCompilationUnitElement(null);
-      putEditorState();
+      putEditorState(true);
     }
 
     @Override
@@ -79,12 +80,12 @@ public class DartReconciler extends MonoReconciler {
       if (newInput != null) {
         newInput.addDocumentListener(this);
       }
-      putEditorState();
+      putEditorState(true);
     }
 
     @Override
     public void selectionChanged(SelectionChangedEvent event) {
-      putEditorState();
+      putEditorState(false);
     }
   }
 
@@ -95,6 +96,7 @@ public class DartReconciler extends MonoReconciler {
 
   private final Object editorStateLock = new Object();
   private EditorState editorState;
+  private EditorState loopEditorState;
   private String oldCode;
   private final Listener documentListener = new Listener();
 
@@ -104,13 +106,29 @@ public class DartReconciler extends MonoReconciler {
     super(strategy, false);
     this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
     this.file = this.editor != null ? this.editor.getInputFile() : null;
+    if (this.editor != null) {
+      this.editor.setReconciler(this);
+    }
+  }
+
+  /**
+   * @return <code>true</code> if there are changes to be applied, so {@link DartReconciler} will
+   *         change resolved {@link CompilationUnit} in {@link DartEditor}.
+   */
+  public boolean hasPendingUnitChanges() {
+    synchronized (editorStateLock) {
+      if (loopEditorState != null) {
+        return true;
+      }
+      return editorState != null && !Objects.equal(editorState.code, oldCode);
+    }
   }
 
   @Override
   public void install(ITextViewer textViewer) {
     super.install(textViewer);
     if (file != null) {
-      putEditorState();
+      putEditorState(false);
       // add listener
       {
         IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();
@@ -217,7 +235,7 @@ public class DartReconciler extends MonoReconciler {
   /**
    * Fills {@link #editorState} with current state (text and selection) of editor.
    */
-  private void putEditorState() {
+  private void putEditorState(boolean clearUnitElement) {
     IDocument document = getDocument();
     ITextViewer textViewer = getTextViewer();
     if (document != null && textViewer != null) {
@@ -225,7 +243,11 @@ public class DartReconciler extends MonoReconciler {
         String code = document.get();
         Point selectionRange = textViewer.getSelectedRange();
         synchronized (editorStateLock) {
-          editorState = new EditorState(code, selectionRange);
+          editorState = new EditorState(code, clearUnitElement, selectionRange);
+          // notify editor that CompilationUnit is not valid anymore
+          if (clearUnitElement) {
+            editor.applyCompilationUnitElement(null);
+          }
         }
       } catch (Throwable e) {
       }
@@ -257,7 +279,7 @@ public class DartReconciler extends MonoReconciler {
       try {
         // wait
         try {
-          Thread.sleep(50);
+          Thread.sleep(25);
         } catch (InterruptedException e) {
         }
         // update read-only flag
@@ -265,7 +287,7 @@ public class DartReconciler extends MonoReconciler {
         // process EditorState
         {
           // prepare EditorState to apply
-          EditorState loopEditorState = null;
+          loopEditorState = null;
           synchronized (editorStateLock) {
             if (editorState != null && System.currentTimeMillis() - editorState.time > 100) {
               loopEditorState = editorState;
@@ -290,6 +312,8 @@ public class DartReconciler extends MonoReconciler {
             editor.applyCompilationUnitElement(unitNode);
           }
         }
+        // done with loop state
+        loopEditorState = null;
       } catch (Throwable e) {
       }
     }
