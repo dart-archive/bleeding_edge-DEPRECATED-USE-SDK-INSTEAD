@@ -37,7 +37,6 @@ import com.google.dart.compiler.util.DartSourceString;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.builder.LocalArtifactProvider;
 import com.google.dart.tools.core.internal.builder.RootArtifactProvider;
@@ -1063,13 +1062,7 @@ public class DartCompilerUtilities {
   }
 
   private static void checkUse() {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && DartCoreDebug.TRACE_MODEL_ACCESS) {
-      try {
-        throw new IllegalStateException("Inappropriate access to dartc");
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+    DartCore.oldModelCheck();
   }
 
   private static Map<URI, DartUnit> createMap(Collection<DartUnit> suppliedUnits) {

@@ -348,14 +348,7 @@ public class DartModelManager {
    * @return the unique instance of this class
    */
   public synchronized static DartModelManager getInstance() {
-
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && DartCoreDebug.TRACE_MODEL_ACCESS) {
-      try {
-        throw new IllegalStateException("Inappropriate access to old model");
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
+    DartCore.oldModelCheck();
 
     if (UniqueInstance == null) {
       UniqueInstance = new DartModelManager();

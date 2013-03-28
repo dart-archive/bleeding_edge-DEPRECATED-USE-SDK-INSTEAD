@@ -41,7 +41,6 @@ public class DartCoreDebug {
   public static final boolean TRACE_INDEX_PROCESSOR = isOptionTrue("trace/index/processor");
   public static final boolean TRACE_INDEX_STATISTICS = isOptionTrue("trace/index/statistics");
   public static final boolean TRACE_UPDATE = isOptionTrue("trace/update");
-  public static final boolean TRACE_MODEL_ACCESS = isOptionTrue("trace/oldModel");
 
   public static final boolean ENABLE_CONTENT_ASSIST_TIMING = isOptionTrue("debug/ResultCollector");
 
@@ -87,7 +86,6 @@ public class DartCoreDebug {
     instrumentation.metric("TRACE_INDEX_PROCESSOR", TRACE_INDEX_PROCESSOR);
     instrumentation.metric("TRACE_INDEX_STATISTICS", TRACE_INDEX_STATISTICS);
     instrumentation.metric("TRACE_UPDATE", TRACE_UPDATE);
-    instrumentation.metric("TRACE_MODEL_ACCESS", TRACE_MODEL_ACCESS);
 
     instrumentation.metric("ENABLE_CONTENT_ASSIST_TIMING", ENABLE_CONTENT_ASSIST_TIMING);
 
