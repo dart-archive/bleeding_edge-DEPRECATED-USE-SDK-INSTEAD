@@ -29,6 +29,13 @@ public class DartSdkTest extends TestCase {
     assertNotNull(sdk);
   }
 
+  public void test_getDartiumExecutable() throws Exception {
+    DartSdk sdk = createDartSdk();
+    File file = sdk.getDartiumExecutable();
+    assertNotNull(file);
+    assertTrue(file.exists());
+  }
+
   public void test_getDartiumWorkingDirectory() {
     DartSdk sdk = createDartSdk();
     File directory = sdk.getDartiumWorkingDirectory();

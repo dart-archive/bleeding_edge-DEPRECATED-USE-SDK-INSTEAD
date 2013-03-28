@@ -81,7 +81,7 @@ public class DartSdk {
   /**
    * The name of the file containing the Dartium executable on Linux.
    */
-  private static final String DARTIUM_EXECUTABLE_NAME_LINUX = "chromium/chrome"; //$NON-NLS-1$
+  private static final String DARTIUM_EXECUTABLE_NAME_LINUX = "chrome"; //$NON-NLS-1$
 
   /**
    * The name of the file containing the Dartium executable on Macintosh.
@@ -91,7 +91,7 @@ public class DartSdk {
   /**
    * The name of the file containing the Dartium executable on Windows.
    */
-  private static final String DARTIUM_EXECUTABLE_NAME_WIN = "chromium/Chrome.exe"; //$NON-NLS-1$
+  private static final String DARTIUM_EXECUTABLE_NAME_WIN = "Chrome.exe"; //$NON-NLS-1$
 
   /**
    * The name of the {@link System} property whose value is the path to the default Dart SDK
@@ -207,7 +207,7 @@ public class DartSdk {
   public File getDartiumExecutable() {
     synchronized (this) {
       if (dartiumExecutable == null) {
-        File file = new File(sdkDirectory, getDartiumBinaryName());
+        File file = new File(getDartiumWorkingDirectory(), getDartiumBinaryName());
         if (file.exists()) {
           dartiumExecutable = file;
         }
@@ -223,11 +223,7 @@ public class DartSdk {
    * @return the directory where dartium can be found
    */
   public File getDartiumWorkingDirectory() {
-    if (OSUtilities.isWindows() || OSUtilities.isMac()) {
-      return sdkDirectory;
-    } else {
-      return new File(sdkDirectory, CHROMIUM_DIRECTORY_NAME);
-    }
+    return new File(sdkDirectory.getParentFile(), CHROMIUM_DIRECTORY_NAME);
   }
 
   /**
