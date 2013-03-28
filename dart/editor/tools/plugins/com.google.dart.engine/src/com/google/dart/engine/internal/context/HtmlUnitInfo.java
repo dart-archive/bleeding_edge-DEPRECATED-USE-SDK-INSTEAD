@@ -66,6 +66,7 @@ public class HtmlUnitInfo extends SourceInfo {
    */
   public void clearParsedUnit() {
     parsedUnit = null;
+    parsedUnitState = CacheState.FLUSHED;
   }
 
   /**
@@ -73,6 +74,7 @@ public class HtmlUnitInfo extends SourceInfo {
    */
   public void clearResolvedUnit() {
     resolvedUnit = null;
+    resolvedUnitState = CacheState.FLUSHED;
   }
 
   @Override

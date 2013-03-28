@@ -102,6 +102,7 @@ public class CompilationUnitInfo extends SourceInfo {
    */
   public void clearParsedUnit() {
     parsedUnit = null;
+    parsedUnitState = CacheState.FLUSHED;
   }
 
   /**
@@ -109,6 +110,7 @@ public class CompilationUnitInfo extends SourceInfo {
    */
   public void clearParseErrors() {
     parseErrors = null;
+    parseErrorsState = CacheState.FLUSHED;
   }
 
   /**
@@ -116,6 +118,7 @@ public class CompilationUnitInfo extends SourceInfo {
    */
   public void clearResolutionErrors() {
     resolutionErrors = null;
+    resolutionErrorsState = CacheState.FLUSHED;
   }
 
   /**
@@ -123,6 +126,7 @@ public class CompilationUnitInfo extends SourceInfo {
    */
   public void clearResolvedUnit() {
     resolvedUnit = null;
+    resolvedUnitState = CacheState.FLUSHED;
   }
 
   @Override
@@ -275,9 +279,6 @@ public class CompilationUnitInfo extends SourceInfo {
    * Mark the resolved compilation unit as needing to be recomputed.
    */
   public void invalidateResolvedUnit() {
-    if (resolvedUnit != null) {
-      resolvedUnit.accept(new ResolutionEraser());
-    }
     resolvedUnitState = CacheState.INVALID;
     resolvedUnit = null;
   }

@@ -51,6 +51,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.engine.utilities.ast.ASTCloner;
 import com.google.dart.engine.utilities.source.LineInfo;
 
 import java.net.URI;
@@ -268,6 +269,34 @@ public class AnalysisContextImpl implements AnalysisContext {
         }
       }
       return lineInfo;
+    }
+  }
+
+  /**
+   * Return an AST structure corresponding to the given source, but ensure that the structure has
+   * not already been resolved and will not be resolved by any other threads or in any other
+   * library.
+   * 
+   * @param source the compilation unit for which an AST structure should be returned
+   * @return the AST structure representing the content of the source
+   * @throws AnalysisException if the analysis could not be performed
+   */
+  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+    synchronized (cacheLock) {
+      CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
+      if (compilationUnitInfo == null) {
+        return null;
+      }
+      CompilationUnit unit = compilationUnitInfo.getParsedCompilationUnit();
+      if (unit == null) {
+        unit = compilationUnitInfo.getResolvedCompilationUnit();
+      }
+      if (unit != null) {
+        return (CompilationUnit) unit.accept(new ASTCloner());
+      }
+      unit = internalParseCompilationUnit(compilationUnitInfo, source);
+      compilationUnitInfo.clearParsedUnit();
+      return unit;
     }
   }
 
@@ -590,17 +619,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       if (unit == null) {
         unit = compilationUnitInfo.getParsedCompilationUnit();
         if (unit == null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          ScanResult scanResult = internalScan(source, errorListener);
-          Parser parser = new Parser(source, errorListener);
-          unit = parser.parseCompilationUnit(scanResult.token);
-          LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
-          AnalysisError[] errors = errorListener.getErrors(source);
-          unit.setParsingErrors(errors);
-          unit.setLineInfo(lineInfo);
-          compilationUnitInfo.setLineInfo(lineInfo);
-          compilationUnitInfo.setParsedCompilationUnit(unit);
-          compilationUnitInfo.setParseErrors(errors);
+          unit = internalParseCompilationUnit(compilationUnitInfo, source);
         }
       }
       return unit;
@@ -666,40 +685,38 @@ public class AnalysisContextImpl implements AnalysisContext {
     Source htmlSource = sourceFactory.forUri("dart:html"); // was DartSdk.DART_HTML
     synchronized (cacheLock) {
       for (Map.Entry<Source, LibraryElement> entry : elementMap.entrySet()) {
+        Source librarySource = entry.getKey();
         LibraryElement library = entry.getValue();
         //
         // Cache the element in the library's info.
         //
-        LibraryInfo libraryInfo = getLibraryInfo(entry.getKey());
+        LibraryInfo libraryInfo = getLibraryInfo(librarySource);
         if (libraryInfo != null) {
           libraryInfo.setElement(library);
           libraryInfo.setLaunchable(library.getEntryPoint() != null);
           libraryInfo.setClient(isClient(library, htmlSource, new HashSet<LibraryElement>()));
         }
-        Source librarySource = library.getSource();
-        if (librarySource != null) {
-          //
-          // Remove this library from being a defining compilation unit for any existing units.
-          //
-          for (SourceInfo info : sourceMap.values()) {
-            if (info instanceof CompilationUnitInfo) {
-              ((CompilationUnitInfo) info).removeLibrarySource(librarySource);
-            }
+        //
+        // Remove this library from being a defining compilation unit for any existing units.
+        //
+        for (SourceInfo info : sourceMap.values()) {
+          if (info instanceof CompilationUnitInfo) {
+            ((CompilationUnitInfo) info).removeLibrarySource(librarySource);
           }
-          //
-          // Cache this library as a defining compilation unit of both it's defining compilation
-          // unit and all of it's parts.
-          //
-          if (libraryInfo != null) {
-            libraryInfo.addLibrarySource(librarySource);
-          }
-          for (CompilationUnitElement part : library.getParts()) {
-            Source partSource = part.getSource();
-            CompilationUnitInfo partInfo = partSource == null ? null
-                : getCompilationUnitInfo(partSource);
-            if (partInfo != null) {
-              partInfo.addLibrarySource(librarySource);
-            }
+        }
+        //
+        // Cache this library as a defining compilation unit of both it's defining compilation
+        // unit and all of it's parts.
+        //
+        if (libraryInfo != null) {
+          libraryInfo.addLibrarySource(librarySource);
+        }
+        for (CompilationUnitElement part : library.getParts()) {
+          Source partSource = part.getSource();
+          CompilationUnitInfo partInfo = partSource == null ? null
+              : getCompilationUnitInfo(partSource);
+          if (partInfo != null) {
+            partInfo.addLibrarySource(librarySource);
           }
         }
       }
@@ -1115,6 +1132,28 @@ public class AnalysisContextImpl implements AnalysisContext {
       sourceMap.put(source, sourceInfo);
       return sourceInfo;
     }
+  }
+
+  private CompilationUnit internalParseCompilationUnit(CompilationUnitInfo compilationUnitInfo,
+      Source source) throws AnalysisException {
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    ScanResult scanResult = internalScan(source, errorListener);
+    Parser parser = new Parser(source, errorListener);
+    CompilationUnit unit = parser.parseCompilationUnit(scanResult.token);
+    LineInfo lineInfo = new LineInfo(scanResult.lineStarts);
+    AnalysisError[] errors = errorListener.getErrors(source);
+    unit.setParsingErrors(errors);
+    unit.setLineInfo(lineInfo);
+    compilationUnitInfo.setLineInfo(lineInfo);
+    compilationUnitInfo.setParsedCompilationUnit(unit);
+    compilationUnitInfo.setParseErrors(errors);
+    // TODO(brianwilkerson) Find out whether clients want notification when part of the errors are
+    // available.
+//    ChangeNoticeImpl notice = getNotice(source);
+//    if (notice.getErrors() == null) {
+//      notice.setErrors(errors, lineInfo);
+//    }
+    return unit;
   }
 
   private ScanResult internalScan(final Source source, final AnalysisErrorListener errorListener)

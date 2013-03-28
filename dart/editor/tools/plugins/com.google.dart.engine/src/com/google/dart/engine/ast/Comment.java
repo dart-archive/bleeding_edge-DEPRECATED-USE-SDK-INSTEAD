@@ -157,6 +157,15 @@ public class Comment extends ASTNode {
   }
 
   /**
+   * Return the tokens representing the comment.
+   * 
+   * @return the tokens representing the comment
+   */
+  public Token[] getTokens() {
+    return tokens;
+  }
+
+  /**
    * Return {@code true} if this is a block comment.
    * 
    * @return {@code true} if this is a block comment

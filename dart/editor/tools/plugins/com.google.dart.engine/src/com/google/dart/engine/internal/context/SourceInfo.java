@@ -46,6 +46,7 @@ public abstract class SourceInfo {
    */
   public void clearLineInfo() {
     lineInfo = null;
+    lineInfoState = CacheState.FLUSHED;
   }
 
   /**

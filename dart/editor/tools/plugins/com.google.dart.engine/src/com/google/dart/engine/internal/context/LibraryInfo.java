@@ -103,6 +103,7 @@ public class LibraryInfo extends CompilationUnitInfo {
    */
   public void clearElement() {
     element = null;
+    elementState = CacheState.FLUSHED;
   }
 
   /**
@@ -110,6 +111,7 @@ public class LibraryInfo extends CompilationUnitInfo {
    */
   public void clearPublicNamespace() {
     publicNamespace = null;
+    publicNamespaceState = CacheState.FLUSHED;
   }
 
   @Override
