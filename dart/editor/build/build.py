@@ -835,11 +835,14 @@ def UploadSite(buildout, gsPath) :
 def CreateApiDocs(buildLocation):
   """Zip up api_docs, upload it, and upload the raw tree of docs"""
   
-  CallBuildScript('release', 'ia32', 'api_docs')
-  
-  apidir = join(DART_PATH, utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+  apidir = join(DART_PATH, 
+                utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                 'api_docs')
 
+  shutil.rmtree(apidir, ignore_errors = True)
+
+  CallBuildScript('release', 'ia32', 'api_docs')
+  
   UploadApiDocs(apidir)
   
   api_zip = join(buildLocation, 'dart-api-docs.zip')
