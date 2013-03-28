@@ -59,6 +59,11 @@ public abstract class ElementImpl implements Element {
   private Annotation[] metadata = AnnotationImpl.EMPTY_ARRAY;
 
   /**
+   * A cached copy of the calculated hashCode for this element.
+   */
+  private int cachedHashCode;
+
+  /**
    * Initialize a newly created element to have the given name.
    * 
    * @param name the name of this element
@@ -155,7 +160,13 @@ public abstract class ElementImpl implements Element {
 
   @Override
   public int hashCode() {
-    return getLocation().hashCode();
+    // TODO: we may want to re-visit this optimization in the future
+    // We cache the hash code value as this is a very frequently called method.
+    if (cachedHashCode == 0) {
+      cachedHashCode = getLocation().hashCode();
+    }
+
+    return cachedHashCode;
   }
 
   @Override
