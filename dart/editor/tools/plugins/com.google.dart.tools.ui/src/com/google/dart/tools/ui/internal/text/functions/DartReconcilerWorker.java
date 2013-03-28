@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.ui.internal.text.functions;
 
+import com.google.common.collect.Lists;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
@@ -22,8 +23,9 @@ import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingDeque;
+import org.eclipse.core.runtime.IProgressMonitor;
+
+import java.util.LinkedList;
 
 /**
  * {@link DartReconcilerWorker} is used to schedule resolving elements required by
@@ -40,8 +42,57 @@ public class DartReconcilerWorker {
     }
   }
 
-  private static final BlockingQueue<Task> taskQueue = new LinkedBlockingDeque<Task>();
+  /**
+   * Queue of {@link Task}s.
+   */
+  private static class TaskQueue {
+    private final LinkedList<Task> taskQueue = Lists.newLinkedList();
+
+    /**
+     * Adds new {@link Task} to the end of the queue.
+     */
+    public void add(Task task) {
+      synchronized (taskQueue) {
+        taskQueue.addLast(task);
+        taskQueue.notifyAll();
+      }
+    }
+
+    /**
+     * @return <code>true</code> if this queue has no elements.
+     */
+    public boolean isEmpty() {
+      synchronized (taskQueue) {
+        return taskQueue.isEmpty();
+      }
+    }
+
+    /**
+     * Returns first {@link Task} (but does not remove it), waits if queue is empty.
+     */
+    public Task peekWait() throws InterruptedException {
+      synchronized (taskQueue) {
+        if (taskQueue.isEmpty()) {
+          taskQueue.wait();
+        }
+        return taskQueue.getFirst();
+      }
+    }
+
+    /**
+     * Removes first {@link Task} from the queue.
+     */
+    public void remove() {
+      synchronized (taskQueue) {
+        taskQueue.removeFirst();
+        taskQueue.notifyAll();
+      }
+    }
+  }
+
+  private static final TaskQueue taskQueue = new TaskQueue();
   private static volatile boolean stopped = false;
+
   private static Thread thread = null;
 
   /**
@@ -60,9 +111,33 @@ public class DartReconcilerWorker {
     }
     // OK, schedule task
     AnalysisContext context = source.getContext();
-    taskQueue.offer(new Task(project, context));
+    taskQueue.add(new Task(project, context));
     // ensure that thread in running
     ensureThreadStarted();
+  }
+
+  /**
+   * Call this method to cancel the background thread.
+   */
+  public static void stop() {
+    stopped = true;
+  }
+
+  /**
+   * Waits until all tasks are executed or {@link IProgressMonitor} cancelled.
+   * 
+   * @return <code>true</code> if all tasks were executes or <code>false</code> if cancelled.
+   */
+  public static boolean waitForEmpty(IProgressMonitor pm) {
+    while (true) {
+      if (pm.isCanceled()) {
+        return false;
+      }
+      if (taskQueue.isEmpty()) {
+        return true;
+      }
+      ExecutionUtils.sleep(10);
+    }
   }
 
   /**
@@ -86,20 +161,18 @@ public class DartReconcilerWorker {
   private static void mainLoop() {
     while (!stopped) {
       try {
-        Task task = taskQueue.take();
-        AnalysisWorker worker = new AnalysisWorker(task.project, task.context);
-        worker.performAnalysis();
+        Task task = taskQueue.peekWait();
+        try {
+          AnalysisWorker worker = new AnalysisWorker(task.project, task.context);
+          worker.performAnalysis();
+        } catch (Throwable e) {
+          DartCore.logError(e);
+        } finally {
+          taskQueue.remove();
+        }
       } catch (Throwable e) {
         DartCore.logError(e);
-        ExecutionUtils.sleep(10);
       }
     }
-  }
-
-  /**
-   * Call this method to cancel the background thread.
-   */
-  public void stop() {
-    stopped = true;
   }
 }

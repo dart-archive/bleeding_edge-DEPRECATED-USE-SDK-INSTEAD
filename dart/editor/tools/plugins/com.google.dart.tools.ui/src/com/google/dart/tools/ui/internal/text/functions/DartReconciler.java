@@ -63,6 +63,7 @@ public class DartReconciler extends MonoReconciler {
 
     @Override
     public void documentChanged(DocumentEvent event) {
+      editor.applyCompilationUnitElement(null);
       putEditorState();
     }
 
@@ -142,15 +143,6 @@ public class DartReconciler extends MonoReconciler {
     // notify thread that it should be stopped
     thread = null;
   }
-
-  @Override
-  protected void aboutToBeReconciled() {
-    super.aboutToBeReconciled();
-    if (file != null) {
-      // notify editor that CompilationUnit is not valid anymore
-      editor.applyCompilationUnitElement(null);
-    }
-  };
 
   /**
    * Asynchronously notify {@link DartEditor} about parsed {@link CompilationUnit} and selection.

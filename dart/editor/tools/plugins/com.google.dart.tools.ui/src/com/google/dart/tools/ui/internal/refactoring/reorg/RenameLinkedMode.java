@@ -21,11 +21,13 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
+import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
+import com.google.dart.tools.ui.internal.text.functions.DartReconcilerWorker;
 
 import org.eclipse.core.commands.operations.IOperationHistory;
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -65,6 +67,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 import java.lang.reflect.InvocationTargetException;
@@ -499,7 +502,9 @@ public class RenameLinkedMode {
 
     try {
       if (!fOriginalName.equals(newName)) {
-        fEditor.getSite().getWorkbenchWindow().run(false, true, new IRunnableWithProgress() {
+        IWorkbenchWindow workbenchWindow = fEditor.getSite().getWorkbenchWindow();
+        // undo
+        workbenchWindow.run(false, true, new IRunnableWithProgress() {
           @Override
           public void run(IProgressMonitor monitor) throws InvocationTargetException,
               InterruptedException {
@@ -517,6 +522,18 @@ public class RenameLinkedMode {
                   undoManager.undo();
                 }
               }
+            }
+          }
+        });
+        // wait for analysis
+        workbenchWindow.run(true, true, new IRunnableWithProgress() {
+          @Override
+          public void run(IProgressMonitor monitor) throws InterruptedException {
+            monitor.beginTask("Waiting for background analysis...", IProgressMonitor.UNKNOWN);
+            try {
+              waitForBackgroundAnalysis(monitor);
+            } finally {
+              monitor.done();
             }
           }
         });
@@ -541,4 +558,26 @@ public class RenameLinkedMode {
     return RenameSupport.create(fDartElement, newName);
   }
 
+  private void waitForBackgroundAnalysis(IProgressMonitor monitor) throws InterruptedException {
+    // User just stopped typing new name in the editor.
+    // After <Enter> these changed were rolled back.
+    // Wait for resolved CompilationUnit.
+    while (true) {
+      if (monitor.isCanceled()) {
+        throw new InterruptedException();
+      }
+      if (fEditor.getInputUnit() != null) {
+        break;
+      }
+      ExecutionUtils.sleep(10);
+    }
+    // Now, when we have resolved CompilationUnit, we know that some tasks were scheduled
+    // into DartReconcilerWorker. And probably one of them executed (that's why we
+    // got resolved CompilationUnit).
+    // Wait until all of them executed.
+    // So, we will have up-to-date index.
+    if (!DartReconcilerWorker.waitForEmpty(monitor)) {
+      throw new InterruptedException();
+    }
+  }
 }
