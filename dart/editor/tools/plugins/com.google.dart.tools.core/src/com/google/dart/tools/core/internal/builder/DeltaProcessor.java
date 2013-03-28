@@ -25,6 +25,7 @@ import com.google.dart.tools.core.analysis.model.PubFolder;
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 import static com.google.dart.tools.core.DartCore.isDartLikeFileName;
+import static com.google.dart.tools.core.DartCore.isHTMLLikeFileName;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IResource;
@@ -208,7 +209,7 @@ public class DeltaProcessor {
           }
 
           // Notify context of Dart source that have been added, changed, or removed
-          if (isDartLikeFileName(name)) {
+          if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
             event.setResource(resource);
             switch (delta.getKind()) {
               case ADDED:
@@ -415,7 +416,7 @@ public class DeltaProcessor {
       }
 
       // Notify listener of new source files
-      if (isDartLikeFileName(name)) {
+      if (isDartLikeFileName(name) || isHTMLLikeFileName(name)) {
         event.setProxy(proxy);
         listener.sourceAdded(event);
         return false;

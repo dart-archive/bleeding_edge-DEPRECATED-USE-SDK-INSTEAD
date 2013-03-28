@@ -183,6 +183,51 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     project.assertNoCalls();
   }
 
+  public void test_traverse_html_file_added() throws Exception {
+    MockDelta delta = new MockDelta(projectContainer);
+    MockFile file = projectContainer.getMockFile("some.html");
+    delta.add(file, ADDED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    project.assertChanged(projectContainer, new IResource[] {file}, null, null);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_html_file_changed() throws Exception {
+    MockDelta delta = new MockDelta(projectContainer);
+    MockFile file = projectContainer.getMockFile("some.html");
+    delta.add(file);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    project.assertChanged(projectContainer, null, new IResource[] {file}, null);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_html_file_removed() throws Exception {
+    MockDelta delta = new MockDelta(projectContainer);
+    MockResource file = projectContainer.remove("some.html");
+    delta.add(file, REMOVED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    project.assertChanged(projectContainer, null, null, new IResource[] {file});
+    project.assertNoCalls();
+  }
+
   public void test_traverse_ignored_file_change() throws Exception {
     MockDelta delta = new MockDelta(projectContainer);
     delta.add(".svn").add("foo.dart");

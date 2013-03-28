@@ -88,6 +88,7 @@ public class TestProjects {
     project.addFile(BUILD_DART_FILE_NAME);
     project.addFile("some.dart");
     project.addFile("some1.dart");
+    project.addFile("some.html");
 
     MockFolder myApp = project.addFolder("myapp");
     myApp.addFile(PUBSPEC_FILE_NAME);
