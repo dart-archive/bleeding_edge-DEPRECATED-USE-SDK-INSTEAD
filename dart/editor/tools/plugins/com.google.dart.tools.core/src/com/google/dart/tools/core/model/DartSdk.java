@@ -40,8 +40,6 @@ public class DartSdk {
 
   private final File sdkPath;
 
-  private File dartium;
-
   protected DartSdk(File path) {
     sdkPath = path;
 
@@ -78,22 +76,20 @@ public class DartSdk {
    * Answer the Dartium executable or <code>null</code> if it does not exist.
    */
   public File getDartiumExecutable() {
-    if (dartium == null) {
-      File file = getDartiumBinary(getDartiumWorkingDirectory());
+    File file = getDartiumBinary(getDartiumWorkingDirectory());
+
+    if (file.exists()) {
+      return file;
+    } else {
+      // As a fall-back, look in the directory where we used to install Dartium.
+      file = getDartiumBinary(getDartiumWorkingDirectory_old());
 
       if (file.exists()) {
-        dartium = file;
-      } else {
-        // As a fall-back, look in the directory where we used to install Dartium.
-        file = getDartiumBinary(getDartiumWorkingDirectory_old());
-
-        if (file.exists()) {
-          dartium = file;
-        }
+        return file;
       }
     }
 
-    return dartium;
+    return null;
   }
 
   /**
