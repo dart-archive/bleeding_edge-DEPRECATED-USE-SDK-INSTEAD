@@ -125,11 +125,13 @@ public class AnalysisWorker {
         // TODO (danrubel): log unmatched sources once context only returns errors for added sources
 //        DartCore.logError("Failed to determine resource for: " + source);
       } else {
-        LineInfo lineInfo = change.getLineInfo();
-        if (lineInfo == null) {
-          DartCore.logError("Missing line information for: " + source);
-        } else {
-          markerManager.queueErrors(res, lineInfo, errors);
+        if (!DartCore.isContainedInPackages(res.getLocation().toFile())) {
+          LineInfo lineInfo = change.getLineInfo();
+          if (lineInfo == null) {
+            DartCore.logError("Missing line information for: " + source);
+          } else {
+            markerManager.queueErrors(res, lineInfo, errors);
+          }
         }
       }
     }
