@@ -26,7 +26,6 @@ class Suites {
     // Platform tags
     'js': 'DOM Core Tests (JavaScript)',
     'dart': 'DOM Core Tests (dart)',
-    'frog': 'DOM Core Tests (frog)',
     'dart2js': 'DOM Core Tests (dart2js)',
 
     // Library tags
@@ -38,7 +37,6 @@ class Suites {
       // Each item in the list is a pair of (platform x [variants]).
       const ['js', const ['']],
       const ['dart', const ['html']],
-      const ['frog', const ['html']],
       const ['dart2js', const ['html']],
     ];
 
@@ -89,9 +87,12 @@ class Suites {
       case 'js':
       case 'dart':
         return path.replaceFirst('.html', '$lib.html');
-      case 'frog':
       case 'dart2js':
-        return '$platform/${path.replaceFirst(".html", "$lib-js.html")}';
+        int i = path.indexOf('/');
+        String topLevelDir = '';
+        if (i != -1) topLevelDir = '${path.substring(0, i)}/';
+        return '$topLevelDir$platform/'
+            '${path.substring(i + 1).replaceFirst(".html", "$lib-js.html")}';
     }
   }
 
