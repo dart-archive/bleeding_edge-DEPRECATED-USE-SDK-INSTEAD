@@ -37,7 +37,7 @@ public class DartServerLaunchConfigurationDelegateTest extends TestCase {
       waitUntilFinished(debugTarget, 3000);
       String output = vm.getOutput();
       output = output.replaceAll("\r\n", "\n");
-      assertEquals("1\n2\n3\n", vm.getOutput());
+      assertEquals("1\n2\n3\n", output);
     } finally {
       vm.dispose();
     }
