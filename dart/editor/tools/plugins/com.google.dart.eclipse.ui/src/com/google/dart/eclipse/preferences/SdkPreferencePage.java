@@ -18,6 +18,7 @@ import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.core.model.DartSdkUpgradeJob;
+import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -34,6 +35,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
+import java.io.File;
+
 /**
  * A preference page to view the status of the Dart SDK and upgrade it.
  */
@@ -41,8 +44,11 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     DartSdkListener {
 
   private Label sdkVersionlabel;
-  private Button upgradeButton;
-  private Label installLocationLabel;
+  private Button upgradeSdkButton;
+  private Label sdkInstallLocationLabel;
+
+  private Label dartiumStatuslabel;
+  private Label dartiumInstallLocationLabel;
 
   public SdkPreferencePage() {
     noDefaultAndApplyButton();
@@ -66,8 +72,18 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
       @Override
       public void run() {
         updateSDKInfo();
+        updateDartiumInfo();
       }
     });
+  }
+
+  @Override
+  public void setVisible(boolean visible) {
+    super.setVisible(visible);
+
+    if (visible) {
+      updateDartiumInfo();
+    }
   }
 
   @Override
@@ -76,6 +92,7 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     GridDataFactory.fillDefaults().grab(true, false).applyTo(composite);
     GridLayoutFactory.fillDefaults().spacing(0, 10).applyTo(composite);
 
+    // sdk group
     Group sdkGroup = new Group(composite, SWT.NONE);
     sdkGroup.setText("Dart SDK");
     GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.TOP).applyTo(sdkGroup);
@@ -85,8 +102,8 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).grab(true, false).applyTo(
         sdkVersionlabel);
 
-    upgradeButton = new Button(sdkGroup, SWT.PUSH);
-    upgradeButton.addSelectionListener(new SelectionAdapter() {
+    upgradeSdkButton = new Button(sdkGroup, SWT.PUSH);
+    upgradeSdkButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         DartSdkUpgradeJob job = new DartSdkUpgradeJob();
@@ -95,10 +112,34 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
       }
     });
 
-    installLocationLabel = new Label(sdkGroup, SWT.NONE);
-    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(installLocationLabel);
+    sdkInstallLocationLabel = new Label(sdkGroup, SWT.NONE);
+    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(sdkInstallLocationLabel);
 
+    // dartium group
+    Group dartiumGroup = new Group(composite, SWT.NONE);
+    dartiumGroup.setText("Dartium");
+    GridDataFactory.swtDefaults().grab(true, false).align(SWT.FILL, SWT.TOP).applyTo(dartiumGroup);
+    GridLayoutFactory.fillDefaults().numColumns(2).margins(10, 4).applyTo(dartiumGroup);
+
+    dartiumStatuslabel = new Label(dartiumGroup, SWT.NONE);
+    GridDataFactory.fillDefaults().align(SWT.LEFT, SWT.CENTER).grab(true, false).applyTo(
+        dartiumStatuslabel);
+
+    Button dartiumDownloadButton = new Button(dartiumGroup, SWT.PUSH);
+    dartiumDownloadButton.setText("Visit Website");
+    dartiumDownloadButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        ExternalBrowserUtil.openInExternalBrowser("http://www.dartlang.org/dartium/");
+      }
+    });
+
+    dartiumInstallLocationLabel = new Label(dartiumGroup, SWT.NONE);
+    GridDataFactory.fillDefaults().grab(true, false).span(2, 1).applyTo(dartiumInstallLocationLabel);
+
+    // update info
     updateSDKInfo();
+    updateDartiumInfo();
 
     DartSdkManager.getManager().addSdkListener(this);
 
@@ -109,16 +150,39 @@ public class SdkPreferencePage extends PreferencePage implements IWorkbenchPrefe
     DartSdk sdk = DartSdkManager.getManager().getSdk();
 
     if (sdk == null) {
-      installLocationLabel.setText("");
+      sdkInstallLocationLabel.setText("");
       sdkVersionlabel.setText("No SDK installed");
-      upgradeButton.setText("Download SDK");
+      upgradeSdkButton.setText("Download SDK");
     } else {
-      installLocationLabel.setText("Installed at " + sdk.getDirectory().getPath());
+      sdkInstallLocationLabel.setText("Installed at " + sdk.getDirectory().getPath());
       sdkVersionlabel.setText("Dart SDK version " + sdk.getSdkVersion());
-      upgradeButton.setText("Upgrade SDK");
+      upgradeSdkButton.setText("Upgrade SDK");
     }
 
     sdkVersionlabel.getParent().layout();
+  }
+
+  private void updateDartiumInfo() {
+    File dartiumDir = null;
+    File dartiumFile = null;
+
+    DartSdk sdk = DartSdkManager.getManager().getSdk();
+
+    if (sdk != null) {
+      dartiumDir = sdk.getDartiumWorkingDirectory();
+      dartiumFile = sdk.getDartiumExecutable();
+    }
+
+    if (dartiumDir == null) {
+      dartiumStatuslabel.setText("Dartium is not installed");
+      dartiumInstallLocationLabel.setText("");
+    } else if (dartiumFile == null) {
+      dartiumStatuslabel.setText("Dartium is not installed");
+      dartiumInstallLocationLabel.setText("Dartium should be placed in " + dartiumDir);
+    } else {
+      dartiumStatuslabel.setText("Dartium is installed.");
+      dartiumInstallLocationLabel.setText("Installed at " + dartiumDir);
+    }
   }
 
 }
