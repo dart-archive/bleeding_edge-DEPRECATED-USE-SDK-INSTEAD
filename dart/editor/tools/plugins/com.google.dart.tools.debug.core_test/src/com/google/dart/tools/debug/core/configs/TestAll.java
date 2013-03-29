@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.dart.tools.debug.core;
+package com.google.dart.tools.debug.core.configs;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -20,10 +20,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTest(com.google.dart.tools.debug.core.configs.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.dartium.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.sourcemaps.TestAll.suite());
-    suite.addTest(com.google.dart.tools.debug.core.util.TestAll.suite());
+    suite.addTestSuite(DartServerLaunchConfigurationDelegateTest.class);
     return suite;
   }
 }

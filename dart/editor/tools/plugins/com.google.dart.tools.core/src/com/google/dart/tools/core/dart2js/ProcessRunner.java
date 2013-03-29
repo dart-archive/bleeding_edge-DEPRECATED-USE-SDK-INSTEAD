@@ -37,6 +37,7 @@ public class ProcessRunner {
   private StringBuilder stderr = new StringBuilder();
 
   private Thread processThread;
+  private Process process;
 
   public ProcessRunner(ProcessBuilder processBuilder) {
     this.processBuilder = processBuilder;
@@ -69,6 +70,13 @@ public class ProcessRunner {
     }
   }
 
+  public void dispose() {
+    if (process != null) {
+      // This is set to null in runAsync().
+      process.destroy();
+    }
+  }
+
   public int getExitCode() {
     return exitCode;
   }
@@ -92,7 +100,7 @@ public class ProcessRunner {
     stdout.setLength(0);
     stderr.setLength(0);
 
-    final Process process = processBuilder.start();
+    process = processBuilder.start();
 
     // Read from stdout.
     final Thread stdoutThread = new Thread(new Runnable() {
@@ -115,6 +123,8 @@ public class ProcessRunner {
       public void run() {
         try {
           exitCode = process.waitFor();
+
+          process = null;
 
           stdoutThread.join();
           stderrThread.join();
