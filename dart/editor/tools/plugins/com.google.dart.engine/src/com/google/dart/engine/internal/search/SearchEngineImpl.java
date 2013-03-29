@@ -79,8 +79,8 @@ public class SearchEngineImpl implements SearchEngine {
      * Initialize a newly created callback to report matches of the given kind to the given listener
      * when results are found.
      * 
-     * @param scope the {@link SearchScope} to return matches from, may be <code>null</code> to
-     *          return all matches
+     * @param scope the {@link SearchScope} to return matches from, may be {@code null} to return
+     *          all matches
      * @param matchKind the kind of matches that are represented by the results
      * @param listener the search listener that should be notified when results are found
      */
@@ -130,8 +130,8 @@ public class SearchEngineImpl implements SearchEngine {
   /**
    * Apply the given filter to the given listener.
    * 
-   * @param filter the filter to be used before passing matches on to the listener, or
-   *          <code>null</code> if all matches should be passed on
+   * @param filter the filter to be used before passing matches on to the listener, or {@code null}
+   *          if all matches should be passed on
    * @param listener the listener that will only be given matches that pass the filter
    * @return a search listener that will pass to the given listener any matches that pass the given
    *         filter
@@ -147,7 +147,7 @@ public class SearchEngineImpl implements SearchEngine {
    * Apply the given pattern to the given listener.
    * 
    * @param pattern the pattern to be used before passing matches on to the listener, or
-   *          <code>null</code> if all matches should be passed on
+   *          {@code null} if all matches should be passed on
    * @param listener the listener that will only be given matches that match the pattern
    * @return a search listener that will pass to the given listener any matches that match the given
    *         pattern

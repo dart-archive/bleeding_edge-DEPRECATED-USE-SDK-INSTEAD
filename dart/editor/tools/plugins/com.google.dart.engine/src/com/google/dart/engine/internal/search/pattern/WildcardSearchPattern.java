@@ -42,7 +42,7 @@ public class WildcardSearchPattern implements SearchPattern {
    * prefix.
    * 
    * @param pattern the pattern that matching elements must match
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    */
   public WildcardSearchPattern(String pattern, boolean caseSensitive) {
     this.pattern = caseSensitive ? pattern.toCharArray() : pattern.toLowerCase().toCharArray();

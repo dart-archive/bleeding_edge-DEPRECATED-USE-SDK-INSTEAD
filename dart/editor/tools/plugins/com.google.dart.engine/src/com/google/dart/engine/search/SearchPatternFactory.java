@@ -48,7 +48,7 @@ public final class SearchPatternFactory {
    * camel case conventions are used to perform what is essentially multiple prefix matches.
    * 
    * @param pattern the pattern that matching elements must match
-   * @param samePartCount <code>true</code> if the pattern and the name being matched must have
+   * @param samePartCount {@code true} if the pattern and the name being matched must have
    *          exactly the same number of parts (i.e. the same number of uppercase characters)
    * @return the pattern that was created
    */
@@ -60,7 +60,7 @@ public final class SearchPatternFactory {
    * Create a pattern that will match any element whose name matches a specified identifier exactly.
    * 
    * @param identifier the identifier that matching elements must be equal to
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    * @return the pattern that was created
    */
   public static SearchPattern createExactPattern(String identifier, boolean caseSensitive) {
@@ -85,7 +85,7 @@ public final class SearchPatternFactory {
    * Create a pattern that will match any element whose name starts with the given prefix.
    * 
    * @param prefix the prefix of names that match the pattern
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    * @return the pattern that was created
    */
   public static SearchPattern createPrefixPattern(String prefix, boolean caseSensitive) {
@@ -96,7 +96,7 @@ public final class SearchPatternFactory {
    * Create a pattern that will match any element whose name matches a regular expression.
    * 
    * @param regularExpression the regular expression that matching elements must match
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    * @return the pattern that was created
    */
   public static SearchPattern createRegularExpressionPattern(String regularExpression,
@@ -110,7 +110,7 @@ public final class SearchPatternFactory {
    * character) and '*' (to match zero or more characters).
    * 
    * @param pattern the pattern that matching elements must match
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    * @return the pattern that was created
    */
   public static SearchPattern createWildcardPattern(String pattern, boolean caseSensitive) {

@@ -966,7 +966,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param expression the node whose type is to be recorded
    * @param element the element representing the method invoked by the given node
    * @param typeArguments the array of {@link Type}s to perform a substitution on the parameter
-   *          types from the type in the passed {@link Element}, or <code>null</code>
+   *          types from the type in the passed {@link Element}, or {@code null}
    */
   private Void recordArgumentType(IndexExpression expression, MethodElement element,
       Type[] typeArguments) {
@@ -996,7 +996,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * @param expression the node whose type is to be recorded
    * @param element the element representing the method or function invoked by the given node
    * @param typeArguments the array of {@link Type}s to perform a substitution on the parameter
-   *          types from the type in the passed {@link Element}, or <code>null</code>
+   *          types from the type in the passed {@link Element}, or {@code null}
    */
   private Void recordReturnType(Expression expression, Element element, Type[] typeArguments) {
     if (element instanceof PropertyAccessorElement) {

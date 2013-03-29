@@ -31,8 +31,8 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param name the name being declared by the found matches
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchDeclarations(String name, SearchScope scope, SearchFilter filter);
 
@@ -41,8 +41,8 @@ public interface SearchEngine {
    * 
    * @param name the name being declared by the found matches
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -53,11 +53,11 @@ public interface SearchEngine {
    * Synchronously search for all functions matching the given pattern within the given scope.
    * Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the function declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the function declarations to be searched, may be {@code null}
+   *          if all declarations should be returned
    * @param pattern the pattern used to determine which function declarations are to be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchFunctionDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter);
@@ -65,12 +65,12 @@ public interface SearchEngine {
   /**
    * Search for all functions matching the given pattern within the given scope.
    * 
-   * @param scope the scope containing the function declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the function declarations to be searched, may be {@code null}
+   *          if all declarations should be returned
    * @param pattern the pattern used to determine which function declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -83,10 +83,10 @@ public interface SearchEngine {
    * of the given {@link Element}.
    * 
    * @param element the type being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchReferences(Element element, SearchScope scope, SearchFilter filter);
 
@@ -96,11 +96,11 @@ public interface SearchEngine {
    * {@link Element}.
    * 
    * @param type the type being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -112,10 +112,10 @@ public interface SearchEngine {
    * matches that pass the optional filter.
    * 
    * @param name the name being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchReferences(String name, SearchScope scope, SearchFilter filter);
 
@@ -123,11 +123,11 @@ public interface SearchEngine {
    * Search for references to the given name within the given scope.
    * 
    * @param name the name being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be <code>null</code> if
-   *          all references should be returned
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -138,10 +138,10 @@ public interface SearchEngine {
    * that pass the optional filter.
    * 
    * @param type the type being subtyped by the found matches
-   * @param scope the scope containing the subtypes to be searched, may be <code>null</code> if all
+   * @param scope the scope containing the subtypes to be searched, may be {@code null} if all
    *          subtypes should be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchSubtypes(ClassElement type, SearchScope scope, SearchFilter filter);
 
@@ -149,11 +149,11 @@ public interface SearchEngine {
    * Search for subtypes of the given type within the given scope.
    * 
    * @param type the type being subtyped by the found matches
-   * @param scope the scope containing the subtypes to be searched, may be <code>null</code> if all
+   * @param scope the scope containing the subtypes to be searched, may be {@code null} if all
    *          subtypes should be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -164,11 +164,11 @@ public interface SearchEngine {
    * Synchronously search for all of the type declarations that are defined in the given scope and
    * match the given pattern. Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the type declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the type declarations to be searched, may be {@code null} if
+   *          all declarations should be returned
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener, or
-   *          <code>null</code> if all of the matches should be passed to the listener
+   *          {@code null} if all of the matches should be passed to the listener
    * @return the matches that were found @ if the results could not be computed
    */
   List<SearchMatch> searchTypeDeclarations(SearchScope scope, SearchPattern pattern,
@@ -178,12 +178,12 @@ public interface SearchEngine {
    * Search for all of the type declarations (classes, class type aliases and function type aliases)
    * that are defined in the given scope and match the given pattern.
    * 
-   * @param scope the scope containing the type declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the type declarations to be searched, may be {@code null} if
+   *          all declarations should be returned
    * @param pattern the pattern used to determine which type declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */
@@ -194,11 +194,11 @@ public interface SearchEngine {
    * Synchronously search for all variables matching the given pattern within the given scope.
    * Return all matches that pass the optional filter.
    * 
-   * @param scope the scope containing the variable declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the variable declarations to be searched, may be {@code null}
+   *          if all declarations should be returned
    * @param pattern the pattern used to determine which variable declarations are to be returned
-   * @param filter the filter used to determine which matches should be returned, or
-   *          <code>null</code> if all of the matches should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
    */
   List<SearchMatch> searchVariableDeclarations(SearchScope scope, SearchPattern pattern,
       SearchFilter filter);
@@ -206,12 +206,12 @@ public interface SearchEngine {
   /**
    * Search for all variables matching the given pattern within the given scope.
    * 
-   * @param scope the scope containing the variable declarations to be searched, may be
-   *          <code>null</code> if all declarations should be returned
+   * @param scope the scope containing the variable declarations to be searched, may be {@code null}
+   *          if all declarations should be returned
    * @param pattern the pattern used to determine which variable declarations are to be returned
    * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or <code>null</code> if all of the matches should be
-   *          passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
    * @param listener the listener that will be notified when matches are found @ if the results
    *          could not be computed
    */

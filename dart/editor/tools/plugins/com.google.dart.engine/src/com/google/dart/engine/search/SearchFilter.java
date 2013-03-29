@@ -21,10 +21,10 @@ package com.google.dart.engine.search;
  */
 public interface SearchFilter {
   /**
-   * Return <code>true</code> if the given match passes this filter. When used as a filter for
+   * Return {@code true} if the given match passes this filter. When used as a filter for
    * search results, only matches that pass the filter will be sent to the listener.
    * 
-   * @return <code>true</code> if the given match passes this filter
+   * @return {@code true} if the given match passes this filter
    */
   boolean passes(SearchMatch match);
 }

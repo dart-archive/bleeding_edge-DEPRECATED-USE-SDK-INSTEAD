@@ -95,7 +95,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the library import prefix name, may be <code>null</code>.
+   * @return the library import prefix name, may be {@code null}.
    */
   @VisibleForTesting
   static String getLibraryImportPrefix(ASTNode node) {
@@ -112,7 +112,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return <code>true</code> if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
+   * @return {@code true} if given "node" is part of {@link PrefixedIdentifier} "prefix.node".
    */
   private static boolean isIdentifierInPrefixedIdentifier(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
@@ -121,7 +121,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return <code>true</code> if given {@link SimpleIdentifier} is "name" part of prefixed
+   * @return {@code true} if given {@link SimpleIdentifier} is "name" part of prefixed
    *         identifier or method invocation.
    */
   private static boolean isQualified(SimpleIdentifier node) {
@@ -158,7 +158,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return the inner-most enclosing {@link Element}, may be <code>null</code>.
+   * @return the inner-most enclosing {@link Element}, may be {@code null}.
    */
   @VisibleForTesting
   public Element peekElement() {
@@ -506,7 +506,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   /**
    * @param offset the offset of the location within {@link Source}
    * @param length the length of the location
-   * @param prefix the import prefix of top-level element, may be <code>null</code>
+   * @param prefix the import prefix of top-level element, may be {@code null}
    * @return the {@link Location} representing the given offset and length within the inner-most
    *         {@link Element}.
    */
@@ -524,7 +524,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return <code>true</code> if given node already indexed as more interesting reference, so it
+   * @return {@code true} if given node already indexed as more interesting reference, so it
    *         should not be indexed again.
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {

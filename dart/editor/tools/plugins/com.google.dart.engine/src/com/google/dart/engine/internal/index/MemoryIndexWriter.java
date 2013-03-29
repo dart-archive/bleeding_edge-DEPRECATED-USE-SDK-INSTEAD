@@ -93,7 +93,7 @@ class MemoryIndexWriter {
   }
 
   /**
-   * @return <code>true</code> if given {@link Element} belongs to the {@link AnalysisContext} which
+   * @return {@code true} if given {@link Element} belongs to the {@link AnalysisContext} which
    *         we are currently writing.
    */
   private boolean isElementOfContext(Element element) {
@@ -108,7 +108,7 @@ class MemoryIndexWriter {
   }
 
   /**
-   * Write may be <code>null</code> {@link String}.
+   * Write may be {@code null} {@link String}.
    */
   private void writeMayBeNull(String str) throws IOException {
     if (str == null) {

@@ -36,7 +36,7 @@ public class RegularExpressionSearchPattern implements SearchPattern {
    * prefix.
    * 
    * @param regularExpression the regular expression that matching elements must match
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    */
   public RegularExpressionSearchPattern(String regularExpression, boolean caseSensitive) {
     pattern = Pattern.compile(regularExpression, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);

@@ -41,7 +41,7 @@ import java.util.Set;
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   /**
-   * @return the {@link Source} which contains given {@link Element}, may be <code>null</code>.
+   * @return the {@link Source} which contains given {@link Element}, may be {@code null}.
    */
   @VisibleForTesting
   public static Source findSource(Element element) {

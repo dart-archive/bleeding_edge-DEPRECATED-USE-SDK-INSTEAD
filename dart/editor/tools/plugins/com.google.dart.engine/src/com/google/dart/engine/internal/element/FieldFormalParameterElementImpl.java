@@ -40,7 +40,8 @@ public class FieldFormalParameterElementImpl extends ParameterElementImpl {
   }
 
   /**
-   * Get the field element associated with this field formal parameter.
+   * Get the field element associated with this field formal parameter, or {@code null} if the
+   * parameter references a field that doesn't exist.
    * 
    * @return the field element associated with this field formal parameter
    */

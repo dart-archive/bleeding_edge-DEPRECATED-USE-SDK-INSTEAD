@@ -42,7 +42,7 @@ public class CamelCaseSearchPattern implements SearchPattern {
    * camel-case pattern.
    * 
    * @param pattern the pattern that matching elements must match
-   * @param samePartCount <code>true</code> if the pattern and the name being matched must have
+   * @param samePartCount {@code true} if the pattern and the name being matched must have
    *          exactly the same number of parts (i.e. the same number of uppercase characters)
    */
   public CamelCaseSearchPattern(String pattern, boolean samePartCount) {

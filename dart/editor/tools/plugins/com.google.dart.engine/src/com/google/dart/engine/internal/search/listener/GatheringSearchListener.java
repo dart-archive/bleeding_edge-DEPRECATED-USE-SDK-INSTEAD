@@ -47,9 +47,9 @@ public class GatheringSearchListener implements SearchListener {
   }
 
   /**
-   * Return <code>true</code> if the search is complete.
+   * Return {@code true} if the search is complete.
    * 
-   * @return <code>true</code> if the search is complete
+   * @return {@code true} if the search is complete
    */
   public boolean isComplete() {
     return isComplete;

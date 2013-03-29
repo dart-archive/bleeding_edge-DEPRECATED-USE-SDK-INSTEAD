@@ -255,8 +255,8 @@ public class CompilationUnit extends ASTNode {
   /**
    * Called to cache the parsing errors when the unit is parsed.
    * 
-   * @param errors an array of parsing errors, if <code>null</code> is passed, the error array is
-   *          set to an empty array, {@link AnalysisError#NO_ERRORS}
+   * @param errors an array of parsing errors, if {@code null} is passed, the error array is set to
+   *          an empty array, {@link AnalysisError#NO_ERRORS}
    */
   public void setParsingErrors(AnalysisError[] errors) {
     parsingErrors = errors == null ? AnalysisError.NO_ERRORS : errors;
@@ -265,8 +265,8 @@ public class CompilationUnit extends ASTNode {
   /**
    * Called to cache the resolution errors when the unit is resolved.
    * 
-   * @param errors an array of resolution errors, if <code>null</code> is passed, the error array is
-   *          set to an empty array, {@link AnalysisError#NO_ERRORS}
+   * @param errors an array of resolution errors, if {@code null} is passed, the error array is set
+   *          to an empty array, {@link AnalysisError#NO_ERRORS}
    */
   public void setResolutionErrors(AnalysisError[] errors) {
     resolutionErrors = errors == null ? AnalysisError.NO_ERRORS : errors;

@@ -47,12 +47,12 @@ public class SearchMatch {
   private final SourceRange sourceRange;
 
   /**
-   * Is <code>true</code> if field or method access is done using qualifier.
+   * Is {@code true} if field or method access is done using qualifier.
    */
   private boolean qualified;
 
   /**
-   * Is not <code>null</code> if matched element was imported with this prefix.
+   * Is not {@code null} if matched element was imported with this prefix.
    */
   private String importPrefix;
 
@@ -107,7 +107,7 @@ public class SearchMatch {
   }
 
   /**
-   * @return the import prefix used to import this match of element, may be <code>null</code>.
+   * @return the import prefix used to import this match of element, may be {@code null}.
    */
   public String getImportPrefix() {
     return importPrefix;
@@ -143,7 +143,7 @@ public class SearchMatch {
   }
 
   /**
-   * @return the <code>true</code> if field or method access is done using qualifier.
+   * @return the {@code true} if field or method access is done using qualifier.
    */
   public boolean isQualified() {
     return qualified;

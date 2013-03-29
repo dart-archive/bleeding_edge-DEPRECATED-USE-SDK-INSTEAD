@@ -42,7 +42,7 @@ public class PrefixSearchPattern implements SearchPattern {
    * prefix.
    * 
    * @param prefix the prefix that matching elements must start with
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    */
   public PrefixSearchPattern(String prefix, boolean caseSensitive) {
     this.prefix = prefix;

@@ -88,7 +88,7 @@ public class Location {
   }
 
   /**
-   * @return the name of the import prefix, may be <code>null</code>.
+   * @return the name of the import prefix, may be {@code null}.
    */
   public String getImportPrefix() {
     return importPrefix;

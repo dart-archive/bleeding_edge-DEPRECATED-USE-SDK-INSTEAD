@@ -145,7 +145,7 @@ public class AbstractDartTest extends TestCase {
 
   /**
    * @return the {@link Element} if there is {@link SimpleIdentifier} at position of "search", not
-   *         <code>null</code> or fails.
+   *         {@code null} or fails.
    */
   @SuppressWarnings("unchecked")
   protected final <T extends Element> T findElement(String search) {

@@ -289,8 +289,8 @@ public class ParserTestCase extends EngineTestCase {
   }
 
   /**
-   * @return the {@link Method} with given name in {@link Parser}, not <code>null</code>. Fails if
-   *         not found.
+   * @return the {@link Method} with given name in {@link Parser}, not {@code null}. Fails if not
+   *         found.
    */
   private static Method findParserMethod(String name, int numParameters) {
     Method[] methods = Parser.class.getDeclaredMethods();

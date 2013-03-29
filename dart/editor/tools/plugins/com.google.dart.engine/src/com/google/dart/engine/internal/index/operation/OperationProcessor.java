@@ -122,10 +122,10 @@ public class OperationProcessor {
 
   /**
    * Stop processing operations after the current operation has completed. If the argument is
-   * <code>true</code> then this method will wait until the last operation has completed; otherwise
+   * {@code true} then this method will wait until the last operation has completed; otherwise
    * this method might return before the last operation has completed.
    * 
-   * @param wait <code>true</code> if this method will wait until the last operation has completed
+   * @param wait {@code true} if this method will wait until the last operation has completed
    *          before returning
    * @return the library files for the libraries that need to be analyzed when a new session is
    *         started.
@@ -155,7 +155,7 @@ public class OperationProcessor {
   /**
    * Waits until processors will switch from "ready" to "running" state.
    * 
-   * @return <code>true</code> if processor is now actually in "running" state, e.g. not in
+   * @return {@code true} if processor is now actually in "running" state, e.g. not in
    *         "stopped" state.
    */
   public boolean waitForRunning() {
@@ -180,9 +180,9 @@ public class OperationProcessor {
   }
 
   /**
-   * Return <code>true</code> if the current state is {@link ProcessorState#RUNNING}.
+   * Return {@code true} if the current state is {@link ProcessorState#RUNNING}.
    * 
-   * @return <code>true</code> if this processor is running
+   * @return {@code true} if this processor is running
    */
   private boolean isRunning() {
     synchronized (this) {

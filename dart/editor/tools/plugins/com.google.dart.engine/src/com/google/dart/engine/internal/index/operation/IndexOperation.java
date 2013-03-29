@@ -23,9 +23,9 @@ import com.google.dart.engine.source.Source;
  */
 public interface IndexOperation {
   /**
-   * Return <code>true</code> if this operation returns information from the index.
+   * Return {@code true} if this operation returns information from the index.
    * 
-   * @return <code>true</code> if this operation returns information from the index
+   * @return {@code true} if this operation returns information from the index
    */
   public boolean isQuery();
 
@@ -35,11 +35,11 @@ public interface IndexOperation {
   public void performOperation();
 
   /**
-   * Return <code>true</code> if this operation should be removed from the operation queue when the
+   * Return {@code true} if this operation should be removed from the operation queue when the
    * given resource has been removed.
    * 
    * @param source the {@link Source} that has been removed
-   * @return <code>true</code> if this operation should be removed from the operation queue as a
+   * @return {@code true} if this operation should be removed from the operation queue as a
    *         result of removing the resource
    */
   public boolean removeWhenSourceRemoved(Source source);

@@ -355,7 +355,7 @@ public abstract class EditRecorder<D, R> {
    * Test if there is a newline at the given source index.
    * 
    * @param index the index to test
-   * @return <code>true</code> if there is a newline at the given source index, <code>false</code>
+   * @return {@code true} if there is a newline at the given source index, {@code false}
    *         otherwise
    */
   protected boolean isNewlineAt(int index) {
@@ -374,7 +374,7 @@ public abstract class EditRecorder<D, R> {
    * Test if there is a space at the given source index.
    * 
    * @param index the index to test
-   * @return <code>true</code> if there is a space at the given source index, <code>false</code>
+   * @return {@code true} if there is a space at the given source index, {@code false}
    *         otherwise
    */
   protected boolean isSpaceAt(int index) {

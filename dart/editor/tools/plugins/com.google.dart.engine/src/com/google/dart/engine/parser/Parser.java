@@ -4853,7 +4853,7 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the variable declaration list, or
-   *          <code>null</code> if there is no attempt at parsing the comment and metadata
+   *          {@code null} if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
    *          there is no keyword
    * @param type the type of the variables in the list
@@ -4884,8 +4884,7 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   *          statement, or <code>null</code> if there is no attempt at parsing the comment and
-   *          metadata
+   *          statement, or {@code null} if there is no attempt at parsing the comment and metadata
    * @return the variable declaration statement that was parsed
    */
   private VariableDeclarationStatement parseVariableDeclarationStatement(
@@ -4904,8 +4903,7 @@ public class Parser {
    * </pre>
    * 
    * @param commentAndMetadata the metadata to be associated with the variable declaration
-   *          statement, or <code>null</code> if there is no attempt at parsing the comment and
-   *          metadata
+   *          statement, or {@code null} if there is no attempt at parsing the comment and metadata
    * @param keyword the token representing the 'final', 'const' or 'var' keyword, or {@code null} if
    *          there is no keyword
    * @param type the type of the variables in the list

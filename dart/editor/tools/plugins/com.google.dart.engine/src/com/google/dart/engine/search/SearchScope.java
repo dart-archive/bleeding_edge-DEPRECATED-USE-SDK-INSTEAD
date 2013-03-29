@@ -25,10 +25,10 @@ import com.google.dart.engine.element.Element;
  */
 public interface SearchScope {
   /**
-   * Return <code>true</code> if this scope encloses the given element.
+   * Return {@code true} if this scope encloses the given element.
    * 
    * @param element the element being checked
-   * @return <code>true</code> if the element is in this scope
+   * @return {@code true} if the element is in this scope
    */
   boolean encloses(Element element);
 }

@@ -227,10 +227,10 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
-   * Return <code>true</code> if this library is client based code: the library depends on the html
+   * Return {@code true} if this library is client based code: the library depends on the html
    * library.
    * 
-   * @return <code>true</code> if this library is client based code: the library depends on the html
+   * @return {@code true} if this library is client based code: the library depends on the html
    *         library
    */
   public boolean isClient() {
@@ -238,19 +238,19 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
-   * Return <code>true</code> if this library is launchable: the file includes a main method.
+   * Return {@code true} if this library is launchable: the file includes a main method.
    * 
-   * @return <code>true</code> if this library is launchable: the file includes a main method
+   * @return {@code true} if this library is launchable: the file includes a main method
    */
   public boolean isLaunchable() {
     return (bitmask & LAUNCHABLE) != 0;
   }
 
   /**
-   * Return <code>true</code> if this library is server based code: the library does not depends on
+   * Return {@code true} if this library is server based code: the library does not depends on
    * the html library.
    * 
-   * @return <code>true</code> if this library is server based code: the library does not depends on
+   * @return {@code true} if this library is server based code: the library does not depends on
    *         the html library
    */
   public boolean isServer() {

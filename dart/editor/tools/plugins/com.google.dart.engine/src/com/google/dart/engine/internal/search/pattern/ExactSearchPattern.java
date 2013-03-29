@@ -39,7 +39,7 @@ public class ExactSearchPattern implements SearchPattern {
    * prefix.
    * 
    * @param identifier the identifier that matching elements must be equal to
-   * @param caseSensitive <code>true</code> if a case sensitive match is to be performed
+   * @param caseSensitive {@code true} if a case sensitive match is to be performed
    */
   public ExactSearchPattern(String identifier, boolean caseSensitive) {
     this.identifier = identifier;

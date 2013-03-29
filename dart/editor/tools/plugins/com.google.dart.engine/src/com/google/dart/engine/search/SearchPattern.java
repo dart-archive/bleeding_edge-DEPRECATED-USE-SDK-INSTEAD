@@ -24,8 +24,8 @@ import com.google.dart.engine.element.Element;
  */
 public interface SearchPattern {
   /**
-   * Return the quality of the match if the given element matches this pattern, or <code>null</code>
-   * if the element does not match this pattern.
+   * Return the quality of the match if the given element matches this pattern, or {@code null} if
+   * the element does not match this pattern.
    * 
    * @param element the element being matched against
    * @return the quality of the match if the given element matches this pattern

@@ -46,35 +46,35 @@ public final class SourceRange {
   }
 
   /**
-   * @return <code>true</code> if <code>x</code> is in [offset, offset + length) interval.
+   * @return {@code true} if <code>x</code> is in [offset, offset + length) interval.
    */
   public boolean contains(int x) {
     return offset <= x && x < offset + length;
   }
 
   /**
-   * @return <code>true</code> if <code>x</code> is in (offset, offset + length) interval.
+   * @return {@code true} if <code>x</code> is in (offset, offset + length) interval.
    */
   public boolean containsExclusive(int x) {
     return offset < x && x < offset + length;
   }
 
   /**
-   * @return <code>true</code> if <code>otherRange</code> covers this {@link SourceRange}.
+   * @return {@code true} if <code>otherRange</code> covers this {@link SourceRange}.
    */
   public boolean coveredBy(SourceRange otherRange) {
     return otherRange.covers(this);
   }
 
   /**
-   * @return <code>true</code> if this {@link SourceRange} covers <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} covers <code>otherRange</code>.
    */
   public boolean covers(SourceRange otherRange) {
     return getOffset() <= otherRange.getOffset() && otherRange.getEnd() <= getEnd();
   }
 
   /**
-   * @return <code>true</code> if this {@link SourceRange} ends in <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} ends in <code>otherRange</code>.
    */
   public boolean endsIn(SourceRange otherRange) {
     int thisEnd = getEnd();
@@ -140,7 +140,7 @@ public final class SourceRange {
   }
 
   /**
-   * @return <code>true</code> if this {@link SourceRange} intersects with given.
+   * @return {@code true} if this {@link SourceRange} intersects with given.
    */
   public boolean intersects(SourceRange other) {
     if (other == null) {
@@ -156,7 +156,7 @@ public final class SourceRange {
   }
 
   /**
-   * @return <code>true</code> if this {@link SourceRange} starts in <code>otherRange</code>.
+   * @return {@code true} if this {@link SourceRange} starts in <code>otherRange</code>.
    */
   public boolean startsIn(SourceRange otherRange) {
     return otherRange.contains(offset);

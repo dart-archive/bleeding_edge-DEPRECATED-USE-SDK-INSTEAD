@@ -240,7 +240,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * 
    * @param typeName the name of the type that cannot be extended
-   * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
+   * @see #IMPLEMENTS_DISALLOWED_CLASS
    */
   EXTENDS_DISALLOWED_CLASS("Classes cannot extend '%s'"),
 
@@ -259,7 +259,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 12.5 Strings: It is a compile-time error for a class to attempt to extend or implement String.
    * 
    * @param typeName the name of the type that cannot be implemented
-   * @see CompileTimeErrorCode#EXTENDS_DISALLOWED_CLASS
+   * @see #EXTENDS_DISALLOWED_CLASS
    */
   IMPLEMENTS_DISALLOWED_CLASS("Classes cannot implement '%s'"),
 
@@ -316,7 +316,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
 
   /**
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is
-   * final and <i>v</i> is not initialized at its point of declaration.'
+   * final and <i>v</i> is not initialized at its point of declaration.
    * 
    * @param name the name of the field in question
    */
@@ -377,7 +377,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * error if <i>k</i>'s initializer list contains an initializer for a variable that is not an
    * instance variable declared in the immediately surrounding class.
    * 
-   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
    */
   INITIALIZER_FOR_NON_EXISTANT_FIELD(""),
 
@@ -395,8 +395,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param id the name of the initializing formal that is not an instance variable in the
    *          immediately enclosing class
-   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_STATIC_FIELD
-   * @see CompileTimeErrorCode#INITIALIZER_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZING_FORMAL_FOR_STATIC_FIELD
+   * @see #INITIALIZER_FOR_NON_EXISTANT_FIELD
    */
   INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD("'%s' is not a variable in the enclosing class"),
 
@@ -407,7 +407,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param id the name of the initializing formal that is a static variable in the immediately
    *          enclosing class
-   * @see CompileTimeErrorCode#INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
+   * @see #INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD
    */
   INITIALIZING_FORMAL_FOR_STATIC_FIELD(
       "'%s' is a static variable in the enclosing class, variable initialized in a constructor cannot be static"),

@@ -163,7 +163,7 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   /**
-   * @return <code>true</code> if given {@link Location} has specified expected properties.
+   * @return {@code true} if given {@link Location} has specified expected properties.
    */
   private static boolean equalsLocation(Location actual, Element expectedElement,
       int expectedOffset, String expectedNameForLength, String expectedPrefix) {
@@ -174,7 +174,7 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   /**
-   * @return <code>true</code> if given {@link Location} has specified expected properties.
+   * @return {@code true} if given {@link Location} has specified expected properties.
    */
   private static boolean equalsLocation(Location actual, ExpectedLocation expected) {
     return equalsLocation(actual, expected.element, expected.offset, expected.name, expected.prefix);

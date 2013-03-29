@@ -75,9 +75,9 @@ public class IntStack {
   }
 
   /**
-   * Return <code>true</code> if this stack is empty.
+   * Return {@code true} if this stack is empty.
    * 
-   * @return <code>true</code> if this stack is empty
+   * @return {@code true} if this stack is empty
    */
   public boolean isEmpty() {
     return top == 0;

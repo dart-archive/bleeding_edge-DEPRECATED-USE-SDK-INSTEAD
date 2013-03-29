@@ -142,8 +142,8 @@ public class SourceRangeFactory {
   }
 
   /**
-   * @return the {@link SourceRange} for given {@link ASTNode}, or <code>null</code> if
-   *         <code>null</code> was given.
+   * @return the {@link SourceRange} for given {@link ASTNode}, or {@code null} if {@code null} was
+   *         given.
    */
   public static SourceRange rangeNode(ASTNode node) {
     if (node != null) {

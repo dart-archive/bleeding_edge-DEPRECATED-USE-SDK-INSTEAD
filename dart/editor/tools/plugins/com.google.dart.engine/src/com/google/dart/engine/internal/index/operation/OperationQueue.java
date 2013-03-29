@@ -37,7 +37,7 @@ public class OperationQueue {
   private final List<IndexOperation> queryOperations = Lists.newLinkedList();
 
   /**
-   * <code>true</code> if query operations should be returned by {@link #dequeue(long)} or
+   * {@code true} if query operations should be returned by {@link #dequeue(long)} or
    * <code>false</code> if not.
    */
   private boolean processQueries = true;
@@ -53,20 +53,20 @@ public class OperationQueue {
    * If this queue is not empty, then remove the next operation from the head of this queue and
    * return it. If this queue is empty (see {@link #setProcessQueries(boolean)}, then the behavior
    * of this method depends on the value of the argument. If the argument is less than or equal to
-   * zero (<code>0</code>), then <code>null</code> will be returned immediately. If the argument is
+   * zero (<code>0</code>), then {@code null} will be returned immediately. If the argument is
    * greater than zero, then this method will wait until at least one operation has been added to
    * this queue or until the given amount of time has passed. If, at the end of that time, this
-   * queue is empty, then <code>null</code> will be returned. If this queue is not empty, then the
-   * first operation will be removed and returned.
+   * queue is empty, then {@code null} will be returned. If this queue is not empty, then the first
+   * operation will be removed and returned.
    * <p>
-   * Note that <code>null</code> can be returned, even if a positive timeout is given.
+   * Note that {@code null} can be returned, even if a positive timeout is given.
    * <p>
    * Note too that this method's timeout is not treated the same way as the timeout value used for
    * {@link Object#wait(long)}. In particular, it is not possible to cause this method to wait for
    * an indefinite period of time.
    * 
    * @param timeout the maximum number of milliseconds to wait for an operation to be available
-   *          before giving up and returning <code>null</code>
+   *          before giving up and returning {@code null}
    * @return the operation that was removed from the queue
    * @throws InterruptedException if the thread on which this method is running was interrupted
    *           while it was waiting for an operation to be added to the queue
@@ -138,10 +138,10 @@ public class OperationQueue {
   /**
    * Set whether the receiver's {@link #dequeue(long)} method should return query operations.
    * 
-   * @param processQueries <code>true</code> if the receiver's {@link #dequeue(long)} method should
+   * @param processQueries {@code true} if the receiver's {@link #dequeue(long)} method should
    *          return query operations or <code>false</code> if query operations should be queued but
    *          not returned by the receiver's {@link #dequeue(long)} method until this method is
-   *          called with a value of <code>true</code>.
+   *          called with a value of {@code true}.
    */
   public void setProcessQueries(boolean processQueries) {
     synchronized (nonQueryOperations) {
