@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.SourceRange;
@@ -61,6 +62,10 @@ public class RenameResourceParticipant extends RenameParticipant {
   @Override
   public Change createChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
+    // TODO(scheglov) implement for new engine
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return null;
+    }
     return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
       @Override
       public Change runObject() throws Exception {

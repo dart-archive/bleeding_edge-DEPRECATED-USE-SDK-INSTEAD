@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.ui.launch;
 import com.google.common.base.Objects;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.HTMLFile;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
@@ -74,6 +75,10 @@ public class LaunchesRenameResourceParticipant extends RenameParticipant {
 
   @Override
   public Change createChange(IProgressMonitor pm) throws CoreException, OperationCanceledException {
+    // TODO(scheglov) implement for new engine
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return null;
+    }
     ILaunchConfiguration[] configurations = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations();
     for (final ILaunchConfiguration configuration : configurations) {
       String launchPlugin = configuration.getType().getPluginIdentifier();
@@ -95,6 +100,10 @@ public class LaunchesRenameResourceParticipant extends RenameParticipant {
 
   @Override
   protected boolean initialize(Object element) {
+    // TODO(scheglov) implement for new engine
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return false;
+    }
     if (element instanceof IFile) {
       file = (IFile) element;
       try {
