@@ -19,6 +19,9 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.util.BrowserManager;
+import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
+import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
+import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -29,6 +32,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 
 import java.util.concurrent.Semaphore;
 
@@ -36,14 +40,21 @@ import java.util.concurrent.Semaphore;
  * The launch configuration delegate for the com.google.dart.tools.debug.core.dartiumLaunchConfig
  * launch config.
  */
-public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
+public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate implements
+    IRemoteConnectionDelegate {
   private static Semaphore launchSemaphore = new Semaphore(1);
+
+  private IChromiumTabChooser tabChooser;
 
   /**
    * Create a new DartChromiumLaunchConfigurationDelegate.
    */
   public DartiumLaunchConfigurationDelegate() {
+    this(new DefaultChromiumTabChooser());
+  }
 
+  public DartiumLaunchConfigurationDelegate(IChromiumTabChooser tabChooser) {
+    this.tabChooser = tabChooser;
   }
 
   @Override
@@ -65,7 +76,14 @@ public class DartiumLaunchConfigurationDelegate extends DartLaunchConfigurationD
         launchSemaphore.release();
       }
     }
+  }
 
+  @Override
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor)
+      throws CoreException {
+    BrowserManager browserManager = new BrowserManager();
+
+    return browserManager.performRemoteConnection(tabChooser, host, port, monitor);
   }
 
   private void launchImpl(DartLaunchConfigWrapper launchConfig, String mode, ILaunch launch,

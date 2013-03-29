@@ -23,18 +23,23 @@ import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 import com.google.dart.tools.debug.core.server.ServerDebugTarget;
+import com.google.dart.tools.debug.core.server.ServerRemoteProcess;
+import com.google.dart.tools.debug.core.util.CoreLaunchUtils;
+import com.google.dart.tools.debug.core.util.IRemoteConnectionDelegate;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 
 import java.io.File;
@@ -49,7 +54,8 @@ import java.util.Map;
 /**
  * The Dart Server Application launch configuration.
  */
-public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
+public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate
+    implements IRemoteConnectionDelegate {
   private static final int DEFAULT_PORT_NUMBER = 5858;
 
   private IPackageRootProvider packageRootProvider;
@@ -79,6 +85,46 @@ public class DartServerLaunchConfigurationDelegate extends DartLaunchConfigurati
     terminateSameLaunches(launch);
 
     launchVM(launch, launchConfig, enableDebugging, monitor);
+  }
+
+  @Override
+  public IDebugTarget performRemoteConnection(String host, int port, IProgressMonitor monitor)
+      throws CoreException {
+    if (monitor == null) {
+      monitor = new NullProgressMonitor();
+    }
+
+    ILaunch launch = CoreLaunchUtils.createTemporaryLaunch(
+        DartDebugCorePlugin.SERVER_LAUNCH_CONFIG_ID,
+        host + "[" + port + "]");
+
+    monitor.beginTask("Opening Connection...", 1);
+
+    try {
+      CoreLaunchUtils.addLaunch(launch);
+
+      ServerRemoteProcess process = new ServerRemoteProcess(launch);
+
+      ServerDebugTarget debugTarget = new ServerDebugTarget(launch, process, host, port);
+
+      process.setTarget(debugTarget);
+
+      process.fireCreateEvent();
+
+      debugTarget.connect();
+
+      monitor.worked(1);
+
+      launch.addDebugTarget(debugTarget);
+
+      return debugTarget;
+    } catch (CoreException ce) {
+      CoreLaunchUtils.removeLaunch(launch);
+
+      throw ce;
+    } finally {
+      monitor.done();
+    }
   }
 
   protected void launchVM(ILaunch launch, DartLaunchConfigWrapper launchConfig,

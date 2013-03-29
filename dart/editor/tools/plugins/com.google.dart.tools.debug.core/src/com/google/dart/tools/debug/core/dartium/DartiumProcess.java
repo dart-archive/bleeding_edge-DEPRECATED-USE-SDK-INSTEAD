@@ -28,7 +28,6 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IStreamsProxy;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,16 +37,16 @@ import java.util.Map;
  * This is a Dartium specific implementation of an IProcess.
  */
 class DartiumProcess extends PlatformObject implements IProcess {
-  private File executable;
+  private String browserName;
   private DartiumDebugTarget target;
   private Process javaProcess;
   private IStreamsProxy streamsProxy;
   private Map<String, String> attributes = new HashMap<String, String>();
   private Date launchTime;
 
-  public DartiumProcess(File executable, DartiumDebugTarget target, Process javaProcess) {
-    this.executable = executable;
+  public DartiumProcess(DartiumDebugTarget target, String browserName, Process javaProcess) {
     this.target = target;
+    this.browserName = browserName;
     this.javaProcess = javaProcess;
 
     launchTime = new Date();
@@ -92,19 +91,30 @@ class DartiumProcess extends PlatformObject implements IProcess {
 
   @Override
   public int getExitValue() throws DebugException {
-    try {
-      return javaProcess.exitValue();
-    } catch (IllegalThreadStateException exception) {
-      throw new DebugException(new Status(
-          IStatus.ERROR,
-          DartDebugCorePlugin.PLUGIN_ID,
-          exception.toString()));
+    if (javaProcess == null) {
+      if (isTerminated()) {
+        return 0;
+      } else {
+        throw new DebugException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Not yet terminated"));
+      }
+    } else {
+      try {
+        return javaProcess.exitValue();
+      } catch (IllegalThreadStateException exception) {
+        throw new DebugException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            exception.toString()));
+      }
     }
   }
 
   @Override
   public String getLabel() {
-    return executable.toString() + " (" + launchTime + ")";
+    return browserName + " (" + launchTime + ")";
   }
 
   @Override

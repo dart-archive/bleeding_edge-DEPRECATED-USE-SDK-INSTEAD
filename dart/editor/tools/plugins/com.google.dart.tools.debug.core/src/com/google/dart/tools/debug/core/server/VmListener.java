@@ -37,6 +37,20 @@ public interface VmListener {
   }
 
   /**
+   * Handle the connection closed event.
+   * 
+   * @param connection the VM connection
+   */
+  public void connectionClosed(VmConnection connection);
+
+  /**
+   * Handle the connection opened event.
+   * 
+   * @param connection the VM connection
+   */
+  public void connectionOpened(VmConnection connection);
+
+  /**
    * Handle the debugger paused event.
    * 
    * @param reason possible values are "breakpoint" and "exception"

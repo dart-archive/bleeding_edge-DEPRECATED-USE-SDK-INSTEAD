@@ -73,6 +73,8 @@ public class VmConnection {
       Arrays.asList(new String[] {"dart:core", "dart:nativewrappers"}));
 
   private List<VmListener> listeners = new ArrayList<VmListener>();
+
+  private String host;
   private int port;
 
   private Map<Integer, Callback> callbackMap = new HashMap<Integer, Callback>();
@@ -90,7 +92,8 @@ public class VmConnection {
 
   private Map<Integer, VmIsolate> isolateMap = new HashMap<Integer, VmIsolate>();
 
-  public VmConnection(int port) {
+  public VmConnection(String host, int port) {
+    this.host = host;
     this.port = port;
   }
 
@@ -111,7 +114,7 @@ public class VmConnection {
    * @throws IOException
    */
   public void connect() throws IOException {
-    socket = new Socket((String) null, port);
+    socket = new Socket(host, port);
 
     out = socket.getOutputStream();
     final InputStream in = socket.getInputStream();
@@ -120,6 +123,10 @@ public class VmConnection {
     new Thread(new Runnable() {
       @Override
       public void run() {
+        for (VmListener listener : listeners) {
+          listener.connectionOpened(VmConnection.this);
+        }
+
         try {
           processVmEvents(in);
         } catch (EOFException e) {
@@ -136,6 +143,12 @@ public class VmConnection {
         } finally {
           socket = null;
         }
+
+        for (VmListener listener : listeners) {
+          listener.connectionClosed(VmConnection.this);
+        }
+
+        handleTerminated();
       }
     }).start();
   }
@@ -285,34 +298,6 @@ public class VmConnection {
     });
   }
 
-  public void getLibraryProperties(final VmIsolate isolate, final int libraryId,
-      final VmCallback<VmLibrary> callback) throws IOException {
-    if (callback == null) {
-      throw new IllegalArgumentException("a callback is required");
-    }
-
-    try {
-      JSONObject request = new JSONObject();
-
-      request.put("command", "getLibraryProperties");
-      request.put("params", new JSONObject().put("libraryId", libraryId));
-
-      sendRequest(request, isolate.getId(), new Callback() {
-        @Override
-        public void handleResult(JSONObject result) throws JSONException {
-          VmResult<VmLibrary> retValue = convertGetLibraryPropertiesResult(
-              isolate,
-              libraryId,
-              result);
-
-          callback.handleResult(retValue);
-        }
-      });
-    } catch (JSONException exception) {
-      throw new IOException(exception);
-    }
-  }
-
 //  /**
 //   * This synchronous, potentially long-running call returns the cached source for the given script
 //   * url, if any.
@@ -375,6 +360,34 @@ public class VmConnection {
 //
 //    return sourceCache.get(url);
 //  }
+
+  public void getLibraryProperties(final VmIsolate isolate, final int libraryId,
+      final VmCallback<VmLibrary> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getLibraryProperties");
+      request.put("params", new JSONObject().put("libraryId", libraryId));
+
+      sendRequest(request, isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmLibrary> retValue = convertGetLibraryPropertiesResult(
+              isolate,
+              libraryId,
+              result);
+
+          callback.handleResult(retValue);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
 
   public void getListElements(final VmIsolate isolate, int listObjectId, int index,
       final VmCallback<VmValue> callback) throws IOException {
@@ -522,6 +535,9 @@ public class VmConnection {
     sendSimpleCommand("interrupt", isolate.getId());
   }
 
+  /**
+   * @return whether the connection is still open
+   */
   public boolean isConnected() {
     return socket != null;
   }
@@ -668,7 +684,7 @@ public class VmConnection {
     sendSimpleCommand("stepOver", isolate.getId(), resumeOnSuccess(isolate));
   }
 
-  protected void handleTerminated() {
+  protected synchronized void handleTerminated() {
     // Clean up the callbackMap on termination.
     List<Callback> callbacks = new ArrayList<VmConnection.Callback>(callbackMap.values());
 
@@ -716,6 +732,14 @@ public class VmConnection {
     int id = 0;
 
     try {
+      if (!isConnected()) {
+        if (callback != null) {
+          callback.handleResult(VmResult.createJsonErrorResult("connection termination"));
+        }
+
+        return;
+      }
+
       if (!request.has("params")) {
         request.put("params", new JSONObject());
       }

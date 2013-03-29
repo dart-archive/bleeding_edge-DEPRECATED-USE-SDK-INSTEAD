@@ -24,6 +24,8 @@ import com.google.dart.tools.debug.core.dartium.DartiumDebugTarget;
 import com.google.dart.tools.debug.core.util.ListeningStream.StreamListener;
 import com.google.dart.tools.debug.core.webkit.ChromiumConnector;
 import com.google.dart.tools.debug.core.webkit.ChromiumTabInfo;
+import com.google.dart.tools.debug.core.webkit.DefaultChromiumTabChooser;
+import com.google.dart.tools.debug.core.webkit.IChromiumTabChooser;
 import com.google.dart.tools.debug.core.webkit.WebkitConnection;
 
 import org.eclipse.core.resources.IFile;
@@ -36,6 +38,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 
 import java.io.File;
@@ -49,6 +52,8 @@ import java.util.Map;
  * A manager that launches and manages configured browsers.
  */
 public class BrowserManager {
+  /** The initial page to navigate to. */
+  private static final String INITIAL_PAGE = "chrome://version/";
 
   private static final int DEVTOOLS_PORT_NUMBER = 9322;
 
@@ -56,15 +61,7 @@ public class BrowserManager {
 
   private static Process browserProcess = null;
 
-  private static boolean firstLaunch = true;
-
   private static IResourceResolver resourceResolver;
-
-  /** The initial page to navigate to. */
-  private static final String INITIAL_PAGE = "chrome://version/";
-
-  /** A fragment of the initial page, used to search for it in a list of open tabs. */
-  private static final String INITIAL_PAGE_FRAGMENT = "chrome://version";
 
   /**
    * Create a Chrome user data directory, and return the path to that directory.
@@ -116,13 +113,16 @@ public class BrowserManager {
   private int devToolsPortNumber;
 
   private IPackageRootProvider packageRootProvider;
+  private IChromiumTabChooser tabChooser;
 
-  private BrowserManager() {
+  public BrowserManager() {
     this(IPackageRootProvider.DEFAULT);
   }
 
   private BrowserManager(IPackageRootProvider packageRootProvider) {
     this.packageRootProvider = packageRootProvider;
+
+    this.tabChooser = new DefaultChromiumTabChooser();
   }
 
   public void dispose() {
@@ -145,6 +145,71 @@ public class BrowserManager {
   public void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, String url,
       IProgressMonitor monitor, boolean enableDebugging) throws CoreException {
     launchBrowser(launch, launchConfig, null, url, monitor, enableDebugging);
+  }
+
+  public IDebugTarget performRemoteConnection(IChromiumTabChooser tabChooser, String host,
+      int port, IProgressMonitor monitor) throws CoreException {
+    final String browserName = "Remote";
+
+    ILaunch launch = null;
+
+    monitor.beginTask("Opening Connection...", IProgressMonitor.UNKNOWN);
+
+    try {
+      List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(host, port);
+
+      ChromiumTabInfo tab = findTargetTab(tabChooser, tabs);
+
+      if (tab == null || tab.getWebSocketDebuggerUrl() == null) {
+        throw new DebugException(new Status(
+            IStatus.ERROR,
+            DartDebugCorePlugin.PLUGIN_ID,
+            "Unable to connect to Chromium"));
+      }
+
+      monitor.worked(1);
+
+      launch = CoreLaunchUtils.createTemporaryLaunch(
+          DartDebugCorePlugin.DARTIUM_LAUNCH_CONFIG_ID,
+          host + "[" + port + "]");
+
+      CoreLaunchUtils.addLaunch(launch);
+
+      WebkitConnection connection = new WebkitConnection(
+          tab.getHost(),
+          tab.getPort(),
+          tab.getWebSocketDebuggerFile());
+
+      final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
+          browserName,
+          connection,
+          launch,
+          null,
+          getResourceServer(),
+          true);
+
+      launch.setAttribute(DebugPlugin.ATTR_CONSOLE_ENCODING, "UTF-8");
+      launch.addDebugTarget(debugTarget);
+      launch.addProcess(debugTarget.getProcess());
+
+      debugTarget.openConnection();
+
+      monitor.worked(1);
+
+      return debugTarget;
+    } catch (IOException e) {
+      if (launch != null) {
+        CoreLaunchUtils.removeLaunch(launch);
+      }
+
+      throw new CoreException(new Status(
+          IStatus.ERROR,
+          DartDebugCorePlugin.PLUGIN_ID,
+          e.toString(),
+          e));
+    } finally {
+      monitor.done();
+    }
   }
 
   protected void launchBrowser(ILaunch launch, DartLaunchConfigWrapper launchConfig, IFile file,
@@ -221,7 +286,6 @@ public class BrowserManager {
       }
 
       connectToChromiumDebug(
-          dartium,
           browserName,
           launch,
           launchConfig,
@@ -245,7 +309,7 @@ public class BrowserManager {
   /**
    * Launch browser and open file url. If debug mode also connect to browser.
    */
-  void connectToChromiumDebug(File executable, String browserName, ILaunch launch,
+  void connectToChromiumDebug(String browserName, ILaunch launch,
       DartLaunchConfigWrapper launchConfig, String url, IProgressMonitor monitor,
       Process runtimeProcess, LogTimer timer, boolean enableBreakpoints, int devToolsPortNumber,
       ListeningStream dartiumOutput, String processDescription) throws CoreException {
@@ -264,13 +328,6 @@ public class BrowserManager {
       // avg: 46ms
       timer.startTask("open WIP connection");
 
-      if (tab == null) {
-        throw new DebugException(new Status(
-            IStatus.ERROR,
-            DartDebugCorePlugin.PLUGIN_ID,
-            "Unable to connect to Dartium"));
-      }
-
       if (tab == null || tab.getWebSocketDebuggerUrl() == null) {
         throw new DebugException(new Status(
             IStatus.ERROR,
@@ -288,7 +345,6 @@ public class BrowserManager {
           tab.getWebSocketDebuggerFile());
 
       final DartiumDebugTarget debugTarget = new DartiumDebugTarget(
-          executable,
           browserName,
           connection,
           launch,
@@ -334,10 +390,6 @@ public class BrowserManager {
       }
 
       throw new CoreException(status);
-    }
-
-    if (firstLaunch) {
-      firstLaunch = false;
     }
 
     monitor.worked(1);
@@ -407,30 +459,11 @@ public class BrowserManager {
     }
   }
 
-  private ChromiumTabInfo findTargetTab(List<ChromiumTabInfo> tabs) {
-    for (ChromiumTabInfo tab : tabs) {
-      if (tab.getTitle().contains(INITIAL_PAGE_FRAGMENT)) {
-        return tab;
-      }
+  private ChromiumTabInfo findTargetTab(IChromiumTabChooser tabChooser, List<ChromiumTabInfo> tabs) {
+    ChromiumTabInfo chromeTab = tabChooser.chooseTab(tabs);
 
-      if (tab.getUrl().contains(INITIAL_PAGE_FRAGMENT)) {
-        return tab;
-      }
-    }
-
-    if (tabs.size() == 0) {
-      // If no tabs, return null.
-      return null;
-    } else if (tabs.size() == 1) {
-      // If one tab, return that.
-      return tabs.get(0);
-    } else {
-      // If more then one tab, return the first visible, non-Chrome extension tab.
-      for (ChromiumTabInfo tab : tabs) {
-        if (!tab.isChromeExtension()) {
-          return tab;
-        }
-      }
+    if (chromeTab != null) {
+      return chromeTab;
     }
 
     StringBuilder builder = new StringBuilder("unable to locate target dartium tab [" + tabs.size()
@@ -445,7 +478,7 @@ public class BrowserManager {
     return null;
   }
 
-  private ChromiumTabInfo getChromiumTab(Process runtimeProcess, int devToolsPortNumber,
+  private ChromiumTabInfo getChromiumTab(Process runtimeProcess, int port,
       ListeningStream dartiumOutput) throws IOException, CoreException {
     // Give Chromium 20 seconds to start up.
     final int maxStartupDelay = 20 * 1000;
@@ -462,9 +495,9 @@ public class BrowserManager {
       }
 
       try {
-        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(devToolsPortNumber);
+        List<ChromiumTabInfo> tabs = ChromiumConnector.getAvailableTabs(port);
 
-        ChromiumTabInfo targetTab = findTargetTab(tabs);
+        ChromiumTabInfo targetTab = findTargetTab(tabChooser, tabs);
 
         if (targetTab != null) {
           return targetTab;

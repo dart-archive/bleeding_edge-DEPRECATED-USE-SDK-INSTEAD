@@ -389,7 +389,26 @@
             id="com.google.dart.tools.debug.ui.removeBreakpoints"
             name="%removeBreakpointsCommandName">
       </command>
+      <command
+            categoryId="org.eclipse.ui.category.window"
+            defaultHandler="com.google.dart.tools.debug.ui.internal.util.RemoteConnectionHandler"
+            description="Connect to remote host"
+            id="com.google.dart.tools.debug.ui.remoteConnection"
+            name="Remote Connection...">
+      </command>
    </extension>
+   
+   <!-- extension point="org.eclipse.ui.views">
+      <view
+            class="com.google.dart.tools.debug.ui.internal.webinspector.WebInspectorView"
+            id="com.google.dart.tools.debug.webInspectorView"
+            name="Web Inspector"
+            restorable="true"
+            category="com.google.dart.tools.ui.dart"
+            icon="icons/obj16/insp_sbook.gif">
+      </view>
+   </extension -->
+      
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution
@@ -397,7 +416,7 @@
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
                commandId="com.google.dart.tools.debug.ui.run.selection"
-               icon="icons/obj16/run_exc.gif"
+               icon="icons/obj16/run_exc.png"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -420,8 +439,8 @@
             allPopups="true"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.dartium"
-               icon="icons/obj16/run_exc.gif"
+               commandId="com.google.dart.tools.debug.ui.run.browser"
+               icon="icons/obj16/run_exc.png"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -439,14 +458,13 @@
                </with>
             </visibleWhen>
          </command>
-        
       </menuContribution>
       <menuContribution
             allPopups="true"
             locationURI="popup:com.google.dart.tools.ui.FileExplorer?after=additions">
          <command
-               commandId="com.google.dart.tools.debug.ui.run.browser"
-               icon="icons/obj16/run_exc.gif"
+               commandId="com.google.dart.tools.debug.ui.run.dartium"
+               icon="icons/obj16/run_exc.png"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -479,10 +497,25 @@
                class="com.google.dart.tools.debug.ui.internal.breakpoints.RetargetToggleBreakpointAction"
                menubarPath="org.eclipse.ui.run/runGroup"
                id="org.eclipse.debug.ui.actions.ToggleBreakpoint">
-         </action>         
+         </action>
       </actionSet>
    </extension>
 
+   <extension point="org.eclipse.ui.actionSets">
+      <actionSet
+            label="Dart Launching"
+            visible="true"
+            id="com.google.dart.tools.debug.ui.launchActionSet">
+         <action
+               definitionId="com.google.dart.tools.debug.ui.showWebConsole"
+               label="Show Web Server Address"
+               class="com.google.dart.tools.debug.ui.internal.util.ShowWebConsoleAction"
+               menubarPath="org.eclipse.ui.run/emptyLaunchGroup"
+               id="com.google.dart.tools.debug.ui.actions.showWebConsole">
+         </action>         
+      </actionSet>
+   </extension>
+   
    <!-- extension point="org.eclipse.ui.popupMenus"> 
       <viewerContribution 
          id="com.google.dart.tools.debug.ui.breakpointActionSet.popup"

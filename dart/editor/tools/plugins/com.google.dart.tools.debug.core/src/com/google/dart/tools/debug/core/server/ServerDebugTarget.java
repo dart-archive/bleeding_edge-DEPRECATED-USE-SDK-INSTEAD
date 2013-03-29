@@ -87,8 +87,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private IProcess process;
 
-  private int connectionPort;
-
   private VmConnection connection;
 
   private List<ServerDebugThread> threads = new ArrayList<ServerDebugThread>();
@@ -104,15 +102,20 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   private VmIsolate mainIsolate;
 
   public ServerDebugTarget(ILaunch launch, IProcess process, int connectionPort) {
+    this(launch, process, null, connectionPort);
+  }
+
+  public ServerDebugTarget(ILaunch launch, IProcess process, String connectionHost,
+      int connectionPort) {
     super(null);
 
     setActiveTarget(this);
 
     this.launch = launch;
     this.process = process;
-    this.connectionPort = connectionPort;
 
-    monitor(process);
+    connection = new VmConnection(connectionHost, connectionPort);
+    connection.addListener(this);
   }
 
   @Override
@@ -181,9 +184,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   public void connect() throws DebugException {
     long timeout = 10000;
 
-    connection = new VmConnection(connectionPort);
-    connection.addListener(this);
-
     long startTime = System.currentTimeMillis();
 
     try {
@@ -212,6 +212,16 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
           DartDebugCorePlugin.PLUGIN_ID,
           "Unable to connect debugger to the Dart VM: " + ioe.getMessage()));
     }
+  }
+
+  @Override
+  public void connectionClosed(VmConnection connection) {
+    fireTerminateEvent();
+  }
+
+  @Override
+  public void connectionOpened(VmConnection connection) {
+
   }
 
   @Override
@@ -599,34 +609,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return false;
-  }
-
-  private void monitor(final IProcess process) {
-    Thread t = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        boolean terminated = false;
-
-        while (!terminated) {
-
-          try {
-            process.getExitValue();
-
-            terminated = true;
-
-            fireTerminateEvent();
-          } catch (DebugException e) {
-            try {
-              Thread.sleep(50);
-            } catch (InterruptedException e1) {
-
-            }
-          }
-        }
-      }
-    });
-
-    t.start();
   }
 
   private void removeThread(ServerDebugThread thread) {

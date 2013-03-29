@@ -35,6 +35,7 @@ import com.google.dart.tools.debug.core.webkit.WebkitRemoteObject;
 import com.google.dart.tools.debug.core.webkit.WebkitResult;
 
 import org.eclipse.core.resources.IMarkerDelta;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -46,7 +47,6 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamMonitor;
 import org.eclipse.debug.core.model.IThread;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -81,9 +81,8 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
   /**
    * @param target
    */
-  public DartiumDebugTarget(File executable, String debugTargetName, WebkitConnection connection,
-      ILaunch launch, Process javaProcess, IResourceResolver resourceResolver,
-      boolean enableBreakpoints) {
+  public DartiumDebugTarget(String debugTargetName, WebkitConnection connection, ILaunch launch,
+      Process javaProcess, IResourceResolver resourceResolver, boolean enableBreakpoints) {
     super(null);
 
     setActiveTarget(this);
@@ -94,7 +93,7 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     this.resourceResolver = resourceResolver;
 
     debugThread = new DartiumDebugThread(this);
-    process = new DartiumProcess(executable, this, javaProcess);
+    process = new DartiumProcess(this, debugTargetName, javaProcess);
     outputStreamMonitor = new DartiumStreamMonitor();
 
     if (enableBreakpoints) {
@@ -112,7 +111,12 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(launch.getLaunchConfiguration());
-    sourceMapManager = new SourceMapManager(wrapper.getProject());
+
+    if (wrapper.getProject() != null) {
+      sourceMapManager = new SourceMapManager(wrapper.getProject());
+    } else {
+      sourceMapManager = new SourceMapManager(ResourcesPlugin.getWorkspace().getRoot());
+    }
   }
 
   @Override
@@ -274,6 +278,10 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     getConnection().getPage().navigate(url);
   }
 
+  public void openConnection() throws IOException {
+    openConnection(null);
+  }
+
   public void openConnection(final String url) throws IOException {
     connection.addConnectionListener(new WebkitConnectionListener() {
       @Override
@@ -365,12 +373,19 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
     }
 
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
+
     if (breakpointManager != null) {
-      connection.getDebugger().setPauseOnExceptions(
-          getPauseType(),
-          createNavigateWebkitCallback(url));
+      if (url == null) {
+        connection.getDebugger().setPauseOnExceptions(getPauseType());
+      } else {
+        connection.getDebugger().setPauseOnExceptions(
+            getPauseType(),
+            createNavigateWebkitCallback(url));
+      }
     } else {
-      connection.getPage().navigate(url);
+      if (url != null) {
+        connection.getPage().navigate(url);
+      }
     }
   }
 
