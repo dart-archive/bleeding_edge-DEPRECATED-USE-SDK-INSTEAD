@@ -861,6 +861,60 @@ public class ElementBuilderTest extends EngineTestCase {
     assertFalse(typeVariable.isSynthetic());
   }
 
+  public void test_visitVariableDeclaration_inConstructor() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    //
+    // C() {var v;}
+    //
+    String variableName = "v";
+    VariableDeclaration variable = variableDeclaration(variableName, null);
+    Statement statement = variableDeclarationStatement(null, variable);
+    ConstructorDeclaration constructor = constructorDeclaration(
+        null,
+        null,
+        identifier("C"),
+        "C",
+        formalParameterList(),
+        null,
+        blockFunctionBody(statement));
+    constructor.accept(builder);
+
+    ConstructorElement[] constructors = holder.getConstructors();
+    assertLength(1, constructors);
+    LocalVariableElement[] variableElements = constructors[0].getLocalVariables();
+    assertLength(1, variableElements);
+    LocalVariableElement variableElement = variableElements[0];
+    assertEquals(variableName, variableElement.getName());
+  }
+
+  public void test_visitVariableDeclaration_inMethod() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    //
+    // m() {var v;}
+    //
+    String variableName = "v";
+    VariableDeclaration variable = variableDeclaration(variableName, null);
+    Statement statement = variableDeclarationStatement(null, variable);
+    MethodDeclaration constructor = methodDeclaration(
+        null,
+        null,
+        null,
+        null,
+        identifier("m"),
+        formalParameterList(),
+        blockFunctionBody(statement));
+    constructor.accept(builder);
+
+    MethodElement[] methods = holder.getMethods();
+    assertLength(1, methods);
+    LocalVariableElement[] variableElements = methods[0].getLocalVariables();
+    assertLength(1, variableElements);
+    LocalVariableElement variableElement = variableElements[0];
+    assertEquals(variableName, variableElement.getName());
+  }
+
   public void test_visitVariableDeclaration_localNestedInField() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);

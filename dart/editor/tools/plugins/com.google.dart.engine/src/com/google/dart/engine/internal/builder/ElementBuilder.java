@@ -207,7 +207,13 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
     isValidMixin = false;
     ElementHolder holder = new ElementHolder();
-    visitChildren(holder, node);
+    boolean wasInFunction = inFunction;
+    inFunction = true;
+    try {
+      visitChildren(holder, node);
+    } finally {
+      inFunction = wasInFunction;
+    }
 
     SimpleIdentifier constructorName = node.getName();
     ConstructorElementImpl element = new ConstructorElementImpl(constructorName);
