@@ -441,7 +441,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         parameter = ((DefaultFormalParameter) parameter).getParameter();
       }
       if (parameter instanceof FieldFormalParameter) {
-        FieldElement fieldElement = ((FieldFormalParameterElementImpl) formalParameter.getElement()).getField();
+        FieldElement fieldElement = ((FieldFormalParameterElementImpl) parameter.getElement()).getField();
         INIT_STATE state = finalElementsMap.get(fieldElement);
         if (state == INIT_STATE.NOT_INIT) {
           finalElementsMap.put(fieldElement, INIT_STATE.INIT_IN_FIELD_FORMAL);
@@ -449,7 +449,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           if (fieldElement.isFinal() || fieldElement.isConst()) {
             errorReporter.reportError(
                 CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
-                formalParameter,
+                formalParameter.getIdentifier(),
                 fieldElement.getName());
             foundError = true;
           }
@@ -457,7 +457,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
           if (fieldElement.isFinal() || fieldElement.isConst()) {
             errorReporter.reportError(
                 CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES,
-                formalParameter,
+                formalParameter.getIdentifier(),
                 fieldElement.getName());
             foundError = true;
           }
@@ -470,7 +470,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     for (ConstructorInitializer constructorInitializer : initializers) {
       if (constructorInitializer instanceof ConstructorFieldInitializer) {
         ConstructorFieldInitializer constructorFieldInitializer = (ConstructorFieldInitializer) constructorInitializer;
-        Element element = constructorFieldInitializer.getFieldName().getElement();
+        SimpleIdentifier fieldName = constructorFieldInitializer.getFieldName();
+        Element element = fieldName.getElement();
         if (element instanceof PropertyAccessorElement) {
           PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
           PropertyInducingElement variableElement = propertyAccessorElement.getVariable();
@@ -483,18 +484,18 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               if (fieldElement.isFinal() || fieldElement.isConst()) {
                 errorReporter.reportError(
                     CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
-                    node);
+                    fieldName);
                 foundError = true;
               }
             } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
               errorReporter.reportError(
                   CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-                  node);
+                  fieldName);
               foundError = true;
             } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
               errorReporter.reportError(
                   CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-                  constructorFieldInitializer,
+                  fieldName,
                   fieldElement.getName());
               foundError = true;
             }
@@ -519,7 +520,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 //        if (fieldElement.isFinal() || fieldElement.isConst()) {
 //          errorReporter.reportError(
 //              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
-//              node,
+//              node.getReturnType(),
 //              fieldElement.getName());
 //          foundError = true;
 //        }
