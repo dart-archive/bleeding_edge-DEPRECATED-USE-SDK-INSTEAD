@@ -14,8 +14,8 @@
 
 package com.google.dart.eclipse;
 
+import com.google.dart.eclipse.core.jobs.DartSdkUpgradeJob;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.model.DartSdkUpgradeJob;
 
 import org.eclipse.ui.IStartup;
 

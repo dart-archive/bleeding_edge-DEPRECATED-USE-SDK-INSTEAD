@@ -18,25 +18,51 @@ import com.google.dart.tools.core.MessageConsole.MessageStream;
 import com.google.dart.tools.ui.actions.DeployConsolePatternMatcher;
 
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The plugin activator for the com.google.dart.eclipse.ui plugin.
  */
-public class DartEclipseUI extends Plugin {
-
-  private static DartEclipseUI PLUGIN;
+public class DartEclipseUI extends AbstractUIPlugin {
 
   /**
    * The Dart Eclipse UI plugin id.
    */
-  private static final String PLUGIN_ID = "com.google.dart.eclipse.ui";
+  public static final String PLUGIN_ID = "com.google.dart.eclipse.ui";
+
+  private static DartEclipseUI plugin;
+
+  /**
+   * Get a image from this plugin's icons directory.
+   * 
+   * @param imagePath the image path, relative to the icons directory.
+   * @return the specified image
+   */
+  public static Image getImage(String imagePath) {
+    return getPlugin().getPluginImage(imagePath);
+  }
+
+  public static ImageDescriptor getImageDescriptor(String path) {
+    return imageDescriptorFromPlugin(PLUGIN_ID, "icons/" + path);
+  }
+
+  /**
+   * @return the plugin singleton instance
+   */
+  public static DartEclipseUI getPlugin() {
+    return plugin;
+  }
 
   /**
    * Log the given message as an error to the Eclipse log.
@@ -44,8 +70,8 @@ public class DartEclipseUI extends Plugin {
    * @param message the message
    */
   public static void logError(String message) {
-    if (PLUGIN != null) {
-      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message));
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message));
     }
   }
 
@@ -56,8 +82,8 @@ public class DartEclipseUI extends Plugin {
    * @param exception the exception
    */
   public static void logError(String message, Throwable exception) {
-    if (PLUGIN != null) {
-      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, message, exception));
     }
   }
 
@@ -67,8 +93,9 @@ public class DartEclipseUI extends Plugin {
    * @param exception the exception to log
    */
   public static void logError(Throwable exception) {
-    if (PLUGIN != null) {
-      PLUGIN.getLog().log(new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(
+          new Status(IStatus.ERROR, PLUGIN_ID, exception.getMessage(), exception));
     }
   }
 
@@ -78,8 +105,8 @@ public class DartEclipseUI extends Plugin {
    * @param message the message to log
    */
   public static void logWarning(String message) {
-    if (PLUGIN != null) {
-      PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message));
     }
   }
 
@@ -90,14 +117,16 @@ public class DartEclipseUI extends Plugin {
    * @param exception the exception
    */
   public static void logWarning(String message, Throwable exception) {
-    if (PLUGIN != null) {
-      PLUGIN.getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
+    if (getPlugin() != null) {
+      getPlugin().getLog().log(new Status(IStatus.WARNING, PLUGIN_ID, message, exception));
     }
   }
 
+  private Map<String, Image> imageMap = new HashMap<String, Image>();
+
   @Override
   public void start(BundleContext context) throws Exception {
-    PLUGIN = this;
+    plugin = this;
 
     super.start(context);
 
@@ -108,7 +137,19 @@ public class DartEclipseUI extends Plugin {
   public void stop(BundleContext context) throws Exception {
     super.stop(context);
 
-    PLUGIN = null;
+    plugin = null;
+  }
+
+  private Image getPluginImage(String imagePath) {
+    if (imageMap.get(imagePath) == null) {
+      ImageDescriptor imageDescriptor = imageDescriptorFromPlugin(PLUGIN_ID, "icons/" + imagePath);
+
+      if (imageDescriptor != null) {
+        imageMap.put(imagePath, imageDescriptor.createImage());
+      }
+    }
+
+    return imageMap.get(imagePath);
   }
 
   private void initConsole() {

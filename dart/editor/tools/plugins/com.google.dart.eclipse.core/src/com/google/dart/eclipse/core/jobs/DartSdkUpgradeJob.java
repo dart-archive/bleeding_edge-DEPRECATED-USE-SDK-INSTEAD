@@ -12,9 +12,10 @@
  * the License.
  */
 
-package com.google.dart.tools.core.model;
+package com.google.dart.eclipse.core.jobs;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartSdkManager;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,7 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 
 /**
- * TODO:
+ * Download and install the latest released version of the Dart SDK.
  */
 public class DartSdkUpgradeJob extends Job {
 

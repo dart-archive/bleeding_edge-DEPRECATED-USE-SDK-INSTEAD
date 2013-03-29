@@ -19,7 +19,6 @@ import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
@@ -255,15 +254,16 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     if (DartProjectNature.hasDartNature(project)) {
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
         // TODO(keertip): change this to get library sources instead and check if sources are
-        // in workspace. This will also catch external packages. 
-        ProjectManager manager = DartCore.getProjectManager();
-        LibraryElement[] libraries = manager.getLibraries(project);
-        if (DartSdkManager.getManager().hasSdk()) {
-          for (LibraryElement element : getImportedSystemLibraries(libraries)) {
-            children.add(new LibraryNode(project, getSourceFileStore(element.getSource()),
-                element.getName()));
-          }
-        }
+        // in workspace. This will also catch external packages.
+        // TODO(devoncarew): temporarily disable calls to the model - this blocks the UI
+        // thread for 5-10 seconds
+//        LibraryElement[] libraries = manager.getLibraries(project);
+//        if (DartSdkManager.getManager().hasSdk()) {
+//          for (LibraryElement element : getImportedSystemLibraries(libraries)) {
+//            children.add(new LibraryNode(project, getSourceFileStore(element.getSource()),
+//                element.getName()));
+//          }
+//        }
       } else {
         DartProject dartProject = DartCore.create(project);
         if (DartSdkManager.getManager().hasSdk()) {

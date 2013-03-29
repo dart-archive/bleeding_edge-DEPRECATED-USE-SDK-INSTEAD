@@ -8,4 +8,7 @@ Bundle-SymbolicName: com.google.dart.eclipse.core;singleton:=true
 Bundle-Version: 0.0.0.qualifier
 Bundle-Vendor: %providerName
 Require-Bundle: org.eclipse.core.runtime,
- com.google.dart.tools.core
+ com.google.dart.tools.core,
+ org.eclipse.core.resources
+Export-Package: com.google.dart.eclipse.core.jobs
+Bundle-Activator: com.google.dart.eclipse.core.DartCorePlugin

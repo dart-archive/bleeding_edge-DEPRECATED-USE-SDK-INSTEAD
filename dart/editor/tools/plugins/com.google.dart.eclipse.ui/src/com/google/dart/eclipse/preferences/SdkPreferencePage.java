@@ -14,10 +14,10 @@
 
 package com.google.dart.eclipse.preferences;
 
+import com.google.dart.eclipse.core.jobs.DartSdkUpgradeJob;
 import com.google.dart.tools.core.model.DartSdk;
 import com.google.dart.tools.core.model.DartSdkListener;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.core.model.DartSdkUpgradeJob;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 
 import org.eclipse.jface.layout.GridDataFactory;

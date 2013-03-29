@@ -13,6 +13,7 @@
  */
 package com.google.dart.eclipse.wizards;
 
+import com.google.dart.eclipse.DartEclipseUI;
 import com.google.dart.tools.core.generator.AbstractSample;
 
 import org.eclipse.core.resources.IProject;
@@ -39,8 +40,7 @@ public class DartProjectWizardPage extends WizardPage {
 
     setTitle("Create a Dart Project");
     setDescription("This wizard creates a new Dart project.");
-    //TODO (pquitslund): add wizban
-    //setImageDescriptor(DartEclipseUI.getImageDescriptor("icons/dart-icon-wizard.png"));
+    setImageDescriptor(DartEclipseUI.getImageDescriptor("wizban/newprj_wiz.png"));
   }
 
   @Override
@@ -52,7 +52,7 @@ public class DartProjectWizardPage extends WizardPage {
     projectComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     setControl(container);
-    
+
     updatePage();
   }
 
