@@ -26,12 +26,15 @@ import com.google.dart.tools.core.internal.model.DartProjectImpl;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
 
 import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 
 import java.io.IOException;
 import java.util.Map;
@@ -60,6 +63,28 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
   @Override
   public void clean(CleanEvent event, IProgressMonitor monitor) {
     reanalyze = true;
+  }
+
+  /**
+   * Find the pubspec associated with the specified resource, and if necessary run pub install
+   */
+  public void runPubFor(IResource res, IProgressMonitor monitor) {
+    if (res == null) {
+      return;
+    }
+    IWorkspaceRoot root = res.getWorkspace().getRoot();
+    IContainer container = res.getType() == IResource.FILE ? res.getParent() : (IContainer) res;
+    while (container != root) {
+      IFile pubFile = container.getFile(new Path(DartCore.PUBSPEC_FILE_NAME));
+      if (pubFile.exists()) {
+        IFile lockFile = container.getFile(new Path(DartCore.PUBSPEC_LOCK_FILE_NAME));
+        if (!lockFile.exists() || lockFile.getLocalTimeStamp() < pubFile.getLocalTimeStamp()) {
+          runPub(container, monitor);
+        }
+        return;
+      }
+      container = container.getParent();
+    }
   }
 
   @Override
