@@ -13,6 +13,9 @@
  */
 package com.google.dart.engine.utilities.general;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+
 /**
  * The class {@code StringUtilities} defines utility methods for strings.
  * 
@@ -20,6 +23,24 @@ package com.google.dart.engine.utilities.general;
  */
 public final class StringUtilities {
   public static final String[] EMPTY_ARRAY = new String[0];
+
+  /**
+   * The {@link Interner} instance to use for {@link #intern(String)}.
+   */
+  private static final Interner<String> INTERNER = Interners.newWeakInterner();
+
+  /**
+   * Returns a canonical representation for the given {@link String}.
+   * 
+   * @return the given {@link String} or its canonical representation.
+   */
+  public static String intern(String str) {
+    if (str == null) {
+      return null;
+    }
+    str = new String(str);
+    return INTERNER.intern(str);
+  }
 
   /**
    * Prevent the creation of instances of this class.

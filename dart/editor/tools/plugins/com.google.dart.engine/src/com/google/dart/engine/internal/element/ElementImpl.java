@@ -21,6 +21,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 import java.util.EnumSet;
 
@@ -40,7 +41,7 @@ public abstract class ElementImpl implements Element {
   /**
    * The name of this element.
    */
-  private String name;
+  private final String name;
 
   /**
    * The offset of the name of this element in the file that contains the declaration of this
@@ -80,7 +81,7 @@ public abstract class ElementImpl implements Element {
    *          declaration of this element
    */
   public ElementImpl(String name, int nameOffset) {
-    this.name = name;
+    this.name = StringUtilities.intern(name);
     this.nameOffset = nameOffset;
     this.modifiers = EnumSet.noneOf(Modifier.class);
   }

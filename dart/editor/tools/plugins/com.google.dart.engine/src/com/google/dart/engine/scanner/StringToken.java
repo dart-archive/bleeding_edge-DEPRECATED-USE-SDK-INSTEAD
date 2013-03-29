@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.scanner;
 
+import com.google.dart.engine.utilities.general.StringUtilities;
+
 /**
  * Instances of the class {@code StringToken} represent a token whose value is independent of it's
  * type.
@@ -34,7 +36,7 @@ public class StringToken extends Token {
    */
   public StringToken(TokenType type, String value, int offset) {
     super(type, offset);
-    this.value = value;
+    this.value = StringUtilities.intern(value);
   }
 
   @Override
