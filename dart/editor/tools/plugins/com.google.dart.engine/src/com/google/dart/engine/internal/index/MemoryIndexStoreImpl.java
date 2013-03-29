@@ -20,7 +20,6 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
-import com.google.dart.engine.element.TopLevelVariableElement;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
@@ -163,15 +162,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     AnalysisContext locationContext = location.getElement().getContext();
     Source elementSource = findSource(element);
     Source locationSource = findSource(location.getElement());
-    // TODO(scheglov)
-    // There was bug that sometimes Source is null.
-    // Ignore such relationships.
-    if (element instanceof TopLevelVariableElement && elementSource == null) {
-      return;
-    }
-    if (location.getElement() instanceof TopLevelVariableElement && locationSource == null) {
-      return;
-    }
     // remember sources
     addSource(elementContext, elementSource);
     addSource(locationContext, locationSource);
