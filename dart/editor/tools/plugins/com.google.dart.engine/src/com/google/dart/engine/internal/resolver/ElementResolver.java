@@ -275,29 +275,35 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   public Void visitFieldFormalParameter(FieldFormalParameter node) {
     String fieldName = node.getIdentifier().getName();
     ClassElement classElement = resolver.getEnclosingClass();
-    // Call getField directly on the ClassElementImpl since we only care about variables in the
-    // immediately enclosing class.
-    FieldElement fieldElement = ((ClassElementImpl) classElement).getField(fieldName);
+    if (classElement != null) {
+      // Call getField directly on the ClassElementImpl since we only care about variables in the
+      // immediately enclosing class.
+      FieldElement fieldElement = ((ClassElementImpl) classElement).getField(fieldName);
 
-    if (fieldElement != null) {
-      if (!fieldElement.isSynthetic()) {
-        ParameterElement parameterElement = node.getElement();
-        if (parameterElement instanceof FieldFormalParameterElementImpl) {
-          ((FieldFormalParameterElementImpl) parameterElement).setField(fieldElement);
-          if (fieldElement.isStatic()) {
-            resolver.reportError(
-                CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
-                node,
-                fieldName);
+      if (fieldElement != null) {
+        if (!fieldElement.isSynthetic()) {
+          ParameterElement parameterElement = node.getElement();
+          if (parameterElement instanceof FieldFormalParameterElementImpl) {
+            ((FieldFormalParameterElementImpl) parameterElement).setField(fieldElement);
+            if (fieldElement.isStatic()) {
+              resolver.reportError(
+                  CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD,
+                  node,
+                  fieldName);
+            }
           }
         }
+      } else {
+        resolver.reportError(
+            CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
+            node,
+            fieldName);
       }
-    } else {
-      resolver.reportError(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTANT_FIELD,
-          node,
-          fieldName);
     }
+//    else {
+    // TODO(jwren) Report error, constructor initializer variable is a top level element
+    // (Either here or in ErrorVerifier#checkForAllFinalInitializedErrorCodes)
+//    }
     return super.visitFieldFormalParameter(node);
   }
 

@@ -63,6 +63,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
@@ -472,29 +473,36 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         Element element = constructorFieldInitializer.getFieldName().getElement();
         if (element instanceof PropertyAccessorElement) {
           PropertyAccessorElement propertyAccessorElement = (PropertyAccessorElement) element;
-          FieldElement fieldElement = (FieldElement) propertyAccessorElement.getVariable();
-          INIT_STATE state = finalElementsMap.get(fieldElement);
-          if (state == INIT_STATE.NOT_INIT) {
-            finalElementsMap.put(fieldElement, INIT_STATE.INIT_IN_INITIALIZERS);
-          } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
-            if (fieldElement.isFinal() || fieldElement.isConst()) {
+          PropertyInducingElement variableElement = propertyAccessorElement.getVariable();
+          if (variableElement instanceof FieldElement) {
+            FieldElement fieldElement = (FieldElement) variableElement;
+            INIT_STATE state = finalElementsMap.get(fieldElement);
+            if (state == INIT_STATE.NOT_INIT) {
+              finalElementsMap.put(fieldElement, INIT_STATE.INIT_IN_INITIALIZERS);
+            } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
+              if (fieldElement.isFinal() || fieldElement.isConst()) {
+                errorReporter.reportError(
+                    CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                    node);
+                foundError = true;
+              }
+            } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
               errorReporter.reportError(
-                  CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                  CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
                   node);
               foundError = true;
+            } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
+              errorReporter.reportError(
+                  CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                  constructorFieldInitializer,
+                  fieldElement.getName());
+              foundError = true;
             }
-          } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-                node);
-            foundError = true;
-          } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-                constructorFieldInitializer,
-                fieldElement.getName());
-            foundError = true;
           }
+//          else if (variableElement instanceof TopLevelVariableElement) {
+          // TODO(jwren) Report error, constructor initializer variable is a top level element
+          // (Either here or in ElementResolver#visitFieldFormalParameter)
+//          }
         }
 //        else if (element instanceof ParameterElementImpl) {
         // TODO(jwren) Do we need to consider this branch?
