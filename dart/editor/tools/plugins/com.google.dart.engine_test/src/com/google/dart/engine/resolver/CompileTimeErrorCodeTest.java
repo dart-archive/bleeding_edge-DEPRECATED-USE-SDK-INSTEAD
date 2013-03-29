@@ -1382,8 +1382,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
    * FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION code instead. It is provided here to show
    * coverage over all of the permutations of initializers in constructor declarations.
    * <p>
-   * Note: FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER covers a subset of
-   * FINAL_INITIALIZED_MULTIPLE_TIMES, since it more specific, we use it instead of the broader code
+   * Note: FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION covers a subset of
+   * FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR, since it more specific, we use it instead of
+   * the broader code
    */
   public void test_finalInitializedInDeclarationAndConstructor_initializers() throws Exception {
     Source source = addSource("/test.dart", createSource(//

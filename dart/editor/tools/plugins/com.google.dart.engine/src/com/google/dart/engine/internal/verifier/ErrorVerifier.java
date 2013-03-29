@@ -81,7 +81,6 @@ import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Instances of the class {@code ErrorVerifier} traverse an AST structure looking for additional
@@ -258,21 +257,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       isEnclosingConstructorConst = node.getConstKeyword() != null;
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
-      checkForFieldInitializedByMultipleInitializers(node);
       checkForAllFinalInitializedErrorCodes(node);
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
       currentFunction = previousFunction;
     }
-  }
-
-  @Override
-  public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    SimpleIdentifier identifier = node.getFieldName();
-    Element element = identifier.getElement();
-    checkForFieldInitializedInParameterAndInitializer(node, identifier, element);
-    return super.visitConstructorFieldInitializer(node);
   }
 
   @Override
@@ -491,18 +481,16 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
               foundError = true;
             }
           } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
-            // Do nothing: CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-            // This case taken care of in the checkForFieldInitializedInParameterAndInitializer check,
-            // catching the same error code here would miss the variables that are not const or final.
-            // TODO (jwren) Optimization: change the finalFieldElementsMap to hold non-final fields
-            // as well so that checkForFieldInitializedInParameterAndInitializer can be removed.
+            errorReporter.reportError(
+                CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+                node);
+            foundError = true;
           } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
-            // TODO (jwren) Optimization: change the finalFieldElementsMap to hold non-final fields
-            // as well so that checkForFieldInitializedByMultipleInitializers can be removed.
-//            errorReporter.reportError(
-//                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-//                constructorFieldInitializer);
-//            foundError = true;
+            errorReporter.reportError(
+                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+                constructorFieldInitializer,
+                fieldElement.getName());
+            foundError = true;
           }
         }
 //        else if (element instanceof ParameterElementImpl) {
@@ -841,73 +829,6 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
         // otherwise, report the error
         errorReporter.reportError(errorCode, typeName, disallowedType.getName());
         return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * This verifies that the passed constructor declaration does not have two constructor field
-   * Initializers with the same name.
-   * 
-   * @param node the constructor declaration to test
-   * @return return <code>true</code> if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS
-   */
-  private boolean checkForFieldInitializedByMultipleInitializers(ConstructorDeclaration node) {
-    NodeList<ConstructorInitializer> initializers = node.getInitializers();
-    if (initializers.isEmpty()) {
-      return false;
-    }
-    boolean foundError = false;
-    HashSet<String> keySet = new HashSet<String>();
-    for (ConstructorInitializer constructorInitializer : initializers) {
-      if (constructorInitializer instanceof ConstructorFieldInitializer) {
-        ConstructorFieldInitializer fieldInitializer = (ConstructorFieldInitializer) constructorInitializer;
-        SimpleIdentifier simpleIdentifier = fieldInitializer.getFieldName();
-        if (!simpleIdentifier.isSynthetic()) {
-          String key = simpleIdentifier.getName();
-          if (keySet.contains(key)) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
-                fieldInitializer,
-                key);
-            foundError = true;
-          } else {
-            keySet.add(key);
-          }
-        }
-      }
-    }
-    return foundError;
-  }
-
-  /**
-   * This verifies that the passed constructor field initializer is not also a field formal
-   * parameter in the constructor declaration.
-   * 
-   * @param node the constructor field initializer to test
-   * @param identifier the simple identifier of the constructor field initializer
-   * @param element the element associated with the constructor field initializer
-   * @return return <code>true</code> if and only if an error code is generated on the passed node
-   * @see CompileTimeErrorCode#FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-   */
-  private boolean checkForFieldInitializedInParameterAndInitializer(
-      ConstructorFieldInitializer node, SimpleIdentifier identifier, Element element) {
-    ASTNode parent = node.getParent();
-    if (element != null && parent instanceof ConstructorDeclaration) {
-      ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) parent;
-      NodeList<FormalParameter> formalParameters = constructorDeclaration.getParameters().getParameters();
-      for (FormalParameter formalParameter : formalParameters) {
-        if (formalParameter instanceof FieldFormalParameter) {
-          FieldFormalParameter fieldFormalParameter = (FieldFormalParameter) formalParameter;
-          if (fieldFormalParameter.getIdentifier().getName().equals(element.getName())) {
-            errorReporter.reportError(
-                CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-                node);
-            return true;
-          }
-        }
       }
     }
     return false;
