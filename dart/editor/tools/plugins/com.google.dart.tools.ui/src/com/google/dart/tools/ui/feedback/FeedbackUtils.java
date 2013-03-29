@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.feedback;
 
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.index.impl.InMemoryIndex;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
@@ -41,7 +42,6 @@ public class FeedbackUtils {
    * Contains information about the current session
    */
   public static class Stats {
-    public final AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
     public final int numProjects = ResourcesPlugin.getWorkspace().getRoot().getProjects().length;
     public final int numEditors = getNumberOfOpenDartEditors();
     public final int numThreads = getNumberOfThreads();
@@ -49,7 +49,6 @@ public class FeedbackUtils {
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
     public final String indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
-    public final String analysisStats = server.getAnalysisStatus("analysis");
     public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
 
     @Override
@@ -76,7 +75,11 @@ public class FeedbackUtils {
 
       writer.println("thread count: " + countString(numThreads));
 
-      writer.println(analysisStats);
+      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        AnalysisServer server = PackageLibraryManagerProvider.getDefaultAnalysisServer();
+        String analysisStats = server.getAnalysisStatus("analysis");
+        writer.println(analysisStats);
+      }
 
       writer.println(indexStats);
 

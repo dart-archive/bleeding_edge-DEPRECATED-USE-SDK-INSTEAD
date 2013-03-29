@@ -100,7 +100,9 @@ public class FeedbackReport {
     }
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      msg.append("New analysis enabled\n");
+      msg.append("analysis engine: new\n");
+    } else {
+      msg.append("analysis engine: dartc\n");
     }
 
     return msg.toString().trim();
