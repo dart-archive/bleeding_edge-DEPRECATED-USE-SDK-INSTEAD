@@ -29,7 +29,11 @@ public class INIRewriteTest extends TestCase {
 
   public void testInsert() throws Exception {
 
-    List<String> list = Lists.newArrayList("-consoleLog", "-data", "workspace", "-vmargs",
+    List<String> list = Lists.newArrayList(
+        "-consoleLog",
+        "-data",
+        "workspace",
+        "-vmargs",
         "-Dosgi.requiredJavaVersion=1.6");
 
     INIRewriter.insertBefore(list, "-vmargs", "-vm");
@@ -63,6 +67,25 @@ public class INIRewriteTest extends TestCase {
     String[] merged = INIRewriter.merge(orig, orig);
 
     assertArrayEquals(orig, merged);
+  }
+
+  public void testMergePackageRoot() throws Exception {
+    String[] orig = {
+        "-consoleLog", "-data", "workspace", "--package-root", "/usr/local/myapp", "-vm",
+        "/usr/local/buildtools/java/jdk-64/bin/java", "-vmargs", "-Dosgi.requiredJavaVersion=1.6"};
+    String[] latest = {
+        "-consoleLog", "-data", "workspace", "-vmargs", "-Dosgi.requiredJavaVersion=1.6"};
+    String[] merged = INIRewriter.merge(orig, latest);
+
+    assertArrayEquals(orig, merged);
+
+    String[] orig2 = {
+        "-consoleLog", "-data", "workspace", "--package-root", "/usr/local/myapp", "-vmargs",
+        "-Dosgi.requiredJavaVersion=1.6"};
+    String[] merged2 = INIRewriter.merge(orig2, latest);
+
+    assertArrayEquals(orig2, merged2);
+
   }
 
   public void testMergeVM() throws Exception {

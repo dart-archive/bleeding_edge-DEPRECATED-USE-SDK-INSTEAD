@@ -34,6 +34,9 @@ public class INIRewriter {
   private static final String AGENT_FLAG = "-XX:-GoogleAgent";
 
   private static final String VM_ARGS_FLAG = "-vmargs";
+
+  private static final String PACKAGE_ROOT_FLAG = "--package-root";
+
   private static String[] EMPTY = new String[0];
 
   public static void insert(List<String> list, String value) {
@@ -43,6 +46,7 @@ public class INIRewriter {
   public static void insertAfter(List<String> list, String key, String value) {
     int index = list.indexOf(key);
     list.add(index + 1, value);
+
   }
 
   public static void insertBefore(List<String> list, String key, String value) {
@@ -57,6 +61,16 @@ public class INIRewriter {
     if (orig.contains(VM_FLAG) && !latest.contains(VM_FLAG)) {
       insertBefore(merged, VM_ARGS_FLAG, VM_FLAG);
       insertAfter(merged, VM_FLAG, orig.get(orig.indexOf(VM_FLAG) + 1));
+    }
+
+    if (orig.contains(PACKAGE_ROOT_FLAG) && !latest.contains(PACKAGE_ROOT_FLAG)) {
+      if (merged.contains(VM_FLAG)) {
+        insertBefore(merged, VM_FLAG, PACKAGE_ROOT_FLAG);
+        insertAfter(merged, PACKAGE_ROOT_FLAG, orig.get(orig.indexOf(PACKAGE_ROOT_FLAG) + 1));
+      } else {
+        insertBefore(merged, VM_ARGS_FLAG, PACKAGE_ROOT_FLAG);
+        insertAfter(merged, PACKAGE_ROOT_FLAG, orig.get(orig.indexOf(PACKAGE_ROOT_FLAG) + 1));
+      }
     }
 
     if (orig.contains(AGENT_FLAG) && !latest.contains(AGENT_FLAG)) {
