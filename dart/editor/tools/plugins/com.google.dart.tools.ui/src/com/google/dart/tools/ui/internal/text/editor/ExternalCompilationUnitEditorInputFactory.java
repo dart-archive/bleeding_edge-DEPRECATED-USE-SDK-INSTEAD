@@ -70,52 +70,57 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
   @Override
   public IAdaptable createElement(IMemento memento) {
     String fileUriString = memento.getString(KEY_FILE_URI);
+
     if (fileUriString == null) {
       return null;
     }
+
     String unitUriString = memento.getString(KEY_UNIT_URI);
+
     if (unitUriString == null) {
       return null;
     }
+
     try {
       URI fileUri = new URI(fileUriString);
       URI unitUri = new URI(unitUriString);
-      try {
 
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
         //TODO (pquitslund): fix this to be new-world ready
 
-        ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
-            unitUri);
-        // if we can't find a bundled compilation unit, attempt to reconstitue the external CU from its handle
-        if (unit == null) {
+        return new FileStoreEditorInput(EFS.getStore(fileUri));
+      } else {
+        try {
+          ExternalCompilationUnitImpl unit = DartModelManager.getInstance().getDartModel().getBundledCompilationUnit(
+              unitUri);
 
-          String id = memento.getString(KEY_UNIT_ID);
+          // if we can't find a bundled compilation unit, attempt to reconstitute the external CU from its handle
+          if (unit == null) {
+            String id = memento.getString(KEY_UNIT_ID);
 
-          if (id != null) {
+            if (id != null) {
+              Object element = DartCore.create(id);
 
-            Object element = null;
-            if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-              //TODO (pquitslund): create element from encoding
-
-            } else {
-              element = DartCore.create(id);
+              if (element instanceof ExternalCompilationUnitImpl) {
+                return new ExternalCompilationUnitEditorInput(
+                    EFS.getStore(fileUri),
+                    element,
+                    unitUri);
+              }
             }
 
-            if (element instanceof ExternalCompilationUnitImpl) {
-              return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), element, unitUri);
-            }
-
+            //if we have no handle, fall back on a filestore
+            return new FileStoreEditorInput(EFS.getStore(fileUri));
+          } else {
+            return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit, unitUri);
           }
-
-          //if we have no handle, fall back on a filestore
+        } catch (DartModelException exception) {
           return new FileStoreEditorInput(EFS.getStore(fileUri));
         }
-        return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), unit, unitUri);
-      } catch (DartModelException exception) {
-        return new FileStoreEditorInput(EFS.getStore(fileUri));
       }
     } catch (Exception exception) {
       return null;
     }
   }
+
 }

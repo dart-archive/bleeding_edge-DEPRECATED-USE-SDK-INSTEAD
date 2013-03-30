@@ -42,6 +42,7 @@ import java.util.Map;
  * Representation for Dart source files that exist on disk but are not mapped into the Eclipse
  * workspace.
  */
+@Deprecated
 public class ExternalCompilationUnitImpl extends CompilationUnitImpl {
   private final String relPath;
   private DartSource source;
