@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceFilterDescription;
 import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -44,6 +45,17 @@ public abstract class MockContainer extends MockResource implements IContainer {
       if (children != null) {
         for (MockResource child : children) {
           child.accept(visitor, memberFlags);
+        }
+      }
+    }
+  }
+
+  @Override
+  public void accept(IResourceVisitor visitor) throws CoreException {
+    if (visitor.visit(this)) {
+      if (children != null) {
+        for (MockResource child : children) {
+          child.accept(visitor);
         }
       }
     }

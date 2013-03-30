@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFileState;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -55,6 +56,11 @@ public class MockFile extends MockResource implements IFile {
   @Override
   public void accept(IResourceProxyVisitor visitor, int memberFlags) throws CoreException {
     visitor.visit(new MockProxy(this));
+  }
+
+  @Override
+  public void accept(IResourceVisitor visitor) throws CoreException {
+    visitor.visit(this);
   }
 
   @Override

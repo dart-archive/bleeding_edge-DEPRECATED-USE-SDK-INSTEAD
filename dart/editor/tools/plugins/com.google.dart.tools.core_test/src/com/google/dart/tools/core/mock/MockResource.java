@@ -42,12 +42,20 @@ import java.util.Map;
 public abstract class MockResource implements IResource {
   public static final String CREATE_MARKER = "createMarker";
   public static final String DELETE_MARKERS = "deleteMarkers";
+  private static long nextTimeStamp = System.currentTimeMillis();
+
+  private static long getNextTimeStamp() {
+    synchronized (CREATE_MARKER) {
+      return nextTimeStamp++;
+    }
+  }
 
   private IContainer parent;
   private String name;
   private boolean exists;
   private CallList markerCallList;
   private List<MockMarker> markers;
+  private long localTimeStamp = getNextTimeStamp();
 
   public MockResource(IContainer parent, String name) {
     this(parent, name, true);
@@ -57,10 +65,6 @@ public abstract class MockResource implements IResource {
     this.parent = parent;
     this.name = name;
     this.exists = exists;
-  }
-
-  @Override
-  public void accept(IResourceVisitor visitor) throws CoreException {
   }
 
   @Override
@@ -174,7 +178,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public long getLocalTimeStamp() {
-    return 0;
+    return exists() ? localTimeStamp : NULL_STAMP;
   }
 
   @Override
@@ -433,5 +437,6 @@ public abstract class MockResource implements IResource {
 
   @Override
   public void touch(IProgressMonitor monitor) throws CoreException {
+    localTimeStamp = getNextTimeStamp();
   }
 }

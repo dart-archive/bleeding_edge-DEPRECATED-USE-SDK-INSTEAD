@@ -89,6 +89,13 @@ public class MockDelta implements IResourceDelta {
       throw new RuntimeException("Cannot add a delta to a delta marked ADDED or REMOVED");
     }
     MockDelta childDelta = new MockDelta(resource, kind);
+    if (resource.getType() == IResource.FILE || kind == ADDED) {
+      try {
+        resource.touch(null);
+      } catch (CoreException e) {
+        //$FALL-THROUGH$
+      }
+    }
     if (children == null) {
       children = new ArrayList<MockDelta>();
     }
