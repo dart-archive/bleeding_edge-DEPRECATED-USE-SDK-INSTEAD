@@ -1481,7 +1481,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     @Override
     public void removeSelectionChangedListener(ISelectionChangedListener listener) {
-      ISelectionChangedListener dartListener = newDartSelectionListener(listener);
+      ISelectionChangedListener dartListener = listeners.remove(listener);
       if (dartListener != null) {
         super.removeSelectionChangedListener(dartListener);
       }

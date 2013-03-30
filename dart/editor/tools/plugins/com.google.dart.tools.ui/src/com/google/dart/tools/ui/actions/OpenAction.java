@@ -22,59 +22,36 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.texteditor.IEditorStatusLine;
 
 /**
  * This action opens a {@link DartEditor} with declaration of {@link Element}.
  */
 public class OpenAction extends AbstractDartSelectionAction {
-  public OpenAction(DartEditor editor) {
-    this(editor.getEditorSite());
-  }
+  private final DartEditor editor;
 
-  public OpenAction(IWorkbenchSite site) {
-    super(site);
+  public OpenAction(DartEditor editor) {
+    super(editor);
+    this.editor = editor;
   }
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    Element element = getSelectionElement(selection);
-    setEnabled(element != null);
-  }
-
-  @Override
-  public void selectionChanged(IStructuredSelection selection) {
-    Element element = getSelectionElement(selection);
-    setEnabled(element != null);
+    setEnabled(true);
   }
 
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
-    doOpen(element);
-  }
-
-  @Override
-  protected void doRun(IStructuredSelection selection, Event event,
-      UIInstrumentationBuilder instrumentation) {
-    Element element = getSelectionElement(selection);
-    doOpen(element);
-  }
-
-  @Override
-  protected void init() {
-    setText(ActionMessages.OpenAction_label);
-    setToolTipText(ActionMessages.OpenAction_tooltip);
-    setDescription(ActionMessages.OpenAction_description);
-    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);
-  }
-
-  private void doOpen(Element element) {
     if (element == null) {
+      IEditorStatusLine statusLine = (IEditorStatusLine) editor.getAdapter(IEditorStatusLine.class);
+      if (statusLine != null) {
+        statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
+      }
+      getShell().getDisplay().beep();
       return;
     }
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
@@ -83,5 +60,13 @@ public class OpenAction extends AbstractDartSelectionAction {
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during open.");
     }
+  }
+
+  @Override
+  protected void init() {
+    setText(ActionMessages.OpenAction_label);
+    setToolTipText(ActionMessages.OpenAction_tooltip);
+    setDescription(ActionMessages.OpenAction_description);
+    PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);
   }
 }

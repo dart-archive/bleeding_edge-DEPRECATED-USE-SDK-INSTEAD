@@ -47,9 +47,8 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     super(site);
     findReferencesAction = new FindReferencesAction(site);
     findDeclarationsAction = new FindDeclarationsAction(site);
-    openAction = new OpenAction(site);
     initActions();
-    addActions(findReferencesAction, findDeclarationsAction, openAction);
+    addActions(findReferencesAction, findDeclarationsAction);
     addActionSelectionListeners();
   }
 
@@ -76,7 +75,9 @@ public class DartSearchActionGroup extends AbstractDartSelectionActionGroup {
     findReferencesAction.setId(DartEditorActionDefinitionIds.SEARCH_REFERENCES_IN_WORKSPACE);
     findDeclarationsAction.setActionDefinitionId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
     findDeclarationsAction.setId(DartEditorActionDefinitionIds.SEARCH_DECLARATIONS_IN_WORKSPACE);
-    openAction.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
-    openAction.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    if (openAction != null) {
+      openAction.setActionDefinitionId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+      openAction.setId(DartEditorActionDefinitionIds.OPEN_EDITOR);
+    }
   }
 }
