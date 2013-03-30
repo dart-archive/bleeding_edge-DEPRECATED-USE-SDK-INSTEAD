@@ -4599,21 +4599,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private boolean isContentEditable() {
     if (!isEditableStateKnown) {
-      IDocumentProvider p = getDocumentProvider();
-      if (p instanceof ICompilationUnitDocumentProvider) {
-        ICompilationUnitDocumentProvider provider = (ICompilationUnitDocumentProvider) getDocumentProvider();
-        if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-          if (inputFile != null) {
-            isEditable = !inputFile.isReadOnly();
-          } else {
-            isEditable = false;
-          }
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        if (inputFile != null) {
+          isEditable = !inputFile.isReadOnly();
         } else {
-          CompilationUnit unit = provider.getWorkingCopy(getEditorInput());
-          isEditable = !unit.isReadOnly();
+          isEditable = false;
         }
       } else {
-        isEditable = true;
+        IDocumentProvider p = getDocumentProvider();
+        if (p instanceof ICompilationUnitDocumentProvider) {
+          ICompilationUnitDocumentProvider provider = (ICompilationUnitDocumentProvider) p;
+          CompilationUnit unit = provider.getWorkingCopy(getEditorInput());
+          isEditable = unit != null && !unit.isReadOnly();
+        } else {
+          isEditable = true;
+        }
       }
       isEditableStateKnown = true;
     }
