@@ -17,15 +17,27 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LabelElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.ConstructorElementImpl;
+import com.google.dart.engine.internal.element.FieldElementImpl;
+import com.google.dart.engine.internal.element.FunctionElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
+import com.google.dart.engine.internal.element.LabelElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
+import com.google.dart.engine.internal.element.MethodElementImpl;
+import com.google.dart.engine.internal.element.ParameterElementImpl;
+import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
+import com.google.dart.engine.internal.element.TopLevelVariableElementImpl;
+import com.google.dart.engine.internal.element.TypeVariableElementImpl;
 
 import java.util.ArrayList;
 
@@ -105,10 +117,16 @@ public class ElementHolder {
   }
 
   public PropertyAccessorElement[] getAccessors() {
+    if (accessors.isEmpty()) {
+      return PropertyAccessorElementImpl.EMPTY_ARRAY;
+    }
     return accessors.toArray(new PropertyAccessorElement[accessors.size()]);
   }
 
   public ConstructorElement[] getConstructors() {
+    if (constructors.isEmpty()) {
+      return ConstructorElementImpl.EMPTY_ARRAY;
+    }
     return constructors.toArray(new ConstructorElement[constructors.size()]);
   }
 
@@ -122,42 +140,72 @@ public class ElementHolder {
   }
 
   public FieldElement[] getFields() {
+    if (fields.isEmpty()) {
+      return FieldElementImpl.EMPTY_ARRAY;
+    }
     return fields.toArray(new FieldElement[fields.size()]);
   }
 
   public FunctionElement[] getFunctions() {
+    if (functions.isEmpty()) {
+      return FunctionElementImpl.EMPTY_ARRAY;
+    }
     return functions.toArray(new FunctionElement[functions.size()]);
   }
 
   public LabelElement[] getLabels() {
+    if (labels.isEmpty()) {
+      return LabelElementImpl.EMPTY_ARRAY;
+    }
     return labels.toArray(new LabelElement[labels.size()]);
   }
 
   public LocalVariableElement[] getLocalVariables() {
+    if (localVariables.isEmpty()) {
+      return LocalVariableElementImpl.EMPTY_ARRAY;
+    }
     return localVariables.toArray(new LocalVariableElement[localVariables.size()]);
   }
 
   public MethodElement[] getMethods() {
+    if (methods.isEmpty()) {
+      return MethodElementImpl.EMPTY_ARRAY;
+    }
     return methods.toArray(new MethodElement[methods.size()]);
   }
 
   public ParameterElement[] getParameters() {
+    if (parameters.isEmpty()) {
+      return ParameterElementImpl.EMPTY_ARRAY;
+    }
     return parameters.toArray(new ParameterElement[parameters.size()]);
   }
 
   public TopLevelVariableElement[] getTopLevelVariables() {
+    if (topLevelVariables.isEmpty()) {
+      return TopLevelVariableElementImpl.EMPTY_ARRAY;
+    }
     return topLevelVariables.toArray(new TopLevelVariableElement[topLevelVariables.size()]);
   }
 
   public FunctionTypeAliasElement[] getTypeAliases() {
+    if (typeAliases.isEmpty()) {
+      return FunctionTypeAliasElementImpl.EMPTY_ARRAY;
+    }
     return typeAliases.toArray(new FunctionTypeAliasElement[typeAliases.size()]);
   }
 
   public ClassElement[] getTypes() {
+    if (types.isEmpty()) {
+      return ClassElementImpl.EMPTY_ARRAY;
+    }
     return types.toArray(new ClassElement[types.size()]);
   }
 
   public TypeVariableElement[] getTypeVariables() {
+    if (typeVariables.isEmpty()) {
+      return TypeVariableElementImpl.EMPTY_ARRAY;
+    }
     return typeVariables.toArray(new TypeVariableElement[typeVariables.size()]);
   }
 }
