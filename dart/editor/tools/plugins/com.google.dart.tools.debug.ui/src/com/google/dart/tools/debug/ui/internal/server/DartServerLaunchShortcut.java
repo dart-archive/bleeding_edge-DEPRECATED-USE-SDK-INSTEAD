@@ -22,6 +22,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -35,7 +36,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -195,7 +195,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
 
     ILaunchConfiguration config = findConfig(resource);
     if (config != null) {
-      DebugUITools.launch(config, mode);
+      DartDebugUITools.launch(config, mode);
       return;
     }
 
@@ -223,7 +223,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
       return;
     }
 
-    DebugUITools.launch(config, mode);
+    DartDebugUITools.launch(config, mode);
   }
 
   protected boolean testSimilar(IResource resource, ILaunchConfiguration config) {

@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
+import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
@@ -35,7 +36,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.internal.core.IInternalDebugCoreConstants;
 import org.eclipse.debug.internal.ui.launchConfigurations.DeleteLaunchConfigurationAction;
 import org.eclipse.debug.internal.ui.launchConfigurations.LaunchConfigurationPresentationManager;
-import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.ILaunchConfigurationTabGroup;
@@ -389,9 +389,9 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     }
 
     if (supportsDebug) {
-      DebugUITools.launch(selectedConfig, ILaunchManager.DEBUG_MODE);
+      DartDebugUITools.launch(selectedConfig, ILaunchManager.DEBUG_MODE);
     } else {
-      DebugUITools.launch(selectedConfig, ILaunchManager.RUN_MODE);
+      DartDebugUITools.launch(selectedConfig, ILaunchManager.RUN_MODE);
     }
 
     super.okPressed();

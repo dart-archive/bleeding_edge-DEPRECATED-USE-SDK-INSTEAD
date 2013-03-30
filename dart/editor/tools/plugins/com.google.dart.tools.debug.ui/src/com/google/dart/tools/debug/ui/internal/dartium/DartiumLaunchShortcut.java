@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartSdkManager;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
@@ -30,7 +31,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.ui.DebugUITools;
 
 /**
  * A launch shortcut to allow users to launch Dart applications in Chromium / Dartium.
@@ -109,7 +109,7 @@ public class DartiumLaunchShortcut extends AbstractLaunchShortcut implements ILa
     launchWrapper.markAsLaunched();
     LaunchUtils.clearDartiumConsoles();
 
-    DebugUITools.launch(config, mode);
+    DartDebugUITools.launch(config, mode);
   }
 
   @Override

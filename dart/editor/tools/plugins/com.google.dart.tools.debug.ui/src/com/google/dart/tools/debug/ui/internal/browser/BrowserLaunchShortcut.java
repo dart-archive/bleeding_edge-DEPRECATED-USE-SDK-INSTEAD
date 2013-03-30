@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.internal.browser;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DartUtil;
 import com.google.dart.tools.debug.ui.internal.util.AbstractLaunchShortcut;
 import com.google.dart.tools.debug.ui.internal.util.ILaunchShortcutExt;
@@ -29,7 +30,6 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.debug.ui.DebugUITools;
 
 /**
  * This class interprets the current selection or the currently active editor and opens html page in
@@ -82,7 +82,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
     ILaunchConfiguration config = findConfig(resource);
 
     if (config != null) {
-      DebugUITools.launch(config, mode);
+      DartDebugUITools.launch(config, mode);
       return;
     }
 
@@ -114,7 +114,7 @@ public class BrowserLaunchShortcut extends AbstractLaunchShortcut implements ILa
       return;
     }
 
-    DebugUITools.launch(config, mode);
+    DartDebugUITools.launch(config, mode);
   }
 
   @Override

@@ -16,6 +16,7 @@ package com.google.dart.tools.debug.ui.launch;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
+import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -65,6 +66,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
   private static final int MAX_MENU_LENGTH = 10;
 
   private Menu menu;
+
   protected IWorkbenchWindow window;
 
   public DartRunAbstractAction(IWorkbenchWindow window, String name, int flags) {
@@ -153,7 +155,7 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
         LaunchUtils.clearDartiumConsoles();
       }
 
-      DebugUITools.launch(config, mode);
+      DartDebugUITools.launch(config, mode);
     } catch (CoreException e) {
       instrumentation.metric("Problem-Exception", e.getClass().getName());
       instrumentation.metric("Problem-Exception", e.toString());
