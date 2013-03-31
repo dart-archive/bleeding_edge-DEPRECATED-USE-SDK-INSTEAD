@@ -23,6 +23,7 @@ public class TestAll {
     TestSuite suite = new ExtendedTestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTestSuite(IntListTest.class);
     suite.addTestSuite(IntStackTest.class);
+    suite.addTestSuite(FastRemoveListTest.class);
     return suite;
   }
 }

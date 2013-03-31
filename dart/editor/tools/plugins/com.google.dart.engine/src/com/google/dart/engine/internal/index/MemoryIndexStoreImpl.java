@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.index;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.context.AnalysisContext;
@@ -26,6 +27,7 @@ import com.google.dart.engine.index.MemoryIndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
+import com.google.dart.engine.utilities.collection.FastRemoveList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +41,27 @@ import java.util.Set;
  * @coverage dart.engine.index
  */
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
+
+  static class ElementRelationKey {
+    final Element element;
+    final Relationship relationship;
+
+    public ElementRelationKey(Element element, Relationship relationship) {
+      this.element = element;
+      this.relationship = relationship;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      ElementRelationKey other = (ElementRelationKey) obj;
+      return Objects.equal(other.element, element) && other.relationship == relationship;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(element, relationship);
+    }
+  }
 
   /**
    * @return the {@link Source} which contains given {@link Element}, may be {@code null}.
@@ -64,7 +87,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
    */
-  final Map<Element, Map<Relationship, Set<ContributedLocation>>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
+  final Map<ElementRelationKey, FastRemoveList<ContributedLocation>> relationshipMap = Maps.newHashMapWithExpectedSize(4096);
 
   /**
    * A set of all {@link Source}s with elements or relationships.
@@ -79,7 +102,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * {@link ContributedLocation}s by {@link Source} where they are contributed.
    */
-  final Map<AnalysisContext, Map<Source, Set<ContributedLocation>>> sourceToLocations = Maps.newHashMapWithExpectedSize(64);
+  final Map<AnalysisContext, Map<Source, FastRemoveList<ContributedLocation>>> sourceToLocations = Maps.newHashMapWithExpectedSize(64);
 
   @Override
   public void clear() {
@@ -103,15 +126,19 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public int getElementCount() {
-    return relationshipMap.size();
+    Set<Element> elements = Sets.newHashSet();
+    for (ElementRelationKey key : relationshipMap.keySet()) {
+      elements.add(key.element);
+    }
+    return elements.size();
   }
 
   @VisibleForTesting
   public int getLocationCount(AnalysisContext context) {
     int count = 0;
-    Map<Source, Set<ContributedLocation>> contextLocations = sourceToLocations.get(context);
+    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(context);
     if (contextLocations != null) {
-      for (Set<ContributedLocation> contributedLocations : contextLocations.values()) {
+      for (FastRemoveList<ContributedLocation> contributedLocations : contextLocations.values()) {
         count += contributedLocations.size();
       }
     }
@@ -121,28 +148,24 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   @Override
   public int getRelationshipCount() {
     int count = 0;
-    for (Map<Relationship, Set<ContributedLocation>> elementRelationshipMap : relationshipMap.values()) {
-      for (Set<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
-        count += contributedLocations.size();
-      }
+    for (FastRemoveList<ContributedLocation> contributedLocations : relationshipMap.values()) {
+      count += contributedLocations.size();
     }
     return count;
   }
 
   @Override
   public Location[] getRelationships(Element element, Relationship relationship) {
-    Map<Relationship, Set<ContributedLocation>> elementRelationshipMap = relationshipMap.get(element);
-    if (elementRelationshipMap != null) {
-      Set<ContributedLocation> contributedLocations = elementRelationshipMap.get(relationship);
-      if (contributedLocations != null) {
-        int count = contributedLocations.size();
-        Location[] locations = new Location[count];
-        int locationIndex = 0;
-        for (ContributedLocation contributedLocation : contributedLocations) {
-          locations[locationIndex++] = contributedLocation.getLocation();
-        }
-        return locations;
+    ElementRelationKey relKey = new ElementRelationKey(element, relationship);
+    FastRemoveList<ContributedLocation> contributedLocations = relationshipMap.get(relKey);
+    if (contributedLocations != null) {
+      int count = contributedLocations.size();
+      Location[] locations = new Location[count];
+      int locationIndex = 0;
+      for (ContributedLocation contributedLocation : contributedLocations) {
+        locations[locationIndex++] = contributedLocation.getLocation();
       }
+      return locations;
     }
     return Location.EMPTY_ARRAY;
   }
@@ -167,28 +190,24 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     addSource(locationContext, locationSource);
     recordSourceToDeclarations(elementContext, elementSource, element);
     //
-    Map<Source, Set<ContributedLocation>> contextLocations = sourceToLocations.get(locationContext);
+    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(locationContext);
     if (contextLocations == null) {
-      contextLocations = Maps.newHashMapWithExpectedSize(1024);
+      contextLocations = Maps.newHashMap();
       sourceToLocations.put(locationContext, contextLocations);
     }
     //
-    Set<ContributedLocation> sourceLocations = contextLocations.get(locationSource);
+    FastRemoveList<ContributedLocation> sourceLocations = contextLocations.get(locationSource);
     if (sourceLocations == null) {
-      sourceLocations = Sets.newHashSet();
+      sourceLocations = FastRemoveList.newInstance();
       contextLocations.put(locationSource, sourceLocations);
     }
     // add ContributedLocation for "element"
     {
-      Map<Relationship, Set<ContributedLocation>> elementRelMap = relationshipMap.get(element);
-      if (elementRelMap == null) {
-        elementRelMap = Maps.newHashMap();
-        relationshipMap.put(element, elementRelMap);
-      }
-      Set<ContributedLocation> locations = elementRelMap.get(relationship);
+      ElementRelationKey relKey = new ElementRelationKey(element, relationship);
+      FastRemoveList<ContributedLocation> locations = relationshipMap.get(relKey);
       if (locations == null) {
-        locations = Sets.newHashSet();
-        elementRelMap.put(relationship, locations);
+        locations = FastRemoveList.newInstance();
+        relationshipMap.put(relKey, locations);
       }
       new ContributedLocation(sourceLocations, locations, location);
     }
@@ -204,9 +223,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       }
     }
     // remove relationships in Source(s) of removed context
-    Map<Source, Set<ContributedLocation>> contextLocations = sourceToLocations.remove(context);
+    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.remove(context);
     if (contextLocations != null) {
-      for (Set<ContributedLocation> sourceLocations : contextLocations.values()) {
+      for (FastRemoveList<ContributedLocation> sourceLocations : contextLocations.values()) {
         removeSourceContributedLocations(sourceLocations);
       }
     }
@@ -224,9 +243,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       }
     }
     // remove relationships in removed source
-    Map<Source, Set<ContributedLocation>> contextLocations = sourceToLocations.get(context);
+    Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(context);
     if (contextLocations != null) {
-      Set<ContributedLocation> sourceLocations = contextLocations.remove(source);
+      FastRemoveList<ContributedLocation> sourceLocations = contextLocations.remove(source);
       if (sourceLocations != null) {
         removeSourceContributedLocations(sourceLocations);
       }
@@ -261,7 +280,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   private void addSource(AnalysisContext context, Source source) {
     Set<Source> contextSources = sources.get(context);
     if (contextSources == null) {
-      contextSources = Sets.newHashSetWithExpectedSize(256);
+      contextSources = Sets.newHashSet();
       sources.put(context, contextSources);
     }
     contextSources.add(source);
@@ -272,7 +291,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     // prepare AnalysisContext declarations
     Map<Source, Set<Element>> contextElements = sourceToDeclarations.get(context);
     if (contextElements == null) {
-      contextElements = Maps.newHashMapWithExpectedSize(1024);
+      contextElements = Maps.newHashMap();
       sourceToDeclarations.put(context, contextElements);
     }
     // remember Element in Source
@@ -284,19 +303,20 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     sourceElements.add(declaredElement);
   }
 
-  private void removeSourceContributedLocations(Set<ContributedLocation> sourceLocations) {
+  private void removeSourceContributedLocations(FastRemoveList<ContributedLocation> sourceLocations) {
     for (ContributedLocation contributedLocation : sourceLocations) {
-      contributedLocation.getLocationOwner().remove(contributedLocation);
+      contributedLocation.removeFromLocationOwner();
     }
   }
 
   private void removeSourceDeclaredElements(Set<Element> sourceElements) {
-    for (Element declaredElement : sourceElements) {
-      Map<Relationship, Set<ContributedLocation>> elementRelationshipMap = relationshipMap.remove(declaredElement);
-      if (elementRelationshipMap != null) {
-        for (Set<ContributedLocation> contributedLocations : elementRelationshipMap.values()) {
+    for (Element sourceElement : sourceElements) {
+      for (Relationship relationship : Relationship.values()) {
+        ElementRelationKey relKey = new ElementRelationKey(sourceElement, relationship);
+        FastRemoveList<ContributedLocation> contributedLocations = relationshipMap.remove(relKey);
+        if (contributedLocations != null) {
           for (ContributedLocation contributedLocation : contributedLocations) {
-            contributedLocation.getDeclarationOwner().remove(contributedLocation);
+            contributedLocation.removeFromDeclarationOwner();
           }
         }
       }

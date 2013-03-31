@@ -13,25 +13,32 @@
  */
 package com.google.dart.engine.internal.index;
 
-import com.google.common.collect.Sets;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.utilities.collection.FastRemoveList;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-
-import java.util.Set;
 
 public class ContributedLocationTest extends EngineTestCase {
   public void test_new() throws Exception {
-    Set<ContributedLocation> declarationOwner = Sets.newHashSet();
-    Set<ContributedLocation> locationOwner = Sets.newHashSet();
+    FastRemoveList<ContributedLocation> declarationOwner = FastRemoveList.newInstance();
+    FastRemoveList<ContributedLocation> locationOwner = FastRemoveList.newInstance();
     Location location = mock(Location.class);
     ContributedLocation contributedLocation = new ContributedLocation(
         declarationOwner,
         locationOwner,
         location);
-    assertSame(declarationOwner, contributedLocation.getDeclarationOwner());
-    assertSame(locationOwner, contributedLocation.getLocationOwner());
     assertSame(location, contributedLocation.getLocation());
+    assertThat(declarationOwner).containsOnly(contributedLocation);
+    assertThat(locationOwner).containsOnly(contributedLocation);
+    // remove from "declaration"
+    contributedLocation.removeFromDeclarationOwner();
+    assertThat(declarationOwner).isEmpty();
+    assertThat(locationOwner).containsOnly(contributedLocation);
+    // remove from "location"
+    contributedLocation.removeFromLocationOwner();
+    assertThat(declarationOwner).isEmpty();
+    assertThat(locationOwner).isEmpty();
   }
 }

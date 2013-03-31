@@ -15,6 +15,7 @@ package com.google.dart.engine.index;
 
 import com.google.common.collect.Maps;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -49,6 +50,13 @@ public class Relationship {
       }
       return relationship;
     }
+  }
+
+  /**
+   * @return all registered {@link Relationship}s.
+   */
+  public static Collection<Relationship> values() {
+    return RelationshipMap.values();
   }
 
   /**

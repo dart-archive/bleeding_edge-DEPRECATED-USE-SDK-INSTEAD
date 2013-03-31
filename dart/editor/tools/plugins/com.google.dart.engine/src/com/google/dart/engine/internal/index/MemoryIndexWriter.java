@@ -19,15 +19,13 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.index.Location;
-import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.index.MemoryIndexStoreImpl.ElementRelationKey;
+import com.google.dart.engine.utilities.collection.FastRemoveList;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * Helper to write {@link MemoryIndexStoreImpl} to {@link OutputStream}.
@@ -53,48 +51,46 @@ class MemoryIndexWriter {
   public void write() throws IOException {
     dos.writeInt(FILE_VERSION_NUMBER);
     // prepare Element(s) to write relations for
-    List<Element> elementsToWrite = Lists.newArrayList();
-    for (Element element : impl.relationshipMap.keySet()) {
+    List<ElementRelationKey> keysToWrite = Lists.newArrayList();
+    for (ElementRelationKey key : impl.relationshipMap.keySet()) {
+      Element element = key.element;
       if (!isElementOfContext(element)) {
         continue;
       }
-      elementsToWrite.add(element);
+      keysToWrite.add(key);
     }
     // do write Element(s)
-    dos.writeInt(elementsToWrite.size());
-    for (Element element : elementsToWrite) {
-      Map<Relationship, Set<ContributedLocation>> relations = impl.relationshipMap.get(element);
-      writeElementLocation(element);
-      // write relations
-      for (Entry<Relationship, Set<ContributedLocation>> relEntry : relations.entrySet()) {
-        // write relation
-        dos.writeUTF(relEntry.getKey().getIdentifier());
-        // prepare Location(s) to write
-        List<Location> locationsToWrite = Lists.newArrayList();
-        for (ContributedLocation contributedLocation : relEntry.getValue()) {
-          Location location = contributedLocation.getLocation();
-          // TODO(scheglov) restore when we will share Elements between contexts
-//          Element locationElement = location.getElement();
-//          if (!isElementOfContext(locationElement)) {
-//            continue;
-//          }
-          locationsToWrite.add(location);
-        }
-        // write Location(s)
-        dos.writeInt(locationsToWrite.size());
-        for (Location location : locationsToWrite) {
-          writeElementLocation(location.getElement());
-          dos.writeInt(location.getOffset());
-          dos.writeInt(location.getLength());
-          writeMayBeNull(location.getImportPrefix());
-        }
+    dos.writeInt(keysToWrite.size());
+    for (ElementRelationKey key : keysToWrite) {
+      // write key
+      writeElementLocation(key.element);
+      dos.writeUTF(key.relationship.getIdentifier());
+      // prepare Location(s) to write
+      List<Location> locationsToWrite = Lists.newArrayList();
+      FastRemoveList<ContributedLocation> contributedLocations = impl.relationshipMap.get(key);
+      for (ContributedLocation contributedLocation : contributedLocations) {
+        Location location = contributedLocation.getLocation();
+        // TODO(scheglov) restore when we will share Elements between contexts
+//        Element locationElement = location.getElement();
+//        if (!isElementOfContext(locationElement)) {
+//          continue;
+//        }
+        locationsToWrite.add(location);
+      }
+      // write Location(s)
+      dos.writeInt(locationsToWrite.size());
+      for (Location location : locationsToWrite) {
+        writeElementLocation(location.getElement());
+        dos.writeInt(location.getOffset());
+        dos.writeInt(location.getLength());
+        writeMayBeNull(location.getImportPrefix());
       }
     }
   }
 
   /**
-   * @return {@code true} if given {@link Element} belongs to the {@link AnalysisContext} which
-   *         we are currently writing.
+   * @return {@code true} if given {@link Element} belongs to the {@link AnalysisContext} which we
+   *         are currently writing.
    */
   private boolean isElementOfContext(Element element) {
     return element.getContext() == context;

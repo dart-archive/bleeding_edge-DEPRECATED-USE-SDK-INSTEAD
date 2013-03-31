@@ -15,6 +15,10 @@ package com.google.dart.engine.index;
 
 import com.google.dart.engine.EngineTestCase;
 
+import static org.fest.assertions.Assertions.assertThat;
+
+import java.util.Collection;
+
 public class RelationshipTest extends EngineTestCase {
 
   public void test_getIdentifier() throws Exception {
@@ -31,5 +35,11 @@ public class RelationshipTest extends EngineTestCase {
   public void test_toString() throws Exception {
     Relationship relationship = Relationship.getRelationship("test-id");
     assertEquals("test-id", relationship.toString());
+  }
+
+  public void test_values() throws Exception {
+    Relationship relationship = Relationship.getRelationship("test-id");
+    Collection<Relationship> values = Relationship.values();
+    assertThat(values).contains(relationship);
   }
 }
