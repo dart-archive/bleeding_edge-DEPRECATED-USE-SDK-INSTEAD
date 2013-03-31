@@ -41,12 +41,12 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
   /**
    * The node that is the parent of each of the elements in the list.
    */
-  private ASTNode owner;
+  private final ASTNode owner;
 
   /**
    * The elements of the list.
    */
-  private List<E> elements = new ArrayList<E>();
+  private List<E> elements = null;
 
   /**
    * Initialize a newly created list of nodes to be empty.
@@ -63,6 +63,9 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @param visitor the visitor to be used to visit the elements of this list
    */
   public void accept(ASTVisitor<?> visitor) {
+    if (elements == null) {
+      return;
+    }
     for (E element : elements) {
       element.accept(visitor);
     }
@@ -70,6 +73,9 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
 
   @Override
   public void add(int index, E node) {
+    if (elements == null) {
+      elements = new ArrayList<E>(1);
+    }
     owner.becomeParentOf(node);
     elements.add(index, node);
   }
@@ -84,6 +90,9 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
 
   @Override
   public E get(int index) {
+    if (elements == null) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
+    }
     return elements.get(index);
   }
 
@@ -122,17 +131,26 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
 
   @Override
   public E remove(int index) {
+    if (elements == null) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
+    }
     return elements.remove(index);
   }
 
   @Override
   public E set(int index, E node) {
+    if (elements == null) {
+      throw new IndexOutOfBoundsException("Index: " + index + ", Size: 0");
+    }
     owner.becomeParentOf(node);
     return elements.set(index, node);
   }
 
   @Override
   public int size() {
+    if (elements == null) {
+      return 0;
+    }
     return elements.size();
   }
 }
