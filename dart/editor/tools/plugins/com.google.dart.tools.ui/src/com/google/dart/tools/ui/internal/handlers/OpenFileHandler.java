@@ -21,7 +21,7 @@ import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
-import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
+import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter_OLD;
 import com.google.dart.tools.ui.internal.text.editor.EditorUtility;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
@@ -71,7 +71,7 @@ public class OpenFileHandler extends AbstractHandler {
       PlatformUI.getWorkbench().getProgressService().run(
           true,
           true,
-          new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
+          new WorkbenchRunnableAdapter_OLD(new IWorkspaceRunnable() {
             @Override
             public void run(IProgressMonitor monitor) throws CoreException {
 

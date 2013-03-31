@@ -446,7 +446,7 @@ public class RenameSupport_OLD {
 
       RenameSelectionState state = createSelectionState();
 
-      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
+      RefactoringExecutionHelper_OLD helper = new RefactoringExecutionHelper_OLD(
           fRefactoring,
           RefactoringCore.getConditionCheckingFailedSeverity(),
           getDartRenameProcessor().getSaveMode(),

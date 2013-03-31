@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -14,7 +14,7 @@
 package com.google.dart.tools.ui.internal.refactoring;
 
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
+import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter_OLD;
 
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -47,7 +47,7 @@ import java.lang.reflect.InvocationTargetException;
  * @coverage dart.editor.ui.refactoring.ui
  */
 @SuppressWarnings("restriction")
-public class RefactoringExecutionHelper {
+public class RefactoringExecutionHelper_OLD {
 
   private class Operation implements IWorkspaceRunnable {
     public Change fChange;
@@ -96,10 +96,13 @@ public class RefactoringExecutionHelper {
             1,
             SubProgressMonitor.PREPEND_MAIN_LABEL_TO_SUBTASK));
 
-        fPerformChangeOperation = new PerformChangeOperation(fChange);
+        fPerformChangeOperation = new PerformChangeOperation(fChange);//RefactoringUI.createUIAwareChangeOperation(fChange);
         fPerformChangeOperation.setUndoManager(
             RefactoringCore.getUndoManager(),
             fRefactoring.getName());
+//        if (fRefactoring instanceof IScheduledRefactoring) {
+//          fPerformChangeOperation.setSchedulingRule(((IScheduledRefactoring) fRefactoring).getSchedulingRule());
+//        }
 
         if (!fForked || fForkChangeExecution) {
           fPerformChangeOperation.run(new SubProgressMonitor(
@@ -137,7 +140,7 @@ public class RefactoringExecutionHelper {
    * @param parent the parent shell
    * @param context the runnable context
    */
-  public RefactoringExecutionHelper(Refactoring refactoring, int stopSeverity, int saveMode,
+  public RefactoringExecutionHelper_OLD(Refactoring refactoring, int stopSeverity, int saveMode,
       Shell parent, IRunnableContext context) {
     super();
     Assert.isNotNull(refactoring);
@@ -206,9 +209,9 @@ public class RefactoringExecutionHelper {
       final Operation op = new Operation(fork, forkChangeExecution);
       fRefactoring.setValidationContext(fParent);
       try {
-        fExecContext.run(fork, cancelable, new WorkbenchRunnableAdapter(op, rule, true));
+        fExecContext.run(fork, cancelable, new WorkbenchRunnableAdapter_OLD(op, rule, true));
         if (fork && !forkChangeExecution && op.fPerformChangeOperation != null) {
-          fExecContext.run(false, false, new WorkbenchRunnableAdapter(
+          fExecContext.run(false, false, new WorkbenchRunnableAdapter_OLD(
               op.fPerformChangeOperation,
               rule,
               true));

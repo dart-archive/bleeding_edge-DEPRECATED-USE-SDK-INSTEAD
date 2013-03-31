@@ -46,7 +46,7 @@ public class MoveSupport {
   public static void performMove(RefactoringStatus status, IResource[] resources,
       IContainer destination) throws Exception {
     Refactoring refactoring = createMoveRefactoring(status, resources, destination);
-    RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
+    RefactoringExecutionHelper_OLD helper = new RefactoringExecutionHelper_OLD(
         refactoring,
         RefactoringCore.getConditionCheckingFailedSeverity(),
         RefactoringSaveHelper.SAVE_ALL,

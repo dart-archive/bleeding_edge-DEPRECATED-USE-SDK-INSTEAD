@@ -22,7 +22,7 @@ import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter;
+import com.google.dart.tools.ui.internal.actions.WorkbenchRunnableAdapter_OLD;
 import com.google.dart.tools.ui.internal.dialogs.OptionalMessageDialog;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.text.comment.CommentFormattingContext;
@@ -215,7 +215,7 @@ public class FormatAllAction extends InstrumentedSelectionDispatchAction {
         PlatformUI.getWorkbench().getProgressService().run(
             true,
             true,
-            new WorkbenchRunnableAdapter(new IWorkspaceRunnable() {
+            new WorkbenchRunnableAdapter_OLD(new IWorkspaceRunnable() {
               @Override
               public void run(IProgressMonitor monitor) {
                 doRunOnMultiple(cus, status, monitor);

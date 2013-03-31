@@ -38,7 +38,7 @@ import com.google.dart.tools.ui.internal.refactoring.ConvertMethodToGetterWizard
 import com.google.dart.tools.ui.internal.refactoring.ConvertOptionalParametersToNamedWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineLocalWizard;
 import com.google.dart.tools.ui.internal.refactoring.InlineMethodWizard;
-import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringExecutionHelper_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
@@ -166,7 +166,7 @@ public final class RefactoringExecutionStarter_OLD {
         context = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
       }
 
-      RefactoringExecutionHelper helper = new RefactoringExecutionHelper(
+      RefactoringExecutionHelper_OLD helper = new RefactoringExecutionHelper_OLD(
           refactoring,
           IStatus.INFO,
           RefactoringSaveHelper.SAVE_ALL,
