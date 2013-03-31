@@ -207,6 +207,12 @@ public class LightNodeElements {
           childNode = method;
         }
       }
+      {
+        ConstructorDeclaration constructor = node.getAncestor(ConstructorDeclaration.class);
+        if (constructor != null) {
+          childNode = constructor;
+        }
+      }
       if (childNode == null) {
         childNode = node.getAncestor(VariableDeclaration.class);
       }

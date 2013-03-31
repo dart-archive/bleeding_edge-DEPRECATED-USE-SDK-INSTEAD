@@ -3969,7 +3969,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-//      ((DartOutlinePage) page).setInput(parsedUnit, null);
+      ((DartOutlinePage) page).setInput(parsedUnit);
     } else {
       // dartc
       DartElement de = getInputDartElement();
