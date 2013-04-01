@@ -436,14 +436,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedClass() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() { C.m(); }"));
-    resolve(source);
-    assertErrors(StaticWarningCode.UNDEFINED_CLASS);
-    verify(source);
-  }
-
   public void fail_undefinedGetter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         // TODO
@@ -543,5 +535,26 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticWarningCode.PART_OF_DIFFERENT_LIBRARY);
     verify(source);
+  }
+
+  public void test_undefinedClass_instanceCreation() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() { new C(); }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_CLASS);
+  }
+
+  public void test_undefinedClass_variableDeclaration() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() { C c; }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_CLASS);
+  }
+
+  public void test_undefinedIdentifier_methodInvocation() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() { C.m(); }"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 }

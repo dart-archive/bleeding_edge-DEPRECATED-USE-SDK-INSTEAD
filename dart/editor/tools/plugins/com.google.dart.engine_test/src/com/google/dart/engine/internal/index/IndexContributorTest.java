@@ -682,11 +682,14 @@ public class IndexContributorTest extends AbstractDartTest {
   }
 
   public void test_isReferencedBy_ClassElement_withPrefix() throws Exception {
+    // Turn of verify of no errors since "pref.MyClass" is an undefined class.
+    verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "  pref.MyClass v;",
         "}");
+    verifyNoTestUnitErrors = true;
     // prepare elements
     Element mainElement = findElement("main(");
     LibraryElement libraryElement = mock(LibraryElement.class);

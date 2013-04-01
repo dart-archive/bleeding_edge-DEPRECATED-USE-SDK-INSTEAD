@@ -71,6 +71,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.FieldFormalParameterElementImpl;
 import com.google.dart.engine.internal.element.LabelElementImpl;
@@ -775,6 +776,15 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (element == null) {
       // TODO(brianwilkerson) Report and recover from this error.
+      ASTNode parent = node.getParent();
+      String name = node.getName();
+      if (parent instanceof MethodInvocation) {
+        if (node.equals(((MethodInvocation) parent).getTarget())) {
+          resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, name);
+        } else {
+//          resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, name);
+        }
+      }
     }
     recordResolution(node, element);
     return null;

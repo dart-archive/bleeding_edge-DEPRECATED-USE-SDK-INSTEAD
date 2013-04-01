@@ -56,6 +56,7 @@ import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
 import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
@@ -391,7 +392,10 @@ public class TypeResolverVisitor extends ScopedVisitor {
     }
     if (element == null) {
       // We couldn't resolve the type name.
-      // TODO(brianwilkerson) Report this error
+      // TODO(jwren) Consider moving the check for CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE
+      // from the ErrorVerifier, so that we don't have two errors on a built in identifier being
+      // used as a class name. See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
+      reportError(StaticWarningCode.UNDEFINED_CLASS, node, typeName);
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);

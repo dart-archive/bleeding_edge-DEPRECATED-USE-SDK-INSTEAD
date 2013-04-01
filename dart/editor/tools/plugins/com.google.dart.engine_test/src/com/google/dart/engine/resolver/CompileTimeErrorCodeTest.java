@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.error.CompileTimeErrorCode;
+import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.source.Source;
 
@@ -1014,7 +1015,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  typedef x;",
         "}"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE);
+    assertErrors(
+        CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+        StaticWarningCode.UNDEFINED_CLASS);
     verify(source);
   }
 

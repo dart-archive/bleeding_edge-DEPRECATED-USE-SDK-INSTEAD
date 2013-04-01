@@ -18,6 +18,7 @@ import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.DeclaredIdentifier;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.ForEachStatement;
@@ -173,6 +174,16 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
     } finally {
       nameScope = outerScope;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    VariableElement element = node.getElement();
+    if (element != null) {
+      nameScope.define(element);
+    }
+    super.visitDeclaredIdentifier(node);
     return null;
   }
 

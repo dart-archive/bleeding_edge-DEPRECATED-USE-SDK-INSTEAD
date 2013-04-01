@@ -328,7 +328,7 @@ public enum StaticWarningCode implements ErrorCode {
    * x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a static warning if <i>C</i> does not denote a
    * class in the current scope.
    */
-  UNDEFINED_CLASS(""),
+  UNDEFINED_CLASS("Undefined class '%s'"),
 
   /**
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
@@ -343,7 +343,7 @@ public enum StaticWarningCode implements ErrorCode {
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    */
-  UNDEFINED_IDENTIFIER(""),
+  UNDEFINED_IDENTIFIER("Undefined name '%s'"),
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs

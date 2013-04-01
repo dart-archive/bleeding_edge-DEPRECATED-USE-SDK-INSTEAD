@@ -415,6 +415,7 @@ public class NonErrorResolverTest extends ResolverTestCase {
 
   public void test_returnOfInvalidType_dynamic() throws Exception {
     Source source = addSource("/test.dart", createSource(//
+        "class TypeError {}",
         "class A {",
         "  static void testLogicalOp() {",
         "    testOr(a, b, onTypeError) {",
