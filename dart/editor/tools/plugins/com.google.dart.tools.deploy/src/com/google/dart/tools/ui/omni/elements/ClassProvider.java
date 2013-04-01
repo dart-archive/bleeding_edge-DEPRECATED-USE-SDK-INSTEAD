@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.common.collect.Sets;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.index.Index;
@@ -36,6 +37,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.dialogs.SearchPattern;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  * Provider for class elements.
@@ -95,6 +97,7 @@ public class ClassProvider extends OmniProposalProvider {
   private final SearchScope searchScope = SearchScopeFactory.createUniverseScope();
 
   private final ArrayList<OmniElement> results = new ArrayList<OmniElement>();
+  private final Set<ClassElement> uniqueClassElements = Sets.newHashSet();
 
   private boolean searchComplete;
   private boolean searchStarted;
@@ -189,11 +192,15 @@ public class ClassProvider extends OmniProposalProvider {
               @Override
               public void matchFound(SearchMatch match) {
                 Element element = match.getElement();
-                if (element instanceof ClassElement) {
-                  results.add(new com.google.dart.tools.ui.omni.elements.ClassElement(
-                      ClassProvider.this,
-                      (ClassElement) element));
+                ClassElement classElement = (ClassElement) element;
+                // TODO(scheglov) may be do something smarter with duplicates
+                if (!uniqueClassElements.add(classElement)) {
+                  return;
                 }
+                // OK, add omni element
+                results.add(new com.google.dart.tools.ui.omni.elements.ClassElement(
+                    ClassProvider.this,
+                    classElement));
               }
 
               @Override

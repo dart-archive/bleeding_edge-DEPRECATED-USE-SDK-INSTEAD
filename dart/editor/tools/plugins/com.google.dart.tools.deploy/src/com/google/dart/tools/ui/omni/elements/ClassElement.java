@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.omni.elements;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
@@ -65,18 +67,11 @@ public class ClassElement extends OmniElement {
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
-
     instrumentation.data("ClassElement.searchResultSelected", cls.getName());
-
-// try {
-
-    //TODO (pquitslund): add support for opening Elements to DartUI
-    //DartUI.openInEditor(cls, true, true);
-
-//    } catch (PartInitException e) {
-//      DartToolsPlugin.log(e);
-//    } catch (DartModelException e) {
-//      DartToolsPlugin.log(e);
-//    }
+    try {
+      DartUI.openInEditor(cls);
+    } catch (Throwable e) {
+      DartToolsPlugin.log(e);
+    }
   }
 }
