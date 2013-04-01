@@ -336,7 +336,7 @@ log("ratio = ${ratio}");
   }
 }
 
-void setup(canvas, int w, int h) {
+void setup(canvas, int w, int h, int f) {
   if (canvas == null) {
     canvas = new CanvasElement(width: w, height: h);
   }
@@ -360,8 +360,5 @@ void resize(int width, int height) {
 void update(when) {
   drawScene();
   window.requestAnimationFrame(update);
-}
-
-onMotionDown(num when, num x, num y) {
 }
 

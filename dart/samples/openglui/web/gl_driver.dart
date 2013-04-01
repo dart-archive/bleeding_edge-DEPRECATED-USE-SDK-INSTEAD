@@ -10,17 +10,9 @@ import '../src/gl.dart';
  * A driver to run GL applications in the browser.
  */
 
-void glMain(setup, resize, draw, [onMotionDown]) {
+void glMain(setup, resize) {
   // Setup a Canvas for GL to run inside.
   final canvas = getDisplayCanvas(resize);
-  setup(canvas, canvas.width, canvas.height);
-
-  canvas.on.mouseDown.add((e) {
-    if (onMotionDown != null) {
-      onMotionDown(0, 0, 0);
-    }
-  });
-
-  animate(draw);
+  setup(canvas, canvas.width, canvas.height, 2);
 }
 

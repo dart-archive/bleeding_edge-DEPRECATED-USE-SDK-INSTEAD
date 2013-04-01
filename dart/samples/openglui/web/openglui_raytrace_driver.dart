@@ -9,6 +9,6 @@ import '../src/openglui_raytrace.dart';
 
 main() {
   wrapVertexArray = true;
-  glMain(setup, resize, update, onMotionDown);
+  glMain(setup, resize);
 }
 

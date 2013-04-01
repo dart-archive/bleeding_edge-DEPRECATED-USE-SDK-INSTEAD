@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<project>
+    <target name="-pre-build">
+      <move file="assets/dart/openglui_raytrace.dart"
+            tofile="assets/dart/main.dart"
+            failonerror="false" />
+    </target>
+    <target name="-pre-compile">
+    </target>
+    <target name="-post-compile">
+    </target>
+</project>

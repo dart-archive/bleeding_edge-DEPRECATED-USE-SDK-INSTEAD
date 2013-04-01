@@ -5,4 +5,4 @@
 import 'gl_driver.dart';
 import '../src/flashingbox.dart';
 
-main() => glMain(setup, resize, draw);
+main() => glMain(setup, resize);

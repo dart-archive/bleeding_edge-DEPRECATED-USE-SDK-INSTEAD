@@ -8,7 +8,7 @@
 {
   'targets': [
     {
-      'target_name': 'mobile_emulator_sample',
+      'target_name': 'mobile_emulator_app',
       'type': 'none',
       'conditions': [
         ['OS=="linux" or OS=="mac"',
@@ -17,7 +17,7 @@
               '../../../runtime/dart-runtime.gyp:emulator_embedder',
               'mobile_emulator',
               'copy_dart_files',
-              'decode_png'
+              'copy_assets',
             ]
           }
         ]
@@ -31,26 +31,28 @@
         'files': [
            '../../../runtime/embedders/openglui/common/gl.dart',
            '../src/openglui_raytrace.dart',
-           '../src/openglui_canvas_tests.dart'
+           '../src/openglui_canvas_tests.dart',
+           '../src/flashingbox.dart',
+           '../src/blasteroids.dart'
         ],
       }],
     },
     {
-      'target_name': 'decode_png',
+      'target_name': 'copy_assets',
       'type': 'none',
-      'actions': [
-        {
-          'action_name': 'decode',
-          'inputs': [
-            '../src/chrome.hex'
-          ],
-          'outputs': [
-            '<(PRODUCT_DIR)/chrome.png',
-          ],
-          'action': [ 'xxd', '-r', '../src/chrome.hex',
-                      '<(PRODUCT_DIR)/chrome.png' ]
-        }
-      ]
+      'copies': [ {
+        'destination': '<(PRODUCT_DIR)',
+        'files': [
+          '../web/asteroid1.png',
+          '../web/asteroid2.png',
+          '../web/asteroid3.png',
+          '../web/asteroid4.png',
+          '../web/bg3_1.png',
+          '../web/enemyship1.png',
+          '../web/player.png',
+          '../web/shield.png',
+        ],
+      }],
     },
     {
       'target_name': 'mobile_emulator',
@@ -92,7 +94,6 @@
                  '-lc' ],
               'ldflags': [
                 '-Wall',
-                '-g',
                 # TODO(gram): handle release mode.
                 '-Lthird_party/skia/trunk/out/Debug',
               ],

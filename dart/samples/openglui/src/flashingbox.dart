@@ -9,28 +9,30 @@ library flashingbox;
 
 import 'gl.dart';
 
+WebGLRenderingContext gl = null;
+
 num r;
 num g;
 num b;
 
-/**
- * Invoked on initial startup.
- */
-void setup(int width, int height) {
+void setup(canvas, int w, int h, int f) {
+  if (canvas == null) {
+    canvas = new CanvasElement(width: w, height: h);
+  }
+  gl = canvas.getContext("experimental-webgl");
   r = 0;
   g = 0;
   b = 0;
-  resize(width, height);
+  resize(w, h);
+  window.requestAnimationFrame(update);
+  log("Done setup");
 }
 
 void resize(int width, int height) {
   gl.viewport(0, 0, width, height);
 }
 
-/**
- * Invoked on each frame render.
- */
-void draw() {
+void update(when) {
   gl.clearColor(r, g, b, 1.0);
   gl.clear(WebGLRenderingContext.COLOR_BUFFER_BIT |
        WebGLRenderingContext.DEPTH_BUFFER_BIT);
@@ -46,4 +48,7 @@ void draw() {
   if (b > 1) {
     b = 0;
   }
+  glSwapBuffers();
+  window.requestAnimationFrame(update);
 }
+

@@ -8,6 +8,6 @@ import 'dart:html';
 import '../src/openglui_canvas_tests.dart';
 
 main() {
-  glMain(setup, resize, update, onMotionDown);
+  glMain(setup, resize);
 }
 

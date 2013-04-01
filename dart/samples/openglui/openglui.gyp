@@ -17,13 +17,15 @@
       'conditions': [
         ['OS=="android"', {
             'dependencies': [
-              'android/android.gyp:android_sample',
+              'android-webgl-raytrace/android.gyp:android_app',
+              'android-canvas-tests/android.gyp:android_app',
+              'android-blasteroids/android.gyp:android_app',
             ],
           },
         ],
         ['enable_openglui==1', {
             'dependencies': [
-              'emulator/emulator.gyp:mobile_emulator_sample',
+              'emulator/emulator.gyp:mobile_emulator_app',
             ],
           },
         ],

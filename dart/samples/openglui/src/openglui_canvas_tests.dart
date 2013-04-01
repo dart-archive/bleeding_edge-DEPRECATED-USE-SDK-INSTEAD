@@ -21,7 +21,7 @@ void resize(int w, int h) {
   height = h;
 }
 
-void setup(canvasp, int w, int h) {
+void setup(canvasp, int w, int h, int f) {
   if (canvasp == null) {
     log("Allocating canvas");
     canvas = new CanvasElement(width: w, height: h);
@@ -500,12 +500,11 @@ void lineDash() {
 void loadImage() {
   initTest("Image loading");
   var imageObj = new ImageElement();
-  var sub;
-  sub = imageObj.onLoad.listen((e) {
-    ctx.drawImage(e.target, 69, 50);
-    sub.cancel();
-  });
+  // Setting src before onLoad is a more interesting test.
   imageObj.src = 'chrome.png';
+  imageObj.onLoad.listen((e) {
+    ctx.drawImage(e.target, 0, 0, width, height, 0, 0, width, height);
+  });
 }
 
 void clip() {
@@ -656,7 +655,39 @@ void anim() {
   ctx.stroke();
 }
 
+void linearGradient() {
+  initTest("Linear Gradient");
+  ctx.rect(0, 0, width, height);
+  var grd = ctx.createLinearGradient(0, 0, width, height);
+  // light blue
+  grd.addColorStop(0, '#8ED6FF');   
+  // dark blue
+  grd.addColorStop(1, '#004CB3');
+  ctx.fillStyle = grd;
+  ctx.fill();
+}
+
+void radialGradient() {
+  initTest("Radial Gradient");
+  ctx.rect(0, 0, width, height);
+  var grd = ctx.createRadialGradient(238, 50, 10, 238, 50, 300);
+  // light blue
+  grd.addColorStop(0, '#8ED6FF');
+  // dark blue
+  grd.addColorStop(1, '#004CB3');
+  ctx.fillStyle = grd;
+  ctx.fill();
+}
+
 int testnum = 0; // Set this to -1 to start with last test.
+
+double x, y, z;
+
+onAccelerometer(double xx, double yy, double zz) {
+ x = xx;
+ y = yy;
+ z = zz;
+}
 
 void update(num when) {
   window.requestAnimationFrame(update);
@@ -733,17 +764,25 @@ void update(num when) {
       smiley();
       break;
     case 23:
+      linearGradient();
+      break;
+    case 24:
+      radialGradient();
+      break;
+    case 25:
+      break; // Skip for now; this is really slow.
       var rayTracer = new RayTracer();
       rayTracer.render(defaultScene(), ctx, width, height);
       break;
     default:
       if (testnum < 0) {
-        testnum = 23;
+        testnum = 24;
       } else {
         testnum = 0;
       }
       return;
   }
+
   isDirty = false;
 }
 
