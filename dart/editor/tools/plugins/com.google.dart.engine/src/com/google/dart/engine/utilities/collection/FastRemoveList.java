@@ -14,6 +14,7 @@
 
 package com.google.dart.engine.utilities.collection;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -32,60 +33,32 @@ import java.util.List;
  * @coverage dart.engine.utilities
  */
 public class FastRemoveList<E> implements Iterable<E> {
-  /**
-   * Handle which can be used to remove element.
-   */
-  public static interface Handle {
-    /**
-     * Removes element corresponding this {@link Handle}.
-     */
-    void remove();
-  }
-
-  private static class Entry<E> implements Handle {
-    private final E value;
-    private Entry<E> prev;
-    private Entry<E> next;
-
-    public Entry(E value, Entry<E> next) {
-      this.value = value;
-      this.next = next;
-    }
-
-    @Override
-    public void remove() {
-      if (prev != null) {
-        prev.next = next;
-      }
-      if (next != null) {
-        next.prev = prev;
-      }
-      prev = null;
-      next = null;
-    }
-  }
 
   /**
    * {@link Iterator} for {@link FastRemoveList}.
    */
-  private static class ListIterator<E> implements Iterator<E> {
-    private Entry<E> entry;
-    private Entry<E> next;
+  private class ListIterator implements Iterator<E> {
+    private final int lastElementIndex;
+    private int index = -1;
 
-    public ListIterator(Entry<E> head) {
-      this.next = head;
+    public ListIterator(int lastElementIndex) {
+      this.lastElementIndex = lastElementIndex;
     }
 
     @Override
     public boolean hasNext() {
-      return next != null;
+      return index < lastElementIndex;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public E next() {
-      entry = next;
-      next = next.next;
-      return entry.value;
+      while (true) {
+        E e = (E) elements[++index];
+        if (e != null) {
+          return e;
+        }
+      }
     }
 
     @Override
@@ -103,26 +76,43 @@ public class FastRemoveList<E> implements Iterable<E> {
     return new FastRemoveList<E>();
   }
 
-  private final Entry<E> head = new Entry<E>(null, null);
-
-  private FastRemoveList() {
-  }
+  private Object[] elements = new Object[1];
+  private int firstPossibleEmpty = 0;
 
   /**
    * Adds given element. It is not specified where element will be added - to the end, to the
    * beginning or in the middle. Only guarantee is that it can be accessed later using
    * {@link #iterator()}.
    * 
-   * @return the {@link Handle} which can be used to remove element.
+   * @return an integer handle which can be used to remove element.
    */
-  public Handle add(E value) {
-    Entry<E> newEntry = new Entry<E>(value, head.next);
-    if (head.next != null) {
-      head.next.prev = newEntry;
+  public int add(E value) {
+    if (value == null) {
+      throw new NullPointerException("Null element cannot be added.");
     }
-    newEntry.prev = head;
-    head.next = newEntry;
-    return newEntry;
+    int len = elements.length;
+    // try to find empty position
+    for (int i = firstPossibleEmpty; i < len; i++) {
+      if (elements[i] == null) {
+        elements[i] = value;
+        firstPossibleEmpty = i + 1;
+        return i;
+      }
+    }
+    // no empty position, expand array
+    int newLen;
+    if (len < 16) {
+      newLen = len + 2;
+    } else {
+      newLen = (len * 5) / 4;
+    }
+    elements = Arrays.copyOf(elements, newLen);
+    // set element
+    elements[len] = value;
+    // we sure about next empty position
+    firstPossibleEmpty = len + 1;
+    // done
+    return len;
   }
 
   /**
@@ -133,7 +123,22 @@ public class FastRemoveList<E> implements Iterable<E> {
    */
   @Override
   public Iterator<E> iterator() {
-    return new ListIterator<E>(head.next);
+    int lastElementIndex = -1;
+    for (int i = elements.length - 1; i >= 0; i--) {
+      if (elements[i] != null) {
+        lastElementIndex = i;
+        break;
+      }
+    }
+    return new ListIterator(lastElementIndex);
+  }
+
+  /**
+   * Removes element with given handle.
+   */
+  public void remove(int handle) {
+    elements[handle] = null;
+    firstPossibleEmpty = Math.min(firstPossibleEmpty, handle);
   }
 
   /**
@@ -144,10 +149,10 @@ public class FastRemoveList<E> implements Iterable<E> {
    */
   public int size() {
     int size = 0;
-    Entry<E> entry = head.next;
-    while (entry != null) {
-      size++;
-      entry = entry.next;
+    for (int i = elements.length - 1; i >= 0; i--) {
+      if (elements[i] != null) {
+        size++;
+      }
     }
     return size;
   }

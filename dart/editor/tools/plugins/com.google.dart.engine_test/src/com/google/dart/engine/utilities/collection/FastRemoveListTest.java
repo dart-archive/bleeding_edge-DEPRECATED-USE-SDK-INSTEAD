@@ -13,11 +13,14 @@
  */
 package com.google.dart.engine.utilities.collection;
 
-import com.google.dart.engine.utilities.collection.FastRemoveList.Handle;
+import com.google.common.collect.Sets;
 
 import junit.framework.TestCase;
 
+import static org.fest.assertions.Assertions.assertThat;
+
 import java.util.Iterator;
+import java.util.Set;
 
 public class FastRemoveListTest extends TestCase {
   public void test_add() {
@@ -27,38 +30,49 @@ public class FastRemoveListTest extends TestCase {
     // add "A"
     list.add("A");
     assertEquals(1, list.size());
+    assertThat(Sets.newHashSet(list)).containsOnly("A");
     // add "B"
     list.add("B");
     assertEquals(2, list.size());
+    assertThat(Sets.newHashSet(list)).containsOnly("A", "B");
+    // add "C"
+    list.add("C");
+    assertEquals(3, list.size());
+    assertThat(Sets.newHashSet(list)).containsOnly("A", "B", "C");
   }
 
-  public void test_Handle_remove() {
+  public void test_add_afterFillRemove() {
     FastRemoveList<String> list = FastRemoveList.newInstance();
-    Handle handleA = list.add("A");
-    Handle handleB = list.add("B");
+    // "A" and "B"
+    int handleA = list.add("A");
+    list.add("B");
+    // remove "A"
+    list.remove(handleA);
+    assertEquals(1, list.size());
+    assertThat(Sets.newHashSet(list)).containsOnly("B");
+    // add "C"
+    list.add("C");
     assertEquals(2, list.size());
     // values
     {
-      Iterator<String> iter = list.iterator();
-      assertTrue(iter.hasNext());
-      assertEquals("B", iter.next());
-      assertTrue(iter.hasNext());
-      assertEquals("A", iter.next());
-      assertFalse(iter.hasNext());
+      Set<String> elements = Sets.newHashSet(list);
+      assertThat(elements).containsOnly("B", "C");
     }
-    // remove "B"
-    handleB.remove();
-    {
-      Iterator<String> iter = list.iterator();
-      assertTrue(iter.hasNext());
-      assertEquals("A", iter.next());
-      assertFalse(iter.hasNext());
+  }
+
+  public void test_add_many() {
+    FastRemoveList<String> list = FastRemoveList.newInstance();
+    for (int i = 0; i < 50; i++) {
+      list.add("V-" + i);
+      assertEquals(i + 1, list.size());
     }
-    // remove "A"
-    handleA.remove();
-    {
-      Iterator<String> iter = list.iterator();
-      assertFalse(iter.hasNext());
+  }
+
+  public void test_add_null() {
+    FastRemoveList<String> list = FastRemoveList.newInstance();
+    try {
+      list.add(null);
+    } catch (NullPointerException e) {
     }
   }
 

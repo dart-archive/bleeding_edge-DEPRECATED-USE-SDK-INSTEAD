@@ -26,8 +26,10 @@ import java.util.List;
  * @coverage dart.engine.index
  */
 public class ContributedLocation {
-  private final FastRemoveList.Handle declarationOwner;
-  private final FastRemoveList.Handle locationOwner;
+  private final FastRemoveList<ContributedLocation> declarationOwner;
+  private final FastRemoveList<ContributedLocation> locationOwner;
+  private final int declarationHandle;
+  private final int locationHandle;
 
   /**
    * The location that is part of the relationship contributed by the contributor.
@@ -43,8 +45,10 @@ public class ContributedLocation {
    */
   public ContributedLocation(FastRemoveList<ContributedLocation> declarationOwner,
       FastRemoveList<ContributedLocation> locationOwner, Location location) {
-    this.declarationOwner = declarationOwner.add(this);
-    this.locationOwner = locationOwner.add(this);
+    this.declarationOwner = declarationOwner;
+    this.locationOwner = locationOwner;
+    this.declarationHandle = declarationOwner.add(this);
+    this.locationHandle = locationOwner.add(this);
     this.location = location;
   }
 
@@ -61,13 +65,13 @@ public class ContributedLocation {
    * Removes this {@link ContributedLocation} form "declaration" owner.
    */
   public void removeFromDeclarationOwner() {
-    declarationOwner.remove();
+    declarationOwner.remove(declarationHandle);
   }
 
   /**
    * Removes this {@link ContributedLocation} form "location" owner.
    */
   public void removeFromLocationOwner() {
-    locationOwner.remove();
+    locationOwner.remove(locationHandle);
   }
 }
