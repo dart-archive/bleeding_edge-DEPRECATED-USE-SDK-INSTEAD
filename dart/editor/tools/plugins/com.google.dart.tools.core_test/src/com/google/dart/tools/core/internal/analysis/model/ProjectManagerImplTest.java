@@ -115,6 +115,8 @@ public class ProjectManagerImplTest extends TestCase {
 
   private final class MockProjectManagerImpl extends ProjectManagerImpl {
 
+    private Project projectUnderTest;
+
     public MockProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk,
         DartIgnoreManager ignoreManager) {
       super(resource, sdk, ignoreManager);
@@ -123,17 +125,18 @@ public class ProjectManagerImplTest extends TestCase {
     @Override
     public Project getProject(IProject project) {
       if (project == projectContainer) {
-        Project result = projects.get(project);
-        if (result == null) {
-          result = new ProjectImpl(projectContainer, expectedSdk, new AnalysisContextFactory() {
-            @Override
-            public AnalysisContext createContext() {
-              return context;
-            }
-          });
-          projects.put(projectContainer, result);
+        if (projectUnderTest == null) {
+          projectUnderTest = new ProjectImpl(
+              projectContainer,
+              expectedSdk,
+              new AnalysisContextFactory() {
+                @Override
+                public AnalysisContext createContext() {
+                  return context;
+                }
+              });
         }
-        return result;
+        return projectUnderTest;
       }
       return super.getProject(project);
     }

@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
@@ -48,8 +47,7 @@ import java.util.List;
 public class ProjectManagerImpl extends ContextManagerImpl implements ProjectManager {
 
   private final IWorkspaceRoot resource;
-  @VisibleForTesting
-  protected final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
+  private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartSdk sdk;
   private final AnalysisContext sdkContext;
@@ -66,8 +64,10 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public void addProjectListener(ProjectListener listener) {
-    if (listener != null && !listeners.contains(listener)) {
-      listeners.add(listener);
+    synchronized (listeners) {
+      if (listener != null && !listeners.contains(listener)) {
+        listeners.add(listener);
+      }
     }
   }
 
@@ -78,7 +78,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public IResource getHtmlFileForLibrary(Source source) {
-
     AnalysisContext context = getContext(getResource(source));
     Source[] htmlSource = context.getHtmlFilesReferencing(source);
     if (htmlSource.length > 0) {
@@ -141,12 +140,14 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public Project getProject(IProject resource) {
-    Project result = projects.get(resource);
-    if (result == null) {
-      result = new ProjectImpl(resource, sdk);
-      projects.put(resource, result);
+    synchronized (projects) {
+      Project result = projects.get(resource);
+      if (result == null) {
+        result = new ProjectImpl(resource, sdk);
+        projects.put(resource, result);
+      }
+      return result;
     }
-    return result;
   }
 
   @Override
@@ -218,7 +219,8 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   @Override
   public void projectAnalyzed(Project project) {
     final ProjectEvent event = new ProjectEvent(project);
-    for (ProjectListener listener : listeners) {
+    ProjectListener[] currentListeners = listeners.toArray(new ProjectListener[listeners.size()]);
+    for (ProjectListener listener : currentListeners) {
       try {
         listener.projectAnalyzed(event);
       } catch (Exception e) {
@@ -229,7 +231,9 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public void removeProjectListener(ProjectListener listener) {
-    listeners.remove(listener);
+    synchronized (listeners) {
+      listeners.remove(listener);
+    }
   }
 
   @Override
