@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.ui.internal.text.correction;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -85,7 +84,6 @@ import com.google.dart.tools.ui.internal.text.correction.proposals.CreateFileCor
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedPositions;
 import com.google.dart.tools.ui.internal.viewsupport.DartElementImageProvider;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
@@ -391,9 +389,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
     // insert source
     addReplaceEdit(range, sb.toString());
     // add linked positions
-    if (Objects.equal(targetUnit, unit) && nameNode != null) {
-      addLinkedPosition("NAME", TrackedPositions.forNode(nameNode));
-    }
+    // TODO(scheglov) disabled, caused exception in old model, don't know why
+//    if (Objects.equal(targetUnit, unit) && nameNode != null) {
+//      addLinkedPosition("NAME", TrackedPositions.forNode(nameNode));
+//    }
     addLinkedPositions(sb);
     // add proposal
     {
@@ -605,7 +604,8 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       // insert source
       addReplaceEdit(range, sb.toString());
       // add linked positions
-      addLinkedPosition("NAME", TrackedPositions.forNode(node));
+      // TODO(scheglov) disabled, caused exception in old model, don't know why
+//      addLinkedPosition("NAME", TrackedPositions.forNode(node));
       addLinkedPositions(sb);
       // add proposal
       addUnitCorrectionProposal(
@@ -710,9 +710,10 @@ public class QuickFixProcessor implements IQuickFixProcessor {
       // insert source
       addReplaceEdit(range, sb.toString());
       // add linked positions
-      if (Objects.equal(targetUnit, unit)) {
-        addLinkedPosition("NAME", TrackedPositions.forNode(node));
-      }
+      // TODO(scheglov) disabled, caused exception in old model, don't know why
+//      if (Objects.equal(targetUnit, unit)) {
+//        addLinkedPosition("NAME", TrackedPositions.forNode(node));
+//      }
       addLinkedPositions(sb);
       // add proposal
       addUnitCorrectionProposal(

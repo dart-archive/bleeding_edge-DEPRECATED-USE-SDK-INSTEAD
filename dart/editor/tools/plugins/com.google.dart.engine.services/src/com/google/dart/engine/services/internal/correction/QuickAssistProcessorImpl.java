@@ -81,6 +81,7 @@ import java.util.Map.Entry;
  * Implementation of {@link QuickAssistProcessor}.
  */
 public class QuickAssistProcessorImpl implements QuickAssistProcessor {
+  private static final CorrectionProposal[] NO_PROPOSALS = {};
   private static final int DEFAULT_RELEVANCE = 30;
 
   /**
@@ -135,6 +136,9 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
 
   @Override
   public CorrectionProposal[] getProposals(AssistContext context) throws Exception {
+    if (context == null) {
+      return NO_PROPOSALS;
+    }
     proposals.clear();
     source = context.getSource();
     unit = context.getCompilationUnit();

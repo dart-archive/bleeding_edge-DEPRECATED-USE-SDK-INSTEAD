@@ -204,7 +204,11 @@ public class CorrectionMarkerResolutionGenerator implements IMarkerResolutionGen
 
   @Override
   public IMarkerResolution[] getResolutions(IMarker marker) {
-    return internalGetResolutions(marker);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return NO_RESOLUTIONS;
+    } else {
+      return internalGetResolutions(marker);
+    }
   }
 
   @Override
