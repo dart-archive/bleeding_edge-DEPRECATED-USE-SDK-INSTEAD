@@ -165,6 +165,7 @@ public class HtmlUnitInfo extends SourceInfo {
    * Mark the resolved HTML unit as needing to be recomputed.
    */
   public void invalidateResolvedUnit() {
+    invalidateElement();
     resolvedUnitState = CacheState.INVALID;
     resolvedUnit = null;
   }
