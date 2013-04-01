@@ -358,7 +358,7 @@ public class DartOutlineInformationControl extends PopupDialog implements IInfor
    * Expands {@link #viewer} us much as possible while still in the given time budget.
    */
   private void expandTreeItemsTimeBoxed(long nanoBudget) {
-    int numIterations = 5;
+    int numIterations = 10;
     int childrenLimit = 10;
     TreeItem[] rootTreeItems = viewer.getTree().getItems();
     for (int i = 0; i < numIterations; i++) {
