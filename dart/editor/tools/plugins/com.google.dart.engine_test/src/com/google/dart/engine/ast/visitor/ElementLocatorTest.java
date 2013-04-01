@@ -73,6 +73,13 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(ClassElement.class, element);
   }
 
+  public void test_compilationUnit() throws Exception {
+    CompilationUnit cu = resolve("// only comment");
+    assertNotNull(cu.getElement());
+    Element element = ElementLocator.locate(cu);
+    assertSame(cu.getElement(), element);
+  }
+
   public void test_fieldElement() throws Exception {
     ASTNode id = findNodeIn("x", "class A { var x; }");
     Element element = ElementLocator.locate(id);

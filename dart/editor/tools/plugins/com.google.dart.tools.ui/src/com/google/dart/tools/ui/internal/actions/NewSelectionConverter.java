@@ -47,7 +47,15 @@ public class NewSelectionConverter {
     if (context == null) {
       return null;
     }
-    return context.getCoveredElement();
+    ASTNode node = context.getCoveredNode();
+    while (node != null) {
+      Element element = ElementLocator.locate(node);
+      if (element != null) {
+        return element;
+      }
+      node = node.getParent();
+    }
+    return null;
   }
 
   /**
@@ -65,11 +73,14 @@ public class NewSelectionConverter {
     }
 
     ASTNode node = new NodeLocator(caret).searchWithin(cu);
-    if (node == null) {
-      return null;
+    while (node != null) {
+      Element element = ElementLocator.locate(node);
+      if (element != null) {
+        return element;
+      }
+      node = node.getParent();
     }
-
-    return ElementLocator.locate(node);
+    return null;
   }
 
   /**
