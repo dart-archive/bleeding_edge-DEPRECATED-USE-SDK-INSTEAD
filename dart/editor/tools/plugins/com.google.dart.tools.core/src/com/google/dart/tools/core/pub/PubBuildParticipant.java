@@ -36,7 +36,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -50,6 +52,12 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    * Flag indicating whether the sources are being reanalyzed and pub does NOT need to be run.
    */
   private boolean reanalyze = false;
+
+  /**
+   * The set of containers on which pub is currently running. Synchronize against this collection
+   * before accessing it.
+   */
+  private static final HashSet<IContainer> currentContainers = new HashSet<IContainer>();
 
   @Override
   public void build(BuildEvent event, IProgressMonitor monitor) throws CoreException {
@@ -77,10 +85,7 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
     while (container != root) {
       IFile pubFile = container.getFile(new Path(DartCore.PUBSPEC_FILE_NAME));
       if (pubFile.exists()) {
-        IFile lockFile = container.getFile(new Path(DartCore.PUBSPEC_LOCK_FILE_NAME));
-        if (!lockFile.exists() || lockFile.getLocalTimeStamp() < pubFile.getLocalTimeStamp()) {
-          runPub(container, monitor);
-        }
+        runPub(container, monitor);
         return;
       }
       container = container.getParent();
@@ -196,12 +201,45 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
    * @param monitor the progress monitor (not <code>null</code>)
    */
   protected void runPub(IContainer container, final IProgressMonitor monitor) {
-    if (DartCore.getPlugin().isAutoRunPubEnabled()) {
-      new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
-    } else {
-      MessageConsole console = DartCore.getConsole();
-      console.printSeparator("");
-      console.println("Run Tools > Pub Install to install packages");
+
+    // If pub is already running for this container, then wait until it finishes before returning
+    synchronized (currentContainers) {
+      if (!currentContainers.add(container)) {
+        while (currentContainers.contains(container)) {
+          try {
+            currentContainers.wait(1000);
+          } catch (InterruptedException e) {
+            //$FALL-THROUGH$
+          }
+        }
+        return;
+      }
+    }
+
+    try {
+      // Only run pub automatically if it is not already up to date
+      File dir = container.getLocation().toFile();
+      File pubFile = new File(dir, DartCore.PUBSPEC_FILE_NAME);
+      File lockFile = new File(dir, DartCore.PUBSPEC_LOCK_FILE_NAME);
+      if (lockFile.exists() && lockFile.lastModified() >= pubFile.lastModified()) {
+        return;
+      }
+
+      // Run pub or notify the user that it needs to be run
+      if (DartCore.getPlugin().isAutoRunPubEnabled()) {
+        new RunPubJob(container, RunPubJob.INSTALL_COMMAND).run(monitor);
+      } else {
+        MessageConsole console = DartCore.getConsole();
+        console.printSeparator("");
+        console.println("Run Tools > Pub Install to install packages");
+      }
+
+    } finally {
+      // Ensure that currentContainers is updated
+      synchronized (currentContainers) {
+        currentContainers.remove(container);
+        currentContainers.notifyAll();
+      }
     }
   }
 }
