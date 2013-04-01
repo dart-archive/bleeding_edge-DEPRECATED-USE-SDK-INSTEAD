@@ -147,6 +147,16 @@ public final class Instrumentation {
   }
 
   /**
+   * Is this instrumentation system currently configured to drop instrumentation data provided to
+   * it?
+   * 
+   * @return
+   */
+  public static boolean isNullLogger() {
+    return CURRENT_LOGGER == NULL_LOGGER;
+  }
+
+  /**
    * Set the logger that should receive instrumentation information to the given logger.
    * 
    * @param logger the logger that should receive instrumentation information
