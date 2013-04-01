@@ -51,7 +51,7 @@ import org.eclipse.ui.forms.widgets.TableWrapLayout;
 public class DependencyDetailsPage extends AbstractFormPart implements IDetailsPage {
 
   private static String EMPTY_STRING = "";
-  private static String[] sourceList = {"git", "local", "pub.dartlang.org"};
+  private static String[] sourceList = {"git", "hosted", "path"};
   private static String VERSION_CONTSTRAINTS_KEY = "versionConstraints";
 
   private DependencyObject input;
@@ -147,10 +147,10 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
             updateModelandSourceFields(Type.GIT);
             break;
           case 1:
-            updateModelandSourceFields(Type.LOCAL);
+            updateModelandSourceFields(Type.HOSTED);
             break;
           case 2:
-            updateModelandSourceFields(Type.HOSTED);
+            updateModelandSourceFields(Type.PATH);
         }
         setTextDirty();
       }
@@ -243,12 +243,12 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
         updateModelandSourceFields(Type.GIT);
         pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
         gitrefText.setText(input.getGitRef() != null ? input.getGitRef() : EMPTY_STRING);
-      } else if (input.getType().equals(Type.LOCAL)) {
-        sourceCombo.select(1);
-        updateModelandSourceFields(Type.LOCAL);
+      } else if (input.getType().equals(Type.PATH)) {
+        sourceCombo.select(2);
+        updateModelandSourceFields(Type.PATH);
         pathText.setText(input.getPath() != null ? input.getPath() : EMPTY_STRING);
       } else {
-        sourceCombo.select(2);
+        sourceCombo.select(1);
         pathText.setText(EMPTY_STRING);
         gitrefText.setText(EMPTY_STRING);
         updateModelandSourceFields(Type.HOSTED);
@@ -264,7 +264,7 @@ public class DependencyDetailsPage extends AbstractFormPart implements IDetailsP
     boolean gitRefFields = false;
     if (type.equals(Type.GIT)) {
       pathFields = gitRefFields = true;
-    } else if (type.equals(Type.LOCAL)) {
+    } else if (type.equals(Type.PATH)) {
       pathFields = true;
     }
     pathLabel.setVisible(pathFields);

@@ -21,7 +21,7 @@ public class DependencyObject {
   public enum Type {
     HOSTED,
     GIT,
-    LOCAL;
+    PATH;
   }
 
   private PubspecModel model;

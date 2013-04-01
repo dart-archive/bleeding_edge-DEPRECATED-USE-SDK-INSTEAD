@@ -295,7 +295,7 @@ public class PubspecModel {
             }
             if (key.equals(PubspecConstants.PATH)) {
               d.setPath((String) values.get(key));
-              d.setType(Type.LOCAL);
+              d.setType(Type.PATH);
             }
             if (key.equals(PubspecConstants.GIT)) {
               d.setType(Type.GIT);
