@@ -200,25 +200,6 @@ public class DartUIStartup implements IStartup {
     }
 
     /**
-     * Report core statistics about the executing platform to instrumentation system
-     */
-    private void reportPlatformStatistics() {
-      InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportPlatformStatistics");
-      try {
-        instrumentation.metric("BuildDate", DartCore.getBuildDate());
-        instrumentation.metric("BuildID", DartCore.getBuildId());
-        instrumentation.metric("Version", DartCore.getVersion());
-        instrumentation.metric("SDKVersion", DartSdkManager.getManager().getSdk().getSdkVersion());
-        instrumentation.metric("OSVersion", FeedbackUtils.getOSName());
-
-      } finally {
-        instrumentation.log();
-
-      }
-
-    }
-
-    /**
      * Wait for any background analysis to be complete
      */
     private void waitForAnalysis() {
@@ -245,12 +226,67 @@ public class DartUIStartup implements IStartup {
   @Override
   public void earlyStartup() {
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      DartCore.getProjectManager().start();
+      earlyStartupNewAnalysis();
     } else {
       synchronized (startupSync) {
         startupJob = new StartupJob();
         startupJob.schedule(500);
       }
+    }
+  }
+
+  private void earlyStartupNewAnalysis() {
+
+    //Pre-start the instrumentation logger if it's registered
+    InstrumentationLogger.ensureLoggerStarted();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.earlyStartup");
+
+    try {
+      reportPlatformStatistics();
+      reportDartCoreDebug();
+
+      DartCore.getProjectManager().start();
+      instrumentation.metric("ProjectManagerStart", "Complete");
+
+      new CmdLineFileProcessor(CmdLineOptions.getOptions()).run();
+      instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
+
+      AutoSaveHelper.start();
+      instrumentation.metric("AutoSaveHelperStart", "Complete");
+
+      // TODO (danrubel): performance measurements from old startup
+
+    } catch (Throwable throwable) {
+      // Catch any runtime exceptions that occur during warmup and log them.
+      DartToolsPlugin.log("Exception occured during editor warmup", throwable);
+
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  private void reportDartCoreDebug() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportDartCoreDebug");
+    try {
+      DartCoreDebug.record(instrumentation);
+    } finally {
+      instrumentation.log();
+    }
+  }
+
+  /**
+   * Report core statistics about the executing platform to instrumentation system
+   */
+  private void reportPlatformStatistics() {
+    InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportPlatformStatistics");
+    try {
+      instrumentation.metric("BuildDate", DartCore.getBuildDate());
+      instrumentation.metric("BuildID", DartCore.getBuildId());
+      instrumentation.metric("Version", DartCore.getVersion());
+      instrumentation.metric("SDKVersion", DartSdkManager.getManager().getSdk().getSdkVersion());
+      instrumentation.metric("OSVersion", FeedbackUtils.getOSName());
+    } finally {
+      instrumentation.log();
     }
   }
 }

@@ -305,11 +305,13 @@ public class DartReconciler extends MonoReconciler {
         }
         // may be resolved
         CompilationUnit unitNode = getResolvedUnit();
-        CompilationUnitElement unitElement = unitNode.getElement();
-        if (unitElement != null) {
-          if (unitElement != previousUnitElement) {
-            previousUnitElement = unitElement;
-            editor.applyCompilationUnitElement(unitNode);
+        if (unitNode != null) {
+          CompilationUnitElement unitElement = unitNode.getElement();
+          if (unitElement != null) {
+            if (unitElement != previousUnitElement) {
+              previousUnitElement = unitElement;
+              editor.applyCompilationUnitElement(unitNode);
+            }
           }
         }
         // done with loop state

@@ -1025,7 +1025,11 @@ public class DartCore extends Plugin implements DartSdkListener {
    * Check if this URI denotes a patch file.
    */
   public static boolean isPatchfile(File file) {
-    return PackageLibraryManager.isPatchFile(file);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return file != null && file.getName().endsWith("_patch.dart");
+    } else {
+      return PackageLibraryManager.isPatchFile(file);
+    }
   }
 
   /**
