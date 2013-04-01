@@ -83,7 +83,6 @@ public abstract class ElementImpl implements Element {
   public ElementImpl(String name, int nameOffset) {
     this.name = StringUtilities.intern(name);
     this.nameOffset = nameOffset;
-    this.modifiers = EnumSet.noneOf(Modifier.class);
   }
 
   @Override
@@ -256,7 +255,7 @@ public abstract class ElementImpl implements Element {
    * @return {@code true} if this element has the given modifier associated with it
    */
   protected boolean hasModifier(Modifier modifier) {
-    return modifiers.contains(modifier);
+    return modifiers != null && modifiers.contains(modifier);
   }
 
   /**
@@ -303,9 +302,17 @@ public abstract class ElementImpl implements Element {
    */
   protected void setModifier(Modifier modifier, boolean value) {
     if (value) {
+      if (modifiers == null) {
+        modifiers = EnumSet.noneOf(Modifier.class);
+      }
       modifiers.add(modifier);
     } else {
-      modifiers.remove(modifier);
+      if (modifiers != null) {
+        modifiers.remove(modifier);
+        if (modifiers.isEmpty()) {
+          modifiers = null;
+        }
+      }
     }
   }
 }

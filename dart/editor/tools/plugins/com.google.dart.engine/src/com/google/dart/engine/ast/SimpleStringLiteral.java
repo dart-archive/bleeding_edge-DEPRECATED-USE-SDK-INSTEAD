@@ -14,6 +14,7 @@
 package com.google.dart.engine.ast;
 
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.utilities.general.StringUtilities;
 
 /**
  * Instances of the class {@code SimpleStringLiteral} represent a string literal expression that
@@ -61,7 +62,7 @@ public class SimpleStringLiteral extends StringLiteral {
    */
   public SimpleStringLiteral(Token literal, String value) {
     this.literal = literal;
-    this.value = value;
+    this.value = StringUtilities.intern(value);
   }
 
   @Override
@@ -138,7 +139,7 @@ public class SimpleStringLiteral extends StringLiteral {
    * @param string the value of the literal
    */
   public void setValue(String string) {
-    value = string;
+    value = StringUtilities.intern(value);
   }
 
   @Override
