@@ -14,14 +14,16 @@
 package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
-import com.google.dart.engine.ast.Expression;
+import com.google.dart.engine.ast.ConstructorName;
+import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
 import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
@@ -75,6 +77,16 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitBreakStatement(BreakStatement node) {
+    //
+    // We do not visit the label because it needs to be visited in the context of the statement.
+    //
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
   public Void visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerType = enclosingClass;
     try {
@@ -85,6 +97,27 @@ public class ResolverVisitor extends ScopedVisitor {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       enclosingClass = outerType;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorName(ConstructorName node) {
+    //
+    // We do not visit either the type name, because it won't be visited anyway, or the name,
+    // because it needs to be visited in the context of the constructor name.
+    //
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitContinueStatement(ContinueStatement node) {
+    //
+    // We do not visit the label because it needs to be visited in the context of the statement.
+    //
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 
@@ -144,6 +177,19 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitMethodInvocation(MethodInvocation node) {
+    //
+    // We visit the target and argument list, but do not visit the method name because it needs to
+    // be visited in the context of the invocation.
+    //
+    safelyVisit(node.getTarget());
+    safelyVisit(node.getArgumentList());
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
   public Void visitNode(ASTNode node) {
     node.visitChildren(this);
     node.accept(elementResolver);
@@ -157,11 +203,7 @@ public class ResolverVisitor extends ScopedVisitor {
     // We visit the prefix, but do not visit the identifier because it needs to be visited in the
     // context of the prefix.
     //
-    SimpleIdentifier prefix = node.getPrefix();
-    if (prefix != null) {
-      prefix.accept(this);
-    }
-    // TODO(brianwilkerson) Re-write the AST structure if the prefix did not resolve to a PrefixElement.
+    safelyVisit(node.getPrefix());
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -173,10 +215,7 @@ public class ResolverVisitor extends ScopedVisitor {
     // We visit the target, but do not visit the property name because it needs to be visited in the
     // context of the property access node.
     //
-    Expression target = node.getTarget();
-    if (target != null) {
-      target.accept(this);
-    }
+    safelyVisit(node.getTarget());
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -188,10 +227,7 @@ public class ResolverVisitor extends ScopedVisitor {
     // We visit the argument list, but do not visit the optional identifier because it needs to be
     // visited in the context of the constructor invocation.
     //
-    ArgumentList argumentList = node.getArgumentList();
-    if (argumentList != null) {
-      argumentList.accept(this);
-    }
+    safelyVisit(node.getArgumentList());
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -203,10 +239,7 @@ public class ResolverVisitor extends ScopedVisitor {
     // We visit the argument list, but do not visit the optional identifier because it needs to be
     // visited in the context of the constructor invocation.
     //
-    ArgumentList argumentList = node.getArgumentList();
-    if (argumentList != null) {
-      argumentList.accept(this);
-    }
+    safelyVisit(node.getArgumentList());
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -238,5 +271,16 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   protected ExecutableElement getEnclosingFunction() {
     return enclosingFunction;
+  }
+
+  /**
+   * Visit the given AST node if it is not null.
+   * 
+   * @param node the node to be visited
+   */
+  private void safelyVisit(ASTNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
   }
 }

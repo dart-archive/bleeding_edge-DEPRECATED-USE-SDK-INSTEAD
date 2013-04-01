@@ -32,6 +32,7 @@ import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
+import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
@@ -147,6 +148,8 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   public void test_visitCatchClause_exception() throws Exception {
     // catch (e)
     CatchClause clause = catchClause("e");
+    SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
+    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
     resolve(clause, typeProvider.getObjectType(), null);
     listener.assertNoErrors();
   }
@@ -154,6 +157,10 @@ public class TypeResolverVisitorTest extends EngineTestCase {
   public void test_visitCatchClause_exception_stackTrace() throws Exception {
     // catch (e, s)
     CatchClause clause = catchClause("e", "s");
+    SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
+    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
+    stackTraceParameter.setElement(new LocalVariableElementImpl(stackTraceParameter));
     resolve(clause, typeProvider.getObjectType(), typeProvider.getStackTraceType());
     listener.assertNoErrors();
   }
@@ -163,6 +170,8 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     ClassElement exceptionElement = classElement("E");
     TypeName exceptionType = typeName(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e");
+    SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
+    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
     resolve(clause, exceptionElement.getType(), null, exceptionElement);
     listener.assertNoErrors();
   }
@@ -173,6 +182,10 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     TypeName exceptionType = typeName(exceptionElement);
     ((SimpleIdentifier) exceptionType.getName()).setElement(exceptionElement);
     CatchClause clause = catchClause(exceptionType, "e", "s");
+    SimpleIdentifier exceptionParameter = clause.getExceptionParameter();
+    exceptionParameter.setElement(new LocalVariableElementImpl(exceptionParameter));
+    SimpleIdentifier stackTraceParameter = clause.getStackTraceParameter();
+    stackTraceParameter.setElement(new LocalVariableElementImpl(stackTraceParameter));
     resolve(clause, exceptionElement.getType(), typeProvider.getStackTraceType(), exceptionElement);
     listener.assertNoErrors();
   }

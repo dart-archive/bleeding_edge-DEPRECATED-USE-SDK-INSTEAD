@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.resolver;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.Block;
+import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -137,6 +138,26 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
       super.visitBlock(node);
     } finally {
       nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitCatchClause(CatchClause node) {
+    SimpleIdentifier exception = node.getExceptionParameter();
+    if (exception != null) {
+      Scope outerScope = nameScope;
+      nameScope = new EnclosedScope(nameScope);
+      try {
+        nameScope.define(exception.getElement());
+        SimpleIdentifier stackTrace = node.getStackTraceParameter();
+        if (stackTrace != null) {
+          nameScope.define(stackTrace.getElement());
+        }
+        super.visitCatchClause(node);
+      } finally {
+        nameScope = outerScope;
+      }
     }
     return null;
   }

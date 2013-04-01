@@ -110,7 +110,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
-    verify(source);
   }
 
   public void test_invocationOfNonFunction_localVariable() throws Exception {
@@ -298,7 +297,6 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_SUPER_METHOD);
-    verify(source);
   }
 
   public void test_wrongNumberOfTypeArguments_tooFew() throws Exception {
