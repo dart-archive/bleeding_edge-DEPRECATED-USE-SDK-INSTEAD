@@ -18,7 +18,6 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.error.ErrorType;
 
 import static com.google.dart.engine.error.ErrorType.COMPILE_TIME_ERROR;
-import static com.google.dart.engine.error.ErrorType.STATIC_WARNING;
 
 /**
  * The enumeration {@code ResolverErrorCode} defines the error codes used for errors detected by the
@@ -32,7 +31,6 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(brianwilkerson) Reword this message.
   BREAK_LABEL_ON_SWITCH_MEMBER(COMPILE_TIME_ERROR,
       "Break label resolves to case or default statement"),
-  CANNOT_BE_RESOLVED(STATIC_WARNING, "Cannot resolve the name '%s'"),
   // TODO(brianwilkerson) Reword this message.
   CONTINUE_LABEL_ON_SWITCH(COMPILE_TIME_ERROR,
       "A continue label resolves to switch, must be loop or switch member"),

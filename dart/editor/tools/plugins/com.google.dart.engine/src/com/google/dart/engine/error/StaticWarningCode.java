@@ -335,7 +335,7 @@ public enum StaticWarningCode implements ErrorCode {
    * lexical scope of <i>i</i>, or if <i>C</i> does not declare, implicitly or explicitly, a getter
    * named <i>m</i>.
    */
-  UNDEFINED_GETTER(""),
+  UNDEFINED_GETTER("Undefined getter '%s'"),
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -344,6 +344,14 @@ public enum StaticWarningCode implements ErrorCode {
    * lexical scope enclosing the expression.
    */
   UNDEFINED_IDENTIFIER("Undefined name '%s'"),
+
+  /**
+   * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
+   * <i>id</i> occurs inside a top level or static function (be it function, method, getter, or
+   * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
+   * lexical scope enclosing the expression.
+   */
+  UNDEFINED_OPERATOR("Undefined operator '%s'"),
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
@@ -355,13 +363,13 @@ public enum StaticWarningCode implements ErrorCode {
    * scope of the assignment, or if <i>C</i> does not declare, implicitly or explicitly, a setter
    * <i>v=</i>.
    */
-  UNDEFINED_SETTER(""),
+  UNDEFINED_SETTER("Undefined setter '%s'"),
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
    * or getter <i>m</i>.
    */
-  UNDEFINED_STATIC_METHOD_OR_GETTER("");
+  UNDEFINED_STATIC_METHOD_OR_GETTER("Undefined static method '%s'");
 
   /**
    * The message template used to create the message to be displayed for this error.

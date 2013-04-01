@@ -195,7 +195,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String methodName = operator.getLexeme();
       MethodElement member = lookUpMethod(leftType, methodName);
       if (member == null) {
-        resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+        resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
       } else {
         node.setElement(member);
       }
@@ -344,7 +344,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     MethodElement member = lookUpMethod(arrayType, operator);
     if (member == null) {
-      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, node, operator);
+      resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, node, operator);
     } else {
       node.setElement(member);
     }
@@ -530,7 +530,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     MethodElement member = lookUpMethod(operandType, methodName);
     if (member == null) {
-      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+      resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
     } else {
       node.setElement(member);
     }
@@ -671,7 +671,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       MethodElement member = lookUpMethod(operandType, methodName);
       if (member == null) {
-        resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, operator, methodName);
+        resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
       } else {
         node.setElement(member);
       }
@@ -704,9 +704,21 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (memberElement == null) {
-      resolver.reportError(ResolverErrorCode.CANNOT_BE_RESOLVED, identifier, identifier.getName());
-//    } else if (!element.isStatic()) {
-//      reportError(ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, identifier, identifier.getName());
+      if (identifier.inSetterContext()) {
+        resolver.reportError(StaticWarningCode.UNDEFINED_SETTER, identifier, identifier.getName());
+      } else if (identifier.inGetterContext()) {
+        resolver.reportError(StaticWarningCode.UNDEFINED_GETTER, identifier, identifier.getName());
+      } else {
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_IDENTIFIER,
+            identifier,
+            identifier.getName());
+      }
+//    } else if (!memberElement.isStatic()) {
+//      reportError(
+//          ResolverErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER,
+//          identifier,
+//          identifier.getName());
     } else {
       recordResolution(identifier, memberElement);
     }

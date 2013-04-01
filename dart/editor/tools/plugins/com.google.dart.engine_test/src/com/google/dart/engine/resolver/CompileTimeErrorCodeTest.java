@@ -1520,10 +1520,10 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "  }",
         "}"));
     resolve(source);
-    // TODO (jwren) situations where a LABEL_IN_OUTER_SCOPE is generated, a CANNOT_BE_RESOLVED will
+    // TODO (jwren) situations where a LABEL_IN_OUTER_SCOPE is generated, a UNDEFINED_OPERATOR will
     // also always be generated, we should revisit this situation so that there is only the more
     // accurate error code generated.
-    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, ResolverErrorCode.CANNOT_BE_RESOLVED);
+    assertErrors(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, StaticWarningCode.UNDEFINED_OPERATOR);
     // We cannot verify resolution with unresolvable labels
   }
 
