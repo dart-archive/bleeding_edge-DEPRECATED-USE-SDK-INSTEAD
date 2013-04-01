@@ -30,6 +30,7 @@ import com.google.dart.tools.ui.internal.text.editor.LegacyCompilationUnitDocume
 import com.google.dart.tools.ui.internal.text.editor.WorkingCopyManager;
 import com.google.dart.tools.ui.internal.text.editor.saveparticipant.SaveParticipantRegistry;
 import com.google.dart.tools.ui.internal.text.folding.JavaFoldingStructureProviderRegistry;
+import com.google.dart.tools.ui.internal.text.functions.DartReconcilerWorker;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.TypeFilter;
 import com.google.dart.tools.ui.internal.viewsupport.ImageDescriptorRegistry;
@@ -879,6 +880,10 @@ public class DartToolsPlugin extends AbstractUIPlugin {
     ScanProgressUI.stop();
     try {
       DartUIStartup.cancelStartup();
+
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        DartReconcilerWorker.stop();
+      }
 
       if (imageDescriptorRegistry != null) {
         imageDescriptorRegistry.dispose();

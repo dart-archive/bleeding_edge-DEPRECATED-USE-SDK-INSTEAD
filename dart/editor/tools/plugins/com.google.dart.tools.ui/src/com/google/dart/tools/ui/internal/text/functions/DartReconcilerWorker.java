@@ -90,6 +90,8 @@ public class DartReconcilerWorker {
     }
   }
 
+  private static final Task STOP_TASK = new Task(null, null);
+
   private static final TaskQueue taskQueue = new TaskQueue();
   private static volatile boolean stopped = false;
 
@@ -121,6 +123,7 @@ public class DartReconcilerWorker {
    */
   public static void stop() {
     stopped = true;
+    taskQueue.add(STOP_TASK);
   }
 
   /**
@@ -162,6 +165,11 @@ public class DartReconcilerWorker {
     while (!stopped) {
       try {
         Task task = taskQueue.peekWait();
+        // may be stop request
+        if (task == STOP_TASK) {
+          break;
+        }
+        // execute Task and remove
         try {
           AnalysisWorker worker = new AnalysisWorker(task.project, task.context);
           worker.performAnalysis();
