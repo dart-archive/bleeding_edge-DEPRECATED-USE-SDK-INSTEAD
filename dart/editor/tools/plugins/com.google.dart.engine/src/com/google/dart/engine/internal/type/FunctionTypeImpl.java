@@ -142,7 +142,8 @@ public class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return ObjectUtilities.equals(getElement(), otherType.getElement())
         && Arrays.equals(normalParameterTypes, otherType.normalParameterTypes)
         && Arrays.equals(optionalParameterTypes, otherType.optionalParameterTypes)
-        && equals(namedParameterTypes, otherType.namedParameterTypes);
+        && equals(namedParameterTypes, otherType.namedParameterTypes)
+        && ObjectUtilities.equals(returnType, otherType.returnType);
   }
 
   @Override

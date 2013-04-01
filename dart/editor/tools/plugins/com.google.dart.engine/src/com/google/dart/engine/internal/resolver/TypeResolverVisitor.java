@@ -46,10 +46,11 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
@@ -57,11 +58,11 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.ExecutableElementImpl;
+import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.PropertyInducingElementImpl;
-import com.google.dart.engine.internal.element.FunctionTypeAliasElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
@@ -291,8 +292,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
     FunctionTypeImpl type = new FunctionTypeImpl(element);
     setTypeInformation(type, node.getReturnType(), element.getParameters());
     element.setType(type);
-    if (element instanceof PropertyAccessorElementImpl) {
-      PropertyAccessorElementImpl accessor = (PropertyAccessorElementImpl) element;
+    if (element instanceof PropertyAccessorElement) {
+      PropertyAccessorElement accessor = (PropertyAccessorElement) element;
       PropertyInducingElementImpl variable = (PropertyInducingElementImpl) accessor.getVariable();
       if (accessor.isGetter()) {
         variable.setType(type.getReturnType());

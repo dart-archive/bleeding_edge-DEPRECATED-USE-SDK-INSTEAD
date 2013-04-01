@@ -16,6 +16,13 @@ package com.google.dart.engine.internal.type;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.internal.element.ClassElementImpl;
+import com.google.dart.engine.internal.element.member.MethodMember;
+import com.google.dart.engine.internal.element.member.PropertyAccessorMember;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
@@ -174,6 +181,31 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
+  public PropertyAccessorElement getGetter(String getterName) {
+    return PropertyAccessorMember.from(
+        ((ClassElementImpl) getElement()).getGetter(getterName),
+        this);
+  }
+
+  @Override
+  public InterfaceType[] getInterfaces() {
+    ClassElement classElement = getElement();
+    InterfaceType[] interfaces = classElement.getInterfaces();
+    TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    if (typeVariables.length == 0) {
+      return interfaces;
+    }
+    int count = interfaces.length;
+    InterfaceType[] typedInterfaces = new InterfaceType[count];
+    for (int i = 0; i < count; i++) {
+      typedInterfaces[i] = interfaces[i].substitute(
+          typeArguments,
+          TypeVariableTypeImpl.getTypes(typeVariables));
+    }
+    return typedInterfaces;
+  }
+
+  @Override
   public Type getLeastUpperBound(Type type) {
     Type dynamicType = DynamicTypeImpl.getInstance();
     if (this == dynamicType || type == dynamicType) {
@@ -236,9 +268,43 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @Override
-  public Type getSuperclass() {
+  public MethodElement getMethod(String methodName) {
+    return MethodMember.from(((ClassElementImpl) getElement()).getMethod(methodName), this);
+  }
+
+  @Override
+  public InterfaceType[] getMixins() {
     ClassElement classElement = getElement();
-    return getElement().getSupertype().substitute(
+    InterfaceType[] mixins = classElement.getMixins();
+    TypeVariableElement[] typeVariables = classElement.getTypeVariables();
+    if (typeVariables.length == 0) {
+      return mixins;
+    }
+    int count = mixins.length;
+    InterfaceType[] typedMixins = new InterfaceType[count];
+    for (int i = 0; i < count; i++) {
+      typedMixins[i] = mixins[i].substitute(
+          typeArguments,
+          TypeVariableTypeImpl.getTypes(typeVariables));
+    }
+    return typedMixins;
+  }
+
+  @Override
+  public PropertyAccessorElement getSetter(String setterName) {
+    return PropertyAccessorMember.from(
+        ((ClassElementImpl) getElement()).getSetter(setterName),
+        this);
+  }
+
+  @Override
+  public InterfaceType getSuperclass() {
+    ClassElement classElement = getElement();
+    InterfaceType supertype = classElement.getSupertype();
+    if (supertype == null) {
+      return null;
+    }
+    return supertype.substitute(
         typeArguments,
         TypeVariableTypeImpl.getTypes(classElement.getTypeVariables()));
   }
@@ -428,6 +494,75 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     return supertype.isSubtypeOf(typeS);
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library) {
+    PropertyAccessorElement element = getGetter(getterName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : getMixins()) {
+      element = mixin.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    InterfaceType supertype = getSuperclass();
+    while (supertype != null) {
+      element = supertype.getGetter(getterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      supertype = supertype.getSuperclass();
+    }
+    return null;
+  }
+
+  @Override
+  public MethodElement lookUpMethod(String methodName, LibraryElement library) {
+    MethodElement element = getMethod(methodName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : getMixins()) {
+      element = mixin.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    InterfaceType supertype = getSuperclass();
+    while (supertype != null) {
+      element = supertype.getMethod(methodName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      supertype = supertype.getSuperclass();
+    }
+    return null;
+  }
+
+  @Override
+  public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library) {
+    PropertyAccessorElement element = getSetter(setterName);
+    if (element != null && element.isAccessibleIn(library)) {
+      return element;
+    }
+    for (InterfaceType mixin : getMixins()) {
+      element = mixin.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+    }
+    InterfaceType supertype = getSuperclass();
+    while (supertype != null) {
+      element = supertype.getSetter(setterName);
+      if (element != null && element.isAccessibleIn(library)) {
+        return element;
+      }
+      supertype = supertype.getSuperclass();
+    }
+    return null;
   }
 
   /**

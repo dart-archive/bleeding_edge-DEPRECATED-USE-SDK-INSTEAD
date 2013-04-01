@@ -16,8 +16,8 @@ package com.google.dart.engine.internal.constant;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 
 /**
  * Instances of the class {@code ReferenceFinder} add reference information for a given variable to
@@ -51,8 +51,8 @@ public class ReferenceFinder extends RecursiveASTVisitor<Void> {
   @Override
   public Void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.getElement();
-    if (element instanceof PropertyAccessorElementImpl) {
-      element = ((PropertyAccessorElementImpl) element).getVariable();
+    if (element instanceof PropertyAccessorElement) {
+      element = ((PropertyAccessorElement) element).getVariable();
     }
     if (element instanceof VariableElement) {
       VariableElement variable = (VariableElement) element;

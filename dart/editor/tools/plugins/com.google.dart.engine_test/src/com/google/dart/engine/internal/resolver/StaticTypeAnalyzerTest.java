@@ -50,6 +50,7 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
+import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.scanner.TokenType;
@@ -501,10 +502,11 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement methodElement = getMethod(listType, "[]");
     // "list" has type List<int>
     SimpleIdentifier identifier = identifier("list");
-    identifier.setStaticType(listType.substitute(new Type[] {intType}));
+    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
+    identifier.setStaticType(listOfIntType);
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
-    indexExpression.setElement(methodElement);
+    indexExpression.setElement(MethodMember.from(methodElement, listOfIntType));
     // analyze and assert result of the index expression
     assertSame(intType, analyze(indexExpression));
     listener.assertNoErrors();
@@ -519,10 +521,11 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement methodElement = getMethod(listType, "[]=");
     // "list" has type List<int>
     SimpleIdentifier identifier = identifier("list");
-    identifier.setStaticType(listType.substitute(new Type[] {intType}));
+    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
+    identifier.setStaticType(listOfIntType);
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression = indexExpression(identifier, integer(0));
-    indexExpression.setElement(methodElement);
+    indexExpression.setElement(MethodMember.from(methodElement, listOfIntType));
     // list[0] should be in a setter context
     assignmentExpression(indexExpression, TokenType.EQ, integer(0));
     // analyze and assert result of the index expression

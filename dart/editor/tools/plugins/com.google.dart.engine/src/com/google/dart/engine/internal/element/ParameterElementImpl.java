@@ -117,11 +117,22 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
 
   @Override
   protected void appendTo(StringBuilder builder) {
+    String left = "";
+    String right = "";
+    switch (getParameterKind()) {
+      case NAMED:
+        left = "{";
+        right = "}";
+        break;
+      case POSITIONAL:
+        left = "[";
+        right = "]";
+        break;
+    }
+    builder.append(left);
     builder.append(getType());
     builder.append(" ");
     builder.append(getName());
-    builder.append(" (");
-    builder.append(getKind());
-    builder.append(")");
+    builder.append(right);
   }
 }

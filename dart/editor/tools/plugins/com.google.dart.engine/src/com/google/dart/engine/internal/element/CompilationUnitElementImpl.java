@@ -97,6 +97,10 @@ public class CompilationUnitElementImpl extends ElementImpl implements Compilati
 
   @Override
   public ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor : accessors) {
       if (((PropertyAccessorElementImpl) accessor).getIdentifier().equals(identifier)) {
         return (PropertyAccessorElementImpl) accessor;

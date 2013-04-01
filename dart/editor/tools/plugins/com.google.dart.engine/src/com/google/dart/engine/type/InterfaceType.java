@@ -14,6 +14,9 @@
 package com.google.dart.engine.type;
 
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 
 /**
  * The interface {@code InterfaceType} defines the behavior common to objects representing the type
@@ -24,6 +27,24 @@ import com.google.dart.engine.element.ClassElement;
 public interface InterfaceType extends Type {
   @Override
   public ClassElement getElement();
+
+  /**
+   * Return the element representing the getter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a getter with the given name.
+   * 
+   * @param getterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  public PropertyAccessorElement getGetter(String getterName);
+
+  /**
+   * Return an array containing all of the interfaces that are implemented by this interface. Note
+   * that this is <b>not</b>, in general, equivalent to getting the interfaces from this type's
+   * element because the types returned by this method will have had their type parameters replaced.
+   * 
+   * @return the interfaces that are implemented by this type
+   */
+  public InterfaceType[] getInterfaces();
 
   /**
    * Return the least upper bound of this type and the given type, or {@code null} if there is no
@@ -45,13 +66,42 @@ public interface InterfaceType extends Type {
   public Type getLeastUpperBound(Type type);
 
   /**
-   * Return the type representing the superclass of this type. Note that this is <b>not</b>, in
-   * general, equivalent to getting the superclass from this type's element because the type
-   * returned by this method will have had it's type parameters replaced.
+   * Return the element representing the method with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a method with the given name.
+   * 
+   * @param methodName the name of the method to be returned
+   * @return the method declared in this class with the given name
+   */
+  public MethodElement getMethod(String methodName);
+
+  /**
+   * Return an array containing all of the mixins that are applied to the class being extended in
+   * order to derive the superclass of this class. Note that this is <b>not</b>, in general,
+   * equivalent to getting the mixins from this type's element because the types returned by this
+   * method will have had their type parameters replaced.
+   * 
+   * @return the mixins that are applied to derive the superclass of this class
+   */
+  public InterfaceType[] getMixins();
+
+  /**
+   * Return the element representing the setter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a setter with the given name.
+   * 
+   * @param setterName the name of the setter to be returned
+   * @return the setter declared in this class with the given name
+   */
+  public PropertyAccessorElement getSetter(String setterName);
+
+  /**
+   * Return the type representing the superclass of this type, or null if this type represents the
+   * class 'Object'. Note that this is <b>not</b>, in general, equivalent to getting the superclass
+   * from this type's element because the type returned by this method will have had it's type
+   * parameters replaced.
    * 
    * @return the superclass of this type
    */
-  public Type getSuperclass();
+  public InterfaceType getSuperclass();
 
   /**
    * Return an array containing the actual types of the type arguments. If this type's element does
@@ -115,6 +165,71 @@ public interface InterfaceType extends Type {
    */
   @Override
   public boolean isSubtypeOf(Type type);
+
+  /**
+   * Return the element representing the getter that results from looking up the given getter in
+   * this class with respect to the given library, or {@code null} if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
+   * <blockquote>The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * with respect to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param getterName the name of the getter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given getter in this class with respect to the given
+   *         library
+   */
+  public PropertyAccessorElement lookUpGetter(String getterName, LibraryElement library);
+
+  /**
+   * Return the element representing the method that results from looking up the given method in
+   * this class with respect to the given library, or {@code null} if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.15.1:
+   * <blockquote> The result of looking up method <i>m</i> in class <i>C</i> with respect to library
+   * <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance method named <i>m</i> that is accessible to <i>L</i>, then
+   * that method is the result of the lookup. Otherwise, if <i>C</i> has a superclass <i>S</i>, then
+   * the result of the lookup is the result of looking up method <i>m</i> in <i>S</i> with respect
+   * to <i>L</i>. Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param methodName the name of the method being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given method in this class with respect to the given
+   *         library
+   */
+  public MethodElement lookUpMethod(String methodName, LibraryElement library);
+
+  /**
+   * Return the element representing the setter that results from looking up the given setter in
+   * this class with respect to the given library, or {@code null} if the look up fails. The
+   * behavior of this method is defined by the Dart Language Specification in section 12.16:
+   * <blockquote> The result of looking up getter (respectively setter) <i>m</i> in class <i>C</i>
+   * with respect to library <i>L</i> is:
+   * <ul>
+   * <li>If <i>C</i> declares an instance getter (respectively setter) named <i>m</i> that is
+   * accessible to <i>L</i>, then that getter (respectively setter) is the result of the lookup.
+   * Otherwise, if <i>C</i> has a superclass <i>S</i>, then the result of the lookup is the result
+   * of looking up getter (respectively setter) <i>m</i> in <i>S</i> with respect to <i>L</i>.
+   * Otherwise, we say that the lookup has failed.</li>
+   * </ul>
+   * </blockquote>
+   * 
+   * @param setterName the name of the setter being looked up
+   * @param library the library with respect to which the lookup is being performed
+   * @return the result of looking up the given setter in this class with respect to the given
+   *         library
+   */
+  public PropertyAccessorElement lookUpSetter(String setterName, LibraryElement library);
 
   /**
    * Return the type resulting from substituting the given arguments for this type's parameters.

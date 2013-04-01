@@ -44,9 +44,9 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
-import com.google.dart.engine.internal.element.PropertyAccessorElementImpl;
 import com.google.dart.engine.internal.element.VariableElementImpl;
 
 /**
@@ -320,8 +320,8 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
    * @return the constant value of the static constant
    */
   private EvaluationResultImpl getConstantValue(ASTNode node, Element element) {
-    if (element instanceof PropertyAccessorElementImpl) {
-      element = ((PropertyAccessorElementImpl) element).getVariable();
+    if (element instanceof PropertyAccessorElement) {
+      element = ((PropertyAccessorElement) element).getVariable();
     }
     if (element instanceof VariableElementImpl) {
       EvaluationResultImpl value = ((VariableElementImpl) element).getEvaluationResult();

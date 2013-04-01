@@ -114,6 +114,10 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public ElementImpl getChild(String identifier) {
+    //
+    // The casts in this method are safe because the set methods would have thrown a CCE if any of
+    // the elements in the arrays were not of the expected types.
+    //
     for (PropertyAccessorElement accessor : accessors) {
       if (((PropertyAccessorElementImpl) accessor).getIdentifier().equals(identifier)) {
         return (PropertyAccessorElementImpl) accessor;
@@ -168,6 +172,22 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     return fields;
   }
 
+  /**
+   * Return the element representing the getter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a getter with the given name.
+   * 
+   * @param getterName the name of the getter to be returned
+   * @return the getter declared in this class with the given name
+   */
+  public PropertyAccessorElement getGetter(String getterName) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
   @Override
   public InterfaceType[] getInterfaces() {
     return interfaces;
@@ -176,6 +196,22 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
   @Override
   public ElementKind getKind() {
     return ElementKind.CLASS;
+  }
+
+  /**
+   * Return the element representing the method with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a method with the given name.
+   * 
+   * @param methodName the name of the method to be returned
+   * @return the method declared in this class with the given name
+   */
+  public MethodElement getMethod(String methodName) {
+    for (MethodElement method : methods) {
+      if (method.getName().equals(methodName)) {
+        return method;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -194,6 +230,22 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
       String elementName = element.getName();
       if (elementName != null && elementName.equals(name)) {
         return element;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the element representing the setter with the given name that is declared in this class,
+   * or {@code null} if this class does not declare a setter with the given name.
+   * 
+   * @param setterName the name of the getter to be returned
+   * @return the setter declared in this class with the given name
+   */
+  public PropertyAccessorElement getSetter(String setterName) {
+    for (PropertyAccessorElement accessor : accessors) {
+      if (accessor.isSetter() && accessor.getName().equals(setterName)) {
+        return accessor;
       }
     }
     return null;
@@ -493,53 +545,5 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
         list.add(type);
       }
     }
-  }
-
-  /**
-   * Return the element representing the getter with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a getter with the given name.
-   * 
-   * @param getterName the name of the getter to be returned
-   * @return the getter declared in this class with the given name
-   */
-  private PropertyAccessorElement getGetter(String getterName) {
-    for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isGetter() && accessor.getName().equals(getterName)) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the element representing the method with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a method with the given name.
-   * 
-   * @param methodName the name of the method to be returned
-   * @return the method declared in this class with the given name
-   */
-  private MethodElement getMethod(String methodName) {
-    for (MethodElement method : methods) {
-      if (method.getName().equals(methodName)) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the element representing the setter with the given name that is declared in this class,
-   * or {@code null} if this class does not declare a setter with the given name.
-   * 
-   * @param setterName the name of the getter to be returned
-   * @return the getter declared in this class with the given name
-   */
-  private PropertyAccessorElement getSetter(String setterName) {
-    for (PropertyAccessorElement accessor : accessors) {
-      if (accessor.isSetter() && accessor.getName().equals(setterName)) {
-        return accessor;
-      }
-    }
-    return null;
   }
 }

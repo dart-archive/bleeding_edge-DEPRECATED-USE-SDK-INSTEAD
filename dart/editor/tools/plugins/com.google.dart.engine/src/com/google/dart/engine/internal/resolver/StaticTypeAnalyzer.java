@@ -196,8 +196,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public Void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operator = node.getOperator().getType();
     if (operator != TokenType.EQ) {
-      // TODO(jwren) Determine if an array of type arguments should also be passed to recordReturnType
-      return recordReturnType(node, node.getElement(), null);
+      return recordReturnType(node, node.getElement());
     }
     return recordType(node, getType(node.getRightHandSide()));
   }
@@ -258,8 +257,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
 //        }
 //        break;
     }
-    // TODO(jwren) Determine if an array of type arguments should also be passed to recordReturnType
-    return recordReturnType(node, node.getElement(), null);
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -375,8 +373,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // TODO(jwren) Determine if an array of type arguments should also be passed to recordReturnType
-    return recordReturnType(node, node.getElement(), null);
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -386,15 +383,10 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitIndexExpression(IndexExpression node) {
-    Type type = getType(node.getRealTarget());
-    Type[] typeArgs = null;
-    if (type instanceof InterfaceType) {
-      typeArgs = ((InterfaceType) type).getTypeArguments();
-    }
     if (node.inSetterContext()) {
-      return recordArgumentType(node, node.getElement(), typeArgs);
+      return recordArgumentType(node, node.getElement());
     }
-    return recordReturnType(node, node.getElement(), typeArgs);
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -532,8 +524,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
-    // TODO(jwren) Determine if an array of type arguments should also be passed to recordReturnType
-    return recordReturnType(node, node.getMethodName().getElement(), null);
+    return recordReturnType(node, node.getMethodName().getElement());
   }
 
   @Override
@@ -627,8 +618,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return recordType(node, typeProvider.getBoolType());
     }
     // The other cases are equivalent to invoking a method.
-    // TODO(jwren) Determine if an array of type arguments should also be passed to recordReturnType
-    return recordReturnType(node, node.getElement(), null);
+    return recordReturnType(node, node.getElement());
   }
 
   /**
@@ -965,25 +955,12 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * 
    * @param expression the node whose type is to be recorded
    * @param element the element representing the method invoked by the given node
-   * @param typeArguments the array of {@link Type}s to perform a substitution on the parameter
-   *          types from the type in the passed {@link Element}, or {@code null}
    */
-  private Void recordArgumentType(IndexExpression expression, MethodElement element,
-      Type[] typeArguments) {
+  private Void recordArgumentType(IndexExpression expression, MethodElement element) {
     if (element != null) {
       ParameterElement[] parameters = element.getParameters();
       if (parameters != null && parameters.length == 2) {
-        ClassElement classElement = parameters[1].getAncestor(ClassElement.class);
-        Type[] typeParameters = classElement == null ? null
-            : classElement.getType().getTypeArguments();
-        if (typeArguments == null || typeParameters == null
-            || typeArguments.length != typeParameters.length) {
-          return recordType(expression, parameters[1].getType());
-        } else {
-          return recordType(
-              expression,
-              parameters[1].getType().substitute(typeArguments, typeParameters));
-        }
+        return recordType(expression, parameters[1].getType());
       }
     }
     return recordType(expression, dynamicType);
@@ -995,10 +972,8 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    * 
    * @param expression the node whose type is to be recorded
    * @param element the element representing the method or function invoked by the given node
-   * @param typeArguments the array of {@link Type}s to perform a substitution on the parameter
-   *          types from the type in the passed {@link Element}, or {@code null}
    */
-  private Void recordReturnType(Expression expression, Element element, Type[] typeArguments) {
+  private Void recordReturnType(Expression expression, Element element) {
     if (element instanceof PropertyAccessorElement) {
       //
       // This is a function invocation expression disguised as something else. We are invoking a
@@ -1021,17 +996,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       FunctionType type = ((ExecutableElement) element).getType();
       if (type != null) {
         // TODO(brianwilkerson) Figure out the conditions under which the type is null.
-        ClassElement classElement = element.getAncestor(ClassElement.class);
-        Type[] typeParameters = classElement == null ? null
-            : classElement.getType().getTypeArguments();
-        if (typeArguments == null || typeParameters == null
-            || typeArguments.length != typeParameters.length) {
-          return recordType(expression, type.getReturnType());
-        } else {
-          return recordType(
-              expression,
-              type.getReturnType().substitute(typeArguments, typeParameters));
-        }
+        return recordType(expression, type.getReturnType());
       }
     } else if (element instanceof VariableElement) {
       Type variableType = ((VariableElement) element).getType();
