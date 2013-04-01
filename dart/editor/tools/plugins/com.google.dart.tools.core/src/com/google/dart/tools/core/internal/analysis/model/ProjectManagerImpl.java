@@ -62,13 +62,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     this.sdkContext = AnalysisEngine.getInstance().createAnalysisContext();
     this.sdkContext.setSourceFactory(new SourceFactory(new DartUriResolver(sdk)));
     this.ignoreManager = ignoreManager;
-    // TODO(scheglov) Dan, can you check if this is correct place to start Index? Where to stop?
-    new Thread() {
-      @Override
-      public void run() {
-        index.run();
-      }
-    }.start();
   }
 
   @Override
@@ -239,4 +232,18 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     listeners.remove(listener);
   }
 
+  @Override
+  public void start() {
+    new Thread() {
+      @Override
+      public void run() {
+        index.run();
+      }
+    }.start();
+  }
+
+  @Override
+  public void stop() {
+    index.stop();
+  }
 }

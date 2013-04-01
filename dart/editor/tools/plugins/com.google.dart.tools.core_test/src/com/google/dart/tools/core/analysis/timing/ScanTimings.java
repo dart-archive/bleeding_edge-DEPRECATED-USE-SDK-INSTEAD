@@ -284,6 +284,16 @@ public class ScanTimings extends TestCase {
     public void removeProjectListener(ProjectListener listener) {
       throw new UnsupportedOperationException();
     }
+
+    @Override
+    public void start() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void stop() {
+      throw new UnsupportedOperationException();
+    }
   }
 
   private int fileCount;

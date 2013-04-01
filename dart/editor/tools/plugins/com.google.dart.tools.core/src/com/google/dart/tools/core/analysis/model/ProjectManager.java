@@ -164,4 +164,13 @@ public interface ProjectManager extends ContextManager {
    */
   void removeProjectListener(ProjectListener listener);
 
+  /**
+   * Start background analysis such as updating the index.
+   */
+  void start();
+
+  /**
+   * Stop background analysis.
+   */
+  void stop();
 }

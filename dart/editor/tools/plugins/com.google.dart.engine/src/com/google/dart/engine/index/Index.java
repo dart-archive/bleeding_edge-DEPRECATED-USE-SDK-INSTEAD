@@ -90,7 +90,8 @@ public interface Index {
   void removeSources(AnalysisContext context, SourceContainer container);
 
   /**
-   * Should be called in separate {@link Thread} to process request in this {@link Index}.
+   * Should be called in separate {@link Thread} to process request in this {@link Index}. Does not
+   * return until the {@link #stop()} method is called.
    */
   void run();
 

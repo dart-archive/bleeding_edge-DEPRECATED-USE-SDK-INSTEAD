@@ -142,13 +142,11 @@ public class DartUIStartup implements IStartup {
      * Initialize the Dart Tools Core plugin.
      */
     private void modelWarmup() {
-      if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        long start = System.currentTimeMillis();
-        DartModelManager.getInstance().getDartModel();
-        if (DartCoreDebug.WARMUP) {
-          long delta = System.currentTimeMillis() - start;
-          DartCore.logInformation("Warmup Model : " + delta);
-        }
+      long start = System.currentTimeMillis();
+      DartModelManager.getInstance().getDartModel();
+      if (DartCoreDebug.WARMUP) {
+        long delta = System.currentTimeMillis() - start;
+        DartCore.logInformation("Warmup Model : " + delta);
       }
     }
 
@@ -246,7 +244,9 @@ public class DartUIStartup implements IStartup {
 
   @Override
   public void earlyStartup() {
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      DartCore.getProjectManager().start();
+    } else {
       synchronized (startupSync) {
         startupJob = new StartupJob();
         startupJob.schedule(500);
