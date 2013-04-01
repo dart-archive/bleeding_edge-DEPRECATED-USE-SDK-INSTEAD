@@ -102,7 +102,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @return the first token included in this node's source range
    */
   public Token getBeginToken() {
-    if (elements.isEmpty()) {
+    if (elements == null || elements.isEmpty()) {
       return null;
     }
     return elements.get(0).getBeginToken();
@@ -114,7 +114,7 @@ public class NodeList<E extends ASTNode> extends AbstractList<E> {
    * @return the last token included in this node list's source range
    */
   public Token getEndToken() {
-    if (elements.isEmpty()) {
+    if (elements == null || elements.isEmpty()) {
       return null;
     }
     return elements.get(elements.size() - 1).getEndToken();
