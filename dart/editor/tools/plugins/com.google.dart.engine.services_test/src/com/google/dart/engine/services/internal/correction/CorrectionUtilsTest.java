@@ -1117,6 +1117,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getVariableNameSuggestions_Node_methodInvocation() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "var doc;",
         "main() {",
         "  var res = doc.getSortedNodes();",
         "}");
@@ -1133,6 +1134,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getVariableNameSuggestions_Node_name_get() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "var doc;",
         "main() {",
         "  var res = doc.get();",
         "}");
@@ -1146,6 +1148,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   public void test_getVariableNameSuggestions_Node_noPrefix() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "var doc;",
         "main() {",
         "  var res = doc.sortedNodes();",
         "}");
