@@ -908,7 +908,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int a = res();",
         "}",
         "",
-        "num res() => 1 + 2;",
+        "int res() => 1 + 2;",
         "");
   }
 
@@ -999,7 +999,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int negD = v1 * v2;",
         "}",
         "",
-        "num res(int v1, int v2) => v1 + v2;",
+        "int res(int v1, int v2) => v1 + v2;",
         "");
   }
 
@@ -1029,7 +1029,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int b = v2 + v3;",
         "}",
         "",
-        "num res(int v1, int v2) => v1 + v2;",
+        "int res(int v1, int v2) => v1 + v2;",
         "");
   }
 
@@ -1062,7 +1062,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    int positiveA = res(v1, v2); // marker",
         "  }",
         "",
-        "  num res(int v1, int v2) => v1 + v2;",
+        "  int res(int v1, int v2) => v1 + v2;",
         "}",
         "main() {",
         "  int v1 = 1;",
@@ -1100,7 +1100,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int positiveA = res(v1, v2); // marker",
         "}",
         "",
-        "num res(int v1, int v2) => v1 + v2;",
+        "int res(int v1, int v2) => v1 + v2;",
         "class A {",
         "  myMethod() {",
         "    int v1 = 1;",
@@ -1133,7 +1133,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "class B extends A {",
         "  B() : super(res()) {}",
         "",
-        "  static num res() => 1 + 2;",
+        "  static int res() => 1 + 2;",
         "}",
         "");
   }
@@ -1172,7 +1172,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    int positiveA = res(v1, v2); // marker",
         "  }",
         "",
-        "  static num res(int v1, int v2) => v1 + v2;",
+        "  static int res(int v1, int v2) => v1 + v2;",
         "  instanceMethodB() {",
         "    int v1 = 1;",
         "    int v2 = 2;",
@@ -1221,7 +1221,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    int positiveA = res(v1, v2); // marker",
         "  }",
         "",
-        "  static num res(int v1, int v2) => v1 + v2;",
+        "  static int res(int v1, int v2) => v1 + v2;",
         "  static staticMethodB() {",
         "    int v1 = 1;",
         "    int v2 = 2;",
@@ -1264,7 +1264,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    print(res()); // marker",
         "  }",
         "",
-        "  static num res() => 1 + 2;",
+        "  static int res() => 1 + 2;",
         "}",
         "");
   }
@@ -1292,7 +1292,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int a = res(a1, a2); // marker",
         "}",
         "",
-        "num res(int a1, int a2) => a1 + a2;",
+        "int res(int a1, int a2) => a1 + a2;",
         "fooB(int b1) {",
         "  int b2 = 2;",
         "  int b = res(b1, b2);",
@@ -1321,7 +1321,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int a = res(v1, v2); // marker",
         "}",
         "",
-        "num res(int v1, int v2) => v1 + v2 + v1;",
+        "int res(int v1, int v2) => v1 + v2 + v1;",
         "");
   }
 
@@ -1357,7 +1357,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int b = res(v2, v3);",
         "}",
         "",
-        "num res(int par1, int param2) => par1 + param2 + par1;",
+        "int res(int par1, int param2) => par1 + param2 + par1;",
         "");
   }
 
@@ -1393,7 +1393,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int b = res(v3, v2);",
         "}",
         "",
-        "num res(int v2, int v1) => v1 + v2;",
+        "int res(int v2, int v1) => v1 + v2;",
         "");
   }
 
@@ -1428,7 +1428,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int a = res(v1, v2, v3); // marker",
         "}",
         "",
-        "num res(num v1, v2, v3) => v1 + v2 + v3;",
+        "int res(num v1, v2, v3) => v1 + v2 + v3;",
         "");
   }
 

@@ -247,15 +247,23 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       case EQ_EQ:
       case BANG_EQ:
         return recordType(node, typeProvider.getBoolType());
-//      case MINUS:
-//      case PERCENT:
-//      case PLUS:
-//      case STAR:
-//        Type intType = typeProvider.getIntType();
-//        if (getType(node.getLeftOperand()) == intType && getType(node.getRightOperand()) == intType) {
-//          return recordType(node, intType);
-//        }
-//        break;
+      case MINUS:
+      case PERCENT:
+      case PLUS:
+      case STAR:
+      case TILDE_SLASH:
+        Type intType = typeProvider.getIntType();
+        if (getType(node.getLeftOperand()) == intType && getType(node.getRightOperand()) == intType) {
+          return recordType(node, intType);
+        }
+        break;
+      case SLASH:
+        Type doubleType = typeProvider.getDoubleType();
+        if (getType(node.getLeftOperand()) == doubleType
+            || getType(node.getRightOperand()) == doubleType) {
+          return recordType(node, doubleType);
+        }
+        break;
     }
     return recordReturnType(node, node.getElement());
   }

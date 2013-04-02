@@ -235,7 +235,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     // 2 + 2
     BinaryExpression node = binaryExpression(resolvedInteger(2), TokenType.PLUS, resolvedInteger(2));
     node.setElement(getMethod(typeProvider.getNumType(), "+"));
-    assertSame(typeProvider.getNumType(), analyze(node));
+    assertSame(typeProvider.getIntType(), analyze(node));
     listener.assertNoErrors();
   }
 
