@@ -30,6 +30,7 @@ import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
+import com.google.dart.tools.core.jobs.CleanLibrariesJob;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -286,9 +287,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
-    resource.getWorkspace().addResourceChangeListener(
-        resourceChangeListener,
-        IResourceChangeEvent.POST_CHANGE);
+    new CleanLibrariesJob().schedule();
   }
 
   @Override
