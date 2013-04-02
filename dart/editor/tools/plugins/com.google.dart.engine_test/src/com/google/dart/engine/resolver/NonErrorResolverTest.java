@@ -475,4 +475,13 @@ public class NonErrorResolverTest extends ResolverTestCase {
     assertNoErrors();
     verify(source);
   }
+
+  public void test_undefinedOperator_tilde() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "const A = 3;",
+        "const B = ~((1 << A) - 1);"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
 }
