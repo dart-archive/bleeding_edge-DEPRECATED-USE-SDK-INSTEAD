@@ -30,6 +30,8 @@ import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
  */
 public abstract class DartLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 
+  public static boolean LAUNCH_WAIT_FOR_BUILD = true;
+
   @Override
   public final boolean buildForLaunch(ILaunchConfiguration configuration, String mode,
       IProgressMonitor monitor) throws CoreException {
@@ -64,17 +66,18 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
       return false;
     }
 
-    // Run pub install for this application if necessary
-    DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
-    IResource res = launchConfig.getApplicationResource();
-    if (res == null) {
-      res = launchConfig.getProject();
+    if (!LAUNCH_WAIT_FOR_BUILD) {
+      // Run pub install for this application if necessary
+      DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+      IResource res = launchConfig.getApplicationResource();
+      if (res == null) {
+        res = launchConfig.getProject();
+      }
+      if (res != null) {
+        new PubBuildParticipant().runPubFor(res, monitor);
+        // TODO (danrubel): run build.dart for this application if necessary
+      }
     }
-    if (res != null) {
-      new PubBuildParticipant().runPubFor(res, monitor);
-    }
-
-    // TODO (danrubel): run build.dart for this application if necessary
 
     return true;
   }
@@ -82,7 +85,19 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
   @Override
   protected IProject[] getBuildOrder(ILaunchConfiguration configuration, String mode)
       throws CoreException {
-    // Rely on the preLaunchCheck method above to run pub and build.dart before launch
-    return new IProject[0];
+
+    if (!LAUNCH_WAIT_FOR_BUILD) {
+      // Rely on the preLaunchCheck method above to run pub and build.dart before launch
+      return new IProject[0];
+
+    } else {
+      // indicate which project to save before launch
+      DartLaunchConfigWrapper launchConfig = new DartLaunchConfigWrapper(configuration);
+      IResource resource = launchConfig.getApplicationResource();
+      if (resource != null) {
+        return new IProject[] {resource.getProject()};
+      }
+      return null;
+    }
   }
 }

@@ -209,6 +209,11 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     fileSource = new FileBasedSource(factory, file);
     factory.setContents(fileSource, fileContents);
 
-    participant = new AnalysisEngineParticipant(true, manager, markerManager);
+    participant = new AnalysisEngineParticipant(true, manager, markerManager) {
+      @Override
+      protected void performAnalysis(AnalysisWorker worker) {
+        worker.performAnalysis();
+      }
+    };
   }
 }

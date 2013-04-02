@@ -171,12 +171,21 @@ public class AnalysisEngineParticipant implements BuildParticipant {
   }
 
   /**
+   * Perform analysis using the specified worker.
+   * 
+   * @param worker the worker (not {@code null})
+   */
+  protected void performAnalysis(AnalysisWorker worker) {
+    worker.performAnalysisInBackground();
+  }
+
+  /**
    * Perform analysis on the specified context.
    * 
    * @param context the context to analyze (not {@code null})
    * @param monitor the progress monitor (not {@code null})
    */
   private void analyzeContext(AnalysisContext context, IProgressMonitor monitor) {
-    new AnalysisWorker(project, context, projectManager.getIndex(), markerManager).performAnalysis();
+    performAnalysis(new AnalysisWorker(project, context, projectManager.getIndex(), markerManager));
   }
 }

@@ -25,6 +25,12 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+
+import java.util.ArrayList;
 
 /**
  * Instances of {@code AnalysisWorker} perform analysis by repeatedly calling
@@ -32,6 +38,43 @@ import org.eclipse.core.resources.IResource;
  * based upon the analysis results.
  */
 public class AnalysisWorker {
+
+  /**
+   * A build level job processing workers in {@link AnalysisWorker#backgroundQueue}.
+   */
+  private class BackgroundAnalysisJob extends Job {
+    public BackgroundAnalysisJob() {
+      super("Analyzing");
+    }
+
+    @Override
+    protected IStatus run(IProgressMonitor monitor) {
+      while (true) {
+        AnalysisWorker worker;
+        synchronized (backgroundQueue) {
+          if (backgroundQueue.isEmpty()) {
+            backgroundJob = null;
+            return Status.OK_STATUS;
+          }
+          worker = backgroundQueue.remove(backgroundQueue.size() - 1);
+        }
+        setName("Analyzing " + worker.project.getResource().getName());
+        worker.performAnalysis();
+      }
+    }
+  }
+
+  /**
+   * A collection of workers to be run on a background job. Synchronize against this field before
+   * accessing it.
+   */
+  private static final ArrayList<AnalysisWorker> backgroundQueue = new ArrayList<AnalysisWorker>();
+
+  /**
+   * The background job on which the queued workers are executed, or {@code null} if none.
+   * Synchronize against {@link #backgroundQueue} before accessing this field.
+   */
+  private static BackgroundAnalysisJob backgroundJob = null;
 
   /**
    * The project containing the source for this context.
@@ -96,6 +139,20 @@ public class AnalysisWorker {
       changes = context.performAnalysisTask();
     }
     markerManager.done();
+  }
+
+  /**
+   * Queue this worker to have {@link #performAnalysis()} called in a background job.
+   */
+  public void performAnalysisInBackground() {
+    synchronized (backgroundQueue) {
+      backgroundQueue.add(this);
+      if (backgroundJob == null) {
+        backgroundJob = new BackgroundAnalysisJob();
+        backgroundJob.setPriority(Job.BUILD);
+        backgroundJob.schedule();
+      }
+    }
   }
 
   /**

@@ -14,6 +14,7 @@
 package com.google.dart.tools.debug.ui.internal;
 
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.debug.core.DartLaunchConfigurationDelegate;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -42,7 +43,7 @@ public class DartDebugUITools {
    * @param mode launch mode
    */
   public static void launch(ILaunchConfiguration config, String mode) {
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS && !DartLaunchConfigurationDelegate.LAUNCH_WAIT_FOR_BUILD) {
       // This builds only what's necessary for this launch before launching
       launchInBackground(config, mode);
     } else {
