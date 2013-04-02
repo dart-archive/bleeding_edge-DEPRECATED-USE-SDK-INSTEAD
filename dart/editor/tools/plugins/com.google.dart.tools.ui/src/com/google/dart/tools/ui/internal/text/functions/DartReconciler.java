@@ -191,7 +191,7 @@ public class DartReconciler extends MonoReconciler {
   /**
    * @return the resolved {@link CompilationUnit}, may be <code>null</code>/
    */
-  private CompilationUnit getResolvedUnit() throws Exception {
+  private CompilationUnit getResolvedUnit(boolean forceResolve) throws Exception {
     Source source = getSource();
     if (source == null) {
       return null;
@@ -200,7 +200,11 @@ public class DartReconciler extends MonoReconciler {
     // resolve
     Source[] librarySources = context.getLibrariesContaining(source);
     if (librarySources.length != 0) {
-      return context.getResolvedCompilationUnit(source, librarySources[0]);
+      if (forceResolve) {
+        return context.resolveCompilationUnit(source, librarySources[0]);
+      } else {
+        return context.getResolvedCompilationUnit(source, librarySources[0]);
+      }
     }
     return null;
   }
@@ -272,6 +276,14 @@ public class DartReconciler extends MonoReconciler {
     }
     // schedule initial resolution
     DartReconcilerWorker.scheduleAnalysis(project, getSource());
+    // TODO(scheglov) temporary? at least right now we need to ask one time to resolve
+    // because AST may be removed from cache at this moment, and AnalysisWorker will not
+    // do anything until change.
+    try {
+      getResolvedUnit(true);
+    } catch (Throwable e) {
+      DartCore.logError(e);
+    }
     // run loop and wait for CompilationUnit changes
     CompilationUnit lastParsedUnit = null;
     CompilationUnitElement previousUnitElement = null;
@@ -304,7 +316,7 @@ public class DartReconciler extends MonoReconciler {
           }
         }
         // may be resolved
-        CompilationUnit unitNode = getResolvedUnit();
+        CompilationUnit unitNode = getResolvedUnit(false);
         if (unitNode != null) {
           CompilationUnitElement unitElement = unitNode.getElement();
           if (unitElement != null) {
