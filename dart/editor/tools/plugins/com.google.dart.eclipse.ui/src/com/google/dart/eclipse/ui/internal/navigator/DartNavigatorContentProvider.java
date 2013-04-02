@@ -120,11 +120,13 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     } else if (element instanceof IFileStore) {
       IFileStore fileStore = (IFileStore) element;
       IFileStore parent = fileStore.getParent();
-
-      if (getFileStoreMap().containsKey(parent)) {
-        return getFileStoreMap().get(parent);
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        // TODO(keertip): Add support for new model 
+      } else {
+        if (getFileStoreMap().containsKey(parent)) {
+          return getFileStoreMap().get(parent);
+        }
       }
-
       return parent;
     }
 
