@@ -245,9 +245,6 @@ public class DartUIStartup implements IStartup {
       reportPlatformStatistics();
       reportDartCoreDebug();
 
-      DartCore.getProjectManager().start();
-      instrumentation.metric("ProjectManagerStart", "Complete");
-
       new CmdLineFileProcessor(CmdLineOptions.getOptions()).run();
       instrumentation.metric("OpenInitialFilesAndFolders", "Complete");
 
