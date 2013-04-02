@@ -2,6 +2,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
@@ -14,6 +15,7 @@ import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
@@ -96,6 +98,11 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   private DartSdk sdk;
 
   /**
+   * A list of active {@link AnalysisWorker} workers for this project.
+   */
+  private List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
+
+  /**
    * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
    * Synchronize against {@link #lock} when accessing this field. See {@link #getDartUriResolver()}
    */
@@ -169,20 +176,28 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   @Override
+  public void addAnalysisWorker(AnalysisWorker worker) {
+    synchronized (workers) {
+      workers.add(worker);
+    }
+  }
+
+  @Override
   public void discardContextsIn(IContainer container) {
     if (pubFolders == null) {
       return;
     }
 
-    // Remove contained pub folders
-    IPath path = container.getFullPath();
-    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
-    while (iter.hasNext()) {
-      Entry<IPath, PubFolder> entry = iter.next();
-      IPath key = entry.getKey();
-      if (path.equals(key) || path.isPrefixOf(key)) {
-        iter.remove();
-      }
+    Index index = DartCore.getProjectManager().getIndex();
+    for (PubFolder folder : getPubFolders()) {
+      index.removeContext(folder.getContext());
+    }
+    index.removeContext(defaultContext);
+    pubFolders = null;
+
+    AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
+    for (AnalysisWorker worker : workerArray) {
+      worker.stop();
     }
   }
 
@@ -324,6 +339,13 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     // Traverse container to find pubspec files that were overshadowed by the one just removed
     createPubFolders(container);
+  }
+
+  @Override
+  public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
+    synchronized (workers) {
+      workers.remove(analysisWorker);
+    }
   }
 
   /**

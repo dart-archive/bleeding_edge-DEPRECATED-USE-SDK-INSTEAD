@@ -85,7 +85,7 @@ public class AnalysisWorker {
   /**
    * The analysis context on which analysis is performed.
    */
-  protected final AnalysisContext context;
+  protected AnalysisContext context;
 
   /**
    * The marker manager used to translate errors into Eclipse markers (not {@code null}).
@@ -96,6 +96,8 @@ public class AnalysisWorker {
    * The index to be updated (not {@code null}).
    */
   private final Index index;
+
+  private boolean stopAnalysis = false;
 
   /**
    * Construct a new instance for performing analysis which updates the
@@ -128,6 +130,7 @@ public class AnalysisWorker {
     this.context = context;
     this.index = index;
     this.markerManager = markerManager;
+    this.project.addAnalysisWorker(this);
   }
 
   /**
@@ -136,10 +139,16 @@ public class AnalysisWorker {
    */
   public void performAnalysis() {
     ChangeNotice[] changes = context.performAnalysisTask();
-    while (processResults(changes) && checkContext()) {
+    while (processResults(changes) && checkContext() && !stopAnalysis) {
       changes = context.performAnalysisTask();
     }
     markerManager.done();
+    context = null;
+    project.removeAnalysisWorker(this);
+  }
+
+  public void stop() {
+    stopAnalysis = true;
   }
 
   /**
