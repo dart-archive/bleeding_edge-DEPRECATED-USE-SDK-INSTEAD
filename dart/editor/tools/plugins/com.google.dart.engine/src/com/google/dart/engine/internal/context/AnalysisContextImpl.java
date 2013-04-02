@@ -108,9 +108,21 @@ public class AnalysisContextImpl implements AnalysisContext {
   private HashMap<Source, ChangeNoticeImpl> pendingNotices = new HashMap<Source, ChangeNoticeImpl>();
 
   /**
+   * A list containing the most recently accessed sources with the most recently used at the end of
+   * the list. When more sources are added than the maximum allowed then the least recently used
+   * source will be removed and will have it's cached AST structure flushed.
+   */
+  private ArrayList<Source> recentlyUsed = new ArrayList<Source>(MAX_CACHE_SIZE);
+
+  /**
    * The object used to synchronize access to all of the caches.
    */
   private Object cacheLock = new Object();
+
+  /**
+   * The maximum number of sources for which data should be kept in the cache.
+   */
+  private static final int MAX_CACHE_SIZE = 256;
 
   /**
    * The name of the 'src' attribute in a HTML tag.
@@ -527,6 +539,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, Source librarySource) {
     synchronized (cacheLock) {
+      accessed(unitSource);
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
       if (compilationUnitInfo == null) {
         return null;
@@ -587,6 +600,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public CompilationUnit parseCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
+      accessed(source);
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
       if (compilationUnitInfo == null) {
         return null;
@@ -605,6 +619,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public HtmlUnit parseHtmlUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
+      accessed(source);
       HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(source);
       if (htmlUnitInfo == null) {
         return null;
@@ -729,6 +744,7 @@ public class AnalysisContextImpl implements AnalysisContext {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
       if (compilationUnitInfo != null) {
         compilationUnitInfo.setResolvedCompilationUnit(unit);
+        compilationUnitInfo.clearParsedUnit();
         getNotice(source).setCompilationUnit(unit);
       }
     }
@@ -747,6 +763,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   public CompilationUnit resolveCompilationUnit(Source unitSource, Source librarySource)
       throws AnalysisException {
     synchronized (cacheLock) {
+      accessed(unitSource);
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(unitSource);
       if (compilationUnitInfo == null) {
         return null;
@@ -765,6 +782,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   @Override
   public HtmlUnit resolveHtmlUnit(Source unitSource) throws AnalysisException {
     synchronized (cacheLock) {
+      accessed(unitSource);
       HtmlUnitInfo htmlUnitInfo = getHtmlUnitInfo(unitSource);
       if (htmlUnitInfo == null) {
         return null;
@@ -865,6 +883,31 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
 
     return newContext;
+  }
+
+  /**
+   * Record that the given source was just accessed for some unspecified purpose.
+   * <p>
+   * Note: This method must only be invoked while we are synchronized on {@link #cacheLock}.
+   * 
+   * @param source the source that was accessed
+   */
+  private void accessed(Source source) {
+    if (recentlyUsed.contains(source)) {
+      recentlyUsed.remove(source);
+      recentlyUsed.add(source);
+    } else if (recentlyUsed.size() >= MAX_CACHE_SIZE) {
+      Source removedSource = recentlyUsed.remove(0);
+      recentlyUsed.add(source);
+      SourceInfo sourceInfo = sourceMap.get(removedSource);
+      if (sourceInfo instanceof HtmlUnitInfo) {
+        ((HtmlUnitInfo) sourceInfo).clearParsedUnit();
+        ((HtmlUnitInfo) sourceInfo).clearResolvedUnit();
+      } else if (sourceInfo instanceof CompilationUnitInfo) {
+        ((CompilationUnitInfo) sourceInfo).clearParsedUnit();
+        ((CompilationUnitInfo) sourceInfo).clearResolvedUnit();
+      }
+    }
   }
 
   /**
