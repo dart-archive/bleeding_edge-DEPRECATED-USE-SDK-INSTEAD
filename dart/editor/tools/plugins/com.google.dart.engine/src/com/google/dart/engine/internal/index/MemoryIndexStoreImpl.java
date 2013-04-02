@@ -17,6 +17,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -185,6 +186,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     AnalysisContext locationContext = location.getElement().getContext();
     Source elementSource = findSource(element);
     Source locationSource = findSource(location.getElement());
+    // TODO(scheglov) remove after fix in resolver
+    if (elementContext == null && !(element instanceof NameElementImpl)
+        && !(element instanceof UniverseElementImpl)) {
+      AnalysisEngine.getInstance().getLogger().logError(
+          "Element without AnalysisContext: " + element);
+      return;
+    }
     // remember sources
     addSource(elementContext, elementSource);
     addSource(locationContext, locationSource);
@@ -215,6 +223,8 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeContext(AnalysisContext context) {
+    // remove context sources
+    sources.remove(context);
     // remove elements declared in Source(s) of removed context
     Map<Source, Set<Element>> contextElements = sourceToDeclarations.remove(context);
     if (contextElements != null) {
@@ -233,7 +243,12 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeSource(AnalysisContext context, Source source) {
-    sources.remove(source);
+    {
+      Set<Source> contextSources = sources.get(context);
+      if (contextSources != null) {
+        contextSources.remove(source);
+      }
+    }
     // remove relationships with elements declared in removed source
     Map<Source, Set<Element>> contextElements = sourceToDeclarations.get(context);
     if (contextElements != null) {
