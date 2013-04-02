@@ -35,6 +35,7 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class SDKAnalysisTest extends TestCase {
   public void test_sdkAnalysis() throws AnalysisException {
@@ -143,6 +144,8 @@ public class SDKAnalysisTest extends TestCase {
       writer.print("Expected 0 errors, found ");
       writer.print(errorList.size());
       writer.print(":");
+//      Collections.sort(errorList, AnalysisError.FILE_COMPARATOR);
+      Collections.sort(errorList, AnalysisError.ERROR_CODE_COMPARATOR);
       for (AnalysisError error : errorList) {
         Source source = error.getSource();
         ErrorCode code = error.getErrorCode();

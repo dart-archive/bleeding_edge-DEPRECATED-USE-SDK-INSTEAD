@@ -15,6 +15,8 @@ package com.google.dart.engine.error;
 
 import com.google.dart.engine.source.Source;
 
+import java.util.Comparator;
+
 /**
  * Instances of the class {@code AnalysisError} represent an error discovered during the analysis of
  * some Dart code.
@@ -27,6 +29,38 @@ public class AnalysisError {
    * An empty array of errors used when no errors are expected.
    */
   public static final AnalysisError[] NO_ERRORS = new AnalysisError[0];
+
+  /**
+   * A {@link Comparator} that sorts by the name of the file that the {@link AnalysisError} was
+   * found.
+   */
+  public static final Comparator<AnalysisError> FILE_COMPARATOR = new Comparator<AnalysisError>() {
+    @Override
+    public int compare(AnalysisError o1, AnalysisError o2) {
+      return o1.getSource().getShortName().compareTo(o2.getSource().getShortName());
+    }
+  };
+
+  /**
+   * A {@link Comparator} that sorts error codes first by their severity (errors first, warnings
+   * second), and then by the the error code type.
+   */
+  public static final Comparator<AnalysisError> ERROR_CODE_COMPARATOR = new Comparator<AnalysisError>() {
+    @Override
+    public int compare(AnalysisError o1, AnalysisError o2) {
+      ErrorCode errorCode1 = o1.getErrorCode();
+      ErrorCode errorCode2 = o2.getErrorCode();
+      ErrorSeverity errorSeverity1 = errorCode1.getErrorSeverity();
+      ErrorSeverity errorSeverity2 = errorCode2.getErrorSeverity();
+      ErrorType errorType1 = errorCode1.getType();
+      ErrorType errorType2 = errorCode2.getType();
+      if (errorSeverity1.equals(errorSeverity2)) {
+        return errorType1.compareTo(errorType2);
+      } else {
+        return errorSeverity2.compareTo(errorSeverity1);
+      }
+    }
+  };
 
   /**
    * The error code associated with the error.

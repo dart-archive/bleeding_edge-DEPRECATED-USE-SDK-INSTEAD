@@ -28,6 +28,7 @@ import junit.framework.TestSuite;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public abstract class DirectoryBasedSuiteBuilder {
   public class AnalysisTest extends TestCase {
@@ -116,6 +117,7 @@ public abstract class DirectoryBasedSuiteBuilder {
    */
   protected void assertErrors(boolean errorExpected, boolean expectedToFail,
       ArrayList<AnalysisError> errorList) {
+    Collections.sort(errorList, AnalysisError.ERROR_CODE_COMPARATOR);
     if (errorExpected) {
       if (expectedToFail) {
         if (errorList.size() > 0) {
