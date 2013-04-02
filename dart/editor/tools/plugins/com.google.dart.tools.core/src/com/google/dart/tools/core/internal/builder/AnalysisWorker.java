@@ -57,7 +57,7 @@ public class AnalysisWorker {
             backgroundJob = null;
             return Status.OK_STATUS;
           }
-          worker = backgroundQueue.remove(backgroundQueue.size() - 1);
+          worker = backgroundQueue.remove(0);
         }
         setName("Analyzing " + worker.project.getResource().getName());
         worker.performAnalysis();
@@ -133,6 +133,10 @@ public class AnalysisWorker {
     this.project.addAnalysisWorker(this);
   }
 
+  public AnalysisContext getContext() {
+    return context;
+  }
+
   /**
    * Perform analysis by repeatedly calling {@link AnalysisContext#performAnalysisTask()} and update
    * both the index and the error markers based upon the analysis results.
@@ -147,10 +151,6 @@ public class AnalysisWorker {
     project.removeAnalysisWorker(this);
   }
 
-  public void stop() {
-    stopAnalysis = true;
-  }
-
   /**
    * Queue this worker to have {@link #performAnalysis()} called in a background job.
    */
@@ -163,6 +163,10 @@ public class AnalysisWorker {
         backgroundJob.schedule();
       }
     }
+  }
+
+  public void stop() {
+    stopAnalysis = true;
   }
 
   /**

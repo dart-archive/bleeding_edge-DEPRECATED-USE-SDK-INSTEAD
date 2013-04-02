@@ -34,7 +34,12 @@ import com.google.dart.tools.core.internal.model.DartIgnoreManager;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.runtime.CoreException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,6 +58,43 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final AnalysisContext sdkContext;
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
+
+  /**
+   * A listener that updates the manager when a project is closed.
+   */
+  private IResourceChangeListener
+
+  resourceChangeListener = new IResourceChangeListener() {
+    @Override
+    public void resourceChanged(IResourceChangeEvent event) {
+      IResourceDelta delta = event.getDelta();
+      if (delta != null) {
+        try {
+          delta.accept(new IResourceDeltaVisitor() {
+            @Override
+            public boolean visit(IResourceDelta delta) throws CoreException {
+              IResource res = delta.getResource();
+              if (res == null) {
+                return false;
+              }
+              if (res.getType() == IResource.ROOT) {
+                return true;
+              }
+              if (res.getType() == IResource.PROJECT) {
+                if (delta.getKind() == IResourceDelta.REMOVED) {
+                  removeProject((IProject) res);
+                }
+              }
+              return false;
+            }
+          });
+        } catch (CoreException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        }
+      }
+    }
+  };
 
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     this.resource = resource;
@@ -244,10 +286,29 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
+    resource.getWorkspace().addResourceChangeListener(
+        resourceChangeListener,
+        IResourceChangeEvent.POST_CHANGE);
   }
 
   @Override
   public void stop() {
+    resource.getWorkspace().removeResourceChangeListener(resourceChangeListener);
     index.stop();
+  }
+
+  /**
+   * Called by the {@link #resourceChangeListener} when a project has been removed.
+   * 
+   * @param projectResource the project that was removed
+   */
+  private void removeProject(IProject projectResource) {
+    Project result;
+    synchronized (projects) {
+      result = projects.remove(projectResource);
+    }
+    if (result != null) {
+      result.discardContextsIn(projectResource);
+    }
   }
 }

@@ -103,9 +103,12 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertNotNull(pubFolder);
 
     projectContainer.remove(PUBSPEC_FILE_NAME);
+    MockFolder myApp = projectContainer.getMockFolder("myapp");
+    myApp.remove(PUBSPEC_FILE_NAME);
+    myApp.getMockFolder("subApp").remove(PUBSPEC_FILE_NAME);
     project.discardContextsIn(projectContainer);
 
-    assertEquals(1, project.getPubFolders().length);
+    assertEquals(0, project.getPubFolders().length);
   }
 
   public void test_discardContextsIn_project_web() {
@@ -117,7 +120,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     project.discardContextsIn(webContainer);
 
     assertEquals(1, project.getPubFolders().length);
-    assertNotSame(pubFolder, project.getPubFolder(projectContainer));
+    assertSame(pubFolder, project.getPubFolder(projectContainer));
   }
 
   public void test_getContext_folder() {

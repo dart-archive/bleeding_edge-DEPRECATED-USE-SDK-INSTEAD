@@ -95,7 +95,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   /**
    * The Dart SDK used when constructing the default context.
    */
-  private DartSdk sdk;
+  private final DartSdk sdk;
 
   /**
    * A list of active {@link AnalysisWorker} workers for this project.
@@ -188,16 +188,29 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
       return;
     }
 
+    // TODO (danrubel): Inject manager rather than accessing global
     Index index = DartCore.getProjectManager().getIndex();
-    for (PubFolder folder : getPubFolders()) {
-      index.removeContext(folder.getContext());
-    }
-    index.removeContext(defaultContext);
-    pubFolders = null;
 
-    AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
-    for (AnalysisWorker worker : workerArray) {
-      worker.stop();
+    // Remove contained pub folders
+    IPath path = container.getFullPath();
+    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
+    while (iter.hasNext()) {
+      Entry<IPath, PubFolder> entry = iter.next();
+      IPath key = entry.getKey();
+      if (path.equals(key) || path.isPrefixOf(key)) {
+        AnalysisContext context = entry.getValue().getContext();
+        stopWorkers(context);
+        index.removeContext(context);
+        iter.remove();
+      }
+    }
+
+    // Reset the state if discarding the entire project
+    if (projectResource.equals(container)) {
+      stopWorkers(defaultContext);
+      index.removeContext(defaultContext);
+      defaultContext = null;
+      pubFolders = null;
     }
   }
 
@@ -515,5 +528,19 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   private void logNoLocation(IContainer container) {
     DartCore.logInformation("No location for " + container);
+  }
+
+  /**
+   * Stop workers for the specified context.
+   * 
+   * @param context the context
+   */
+  private void stopWorkers(AnalysisContext context) {
+    AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
+    for (AnalysisWorker worker : workerArray) {
+      if (worker.getContext() == context) {
+        worker.stop();
+      }
+    }
   }
 }
