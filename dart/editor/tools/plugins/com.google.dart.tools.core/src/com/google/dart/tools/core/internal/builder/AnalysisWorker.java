@@ -25,6 +25,7 @@ import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -182,7 +183,8 @@ public class AnalysisWorker {
         // TODO (danrubel): log unmatched sources once context only returns errors for added sources
 //        DartCore.logError("Failed to determine resource for: " + source);
       } else {
-        if (!DartCore.isContainedInPackages(res.getLocation().toFile())) {
+        IPath location = res.getLocation();
+        if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
           LineInfo lineInfo = change.getLineInfo();
           if (lineInfo == null) {
             DartCore.logError("Missing line information for: " + source);
