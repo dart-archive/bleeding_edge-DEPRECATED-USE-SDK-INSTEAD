@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,34 +13,33 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
+import com.google.common.collect.Sets;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.index.Index;
+import com.google.dart.engine.search.SearchEngine;
+import com.google.dart.engine.search.SearchEngineFactory;
+import com.google.dart.engine.search.SearchFilter;
+import com.google.dart.engine.search.SearchListener;
+import com.google.dart.engine.search.SearchMatch;
+import com.google.dart.engine.search.SearchPatternFactory;
+import com.google.dart.engine.search.SearchScope;
+import com.google.dart.engine.search.SearchScopeFactory;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.model.DartElement;
-import com.google.dart.tools.core.model.Type;
-import com.google.dart.tools.core.search.SearchEngine;
-import com.google.dart.tools.core.search.SearchEngineFactory;
-import com.google.dart.tools.core.search.SearchException;
-import com.google.dart.tools.core.search.SearchFilter;
-import com.google.dart.tools.core.search.SearchListener;
-import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.search.SearchPatternFactory;
-import com.google.dart.tools.core.search.SearchScope;
-import com.google.dart.tools.core.search.SearchScopeFactory;
-import com.google.dart.tools.core.workingcopy.WorkingCopyOwner;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.omni.OmniBoxMessages;
 import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.dialogs.SearchPattern;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
- * Provider for type elements.
+ * Provider for class elements.
  */
 public class TypeProvider extends OmniProposalProvider {
 
@@ -71,27 +70,35 @@ public class TypeProvider extends OmniProposalProvider {
 
   /**
    * Filters out resources that have been marked as ignored.
+   * <p>
+   * TODO(pquitslund): remove once index removes un-analyzed sources
    */
   private static class DartIgnoreFilter implements SearchFilter {
     @Override
     public boolean passes(SearchMatch match) {
-      DartElement element = match.getElement();
-      IResource resource = element.getResource();
-      return resource == null || DartCore.isAnalyzed(resource);
+
+      //TODO (pquitslund): implement filtering ignores
+
+      // Element element = match.getElement();
+      //TODO(danrubel): need to get the corresponding resource from project manager?
+      // IResource resource = ...;
+      // return resource == null || DartCore.isAnalyzed(resource);
+
+      return true;
     }
   }
 
   private static final DartIgnoreFilter IGNORE_FILTER = new DartIgnoreFilter();
 
+  @SuppressWarnings("unused")
   private final IProgressMonitor progressMonitor;
 
-  //TODO (pquitslund): support additional scopes
-  private final SearchScope searchScope = SearchScopeFactory.createWorkspaceScope();
+  private final SearchScope searchScope = SearchScopeFactory.createUniverseScope();
 
   private final ArrayList<OmniElement> results = new ArrayList<OmniElement>();
+  private final Set<Element> uniqueElements = Sets.newHashSet();
 
-  protected boolean searchComplete;
-
+  private boolean searchComplete;
   private boolean searchStarted;
 
   private OmniElement searchPlaceHolderElement;
@@ -112,7 +119,7 @@ public class TypeProvider extends OmniProposalProvider {
   @Override
   public OmniElement[] getElements(String pattern) {
 
-    com.google.dart.tools.core.search.SearchPattern searchPattern = null;
+    com.google.dart.engine.search.SearchPattern searchPattern = null;
     SearchPattern sp = new SearchPattern();
     sp.setPattern(pattern);
     int matchRule = sp.getMatchRule();
@@ -133,7 +140,7 @@ public class TypeProvider extends OmniProposalProvider {
 
     try {
       return doSearch(searchPattern, pattern);
-    } catch (SearchException e) {
+    } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
     return new OmniElement[0];
@@ -156,10 +163,10 @@ public class TypeProvider extends OmniProposalProvider {
     return searchComplete;
   }
 
-  private OmniElement[] doSearch(com.google.dart.tools.core.search.SearchPattern searchPattern,
-      final String filterText) throws SearchException {
+  private OmniElement[] doSearch(com.google.dart.engine.search.SearchPattern searchPattern,
+      final String filterText) {
 
-    InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-TypeProvider.doSearch");
+    InstrumentationBuilder instrumentation = Instrumentation.builder("Omni-ClassProvider.doSearch");
     try {
       instrumentation.metric("searchStarted", String.valueOf(searchStarted));
 
@@ -171,19 +178,27 @@ public class TypeProvider extends OmniProposalProvider {
 
         results.add(searchPlaceHolderElement);
 
-        SearchEngine engine = SearchEngineFactory.createSearchEngine((WorkingCopyOwner) null);
+        Index globalIndex = DartCore.getProjectManager().getIndex();
+        SearchEngine engine = SearchEngineFactory.createSearchEngine(globalIndex);
         engine.searchTypeDeclarations(
             getSearchScope(),
             searchPattern,
             IGNORE_FILTER,
             new SearchListener() {
 
+              //TODO (pquitslund): consider adding progress reporting
+
               @Override
               public void matchFound(SearchMatch match) {
-                DartElement element = match.getElement();
-                if (element instanceof Type) {
-                  results.add(new TypeElement(TypeProvider.this, (Type) element));
+                Element element = match.getElement();
+                // TODO(scheglov) may be do something smarter with duplicates
+                if (!uniqueElements.add(element)) {
+                  return;
                 }
+                // OK, add omni element
+                results.add(new com.google.dart.tools.ui.omni.elements.TypeElement(
+                    TypeProvider.this,
+                    element));
               }
 
               @Override
@@ -191,19 +206,16 @@ public class TypeProvider extends OmniProposalProvider {
                 searchComplete = true;
                 results.remove(searchPlaceHolderElement);
               }
-            },
-            progressMonitor);
+            });
 
       }
 
-      instrumentation.metric("ResultsSize", results.size());
-
+      instrumentation.metric("Results-Size", results.size());
       return results.toArray(new OmniElement[results.size()]);
     } finally {
       instrumentation.log();
 
     }
-
   }
 
   private SearchScope getSearchScope() {

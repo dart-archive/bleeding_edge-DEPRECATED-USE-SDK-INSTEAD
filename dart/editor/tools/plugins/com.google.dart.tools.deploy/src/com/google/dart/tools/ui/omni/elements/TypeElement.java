@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +13,10 @@
  */
 package com.google.dart.tools.ui.omni.elements;
 
-import com.google.dart.tools.core.model.DartLibrary;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.Type;
+import com.google.dart.compiler.resolver.ClassAliasElement;
+import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -25,60 +26,57 @@ import com.google.dart.tools.ui.omni.OmniElement;
 import com.google.dart.tools.ui.omni.OmniProposalProvider;
 
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.ui.PartInitException;
 
 /**
- * Element for types.
+ * {@link OmniElement} for types.
  */
 public class TypeElement extends OmniElement {
+  private final Element element;
 
-  private static final ImageDescriptor CLASS_ICON = DartPluginImages.DESC_DART_CLASS_PUBLIC;
-
-  private final Type type;
-
-  public TypeElement(OmniProposalProvider provider, Type type) {
+  public TypeElement(OmniProposalProvider provider, Element element) {
     super(provider);
-    this.type = type;
+    this.element = element;
   }
 
   @Override
   public String getId() {
-    return type.getElementName();
+    return element.getName();
   }
 
   @Override
   public ImageDescriptor getImageDescriptor() {
-    return CLASS_ICON;
+    if (element instanceof ClassAliasElement) {
+      return DartPluginImages.DESC_DART_CLASS_TYPE_ALIAS;
+    }
+    if (element instanceof FunctionTypeAliasElement) {
+      return DartPluginImages.DESC_DART_FUNCTIONTYPE_PUBLIC;
+    }
+    return DartPluginImages.DESC_DART_CLASS_PUBLIC;
   }
 
   @Override
   public String getLabel() {
     StringBuffer result = new StringBuffer();
-    result.append(type.getElementName());
+    result.append(element.getName());
 
     //cache detail offset (used for styling detail area in OmniElement.paint(...))
     detailOffset = result.length();
 
-    DartLibrary library = type.getLibrary();
+    LibraryElement library = element.getLibrary();
     if (library != null) {
       result.append(DartElementLabels.CONCAT_STRING);
-      result.append(library.getDisplayName());
+      result.append(library.getName());
     }
     return result.toString();
   }
 
   @Override
   protected void doExecute(String text, UIInstrumentationBuilder instrumentation) {
+    instrumentation.data("TypeElement.searchResultSelected", element.getName());
     try {
-
-      instrumentation.data("typeName", type.getElementName());
-
-      DartUI.openInEditor(type, true, true);
-    } catch (PartInitException e) {
-      DartToolsPlugin.log(e);
-    } catch (DartModelException e) {
+      DartUI.openInEditor(element);
+    } catch (Throwable e) {
       DartToolsPlugin.log(e);
     }
   }
-
 }

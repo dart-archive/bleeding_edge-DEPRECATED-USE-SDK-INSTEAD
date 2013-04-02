@@ -16,11 +16,11 @@ package com.google.dart.tools.ui.omni;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
-import com.google.dart.tools.ui.omni.elements.ClassProvider;
+import com.google.dart.tools.ui.omni.elements.TypeProvider;
 import com.google.dart.tools.ui.omni.elements.FileProvider;
 import com.google.dart.tools.ui.omni.elements.HeaderElement;
 import com.google.dart.tools.ui.omni.elements.TextSearchProvider;
-import com.google.dart.tools.ui.omni.elements.TypeProvider;
+import com.google.dart.tools.ui.omni.elements.TypeProvider_OLD;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Assert;
@@ -148,8 +148,8 @@ public class OmniBoxPopup extends BasePopupDialog {
 
   private static final int MAX_COUNT_TOTAL = 20;
 
-  private static OmniProposalProvider createClassProvider(IProgressMonitor pm) {
-    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new ClassProvider(pm) : new TypeProvider(pm);
+  private static OmniProposalProvider createTypeProvider(IProgressMonitor pm) {
+    return DartCoreDebug.ENABLE_NEW_ANALYSIS ? new TypeProvider(pm) : new TypeProvider_OLD(pm);
   }
 
   private OmniProposalProvider[] providers;
@@ -805,7 +805,7 @@ public class OmniBoxPopup extends BasePopupDialog {
   private OmniProposalProvider[] createProviders() {
     return new OmniProposalProvider[] {
         new PreviousPicksProvider(), new TextSearchProvider(this),
-        createClassProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
+        createTypeProvider(getProgressMonitor()), new FileProvider(getProgressMonitor()),
 //        new EditorProvider(),
 //        new ActionProvider(),
 //        new PreferenceProvider(),
@@ -908,12 +908,12 @@ public class OmniBoxPopup extends BasePopupDialog {
     //to ensure a refresh --- if/when other provides go async, this special casing should 
     //get generalized
     for (OmniProposalProvider provider : providers) {
-      if (provider instanceof TypeProvider) {
-        needsRefresh = !((TypeProvider) provider).isSearchComplete();
+      if (provider instanceof TypeProvider_OLD) {
+        needsRefresh = !((TypeProvider_OLD) provider).isSearchComplete();
         provider.reset();
       }
-      if (provider instanceof ClassProvider) {
-        needsRefresh = !((ClassProvider) provider).isSearchComplete();
+      if (provider instanceof TypeProvider) {
+        needsRefresh = !((TypeProvider) provider).isSearchComplete();
         provider.reset();
       }
     }
