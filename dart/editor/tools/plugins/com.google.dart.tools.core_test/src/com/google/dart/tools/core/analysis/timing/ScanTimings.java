@@ -90,6 +90,12 @@ public class ScanTimings extends TestCase {
 
   private final class MockIndexForScan implements Index {
     @Override
+    public void clear() {
+      // ignored
+
+    }
+
+    @Override
     public void getRelationships(Element element, Relationship relationship,
         RelationshipCallback callback) {
       // ignored

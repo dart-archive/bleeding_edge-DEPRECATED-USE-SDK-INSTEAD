@@ -33,6 +33,12 @@ import com.google.dart.engine.source.SourceContainer;
  * @coverage dart.engine.index
  */
 public interface Index {
+
+  /**
+   * Clears the index store, removes all relationships that have been stored.
+   */
+  void clear();
+
   /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the
    * elements that have the given relationship with the given element. For example, if the element
