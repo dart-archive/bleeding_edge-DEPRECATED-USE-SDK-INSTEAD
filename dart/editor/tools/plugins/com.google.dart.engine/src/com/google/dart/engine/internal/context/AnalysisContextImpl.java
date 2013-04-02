@@ -302,33 +302,9 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   @Override
   public AnalysisContext extractContext(SourceContainer container) {
-    AnalysisContextImpl newContext = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
-    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
-    synchronized (cacheLock) {
-      // Move sources in the specified directory to the new context
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
-        Source source = entry.getKey();
-        if (container.contains(source)) {
-          sourcesToRemove.add(source);
-          newContext.sourceMap.put(source, entry.getValue().copy());
-        }
-      }
-
-      // TODO (danrubel): Either remove sources or adjust contract described in AnalysisContext.
-      // Currently, callers assume that sources have been removed from this context
-
-//      for (Source source : sourcesToRemove) {
-//        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
-//        // there are no additional dependencies on the source), and if so remove all information
-//        // about the source.
-//        sourceMap.remove(source);
-//        parseCache.remove(source);
-//        publicNamespaceCache.remove(source);
-//        libraryElementCache.remove(source);
-//      }
-    }
-
-    return newContext;
+    return extractContextInto(
+        container,
+        (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext());
   }
 
   @Override
@@ -851,6 +827,44 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
     }
     return librarySources;
+  }
+
+  /**
+   * Initialize the specified context by removing the specified sources from the receiver and adding
+   * them to the specified context.
+   * 
+   * @param container the container containing sources that should be removed from this context and
+   *          added to the returned context
+   * @param newContext the context to be initialized
+   * @return the analysis context that was initialized
+   */
+  AnalysisContext extractContextInto(SourceContainer container, AnalysisContextImpl newContext) {
+    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      // Move sources in the specified directory to the new context
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        Source source = entry.getKey();
+        if (container.contains(source)) {
+          sourcesToRemove.add(source);
+          newContext.sourceMap.put(source, entry.getValue().copy());
+        }
+      }
+
+      // TODO (danrubel): Either remove sources or adjust contract described in AnalysisContext.
+      // Currently, callers assume that sources have been removed from this context
+
+//      for (Source source : sourcesToRemove) {
+//        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
+//        // there are no additional dependencies on the source), and if so remove all information
+//        // about the source.
+//        sourceMap.remove(source);
+//        parseCache.remove(source);
+//        publicNamespaceCache.remove(source);
+//        libraryElementCache.remove(source);
+//      }
+    }
+
+    return newContext;
   }
 
   /**

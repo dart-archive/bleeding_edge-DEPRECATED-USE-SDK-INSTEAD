@@ -38,8 +38,8 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     instrumentation.data("AnalysisException", e.toString());
   }
 
-  protected String contextId = UUID.randomUUID().toString();
-  protected AnalysisContext basis = new AnalysisContextImpl();
+  protected final String contextId = UUID.randomUUID().toString();
+  protected final AnalysisContextImpl basis = new AnalysisContextImpl();
 
   @Override
   public void applyChanges(ChangeSet changeSet) {
@@ -134,7 +134,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
 
-      return basis.extractContext(container);
+      InstrumentedAnalysisContextImpl newContext = new InstrumentedAnalysisContextImpl();
+      basis.extractContextInto(container, newContext.basis);
+      return newContext;
     } finally {
       instrumentation.log();
     }
@@ -160,7 +162,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
       instrumentation.metric("contextId", contextId);
 
       AnalysisError[] ret = basis.getErrors(source);
-      instrumentation.metric("Errors-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Errors-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -186,7 +190,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
       instrumentation.metric("contextId", contextId);
 
       Source[] ret = basis.getHtmlFilesReferencing(source);
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -199,7 +205,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       Source[] ret = basis.getHtmlSources();
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -223,7 +231,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       Source[] ret = basis.getLaunchableClientLibrarySources();
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -236,7 +246,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       Source[] ret = basis.getLaunchableServerLibrarySources();
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -249,7 +261,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       Source[] ret = basis.getLibrariesContaining(source);
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -273,7 +287,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       Source[] ret = basis.getLibrarySources();
-      instrumentation.metric("Source-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("Source-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
@@ -351,6 +367,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-mergeContext");
     try {
       instrumentation.metric("contextId", contextId);
+      if (context instanceof InstrumentedAnalysisContextImpl) {
+        context = ((InstrumentedAnalysisContextImpl) context).basis;
+      }
       basis.mergeContext(context);
     } finally {
       instrumentation.log();
@@ -391,7 +410,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     try {
       instrumentation.metric("contextId", contextId);
       ChangeNotice[] ret = basis.performAnalysisTask();
-      instrumentation.metric("ChangeNotice-count", ret.length);
+      if (ret != null) {
+        instrumentation.metric("ChangeNotice-count", ret.length);
+      }
       return ret;
     } finally {
       instrumentation.log();
