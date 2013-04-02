@@ -453,14 +453,6 @@ public class StaticWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_undefinedIdentifier_initializer() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "var a = b;"));
-    resolve(source);
-    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
-    verify(source);
-  }
-
   public void fail_undefinedSetter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class C {}",
@@ -549,6 +541,13 @@ public class StaticWarningCodeTest extends ResolverTestCase {
         "f() { C c; }"));
     resolve(source);
     assertErrors(StaticWarningCode.UNDEFINED_CLASS);
+  }
+
+  public void test_undefinedIdentifier_initializer() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "var a = b;"));
+    resolve(source);
+    assertErrors(StaticWarningCode.UNDEFINED_IDENTIFIER);
   }
 
   public void test_undefinedIdentifier_methodInvocation() throws Exception {

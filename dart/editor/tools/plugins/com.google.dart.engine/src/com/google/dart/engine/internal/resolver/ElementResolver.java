@@ -787,16 +787,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     if (element == null) {
-      // TODO(brianwilkerson) Report and recover from this error.
-      ASTNode parent = node.getParent();
-      String name = node.getName();
-      if (parent instanceof MethodInvocation) {
-        if (node.equals(((MethodInvocation) parent).getTarget())) {
-          resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, name);
-        } else {
-//          resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, name);
-        }
-      }
+      // TODO(brianwilkerson) Recover from this error.
+      resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, node, node.getName());
     }
     recordResolution(node, element);
     return null;

@@ -1629,7 +1629,9 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", createSource(//
         "import 'stuff_$platform.dart';"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.URI_WITH_INTERPOLATION);
+    assertErrors(
+        CompileTimeErrorCode.URI_WITH_INTERPOLATION,
+        StaticWarningCode.UNDEFINED_IDENTIFIER);
     // We cannot verify resolution with an unresolvable URI: 'stuff_$platform.dart'
   }
 

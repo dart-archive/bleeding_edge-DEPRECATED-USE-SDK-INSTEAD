@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -97,6 +98,15 @@ public class ResolverVisitor extends ScopedVisitor {
       typeAnalyzer.setThisType(outerType == null ? null : outerType.getType());
       enclosingClass = outerType;
     }
+    return null;
+  }
+
+  @Override
+  public Void visitComment(Comment node) {
+    // TODO(jwren) Implement resolution of comments.
+    //
+    // We do not visit the comments as part of the ResolverVisitor as it requires a special scope.
+    //
     return null;
   }
 
