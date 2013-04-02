@@ -321,6 +321,15 @@ public class CompletionTests extends CompletionTestCase {
     test("!1part !2of foo;", "1+part", "2+of");
   }
 
+  public void test019() throws Exception {
+    test(src(//
+        "var truefalse = 0;",
+        "var falsetrue = 1;",
+        "main() {",
+        "  var foo = true!1",
+        "}"), "1+true", "1+truefalse", "1-falsetrue");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",

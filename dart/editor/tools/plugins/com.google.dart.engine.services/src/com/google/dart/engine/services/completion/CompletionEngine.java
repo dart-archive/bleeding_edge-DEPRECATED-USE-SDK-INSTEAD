@@ -61,8 +61,8 @@ import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.SimpleStringLiteral;
 import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.ast.SwitchMember;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.TryStatement;
@@ -78,6 +78,7 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
@@ -261,6 +262,11 @@ public class CompletionEngine {
       super(parent, completionLocation());
     }
 
+    Ident(ASTNode parent, String name, int offset) {
+      super(parent, offset);
+      this.name = name;
+    }
+
     Ident(ASTNode parent, Token name) {
       super(parent, name.getOffset());
       this.name = name.getLexeme();
@@ -268,7 +274,14 @@ public class CompletionEngine {
 
     @Override
     public String getName() {
-      return name == null ? "" : name;
+      if (name != null) {
+        return name;
+      }
+      String n = super.getName();
+      if (n != null) {
+        return n;
+      }
+      return "";
     }
   }
 
@@ -551,12 +564,12 @@ public class CompletionEngine {
 
   /**
    * An StringCompleter is used to classify the parent of the completion node when it has previously
-   * been determined that the completion node is a StringLiteral.
+   * been determined that the completion node is a SimpleStringLiteral.
    */
   private class StringCompleter extends AstNodeClassifier {
-    StringLiteral completionNode;
+    SimpleStringLiteral completionNode;
 
-    StringCompleter(StringLiteral node) {
+    StringCompleter(SimpleStringLiteral node) {
       completionNode = node;
     }
 
@@ -900,7 +913,7 @@ public class CompletionEngine {
     }
 
     @Override
-    public Void visitStringLiteral(StringLiteral node) {
+    public Void visitSimpleStringLiteral(SimpleStringLiteral node) {
       ASTNode parent = node.getParent();
       if (parent instanceof Directive) {
         StringCompleter visitor = new StringCompleter(node);
@@ -1412,34 +1425,87 @@ public class CompletionEngine {
     }
   }
 
-  void importReference(ImportDirective node, StringLiteral literal) {
-//    List<LibraryElement> packages = new ArrayList<LibraryElement>();
-//    List<LibraryElement> libraries = new ArrayList<LibraryElement>();
-//    List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
-//    LibraryElement currentLibrary = context.getCompilationUnit().getElement().getLibrary();
-//    String currentLibraryName = currentLibrary.getSource().getFullName();
-//    AnalysisContext ac = context.getCompilationUnit().getElement().getContext();
-//    Source[] sources = ac.getLibrarySources();
-//    List<LibraryElement> allLibs = new ArrayList<LibraryElement>();
-//    for (Source s : sources) {
-//      String sName = s.getFullName();
-//      if (currentLibraryName.equals(sName)) {
-//        continue;
-//      }
-//      LibraryElement lib = ac.getLibraryElement(s);
-//      if (lib == null) {
-//        continue;
-//      } else if (sName.contains(PACKAGES_PATH)) {
-//        packages.add(lib);
-//      } else if (isCUInLibFolder(lib.getDefiningCompilationUnit())) {
-//        librariesInLib.add(lib);
-//      } else {
-//        libraries.add(lib);
+  void importPackageReference(ImportDirective node, List<LibraryElement> libraries,
+      List<LibraryElement> librariesInLib) {
+    String prefix = filter.prefix;
+    if (prefix.startsWith("dart:") || prefix.startsWith("package:")) {
+      return;
+    }
+    if (isUnitInLibFolder(context.getCompilationUnit().getElement())) {
+      importPackageReferenceFromList(node, prefix, librariesInLib);
+    } else {
+      importPackageReferenceFromList(node, prefix, libraries);
+    }
+  }
+
+  void importPackageReferenceFromList(ImportDirective node, String prefix,
+      List<LibraryElement> libraries) {
+//    context.getCompilationUnit().getElement().getSource().getFullName();
+//    URI baseUri = currentCompilationUnit.getUnderlyingResource().getParent().getLocationURI();
+//    for (LibraryElement library : libraries) {
+//      String name = URIUtilities.relativize(baseUri, library.getUri()).toString();
+//      if (name.startsWith(prefix)) {
+//        pName(name, ProposalKind.IMPORT);
 //      }
 //    }
-//    createCompletionForSdkImports(node, literal);
-//    createCompletionForPubPackageImports(node, literal, packages, librariesInLib);
-//    createCompletionForCurrentPackageImports(node, literal, libraries, librariesInLib);
+  }
+
+  void importPubReference(ImportDirective node, List<LibraryElement> packages,
+      List<LibraryElement> librariesInLib) {
+
+  }
+
+  void importReference(ImportDirective node, SimpleStringLiteral literal) {
+    String lit = literal.getLiteral().getLexeme();
+    if (!lit.isEmpty()) {
+      lit = lit.substring(1, Math.max(lit.length() - 1, 0));
+    }
+    filter = new Filter(new Ident(node, lit, literal.getOffset() + 1));
+    List<LibraryElement> packages = new ArrayList<LibraryElement>();
+    List<LibraryElement> libraries = new ArrayList<LibraryElement>();
+    List<LibraryElement> librariesInLib = new ArrayList<LibraryElement>();
+    String currentLibraryName = getCurrentLibrary().getSource().getFullName();
+    AnalysisContext ac = getAnalysisContext();
+    Source[] sources = ac.getLibrarySources();
+    for (Source s : sources) {
+      String sName = s.getFullName();
+      if (currentLibraryName.equals(sName)) {
+        continue;
+      }
+      LibraryElement lib = ac.getLibraryElement(s);
+      if (lib == null) {
+        continue;
+      } else if (sName.contains("/packages/")) {
+        packages.add(lib);
+      } else if (isUnitInLibFolder(lib.getDefiningCompilationUnit())) {
+        librariesInLib.add(lib);
+      } else {
+        libraries.add(lib);
+      }
+    }
+    importSdkReference(node);
+    importPubReference(node, packages, librariesInLib);
+    importPackageReference(node, libraries, librariesInLib);
+  }
+
+  void importSdkReference(ImportDirective node) {
+    String prefix = filter.prefix;
+    String[] prefixStrings = prefix.split(":");
+    if (!prefix.isEmpty() && !"dart:".startsWith(prefixStrings[0])) {
+      return;
+    }
+    if (prefix.isEmpty()) {
+      pName("dart:", ProposalKind.IMPORT);
+      return;
+    }
+    List<LibraryElement> libs = getSystemLibraries();
+    for (LibraryElement lib : libs) {
+      String name = lib.getName();
+      name = name.substring(5);
+      if (filter.isPermitted(name)) {
+        pName("dart:" + name, ProposalKind.IMPORT);
+      }
+    }
   }
 
   void namedConstructorReference(ClassElement classElement, SimpleIdentifier identifier) {
@@ -1474,7 +1540,7 @@ public class CompletionEngine {
 
   void prefixedAccess(PrefixElement libElement, SimpleIdentifier identifier) {
     filter = new Filter(identifier);
-    libraries = libElement.getImportedLibraries();
+    libraries = libElement.getEnclosingElement().getImportedLibraries();
     NameCollector names = new NameCollector();
     names.addTopLevelNames();
     proposeNames(names, identifier);
@@ -1645,8 +1711,29 @@ public class CompletionEngine {
     return extractElementsFromSearchMatches(matches);
   }
 
+  private AnalysisContext getAnalysisContext() {
+    return context.getCompilationUnit().getElement().getContext();
+  }
+
+  private LibraryElement getCurrentLibrary() {
+    return context.getCompilationUnit().getElement().getLibrary();
+  }
+
   private ClassElement getObjectClassElement() {
     return getTypeProvider().getObjectType().getElement();
+  }
+
+  private List<LibraryElement> getSystemLibraries() {
+    // TODO Get ALL system libraries, not just the ones that have been loaded already.
+    AnalysisContext ac = getAnalysisContext();
+    Source[] ss = ac.getLibrarySources();
+    List<LibraryElement> sl = new ArrayList<LibraryElement>();
+    for (Source s : ss) {
+      if (s.isInSystemLibrary()) {
+//        sl.add(ac.getLibraryElement(s));
+      }
+    }
+    return sl;
   }
 
   private TypeProvider getTypeProvider() {
@@ -1692,6 +1779,14 @@ public class CompletionEngine {
 
   private boolean isCompletionBetween(int firstLoc, int secondLoc) {
     return isCompletionAfter(firstLoc) && isCompletionBefore(secondLoc);
+  }
+
+  private boolean isUnitInLibFolder(CompilationUnitElement cu) {
+    String pathString = cu.getSource().getFullName();
+    if (pathString.indexOf("/lib/") == -1) {
+      return false;
+    }
+    return true;
   }
 
   private String makeNonconflictingName(String candidate, List<String> names) {
