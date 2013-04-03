@@ -414,6 +414,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     assertThat(locations).containsOnly(locationC);
   }
 
+  public void test_tryToRecord_afterContextRemove_element() throws Exception {
+    Location locationB = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    // remove "A" - context of "elementA"
+    store.removeContext(contextA);
+    // so, this record request is ignored
+    store.recordRelationship(elementA, relationship, locationB);
+    assertEquals(0, store.getRelationshipCount());
+  }
+
+  public void test_tryToRecord_afterContextRemove_location() throws Exception {
+    Location locationB = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    when(elementB.getContext()).thenReturn(contextB);
+    // remove "B" - context of location
+    store.removeContext(contextB);
+    // so, this record request is ignored
+    store.recordRelationship(elementA, relationship, locationB);
+    assertEquals(0, store.getRelationshipCount());
+  }
+
   public void test_writeRead() throws Exception {
     when(contextA.getElement(eq(elementLocationA))).thenReturn(elementA);
     when(contextB.getElement(eq(elementLocationB))).thenReturn(elementB);
@@ -439,6 +460,12 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     store.clear();
     assertEquals(0, store.getElementCount());
     assertEquals(0, store.getRelationshipCount());
+    // we need to re-create AnalysisContext, current instance was marked as removed
+    {
+      contextA = mock(AnalysisContext.class);
+      when(contextA.getElement(eq(elementLocationA))).thenReturn(elementA);
+      when(elementA.getContext()).thenReturn(contextA);
+    }
     // read
     {
       ByteArrayInputStream bais = new ByteArrayInputStream(content);

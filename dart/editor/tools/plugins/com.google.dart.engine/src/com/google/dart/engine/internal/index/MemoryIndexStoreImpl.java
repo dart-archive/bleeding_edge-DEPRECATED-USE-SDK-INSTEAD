@@ -15,9 +15,9 @@ package com.google.dart.engine.internal.index;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -42,7 +42,6 @@ import java.util.Set;
  * @coverage dart.engine.index
  */
 public class MemoryIndexStoreImpl implements MemoryIndexStore {
-
   static class ElementRelationKey {
     final Element element;
     final Relationship relationship;
@@ -64,6 +63,8 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
   }
 
+  private static final Object WEAK_SET_VALUE = new Object();
+
   /**
    * @return the {@link Source} which contains given {@link Element}, may be {@code null}.
    */
@@ -84,6 +85,8 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     return null;
   }
+
+  private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
 
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
@@ -107,6 +110,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void clear() {
+    // all current contexts are implicitly removed
+    for (AnalysisContext context : sources.keySet()) {
+      if (context != null) {
+        removedContexts.put(context, WEAK_SET_VALUE);
+      }
+    }
+    // clear data
     relationshipMap.clear();
     sources.clear();
     sourceToDeclarations.clear();
@@ -186,11 +196,16 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     AnalysisContext locationContext = location.getElement().getContext();
     Source elementSource = findSource(element);
     Source locationSource = findSource(location.getElement());
+    // may be already removed in other thread
+    if (removedContexts.containsKey(elementContext)) {
+      return;
+    }
+    if (removedContexts.containsKey(locationContext)) {
+      return;
+    }
     // TODO(scheglov) remove after fix in resolver
     if (elementContext == null && !(element instanceof NameElementImpl)
         && !(element instanceof UniverseElementImpl)) {
-      AnalysisEngine.getInstance().getLogger().logError(
-          "Element without AnalysisContext: " + element);
       return;
     }
     // remember sources
@@ -223,6 +238,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeContext(AnalysisContext context) {
+    removedContexts.put(context, WEAK_SET_VALUE);
     // remove context sources
     sources.remove(context);
     // remove elements declared in Source(s) of removed context

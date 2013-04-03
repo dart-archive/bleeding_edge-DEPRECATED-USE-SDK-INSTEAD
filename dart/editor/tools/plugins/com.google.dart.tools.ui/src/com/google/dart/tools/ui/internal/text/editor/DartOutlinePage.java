@@ -204,7 +204,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
         doPropertyChange(event);
       }
     };
-    editor.getPreferences().addPropertyChangeListener(propertyChangeListener);
+    DartToolsPlugin.getDefault().getPreferenceStore().addPropertyChangeListener(
+        propertyChangeListener);
     JFaceResources.getFontRegistry().addListener(fontPropertyChangeListener);
   }
 
@@ -315,9 +316,11 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     // dispose actions
     if (actionGroups != null) {
       actionGroups.dispose();
+      actionGroups = null;
     }
     // done
     viewer = null;
+    input = null;
     super.dispose();
   }
 
