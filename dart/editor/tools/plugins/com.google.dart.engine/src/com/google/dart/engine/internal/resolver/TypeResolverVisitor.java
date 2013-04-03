@@ -395,7 +395,13 @@ public class TypeResolverVisitor extends ScopedVisitor {
       // TODO(jwren) Consider moving the check for CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE
       // from the ErrorVerifier, so that we don't have two errors on a built in identifier being
       // used as a class name. See CompileTimeErrorCodeTest.test_builtInIdentifierAsType().
-      reportError(StaticWarningCode.UNDEFINED_CLASS, node, typeName);
+      Identifier simpleIdentifier;
+      if (typeName instanceof SimpleIdentifier) {
+        simpleIdentifier = typeName;
+      } else {
+        simpleIdentifier = ((PrefixedIdentifier) typeName).getPrefix();
+      }
+      reportError(StaticWarningCode.UNDEFINED_CLASS, simpleIdentifier, simpleIdentifier.getName());
       setElement(typeName, dynamicType.getElement());
       typeName.setStaticType(dynamicType);
       node.setType(dynamicType);
