@@ -884,6 +884,16 @@ public class CompletionEngine {
     }
 
     @Override
+    public Void visitPropertyAccess(PropertyAccess node) {
+      if (node.getTarget() != null && node.getTarget().getLength() == 0) {
+        return null; // { . }
+      }
+      Type receiverType = typeOf(node.getRealTarget());
+      analyzePrefixedAccess(receiverType, node.getPropertyName());
+      return null;
+    }
+
+    @Override
     public Void visitReturnStatement(ReturnStatement node) {
       if (isCompletingKeyword(node.getKeyword())) {
         pKeyword(node.getKeyword());
@@ -1306,7 +1316,7 @@ public class CompletionEngine {
       // Complete x.!y
       Element rcvrTypeElem = receiverType.getElement();
       if (rcvrTypeElem == null) {
-        return; // { f() => null. }
+        rcvrTypeElem = getObjectClassElement(); // { f() => null.! }
       }
       if (rcvrTypeElem.equals(DynamicElementImpl.getInstance())) {
         rcvrTypeElem = getObjectClassElement();

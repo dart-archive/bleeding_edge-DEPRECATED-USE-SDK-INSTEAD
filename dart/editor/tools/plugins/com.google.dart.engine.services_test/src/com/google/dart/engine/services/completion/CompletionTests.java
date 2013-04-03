@@ -330,6 +330,18 @@ public class CompletionTests extends CompletionTestCase {
         "}"), "1+true", "1+truefalse", "1-falsetrue");
   }
 
+  public void test020() throws Exception {
+    test("var x = null.!1", "1+toString");
+  }
+
+  public void test021() throws Exception {
+    test("var x = .!1", "1-toString");
+  }
+
+  public void test022() throws Exception {
+    test("var x = .!1;", "1-toString");
+  }
+
   public void testCommentSnippets001() throws Exception {
     test(
         "class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA!1X;x!2c.abs();num f = M!3AX;}}",
@@ -1143,7 +1155,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets083b() throws Exception {
-    test("main() { null.!1 }", "1-toString");
+    test("main() { null.!1 }", "1+toString");
   }
 
   public void testCommentSnippets084() throws Exception {
