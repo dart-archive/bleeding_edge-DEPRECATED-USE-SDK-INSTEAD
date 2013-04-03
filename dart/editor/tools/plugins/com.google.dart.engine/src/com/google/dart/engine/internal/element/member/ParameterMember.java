@@ -15,7 +15,9 @@ package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -62,6 +64,18 @@ public class ParameterMember extends Member implements ParameterElement {
    */
   public ParameterMember(ParameterElement baseElement, InterfaceType definingType) {
     super(baseElement, definingType);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public <E extends Element> E getAncestor(Class<E> elementClass) {
+    E element = getBaseElement().getAncestor(elementClass);
+    if (element instanceof MethodElement) {
+      return (E) MethodMember.from((MethodElement) element, getDefiningType());
+    } else if (element instanceof PropertyAccessorElement) {
+      return (E) PropertyAccessorMember.from((PropertyAccessorElement) element, getDefiningType());
+    }
+    return element;
   }
 
   /**

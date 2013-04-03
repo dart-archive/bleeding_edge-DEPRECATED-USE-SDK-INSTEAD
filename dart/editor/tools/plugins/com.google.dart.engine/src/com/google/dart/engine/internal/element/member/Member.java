@@ -62,11 +62,7 @@ public abstract class Member implements Element {
 
   @Override
   public <E extends Element> E getAncestor(Class<E> elementClass) {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-//    return getBaseElement().getAncestor(elementClass);
+    return getBaseElement().getAncestor(elementClass);
   }
 
   /**
