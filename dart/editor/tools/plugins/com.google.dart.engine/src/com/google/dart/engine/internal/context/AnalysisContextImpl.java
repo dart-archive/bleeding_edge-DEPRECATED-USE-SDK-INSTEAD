@@ -896,7 +896,9 @@ public class AnalysisContextImpl implements AnalysisContext {
     if (recentlyUsed.contains(source)) {
       recentlyUsed.remove(source);
       recentlyUsed.add(source);
-    } else if (recentlyUsed.size() >= MAX_CACHE_SIZE) {
+      return;
+    }
+    if (recentlyUsed.size() >= MAX_CACHE_SIZE) {
       Source removedSource = recentlyUsed.remove(0);
       recentlyUsed.add(source);
       SourceInfo sourceInfo = sourceMap.get(removedSource);
@@ -908,6 +910,7 @@ public class AnalysisContextImpl implements AnalysisContext {
         ((CompilationUnitInfo) sourceInfo).clearResolvedUnit();
       }
     }
+    recentlyUsed.add(source);
   }
 
   /**
