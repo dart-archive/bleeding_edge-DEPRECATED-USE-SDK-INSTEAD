@@ -161,9 +161,11 @@ public class CompletionEngine {
       if (!state.areLiteralsAllowed) {
         mergeNames(findAllTypes());
       }
-      mergeNames(findAllVariables());
-      mergeNames(findAllFunctions());
-      mergeNames(findAllPrefixes());
+      if (!state.areClassesRequired) {
+        mergeNames(findAllVariables());
+        mergeNames(findAllFunctions());
+        mergeNames(findAllPrefixes());
+      }
     }
 
     Collection<List<Element>> getNames() {
@@ -1391,22 +1393,15 @@ public class CompletionEngine {
     SimpleIdentifier receiverName = node.getPrefix();
     Element receiver = receiverName.getElement();
     if (receiver == null) {
-      // TODO Interpret this as an unresolved library prefix.
+      prefixedAccess(receiverName, identifier);
       return;
     }
     switch (receiver.getKind()) {
-      case PREFIX: {
-        PrefixElement prefixElement = (PrefixElement) receiver;
+      case PREFIX:
+      case IMPORT:
         // Complete lib_prefix.name
-        prefixedAccess(prefixElement, identifier);
+        prefixedAccess(receiverName, identifier);
         break;
-      }
-      case IMPORT: {
-        ImportElement importElement = (ImportElement) receiver;
-        // Complete lib_prefix.name
-        prefixedAccess(importElement, identifier);
-        break;
-      }
       default: {
         Type receiverType = typeOf(receiver);
         analyzePrefixedAccess(receiverType, identifier);
@@ -1534,13 +1529,9 @@ public class CompletionEngine {
     proposeNames(names, identifier);
   }
 
-  void prefixedAccess(ImportElement libElement, SimpleIdentifier identifier) {
-    prefixedAccess(libElement.getPrefix(), identifier);
-  }
-
-  void prefixedAccess(PrefixElement libElement, SimpleIdentifier identifier) {
+  void prefixedAccess(SimpleIdentifier libName, SimpleIdentifier identifier) {
     filter = new Filter(identifier);
-    libraries = libElement.getEnclosingElement().getImportedLibraries();
+    libraries = librariesImportedByName(libName);
     NameCollector names = new NameCollector();
     names.addTopLevelNames();
     proposeNames(names, identifier);
@@ -1638,7 +1629,6 @@ public class CompletionEngine {
     if (libraries != null) {
       return SearchScopeFactory.createLibraryScope(libraries);
     }
-    // Multi-library scope goes here.
     return SearchScopeFactory.createUniverseScope();
   }
 
@@ -1716,7 +1706,7 @@ public class CompletionEngine {
   }
 
   private LibraryElement getCurrentLibrary() {
-    return context.getCompilationUnit().getElement().getLibrary();
+    return context.getCompilationUnit().getElement().getEnclosingElement();
   }
 
   private ClassElement getObjectClassElement() {
@@ -1787,6 +1777,22 @@ public class CompletionEngine {
       return false;
     }
     return true;
+  }
+
+  private LibraryElement[] librariesImportedByName(SimpleIdentifier libName) {
+    ImportElement[] imps = getCurrentLibrary().getImports();
+    String name = libName.getName();
+    List<LibraryElement> libs = new ArrayList<LibraryElement>();
+    for (ImportElement imp : imps) {
+      PrefixElement prefix = imp.getPrefix();
+      if (prefix != null) {
+        String impName = prefix.getName();
+        if (name.equals(impName)) {
+          libs.add(imp.getImportedLibrary());
+        }
+      }
+    }
+    return libs.toArray(new LibraryElement[libs.size()]);
   }
 
   private String makeNonconflictingName(String candidate, List<String> names) {
@@ -1869,9 +1875,7 @@ public class CompletionEngine {
     CompletionProposal prop = createProposal(kind);
     prop.setCompletion(name);
     Element container = element.getEnclosingElement();
-    if (container != null) { // TODO: never null ??
-      prop.setDeclaringType(container.getName());
-    }
+    prop.setDeclaringType(container.getName());
     requestor.accept(prop);
   }
 
@@ -1895,7 +1899,7 @@ public class CompletionEngine {
     CompletionProposal prop = createProposal(kind);
     prop.setCompletion(name);
     Element container = element.getEnclosingElement();
-    if (container != null) { // TODO: may be null for functions ??
+    if (container != null) {
       prop.setDeclaringType(container.getName());
     }
     Type type = typeOf(element);

@@ -20,6 +20,12 @@ class CompletionState {
   boolean isCompileTimeConstantRequired;
   boolean isOptionalArgumentRequired;
   boolean areMethodsProhibited;
+  boolean areClassesRequired;
+
+  public void mustBeInstantiableType() {
+    areClassesRequired = true;
+    prohibitsLiterals();
+  }
 
   void includesLiterals() {
     if (!areLiteralsProhibited) {

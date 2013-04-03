@@ -3,6 +3,7 @@ package com.google.dart.engine.services.completion;
 import com.google.common.base.Joiner;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisException;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.resolver.ResolverTestCase;
@@ -18,7 +19,7 @@ import java.util.Collection;
 
 public class CompletionTestCase extends ResolverTestCase {
 
-  protected static final String NAME_OF_SOURCE_TO_ANALYZE = "/some/long/name/that/is/unique/in/tests";
+  protected static final String NAME_OF_SOURCE_TO_ANALYZE = "/completionTest.dart";
 
   protected static String src(String... parts) {
     return Joiner.on('\n').join(parts);
@@ -84,9 +85,8 @@ public class CompletionTestCase extends ResolverTestCase {
 
   private CompilationUnit analyze(String content) throws AnalysisException {
     Source source = addSource(NAME_OF_SOURCE_TO_ANALYZE, content);
-    resolve(source);
-    CompilationUnit unit = getAnalysisContext().parseCompilationUnit(source);
-    return unit;
+    LibraryElement library = resolve(source);
+    return getAnalysisContext().resolveCompilationUnit(source, library);
   }
 
 }

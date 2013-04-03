@@ -543,7 +543,8 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets034() throws Exception {
-    // TODO Enable after type propagation and corelib analysis are implemented.
+    // TODO Enable after type propagation is implemented.
+    // TODO Move to new TestCase that includes corelib analysis
 //    test("t2() {var q=[0],z=q.!1length;q.!2clear();}", "1+length", "1+isEmpty", "2+clear");
   }
 
@@ -603,12 +604,12 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets045() throws Exception {
-    // TODO Enable after corelib analysis is implemented.
+    // TODO Move to new TestCase that includes corelib analysis
 //    test("class X{var q; f() {q.!1a!2}}", "1+end", "2+abs", "2-end");
   }
 
   public void testCommentSnippets046() throws Exception {
-    // TODO Enable once resolution works for library prefixes
+    // TODO Enable once the indexer is fixed to properly handle library prefixes
     // Resolving dart:html takes between 2.5s and 30s; json, about 0.12s
 //    test(
 //        src(
@@ -620,7 +621,7 @@ public class CompletionTests extends CompletionTestCase {
 //        "1+JsonParser",
 //        "1-JsonParserX",
 //        "2+JsonParser",
-//        "3-JsonParserX",
+//        "2-JsonParserX",
 //        "3+JsonParser",
 //        "3-JsonParserX");
   }
@@ -810,7 +811,7 @@ public class CompletionTests extends CompletionTestCase {
   }
 
   public void testCommentSnippets062() throws Exception {
-    // TODO Enable after corelib analysis is implemented.
+    // TODO Move to new TestCase that includes corelib analysis
 //    test("var PHI;main(){PHI=5.3;PHI.abs().!1 Object x;}", "1+abs");
   }
 
