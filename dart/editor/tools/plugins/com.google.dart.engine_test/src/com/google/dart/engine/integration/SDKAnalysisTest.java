@@ -84,7 +84,10 @@ public class SDKAnalysisTest extends TestCase {
     //
     StaticTypeVerifier staticTypeVerifier = new StaticTypeVerifier();
     ResolutionVerifier resolutionVerifier = new ResolutionVerifier();
+    ElementStructureVerifier elementVerifier = new ElementStructureVerifier();
     for (LibraryElement library : libraryEltArray) {
+      library.accept(elementVerifier);
+
       // Reference the LibraryElement, and the CompilationUnitElements we want to verify was resolved
       CompilationUnitElement definingCompilationUnitElement = library.getDefiningCompilationUnit();
       CompilationUnitElement[] compilationUnitElements = library.getParts();
@@ -105,6 +108,7 @@ public class SDKAnalysisTest extends TestCase {
         compilationUnit.accept(resolutionVerifier);
       }
     }
+    elementVerifier.assertValid();
     staticTypeVerifier.assertResolved();
     resolutionVerifier.assertResolved();
   }

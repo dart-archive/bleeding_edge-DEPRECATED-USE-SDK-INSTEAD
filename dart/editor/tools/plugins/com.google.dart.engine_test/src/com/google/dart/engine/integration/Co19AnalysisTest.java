@@ -184,6 +184,10 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Validate the results.
     //
+    ElementStructureVerifier elementVerifier = new ElementStructureVerifier();
+    library.accept(elementVerifier);
+    elementVerifier.assertValid();
+
     ArrayList<AnalysisError> errorList = new ArrayList<AnalysisError>();
     addErrors(errorList, library.getDefiningCompilationUnit());
     for (CompilationUnitElement part : library.getParts()) {
