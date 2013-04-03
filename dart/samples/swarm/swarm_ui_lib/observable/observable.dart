@@ -175,10 +175,6 @@ class ObservableList<T>
     _internal.add(element);
   }
 
-  void addLast(T element) {
-    add(element);
-  }
-
   void addAll(Iterable<T> elements) {
     for (T element in elements) {
       add(element);
