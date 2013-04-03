@@ -764,7 +764,7 @@ public class EditorUtility {
 
     IFileStore fileStore = EFS.getLocalFileSystem().getStore(uri);
 
-    return new ExternalCompilationUnitEditorInput(fileStore, cu, uri);
+    return new FileStoreEditorInput(fileStore);
   }
 
   private static void initializeHighlightRange(IEditorPart editorPart) {

@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.core.internal.model.ExternalCompilationUnitImpl;
+import com.google.dart.tools.core.model.CompilationUnit;
 
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.ui.IMemento;
@@ -31,7 +32,7 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
   /**
    * The external compilation unit being edited.
    */
-  private final Object /*CompilationUnitElement*/compilationUnit;
+  private final CompilationUnit compilationUnit;
   private final URI uri;
 
   /**
@@ -40,8 +41,8 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
    * @param fileStore the file store containing the external file representing the compilation unit
    * @param compilationUnit the external compilation unit being edited
    */
-  public ExternalCompilationUnitEditorInput(IFileStore fileStore,
-      Object /*CompilationUnitElement*/compilationUnit, URI uri) {
+  public ExternalCompilationUnitEditorInput(IFileStore fileStore, CompilationUnit compilationUnit,
+      URI uri) {
     super(fileStore);
     if (compilationUnit == null) {
       throw new IllegalArgumentException("compilationUnit");
@@ -60,7 +61,7 @@ public class ExternalCompilationUnitEditorInput extends FileStoreEditorInput {
    * 
    * @return the external compilation unit being edited
    */
-  public Object /*CompilationUnitElement*/getCompilationUnit() {
+  public CompilationUnit getCompilationUnit() {
     return compilationUnit;
   }
 

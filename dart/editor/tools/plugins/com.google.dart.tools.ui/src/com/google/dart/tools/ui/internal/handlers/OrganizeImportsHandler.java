@@ -15,7 +15,6 @@ package com.google.dart.tools.ui.internal.handlers;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.actions.OrganizeImportsAction;
-import com.google.dart.tools.ui.actions.RunPubAction;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;

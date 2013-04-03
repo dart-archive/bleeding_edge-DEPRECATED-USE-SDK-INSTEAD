@@ -86,8 +86,6 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
       URI unitUri = new URI(unitUriString);
 
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        //TODO (pquitslund): fix this to be new-world ready
-
         return new FileStoreEditorInput(EFS.getStore(fileUri));
       } else {
         try {
@@ -102,10 +100,9 @@ public class ExternalCompilationUnitEditorInputFactory implements IElementFactor
               Object element = DartCore.create(id);
 
               if (element instanceof ExternalCompilationUnitImpl) {
-                return new ExternalCompilationUnitEditorInput(
-                    EFS.getStore(fileUri),
-                    element,
-                    unitUri);
+                ExternalCompilationUnitImpl cu = (ExternalCompilationUnitImpl) element;
+
+                return new ExternalCompilationUnitEditorInput(EFS.getStore(fileUri), cu, unitUri);
               }
             }
 
