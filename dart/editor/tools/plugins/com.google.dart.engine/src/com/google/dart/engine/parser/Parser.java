@@ -2475,7 +2475,9 @@ public class Parser {
       if (firstParameter) {
         firstParameter = false;
       } else if (!optional(TokenType.COMMA)) {
-        if (((BeginToken) leftParenthesis).getEndToken() != null) {
+        // TODO(brianwilkerson) The token is wrong, we need to recover from this case.
+        if ((leftParenthesis instanceof BeginToken)
+            && ((BeginToken) leftParenthesis).getEndToken() != null) {
           reportError(ParserErrorCode.EXPECTED_TOKEN, TokenType.COMMA.getLexeme());
         } else {
           reportError(ParserErrorCode.MISSING_CLOSING_PARENTHESIS, currentToken.getPrevious());
