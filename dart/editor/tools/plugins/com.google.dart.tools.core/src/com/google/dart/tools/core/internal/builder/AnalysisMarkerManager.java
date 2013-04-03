@@ -275,6 +275,7 @@ public class AnalysisMarkerManager {
               DartCore.logError("Failed to show errors for " + result.resource, e);
             }
           }
+          resultsBeingTranslated = null;
         }
       };
       try {
