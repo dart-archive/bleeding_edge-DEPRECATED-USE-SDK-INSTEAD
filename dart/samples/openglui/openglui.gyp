@@ -14,9 +14,6 @@
     {
       'target_name': 'openglui_sample',
       'type': 'none',
-      'dependencies': [
-         'web/web.gyp:assets',
-      ],
       'conditions': [
         ['OS=="android"', {
             'dependencies': [
