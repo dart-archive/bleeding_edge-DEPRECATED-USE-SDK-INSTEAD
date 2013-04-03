@@ -224,8 +224,9 @@ public class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     Set<InterfaceType> sj = computeSuperinterfaceSet(j);
 
     // union si with i and sj with j
-    si.add(i);
-    sj.add(j);
+    // By getting the type off of the element, we strip out any type arguments.
+    si.add(i.getElement().getType());
+    sj.add(j.getElement().getType());
 
     // compute intersection, reference as set 's'
     si.retainAll(sj);

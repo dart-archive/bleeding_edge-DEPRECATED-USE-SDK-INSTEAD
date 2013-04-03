@@ -26,6 +26,7 @@ import com.google.dart.engine.internal.element.FunctionElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.MethodElementImpl;
 import com.google.dart.engine.internal.element.TypeVariableElementImpl;
+import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.type.Type;
@@ -40,6 +41,17 @@ import static com.google.dart.engine.element.ElementFactory.setterElement;
 import java.util.Set;
 
 public class InterfaceTypeImplTest extends EngineTestCase {
+
+  /**
+   * The type provider used to access the types.
+   */
+  private TestTypeProvider typeProvider;
+
+  @Override
+  public void setUp() throws Exception {
+    typeProvider = new TestTypeProvider();
+  }
+
   public void test_computeLongestInheritancePathToObject_multipleInterfacePaths() {
     //
     //   Object
@@ -390,6 +402,19 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     FunctionTypeImpl functionType = new FunctionTypeImpl(new FunctionElementImpl(identifier("f")));
 
     assertNull(interfaceType.getLeastUpperBound(functionType));
+  }
+
+  public void test_getLeastUpperBound_ignoreTypeParameters() {
+    //
+    // class List<int>
+    // class List<double>
+    //
+    InterfaceType listType = typeProvider.getListType();
+    InterfaceType intType = typeProvider.getIntType();
+    InterfaceType doubleType = typeProvider.getDoubleType();
+    InterfaceType listOfIntType = listType.substitute(new Type[] {intType});
+    InterfaceType listOfDoubleType = listType.substitute(new Type[] {doubleType});
+    assertEquals(listType, listOfIntType.getLeastUpperBound(listOfDoubleType));
   }
 
   public void test_getLeastUpperBound_mixinCase() {
