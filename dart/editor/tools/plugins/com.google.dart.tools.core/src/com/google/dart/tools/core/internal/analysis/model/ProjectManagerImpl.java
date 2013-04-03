@@ -287,6 +287,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         index.run();
       }
     }.start();
+    resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
     new CleanLibrariesJob().schedule();
   }
 
