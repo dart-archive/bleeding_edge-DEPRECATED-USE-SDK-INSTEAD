@@ -69,6 +69,15 @@ public abstract class Member implements Element {
 //    return getBaseElement().getAncestor(elementClass);
   }
 
+  /**
+   * Return the element on which the parameterized element was created.
+   * 
+   * @return the element on which the parameterized element was created
+   */
+  public Element getBaseElement() {
+    return baseElement;
+  }
+
   @Override
   public AnalysisContext getContext() {
     return baseElement.getContext();
@@ -130,15 +139,6 @@ public abstract class Member implements Element {
     //
     throw new UnsupportedOperationException();
 //    getBaseElement().visitChildren(visitor);
-  }
-
-  /**
-   * Return the element on which the parameterized element was created.
-   * 
-   * @return the element on which the parameterized element was created
-   */
-  protected Element getBaseElement() {
-    return baseElement;
   }
 
   /**

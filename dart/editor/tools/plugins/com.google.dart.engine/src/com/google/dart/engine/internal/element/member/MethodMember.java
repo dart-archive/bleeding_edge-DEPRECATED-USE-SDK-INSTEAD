@@ -64,6 +64,11 @@ public class MethodMember extends ExecutableMember implements MethodElement {
   }
 
   @Override
+  public MethodElement getBaseElement() {
+    return (MethodElement) super.getBaseElement();
+  }
+
+  @Override
   public ClassElement getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
   }
@@ -96,10 +101,5 @@ public class MethodMember extends ExecutableMember implements MethodElement {
       builder.append(type.getReturnType());
     }
     return builder.toString();
-  }
-
-  @Override
-  protected MethodElement getBaseElement() {
-    return (MethodElement) super.getBaseElement();
   }
 }

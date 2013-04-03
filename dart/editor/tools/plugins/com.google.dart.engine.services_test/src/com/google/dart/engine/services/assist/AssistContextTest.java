@@ -75,6 +75,11 @@ public class AssistContextTest extends AbstractDartTest {
     assertEquals("String", coveredElement.getName());
   }
 
+  public void test_getCoveredElement_null() throws Exception {
+    AssistContext context = new AssistContext(searchEngine, null, 0, 0);
+    assertNull(context.getCoveredElement());
+  }
+
   public void test_getNode() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

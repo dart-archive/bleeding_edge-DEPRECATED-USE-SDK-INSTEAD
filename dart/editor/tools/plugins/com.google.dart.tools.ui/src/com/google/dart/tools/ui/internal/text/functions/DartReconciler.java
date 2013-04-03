@@ -39,6 +39,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.texteditor.ITextEditor;
 
+import java.lang.ref.WeakReference;
+
 /**
  * "New world" dart reconciler.
  */
@@ -285,7 +287,7 @@ public class DartReconciler extends MonoReconciler {
       DartCore.logError(e);
     }
     // run loop and wait for CompilationUnit changes
-    CompilationUnit lastParsedUnit = null;
+    WeakReference<CompilationUnit> lastParsedUnit = new WeakReference<CompilationUnit>(null);
     CompilationUnitElement previousUnitElement = null;
     while (thread != null) {
       try {
@@ -310,8 +312,8 @@ public class DartReconciler extends MonoReconciler {
           if (loopEditorState != null) {
             notifyContextAboutCode(loopEditorState.code);
             CompilationUnit parsedUnit = getParsedUnit();
-            boolean newUnit = !Objects.equal(parsedUnit, lastParsedUnit);
-            lastParsedUnit = parsedUnit;
+            boolean newUnit = !Objects.equal(parsedUnit, lastParsedUnit.get());
+            lastParsedUnit = new WeakReference<CompilationUnit>(parsedUnit);
             displayReconcilerTick(parsedUnit, newUnit, loopEditorState.selectionRange);
           }
         }

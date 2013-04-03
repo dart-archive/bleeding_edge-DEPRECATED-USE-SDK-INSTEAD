@@ -66,6 +66,11 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   }
 
   @Override
+  public PropertyAccessorElement getBaseElement() {
+    return (PropertyAccessorElement) super.getBaseElement();
+  }
+
+  @Override
   public Element getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
   }
@@ -87,10 +92,5 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
   @Override
   public boolean isSetter() {
     return getBaseElement().isSetter();
-  }
-
-  @Override
-  protected PropertyAccessorElement getBaseElement() {
-    return (PropertyAccessorElement) super.getBaseElement();
   }
 }

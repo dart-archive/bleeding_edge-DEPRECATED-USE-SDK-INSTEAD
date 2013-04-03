@@ -64,6 +64,16 @@ public class ParameterMember extends Member implements ParameterElement {
     super(baseElement, definingType);
   }
 
+  /**
+   * Return the element on which the parameterized element was created.
+   * 
+   * @return the element on which the parameterized element was created
+   */
+  @Override
+  public ParameterElement getBaseElement() {
+    return (ParameterElement) super.getBaseElement();
+  }
+
   @Override
   public Element getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
@@ -130,15 +140,5 @@ public class ParameterMember extends Member implements ParameterElement {
     builder.append(baseElement.getName());
     builder.append(right);
     return builder.toString();
-  }
-
-  /**
-   * Return the element on which the parameterized element was created.
-   * 
-   * @return the element on which the parameterized element was created
-   */
-  @Override
-  protected ParameterElement getBaseElement() {
-    return (ParameterElement) super.getBaseElement();
   }
 }

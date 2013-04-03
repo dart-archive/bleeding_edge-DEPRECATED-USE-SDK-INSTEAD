@@ -39,6 +39,11 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   }
 
   @Override
+  public ExecutableElement getBaseElement() {
+    return (ExecutableElement) super.getBaseElement();
+  }
+
+  @Override
   public FunctionElement[] getFunctions() {
     //
     // Elements within this element should have type parameters substituted, just like this element.
@@ -85,10 +90,5 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   @Override
   public boolean isStatic() {
     return getBaseElement().isStatic();
-  }
-
-  @Override
-  protected ExecutableElement getBaseElement() {
-    return (ExecutableElement) super.getBaseElement();
   }
 }

@@ -121,8 +121,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return {@code true} if given {@link SimpleIdentifier} is "name" part of prefixed
-   *         identifier or method invocation.
+   * @return {@code true} if given {@link SimpleIdentifier} is "name" part of prefixed identifier or
+   *         method invocation.
    */
   private static boolean isQualified(SimpleIdentifier node) {
     ASTNode parent = node.getParent();
@@ -524,8 +524,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
-   * @return {@code true} if given node already indexed as more interesting reference, so it
-   *         should not be indexed again.
+   * @return {@code true} if given node already indexed as more interesting reference, so it should
+   *         not be indexed again.
    */
   private boolean isAlreadyHandledName(SimpleIdentifier node) {
     ASTNode parent = node.getParent();

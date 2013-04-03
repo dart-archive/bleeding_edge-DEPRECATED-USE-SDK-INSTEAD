@@ -26,6 +26,7 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.utilities.collection.FastRemoveList;
@@ -202,6 +203,11 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     }
     if (removedContexts.containsKey(locationContext)) {
       return;
+    }
+    // TODO(scheglov) we started to resolve some elements as Member(s),
+    // but at the index level we don't care.
+    if (element instanceof Member) {
+      element = ((Member) element).getBaseElement();
     }
     // TODO(scheglov) remove after fix in resolver
     if (elementContext == null && !(element instanceof NameElementImpl)

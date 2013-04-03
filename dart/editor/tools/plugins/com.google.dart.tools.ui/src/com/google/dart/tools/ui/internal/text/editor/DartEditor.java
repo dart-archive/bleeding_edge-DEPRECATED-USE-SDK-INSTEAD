@@ -1489,13 +1489,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
     private ISelection newDartSelection(ISelection selection) {
       if (selection == null) {
-        return new DartSelection(DartEditor.this, null, null, -1, 0);
+        return new DartSelection(DartEditor.this, null, -1, 0);
       }
       ITextSelection textSelection = (ITextSelection) selection;
       // prepare document
       ISourceViewer sourceViewer = getSourceViewer();
       if (sourceViewer == null) {
-        return new DartSelection(DartEditor.this, null, null, -1, 0);
+        return new DartSelection(DartEditor.this, null, -1, 0);
       }
       IDocument document = sourceViewer.getDocument();
       // prepare AssistContext
@@ -1503,7 +1503,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       // OK, wrap into DartSelection
       return new DartSelection(
           DartEditor.this,
-          assistContext,
           document,
           textSelection.getOffset(),
           textSelection.getLength());
@@ -1939,6 +1938,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
+        if (resolvedUnit != null) {
+          applyParsedUnitAndSelection(resolvedUnit, true, null);
+        }
         fireDartSelectionListeners();
       }
     });

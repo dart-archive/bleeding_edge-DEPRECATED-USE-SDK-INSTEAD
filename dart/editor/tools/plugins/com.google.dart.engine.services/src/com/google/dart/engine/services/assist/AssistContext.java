@@ -59,6 +59,9 @@ public class AssistContext {
    */
   public Element getCoveredElement() {
     ASTNode coveredNode = getCoveredNode();
+    if (coveredNode == null) {
+      return null;
+    }
     return ElementLocator.locate(coveredNode);
   }
 

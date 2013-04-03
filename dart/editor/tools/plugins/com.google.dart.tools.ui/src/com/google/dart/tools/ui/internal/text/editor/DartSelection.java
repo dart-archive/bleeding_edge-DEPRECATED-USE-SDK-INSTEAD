@@ -24,13 +24,10 @@ import org.eclipse.jface.text.TextSelection;
  */
 public class DartSelection extends TextSelection {
   private final DartEditor editor;
-  private final AssistContext context;
 
-  public DartSelection(DartEditor editor, AssistContext context, IDocument document, int offset,
-      int length) {
+  public DartSelection(DartEditor editor, IDocument document, int offset, int length) {
     super(document, offset, length);
     this.editor = editor;
-    this.context = context;
   }
 
   /**
@@ -38,7 +35,7 @@ public class DartSelection extends TextSelection {
    *         is not resolved.
    */
   public AssistContext getContext() {
-    return context;
+    return editor.getAssistContext();
   }
 
   /**
