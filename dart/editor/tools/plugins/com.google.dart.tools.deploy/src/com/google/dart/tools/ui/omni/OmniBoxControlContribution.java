@@ -280,6 +280,7 @@ public class OmniBoxControlContribution {
           Control focusControl = Display.getDefault().getFocusControl();
           if (focusControl != textControl && popup != null && focusControl != popup.table) {
             popup.close();
+            popup = null;
           }
         }
       });
@@ -331,6 +332,7 @@ public class OmniBoxControlContribution {
     if (filterText.length() > 0) {
       if (needsResearch && !popupClosed()) {
         popup.simpleClose();
+        popup = null;
       }
       if (popupClosed()) {
         openPopup();
@@ -338,6 +340,7 @@ public class OmniBoxControlContribution {
       refreshPopup();
     } else {
       popup.simpleClose();
+      popup = null;
     }
   }
 
@@ -439,6 +442,7 @@ public class OmniBoxControlContribution {
           //key events (issue 1905) and we want to *not* close the popup
           if (focusControl != null && focusControl != popup.table) {
             popup.close();
+            popup = null;
           }
           textControl.removeListener(SWT.Deactivate, this);
         }
