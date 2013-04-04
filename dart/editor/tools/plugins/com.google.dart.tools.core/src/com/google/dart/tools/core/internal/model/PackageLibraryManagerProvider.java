@@ -130,6 +130,8 @@ public class PackageLibraryManagerProvider {
    * Return the default library manager.
    */
   public static PackageLibraryManager getPackageLibraryManager() {
+    DartCore.oldModelCheck();
+
     return getAnyLibraryManager();
   }
 
@@ -137,6 +139,8 @@ public class PackageLibraryManagerProvider {
    * Return the default library manager.
    */
   public static PackageLibraryManager getPackageLibraryManager(File file) {
+    DartCore.oldModelCheck();
+
     File appDir = DartCore.getApplicationDirectory(file);
     if (appDir != null) {
       PackageLibraryManager libraryManager = new PackageLibraryManager();
