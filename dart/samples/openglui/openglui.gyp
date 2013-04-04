@@ -17,6 +17,7 @@
       'conditions': [
         ['OS=="android"', {
             'dependencies': [
+              'web/web.gyp:assets',
               'android-webgl-raytrace/android.gyp:android_app',
               'android-canvas-tests/android.gyp:android_app',
               'android-blasteroids/android.gyp:android_app',
@@ -25,6 +26,7 @@
         ],
         ['enable_openglui==1', {
             'dependencies': [
+              'web/web.gyp:assets',
               'emulator/emulator.gyp:mobile_emulator_app',
             ],
           },

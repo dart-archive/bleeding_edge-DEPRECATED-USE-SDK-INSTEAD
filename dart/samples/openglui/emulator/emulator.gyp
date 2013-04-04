@@ -17,6 +17,7 @@
               '../../../runtime/dart-runtime.gyp:emulator_embedder',
               'mobile_emulator',
               'copy_dart_files',
+              '../web/web.gyp:assets',
               'copy_assets',
             ]
           }
