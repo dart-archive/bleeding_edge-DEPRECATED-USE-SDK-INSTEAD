@@ -64,8 +64,6 @@ public class DefaultDebugUIHelper extends DebugUIHelper {
 
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
 
-        shell.forceActive();
-
         MessageDialog.openError(shell, title, message);
       }
     });
