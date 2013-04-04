@@ -3480,7 +3480,7 @@ public class PreferenceConstants {
     store.setDefault(PreferenceConstants.EDITOR_JAVADOC_DEFAULT_ITALIC, false);
 
     store.setDefault(PreferenceConstants.CODEASSIST_AUTOACTIVATION, true);
-    store.setDefault(PreferenceConstants.CODEASSIST_AUTOACTIVATION_DELAY, 200); // was 300 and 80
+    store.setDefault(PreferenceConstants.CODEASSIST_AUTOACTIVATION_DELAY, 80); // was 300
 
     store.setDefault(PreferenceConstants.CODEASSIST_AUTOINSERT, false);
     setDefaultAndFireEvent(

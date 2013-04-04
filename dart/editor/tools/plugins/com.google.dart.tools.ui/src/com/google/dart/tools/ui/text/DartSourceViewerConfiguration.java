@@ -375,8 +375,6 @@ public class DartSourceViewerConfiguration extends TextSourceViewerConfiguration
 //      assistant.setContentAssistProcessor(docProcessor, DartPartitions.DART_SINGLE_LINE_DOC);
 
       ContentAssistPreference.configure(assistant, fPreferenceStore);
-      // Turn on auto-completion so code completion runs when '.' is typed
-      assistant.enableAutoActivation(true);
 
       assistant.setContextInformationPopupOrientation(IContentAssistant.CONTEXT_INFO_ABOVE);
       assistant.setInformationControlCreator(getInformationControlCreator(sourceViewer));

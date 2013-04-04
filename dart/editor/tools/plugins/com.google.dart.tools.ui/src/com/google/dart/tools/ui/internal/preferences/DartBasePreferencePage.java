@@ -54,9 +54,8 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Text printMarginText;
   private Button removeTrailingWhitespaceCheck;
   private Button enableFolding;
-
+  private Button enableAutoCompletion;
   private Button runPubAutoCheck;
-
   private Button newAnalyzer;
 
   public DartBasePreferencePage() {
@@ -96,6 +95,9 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
 
     IPreferenceStore toolsPreferenceStore = PreferenceConstants.getPreferenceStore();
 
+    toolsPreferenceStore.setValue(
+        PreferenceConstants.CODEASSIST_AUTOACTIVATION,
+        enableAutoCompletion.getSelection());
     toolsPreferenceStore.setValue(
         PreferenceConstants.EDITOR_FOLDING_ENABLED,
         enableFolding.getSelection());
@@ -147,6 +149,12 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText = new Text(generalGroup, SWT.BORDER | SWT.SINGLE | SWT.RIGHT);
     printMarginText.setTextLimit(5);
     GridDataFactory.fillDefaults().hint(50, SWT.DEFAULT).applyTo(printMarginText);
+
+    enableAutoCompletion = createCheckBox(
+        generalGroup,
+        PreferencesMessages.DartBasePreferencePage_enable_auto_completion,
+        PreferencesMessages.DartBasePreferencePage_enable_auto_completion_tooltip);
+    GridDataFactory.fillDefaults().span(2, 1).applyTo(enableAutoCompletion);
 
     enableFolding = createCheckBox(
         generalGroup,
@@ -245,6 +253,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
     printMarginText.setEnabled(printMarginCheck.getSelection());
 
     removeTrailingWhitespaceCheck.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_REMOVE_TRAILING_WS));
+    enableAutoCompletion.setSelection(toolsPreferences.getBoolean(PreferenceConstants.CODEASSIST_AUTOACTIVATION));
     enableFolding.setSelection(toolsPreferences.getBoolean(PreferenceConstants.EDITOR_FOLDING_ENABLED));
 
     IEclipsePreferences prefs = DartCore.getPlugin().getPrefs();
