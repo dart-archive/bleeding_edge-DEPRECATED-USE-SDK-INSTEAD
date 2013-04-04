@@ -2144,7 +2144,7 @@ public class CompletionEngine {
       case SETTER: {
         ExecutableElement receiverElement = (ExecutableElement) receiver;
         FunctionType funType = receiverElement.getType();
-        receiverType = funType.getReturnType();
+        receiverType = funType == null ? null : funType.getReturnType();
         break;
       }
       case CLASS: {
@@ -2160,7 +2160,7 @@ public class CompletionEngine {
       case FUNCTION_TYPE_ALIAS: {
         FunctionTypeAliasElement receiverElement = (FunctionTypeAliasElement) receiver;
         FunctionType funType = receiverElement.getType();
-        receiverType = funType.getReturnType();
+        receiverType = funType == null ? null : funType.getReturnType();
         break;
       }
       default: {

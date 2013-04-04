@@ -1320,7 +1320,7 @@ public class CompletionTests extends CompletionTestCase {
     test("class Foo { int boo = 7; mth() { while (b!1) {} }}", "1+boo");
   }
 
-  // TODO Test for disallowed instance refs from within static methods.
+  // TODO Test for disallowed instance refs from within static methods. Improve proposals for optional params.
   public void testSingle() throws Exception {
     test("class A {int x; !2mth() {int y = this.x;}}class B{}", "2+B");
   }
