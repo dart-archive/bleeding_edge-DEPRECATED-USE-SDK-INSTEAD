@@ -582,7 +582,9 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     index = locationUrl.lastIndexOf(DartCore.LIB_DIRECTORY_PATH);
 
     if (index != -1) {
-      File packagesDir = new File(locationUrl.substring(0, index), DartCore.PACKAGES_DIRECTORY_NAME);
+      String path = file.getLocation().toString();
+      path = path.substring(0, path.lastIndexOf(DartCore.LIB_DIRECTORY_PATH));
+      File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
       if (packagesDir.exists()) {
         String packageName = DartCore.getSelfLinkedPackageName(file);
         if (packageName != null) {
