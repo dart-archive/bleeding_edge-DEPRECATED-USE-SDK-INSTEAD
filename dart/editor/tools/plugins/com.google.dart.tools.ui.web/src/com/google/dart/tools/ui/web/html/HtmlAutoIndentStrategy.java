@@ -74,15 +74,17 @@ class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
           if (!(startStr.startsWith("</") || startStr.endsWith("/>"))) {
             buf.append("  ");
 
-            // Insert </foo> and back up the caret position.
-            String eol = getEol(document, command.offset);
-
-            String closingTag = eol + wsStart + "</" + startTagName + ">";
-
-            buf.append(closingTag);
-
-            command.shiftsCaret = false;
-            command.caretOffset = command.offset + buf.length() - closingTag.length();
+            // TODO(devoncarew): check to make sure the tag is not already completed before we
+            // insert </foo>
+//            // Insert </foo> and back up the caret position.
+//            String eol = getEol(document, command.offset);
+//
+//            String closingTag = eol + wsStart + "</" + startTagName + ">";
+//
+//            buf.append(closingTag);
+//
+//            command.shiftsCaret = false;
+//            command.caretOffset = command.offset + buf.length() - closingTag.length();
           }
         }
       }
@@ -93,6 +95,7 @@ class HtmlAutoIndentStrategy extends WebEditorAutoIndentStrategy {
     }
   }
 
+  @SuppressWarnings("unused")
   private String getEol(IDocument document, int offset) throws BadLocationException {
     String eol = document.getLineDelimiter(document.getLineOfOffset(offset));
 
