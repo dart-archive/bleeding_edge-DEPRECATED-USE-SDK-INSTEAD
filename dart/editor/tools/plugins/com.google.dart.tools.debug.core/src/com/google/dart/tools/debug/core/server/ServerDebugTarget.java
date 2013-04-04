@@ -14,16 +14,12 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.PackageLibraryManager;
-import com.google.dart.tools.core.DartCore;
-import com.google.dart.tools.core.utilities.net.NetUtils;
+import com.google.dart.tools.core.NotYetImplementedException;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin.BreakOnExceptions;
 import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmConnection.BreakOnExceptionsType;
-import com.google.dart.tools.debug.core.server.VmConnection.BreakpointResolvedCallback;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -36,42 +32,14 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * An implementation of IDebugTarget for Dart VM debug connections.
  */
 public class ServerDebugTarget extends ServerDebugElement implements IDebugTarget, VmListener {
-
-  private class BreakpointCallback implements BreakpointResolvedCallback {
-    private DartBreakpoint dartBreakpoint;
-
-    public BreakpointCallback(DartBreakpoint dartBreakpoint) {
-      this.dartBreakpoint = dartBreakpoint;
-    }
-
-    @Override
-    public void handleResolved(VmBreakpoint bp) {
-      if (bp.getLocation() != null) {
-        final String url = getAbsoluteUrlForResource(dartBreakpoint.getFile());
-        final String pubUrl = getPubUrlForResource(dartBreakpoint.getFile());
-
-        if (bp.getLocation().getUrl().equals(url)
-            || (pubUrl != null && bp.getLocation().getUrl().equals(pubUrl))) {
-          if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
-            ignoredBreakpoints.add(dartBreakpoint);
-
-            dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber());
-          }
-        }
-      }
-    }
-
-  }
 
   private static ServerDebugTarget activeTarget;
 
@@ -95,7 +63,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private int resumeCount = 0;
 
-  private List<IBreakpoint> ignoredBreakpoints = new ArrayList<IBreakpoint>();
+  private ServerBreakpointManager breakpointManager;
 
   // TODO(devoncarew): this "main" isolate is temporary, until the VM allows us to 
   // set wildcard breakpoints across all isolates.
@@ -114,46 +82,25 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     this.launch = launch;
     this.process = process;
 
+    breakpointManager = new ServerBreakpointManager(this);
+
     connection = new VmConnection(connectionHost, connectionPort);
     connection.addListener(this);
   }
 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
-    if (supportsBreakpoint(breakpoint)) {
-      addBreakpoint(mainIsolate, (DartBreakpoint) breakpoint);
-    }
+    throw new NotYetImplementedException();
   }
 
   @Override
   public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-    if (ignoredBreakpoints.contains(breakpoint)) {
-      ignoredBreakpoints.remove(breakpoint);
-      return;
-    }
-
-    if (supportsBreakpoint(breakpoint)) {
-      breakpointRemoved(breakpoint, delta);
-      breakpointAdded(breakpoint);
-    }
+    throw new NotYetImplementedException();
   }
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-    if (supportsBreakpoint(breakpoint)) {
-      VmBreakpoint vmBreakpoint = findBreakpoint((DartBreakpoint) breakpoint);
-      VmBreakpoint pubBreakoint = findPubBreakpoint((DartBreakpoint) breakpoint);
-      try {
-        if (vmBreakpoint != null) {
-          getConnection().removeBreakpoint(mainIsolate, vmBreakpoint);
-        }
-        if (pubBreakoint != null) {
-          getConnection().removeBreakpoint(mainIsolate, pubBreakoint);
-        }
-      } catch (IOException exception) {
-        DartDebugCorePlugin.logError(exception);
-      }
-    }
+    throw new NotYetImplementedException();
   }
 
   @Override
@@ -421,23 +368,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     return this;
   }
 
-  private void addBreakpoint(VmIsolate isolate, DartBreakpoint breakpoint) {
-    if (breakpoint.isBreakpointEnabled()) {
-      String url = getAbsoluteUrlForResource(breakpoint.getFile());
-      int line = breakpoint.getLine();
-      try {
-        getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
-
-        url = getPubUrlForResource(breakpoint.getFile());
-        if (url != null) {
-          getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
-        }
-      } catch (IOException exception) {
-        DartDebugCorePlugin.logError(exception);
-      }
-    }
-  }
-
   private void addThread(ServerDebugThread thread) {
     threads.add(thread);
 
@@ -449,51 +379,11 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       connection.handleTerminated();
     }
 
-    if (DebugPlugin.getDefault() != null) {
-      DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
-    }
-  }
-
-  private VmBreakpoint findBreakpoint(DartBreakpoint breakpoint) {
-    final String url = getAbsoluteUrlForResource(breakpoint.getFile());
-    final int line = breakpoint.getLine();
-
-    for (VmBreakpoint bp : getConnection().getBreakpoints()) {
-      if (line == bp.getLocation().getLineNumber()
-          && NetUtils.compareUrls(url, bp.getLocation().getUrl())) {
-        return bp;
-      }
-    }
-    return null;
-  }
-
-  private VmBreakpoint findPubBreakpoint(DartBreakpoint breakpoint) {
-    final int line = breakpoint.getLine();
-    final String pubUrl = getPubUrlForResource(breakpoint.getFile());
-
-    if (pubUrl != null) {
-      for (VmBreakpoint bp : getConnection().getBreakpoints()) {
-        if (line == bp.getLocation().getLineNumber()
-            && NetUtils.compareUrls(pubUrl, bp.getLocation().getUrl())) {
-          return bp;
-        }
-      }
-    }
-    return null;
+    breakpointManager.dispose();
   }
 
   private void firstIsolateInit(VmIsolate isolate) {
-    // Set up the existing breakpoints.
-    IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
-        DartDebugCorePlugin.DEBUG_MODEL_ID);
-
-    for (IBreakpoint breakpoint : breakpoints) {
-      if (supportsBreakpoint(breakpoint)) {
-        addBreakpoint(isolate, (DartBreakpoint) breakpoint);
-      }
-    }
-
-    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
+    breakpointManager.connect(isolate);
 
     try {
       connection.enableAllStepping(isolate);
@@ -501,35 +391,15 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
       DartDebugCorePlugin.logError(e);
     }
 
-    final CountDownLatch latch = new CountDownLatch(1);
-
     // TODO(devoncarew): listen for changes to DartDebugCorePlugin.PREFS_BREAK_ON_EXCEPTIONS
     // Turn on break-on-exceptions.
     try {
-      connection.setPauseOnException(isolate, getPauseType(), new VmCallback<Boolean>() {
-        @Override
-        public void handleResult(VmResult<Boolean> result) {
-          latch.countDown();
-        }
-      });
+      connection.setPauseOnException(isolate, getPauseType());
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
-    } finally {
-      latch.countDown();
-    }
-
-    try {
-      // Wait for all our debugger commands to be processed before we resume execution.
-      latch.await();
-    } catch (InterruptedException e) {
-
     }
 
     maybeResume(isolate);
-  }
-
-  private String getAbsoluteUrlForResource(IFile file) {
-    return file.getLocation().toFile().toURI().toString();
   }
 
   private DartBreakpoint getBreakpointFor(VmLocation location) {
@@ -567,34 +437,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return pauseType;
-  }
-
-  private String getPubUrlForResource(IFile file) {
-    String locationUrl = file.getLocation().toFile().toURI().toString();
-
-    int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
-    if (index != -1) {
-      locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC
-          + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
-      return locationUrl;
-    }
-
-    index = locationUrl.lastIndexOf(DartCore.LIB_DIRECTORY_PATH);
-
-    if (index != -1) {
-      String path = file.getLocation().toString();
-      path = path.substring(0, path.lastIndexOf(DartCore.LIB_DIRECTORY_PATH));
-      File packagesDir = new File(path, DartCore.PACKAGES_DIRECTORY_NAME);
-      if (packagesDir.exists()) {
-        String packageName = DartCore.getSelfLinkedPackageName(file);
-        if (packageName != null) {
-          locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC + packageName + File.separator
-              + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
-          return locationUrl;
-        }
-      }
-    }
-    return null;
   }
 
   private synchronized boolean maybeResume(VmIsolate isolate) {

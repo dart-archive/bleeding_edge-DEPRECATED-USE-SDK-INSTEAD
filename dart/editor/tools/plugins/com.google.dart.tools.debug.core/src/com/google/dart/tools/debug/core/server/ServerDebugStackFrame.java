@@ -15,6 +15,11 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.core.expr.IExpressionEvaluator;
@@ -33,6 +38,7 @@ import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 import org.eclipse.debug.core.model.IWatchExpressionListener;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -165,17 +171,11 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     if (PackageLibraryManager.isPackageUri(uri)) {
       DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
           getDebugTarget().getLaunch().getLaunchConfiguration());
-      IResource resource = wrapper.getApplicationResource();
-      if (resource != null) {
-        uri = PackageLibraryManagerProvider.getPackageLibraryManager(
-            resource.getLocation().toFile()).resolvePackageUri(vmFrame.getLocation().getUrl());
-      } else {
-        uri = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
-            vmFrame.getLocation().getUrl());
-      }
+
+      uri = resolvePackageUri(wrapper.getApplicationResource(), uri);
     }
 
-    if ("file".equals(uri.getScheme())) {
+    if (uri != null && "file".equals(uri.getScheme())) {
       return uri.getPath();
     } else {
       return "builtin:" + vmFrame.getLibraryId() + ":" + vmFrame.getLocation().getUrl();
@@ -316,4 +316,33 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     return null;
   }
 
+  private URI resolvePackageUri(IResource resource, URI uri) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      if (resource != null) {
+        AnalysisContext context = DartCore.getProjectManager().getContext(resource);
+
+        if (context != null) {
+          Source source = context.getSourceFactory().forUri(uri.toString());
+
+          if (source instanceof FileBasedSource) {
+            FileBasedSource fileSource = (FileBasedSource) source;
+
+            File file = new File(fileSource.getFullName());
+
+            return file.toURI();
+          }
+        }
+      }
+    } else {
+      if (resource != null) {
+        return PackageLibraryManagerProvider.getPackageLibraryManager(
+            resource.getLocation().toFile()).resolvePackageUri(vmFrame.getLocation().getUrl());
+      } else {
+        return PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
+            vmFrame.getLocation().getUrl());
+      }
+    }
+
+    return null;
+  }
 }
