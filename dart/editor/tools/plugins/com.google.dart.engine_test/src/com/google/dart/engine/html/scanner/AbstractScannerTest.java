@@ -222,7 +222,7 @@ public abstract class AbstractScannerTest extends TestCase {
       TokenType expectedTokenType = getExpectedTokenType(count, expected);
       assertSame("token " + count, expectedTokenType, token.getType());
       if (expectedTokenType.getLexeme() != null) {
-        assertSame("token " + count, expectedTokenType.getLexeme(), token.getLexeme());
+        assertEquals("token " + count, expectedTokenType.getLexeme(), token.getLexeme());
       } else {
         assertEquals("token " + count, expected, token.getLexeme());
       }

@@ -99,6 +99,9 @@ public class HtmlElementImpl extends ElementImpl implements HtmlElement {
    * @param scripts the scripts
    */
   public void setScripts(HtmlScriptElement[] scripts) {
+    if (scripts.length == 0) {
+      scripts = HtmlScriptElementImpl.EMPTY_ARRAY;
+    }
     for (HtmlScriptElement script : scripts) {
       ((HtmlScriptElementImpl) script).setEnclosingElement(this);
     }

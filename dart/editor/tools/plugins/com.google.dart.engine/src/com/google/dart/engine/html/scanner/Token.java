@@ -13,6 +13,8 @@
  */
 package com.google.dart.engine.html.scanner;
 
+import com.google.dart.engine.utilities.general.StringUtilities;
+
 /**
  * Instances of the class {@code Token} represent a token that was scanned from the input. Each
  * token knows which token follows it, acting as the head of a linked list of tokens.
@@ -64,7 +66,7 @@ public class Token {
    */
   public Token(TokenType type, int offset, String value) {
     this.type = type;
-    this.value = value;
+    this.value = StringUtilities.intern(value);
     this.offset = offset;
   }
 

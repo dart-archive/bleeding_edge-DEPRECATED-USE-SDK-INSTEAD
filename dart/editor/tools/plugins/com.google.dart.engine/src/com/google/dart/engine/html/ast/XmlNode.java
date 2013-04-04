@@ -18,6 +18,7 @@ import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -133,6 +134,8 @@ public abstract class XmlNode {
         XmlNode node = iter.next(); // Java 7 access rules require a temp of a concrete type.
         node.setParent(this);
       }
+      // This will create ArrayList for exactly given number of elements.
+      return new ArrayList<T>(children);
     }
     return children;
   }
