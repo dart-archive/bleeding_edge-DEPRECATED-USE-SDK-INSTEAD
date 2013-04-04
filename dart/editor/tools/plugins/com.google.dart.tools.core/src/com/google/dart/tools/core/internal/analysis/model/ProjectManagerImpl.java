@@ -250,8 +250,12 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public boolean isServerLibrary(Source librarySource) {
-    AnalysisContext context = getContext(getResource(librarySource));
-    return context.isServerLibrary(librarySource);
+    IResource resource = getResource(librarySource);
+    if (resource != null) {
+      AnalysisContext context = getContext(resource);
+      return context.isServerLibrary(librarySource);
+    }
+    return false;
   }
 
   @Override
