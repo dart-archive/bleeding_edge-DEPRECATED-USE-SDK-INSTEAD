@@ -298,7 +298,11 @@ public class BuildDartParticipant implements BuildParticipant {
     // --package-root
     File packageRoot = packageRootProvider.getPackageRoot(builderFile.getProject());
     if (packageRoot != null) {
-      args.add("--package-root=" + packageRoot.getPath());
+      String path = packageRoot.getPath();
+      if (!path.endsWith(File.separator)) {
+        path += File.separator;
+      }
+      args.add("--package-root=" + path);
     }
 
     // --use-script-snapshot
