@@ -16,6 +16,7 @@ package com.google.dart.tools.ui.theme.preferences;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -108,8 +109,13 @@ public class TemporaryProject {
         project.setDescription(description, IResource.FORCE, null);
       }
     }, null);
-    // remember DartProject
-    dartProject = DartCore.create(project);
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      dartProject = null;
+//      DartCore.getProjectManager().getProject(project); // TODO Delete if reviewers agree.
+    } else {
+      // remember DartProject
+      dartProject = DartCore.create(project);
+    }
   }
 
   public IFolder createFolder(String path) throws Exception {
@@ -182,14 +188,6 @@ public class TemporaryProject {
   }
 
   /**
-   * @return the {@link CompilationUnit} on given path, may be <code>null</code>.
-   */
-  public CompilationUnit getUnit(String path) throws Exception {
-    IFile file = getFile(path);
-    return (CompilationUnit) DartCore.create(file);
-  }
-
-  /**
    * Creates or updates {@link IFile} with content of the given {@link InputStream}.
    */
   public IFile setFileContent(String path, InputStream stream) throws CoreException {
@@ -215,11 +213,12 @@ public class TemporaryProject {
   /**
    * Creates or updates {@link CompilationUnit} at given path.
    */
-  public CompilationUnit setUnitContent(String path, String content) throws IOException,
-      CoreException {
+  public IFile setUnitContent(String path, String content) throws IOException, CoreException {
     IFile file = setFileContent(path, content);
-    CompilationUnit unit = (CompilationUnit) DartCore.create(file);
-    return unit;
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      DartCore.create(file);
+    }
+    return file;
   }
 
   private IProjectDescription createProjectDescription(IProject project) {

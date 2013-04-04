@@ -14,7 +14,6 @@
 package com.google.dart.tools.ui.theme.preferences;
 
 import com.google.dart.tools.core.DartCoreDebug;
-import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -139,7 +138,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
   private Label authorLabel;
   private Link websiteLink;
   private TemporaryProject project;
-  private CompilationUnit unit;
+  private IFile unit;
   private CompilationUnitEditor editor;
   private DartSourceViewer sourceViewer;
   private WorkbenchPage page;
@@ -265,19 +264,10 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     themeDetailsLayout.marginHeight = 0;
     themeDetails = new Composite(themeSelection, SWT.NONE);
 
-    //TODO (pquitslund): implement theme preview based on new model
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      try {
+    createPreviewer(themeDetails);
 
-        createPreviewer(themeDetails);
-
-        themeDetails.setLayoutData(gridData);
-        themeDetails.setLayout(themeDetailsLayout);
-
-      } catch (Exception ex) {
-        Activator.logError(ex);
-      }
-    }
+    themeDetails.setLayoutData(gridData);
+    themeDetails.setLayout(themeDetailsLayout);
 
     authorLabel = new Label(themeDetails, SWT.NONE);
     GridDataFactory.swtDefaults().grab(true, false).applyTo(authorLabel);
@@ -378,7 +368,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       unit = project.setUnitContent(name, sampleCode);
       editor = (CompilationUnitEditor) IDE.openEditor(
           PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),
-          (IFile) unit.getResource());
+          unit);
       project.getProject().setHidden(true);
       name = editor.getPartName();
       IEditorReference ref = null;
