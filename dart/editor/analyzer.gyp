@@ -4,7 +4,7 @@
 
 {
   'variables': {
-    'analyzer_name': 'new_analyzer',
+    'analyzer_name': 'dartanalyzer',
      # When changing the jar files that we depend on please change the list
      # below.
      'dependent_jar_files': [
@@ -54,5 +54,3 @@
     },
   ]
 }
-
-
