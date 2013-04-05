@@ -25,7 +25,12 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public class Activator extends AbstractUIPlugin implements IStartup {
+
+  private static CountDownLatch EARLY_STARTUP_LATCH = new CountDownLatch(1);
 
   /**
    * Closes all editors.
@@ -70,6 +75,19 @@ public class Activator extends AbstractUIPlugin implements IStartup {
   }
 
   /**
+   * Move the Eclipse window to the specified location and wait for it to happen.
+   */
+  public static void setWindowLocation(int x, int y) {
+    Shell shell = getActiveWorkbenchWindow().getShell();
+    Point shellLocation = shell.getLocation();
+    if (shellLocation.x != x || shellLocation.y != y) {
+      Rectangle clientArea = Display.getDefault().getClientArea();
+      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 300);
+      waitEventLoop(100, 10);
+    }
+  }
+
+  /**
    * Waits given number of milliseconds and runs events loop every 1 millisecond. At least one
    * events loop will be executed.
    */
@@ -95,35 +113,36 @@ public class Activator extends AbstractUIPlugin implements IStartup {
   }
 
   /**
-   * Ensures that Eclipse main window is in top-right corner of screen.
+   * Wait until early startup has occurred or the specified time has elapsed.
+   * 
+   * @param milliseconds the maximum number of milliseconds to wait for early startup
+   * @return {@code true} if early startup is complete, else {@code false}
    */
-  private static void configureEclipseWindowLocation() {
-    int x = 450;
-    int y = 0;
-    Shell shell = getActiveWorkbenchWindow().getShell();
-    Point shellLocation = shell.getLocation();
-    if (shellLocation.x != x || shellLocation.y != y) {
-      Rectangle clientArea = Display.getDefault().getClientArea();
-      shell.setBounds(x, y, clientArea.width - x, clientArea.height - 300);
-      waitEventLoop(100, 10);
+  public static boolean waitForEarlyStartup(long milliseconds) {
+    boolean earlyStartupComplete = false;
+    try {
+      earlyStartupComplete = EARLY_STARTUP_LATCH.await(milliseconds, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      //$FALL-THROUGH$
     }
+    return earlyStartupComplete;
   }
 
   private static IWorkbenchWindow getActiveWorkbenchWindow() {
     return PlatformUI.getWorkbench().getActiveWorkbenchWindow();
   }
 
-  public Activator() {
-  }
-
   @Override
   public void earlyStartup() {
-    Display.getDefault().asyncExec(new Runnable() {
-      @Override
-      public void run() {
-        configureEclipseWindowLocation();
-      }
-    });
-  }
 
+//    Display.getDefault().asyncExec(new Runnable() {
+//      @Override
+//      public void run() {
+//        setWindowLocation(450, 0);
+//      }
+//    });
+
+    // Notify others that startup is complete
+    EARLY_STARTUP_LATCH.countDown();
+  }
 }

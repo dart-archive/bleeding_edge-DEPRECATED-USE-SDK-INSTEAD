@@ -30,9 +30,10 @@ public class TestAll {
     suite.addTestSuite(DartUiTest.class);
     suite.addTest(com.google.dart.tools.ui.internal.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.actions.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
-    suite.addTest(com.google.dart.tools.ui.correction.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.cleanup.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.correction.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.feedback.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
     return suite;
   }
 }
