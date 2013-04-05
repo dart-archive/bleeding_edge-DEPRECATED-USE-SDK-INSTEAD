@@ -1903,6 +1903,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       Display.getCurrent().asyncExec(new Runnable() {
         @Override
         public void run() {
+          if (isDisposed()) {
+            return;
+          }
           if (id != lastCaretMovedEventId) {
             return;
           }
@@ -1938,6 +1941,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     Display.getDefault().asyncExec(new Runnable() {
       @Override
       public void run() {
+        if (isDisposed()) {
+          return;
+        }
         if (resolvedUnit != null) {
           applyParsedUnitAndSelection(resolvedUnit, true, null);
         }
@@ -2076,6 +2082,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       fActionGroups.dispose();
       fActionGroups = null;
     }
+
+    selectionProvider = null;
 
     super.dispose();
   }
@@ -3438,11 +3446,10 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         private Runnable runnable = new Runnable() {
           @Override
           public void run() {
-            ISourceViewer sourceViewer = getSourceViewer();
-            // check whether editor has not been disposed yet
-            if (sourceViewer != null && sourceViewer.getDocument() != null) {
-              updateSelectionDependentActions();
+            if (isDisposed()) {
+              return;
             }
+            updateSelectionDependentActions();
           }
         };
 
@@ -3938,13 +3945,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 //      }
 //      setSelection(element, false);
     } else {
-
       SourceReference element = computeHighlightRangeSourceReference();
       if (getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_SYNC_OUTLINE_ON_CURSOR_MOVE)) {
         synchronizeOutlinePage(element);
       }
       setSelection(element, false);
-
     }
 
     if (!fSelectionChangedViaGotoAnnotation) {
@@ -4620,6 +4625,13 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       isEditableStateKnown = true;
     }
     return isEditable;
+  }
+
+  /**
+   * @return {@code true} if this {@link DartEditor} was already disposed.
+   */
+  private boolean isDisposed() {
+    return getSourceViewer() == null;
   }
 
   private boolean isEditorHoverProperty(String property) {
