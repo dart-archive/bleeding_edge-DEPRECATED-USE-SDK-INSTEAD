@@ -285,6 +285,10 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
+  dynamic fold(var initialValue,
+               dynamic combine(var previousValue, T element)) {
+    throw new UnimplementedError();
+  }
 
   // Iterable<T>:
   Iterator<T> get iterator => _internal.iterator;

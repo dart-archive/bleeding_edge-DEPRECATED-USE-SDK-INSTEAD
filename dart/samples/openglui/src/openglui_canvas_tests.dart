@@ -1022,7 +1022,7 @@ class RayTracer {
             + (thing.surface.specular(pos) * scolor);
       }
     };
-    return scene.lights.reduce(Color.defaultColor, addLight);
+    return scene.lights.fold(Color.defaultColor, addLight);
   }
 
   render(Scene scene, CanvasRenderingContext2D ctx, num screenWidth,
