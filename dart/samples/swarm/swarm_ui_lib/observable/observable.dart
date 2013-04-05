@@ -312,7 +312,7 @@ class ObservableList<T>
     return _internal.elementAt(index);
   }
   Map<int, T> asMap() {
-    return _internal.asMap();
+    return IterableMixinWorkaround.asMapList(_internal);
   }
 
   bool get isEmpty => length == 0;
