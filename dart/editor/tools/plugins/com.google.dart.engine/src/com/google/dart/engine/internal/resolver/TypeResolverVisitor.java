@@ -70,6 +70,7 @@ import com.google.dart.engine.internal.type.FunctionTypeImpl;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.internal.type.TypeImpl;
 import com.google.dart.engine.internal.type.VoidTypeImpl;
+import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.FunctionType;
 import com.google.dart.engine.type.InterfaceType;
@@ -676,12 +677,38 @@ public class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     if (implementsClause != null) {
+      NodeList<TypeName> interfaces = implementsClause.getInterfaces();
       // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
       InterfaceType[] interfaceTypes = resolveTypes(
-          implementsClause.getInterfaces(),
+          interfaces,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
           CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
           null);
+      TypeName[] typeNames = interfaces.toArray(new TypeName[interfaces.size()]);
+      String dynamicKeyword = Keyword.DYNAMIC.getSyntax();
+      boolean[] detectedRepeatOnIndex = new boolean[typeNames.length];
+      for (int i = 0; i < detectedRepeatOnIndex.length; i++) {
+        detectedRepeatOnIndex[i] = false;
+      }
+      for (int i = 0; i < typeNames.length; i++) {
+        TypeName typeName = typeNames[i];
+        String name = typeName.getName().getName();
+        if (name.equals(dynamicKeyword)) {
+          reportError(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC, typeName);
+        } else if (typeName.getName().getElement().equals(classElement)) {
+          reportError(CompileTimeErrorCode.IMPLEMENTS_SELF, typeName, name);
+        }
+        if (!detectedRepeatOnIndex[i]) {
+          for (int j = i + 1; j < typeNames.length; j++) {
+            TypeName typeName2 = typeNames[j];
+            String name2 = typeName2.getName().getName();
+            if (typeName.getName().getElement().equals(typeName2.getName().getElement())) {
+              detectedRepeatOnIndex[j] = true;
+              reportError(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
+            }
+          }
+        }
+      }
       if (classElement != null) {
         classElement.setInterfaces(interfaceTypes);
       }

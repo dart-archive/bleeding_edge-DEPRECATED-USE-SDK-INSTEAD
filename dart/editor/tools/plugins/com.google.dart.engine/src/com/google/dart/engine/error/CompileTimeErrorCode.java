@@ -332,7 +332,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class includes
    * type dynamic.
    */
-  IMPLEMENTS_DYNAMIC(""),
+  IMPLEMENTS_DYNAMIC("Classes cannot implement 'dynamic'"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the implements clause of a class <i>C</i>
@@ -346,14 +346,18 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 7.10 Superinterfaces: It is a compile-time error if a type <i>T</i> appears more than once in
    * the implements clause of a class.
+   * 
+   * @param name the name of the type in question
    */
-  IMPLEMENTS_REPEATED(""),
+  IMPLEMENTS_REPEATED("'%s' can only be implemented once"),
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the interface of a class <i>C</i> is a
    * superinterface of itself.
+   * 
+   * @param name the name of the type in question
    */
-  IMPLEMENTS_SELF(""),
+  IMPLEMENTS_SELF("'%s' cannot implement itself"),
 
   /**
    * 14.1 Imports: It is a compile-time error to import two different libraries with the same name.

@@ -235,27 +235,12 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
   }
 
   public void fail_implementsDynamic() throws Exception {
+    //TODO(jwren) This tests case should result in just the IMPLEMENTS_DYNAMIC being raised, to fix,
+    // 'dynamic' needs to be scope- see TypeResolverVisitor.resolveType
     Source source = addSource("/test.dart", createSource(//
         "class A implements dynamic {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
-    verify(source);
-  }
-
-  public void fail_implementsRepeated() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "class B implements A, A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_REPEATED);
-    verify(source);
-  }
-
-  public void fail_implementsSelf() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A implements A {}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SELF);
     verify(source);
   }
 
@@ -1459,6 +1444,35 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "class B implements A {}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsRepeated() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B implements A, A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_REPEATED);
+    verify(source);
+  }
+
+  public void test_implementsRepeated_3times() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {} class C{}",
+        "class B implements A, A, A, A {}"));
+    resolve(source);
+    assertErrors(
+        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+        CompileTimeErrorCode.IMPLEMENTS_REPEATED,
+        CompileTimeErrorCode.IMPLEMENTS_REPEATED);
+    verify(source);
+  }
+
+  public void test_implementsSelf() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_SELF);
     verify(source);
   }
 
