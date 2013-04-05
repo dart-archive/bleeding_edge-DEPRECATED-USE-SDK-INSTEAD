@@ -183,8 +183,8 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * type declaration with <i>n</i> type parameters.
    * 
    * @param typeName the name of the type being referenced (<i>G</i>)
-   * @param argumentCount the number of type arguments provided
    * @param parameterCount the number of type parameters that were declared
+   * @param argumentCount the number of type arguments provided
    */
   WRONG_NUMBER_OF_TYPE_ARGUMENTS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given");

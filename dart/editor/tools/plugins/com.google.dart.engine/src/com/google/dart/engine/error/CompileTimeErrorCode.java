@@ -137,8 +137,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * generic type with <i>m</i> type parameters.
    * 
    * @param typeName the name of the type being referenced (<i>S</i>)
-   * @param argumentCount the number of type arguments provided
    * @param parameterCount the number of type parameters that were declared
+   * @param argumentCount the number of type arguments provided
    */
   CONST_WITH_INVALID_TYPE_PARAMETERS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),
@@ -558,8 +558,8 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * parameters.
    * 
    * @param typeName the name of the type being referenced (<i>S</i>)
-   * @param argumentCount the number of type arguments provided
    * @param parameterCount the number of type parameters that were declared
+   * @param argumentCount the number of type arguments provided
    */
   NEW_WITH_INVALID_TYPE_PARAMETERS(
       "The type '%s' is declared with %d type parameters, but %d type arguments were given"),

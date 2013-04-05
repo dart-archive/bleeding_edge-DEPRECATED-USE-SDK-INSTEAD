@@ -448,8 +448,8 @@ public class TypeResolverVisitor extends ScopedVisitor {
             getInvalidTypeParametersErrorCode(node),
             node,
             typeName.getName(),
-            argumentCount,
-            parameterCount);
+            parameterCount,
+            argumentCount);
       }
       argumentCount = typeArguments.size();
       if (argumentCount < parameterCount) {
