@@ -113,6 +113,25 @@ public abstract class ScopedVisitor extends GeneralizingASTVisitor<Void> {
   }
 
   /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param definingLibrary the element for the library containing the compilation unit being
+   *          visited
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public ScopedVisitor(LibraryElement definingLibrary, Source source, TypeProvider typeProvider,
+      AnalysisErrorListener errorListener) {
+    this.definingLibrary = definingLibrary;
+    this.source = source;
+    this.errorListener = errorListener;
+    this.nameScope = new LibraryScope(definingLibrary, errorListener);
+    this.typeProvider = typeProvider;
+  }
+
+  /**
    * Return the library element for the library containing the compilation unit being resolved.
    * 
    * @return the library element for the library containing the compilation unit being resolved

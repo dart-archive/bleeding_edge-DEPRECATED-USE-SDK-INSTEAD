@@ -33,6 +33,8 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -73,6 +75,23 @@ public class ResolverVisitor extends ScopedVisitor {
    */
   public ResolverVisitor(Library library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
+    this.elementResolver = new ElementResolver(this);
+    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param definingLibrary the element for the library containing the compilation unit being
+   *          visited
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public ResolverVisitor(LibraryElement definingLibrary, Source source, TypeProvider typeProvider,
+      AnalysisErrorListener errorListener) {
+    super(definingLibrary, source, typeProvider, errorListener);
     this.elementResolver = new ElementResolver(this);
     this.typeAnalyzer = new StaticTypeAnalyzer(this);
   }

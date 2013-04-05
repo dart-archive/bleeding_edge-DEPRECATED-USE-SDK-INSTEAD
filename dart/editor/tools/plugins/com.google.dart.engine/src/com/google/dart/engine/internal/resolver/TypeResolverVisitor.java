@@ -47,12 +47,14 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
@@ -102,6 +104,22 @@ public class TypeResolverVisitor extends ScopedVisitor {
    */
   public TypeResolverVisitor(Library library, Source source, TypeProvider typeProvider) {
     super(library, source, typeProvider);
+    dynamicType = typeProvider.getDynamicType();
+  }
+
+  /**
+   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * 
+   * @param definingLibrary the element for the library containing the compilation unit being
+   *          visited
+   * @param source the source representing the compilation unit being visited
+   * @param typeProvider the object used to access the types from the core library
+   * @param errorListener the error listener that will be informed of any errors that are found
+   *          during resolution
+   */
+  public TypeResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener) {
+    super(definingLibrary, source, typeProvider, errorListener);
     dynamicType = typeProvider.getDynamicType();
   }
 
