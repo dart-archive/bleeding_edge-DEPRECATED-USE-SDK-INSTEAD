@@ -23,7 +23,7 @@ class ColorPicker {
   ColorPicker(this.canvasElement) :
     _listeners = []
   {
-    ctx = canvasElement.context2d;
+    ctx = canvasElement.context2D;
     drawPalette();
     addHandlers();
     showSelected();

@@ -120,7 +120,7 @@ class SolarSystem {
 
     renderTime = time;
 
-    var context = canvas.context2d;
+    var context = canvas.context2D;
 
     drawBackground(context);
     drawPlanets(context);

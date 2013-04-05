@@ -50,9 +50,9 @@ class Spirodraw {
     speedSlider = doc.query("#speed");
     mainDiv = doc.query("#main");
     frontCanvas = doc.query("#canvas");
-    front = frontCanvas.context2d;
+    front = frontCanvas.context2D;
     backCanvas = new Element.tag("canvas");
-    back = backCanvas.context2d;
+    back = backCanvas.context2D;
     paletteElement = doc.query("#palette");
     window.onResize.listen(onResize);
     initControlPanel();
