@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,27 +13,23 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
-import com.google.dart.engine.ast.ASTNode;
-import com.google.dart.engine.ast.Block;
-import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.ast.DoStatement;
-import com.google.dart.engine.ast.Expression;
-import com.google.dart.engine.ast.ForStatement;
-import com.google.dart.engine.ast.IfStatement;
-import com.google.dart.engine.ast.Statement;
-import com.google.dart.engine.ast.WhileStatement;
-import com.google.dart.engine.ast.visitor.NodeLocator;
-import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
-import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.error.AnalysisErrorListener;
-import com.google.dart.engine.internal.context.RecordingErrorListener;
-import com.google.dart.engine.parser.Parser;
-import com.google.dart.engine.scanner.Keyword;
-import com.google.dart.engine.scanner.KeywordToken;
-import com.google.dart.engine.scanner.StringScanner;
-import com.google.dart.engine.scanner.Token;
-import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartDoWhileStatement;
+import com.google.dart.compiler.ast.DartExpression;
+import com.google.dart.compiler.ast.DartForStatement;
+import com.google.dart.compiler.ast.DartIfStatement;
+import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartStatement;
+import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.parser.DartScanner;
+import com.google.dart.compiler.parser.Token;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.dom.NodeFinder;
+import com.google.dart.tools.core.model.DartModelException;
+import com.google.dart.tools.core.model.DartProject;
+import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartX;
 import com.google.dart.tools.ui.PreferenceConstants;
@@ -66,9 +62,10 @@ import org.eclipse.ui.texteditor.ITextEditorExtension3;
 /**
  * Auto indent strategy sensitive to brackets.
  */
-public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
+public class DartAutoIndentStrategy_OLD extends DefaultIndentLineAutoEditStrategy {
 
   private static class CompilationUnitInfo {
+
     char[] buffer;
     int delta;
 
@@ -78,7 +75,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
   }
 
-  private class NodeBracketer extends SimpleASTVisitor<Void> {
+  private class NodeBracketer extends NodeClassifier {
     private boolean result = true;
     private CompilationUnitInfo info;
     private IDocument document;
@@ -92,15 +89,15 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     @Override
-    public Void visitBlock(Block node) {
+    public Void visitBlock(DartBlock node) {
       result = getBlockBalance(document, offset, fPartitioning) <= 0;
       return null;
     }
 
     @Override
-    public Void visitDoStatement(DoStatement doStatement) {
+    public Void visitDoWhileStatement(DartDoWhileStatement doStatement) {
       IRegion doRegion = createRegion(doStatement, info.delta);
-      Statement body = doStatement.getBody();
+      DartStatement body = doStatement.getBody();
       IRegion bodyRegion = createRegion(body, info.delta);
 
       if (doRegion.getOffset() + doRegion.getLength() <= offset
@@ -111,10 +108,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     @Override
-    public Void visitForStatement(ForStatement node) {
-      Expression expression = node.getCondition();
+    public Void visitForStatement(DartForStatement node) {
+      DartExpression expression = node.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
-      Statement body = node.getBody();
+      DartStatement body = node.getBody();
       IRegion bodyRegion = createRegion(body, info.delta);
 
       // between expression and body statement
@@ -126,10 +123,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     @Override
-    public Void visitIfStatement(IfStatement ifStatement) {
-      Expression expression = ifStatement.getCondition();
+    public Void visitIfStatement(DartIfStatement ifStatement) {
+      DartExpression expression = ifStatement.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
-      Statement thenStatement = ifStatement.getThenStatement();
+      DartStatement thenStatement = ifStatement.getThenStatement();
       IRegion thenRegion = createRegion(thenStatement, info.delta);
 
       // between expression and then statement
@@ -139,13 +136,13 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         return null;
       }
 
-      Statement elseStatement = ifStatement.getElseStatement();
+      DartStatement elseStatement = ifStatement.getElseStatement();
       IRegion elseRegion = createRegion(elseStatement, info.delta);
 
       if (elseStatement != null) {
         int sourceOffset = thenRegion.getOffset() + thenRegion.getLength();
         int sourceLength = elseRegion.getOffset() - sourceOffset;
-        IRegion elseToken = getToken(document, new Region(sourceOffset, sourceLength), Keyword.ELSE);
+        IRegion elseToken = getToken(document, new Region(sourceOffset, sourceLength), Token.ELSE);
         result = elseToken != null && elseToken.getOffset() + elseToken.getLength() <= offset
             && offset + length < elseRegion.getOffset();
       }
@@ -153,10 +150,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     @Override
-    public Void visitWhileStatement(WhileStatement node) {
-      Expression expression = node.getCondition();
+    public Void visitWhileStatement(DartWhileStatement node) {
+      DartExpression expression = node.getCondition();
       IRegion expressionRegion = createRegion(expression, info.delta);
-      Statement body = node.getBody();
+      DartStatement body = node.getBody();
       IRegion bodyRegion = createRegion(body, info.delta);
 
       // between expression and body statement
@@ -238,8 +235,10 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return -1;
   }
 
-  private static IRegion createRegion(ASTNode node, int delta) {
-    return node == null ? null : new Region(node.getOffset() + delta, node.getLength());
+  private static IRegion createRegion(DartNode node, int delta) {
+    return node == null ? null : new Region(
+        node.getSourceInfo().getOffset() + delta,
+        node.getSourceInfo().getLength());
   }
 
   /**
@@ -330,22 +329,22 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return null;
   }
 
-//  /**
-//   * Returns the possibly <code>project</code>-specific core preference defined under
-//   * <code>key</code>.
-//   * 
-//   * @param project the project to get the preference from, or <code>null</code> to get the global
-//   *          preference
-//   * @param key the key of the preference
-//   * @return the value of the preference
-//   */
-//  @SuppressWarnings("unused")
-//  private static String getCoreOption(DartProject project, String key) {
-//    if (project == null) {
-//      return DartCore.getOption(key);
-//    }
-//    return project.getOption(key, true);
-//  }
+  /**
+   * Returns the possibly <code>project</code>-specific core preference defined under
+   * <code>key</code>.
+   * 
+   * @param project the project to get the preference from, or <code>null</code> to get the global
+   *          preference
+   * @param key the key of the preference
+   * @return the value of the preference
+   */
+  @SuppressWarnings("unused")
+  private static String getCoreOption(DartProject project, String key) {
+    if (project == null) {
+      return DartCore.getOption(key);
+    }
+    return project.getOption(key, true);
+  }
 
   /**
    * Returns the indentation of the line <code>line</code> in <code>document</code>. The returned
@@ -396,32 +395,30 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     return DartToolsPlugin.getDefault().getCombinedPreferenceStore();
   }
 
-  private static IRegion getToken(IDocument document, IRegion scanRegion, Keyword keyword) {
+  private static IRegion getToken(IDocument document, IRegion scanRegion, Token tokenId) {
+
     try {
-      String source = document.get(scanRegion.getOffset(), scanRegion.getLength());
-      AnalysisErrorListener errorListener = new AnalysisErrorListener() {
-        @Override
-        public void onError(AnalysisError error) {
-        }
-      };
-      Token token = internalScan(source, errorListener);
-      while (token != null && token.getType() != TokenType.EOF) {
-        if (token instanceof KeywordToken) {
-          if (((KeywordToken) token).getKeyword() == keyword) {
-            break;
-          }
-        }
-        token = token.getNext();
+
+      final String source = document.get(scanRegion.getOffset(), scanRegion.getLength());
+
+      scanner = new DartScanner(source);
+
+      Token id = scanner.next();
+      while (id != Token.EOS && id != tokenId) {
+        id = scanner.next();
       }
 
-      if (token.getType() == TokenType.EOF) {
+      if (id == Token.EOS) {
         return null;
       }
 
-      int tokenOffset = token.getOffset();
-      int tokenLength = token.getEnd() - tokenOffset;
+      DartScanner.Location location = scanner.getTokenLocation();
+      int tokenOffset = location.getBegin();
+      int tokenLength = location.getEnd() + 1 - tokenOffset; // inclusive
+                                                             // end
       return new Region(tokenOffset + scanRegion.getOffset(), tokenLength);
-    } catch (Throwable x) {
+
+    } catch (BadLocationException x) {
       return null;
     }
   }
@@ -440,23 +437,6 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     FastPartitioner partitioner = new FastPartitioner(new FastDartPartitionScanner(), types);
     partitioner.connect(document);
     document.setDocumentPartitioner(DartPartitions.DART_PARTITIONING, partitioner);
-  }
-
-  private static CompilationUnit internalParseCompilationUnit(String contents)
-      throws AnalysisException {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    Token token = internalScan(contents, errorListener);
-    Parser parser = new Parser(null, errorListener);
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    AnalysisError[] errors = errorListener.getErrors(null);
-    unit.setParsingErrors(errors);
-    return unit;
-  }
-
-  private static Token internalScan(String contents, AnalysisErrorListener errorListener)
-      throws AnalysisException {
-    StringScanner scanner = new StringScanner(null, contents, errorListener);
-    return scanner.tokenize();
   }
 
   /**
@@ -619,13 +599,13 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private boolean fIsSmartMode;
 
-//  private final DartProject fProject;
-//
-//  private static DartScanner scanner;
-
   private boolean fIsSmartTab;
 
   private String fPartitioning;
+
+  private final DartProject fProject;
+
+  private static DartScanner scanner;
 
   /**
    * The viewer.
@@ -635,15 +615,14 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
   /**
    * Creates a new Dart auto indent strategy for the given document partitioning.
    * 
-   * @param partitioning the document partitioning // * @param project the project to get formatting
-   *          preferences from, or null to use default // * preferences
+   * @param partitioning the document partitioning
+   * @param project the project to get formatting preferences from, or null to use default
+   *          preferences
    * @param viewer the source viewer that this strategy is attached to
    */
-  public DartAutoIndentStrategy(String partitioning,
-//      DartProject project, 
-      ISourceViewer viewer) {
+  public DartAutoIndentStrategy_OLD(String partitioning, DartProject project, ISourceViewer viewer) {
     fPartitioning = partitioning;
-//    fProject = project;
+    fProject = project;
     fViewer = viewer;
   }
 
@@ -717,7 +696,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         i++;
       }
 
-      if (whitespaceCount != 0 && whitespaceCount >= CodeFormatterUtil.getIndentWidth(null)) {
+      if (whitespaceCount != 0 && whitespaceCount >= CodeFormatterUtil.getIndentWidth(fProject)) {
         insert = newInsert;
       }
     }
@@ -976,7 +955,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           break; // keep searching
         case Symbols.TokenCASE:
         case Symbols.TokenDEFAULT:
-          DartIndenter indenter = new DartIndenter(document, dScanner, null);
+          DartIndenter indenter = new DartIndenter(document, dScanner, fProject);
           peer = indenter.findReferencePosition(dPos, false, false, false, true);
           if (peer == DartHeuristicScanner.NOT_FOUND) {
             return firstPeer;
@@ -1029,21 +1008,35 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
    * @return the number of spaces displayed for a tabulator in the editor
    */
   private int getVisualTabLengthPreference() {
-    return CodeFormatterUtil.getTabWidth(null);
+    return CodeFormatterUtil.getTabWidth(fProject);
   }
 
   private boolean isClosed(IDocument document, int offset, int length) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      return isClosed_new(document, offset, length);
+    } else {
+      return isClosed_old(document, offset, length);
+    }
+  }
+
+  private boolean isClosed_new(IDocument document, int offset, int length) {
+    // TODO: implement
+
+    return true;
+  }
+
+  private boolean isClosed_old(IDocument document, int offset, int length) {
     CompilationUnitInfo info = getCompilationUnitForMethod(document, offset);
     if (info == null) {
       return false;
     }
 
     String source = new String(info.buffer);
-    CompilationUnit compilationUnit;
+    DartUnit compilationUnit;
 
     try {
-      compilationUnit = internalParseCompilationUnit(source);
-    } catch (AnalysisException e) {
+      compilationUnit = DartCompilerUtilities.parseSource("editor-auto-indent", source);
+    } catch (DartModelException e) {
       DartToolsPlugin.log("Parser Exception", e);
       return true;
     }
@@ -1055,11 +1048,12 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     }
 
     final int relativeOffset = offset - info.delta;
-    ASTNode node = new NodeLocator(relativeOffset).searchWithin(compilationUnit);
+    DartNode node = NodeFinder.perform(compilationUnit, relativeOffset, length);
 
     if (length == 0) {
       while (node != null
-          && (relativeOffset == node.getOffset() || relativeOffset == node.getEnd())) {
+          && (relativeOffset == node.getSourceInfo().getOffset() || relativeOffset == node.getSourceInfo().getOffset()
+              + node.getSourceInfo().getLength())) {
         node = node.getParent();
       }
     }
@@ -1131,7 +1125,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       int whiteend = findEndOfWhiteSpace(d, start, c.offset);
 
       DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-      DartIndenter indenter = new DartIndenter(d, scanner, null);
+      DartIndenter indenter = new DartIndenter(d, scanner, fProject);
 
       // shift only when line does not contain any text up to the closing
       // bracket
@@ -1160,7 +1154,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
   private void smartIndentAfterNewLine(IDocument d, DocumentCommand c) {
     DartHeuristicScanner scanner = new DartHeuristicScanner(d);
-    DartIndenter indenter = new DartIndenter(d, scanner, null);
+    DartIndenter indenter = new DartIndenter(d, scanner, fProject);
     StringBuffer indent = indenter.computeIndentation(c.offset);
     if (indent == null) {
       indent = new StringBuffer();
@@ -1277,7 +1271,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       // only shift if the last line is further up and is a brace-less block candidate
       if (lastLine < line) {
 
-        DartIndenter indenter = new DartIndenter(d, scanner, null);
+        DartIndenter indenter = new DartIndenter(d, scanner, fProject);
         StringBuffer indent = indenter.computeIndentation(p, true);
         String toDelete = d.get(lineOffset, c.offset - lineOffset);
         if (indent != null && !indent.toString().equals(toDelete)) {
@@ -1349,7 +1343,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           return;
         }
       }
-      DartIndenter indenter = new DartIndenter(d, scanner, null);
+      DartIndenter indenter = new DartIndenter(d, scanner, fProject);
       int whiteend = findEndOfWhiteSpace(d, lineOffset, c.offset);
       // shift only when line does not contain any text up to the closing bracket
       if (whiteend == c.offset) {
@@ -1360,7 +1354,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
           // take the indent of the found line
           StringBuffer replaceText = new StringBuffer(getIndentOfLine(d, indLine));
           int additionalIndentLevels = 3;
-          String indent = CodeFormatterUtil.createIndentString(additionalIndentLevels, null);
+          String indent = CodeFormatterUtil.createIndentString(additionalIndentLevels, fProject);
           replaceText.append(indent);
           // add the rest of the current line including the just added colon
           replaceText.append(d.get(whiteend, c.offset - whiteend));
@@ -1406,7 +1400,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
         // only shift if the last line is further up and is a brace-less block candidate
         if (lastLine < line) {
 
-          DartIndenter indenter = new DartIndenter(d, scanner, null);
+          DartIndenter indenter = new DartIndenter(d, scanner, fProject);
           int ref = indenter.findReferencePosition(p, true, false, false, false);
           if (ref == DartHeuristicScanner.NOT_FOUND) {
             return;
@@ -1460,7 +1454,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
 
     try {
       DartHeuristicScanner scanner = new DartHeuristicScanner(document);
-      DartIndenter indenter = new DartIndenter(document, scanner, null);
+      DartIndenter indenter = new DartIndenter(document, scanner, fProject);
       int offset = newOffset;
 
       // reference position to get the indent from
@@ -1493,7 +1487,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
       Document temp = new Document(prefix + newText);
       DocumentRewriteSession session = temp.startRewriteSession(DocumentRewriteSessionType.STRICTLY_SEQUENTIAL);
       scanner = new DartHeuristicScanner(temp);
-      indenter = new DartIndenter(temp, scanner, null);
+      indenter = new DartIndenter(temp, scanner, fProject);
       installDartStuff(temp);
 
       // indent the first and second line
@@ -1604,7 +1598,7 @@ public class DartAutoIndentStrategy extends DefaultIndentLineAutoEditStrategy {
     // only shift if the last line is further up and is a brace-less block candidate
     if (lastLine < line) {
 
-      DartIndenter indenter = new DartIndenter(d, scanner, null);
+      DartIndenter indenter = new DartIndenter(d, scanner, fProject);
       int ref = indenter.findReferencePosition(p, false, false, false, true);
       if (ref == DartHeuristicScanner.NOT_FOUND) {
         return;
