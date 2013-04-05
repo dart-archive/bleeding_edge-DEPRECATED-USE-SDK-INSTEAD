@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
 import com.google.dart.tools.ui.DartUI;
@@ -31,6 +33,21 @@ import org.eclipse.ui.texteditor.IEditorStatusLine;
  * This action opens a {@link DartEditor} with declaration of {@link Element}.
  */
 public class OpenAction extends AbstractDartSelectionAction {
+  /**
+   * @return {@code true} if given {@link DartSelection} looks valid and we can try to open it.
+   */
+  private static boolean isValidSelection(DartSelection selection) {
+    // if we are already on declaration, we don't need to open anything
+    ASTNode node = getSelectionNode(selection);
+    if (node instanceof SimpleIdentifier) {
+      if (((SimpleIdentifier) node).inDeclarationContext()) {
+        return false;
+      }
+    }
+    // interesting elements
+    return isInterestingElementSelected(selection);
+  }
+
   private final DartEditor editor;
 
   public OpenAction(DartEditor editor) {
@@ -40,7 +57,7 @@ public class OpenAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    setEnabled(true);
+    setEnabled(isValidSelection(selection));
   }
 
   @Override
@@ -59,7 +76,7 @@ public class OpenAction extends AbstractDartSelectionAction {
 
   @Override
   protected void init() {
-    setText(ActionMessages.OpenAction_label);
+    setText(ActionMessages.OpenAction_declaration_label);
     setToolTipText(ActionMessages.OpenAction_tooltip);
     setDescription(ActionMessages.OpenAction_description);
     PlatformUI.getWorkbench().getHelpSystem().setHelp(this, DartHelpContextIds.OPEN_ACTION);

@@ -15,7 +15,9 @@ package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionElement;
@@ -23,6 +25,7 @@ import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.index.AbstractDartTest;
 import com.google.dart.engine.resolver.ResolverTestCase;
 import com.google.dart.engine.source.Source;
 
@@ -107,6 +110,16 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertInstanceOf(ImportElement.class, element);
   }
 
+  public void test_InstanceCreationExpression() throws Exception {
+    ASTNode node = findNodeIndexedIn("A(", 0, //
+        "class A {}",
+        "void main() {",
+        " new A();",
+        "}");
+    Element element = ElementLocator.locate(node);
+    assertInstanceOf(ConstructorElement.class, element);
+  }
+
   public void test_methodElement() throws Exception {
     ASTNode id = findNodeIndexedIn("bar", 1, //
         "class A {",
@@ -117,6 +130,20 @@ public class ElementLocatorTest extends ResolverTestCase {
         "}");
     Element element = ElementLocator.locate(id);
     assertInstanceOf(MethodElement.class, element);
+  }
+
+  public void test_MethodInvocation() throws Exception {
+    String contents = createSource("foo(x) {}", //
+        "void main() {",
+        " foo(0);",
+        "}");
+    CompilationUnit cu = resolve(contents);
+    MethodInvocation node = AbstractDartTest.findNode(
+        cu,
+        contents.indexOf("foo(0)"),
+        MethodInvocation.class);
+    Element element = ElementLocator.locate(node);
+    assertInstanceOf(FunctionElement.class, element);
   }
 
   public void test_postfixOp() throws Exception {

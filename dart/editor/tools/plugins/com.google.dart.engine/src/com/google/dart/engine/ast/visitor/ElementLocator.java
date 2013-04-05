@@ -21,8 +21,10 @@ import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImportDirective;
 import com.google.dart.engine.ast.IndexExpression;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.MethodDeclaration;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.PostfixExpression;
 import com.google.dart.engine.ast.PrefixExpression;
 import com.google.dart.engine.ast.PrefixedIdentifier;
@@ -80,6 +82,11 @@ public class ElementLocator {
     }
 
     @Override
+    public Element visitInstanceCreationExpression(InstanceCreationExpression node) {
+      return node.getElement();
+    }
+
+    @Override
     public Element visitLibraryDirective(LibraryDirective node) {
       return node.getElement();
     }
@@ -87,6 +94,11 @@ public class ElementLocator {
     @Override
     public Element visitMethodDeclaration(MethodDeclaration node) {
       return node.getElement();
+    }
+
+    @Override
+    public Element visitMethodInvocation(MethodInvocation node) {
+      return node.getMethodName().getElement();
     }
 
     @Override

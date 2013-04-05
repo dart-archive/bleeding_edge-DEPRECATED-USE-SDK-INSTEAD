@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
@@ -479,6 +480,9 @@ public class EditorUtility {
       }
     }
 
+    if (inputElement instanceof ImportElement) {
+      inputElement = ((ImportElement) inputElement).getImportedLibrary();
+    }
     if (inputElement instanceof Element) {
       CompilationUnitElement cu = getCompilationUnit((Element) inputElement);
       IWorkbenchPage page = DartToolsPlugin.getActivePage();
@@ -691,20 +695,20 @@ public class EditorUtility {
   }
 
   private static CompilationUnitElement getCompilationUnit(Element element) {
+    // may be CompilationUnitElement
+    if (element instanceof CompilationUnitElement) {
+      return (CompilationUnitElement) element;
+    }
     // may be part of CompilationUnitElement
     CompilationUnitElement unit = element.getAncestor(CompilationUnitElement.class);
-
     if (unit != null) {
       return unit;
     }
-
     // may be part of LibraryElement
     LibraryElement library = element.getLibrary();
-
     if (library != null) {
       return library.getDefiningCompilationUnit();
     }
-
     // not found
     return null;
   }

@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
@@ -36,6 +37,22 @@ import org.eclipse.ui.IWorkbenchSite;
  * @coverage dart.editor.ui.refactoring.ui
  */
 public class RenameDartElementAction extends AbstractDartSelectionAction {
+  /**
+   * @return {@code true} if given {@link DartSelection} looks valid and we can try to rename.
+   */
+  private static boolean isValidSelection(DartSelection selection) {
+    // can we rename this node at all?
+    if (!(getSelectionNode(selection) instanceof SimpleIdentifier)) {
+      return false;
+    }
+    // is it resolved to an interesting Element?
+    if (!isInterestingElementSelected(selection)) {
+      return false;
+    }
+    // OK
+    return true;
+  }
+
   private DartEditor editor;
 
   public RenameDartElementAction(DartEditor editor) {
@@ -50,8 +67,7 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    Element element = getSelectionElement(selection);
-    setEnabled(element != null);
+    setEnabled(isValidSelection(selection));
   }
 
   @Override

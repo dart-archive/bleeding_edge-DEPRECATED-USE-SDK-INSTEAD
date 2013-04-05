@@ -126,7 +126,7 @@ public class OpenEditorActionGroup_OLD extends ActionGroup {
     ISelection sel = getContext().getSelection();
     if (sel instanceof DartElementSelection) {
       DartElementSelection selection = (DartElementSelection) sel;
-      if (ActionUtil.isOpenDeclarationAvailable(selection)) {
+      if (ActionUtil.isOpenDeclarationAvailable_OLD(selection)) {
         fOpen.update(selection);
         appendToGroup(menu, fOpen);
       }

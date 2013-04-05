@@ -48,6 +48,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.IContributionManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
@@ -242,6 +244,28 @@ public class ActionUtil {
     return STRING_SELECTION;
   }
 
+  /**
+   * @return {@code true} if there are items in group of the given {@link IContributionManager}.
+   */
+  public static boolean hasItemsInGroup(IContributionManager manager, String groupId) {
+    boolean groupFound = false;
+    int numItems = 0;
+    for (IContributionItem item : manager.getItems()) {
+      if (item.isGroupMarker()) {
+        if (item.getId().equals(groupId)) {
+          groupFound = true;
+        } else {
+          groupFound = false;
+        }
+        continue;
+      }
+      if (groupFound) {
+        numItems++;
+      }
+    }
+    return numItems != 0;
+  }
+
   public static boolean isEditable(DartEditor editor) {
     if (!isProcessable(editor)) {
       return false;
@@ -322,7 +346,7 @@ public class ActionUtil {
     return true;
   }
 
-  public static boolean isFindDeclarationsAvailable(DartElementSelection selection) {
+  public static boolean isFindDeclarationsAvailable_OLD(DartElementSelection selection) {
     DartElement[] selectedElements = selection.toArray();
     if (selectedElements.length > 0) {
       if (selectedElements[0] instanceof Method || selectedElements[0] instanceof Field) {
@@ -374,7 +398,7 @@ public class ActionUtil {
     return false;
   }
 
-  public static boolean isFindUsesAvailable(DartElementSelection selection) {
+  public static boolean isFindUsesAvailable_OLD(DartElementSelection selection) {
     DartNode node = getResolvedNodeFromSelection(selection);
     if (node != null) {
       if (node instanceof DartIdentifier) {
@@ -415,7 +439,7 @@ public class ActionUtil {
     return true;
   }
 
-  public static boolean isOpenDeclarationAvailable(DartElementSelection selection) {
+  public static boolean isOpenDeclarationAvailable_OLD(DartElementSelection selection) {
     if (selection.toArray().length == 1) {
       com.google.dart.compiler.type.Type type;
       DartNode[] nodes = selection.resolveSelectedNodes();
@@ -457,10 +481,6 @@ public class ActionUtil {
     return false;
   }
 
-  public static boolean isOpenHierarchyAvailable(DartElementSelection selection) {
-    return !selection.isEmpty() && selection.getFirstElement() instanceof Type;
-  }
-
   public static boolean isOpenHierarchyAvailable(DartSelection selection) {
     if (selection == null) {
       return false;
@@ -473,6 +493,10 @@ public class ActionUtil {
     // we need ClassElement 
     Element coveredElement = context.getCoveredElement();
     return coveredElement instanceof ClassElement;
+  }
+
+  public static boolean isOpenHierarchyAvailable_OLD(DartElementSelection selection) {
+    return !selection.isEmpty() && selection.getFirstElement() instanceof Type;
   }
 
   public static boolean isProcessable(DartEditor editor) {
@@ -535,9 +559,9 @@ public class ActionUtil {
     return false;
   }
 
-  public static boolean isSelectionShowing(DartElementSelection selection) {
-    return isOpenDeclarationAvailable(selection) || isOpenHierarchyAvailable(selection)
-        || isFindDeclarationsAvailable(selection) || isFindUsesAvailable(selection);
+  public static boolean isSelectionShowing_OLD(DartElementSelection selection) {
+    return isOpenDeclarationAvailable_OLD(selection) || isOpenHierarchyAvailable_OLD(selection)
+        || isFindDeclarationsAvailable_OLD(selection) || isFindUsesAvailable_OLD(selection);
   }
 
   public static boolean mustDisableDartModelAction(Shell shell, Object element) {

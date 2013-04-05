@@ -13,7 +13,11 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.PartDirective;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
@@ -53,6 +57,50 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
       }
     }
     return null;
+  }
+
+  /**
+   * @return the {@link ASTNode} covered by the given {@link DartSelection}, may be
+   *         <code>null</code>.
+   */
+  protected static ASTNode getSelectionNode(DartSelection selection) {
+    AssistContext context = selection.getContext();
+    if (context != null) {
+      return context.getCoveredNode();
+    }
+    return null;
+  }
+
+  /**
+   * @return {@code true} if {@link Element} covered by the given {@link DartSelection} is
+   *         interesting in broad meaning, i.e. we can do something with it - open, find, etc.
+   */
+  protected static boolean isInterestingElementSelected(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    ASTNode node = getSelectionNode(selection);
+    // no node - probably impossible
+    if (node == null) {
+      return false;
+    }
+    // no element - not resolved, or not resolvable node
+    if (element == null) {
+      return false;
+    }
+    // LibraryElement, bad selection in the most cases
+    if (element instanceof LibraryElement) {
+      return false;
+    }
+    // CompilationUnit, bad selection in the most cases
+    if (element instanceof CompilationUnitElement) {
+      if (node != null && node.getAncestor(PartDirective.class) != null) {
+        // OK, unit reference in "part" 
+      } else {
+        // cursor outside of any node
+        return false;
+      }
+    }
+    // OK
+    return true;
   }
 
   public AbstractDartSelectionAction(DartEditor editor) {

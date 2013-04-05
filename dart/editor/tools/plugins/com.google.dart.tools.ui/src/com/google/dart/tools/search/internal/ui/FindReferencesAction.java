@@ -13,7 +13,11 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
@@ -27,6 +31,8 @@ import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.util.ExceptionHandler;
 
+import static com.google.dart.tools.search.internal.ui.FindDeclarationsAction.isInvocationNameOfPropertyAccessSelected;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchSite;
@@ -38,6 +44,23 @@ import java.util.List;
  * Finds references of the selected {@link Element} in the workspace.
  */
 public class FindReferencesAction extends AbstractDartSelectionAction {
+  /**
+   * @return the {@link Element} to find references for.
+   */
+  private static Element getReferenceElement(DartSelection selection) {
+    ASTNode node = getSelectionNode(selection);
+    // ArgumentList has no its own Element, use Element of invocation or instance creation
+    if (node instanceof ArgumentList) {
+      node = node.getParent();
+    }
+    // just in case
+    if (node == null) {
+      return null;
+    }
+    // OK, get Element
+    return ElementLocator.locate(node);
+  }
+
   public FindReferencesAction(DartEditor editor) {
     super(editor);
   }
@@ -48,8 +71,8 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    Element element = getSelectionElement(selection);
-    setEnabled(element != null);
+    Element element = getReferenceElement(selection);
+    setEnabled(element != null || isInvocationNameOfPropertyAccessSelected(selection));
   }
 
   @Override
@@ -61,7 +84,8 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    Element element = getSelectionElement(selection);
+    // TODO(scheglov) search for references when not resolved
+    Element element = getReferenceElement(selection);
     doSearch(element);
   }
 
@@ -85,10 +109,16 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
    * Asks {@link SearchView} to execute query and display results.
    */
   private void doSearch(Element element) {
+    // tweak
+    element = DartElementUtil.getVariableIfSyntheticAccessor(element);
+    if (element instanceof ImportElement) {
+      element = ((ImportElement) element).getImportedLibrary();
+    }
+    // no element
     if (element == null) {
       return;
     }
-    element = DartElementUtil.getVariableIfSyntheticAccessor(element);
+    // show search results
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       final Element searchElement = element;

@@ -129,7 +129,7 @@ public class OpenAction_OLD extends InstrumentedSelectionDispatchAction {
 
   public void updateLabel() {
     ISelection selection = fEditor.createElementSelection();
-    if (ActionUtil.isOpenDeclarationAvailable((DartElementSelection) selection)) {
+    if (ActionUtil.isOpenDeclarationAvailable_OLD((DartElementSelection) selection)) {
       update(selection);
     } else {
       setText(ActionMessages.OpenAction_declaration_label);

@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.actions;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.RefactoringFactory;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -40,12 +42,30 @@ public class ExtractLocalAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
+    // empty selection
+    if (selection.getLength() == 0) {
+      setEnabled(false);
+      return;
+    }
+    // prepare context
     AssistContext context = selection.getContext();
     if (context == null) {
       setEnabled(false);
       return;
     }
-    setEnabled(selection.getLength() != 0);
+    // prepare covered node
+    ASTNode coveredNode = context.getCoveredNode();
+    if (coveredNode == null) {
+      setEnabled(false);
+      return;
+    }
+    // selection should be inside of executable node
+    if (coveredNode.getAncestor(Block.class) == null) {
+      setEnabled(false);
+      return;
+    }
+    // OK
+    setEnabled(true);
   }
 
   @Override

@@ -32,6 +32,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
+import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.NameElementImpl;
 import com.google.dart.engine.internal.search.listener.CountingSearchListener;
@@ -249,6 +250,9 @@ public class SearchEngineImpl implements SearchEngine {
   public void searchReferences(Element element, SearchScope scope, SearchFilter filter,
       SearchListener listener) {
     if (element != null) {
+      if (element instanceof Member) {
+        element = ((Member) element).getBaseElement();
+      }
       switch (element.getKind()) {
         case CLASS:
           searchReferences((ClassElement) element, scope, filter, listener);

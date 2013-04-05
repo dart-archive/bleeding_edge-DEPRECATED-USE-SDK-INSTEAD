@@ -37,6 +37,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
+import com.google.dart.engine.internal.element.member.MethodMember;
 import com.google.dart.engine.internal.index.IndexConstants;
 import com.google.dart.engine.internal.index.IndexImpl;
 import com.google.dart.engine.internal.index.NameElementImpl;
@@ -497,6 +498,48 @@ public class SearchEngineImplTest extends EngineTestCase {
     }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, referencedElement);
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.METHOD_INVOCATION, 1, 10, false),
+        new ExpectedMatch(elementB, MatchKind.METHOD_INVOCATION, 2, 20, true),
+        new ExpectedMatch(elementC, MatchKind.METHOD_REFERENCE, 3, 30, false),
+        new ExpectedMatch(elementD, MatchKind.METHOD_REFERENCE, 4, 40, true));
+  }
+
+  public void test_searchReferences_MethodMember() throws Exception {
+    MethodElement referencedElement = mock2(MethodElement.class, ElementKind.METHOD);
+    {
+      Location location = new Location(elementA, 1, 10, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_INVOKED_BY_UNQUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementB, 2, 20, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_INVOKED_BY_QUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementC, 3, 30, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_REFERENCED_BY_UNQUALIFIED,
+          location);
+    }
+    {
+      Location location = new Location(elementD, 4, 40, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
+    // search matches
+    MethodMember referencedMember = new MethodMember(referencedElement, null);
+    List<SearchMatch> matches = searchReferencesSync(Element.class, referencedMember);
     // verify
     assertMatches(
         matches,

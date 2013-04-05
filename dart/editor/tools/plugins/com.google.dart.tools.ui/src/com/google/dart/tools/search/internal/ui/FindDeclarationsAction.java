@@ -13,7 +13,15 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.MethodElement;
+import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
@@ -34,9 +42,41 @@ import org.eclipse.ui.PlatformUI;
 import java.util.List;
 
 /**
- * Finds references of the selected name in the workspace.
+ * Finds declarations of the {@link Element}s similar to selected in the workspace.
  */
 public class FindDeclarationsAction extends AbstractDartSelectionAction {
+  static boolean isInvocationNameOfPropertyAccessSelected(DartSelection selection) {
+    ASTNode node = getSelectionNode(selection);
+    if (!(node instanceof SimpleIdentifier)) {
+      return false;
+    }
+    SimpleIdentifier name = (SimpleIdentifier) node;
+    ASTNode parent = name.getParent();
+    // method name
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) parent;
+      return invocation.getMethodName() == name && invocation.getRealTarget() != null;
+    }
+    // property name
+    if (parent instanceof PropertyAccess) {
+      PropertyAccess access = (PropertyAccess) parent;
+      return access.getPropertyName() == name && access.getRealTarget() != null;
+    }
+    // property name (cannot be distinguished from prefixed)
+    if (parent instanceof PrefixedIdentifier) {
+      PrefixedIdentifier prefixed = (PrefixedIdentifier) parent;
+      return prefixed.getIdentifier() == name;
+    }
+    // we don't know this node
+    return false;
+  }
+
+  private static boolean isResolvedClassMemberSelected(DartSelection selection) {
+    Element element = getSelectionElement(selection);
+    return element instanceof MethodElement || element instanceof FieldElement
+        || element instanceof PropertyAccessorElement;
+  }
+
   public FindDeclarationsAction(DartEditor editor) {
     super(editor);
   }
@@ -47,8 +87,8 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
 
   @Override
   public void selectionChanged(DartSelection selection) {
-    Element element = getSelectionElement(selection);
-    setEnabled(element != null);
+    setEnabled(isResolvedClassMemberSelected(selection)
+        || isInvocationNameOfPropertyAccessSelected(selection));
   }
 
   @Override
@@ -60,6 +100,7 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
+    // TODO(scheglov) search for declarations when not resolved
     Element element = getSelectionElement(selection);
     doSearch(element);
   }

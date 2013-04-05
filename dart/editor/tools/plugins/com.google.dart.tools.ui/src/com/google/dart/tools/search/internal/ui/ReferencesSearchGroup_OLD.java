@@ -145,11 +145,11 @@ public class ReferencesSearchGroup_OLD extends ActionGroup {
         findOverridesAction.update(selection);
         appendToGroup(mm, findOverridesAction);
       }
-      if (ActionUtil.isFindDeclarationsAvailable(selection)) {
+      if (ActionUtil.isFindDeclarationsAvailable_OLD(selection)) {
         findDeclarationsAction.update(selection);
         appendToGroup(mm, findDeclarationsAction);
       }
-      if (ActionUtil.isFindUsesAvailable(selection)) {
+      if (ActionUtil.isFindUsesAvailable_OLD(selection)) {
         findReferencesAction.update(selection);
         appendToGroup(mm, findReferencesAction);
       }

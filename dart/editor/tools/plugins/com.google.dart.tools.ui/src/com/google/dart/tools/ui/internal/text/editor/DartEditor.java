@@ -49,6 +49,7 @@ import com.google.dart.tools.ui.IContextMenuConstants;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.actions.DartEditorActionDefinitionIds;
 import com.google.dart.tools.ui.actions.DartdocActionGroup;
+import com.google.dart.tools.ui.actions.DartdocActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenEditorActionGroup_OLD;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup_OLD;
@@ -2115,7 +2116,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
         }
       }
     } else {
-      if (elementSelection != null && ActionUtil.isOpenHierarchyAvailable(elementSelection)) {
+      if (elementSelection != null && ActionUtil.isOpenHierarchyAvailable_OLD(elementSelection)) {
         IAction action = getAction(DartEditorActionDefinitionIds.OPEN_HIERARCHY);
         menu.appendToGroup(IContextMenuConstants.GROUP_OPEN, action);
       }
@@ -2153,15 +2154,18 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       if (selection instanceof DartSelection) {
-        showSelectionLabel.update((DartSelection) selection);
-        showSelectionLabel.setEnabled(false);
-        if (showSelectionLabel.getText() != null) {
-          menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
+        DartSelection dartSelection = (DartSelection) selection;
+        if (ActionUtil.hasItemsInGroup(menu, IContextMenuConstants.GROUP_OPEN)) {
+          showSelectionLabel.update(dartSelection);
+          showSelectionLabel.setEnabled(false);
+          if (showSelectionLabel.getText() != null) {
+            menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
+          }
         }
       }
     } else {
       if (elementSelection != null) {
-        if (ActionUtil.isSelectionShowing((DartElementSelection) selection)) {
+        if (ActionUtil.isSelectionShowing_OLD((DartElementSelection) selection)) {
           showSelectionLabel.update(elementSelection);
           showSelectionLabel.setEnabled(false);
           menu.prependToGroup(IContextMenuConstants.GROUP_OPEN, showSelectionLabel);
@@ -2849,7 +2853,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       ActionGroup dsg, ddg;
       fActionGroups = new CompositeActionGroup(new ActionGroup[] {
           oeg = new OpenEditorActionGroup_OLD(this), ovg = new OpenViewActionGroup_OLD(this),
-          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup(this)});
+          dsg = new DartSearchActionGroup_OLD(this), ddg = new DartdocActionGroup_OLD(this)});
       fOpenEditorActionGroup = new CompositeActionGroup(new ActionGroup[] {ovg, oeg, dsg, ddg});
     }
 
