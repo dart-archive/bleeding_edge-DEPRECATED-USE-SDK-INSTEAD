@@ -108,6 +108,20 @@ public class ParameterMember extends Member implements ParameterElement {
   }
 
   @Override
+  public ParameterElement[] getParameters() {
+    ParameterElement[] baseParameters = getBaseElement().getParameters();
+    int parameterCount = baseParameters.length;
+    if (parameterCount == 0) {
+      return baseParameters;
+    }
+    ParameterElement[] parameterizedParameters = new ParameterElement[parameterCount];
+    for (int i = 0; i < parameterCount; i++) {
+      parameterizedParameters[i] = ParameterMember.from(baseParameters[i], getDefiningType());
+    }
+    return parameterizedParameters;
+  }
+
+  @Override
   public Type getType() {
     return substituteFor(getBaseElement().getType());
   }

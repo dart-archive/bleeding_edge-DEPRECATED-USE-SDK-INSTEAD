@@ -70,6 +70,9 @@ public abstract class ExecutableMember extends Member implements ExecutableEleme
   public ParameterElement[] getParameters() {
     ParameterElement[] baseParameters = getBaseElement().getParameters();
     int parameterCount = baseParameters.length;
+    if (parameterCount == 0) {
+      return baseParameters;
+    }
     ParameterElement[] parameterizedParameters = new ParameterElement[parameterCount];
     for (int i = 0; i < parameterCount; i++) {
       parameterizedParameters[i] = ParameterMember.from(baseParameters[i], getDefiningType());

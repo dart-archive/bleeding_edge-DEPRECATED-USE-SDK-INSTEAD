@@ -27,6 +27,12 @@ import com.google.dart.engine.utilities.source.SourceRange;
  */
 public class ParameterElementImpl extends VariableElementImpl implements ParameterElement {
   /**
+   * An array containing all of the parameters defined by this parameter element. There will only be
+   * parameters if this parameter is a function typed parameter.
+   */
+  private ParameterElement[] parameters = ParameterElementImpl.EMPTY_ARRAY;
+
+  /**
    * The kind of this parameter.
    */
   private ParameterKind parameterKind;
@@ -72,6 +78,11 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
+  public ParameterElement[] getParameters() {
+    return parameters;
+  }
+
+  @Override
   public SourceRange getVisibleRange() {
     if (visibleRangeLength < 0) {
       return null;
@@ -100,6 +111,18 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
    */
   public void setParameterKind(ParameterKind parameterKind) {
     this.parameterKind = parameterKind;
+  }
+
+  /**
+   * Set the parameters defined by this executable element to the given parameters.
+   * 
+   * @param parameters the parameters defined by this executable element
+   */
+  public void setParameters(ParameterElement[] parameters) {
+    for (ParameterElement parameter : parameters) {
+      ((ParameterElementImpl) parameter).setEnclosingElement(this);
+    }
+    this.parameters = parameters;
   }
 
   /**

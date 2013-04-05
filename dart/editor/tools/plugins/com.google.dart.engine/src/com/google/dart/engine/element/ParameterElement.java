@@ -30,6 +30,14 @@ public interface ParameterElement extends LocalElement, VariableElement {
   public ParameterKind getParameterKind();
 
   /**
+   * Return an array containing all of the parameters defined by this parameter. A parameter will
+   * only define other parameters if it is a function typed parameter.
+   * 
+   * @return the parameters defined by this parameter element
+   */
+  public ParameterElement[] getParameters();
+
+  /**
    * Return {@code true} if this parameter is an initializing formal parameter.
    * 
    * @return {@code true} if this parameter is an initializing formal parameter

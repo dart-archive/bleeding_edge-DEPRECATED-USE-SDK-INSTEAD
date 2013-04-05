@@ -405,8 +405,7 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
       inFunction = wasInFunction;
     }
 
-    SimpleIdentifier functionName = null;
-    FunctionElementImpl element = new FunctionElementImpl(functionName);
+    FunctionElementImpl element = new FunctionElementImpl(node.getBeginToken().getOffset());
     element.setFunctions(holder.getFunctions());
     element.setLabels(holder.getLabels());
     element.setLocalVariables(holder.getLocalVariables());
@@ -461,10 +460,10 @@ public class ElementBuilder extends RecursiveASTVisitor<Void> {
     }
     //
     // The children of this parameter include any parameters defined on the type of this parameter.
-    // We create a new holder to prevent the child parameters from being added as parameters of the
-    // enclosing function.
     //
-    visitChildren(new ElementHolder(), node);
+    ElementHolder holder = new ElementHolder();
+    visitChildren(holder, node);
+    ((ParameterElementImpl) node.getElement()).setParameters(holder.getParameters());
     return null;
   }
 

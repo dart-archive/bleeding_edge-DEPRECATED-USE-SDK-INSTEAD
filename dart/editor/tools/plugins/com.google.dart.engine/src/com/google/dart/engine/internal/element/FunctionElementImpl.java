@@ -59,6 +59,17 @@ public class FunctionElementImpl extends ExecutableElementImpl implements Functi
     super(name);
   }
 
+  /**
+   * Initialize a newly created function element to have no name and the given offset. This is used
+   * for function expressions, which have no name.
+   * 
+   * @param nameOffset the offset of the name of this element in the file that contains the
+   *          declaration of this element
+   */
+  public FunctionElementImpl(int nameOffset) {
+    super("", nameOffset);
+  }
+
   @Override
   public <R> R accept(ElementVisitor<R> visitor) {
     return visitor.visitFunctionElement(this);

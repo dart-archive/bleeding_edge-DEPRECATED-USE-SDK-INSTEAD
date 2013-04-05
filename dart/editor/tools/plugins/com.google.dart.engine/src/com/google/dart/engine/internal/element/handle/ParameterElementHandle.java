@@ -45,6 +45,11 @@ public class ParameterElementHandle extends VariableElementHandle implements Par
   }
 
   @Override
+  public ParameterElement[] getParameters() {
+    return getActualElement().getParameters();
+  }
+
+  @Override
   public SourceRange getVisibleRange() {
     return getActualElement().getVisibleRange();
   }

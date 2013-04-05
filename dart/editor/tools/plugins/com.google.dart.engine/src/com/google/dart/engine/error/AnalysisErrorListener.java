@@ -21,6 +21,16 @@ package com.google.dart.engine.error;
  */
 public interface AnalysisErrorListener {
   /**
+   * An error listener that ignores errors that are reported to it.
+   */
+  AnalysisErrorListener NULL_LISTENER = new AnalysisErrorListener() {
+    @Override
+    public void onError(AnalysisError event) {
+      // Ignore errors
+    }
+  };
+
+  /**
    * This method is invoked when an error has been found by the analysis engine.
    * 
    * @param error the error that was just found (not {@code null})
