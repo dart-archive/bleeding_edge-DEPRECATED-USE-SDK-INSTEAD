@@ -20,8 +20,12 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.SourceInfo;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ArgumentList;
+import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.source.Source;
@@ -177,15 +181,22 @@ public class ActionUtil {
   }
 
   public static String constructSelectionLabel(DartSelection selection) {
-    AssistContext context = selection.getContext();
-    if (context == null) {
-      return null;
-    }
     StringBuffer text = new StringBuffer(STRING_FOR);
     text.append(STRING_SPACE);
-    Element element = context.getCoveredElement();
+    Element element = getActionElement(selection);
     if (element != null) {
+      // prepare name
       String name = element.getName();
+      if (element instanceof ConstructorElement) {
+        ConstructorElement constructor = (ConstructorElement) element;
+        String className = constructor.getEnclosingElement().getName();
+        if (name.isEmpty()) {
+          name = className + "()";
+        } else {
+          name = className + "." + element.getName();
+        }
+      }
+      // show name or element kind
       if (name.length() > MAX_NAME_LENGTH) {
         text.append(element.getKind().getDisplayName());
       } else {
@@ -242,6 +253,30 @@ public class ActionUtil {
         return STRING_VARIABLE;
     }
     return STRING_SELECTION;
+  }
+
+  /**
+   * @return the {@link Element} to perform action on, may be {@code null}. In the most cases as
+   *         simple as just {@link Element} of covered {@link ASTNode}, but sometimes we want to be
+   *         smarter.
+   */
+  public static Element getActionElement(DartSelection selection) {
+    AssistContext context = selection.getContext();
+    if (context == null) {
+      return null;
+    }
+    // prepare ASTNode
+    ASTNode node = context.getCoveredNode();
+    // ArgumentList has no its own Element, use Element of invocation or instance creation
+    if (node instanceof ArgumentList) {
+      node = node.getParent();
+    }
+    // just in case
+    if (node == null) {
+      return null;
+    }
+    // OK, get Element
+    return ElementLocator.locate(node);
   }
 
   /**
