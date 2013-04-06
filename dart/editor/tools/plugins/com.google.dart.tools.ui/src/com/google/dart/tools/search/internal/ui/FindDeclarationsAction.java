@@ -100,16 +100,21 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) search for declarations when not resolved
-    Element element = getSelectionElement(selection);
-    doSearch(element);
+    ASTNode node = getSelectionNode(selection);
+    if (node instanceof SimpleIdentifier) {
+      String name = ((SimpleIdentifier) node).getName();
+      doSearch(name);
+    }
   }
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
-    doSearch(element);
+    if (element != null) {
+      String name = element.getName();
+      doSearch(name);
+    }
   }
 
   @Override
@@ -124,12 +129,7 @@ public class FindDeclarationsAction extends AbstractDartSelectionAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(Element element) {
-    if (element == null) {
-      return;
-    }
-    final String name = element.getName();
-    // do search
+  private void doSearch(final String name) {
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
