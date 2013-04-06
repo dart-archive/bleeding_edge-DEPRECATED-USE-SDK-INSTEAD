@@ -52,6 +52,20 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_extractedMethodAsConstant() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "abstract class Comparable<T> {",
+        "  int compareTo(T other);",
+        "  static int compare(Comparable a, Comparable b) => a.compareTo(b);",
+        "}",
+        "class A {",
+        "  void sort([compare = Comparable.compare]) {}",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_forEachLoops_nonConflicting() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",

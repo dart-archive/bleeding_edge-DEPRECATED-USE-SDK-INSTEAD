@@ -42,6 +42,7 @@ import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -328,6 +329,8 @@ public class ConstantVisitor extends GeneralizingASTVisitor<EvaluationResultImpl
       if (value != null) {
         return value;
       }
+    } else if (element instanceof ExecutableElement) {
+      return new ValidResult(element);
     }
     // TODO(brianwilkerson) Figure out which error to report.
     return error(node, null);
