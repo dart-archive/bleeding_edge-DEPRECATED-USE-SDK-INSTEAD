@@ -157,7 +157,9 @@ public class DartReconciler extends MonoReconciler {
     // remove listeners
     {
       IPostSelectionProvider provider = (IPostSelectionProvider) editor.getSelectionProvider();
-      provider.removePostSelectionChangedListener(documentListener);
+      if (provider != null) {
+        provider.removePostSelectionChangedListener(documentListener);
+      }
       getTextViewer().removeTextInputListener(documentListener);
     }
     // notify thread that it should be stopped
