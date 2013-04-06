@@ -34,7 +34,11 @@ public interface ElementVisitor<R> {
 
   public R visitFieldElement(FieldElement element);
 
+  public R visitFieldFormalParameterElement(FieldFormalParameterElement element);
+
   public R visitFunctionElement(FunctionElement element);
+
+  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
   public R visitHtmlElement(HtmlElement element);
 
@@ -57,8 +61,6 @@ public interface ElementVisitor<R> {
   public R visitPropertyAccessorElement(PropertyAccessorElement element);
 
   public R visitTopLevelVariableElement(TopLevelVariableElement element);
-
-  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
   public R visitTypeVariableElement(TypeVariableElement element);
 }

@@ -21,7 +21,9 @@ import com.google.dart.engine.element.EmbeddedHtmlScriptElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LabelElement;
@@ -33,7 +35,6 @@ import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 
 /**
@@ -92,7 +93,19 @@ public class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
+  public R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @Override
   public R visitFunctionElement(FunctionElement element) {
+    element.visitChildren(this);
+    return null;
+  }
+
+  @Override
+  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -159,12 +172,6 @@ public class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @Override
   public R visitTopLevelVariableElement(TopLevelVariableElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     element.visitChildren(this);
     return null;
   }

@@ -14,7 +14,9 @@
 package com.google.dart.engine.internal.element;
 
 import com.google.dart.engine.ast.Identifier;
+import com.google.dart.engine.element.ElementVisitor;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 
 /**
  * Instances of the class {@code FieldFormalParameterElementImpl} extend
@@ -23,8 +25,8 @@ import com.google.dart.engine.element.FieldElement;
  * 
  * @coverage dart.engine.element
  */
-public class FieldFormalParameterElementImpl extends ParameterElementImpl {
-
+public class FieldFormalParameterElementImpl extends ParameterElementImpl implements
+    FieldFormalParameterElement {
   /**
    * The field associated with this field formal parameter.
    */
@@ -39,18 +41,18 @@ public class FieldFormalParameterElementImpl extends ParameterElementImpl {
     super(name);
   }
 
-  /**
-   * Get the field element associated with this field formal parameter, or {@code null} if the
-   * parameter references a field that doesn't exist.
-   * 
-   * @return the field element associated with this field formal parameter
-   */
+  @Override
+  public <R> R accept(ElementVisitor<R> visitor) {
+    return visitor.visitFieldFormalParameterElement(this);
+  }
+
+  @Override
   public FieldElement getField() {
     return field;
   }
 
   /**
-   * Set the field element associated with this field formal parameter.
+   * Set the field element associated with this field formal parameter to the given element.
    * 
    * @param field the new field element
    */

@@ -139,6 +139,12 @@ public class ParameterElementImpl extends VariableElementImpl implements Paramet
   }
 
   @Override
+  public void visitChildren(ElementVisitor<?> visitor) {
+    super.visitChildren(visitor);
+    safelyVisitChildren(parameters, visitor);
+  }
+
+  @Override
   protected void appendTo(StringBuilder builder) {
     String left = "";
     String right = "";

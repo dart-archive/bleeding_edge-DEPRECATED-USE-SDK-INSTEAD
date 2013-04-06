@@ -23,7 +23,9 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ExternalHtmlScriptElement;
 import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.HtmlScriptElement;
 import com.google.dart.engine.element.ImportElement;
@@ -38,7 +40,6 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 
@@ -89,6 +90,7 @@ import com.google.dart.engine.element.VariableElement;
  *      LocalElement
  *         LocalVariableElement
  *         ParameterElement
+ *            FieldFormalParameterElement
  * </pre>
  * <p>
  * Subclasses that override a visit method must either invoke the overridden visit method or
@@ -144,8 +146,18 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @Override
+  public R visitFieldFormalParameterElement(FieldFormalParameterElement element) {
+    return visitParameterElement(element);
+  }
+
+  @Override
   public R visitFunctionElement(FunctionElement element) {
     return visitLocalElement(element);
+  }
+
+  @Override
+  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+    return visitElement(element);
   }
 
   @Override
@@ -220,11 +232,6 @@ public class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   @Override
   public R visitTopLevelVariableElement(TopLevelVariableElement element) {
     return visitPropertyInducingElement(element);
-  }
-
-  @Override
-  public R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
-    return visitElement(element);
   }
 
   @Override
