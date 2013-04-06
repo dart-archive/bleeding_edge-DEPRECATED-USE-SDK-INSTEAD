@@ -620,25 +620,6 @@ public class SearchEngineImplTest extends EngineTestCase {
         false), new ExpectedMatch(elementB, MatchKind.PROPERTY_ACCESSOR_REFERENCE, 2, 20, true));
   }
 
-  public void test_searchReferences_String() throws Exception {
-    Element referencedElement = new NameElementImpl("test");
-    {
-      Location locationA = new Location(elementA, 1, 2, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationA);
-    }
-    {
-      Location locationB = new Location(elementB, 10, 20, null);
-      indexStore.recordRelationship(referencedElement, IndexConstants.IS_REFERENCED_BY, locationB);
-    }
-    // search matches
-    List<SearchMatch> matches = searchReferencesSync(String.class, "test");
-    // verify
-    assertMatches(
-        matches,
-        new ExpectedMatch(elementA, MatchKind.NAME_REFERENCE, 1, 2),
-        new ExpectedMatch(elementB, MatchKind.NAME_REFERENCE, 10, 20));
-  }
-
   public void test_searchReferences_TopLevelVariableElement() throws Exception {
     PropertyAccessorElement getterElement = mock2(PropertyAccessorElement.class, ElementKind.GETTER);
     PropertyAccessorElement setterElement = mock2(PropertyAccessorElement.class, ElementKind.SETTER);
@@ -824,6 +805,34 @@ public class SearchEngineImplTest extends EngineTestCase {
     assertMatches(matches, new ExpectedMatch(elementA, MatchKind.FUNCTION_TYPE_DECLARATION, 1, 2));
   }
 
+  public void test_searchUnresolvedQualifiedReferences() throws Exception {
+    Element referencedElement = new NameElementImpl("test");
+    {
+      Location locationA = new Location(elementA, 1, 2, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+          locationA);
+    }
+    {
+      Location locationB = new Location(elementB, 10, 20, null);
+      indexStore.recordRelationship(
+          referencedElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+          locationB);
+    }
+    // search matches
+    List<SearchMatch> matches = searchReferencesSync(
+        "searchQualifiedMemberReferences",
+        String.class,
+        "test");
+    // verify
+    assertMatches(
+        matches,
+        new ExpectedMatch(elementA, MatchKind.NAME_REFERENCE_RESOLVED, 1, 2),
+        new ExpectedMatch(elementB, MatchKind.NAME_REFERENCE_UNRESOLVED, 10, 20));
+  }
+
   public void test_searchVariableDeclarations() throws Exception {
     LibraryElement library = mock2(LibraryElement.class, ElementKind.LIBRARY);
     defineVariablesAB(library);
@@ -978,9 +987,13 @@ public class SearchEngineImplTest extends EngineTestCase {
     return searchDeclarationsSync("searchFunctionDeclarations");
   }
 
+  private List<SearchMatch> searchReferencesSync(Class<?> clazz, Object element) throws Exception {
+    return searchReferencesSync("searchReferences", clazz, element);
+  }
+
   @SuppressWarnings("unchecked")
-  private List<SearchMatch> searchReferencesSync(final Class<?> clazz, final Object element)
-      throws Exception {
+  private List<SearchMatch> searchReferencesSync(final String methodName, final Class<?> clazz,
+      final Object element) throws Exception {
     return runSearch(new SearchRunner<List<SearchMatch>>() {
       @Override
       public List<SearchMatch> run(OperationQueue queue, OperationProcessor processor, Index index,
@@ -989,7 +1002,7 @@ public class SearchEngineImplTest extends EngineTestCase {
         queue.enqueue(mock(IndexOperation.class));
         // run actual search
         return (List<SearchMatch>) engine.getClass().getMethod(
-            "searchReferences",
+            methodName,
             clazz,
             SearchScope.class,
             SearchFilter.class).invoke(engine, element, scope, filter);

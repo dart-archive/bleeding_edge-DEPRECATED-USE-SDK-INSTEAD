@@ -30,10 +30,8 @@ import com.google.dart.engine.ast.FunctionTypeAlias;
 import com.google.dart.engine.ast.Identifier;
 import com.google.dart.engine.ast.ImplementsClause;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.Label;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
-import com.google.dart.engine.ast.NamedExpression;
 import com.google.dart.engine.ast.PartDirective;
 import com.google.dart.engine.ast.PrefixedIdentifier;
 import com.google.dart.engine.ast.PropertyAccess;
@@ -131,6 +129,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
     }
     if (parent instanceof PropertyAccess) {
       return ((PropertyAccess) parent).getPropertyName() == node;
+    }
+    if (parent instanceof MethodInvocation) {
+      MethodInvocation invocation = (MethodInvocation) parent;
+      return invocation.getRealTarget() != null && invocation.getMethodName() == node;
     }
     return false;
   }
@@ -377,14 +379,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   }
 
   @Override
-  public Void visitNamedExpression(NamedExpression node) {
-    SimpleIdentifier name = node.getName().getLabel();
-    Location location = createLocation(name);
-    recordRelationship(name.getElement(), IndexConstants.IS_REFERENCED_BY, location);
-    return super.visitNamedExpression(node);
-  }
-
-  @Override
   public Void visitPartDirective(PartDirective node) {
     Element element = node.getElement();
     Location location = createLocation(node.getUri());
@@ -401,13 +395,15 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       recordRelationship(nameElement, IndexConstants.IS_DEFINED_BY, location);
       return null;
     }
-    // name is referenced
-    recordRelationship(nameElement, IndexConstants.IS_REFERENCED_BY, location);
+    // prepare information
+    Element element = node.getElement();
+    // qualified name reference
+    recordQualifiedMemberReference(node, element, nameElement, location);
+    // stop if already handled
     if (isAlreadyHandledName(node)) {
       return null;
     }
     // record specific relations
-    Element element = node.getElement();
     if (element instanceof ClassElement || element instanceof FunctionTypeAliasElement
         || element instanceof TypeVariableElement || element instanceof LabelElement
         || element instanceof FunctionElement) {
@@ -430,6 +426,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         recordRelationship(element, IndexConstants.IS_READ_BY, location);
       } else if (inSetterContext) {
         recordRelationship(element, IndexConstants.IS_WRITTEN_BY, location);
+      } else {
+        recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
       }
     }
     recordImportElementReferenceWithoutPrefix(node);
@@ -535,12 +533,6 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         return ((MethodInvocation) parent).getMethodName() == node;
       }
     }
-    if (parent instanceof Label) {
-      Label label = (Label) parent;
-      if (label.getLabel() == node && label.getParent() instanceof NamedExpression) {
-        return true;
-      }
-    }
     return false;
   }
 
@@ -561,6 +553,20 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
           break;
         }
       }
+    }
+  }
+
+  /**
+   * Records reference if the given {@link SimpleIdentifier} looks like a qualified property access
+   * or method invocation.
+   */
+  private void recordQualifiedMemberReference(SimpleIdentifier node, Element element,
+      Element nameElement, Location location) {
+    if (isQualified(node)) {
+      Relationship relationship = element != null
+          ? IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED
+          : IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED;
+      recordRelationship(nameElement, relationship, location);
     }
   }
 

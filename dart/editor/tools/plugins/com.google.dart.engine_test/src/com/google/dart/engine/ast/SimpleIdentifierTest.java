@@ -161,6 +161,13 @@ public class SimpleIdentifierTest extends ParserTestCase {
     }
   }
 
+  public void test_inReferenceContext() throws Exception {
+    SimpleIdentifier identifier = identifier("id");
+    namedExpression(label(identifier), identifier("_"));
+    assertFalse(identifier.inGetterContext());
+    assertFalse(identifier.inSetterContext());
+  }
+
   public void test_inSetterContext() throws Exception {
     for (WrapperKind wrapper : WrapperKind.values()) {
       for (AssignmentKind assignment : AssignmentKind.values()) {

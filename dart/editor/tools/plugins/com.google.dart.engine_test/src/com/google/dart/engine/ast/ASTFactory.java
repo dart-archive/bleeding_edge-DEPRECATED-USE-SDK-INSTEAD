@@ -642,8 +642,12 @@ public final class ASTFactory {
         type);
   }
 
+  public static Label label(SimpleIdentifier label) {
+    return new Label(label, token(TokenType.COLON));
+  }
+
   public static Label label(String label) {
-    return new Label(identifier(label), token(TokenType.COLON));
+    return label(identifier(label));
   }
 
   public static LabeledStatement labeledStatement(List<Label> labels, Statement statement) {
@@ -753,8 +757,12 @@ public final class ASTFactory {
     return methodInvocation(null, methodName, arguments);
   }
 
+  public static NamedExpression namedExpression(Label label, Expression expression) {
+    return new NamedExpression(label, expression);
+  }
+
   public static NamedExpression namedExpression(String label, Expression expression) {
-    return new NamedExpression(label(label), expression);
+    return namedExpression(label(label), expression);
   }
 
   public static DefaultFormalParameter namedFormalParameter(NormalFormalParameter parameter,

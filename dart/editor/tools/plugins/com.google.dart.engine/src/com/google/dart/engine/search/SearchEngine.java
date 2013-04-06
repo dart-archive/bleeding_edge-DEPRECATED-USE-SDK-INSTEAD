@@ -78,6 +78,35 @@ public interface SearchEngine {
       SearchListener listener);
 
   /**
+   * Synchronously search for resolved and unresolved qualified references to the class members with
+   * given name within the given scope. Return all matches that pass the optional filter.
+   * 
+   * @param name the name being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
+   * @param filter the filter used to determine which matches should be returned, or {@code null} if
+   *          all of the matches should be returned
+   */
+  List<SearchMatch> searchQualifiedMemberReferences(String name, SearchScope scope,
+      SearchFilter filter);
+
+  /**
+   * Search for resolved and unresolved qualified references to the class members with given name
+   * within the given scope.
+   * 
+   * @param name the name being referenced by the found matches
+   * @param scope the scope containing the references to be searched, may be {@code null} if all
+   *          references should be returned
+   * @param filter the filter used to determine which matches should be passed to the listener
+   *          (those that pass the filter), or {@code null} if all of the matches should be passed
+   *          to the listener
+   * @param listener the listener that will be notified when matches are found @ if the results
+   *          could not be computed
+   */
+  void searchQualifiedMemberReferences(String name, SearchScope scope, SearchFilter filter,
+      SearchListener listener);
+
+  /**
    * Synchronously search for references to the given {@link Element} within the given scope. This
    * method will call corresponding <code>searchReferences</code> method depending on concrete type
    * of the given {@link Element}.
@@ -106,32 +135,6 @@ public interface SearchEngine {
    */
   void searchReferences(Element element, SearchScope scope, SearchFilter filter,
       SearchListener listener);
-
-  /**
-   * Synchronously search for references to the given name within the given scope. Return all
-   * matches that pass the optional filter.
-   * 
-   * @param name the name being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be {@code null} if all
-   *          references should be returned
-   * @param filter the filter used to determine which matches should be returned, or {@code null} if
-   *          all of the matches should be returned
-   */
-  List<SearchMatch> searchReferences(String name, SearchScope scope, SearchFilter filter);
-
-  /**
-   * Search for references to the given name within the given scope.
-   * 
-   * @param name the name being referenced by the found matches
-   * @param scope the scope containing the references to be searched, may be {@code null} if all
-   *          references should be returned
-   * @param filter the filter used to determine which matches should be passed to the listener
-   *          (those that pass the filter), or {@code null} if all of the matches should be passed
-   *          to the listener
-   * @param listener the listener that will be notified when matches are found @ if the results
-   *          could not be computed
-   */
-  void searchReferences(String name, SearchScope scope, SearchFilter filter, SearchListener listener);
 
   /**
    * Synchronously search for subtypes of the given type within the given scope. Return all matches

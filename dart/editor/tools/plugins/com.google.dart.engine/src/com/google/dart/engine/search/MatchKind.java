@@ -119,9 +119,14 @@ public enum MatchKind {
   NAME_DECLARATION,
 
   /**
-   * A reference to a name.
+   * A reference to a name, resolved.
    */
-  NAME_REFERENCE,
+  NAME_REFERENCE_RESOLVED,
+
+  /**
+   * A reference to a name, unresolved.
+   */
+  NAME_REFERENCE_UNRESOLVED,
 
   /**
    * A reference to a named parameter in invocation.

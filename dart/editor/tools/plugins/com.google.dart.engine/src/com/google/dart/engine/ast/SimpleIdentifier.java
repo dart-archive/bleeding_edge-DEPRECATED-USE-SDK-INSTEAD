@@ -149,6 +149,10 @@ public class SimpleIdentifier extends Identifier {
       parent = access.getParent();
       target = access;
     }
+    // skip label
+    if (parent instanceof Label) {
+      return false;
+    }
     // analyze usage
     if (parent instanceof AssignmentExpression) {
       AssignmentExpression expr = (AssignmentExpression) parent;

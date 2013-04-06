@@ -236,6 +236,33 @@ public class SearchEngineImpl implements SearchEngine {
   }
 
   @Override
+  public List<SearchMatch> searchQualifiedMemberReferences(final String name,
+      final SearchScope scope, final SearchFilter filter) {
+    return gatherResults(new SearchRunner() {
+      @Override
+      public void performSearch(SearchListener listener) {
+        searchQualifiedMemberReferences(name, scope, filter, listener);
+      }
+    });
+  }
+
+  @Override
+  public void searchQualifiedMemberReferences(String name, SearchScope scope, SearchFilter filter,
+      SearchListener listener) {
+    assert listener != null;
+    listener = applyFilter(filter, listener);
+    listener = new CountingSearchListener(2, listener);
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        newCallback(MatchKind.NAME_REFERENCE_RESOLVED, scope, listener));
+    index.getRelationships(
+        new NameElementImpl(name),
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        newCallback(MatchKind.NAME_REFERENCE_UNRESOLVED, scope, listener));
+  }
+
+  @Override
   public List<SearchMatch> searchReferences(final Element element, final SearchScope scope,
       final SearchFilter filter) {
     return gatherResults(new SearchRunner() {
@@ -298,28 +325,6 @@ public class SearchEngineImpl implements SearchEngine {
       }
     }
     listener.searchComplete();
-  }
-
-  @Override
-  public List<SearchMatch> searchReferences(final String name, final SearchScope scope,
-      final SearchFilter filter) {
-    return gatherResults(new SearchRunner() {
-      @Override
-      public void performSearch(SearchListener listener) {
-        searchReferences(name, scope, filter, listener);
-      }
-    });
-  }
-
-  @Override
-  public void searchReferences(String name, SearchScope scope, SearchFilter filter,
-      SearchListener listener) {
-    assert listener != null;
-    listener = applyFilter(filter, listener);
-    index.getRelationships(
-        new NameElementImpl(name),
-        IndexConstants.IS_REFERENCED_BY,
-        newCallback(MatchKind.NAME_REFERENCE, scope, listener));
   }
 
   @Override

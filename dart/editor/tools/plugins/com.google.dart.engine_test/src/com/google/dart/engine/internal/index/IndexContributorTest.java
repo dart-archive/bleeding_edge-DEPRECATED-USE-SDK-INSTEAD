@@ -931,96 +931,6 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
-  public void test_isReferencedBy_NameElement_class() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {}",
-        "main() {",
-        "  A a = new A();",
-        "}");
-    // prepare elements
-    Element mainElement = findElement("main(");
-    Element varElement = findElement("a =");
-    ClassElement classElementA = findElement("A {}");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    Element nameElement = new NameElementImpl("A");
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(classElementA, findOffset("A {}"), "A"));
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("A a = "), "A"));
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(varElement, findOffset("A();"), "A"));
-  }
-
-  public void test_isReferencedBy_NameElement_field() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  int myField;",
-        "}",
-        "main2(var a) {",
-        "  print(a.myField);",
-        "}");
-    // prepare elements
-    Element mainElement = findElement("main2(");
-    FieldElement fieldElement = findElement("myField;");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    Element nameElement = new NameElementImpl("myField");
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(fieldElement, findOffset("myField;"), "myField"));
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
-  }
-
-  public void test_isReferencedBy_NameElement_typeVariable() throws Exception {
-    parseTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A<T> {",
-        "  main() {",
-        "    T v = null;",
-        "  }",
-        "}");
-    // prepare elements
-    Element mainElement = findElement("main(");
-    TypeVariableElement typeVariableElement = findElement("T>");
-    // index
-    index.visitCompilationUnit(testUnit);
-    // verify
-    List<RecordedRelation> relations = captureRecordedRelations();
-    Element nameElement = new NameElementImpl("T");
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_DEFINED_BY,
-        new ExpectedLocation(typeVariableElement, findOffset("T>"), "T"));
-    assertRecordedRelation(
-        relations,
-        nameElement,
-        IndexConstants.IS_REFERENCED_BY,
-        new ExpectedLocation(mainElement, findOffset("T v = "), "T"));
-  }
-
   public void test_isReferencedBy_ParameterElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1236,6 +1146,110 @@ public class IndexContributorTest extends AbstractDartTest {
         IndexConstants.IS_REFERENCED_BY_QUALIFIED,
         new ExpectedLocation(mainElement, findOffset("foo = 42"), "foo"));
     assertNoRecordedRelation(relations, fooElement, IndexConstants.IS_REFERENCED_BY, null);
+  }
+
+  public void test_isReferencedByQualifiedResolved_NameElement_field() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int myField;",
+        "}",
+        "main2(A a) {",
+        "  print(a.myField);",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main2(");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("myField");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
+  }
+
+  public void test_isReferencedByQualifiedResolved_NameElement_method() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {}",
+        "}",
+        "main2(A a) {",
+        "  a.myMethod();",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main2(");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("myMethod");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_RESOLVED,
+        new ExpectedLocation(mainElement, findOffset("myMethod();"), "myMethod"));
+  }
+
+  public void test_isReferencedByQualifiedUnresolved_NameElement_field() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int myField;",
+        "}",
+        "main2(var a) {",
+        "  print(a.myField);",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main2(");
+    FieldElement fieldElement = findElement("myField;");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("myField");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(fieldElement, findOffset("myField;"), "myField"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("myField);"), "myField"));
+  }
+
+  public void test_isReferencedByQualifiedUnresolved_NameElement_method() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  myMethod() {}",
+        "}",
+        "main2(var a) {",
+        "  a.myMethod();",
+        "}");
+    // prepare elements
+    Element mainElement = findElement("main2(");
+    MethodElement fieldElement = findElement("myMethod() {}");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    Element nameElement = new NameElementImpl("myMethod");
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_DEFINED_BY,
+        new ExpectedLocation(fieldElement, findOffset("myMethod() {}"), "myMethod"));
+    assertRecordedRelation(
+        relations,
+        nameElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED_UNRESOLVED,
+        new ExpectedLocation(mainElement, findOffset("myMethod();"), "myMethod"));
   }
 
   public void test_isReferencedByUnqualified_FieldElement() throws Exception {

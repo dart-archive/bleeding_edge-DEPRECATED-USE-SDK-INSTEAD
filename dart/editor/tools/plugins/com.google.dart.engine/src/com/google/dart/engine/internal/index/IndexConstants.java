@@ -137,12 +137,25 @@ public interface IndexConstants {
 
   /**
    * The relationship used to indicate that an element (the left-operand) is referenced at a
-   * specific location (the right operand). This is used for everything except fields, parameters,
-   * and variables. Those use either {@link #IS_ACCESSED_BY_QUALIFIED},
-   * {@link #IS_ACCESSED_BY_UNQUALIFIED}, {@link #IS_MODIFIED_BY_QUALIFIED} or
-   * {@link #IS_MODIFIED_BY_UNQUALIFIED}, as appropriate.
+   * specific location (the right operand). This is used for everything except read/write operations
+   * for fields, parameters, and variables. Those use either {@link #IS_REFERENCED_BY_QUALIFIED},
+   * {@link #IS_REFERENCED_BY_UNQUALIFIED}, {@link #IS_READ_BY}, {@link #IS_WRITTEN_BY} or
+   * {@link #IS_READ_WRITTEN_BY}, as appropriate.
    */
   Relationship IS_REFERENCED_BY = Relationship.getRelationship("is-referenced-by");
+
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is
+   * referenced at a specific location (the right operand). This is used for qualified resolved
+   * references to methods and fields.
+   */
+  Relationship IS_REFERENCED_BY_QUALIFIED_RESOLVED = Relationship.getRelationship("is-referenced-by_qualified-resolved");
+  /**
+   * The relationship used to indicate that an {@link NameElementImpl} (the left-operand) is
+   * referenced at a specific location (the right operand). This is used for qualified unresolved
+   * references to methods and fields.
+   */
+  Relationship IS_REFERENCED_BY_QUALIFIED_UNRESOLVED = Relationship.getRelationship("is-referenced-by_qualified-unresolved");
 
   /**
    * The relationship used to indicate that an element (the left-operand) is referenced at a

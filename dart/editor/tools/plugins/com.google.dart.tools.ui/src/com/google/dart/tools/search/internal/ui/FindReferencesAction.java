@@ -13,8 +13,12 @@
  */
 package com.google.dart.tools.search.internal.ui;
 
+import com.google.common.collect.Lists;
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.search.MatchKind;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchMatch;
 import com.google.dart.tools.core.DartCore;
@@ -65,16 +69,16 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    // TODO(scheglov) search for references when not resolved
     Element element = ActionUtil.getActionElement(selection);
-    doSearch(element);
+    ASTNode node = getSelectionNode(selection);
+    doSearch(element, node);
   }
 
   @Override
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
-    doSearch(element);
+    doSearch(element, null);
   }
 
   @Override
@@ -89,30 +93,46 @@ public class FindReferencesAction extends AbstractDartSelectionAction {
   /**
    * Asks {@link SearchView} to execute query and display results.
    */
-  private void doSearch(Element element) {
+  private void doSearch(Element element, ASTNode node) {
     // tweak
     element = DartElementUtil.getVariableIfSyntheticAccessor(element);
     if (element instanceof ImportElement) {
       element = ((ImportElement) element).getImportedLibrary();
     }
-    // no element
-    if (element == null) {
-      return;
+    // prepare name
+    String name = null;
+    if (node instanceof SimpleIdentifier) {
+      name = ((SimpleIdentifier) node).getName();
     }
     // show search results
     try {
       final SearchEngine searchEngine = DartCore.getProjectManager().newSearchEngine();
       final Element searchElement = element;
+      final String searchName = name;
       SearchView view = (SearchView) DartToolsPlugin.getActivePage().showView(SearchView.ID);
       view.showPage(new SearchMatchPage(view, "Searching for references...") {
         @Override
         protected List<SearchMatch> runQuery() {
-          return searchEngine.searchReferences(searchElement, null, null);
+          List<SearchMatch> allMatches = Lists.newArrayList();
+          // add Element references
+          if (searchElement != null) {
+            allMatches.addAll(searchEngine.searchReferences(searchElement, null, null));
+          }
+          // add Name references
+          List<SearchMatch> nameReferences = searchEngine.searchQualifiedMemberReferences(
+              searchName,
+              null,
+              null);
+          for (SearchMatch match : nameReferences) {
+            if (searchElement == null || match.getKind() == MatchKind.NAME_REFERENCE_UNRESOLVED) {
+              allMatches.add(match);
+            }
+          }
+          return allMatches;
         }
       });
     } catch (Throwable e) {
       ExceptionHandler.handle(e, getText(), "Exception during search.");
     }
   }
-
 }
