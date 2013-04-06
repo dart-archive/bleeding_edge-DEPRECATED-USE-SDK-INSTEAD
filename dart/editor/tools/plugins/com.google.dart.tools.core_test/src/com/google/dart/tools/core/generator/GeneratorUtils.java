@@ -21,6 +21,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -43,7 +44,7 @@ public class GeneratorUtils {
    */
   public static void assertNoAnalysisErrors(IFile file) throws AnalysisException {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
-    DartSdk sdk = DartSdk.getDefaultSdk();
+    DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
 

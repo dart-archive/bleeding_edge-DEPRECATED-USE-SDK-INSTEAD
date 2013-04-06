@@ -14,6 +14,7 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 
 import junit.framework.TestCase;
 
@@ -22,17 +23,17 @@ import java.net.URI;
 
 public class DartUriResolverTest extends TestCase {
   public void test_creation() {
-    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
-    DartSdk sdk = new DartSdk(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     assertNotNull(new DartUriResolver(sdk));
   }
 
   public void test_resolve_dart() throws Exception {
     SourceFactory factory = new SourceFactory();
-    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
-    DartSdk sdk = new DartSdk(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(factory, new URI("dart:core"));
     assertNotNull(result);
@@ -40,9 +41,9 @@ public class DartUriResolverTest extends TestCase {
 
   public void test_resolve_dart_non_existing_library() throws Exception {
     SourceFactory factory = new SourceFactory();
-    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
-    DartSdk sdk = new DartSdk(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(factory, new URI("dart:cor"));
     assertNull(result);
@@ -50,9 +51,9 @@ public class DartUriResolverTest extends TestCase {
 
   public void test_resolve_nonDart() throws Exception {
     SourceFactory factory = new SourceFactory();
-    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
-    DartSdk sdk = new DartSdk(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
     Source result = resolver.resolveAbsolute(factory, new URI("package:some/file.dart"));
     assertNull(result);

@@ -52,12 +52,6 @@ public class LibraryElementBuilder {
   private AnalysisErrorListener errorListener;
 
   /**
-   * The name of the core library.
-   */
-  // TODO(brianwilkerson) Restore the line below once DartSdk has been made independent of java.io.
-  public static final String CORE_LIBRARY_URI = "dart:core"; // DartSdk.DART_CORE;
-
-  /**
    * The name of the function used as an entry point.
    */
   private static final String ENTRY_POINT_NAME = "main";

@@ -24,8 +24,8 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
 import com.google.dart.engine.internal.resolver.StaticTypeVerifier;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
-import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -39,7 +39,7 @@ import java.util.Collections;
 
 public class SDKAnalysisTest extends TestCase {
   public void test_sdkAnalysis() throws AnalysisException {
-    DartSdk sdk = DartSdk.getDefaultSdk();
+    DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
@@ -47,9 +47,7 @@ public class SDKAnalysisTest extends TestCase {
     ArrayList<LibraryElement> libraries = new ArrayList<LibraryElement>();
     for (String dartUri : sdk.getUris()) {
 //      long startTime = System.currentTimeMillis();
-      libraries.add(context.computeLibraryElement(new FileBasedSource(
-          sourceFactory,
-          sdk.mapDartUri(dartUri))));
+      libraries.add(context.computeLibraryElement(sourceFactory.forUri(dartUri)));
 //      long endTime = System.currentTimeMillis();
 //      totalTime += endTime - startTime;
     }

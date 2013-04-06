@@ -43,6 +43,7 @@ import com.google.dart.engine.internal.element.ShowCombinatorImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.verifier.ConstantVerifier;
 import com.google.dart.engine.internal.verifier.ErrorVerifier;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 
 import java.util.ArrayList;
@@ -132,8 +133,7 @@ public class LibraryResolver {
         }
       };
     }
-    coreLibrarySource = analysisContext.getSourceFactory().forUri(
-        LibraryElementBuilder.CORE_LIBRARY_URI);
+    coreLibrarySource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
   }
 
   /**

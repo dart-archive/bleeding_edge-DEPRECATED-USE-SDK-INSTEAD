@@ -42,7 +42,6 @@ import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.internal.error.ErrorReporter;
 import com.google.dart.engine.internal.resolver.DeclarationResolver;
-import com.google.dart.engine.internal.resolver.LibraryElementBuilder;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolverVisitor;
 import com.google.dart.engine.internal.resolver.TypeProvider;
@@ -56,6 +55,7 @@ import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
 import com.google.dart.engine.scanner.Token;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -793,7 +793,7 @@ public class AnalysisContextImpl implements AnalysisContext {
           unit = compilationUnitInfo.getResolvedCompilationUnit();
           if (unit == null && libraryElement != null) {
             Source coreLibrarySource = libraryElement.getContext().getSourceFactory().forUri(
-                LibraryElementBuilder.CORE_LIBRARY_URI);
+                DartSdk.DART_CORE);
             LibraryElement coreElement = computeLibraryElement(coreLibrarySource);
             TypeProvider typeProvider = new TypeProviderImpl(coreElement);
             CompilationUnit unitAST = computeResolvableCompilationUnit(unitSource);

@@ -17,61 +17,61 @@ import junit.framework.TestCase;
 
 import java.io.File;
 
-public class DartSdkTest extends TestCase {
+public class DirectoryBasedDartSdkTest extends TestCase {
   public void fail_getDocFileFor() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File docFile = sdk.getDocFileFor("html");
     assertNotNull(docFile);
   }
 
   public void test_creation() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     assertNotNull(sdk);
   }
 
   public void test_getDartiumExecutable() throws Exception {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File file = sdk.getDartiumExecutable();
     assertNotNull(file);
     assertTrue(file.exists());
   }
 
   public void test_getDartiumWorkingDirectory() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File directory = sdk.getDartiumWorkingDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
   public void test_getDirectory() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File directory = sdk.getDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
   public void test_getDocDirectory() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File directory = sdk.getDocDirectory();
     assertNotNull(directory);
   }
 
   public void test_getLibraryDirectory() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File directory = sdk.getLibraryDirectory();
     assertNotNull(directory);
     assertTrue(directory.exists());
   }
 
   public void test_getSdkVersion() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     String version = sdk.getSdkVersion();
     assertNotNull(version);
     assertTrue(version.length() > 0);
   }
 
   public void test_getVmExecutable() {
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File executable = sdk.getVmExecutable();
     assertNotNull(executable);
     assertTrue(executable.exists());
@@ -80,18 +80,18 @@ public class DartSdkTest extends TestCase {
 
   public void xtest_getDartiumExecutable() {
     // There is no Dartium executable in a run-time workbench
-    DartSdk sdk = createDartSdk();
+    DirectoryBasedDartSdk sdk = createDartSdk();
     File executable = sdk.getDartiumExecutable();
     assertNotNull(executable);
     assertTrue(executable.exists());
     assertTrue(executable.canExecute());
   }
 
-  private DartSdk createDartSdk() {
-    File sdkDirectory = DartSdk.getDefaultSdkDirectory();
+  private DirectoryBasedDartSdk createDartSdk() {
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(
         "No SDK configured; set the property 'com.google.dart.sdk' on the command line",
         sdkDirectory);
-    return new DartSdk(sdkDirectory);
+    return new DirectoryBasedDartSdk(sdkDirectory);
   }
 }

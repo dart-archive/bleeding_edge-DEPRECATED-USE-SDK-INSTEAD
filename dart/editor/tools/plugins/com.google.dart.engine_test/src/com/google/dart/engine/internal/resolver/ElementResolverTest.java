@@ -59,7 +59,7 @@ import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
-import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceFactory;
@@ -563,7 +563,8 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(DartSdk.getDefaultSdk()));
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+        DirectoryBasedDartSdk.getDefaultSdk()));
     context.setSourceFactory(sourceFactory);
     FileBasedSource source = new FileBasedSource(
         sourceFactory,

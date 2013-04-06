@@ -21,6 +21,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -58,7 +59,7 @@ class AnalyzerImpl {
     this.options = options;
 
     // This sdk is shared between multiple runs of the analyzer.
-    sdk = new DartSdk(options.getDartSdkPath());
+    sdk = new DirectoryBasedDartSdk(options.getDartSdkPath());
   }
 
   /**
@@ -113,7 +114,7 @@ class AnalyzerImpl {
    */
   public boolean createSdkIndex() {
     @SuppressWarnings("unused")
-    DartSdk sdk = new DartSdk(options.getDartSdkPath());
+    DartSdk sdk = new DirectoryBasedDartSdk(options.getDartSdkPath());
 
     try {
       // TODO(devoncarew): call analysis engine methods to create an index file

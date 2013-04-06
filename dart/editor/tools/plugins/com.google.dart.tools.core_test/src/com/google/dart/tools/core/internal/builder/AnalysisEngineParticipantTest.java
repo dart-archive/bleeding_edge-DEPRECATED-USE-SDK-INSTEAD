@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -199,7 +200,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     markerManager = new AnalysisMarkerManager(workspace);
 
-    sdk = DartSdk.getDefaultSdk();
+    sdk = DirectoryBasedDartSdk.getDefaultSdk();
     manager = new MockProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
     project = new MockProjectImpl(projectRes, sdk);
 

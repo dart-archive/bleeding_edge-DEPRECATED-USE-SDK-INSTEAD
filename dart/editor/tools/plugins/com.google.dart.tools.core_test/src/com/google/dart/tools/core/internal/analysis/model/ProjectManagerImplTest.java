@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -41,9 +42,6 @@ import junit.framework.TestCase;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -367,8 +365,14 @@ public class ProjectManagerImplTest extends TestCase {
     rootContainer = new MockWorkspaceRoot();
     projectContainer = TestProjects.newPubProject3(rootContainer);
     rootContainer.add(projectContainer);
-    expectedSdk = mock(DartSdk.class);
-    when(expectedSdk.mapDartUri("dart:core")).thenReturn(new File("dart-core-mock.dart"));
+//    expectedSdk = mock(DartSdk.class);
+//    when(expectedSdk.mapDartUri("dart:core")).thenReturn(new File("dart-core-mock.dart"));
+    expectedSdk = new DirectoryBasedDartSdk(new File("ignore")) {
+      @Override
+      public Source mapDartUri(SourceFactory factory, String uri) {
+        return new FileBasedSource(factory, new File(uri));
+      }
+    };
     manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);
     context = new MockContextForTest();
   }

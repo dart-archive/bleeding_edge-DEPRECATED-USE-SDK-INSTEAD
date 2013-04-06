@@ -19,6 +19,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -127,7 +128,7 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Create the analysis context in which the file will be analyzed.
     //
-    DartSdk sdk = DartSdk.getDefaultSdk();
+    DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
     SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);

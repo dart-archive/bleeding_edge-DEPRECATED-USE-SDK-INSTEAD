@@ -15,7 +15,6 @@ package com.google.dart.engine.source;
 
 import com.google.dart.engine.sdk.DartSdk;
 
-import java.io.File;
 import java.net.URI;
 
 /**
@@ -59,10 +58,6 @@ public class DartUriResolver extends UriResolver {
     if (!isDartUri(uri)) {
       return null;
     }
-    File resolvedFile = sdk.mapDartUri(uri.toString());
-    if (resolvedFile == null) {
-      return null;
-    }
-    return new FileBasedSource(factory, resolvedFile, true);
+    return sdk.mapDartUri(factory, uri.toString());
   }
 }

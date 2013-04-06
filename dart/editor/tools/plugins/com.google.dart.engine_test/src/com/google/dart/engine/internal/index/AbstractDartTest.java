@@ -28,6 +28,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
@@ -49,7 +50,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class AbstractDartTest extends TestCase {
   protected final static String lineSeparator = System.getProperty("line.separator", "\n");
 
-  private static final DartSdk defaultSdk = DartSdk.getDefaultSdk();
+  private static final DartSdk defaultSdk = DirectoryBasedDartSdk.getDefaultSdk();
   private static final SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
       defaultSdk));
   private static AnalysisContext ANALYSIS_CONTEXT;

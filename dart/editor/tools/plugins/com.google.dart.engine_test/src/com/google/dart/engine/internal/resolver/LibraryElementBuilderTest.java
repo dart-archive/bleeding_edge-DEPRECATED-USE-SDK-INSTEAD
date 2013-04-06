@@ -22,7 +22,7 @@ import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.GatheringErrorListener;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
-import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -196,9 +196,8 @@ public class LibraryElementBuilderTest extends EngineTestCase {
   private LibraryElement buildLibrary(Source librarySource, ErrorCode... expectedErrorCodes)
       throws Exception {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    context.setSourceFactory(new SourceFactory(
-        new DartUriResolver(DartSdk.getDefaultSdk()),
-        new FileUriResolver()));
+    context.setSourceFactory(new SourceFactory(new DartUriResolver(
+        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver()));
     GatheringErrorListener listener = new GatheringErrorListener();
     LibraryResolver resolver = new LibraryResolver(context, listener);
     LibraryElementBuilder builder = new LibraryElementBuilder(resolver);

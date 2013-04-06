@@ -17,6 +17,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.parser.ParserErrorCode;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.analysis.model.Project;
@@ -120,7 +121,7 @@ public class AnalysisMarkerManagerTest extends TestCase {
       }
     });
 
-    sdk = DartSdk.getDefaultSdk();
+    sdk = DirectoryBasedDartSdk.getDefaultSdk();
     projectManager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
     project = projectManager.getProject(projectRes);
     context = project.getDefaultContext();

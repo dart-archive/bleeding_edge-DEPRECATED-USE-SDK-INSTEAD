@@ -14,6 +14,7 @@
 
 package com.google.dart.tools.core.model;
 
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.tools.core.DartCore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -137,7 +138,7 @@ public class DartSdkManager {
   public com.google.dart.engine.sdk.DartSdk getNewSdk() {
 
     if (newSdk == null) {
-      newSdk = new com.google.dart.engine.sdk.DartSdk(getSdk().getDirectory());
+      newSdk = new DirectoryBasedDartSdk(getSdk().getDirectory());
     }
 
     return newSdk;

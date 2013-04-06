@@ -20,6 +20,7 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.TestTypeProvider;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileUriResolver;
 import com.google.dart.engine.source.Source;
@@ -41,9 +42,8 @@ public final class AnalysisContextFactory {
    */
   public static AnalysisContextImpl contextWithCore() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(
-        new DartUriResolver(DartSdk.getDefaultSdk()),
-        new FileUriResolver());
+    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+        DirectoryBasedDartSdk.getDefaultSdk()), new FileUriResolver());
     context.setSourceFactory(sourceFactory);
     //
     // dart:core
