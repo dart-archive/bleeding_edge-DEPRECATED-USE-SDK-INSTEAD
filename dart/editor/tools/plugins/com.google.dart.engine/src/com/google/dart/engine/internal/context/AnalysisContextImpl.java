@@ -40,9 +40,18 @@ import com.google.dart.engine.html.scanner.HtmlScanner;
 import com.google.dart.engine.internal.builder.HtmlUnitBuilder;
 import com.google.dart.engine.internal.element.ElementImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
+import com.google.dart.engine.internal.error.ErrorReporter;
+import com.google.dart.engine.internal.resolver.DeclarationResolver;
+import com.google.dart.engine.internal.resolver.LibraryElementBuilder;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
+import com.google.dart.engine.internal.resolver.ResolverVisitor;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProviderImpl;
+import com.google.dart.engine.internal.resolver.TypeResolverVisitor;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
+import com.google.dart.engine.internal.verifier.ConstantVerifier;
+import com.google.dart.engine.internal.verifier.ErrorVerifier;
 import com.google.dart.engine.parser.Parser;
 import com.google.dart.engine.scanner.CharBufferScanner;
 import com.google.dart.engine.scanner.StringScanner;
@@ -122,7 +131,7 @@ public class AnalysisContextImpl implements AnalysisContext {
   /**
    * The maximum number of sources for which data should be kept in the cache.
    */
-  private static final int MAX_CACHE_SIZE = 256;
+  private static final int MAX_CACHE_SIZE = 64;
 
   /**
    * The name of the 'src' attribute in a HTML tag.
@@ -133,6 +142,12 @@ public class AnalysisContextImpl implements AnalysisContext {
    * The name of the 'script' tag in an HTML file.
    */
   private static final String TAG_SCRIPT = "script";
+
+  /**
+   * The number of times that the flushing of information from the cache has been disabled without
+   * being re-enabled.
+   */
+  private int cacheRemovalCount = 0;
 
   /**
    * Initialize a newly created analysis context.
@@ -772,8 +787,61 @@ public class AnalysisContextImpl implements AnalysisContext {
       // context of the specified library.
       CompilationUnit unit = compilationUnitInfo.getResolvedCompilationUnit();
       if (unit == null) {
-        computeLibraryElement(librarySource);
-        unit = compilationUnitInfo.getResolvedCompilationUnit();
+        disableCacheRemoval();
+        try {
+          LibraryElement libraryElement = computeLibraryElement(librarySource);
+          unit = compilationUnitInfo.getResolvedCompilationUnit();
+          if (unit == null && libraryElement != null) {
+            Source coreLibrarySource = libraryElement.getContext().getSourceFactory().forUri(
+                LibraryElementBuilder.CORE_LIBRARY_URI);
+            LibraryElement coreElement = computeLibraryElement(coreLibrarySource);
+            TypeProvider typeProvider = new TypeProviderImpl(coreElement);
+            CompilationUnit unitAST = computeResolvableCompilationUnit(unitSource);
+            //
+            // Resolve names in declarations.
+            //
+            new DeclarationResolver().resolve(unitAST, find(libraryElement, unitSource));
+            //
+            // Resolve the type names.
+            //
+            RecordingErrorListener errorListener = new RecordingErrorListener();
+            TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor(
+                libraryElement,
+                unitSource,
+                typeProvider,
+                errorListener);
+            unitAST.accept(typeResolverVisitor);
+            //
+            // Resolve the rest of the structure
+            //
+            ResolverVisitor resolverVisitor = new ResolverVisitor(
+                libraryElement,
+                unitSource,
+                typeProvider,
+                errorListener);
+            unitAST.accept(resolverVisitor);
+            //
+            // Perform additional error checking.
+            //
+            ErrorReporter errorReporter = new ErrorReporter(errorListener, unitSource);
+            ErrorVerifier errorVerifier = new ErrorVerifier(
+                errorReporter,
+                libraryElement,
+                typeProvider);
+            unitAST.accept(errorVerifier);
+
+            ConstantVerifier constantVerifier = new ConstantVerifier(errorReporter);
+            unitAST.accept(constantVerifier);
+            //
+            // Capture the results.
+            //
+            unitAST.setResolutionErrors(errorListener.getErrors());
+            compilationUnitInfo.setResolvedCompilationUnit(unitAST);
+            unit = unitAST;
+          }
+        } finally {
+          enableCacheRemoval();
+        }
       }
       return unit;
     }
@@ -789,8 +857,18 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
       HtmlUnit unit = htmlUnitInfo.getResolvedUnit();
       if (unit == null) {
-        computeHtmlElement(unitSource);
-        unit = htmlUnitInfo.getResolvedUnit();
+        disableCacheRemoval();
+        try {
+          computeHtmlElement(unitSource);
+          unit = htmlUnitInfo.getResolvedUnit();
+          if (unit == null) {
+            // There is currently no difference between the parsed and resolved forms of an HTML
+            // unit. This code needs to change if resolution ever modifies the AST.
+            unit = parseHtmlUnit(unitSource);
+          }
+        } finally {
+          enableCacheRemoval();
+        }
       }
       return unit;
     }
@@ -898,9 +976,8 @@ public class AnalysisContextImpl implements AnalysisContext {
       recentlyUsed.add(source);
       return;
     }
-    if (recentlyUsed.size() >= MAX_CACHE_SIZE) {
+    if (cacheRemovalCount == 0 && recentlyUsed.size() >= MAX_CACHE_SIZE) {
       Source removedSource = recentlyUsed.remove(0);
-      recentlyUsed.add(source);
       SourceInfo sourceInfo = sourceMap.get(removedSource);
       if (sourceInfo instanceof HtmlUnitInfo) {
         ((HtmlUnitInfo) sourceInfo).clearParsedUnit();
@@ -962,6 +1039,58 @@ public class AnalysisContextImpl implements AnalysisContext {
       DartInfo info = DartInfo.getPendingInstance();
       sourceMap.put(source, info);
       return info;
+    }
+    return null;
+  }
+
+  /**
+   * Disable flushing information from the cache until {@link #enableCacheRemoval()} has been
+   * called.
+   */
+  private void disableCacheRemoval() {
+    cacheRemovalCount++;
+  }
+
+  /**
+   * Re-enable flushing information from the cache.
+   */
+  private void enableCacheRemoval() {
+    if (cacheRemovalCount > 0) {
+      cacheRemovalCount--;
+    }
+    if (cacheRemovalCount == 0) {
+      while (recentlyUsed.size() >= MAX_CACHE_SIZE) {
+        Source removedSource = recentlyUsed.remove(0);
+        SourceInfo sourceInfo = sourceMap.get(removedSource);
+        if (sourceInfo instanceof HtmlUnitInfo) {
+          ((HtmlUnitInfo) sourceInfo).clearParsedUnit();
+          ((HtmlUnitInfo) sourceInfo).clearResolvedUnit();
+        } else if (sourceInfo instanceof CompilationUnitInfo) {
+          ((CompilationUnitInfo) sourceInfo).clearParsedUnit();
+          ((CompilationUnitInfo) sourceInfo).clearResolvedUnit();
+        }
+      }
+    }
+  }
+
+  /**
+   * Search the compilation units that are part of the given library and return the element
+   * representing the compilation unit with the given source. Return {@code null} if there is no
+   * such compilation unit.
+   * 
+   * @param libraryElement the element representing the library being searched through
+   * @param unitSource the source for the compilation unit whose element is to be returned
+   * @return the element representing the compilation unit
+   */
+  private CompilationUnitElement find(LibraryElement libraryElement, Source unitSource) {
+    CompilationUnitElement element = libraryElement.getDefiningCompilationUnit();
+    if (element.getSource().equals(unitSource)) {
+      return element;
+    }
+    for (CompilationUnitElement partElement : libraryElement.getParts()) {
+      if (partElement.getSource().equals(unitSource)) {
+        return partElement;
+      }
     }
     return null;
   }
@@ -1168,6 +1297,7 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   private SourceInfo internalComputeKindOf(Source source) {
     try {
+      accessed(source);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       ScanResult scanResult = internalScan(source, errorListener);
       Parser parser = new Parser(source, errorListener);
@@ -1196,6 +1326,7 @@ public class AnalysisContextImpl implements AnalysisContext {
 
   private CompilationUnit internalParseCompilationUnit(CompilationUnitInfo compilationUnitInfo,
       Source source) throws AnalysisException {
+    accessed(source);
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ScanResult scanResult = internalScan(source, errorListener);
     Parser parser = new Parser(source, errorListener);
