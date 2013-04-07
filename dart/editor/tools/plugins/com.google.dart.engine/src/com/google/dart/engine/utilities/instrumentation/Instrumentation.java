@@ -138,6 +138,13 @@ public final class Instrumentation {
   }
 
   /**
+   * Get the currently active instrumentation logger
+   */
+  public static InstrumentationLogger getLogger() {
+    return CURRENT_LOGGER;
+  }
+
+  /**
    * Return a builder that will silently ignore all data and logging requests.
    * 
    * @return the builder (not {@code null})

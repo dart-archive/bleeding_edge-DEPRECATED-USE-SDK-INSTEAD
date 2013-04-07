@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, the Dart project authors.
+ * Copyright (c) 2012, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -11,16 +11,21 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+
 package com.google.dart.tools.ui.instrumentation;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.ui.Activator;
 
-public class TestAll {
-  public static Test suite() {
-    TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    suite.addTestSuite(HeartbeatTest.class);
-    suite.addTestSuite(LogErrorInstrumentationTest.class);
-    return suite;
+public class LogErrorInstrumentationTest extends InstrumentationTestCase {
+
+  public void testLogError() {
+    assertTrue(Activator.waitForEarlyStartup(10000));
+
+    DartCore.logError(new Exception("TestException"));
+
+    assertNotNull(mockedLogger.getBuilder("DartCore.LogError"));
+    assertNotNull(mockedLogger.getBuilder("DartCore.LogError").getData("StackTrace"));
+
   }
 }
