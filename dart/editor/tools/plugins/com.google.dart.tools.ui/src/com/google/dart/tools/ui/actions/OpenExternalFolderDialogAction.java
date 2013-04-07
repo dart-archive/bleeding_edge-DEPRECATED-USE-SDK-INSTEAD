@@ -15,13 +15,16 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.internal.builder.ScanCallbackProvider;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
-import com.google.dart.tools.ui.internal.dialogs.OpenFolderDialog;
+import com.google.dart.tools.ui.internal.dialogs.DialogMessages;
 import com.google.dart.tools.ui.internal.util.DirectoryVerification;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.TextProcessor;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory.IWorkbenchAction;
@@ -36,6 +39,9 @@ public class OpenExternalFolderDialogAction extends InstrumentedAction implement
   private static final String ACTION_ID = "com.google.dart.tools.ui.folder.open"; //$NON-NLS-1$
 
   private final IWorkbenchWindow window;
+
+  public static final String DIALOGSTORE_LAST_DIR = DartUI.class.getPackage().getName()
+      + ".last.dir"; //$NON-NLS-1$
 
   public OpenExternalFolderDialogAction(IWorkbenchWindow window) {
     this.window = window;
@@ -53,36 +59,35 @@ public class OpenExternalFolderDialogAction extends InstrumentedAction implement
 
   @Override
   public void doRun(Event event, UIInstrumentationBuilder instrumentation) {
-    OpenFolderDialog openFolderDialog = new OpenFolderDialog(window.getShell());
+    IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
 
-    if (openFolderDialog.open() != Window.OK) {
+    DirectoryDialog dialog = new DirectoryDialog(window.getShell(), SWT.SHEET);
+    dialog.setText(DialogMessages.OpenFolderDialog_title);
+    dialog.setMessage(DialogMessages.OpenFolderDialog_dialogMessage);
+    dialog.setFilterPath(dialogSettings.get(OpenExternalFolderDialogAction.DIALOGSTORE_LAST_DIR));
+    String directory = dialog.open();
+    if (directory == null) {
       instrumentation.metric("OpenExternalFolderDialog", "Cancelled");
       return;
     }
     instrumentation.metric("OpenExternalFolderDialog", "OK");
 
-    String directory = openFolderDialog.getFolderLocation();
-
-    if (directory == null) {
-      instrumentation.metric("OpenExternalFolder", "null");
-      return;
+    directory = TextProcessor.process(directory);
+    if (directory.startsWith("~")) {
+      String home = System.getProperty("user.home");
+      directory = new File(new File(home), directory.substring(1)).toString();
     }
-
     instrumentation.data("OpenExternalFolder", directory);
 
     File directoryFile = new File(directory);
-
     if (!DirectoryVerification.validateOpenDirectoryLocation(window.getShell(), directoryFile)) {
       instrumentation.metric("DirectoryValidation", "Failed");
       return;
     }
-
-    IDialogSettings dialogSettings = DartToolsPlugin.getDefault().getDialogSettings();
-    dialogSettings.put(OpenFolderDialog.DIALOGSTORE_LAST_DIR, directory);
+    dialogSettings.put(OpenExternalFolderDialogAction.DIALOGSTORE_LAST_DIR, directory);
 
     CreateAndRevealProjectAction createAction = new CreateAndRevealProjectAction(window, directory);
     createAction.run();
-
     IProject project = createAction.getProject();
 
     // TODO: project can be null; this indicates that we didn't do any work when the user hit OK.
@@ -90,13 +95,10 @@ public class OpenExternalFolderDialogAction extends InstrumentedAction implement
 
     if (project != null) {
       instrumentation.metric("ProjectCreation", "Success");
-
       String projectName = project.getName();
       instrumentation.data("ProjectName", projectName);
       // show analysis progress dialog for open folder
       ScanCallbackProvider.setNewProjectName(projectName);
-
     }
-
   }
 }
