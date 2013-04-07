@@ -55,6 +55,7 @@ public class AnalysisWorker {
         synchronized (backgroundQueue) {
           if (backgroundQueue.isEmpty()) {
             backgroundJob = null;
+            backgroundQueue.notifyAll();
             return Status.OK_STATUS;
           }
           worker = backgroundQueue.remove(0);
@@ -78,14 +79,44 @@ public class AnalysisWorker {
   private static BackgroundAnalysisJob backgroundJob = null;
 
   /**
-   * The project containing the source for this context.
+   * Wait for any scheduled background analysis to complete or for the specified duration to elapse.
+   * 
+   * @param milliseconds the number of milliseconds to wait
+   * @return {@code true} if the background analysis has completed, else {@code false}
+   */
+  public static boolean waitForBackgroundAnalysis(long milliseconds) {
+    synchronized (backgroundQueue) {
+      long end = System.currentTimeMillis() + milliseconds;
+      while (backgroundJob != null) {
+        long delta = end - System.currentTimeMillis();
+        if (delta <= 0) {
+          return false;
+        }
+        try {
+          backgroundQueue.wait(delta);
+        } catch (InterruptedException e) {
+          //$FALL-THROUGH$
+        }
+      }
+      return true;
+    }
+  }
+
+  /**
+   * The project containing the source for this context (not {@code null}).
    */
   protected final Project project;
 
   /**
-   * The analysis context on which analysis is performed.
+   * An object used to synchronously access the {@link #context} field.
    */
-  protected AnalysisContext context;
+  private final Object lock = new Object();
+
+  /**
+   * The analysis context on which analysis is performed or {@code null} if either the analysis is
+   * stopped or complete. Synchronize against {@link #lock} before accessing this field.
+   */
+  private AnalysisContext context;
 
   /**
    * The marker manager used to translate errors into Eclipse markers (not {@code null}).
@@ -96,8 +127,6 @@ public class AnalysisWorker {
    * The index to be updated (not {@code null}).
    */
   private final Index index;
-
-  private boolean stopAnalysis = false;
 
   /**
    * Construct a new instance for performing analysis which updates the
@@ -133,8 +162,15 @@ public class AnalysisWorker {
     this.project.addAnalysisWorker(this);
   }
 
+  /**
+   * Answer the context being processed by the receiver.
+   * 
+   * @return the context or {@code null} if processing has been stopped or is complete
+   */
   public AnalysisContext getContext() {
-    return context;
+    synchronized (lock) {
+      return context;
+    }
   }
 
   /**
@@ -142,13 +178,29 @@ public class AnalysisWorker {
    * both the index and the error markers based upon the analysis results.
    */
   public void performAnalysis() {
-    ChangeNotice[] changes = context.performAnalysisTask();
-    while (processResults(changes) && checkContext() && !stopAnalysis) {
-      changes = context.performAnalysisTask();
+    while (true) {
+
+      // Check if the context has been set to null indicating that analysis should stop
+      AnalysisContext context;
+      synchronized (lock) {
+        context = this.context;
+        if (context == null) {
+          break;
+        }
+      }
+
+      // Exit if no more analysis to be performed (changes == null)
+      ChangeNotice[] changes = context.performAnalysisTask();
+      if (changes == null) {
+        break;
+      }
+
+      // Process changes and allow subclasses to check results
+      processChanges(changes);
+      checkResults(context);
     }
+    stop();
     markerManager.done();
-    context = null;
-    project.removeAnalysisWorker(this);
   }
 
   /**
@@ -156,82 +208,71 @@ public class AnalysisWorker {
    */
   public void performAnalysisInBackground() {
     synchronized (backgroundQueue) {
-      backgroundQueue.add(this);
-      if (backgroundJob == null) {
-        backgroundJob = new BackgroundAnalysisJob();
-        backgroundJob.setPriority(Job.BUILD);
-        backgroundJob.schedule();
+      if (!backgroundQueue.contains(this)) {
+        backgroundQueue.add(this);
+        if (backgroundJob == null) {
+          backgroundJob = new BackgroundAnalysisJob();
+          backgroundJob.setPriority(Job.BUILD);
+          backgroundJob.schedule();
+        }
       }
     }
   }
 
+  /**
+   * Signal the receiver to stop analysis.
+   */
   public void stop() {
-    stopAnalysis = true;
+    synchronized (lock) {
+      context = null;
+    }
+    project.removeAnalysisWorker(this);
   }
 
   /**
    * Subclasses may override this method to call various "get" methods on the context looking to see
    * if information it needs is cached.
    * 
-   * @return {@code true} if analysis should continue, or {@code false} to exit the
-   *         {@link #performAnalysis()} loop.
+   * @param context the analysis context being processed (not {@code null})
    */
-  protected boolean checkContext() {
-    return true;
-  }
-
-  /**
-   * Update the index and error markers based upon the specified change.
-   * 
-   * @param change the analysis change (not {@code null})
-   */
-  private void processChange(ChangeNotice change) {
-
-    // If errors are available, then queue the errors to be translated to markers
-    AnalysisError[] errors = change.getErrors();
-    if (errors != null) {
-      Source source = change.getSource();
-      IResource res = project.getResource(source);
-      if (res == null) {
-        // TODO (danrubel): log unmatched sources once context only returns errors for added sources
-//        DartCore.logError("Failed to determine resource for: " + source);
-      } else {
-        IPath location = res.getLocation();
-        if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
-          LineInfo lineInfo = change.getLineInfo();
-          if (lineInfo == null) {
-            DartCore.logError("Missing line information for: " + source);
-          } else {
-            markerManager.queueErrors(res, lineInfo, errors);
-          }
-        }
-      }
-    }
-
-    // If there is a unit to be indexed, then do so
-    CompilationUnit unit = change.getCompilationUnit();
-    if (unit != null) {
-      index.indexUnit(context, unit);
-    }
+  protected void checkResults(AnalysisContext context) {
   }
 
   /**
    * Update both the index and the error markers based upon the analysis results.
    * 
-   * @param changes the changes or {@code null} if there is no more work to be done
-   * @return {@code true} if there may be more analysis, or {@code false} if not
+   * @param changes the changes to be processed (not {@code null})
    */
-  private boolean processResults(ChangeNotice[] changes) {
-
-    // if no more tasks, then return false indicating analysis is complete
-    if (changes == null) {
-      return false;
-    }
-
-    // process results and return true indicating there might be more analysis
+  private void processChanges(ChangeNotice[] changes) {
     for (ChangeNotice change : changes) {
-      processChange(change);
+
+      // If errors are available, then queue the errors to be translated to markers
+      AnalysisError[] errors = change.getErrors();
+      if (errors != null) {
+        Source source = change.getSource();
+        IResource res = project.getResource(source);
+        if (res == null) {
+          // TODO (danrubel): log unmatched sources once context 
+          // only returns errors for added sources
+          // DartCore.logError("Failed to determine resource for: " + source);
+        } else {
+          IPath location = res.getLocation();
+          if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
+            LineInfo lineInfo = change.getLineInfo();
+            if (lineInfo == null) {
+              DartCore.logError("Missing line information for: " + source);
+            } else {
+              markerManager.queueErrors(res, lineInfo, errors);
+            }
+          }
+        }
+      }
+
+      // If there is a unit to be indexed, then do so
+      CompilationUnit unit = change.getCompilationUnit();
+      if (unit != null) {
+        index.indexUnit(context, unit);
+      }
     }
-    return true;
   }
 }

@@ -142,6 +142,10 @@ public class MockFile extends MockResource implements IFile {
     return new StringBufferInputStream(contents);
   }
 
+  public String getContentsAsString() {
+    return contents;
+  }
+
   @Override
   public int getEncoding() throws CoreException {
     return 0;
