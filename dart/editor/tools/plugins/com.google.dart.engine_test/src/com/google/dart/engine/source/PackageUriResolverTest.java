@@ -80,7 +80,8 @@ public class PackageUriResolverTest extends TestCase {
 
     // Assert that package:pkg1/other/some.dart resolves to lib/other/some.dart not other.dart
     // when some.dart exists
-    someDart.createNewFile();
+    assertTrue(new File(otherDir, someDart.getName()).createNewFile());
+    assertTrue(someDart.exists());
     result = resolver.resolveAbsolute(factory, new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
   }
