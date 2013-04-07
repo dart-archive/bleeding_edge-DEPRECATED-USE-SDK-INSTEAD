@@ -13,12 +13,19 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.AnalysisEngine;
+
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 /**
  * Instances of the class {@code PackageUriResolver} resolve {@code package} URI's in the context of
  * an application.
+ * <p>
+ * For the purposes of sharing analysis, the path to each package under the "packages" directory
+ * should be canonicalized, but to preserve relative links within a package, the remainder of the
+ * path from the package directory to the leaf should not.
  * 
  * @coverage dart.engine.source
  */
@@ -69,12 +76,46 @@ public class PackageUriResolver extends UriResolver {
         return null;
       }
     }
+    String pkgName;
+    String relPath;
+    int index = path.indexOf(File.separatorChar);
+    if (index == -1) {
+      // No slash
+      pkgName = path;
+      relPath = "";
+    } else if (index == 0) {
+      // Leading slash is invalid
+      return null;
+    } else {
+      // <pkgName>/<relPath>
+      pkgName = path.substring(0, index);
+      relPath = path.substring(index + 1);
+    }
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource(factory, resolvedFile);
+        return new FileBasedSource(factory, getCanonicalFile(packagesDirectory, pkgName, relPath));
       }
     }
-    return new FileBasedSource(factory, new File(packagesDirectories[0], path));
+    return new FileBasedSource(factory, getCanonicalFile(packagesDirectories[0], pkgName, relPath));
+  }
+
+  /**
+   * Answer the canonical file for the specified package.
+   * 
+   * @param packagesDirectory the "packages" directory (not {@code null})
+   * @param pkgName the package name (not {@code null}, not empty)
+   * @param relPath the path relative to the package directory (not {@code null}, no leading slash,
+   *          but may be empty string)
+   * @return the file (not {@code null})
+   */
+  private File getCanonicalFile(File packagesDirectory, String pkgName, String relPath) {
+    File pkgDir = new File(packagesDirectory, pkgName);
+    try {
+      pkgDir = pkgDir.getCanonicalFile();
+    } catch (IOException e) {
+      AnalysisEngine.getInstance().getLogger().logError("Canonical failed: " + pkgDir, e);
+    }
+    return new File(pkgDir, relPath.replace('/', File.separatorChar));
   }
 }
