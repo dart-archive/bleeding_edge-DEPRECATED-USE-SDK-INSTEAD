@@ -78,7 +78,7 @@ public class PackageUriResolver extends UriResolver {
     }
     String pkgName;
     String relPath;
-    int index = path.indexOf(File.separatorChar);
+    int index = path.indexOf('/');
     if (index == -1) {
       // No slash
       pkgName = path;
