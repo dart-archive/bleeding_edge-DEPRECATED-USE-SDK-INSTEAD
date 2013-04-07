@@ -96,6 +96,12 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
+    public String getIndexStatistics() {
+      // ignored
+      return null;
+    }
+
+    @Override
     public void getRelationships(Element element, Relationship relationship,
         RelationshipCallback callback) {
       // ignored

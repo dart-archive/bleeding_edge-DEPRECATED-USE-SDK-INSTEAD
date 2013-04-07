@@ -196,6 +196,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     }
   }
 
+  public void test_getSourceCount() throws Exception {
+    Relationship relationshipA = Relationship.getRelationship("test-A");
+    Relationship relationshipB = Relationship.getRelationship("test-B");
+    // locations
+    Location locationA = mock(Location.class);
+    Location locationB = mock(Location.class);
+    when(locationA.getElement()).thenReturn(elementA);
+    when(locationB.getElement()).thenReturn(elementB);
+    // initial state
+    assertEquals(0, store.getSourceCount());
+    // reference A from A
+    store.recordRelationship(elementA, relationshipA, locationA);
+    assertEquals(1, store.getSourceCount());
+    // one more reference of A from A
+    store.recordRelationship(elementA, relationshipB, locationA);
+    assertEquals(1, store.getSourceCount());
+    // reference A from B
+    store.recordRelationship(elementA, relationshipA, locationB);
+    assertEquals(2, store.getSourceCount());
+  }
+
   public void test_recordRelationship() throws Exception {
     // no relationships initially
     assertEquals(0, store.getRelationshipCount());

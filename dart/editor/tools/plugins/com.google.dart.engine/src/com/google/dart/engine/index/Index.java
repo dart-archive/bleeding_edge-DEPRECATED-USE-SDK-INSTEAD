@@ -40,6 +40,11 @@ public interface Index {
   void clear();
 
   /**
+   * Answer index statistics.
+   */
+  String getIndexStatistics();
+
+  /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the
    * elements that have the given relationship with the given element. For example, if the element
    * represents a method and the relationship is the is-referenced-by relationship, then the

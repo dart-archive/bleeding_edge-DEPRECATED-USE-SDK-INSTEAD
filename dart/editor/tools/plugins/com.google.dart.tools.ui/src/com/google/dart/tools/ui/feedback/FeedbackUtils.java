@@ -48,8 +48,16 @@ public class FeedbackUtils {
     public final long maxMem = getMaxMem();
     public final long totalMem = Runtime.getRuntime().totalMemory();
     public final long freeMem = Runtime.getRuntime().freeMemory();
-    public final String indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
+    public final String indexStats;
     public final boolean autoRunPubEnabled = DartCore.getPlugin().isAutoRunPubEnabled();
+
+    public Stats() {
+      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+        indexStats = "index: " + DartCore.getProjectManager().getIndex().getIndexStatistics();
+      } else {
+        indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
+      }
+    }
 
     @Override
     public String toString() {

@@ -58,6 +58,13 @@ public interface IndexStore {
   Location[] getRelationships(Element element, Relationship relationship);
 
   /**
+   * Return the number of sources that are currently indexed.
+   * 
+   * @return the number of sources that are currently indexed
+   */
+  int getSourceCount();
+
+  /**
    * Record that the given element and location have the given relationship. For example, if the
    * relationship is the is-referenced-by relationship, then the element would be the element being
    * referenced and the location would be the point at which it is referenced. Each element can have

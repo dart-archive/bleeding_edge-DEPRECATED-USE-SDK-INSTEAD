@@ -45,6 +45,13 @@ public class IndexImplTest extends EngineTestCase {
   private OperationProcessor processor = mock(OperationProcessor.class);
   private IndexImpl index = new IndexImpl(store, queue, processor);
 
+  public void test_getIndexStatistics() throws Exception {
+    when(store.getRelationshipCount()).thenReturn(40);
+    when(store.getElementCount()).thenReturn(20);
+    when(store.getSourceCount()).thenReturn(10);
+    assertEquals("40 relationships in 20 elements in 10 sources", index.getIndexStatistics());
+  }
+
   public void test_getRelationships() throws Exception {
     Element element = mock(Element.class);
     Relationship relationship = Relationship.getRelationship("test-relationship");

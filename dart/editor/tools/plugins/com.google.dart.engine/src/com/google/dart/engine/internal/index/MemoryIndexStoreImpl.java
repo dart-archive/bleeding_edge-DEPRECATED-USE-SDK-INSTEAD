@@ -183,6 +183,15 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  public int getSourceCount() {
+    int count = 0;
+    for (Set<Source> sourceSet : sources.values()) {
+      count += sourceSet.size();
+    }
+    return count;
+  }
+
+  @Override
   public void readIndex(AnalysisContext context, InputStream input) throws IOException {
     new MemoryIndexReader(this, context, input).read();
   }
