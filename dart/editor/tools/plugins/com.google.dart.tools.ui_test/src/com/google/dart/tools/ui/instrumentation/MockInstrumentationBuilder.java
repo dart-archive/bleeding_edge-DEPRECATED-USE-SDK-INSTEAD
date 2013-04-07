@@ -1,4 +1,4 @@
-package com.google.dart.tools.ui.feedback;
+package com.google.dart.tools.ui.instrumentation;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
@@ -6,7 +6,7 @@ import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
 import java.util.HashMap;
 import java.util.TreeSet;
 
-final class MockInstrumentationBuilder implements InstrumentationBuilder {
+public class MockInstrumentationBuilder implements InstrumentationBuilder {
   private final HashMap<String, String> data = new HashMap<String, String>();
   private final HashMap<String, String> metric = new HashMap<String, String>();
 

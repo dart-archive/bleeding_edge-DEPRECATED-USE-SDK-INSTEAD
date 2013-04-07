@@ -33,6 +33,7 @@ public class TestAll {
     suite.addTest(com.google.dart.tools.ui.cleanup.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.correction.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.feedback.TestAll.suite());
+    suite.addTest(com.google.dart.tools.ui.instrumentation.TestAll.suite());
     suite.addTest(com.google.dart.tools.ui.refactoring.TestAll.suite());
     return suite;
   }

@@ -11,7 +11,7 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.google.dart.tools.ui.feedback;
+package com.google.dart.tools.ui.instrumentation;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -19,7 +19,7 @@ import junit.framework.TestSuite;
 public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
-    // TODO (danrubel): Add tests for feedback
+    suite.addTestSuite(HeartbeatTest.class);
     return suite;
   }
 }
