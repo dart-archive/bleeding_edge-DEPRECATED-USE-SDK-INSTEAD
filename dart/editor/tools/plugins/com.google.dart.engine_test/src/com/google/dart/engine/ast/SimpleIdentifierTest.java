@@ -24,6 +24,7 @@ import static com.google.dart.engine.ast.ASTFactory.classDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.classTypeAlias;
 import static com.google.dart.engine.ast.ASTFactory.constructorDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.emptyStatement;
+import static com.google.dart.engine.ast.ASTFactory.fieldFormalParameter;
 import static com.google.dart.engine.ast.ASTFactory.functionDeclaration;
 import static com.google.dart.engine.ast.ASTFactory.identifier;
 import static com.google.dart.engine.ast.ASTFactory.integer;
@@ -93,6 +94,11 @@ public class SimpleIdentifierTest extends ParserTestCase {
     assertTrue(identifier.inDeclarationContext());
   }
 
+  public void test_inDeclarationContext_fieldFormalParameter() {
+    SimpleIdentifier identifier = fieldFormalParameter("p").getIdentifier();
+    assertFalse(identifier.inDeclarationContext());
+  }
+
   public void test_inDeclarationContext_functionDeclaration() {
     SimpleIdentifier identifier = functionDeclaration(null, null, "f", null).getName();
     assertTrue(identifier.inDeclarationContext());
@@ -121,7 +127,7 @@ public class SimpleIdentifierTest extends ParserTestCase {
     assertTrue(identifier.inDeclarationContext());
   }
 
-  public void test_inDeclarationContext_normalFormalParameter() {
+  public void test_inDeclarationContext_simpleFormalParameter() {
     SimpleIdentifier identifier = simpleFormalParameter("p").getIdentifier();
     assertTrue(identifier.inDeclarationContext());
   }

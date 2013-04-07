@@ -420,6 +420,10 @@ public final class ASTFactory {
         identifier(identifier));
   }
 
+  public static FieldFormalParameter fieldFormalParameter(String identifier) {
+    return fieldFormalParameter(null, null, identifier);
+  }
+
   public static ForEachStatement forEachStatement(DeclaredIdentifier loopVariable,
       Expression iterator, Statement body) {
     return new ForEachStatement(

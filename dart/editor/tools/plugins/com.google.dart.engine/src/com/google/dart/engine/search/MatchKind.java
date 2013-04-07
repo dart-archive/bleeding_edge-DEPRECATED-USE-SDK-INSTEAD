@@ -50,6 +50,11 @@ public enum MatchKind {
   EXTENDS_REFERENCE,
 
   /**
+   * A reference to a field (from field formal parameter).
+   */
+  FIELD_REFERENCE,
+
+  /**
    * A reference to a field in which the field's value is being read.
    */
   FIELD_READ,

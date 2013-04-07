@@ -757,6 +757,28 @@ public class IndexContributorTest extends AbstractDartTest {
         new ExpectedLocation(mainElement, findOffset("'SomeUnit.dart'"), "'SomeUnit.dart'"));
   }
 
+  public void test_isReferencedBy_FieldFormalParameterElement() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int field;",
+        "  A(this.field) {}",
+        "}",
+        "");
+    // prepare elements
+    Element constructorElement = findNode("A(this.", ConstructorDeclaration.class).getElement();
+    FieldElement fieldElement = findElement("field;");
+    // index
+    index.visitCompilationUnit(testUnit);
+    // verify
+    List<RecordedRelation> relations = captureRecordedRelations();
+    assertRecordedRelation(
+        relations,
+        fieldElement,
+        IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+        new ExpectedLocation(constructorElement, findOffset("field) {}"), "field"));
+  }
+
   public void test_isReferencedBy_FunctionElement() throws Exception {
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",

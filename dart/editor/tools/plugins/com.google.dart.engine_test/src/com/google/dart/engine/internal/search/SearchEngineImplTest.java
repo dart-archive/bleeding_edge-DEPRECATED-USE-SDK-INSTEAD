@@ -144,8 +144,8 @@ public class SearchEngineImplTest extends EngineTestCase {
   private final Element elementA = mock(Element.class);
   private final Element elementB = mock(Element.class);
   private final Element elementC = mock(Element.class);
-
   private final Element elementD = mock(Element.class);
+  private final Element elementE = mock(Element.class);
 
   public void test_searchDeclarations_String() throws Exception {
     Element referencedElement = new NameElementImpl("test");
@@ -405,6 +405,13 @@ public class SearchEngineImplTest extends EngineTestCase {
           IndexConstants.IS_REFERENCED_BY_QUALIFIED,
           location);
     }
+    {
+      Location location = new Location(elementE, 5, 50, null);
+      indexStore.recordRelationship(
+          fieldElement,
+          IndexConstants.IS_REFERENCED_BY_QUALIFIED,
+          location);
+    }
     // search matches
     List<SearchMatch> matches = searchReferencesSync(Element.class, fieldElement);
     // verify
@@ -413,7 +420,8 @@ public class SearchEngineImplTest extends EngineTestCase {
         new ExpectedMatch(elementA, MatchKind.FIELD_READ, 1, 10, false),
         new ExpectedMatch(elementB, MatchKind.FIELD_READ, 2, 20, true),
         new ExpectedMatch(elementC, MatchKind.FIELD_WRITE, 3, 30, false),
-        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true));
+        new ExpectedMatch(elementD, MatchKind.FIELD_WRITE, 4, 40, true),
+        new ExpectedMatch(elementE, MatchKind.FIELD_REFERENCE, 5, 50, true));
   }
 
   public void test_searchReferences_FunctionElement() throws Exception {
@@ -884,10 +892,12 @@ public class SearchEngineImplTest extends EngineTestCase {
     when(elementB.getName()).thenReturn("B");
     when(elementC.getName()).thenReturn("C");
     when(elementD.getName()).thenReturn("D");
+    when(elementE.getName()).thenReturn("E");
     when(elementA.getContext()).thenReturn(CONTEXT);
     when(elementB.getContext()).thenReturn(CONTEXT);
     when(elementC.getContext()).thenReturn(CONTEXT);
     when(elementD.getContext()).thenReturn(CONTEXT);
+    when(elementE.getContext()).thenReturn(CONTEXT);
   }
 
   private void defineFunctionsAB(LibraryElement library) {

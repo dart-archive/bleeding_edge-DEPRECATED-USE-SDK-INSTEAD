@@ -13,6 +13,7 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.reorg;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.SimpleIdentifier;
@@ -275,6 +276,7 @@ public class RenameLinkedMode {
       }
       SimpleIdentifier nameNode = (SimpleIdentifier) selectedNode;
       fDartElement = nameNode.getElement();
+      fDartElement = DartElementUtil.getFieldIfFieldFormalParameter(fDartElement);
       fDartElement = DartElementUtil.getVariableIfAccessor(fDartElement);
 
       if (viewer instanceof ITextViewerExtension6) {
@@ -294,8 +296,9 @@ public class RenameLinkedMode {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element element = node.getElement();
+          element = DartElementUtil.getFieldIfFieldFormalParameter(element);
           element = DartElementUtil.getVariableIfAccessor(element);
-          if (element == fDartElement) {
+          if (Objects.equal(element, fDartElement)) {
             sameNodes.add(node);
           }
           return super.visitSimpleIdentifier(node);

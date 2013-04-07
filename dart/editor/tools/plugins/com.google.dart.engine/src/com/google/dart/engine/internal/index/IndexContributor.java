@@ -50,6 +50,8 @@ import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.ExportElement;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.ImportElement;
@@ -408,6 +410,10 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         || element instanceof TypeVariableElement || element instanceof LabelElement
         || element instanceof FunctionElement) {
       recordRelationship(element, IndexConstants.IS_REFERENCED_BY, location);
+    } else if (element instanceof FieldFormalParameterElement) {
+      FieldFormalParameterElement fieldParameter = (FieldFormalParameterElement) element;
+      FieldElement field = fieldParameter.getField();
+      recordRelationship(field, IndexConstants.IS_REFERENCED_BY_QUALIFIED, location);
     } else if (element instanceof PrefixElement) {
       // TODO(scheglov) record ImportElement
 //      recordRelationship(element.get, IndexConstants.IS_REFERENCED_BY, location);

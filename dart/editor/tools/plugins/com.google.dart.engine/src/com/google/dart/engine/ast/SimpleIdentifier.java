@@ -111,7 +111,8 @@ public class SimpleIdentifier extends Identifier {
           && (parent.getParent() instanceof LabeledStatement);
     } else if (parent instanceof MethodDeclaration) {
       return this == ((MethodDeclaration) parent).getName();
-    } else if (parent instanceof NormalFormalParameter) {
+    } else if (parent instanceof FunctionTypedFormalParameter
+        || parent instanceof SimpleFormalParameter) {
       return this == ((NormalFormalParameter) parent).getIdentifier();
     } else if (parent instanceof TypeParameter) {
       return this == ((TypeParameter) parent).getName();

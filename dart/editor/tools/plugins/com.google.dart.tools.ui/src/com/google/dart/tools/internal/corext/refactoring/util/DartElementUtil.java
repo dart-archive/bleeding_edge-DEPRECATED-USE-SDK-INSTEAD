@@ -1,6 +1,8 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
+import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
@@ -184,6 +186,18 @@ public class DartElementUtil {
 //
 //    return isPrimaryType(type) || isCuOnlyType(type);
 //  }
+
+  /**
+   * @return the given {@link Element} or, its {@link FieldElement} if
+   *         {@link FieldFormalParameterElement}.
+   */
+  public static Element getFieldIfFieldFormalParameter(Element element) {
+    if (element instanceof FieldFormalParameterElement) {
+      FieldFormalParameterElement fieldParameterElement = (FieldFormalParameterElement) element;
+      element = fieldParameterElement.getField();
+    }
+    return element;
+  }
 
   /**
    * @return the given {@link Element} or, its {@link PropertyInducingElement} if
