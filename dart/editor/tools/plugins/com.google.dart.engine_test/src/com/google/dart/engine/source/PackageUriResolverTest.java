@@ -14,7 +14,6 @@
 package com.google.dart.engine.source;
 
 import com.google.dart.engine.utilities.io.FileUtilities2;
-import com.google.dart.engine.utilities.os.OSUtilities;
 
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
@@ -42,8 +41,7 @@ public class PackageUriResolverTest extends TestCase {
 
   public void test_resolve_canonical() throws Exception {
 
-    // TODO (danrubel): Fix test for Windows and Linux
-    if (!OSUtilities.isMac()) { // !FileUtilities2.isSymLinkSupported()) {
+    if (!FileUtilities2.isSymLinkSupported()) {
       System.out.println("Skipping " + getClass().getSimpleName() + " test_resolve_canonical");
       return;
     }
