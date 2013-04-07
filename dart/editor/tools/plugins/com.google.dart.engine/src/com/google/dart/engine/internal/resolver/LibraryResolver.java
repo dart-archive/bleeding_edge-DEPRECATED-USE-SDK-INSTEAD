@@ -32,7 +32,7 @@ import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
 import com.google.dart.engine.internal.element.ExportElementImpl;
 import com.google.dart.engine.internal.element.HideCombinatorImpl;
@@ -61,7 +61,7 @@ public class LibraryResolver {
   /**
    * The analysis context in which the libraries are being analyzed.
    */
-  private AnalysisContextImpl analysisContext;
+  private InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported, this error listener is either
@@ -108,7 +108,7 @@ public class LibraryResolver {
    * 
    * @param analysisContext the analysis context in which the library is being analyzed
    */
-  public LibraryResolver(AnalysisContextImpl analysisContext) {
+  public LibraryResolver(InternalAnalysisContext analysisContext) {
     this(analysisContext, null);
   }
 
@@ -118,7 +118,7 @@ public class LibraryResolver {
    * @param analysisContext the analysis context in which the library is being analyzed
    * @param errorListener the listener to which analysis errors will be reported
    */
-  public LibraryResolver(AnalysisContextImpl analysisContext,
+  public LibraryResolver(InternalAnalysisContext analysisContext,
       final AnalysisErrorListener additionalAnalysisErrorListener) {
     this.analysisContext = analysisContext;
     this.recordingErrorListener = new RecordingErrorListener();
@@ -141,7 +141,7 @@ public class LibraryResolver {
    * 
    * @return the analysis context in which the libraries are being analyzed
    */
-  public AnalysisContextImpl getAnalysisContext() {
+  public InternalAnalysisContext getAnalysisContext() {
     return analysisContext;
   }
 

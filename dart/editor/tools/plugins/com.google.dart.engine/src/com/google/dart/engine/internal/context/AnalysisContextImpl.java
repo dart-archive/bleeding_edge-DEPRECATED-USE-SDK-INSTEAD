@@ -77,7 +77,7 @@ import java.util.Map;
  * 
  * @coverage dart.engine
  */
-public class AnalysisContextImpl implements AnalysisContext {
+public class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Instances of the class {@code ScanResult} represent the results of scanning a source.
    */
@@ -154,6 +154,11 @@ public class AnalysisContextImpl implements AnalysisContext {
    */
   public AnalysisContextImpl() {
     super();
+  }
+
+  @Override
+  public void addSourceInfo(Source source, SourceInfo info) {
+    sourceMap.put(source, info);
   }
 
   @Override
@@ -299,15 +304,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Return an AST structure corresponding to the given source, but ensure that the structure has
-   * not already been resolved and will not be resolved by any other threads or in any other
-   * library.
-   * 
-   * @param source the compilation unit for which an AST structure should be returned
-   * @return the AST structure representing the content of the source
-   * @throws AnalysisException if the analysis could not be performed
-   */
+  @Override
   public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
     synchronized (cacheLock) {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
@@ -332,6 +329,37 @@ public class AnalysisContextImpl implements AnalysisContext {
     return extractContextInto(
         container,
         (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext());
+  }
+
+  @Override
+  public InternalAnalysisContext extractContextInto(SourceContainer container,
+      InternalAnalysisContext newContext) {
+    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
+    synchronized (cacheLock) {
+      // Move sources in the specified directory to the new context
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        Source source = entry.getKey();
+        if (container.contains(source)) {
+          sourcesToRemove.add(source);
+          newContext.addSourceInfo(source, entry.getValue().copy());
+        }
+      }
+
+      // TODO (danrubel): Either remove sources or adjust contract described in AnalysisContext.
+      // Currently, callers assume that sources have been removed from this context
+
+//      for (Source source : sourcesToRemove) {
+//        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
+//        // there are no additional dependencies on the source), and if so remove all information
+//        // about the source.
+//        sourceMap.remove(source);
+//        parseCache.remove(source);
+//        publicNamespaceCache.remove(source);
+//        libraryElementCache.remove(source);
+//      }
+    }
+
+    return newContext;
   }
 
   @Override
@@ -487,13 +515,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Return a namespace containing mappings for all of the public names defined by the given
-   * library.
-   * 
-   * @param library the library whose public namespace is to be returned
-   * @return the public namespace of the given library
-   */
+  @Override
   public Namespace getPublicNamespace(LibraryElement library) {
     // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
     // API of the interface.
@@ -513,14 +535,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Return a namespace containing mappings for all of the public names defined by the library
-   * defined by the given source.
-   * 
-   * @param source the source defining the library whose public namespace is to be returned
-   * @return the public namespace corresponding to the library defined by the given source
-   * @throws AnalysisException if the public namespace could not be computed
-   */
+  @Override
   public Namespace getPublicNamespace(Source source) throws AnalysisException {
     // TODO(brianwilkerson) Rename this to not start with 'get'. Note that this is not part of the
     // API of the interface.
@@ -680,13 +695,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Given a table mapping the source for the libraries represented by the corresponding elements to
-   * the elements representing the libraries, record those mappings.
-   * 
-   * @param elementMap a table mapping the source for the libraries represented by the elements to
-   *          the elements representing the libraries
-   */
+  @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     Source htmlSource = sourceFactory.forUri("dart:html"); // was DartSdk.DART_HTML
     synchronized (cacheLock) {
@@ -729,14 +738,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Give the resolution errors and line info associated with the given source, add the information
-   * to the cache.
-   * 
-   * @param source the source with which the information is associated
-   * @param errors the resolution errors associated with the source
-   * @param lineInfo the line information associated with the source
-   */
+  @Override
   public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
     synchronized (cacheLock) {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
@@ -748,12 +750,7 @@ public class AnalysisContextImpl implements AnalysisContext {
     }
   }
 
-  /**
-   * Give the resolved compilation unit associated with the given source, add the unit to the cache.
-   * 
-   * @param source the source with which the unit is associated
-   * @param unit the compilation unit associated with the source
-   */
+  @Override
   public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
     synchronized (cacheLock) {
       CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
@@ -923,44 +920,6 @@ public class AnalysisContextImpl implements AnalysisContext {
       }
     }
     return librarySources;
-  }
-
-  /**
-   * Initialize the specified context by removing the specified sources from the receiver and adding
-   * them to the specified context.
-   * 
-   * @param container the container containing sources that should be removed from this context and
-   *          added to the returned context
-   * @param newContext the context to be initialized
-   * @return the analysis context that was initialized
-   */
-  AnalysisContext extractContextInto(SourceContainer container, AnalysisContextImpl newContext) {
-    ArrayList<Source> sourcesToRemove = new ArrayList<Source>();
-    synchronized (cacheLock) {
-      // Move sources in the specified directory to the new context
-      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
-        Source source = entry.getKey();
-        if (container.contains(source)) {
-          sourcesToRemove.add(source);
-          newContext.sourceMap.put(source, entry.getValue().copy());
-        }
-      }
-
-      // TODO (danrubel): Either remove sources or adjust contract described in AnalysisContext.
-      // Currently, callers assume that sources have been removed from this context
-
-//      for (Source source : sourcesToRemove) {
-//        // TODO(brianwilkerson) Determine whether the source should be removed (that is, whether
-//        // there are no additional dependencies on the source), and if so remove all information
-//        // about the source.
-//        sourceMap.remove(source);
-//        parseCache.remove(source);
-//        publicNamespaceCache.remove(source);
-//        libraryElementCache.remove(source);
-//      }
-    }
-
-    return newContext;
   }
 
   /**

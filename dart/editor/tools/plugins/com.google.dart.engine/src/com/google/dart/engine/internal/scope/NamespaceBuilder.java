@@ -28,7 +28,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.ShowCombinator;
 import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -228,7 +228,9 @@ public class NamespaceBuilder {
           addAll(definedNames, exportedNames);
         }
       }
-      addAll(definedNames, ((AnalysisContextImpl) library.getContext()).getPublicNamespace(library));
+      addAll(
+          definedNames,
+          ((InternalAnalysisContext) library.getContext()).getPublicNamespace(library));
       return definedNames;
     } finally {
       visitedElements.remove(library);

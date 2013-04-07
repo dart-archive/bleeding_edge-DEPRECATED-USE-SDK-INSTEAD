@@ -27,7 +27,7 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
@@ -44,7 +44,7 @@ public class LibraryElementBuilder {
   /**
    * The analysis context in which the element model will be built.
    */
-  private AnalysisContextImpl analysisContext;
+  private InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which errors will be reported.

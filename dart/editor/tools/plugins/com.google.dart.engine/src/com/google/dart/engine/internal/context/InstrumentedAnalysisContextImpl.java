@@ -11,6 +11,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
@@ -19,34 +20,49 @@ import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.source.LineInfo;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
- * Instances of the class {@code AnalysisContextImpl} implement an {@link AnalysisContext analysis
- * context}.
+ * Instances of the class {@code InstrumentedAnalysisContextImpl} implement an
+ * {@link AnalysisContext analysis context} by recording instrumentation data and delegating to
+ * another analysis context to do the non-instrumentation work.
  * 
  * @coverage dart.engine
  */
-public class InstrumentedAnalysisContextImpl implements AnalysisContext {
-
+public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext {
   /**
-   * Record an exception that was thrown during analysis
+   * Record an exception that was thrown during analysis.
+   * 
+   * @param instrumentation the instrumentation builder being used to record the exception
+   * @param exception the exception being reported
    */
   private static void recordAnalysisException(InstrumentationBuilder instrumentation,
-      AnalysisException e) {
-    instrumentation.metric("Problem", e.getClass().toString());
-    instrumentation.data("AnalysisException", e.toString());
+      AnalysisException exception) {
+    instrumentation.metric("Problem", exception.getClass().toString());
+    instrumentation.data("AnalysisException", exception.toString());
   }
 
-  protected final String contextId = UUID.randomUUID().toString();
-  protected final AnalysisContextImpl basis = new AnalysisContextImpl();
+  /**
+   * The unique identifier used to identify this analysis context in the instrumentation data.
+   */
+  private final String contextId = UUID.randomUUID().toString();
+
+  /**
+   * The analysis context to which all of the non-instrumentation work is delegated.
+   */
+  private final InternalAnalysisContext basis = new AnalysisContextImpl();
+
+  @Override
+  public void addSourceInfo(Source source, SourceInfo info) {
+    basis.addSourceInfo(source, info);
+  }
 
   @Override
   public void applyChanges(ChangeSet changeSet) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-applyChanges");
     try {
       instrumentation.metric("contextId", contextId);
-
       basis.applyChanges(changeSet);
     } finally {
       instrumentation.log();
@@ -55,11 +71,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
 
   @Override
   public AnalysisError[] computeErrors(Source source) throws AnalysisException {
-
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeErrors");
     try {
       instrumentation.metric("contextId", contextId);
-
       AnalysisError[] errors = basis.computeErrors(source);
       instrumentation.metric("Errors-count", errors.length);
       return errors;
@@ -70,11 +84,9 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
 
   @Override
   public HtmlElement computeHtmlElement(Source source) throws AnalysisException {
-
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeHtmlElement");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.computeHtmlElement(source);
     } catch (AnalysisException e) {
       recordAnalysisException(instrumentation, e);
@@ -90,7 +102,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeKindOf");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.computeKindOf(source);
     } finally {
       instrumentation.log();
@@ -102,7 +113,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeLibraryElement");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.computeLibraryElement(source);
     } catch (AnalysisException e) {
       recordAnalysisException(instrumentation, e);
@@ -118,7 +128,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-computeLineInfo");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.computeLineInfo(source);
     } catch (AnalysisException e) {
       recordAnalysisException(instrumentation, e);
@@ -129,11 +138,15 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public CompilationUnit computeResolvableCompilationUnit(Source source) throws AnalysisException {
+    return basis.computeResolvableCompilationUnit(source);
+  }
+
+  @Override
   public AnalysisContext extractContext(SourceContainer container) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-extractContext");
     try {
       instrumentation.metric("contextId", contextId);
-
       InstrumentedAnalysisContextImpl newContext = new InstrumentedAnalysisContextImpl();
       basis.extractContextInto(container, newContext.basis);
       return newContext;
@@ -144,11 +157,16 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public InternalAnalysisContext extractContextInto(SourceContainer container,
+      InternalAnalysisContext newContext) {
+    return basis.extractContextInto(container, newContext);
+  }
+
+  @Override
   public Element getElement(ElementLocation location) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getElement");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.getElement(location);
     } finally {
       instrumentation.log();
@@ -160,7 +178,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getErrors");
     try {
       instrumentation.metric("contextId", contextId);
-
       AnalysisError[] ret = basis.getErrors(source);
       if (ret != null) {
         instrumentation.metric("Errors-count", ret.length);
@@ -176,7 +193,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getHtmlElement");
     try {
       instrumentation.metric("contextId", contextId);
-
       return basis.getHtmlElement(source);
     } finally {
       instrumentation.log();
@@ -188,7 +204,6 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getHtmlFilesReferencing");
     try {
       instrumentation.metric("contextId", contextId);
-
       Source[] ret = basis.getHtmlFilesReferencing(source);
       if (ret != null) {
         instrumentation.metric("Source-count", ret.length);
@@ -308,6 +323,16 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public Namespace getPublicNamespace(LibraryElement library) {
+    return basis.getPublicNamespace(library);
+  }
+
+  @Override
+  public Namespace getPublicNamespace(Source source) throws AnalysisException {
+    return basis.getPublicNamespace(source);
+  }
+
+  @Override
   public CompilationUnit getResolvedCompilationUnit(Source unitSource, LibraryElement library) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getResolvedCompilationUnit");
     try {
@@ -420,6 +445,21 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
   }
 
   @Override
+  public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
+    basis.recordLibraryElements(elementMap);
+  }
+
+  @Override
+  public void recordResolutionErrors(Source source, AnalysisError[] errors, LineInfo lineInfo) {
+    basis.recordResolutionErrors(source, errors, lineInfo);
+  }
+
+  @Override
+  public void recordResolvedCompilationUnit(Source source, CompilationUnit unit) {
+    basis.recordResolvedCompilationUnit(source, unit);
+  }
+
+  @Override
   public CompilationUnit resolveCompilationUnit(Source unitSource, LibraryElement library)
       throws AnalysisException {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-resolveCompilationUnit");
@@ -497,5 +537,4 @@ public class InstrumentedAnalysisContextImpl implements AnalysisContext {
       instrumentation.log();
     }
   }
-
 }

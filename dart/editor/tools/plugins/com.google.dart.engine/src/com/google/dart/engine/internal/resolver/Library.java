@@ -25,7 +25,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.error.CompileTimeErrorCode;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.scope.LibraryScope;
 import com.google.dart.engine.source.Source;
@@ -45,7 +45,7 @@ public class Library {
   /**
    * The analysis context in which this library is being analyzed.
    */
-  private AnalysisContextImpl analysisContext;
+  private InternalAnalysisContext analysisContext;
 
   /**
    * The listener to which analysis errors will be reported.
@@ -95,7 +95,7 @@ public class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  public Library(AnalysisContextImpl analysisContext, AnalysisErrorListener errorListener,
+  public Library(InternalAnalysisContext analysisContext, AnalysisErrorListener errorListener,
       Source librarySource) {
     this.analysisContext = analysisContext;
     this.errorListener = errorListener;

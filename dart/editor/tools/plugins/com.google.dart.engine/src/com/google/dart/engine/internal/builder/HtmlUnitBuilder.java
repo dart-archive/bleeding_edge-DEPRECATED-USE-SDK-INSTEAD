@@ -24,7 +24,7 @@ import com.google.dart.engine.html.ast.XmlTagNode;
 import com.google.dart.engine.html.ast.visitor.XmlVisitor;
 import com.google.dart.engine.html.scanner.Token;
 import com.google.dart.engine.html.scanner.TokenType;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.EmbeddedHtmlScriptElementImpl;
 import com.google.dart.engine.internal.element.ExternalHtmlScriptElementImpl;
@@ -49,7 +49,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
   /**
    * The analysis context in which the element model will be built.
    */
-  private final AnalysisContextImpl context;
+  private final InternalAnalysisContext context;
 
   /**
    * The HTML element being built.
@@ -66,7 +66,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
    * 
    * @param context the analysis context in which the element model will be built
    */
-  public HtmlUnitBuilder(AnalysisContextImpl context) {
+  public HtmlUnitBuilder(InternalAnalysisContext context) {
     this.context = context;
   }
 

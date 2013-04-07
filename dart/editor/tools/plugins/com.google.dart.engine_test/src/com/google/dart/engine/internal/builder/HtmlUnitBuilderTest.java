@@ -13,7 +13,6 @@
  */
 package com.google.dart.engine.internal.builder;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.element.CompilationUnitElement;
@@ -183,7 +182,7 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
   protected void setUp() throws Exception {
     UriResolver fileResolver = new FileUriResolver();
     sourceFactory = new SourceFactory(fileResolver);
-    context = (AnalysisContextImpl) AnalysisEngine.getInstance().createAnalysisContext();
+    context = new AnalysisContextImpl();
     context.setSourceFactory(sourceFactory);
   }
 
