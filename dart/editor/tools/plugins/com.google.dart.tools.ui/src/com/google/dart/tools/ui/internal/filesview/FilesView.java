@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.filesview;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPubUpdateListener;
 import com.google.dart.tools.core.pub.PubManager;
@@ -257,7 +258,9 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     });
 
-    initDragAndDrop();
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      initDragAndDrop();
+    }
 
     getSite().setSelectionProvider(treeViewer);
 
