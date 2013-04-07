@@ -28,7 +28,11 @@ public class PackageUriResolverTest extends TestCase {
 
   public void test_absolute_vs_canonical() throws Exception {
     File directory = createFile("/does/not/exist/packages");
-    assertEquals(directory.getAbsolutePath(), directory.getCanonicalPath());
+    // Cannot compare paths on Windows because this
+    //    assertEquals(directory.getAbsolutePath(), directory.getCanonicalPath());
+    // results in 
+    //    expected:<[e]:\does\not\exist\pac...> but was:<[E]:\does\not\exist\pac...>
+    assertEquals(directory.getAbsoluteFile(), directory.getCanonicalFile());
   }
 
   public void test_creation() {
@@ -120,8 +124,8 @@ public class PackageUriResolverTest extends TestCase {
     Source result = resolver.resolveAbsolute(factory, new URI("package:third/party/library.dart"));
     assertNotNull(result);
     assertEquals(
-        createFile("/does/not/exist/packages/third/party/library.dart").getAbsolutePath(),
-        result.getFullName());
+        createFile("/does/not/exist/packages/third/party/library.dart").getAbsoluteFile(),
+        new File(result.getFullName()));
   }
 
   @Override
