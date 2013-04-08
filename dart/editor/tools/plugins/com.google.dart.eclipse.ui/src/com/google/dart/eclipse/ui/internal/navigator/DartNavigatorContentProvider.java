@@ -23,6 +23,7 @@ import com.google.dart.tools.core.internal.model.DartLibraryImpl;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
+import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartLibrary;
 import com.google.dart.tools.core.model.DartProject;
@@ -144,7 +145,7 @@ public class DartNavigatorContentProvider implements ICommonContentProvider,
     final INavigatorContentService contentService = config.getService();
     dartIgnoreListener = new DartIgnoreListener() {
       @Override
-      public void ignoresChanged() {
+      public void ignoresChanged(DartIgnoreEvent event) {
         contentService.update();
       }
     };

@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 
 import junit.framework.TestCase;
@@ -22,6 +23,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -82,28 +84,29 @@ public class DartIgnoreManagerTest extends TestCase {
   public void test_addToIgnores_File() throws Exception {
     assertTrue(manager.addToIgnores(FILE));
     verifyAdd(NORMALIZED_PATH);
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.addToIgnores(FILE));
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
   public void test_addToIgnores_File_null() throws Exception {
     assertFalse(manager.addToIgnores((File) null));
     assertTrue(storage.getPatterns().isEmpty());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   public void test_addToIgnores_IResource() throws Exception {
     final IResource res = mockResource(FILE_PATH);
     assertTrue(manager.addToIgnores(res));
-    verifyAdd(res.getLocation().toPortableString());
+    String path = res.getLocation().toPortableString();
+    verifyAdd(path);
     verify(res).deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_INFINITE);
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.addToIgnores(res));
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
@@ -111,7 +114,7 @@ public class DartIgnoreManagerTest extends TestCase {
     assertFalse(manager.addToIgnores((IResource) null));
     assertEquals(0, storage.getPatterns().size());
     storage.assertStore(0);
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(new DartIgnoreEvent(new String[] {}, new String[] {}));
   }
 
   public void test_addToIgnores_IResource_null_location() throws Exception {
@@ -119,23 +122,23 @@ public class DartIgnoreManagerTest extends TestCase {
     assertFalse(manager.addToIgnores(res));
     assertEquals(0, storage.getPatterns().size());
     storage.assertStore(0);
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(new DartIgnoreEvent(new String[] {}, new String[] {}));
   }
 
   public void test_addToIgnores_String() throws Exception {
     assertTrue(manager.addToIgnores(NORMALIZED_PATH));
     verifyAdd(NORMALIZED_PATH);
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.addToIgnores(NORMALIZED_PATH));
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
   public void test_addToIgnores_String_null() throws Exception {
     assertFalse(manager.addToIgnores((String) null));
     assertTrue(storage.getPatterns().isEmpty());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(new DartIgnoreEvent(new String[] {}, new String[] {}));
   }
 
   public void test_isAnalyzed_File() throws Exception {
@@ -250,11 +253,11 @@ public class DartIgnoreManagerTest extends TestCase {
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
     assertTrue(manager.removeFromIgnores(FILE));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.removeFromIgnores(FILE));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
@@ -262,7 +265,7 @@ public class DartIgnoreManagerTest extends TestCase {
     initialContent = new String[] {NORMALIZED_PATH};
     assertFalse(manager.removeFromIgnores((File) null));
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   public void test_removeFromIgnores_IPath() throws Exception {
@@ -270,11 +273,11 @@ public class DartIgnoreManagerTest extends TestCase {
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
     assertTrue(manager.removeFromIgnores(new Path(FILE.getAbsolutePath())));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.removeFromIgnores(FILE));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
@@ -282,7 +285,7 @@ public class DartIgnoreManagerTest extends TestCase {
     initialContent = new String[] {NORMALIZED_PATH};
     assertFalse(manager.removeFromIgnores((IPath) null));
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   public void test_removeFromIgnores_IResource() throws Exception {
@@ -291,11 +294,11 @@ public class DartIgnoreManagerTest extends TestCase {
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
     assertTrue(manager.removeFromIgnores(res));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.removeFromIgnores(res));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
@@ -303,14 +306,14 @@ public class DartIgnoreManagerTest extends TestCase {
     initialContent = new String[] {NORMALIZED_PATH};
     assertFalse(manager.removeFromIgnores((IResource) null));
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   public void test_removeFromIgnores_IResource_null_location() throws Exception {
     initialContent = new String[] {NORMALIZED_PATH};
     final IResource res = mockResource(null);
     assertFalse(manager.removeFromIgnores(res));
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   public void test_removeFromIgnores_String() throws Exception {
@@ -318,11 +321,11 @@ public class DartIgnoreManagerTest extends TestCase {
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
     assertTrue(manager.removeFromIgnores(NORMALIZED_PATH));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
     assertFalse(manager.removeFromIgnores(FILE));
     assertEquals(0, manager.getExclusionPatterns().size());
-    verify(listener, times(1)).ignoresChanged();
+    verify(listener, times(1)).ignoresChanged(any(DartIgnoreEvent.class));
     storage.assertStore(1);
   }
 
@@ -330,7 +333,7 @@ public class DartIgnoreManagerTest extends TestCase {
     initialContent = new String[] {NORMALIZED_PATH};
     assertFalse(manager.removeFromIgnores((String) null));
     assertEquals(Arrays.asList(initialContent), manager.getExclusionPatterns());
-    verify(listener, times(0)).ignoresChanged();
+    verify(listener, times(0)).ignoresChanged(any(DartIgnoreEvent.class));
   }
 
   @Override

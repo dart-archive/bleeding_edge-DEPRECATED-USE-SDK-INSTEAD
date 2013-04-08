@@ -17,6 +17,7 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.internal.model.DartModelManager;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartElement;
+import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.ElementChangedEvent;
@@ -137,7 +138,7 @@ public class AppsView extends ViewPart implements ISetSelectionTarget {
 
   private DartIgnoreListener ignoreListener = new DartIgnoreListener() {
     @Override
-    public void ignoresChanged() {
+    public void ignoresChanged(DartIgnoreEvent event) {
       Display.getDefault().asyncExec(new Runnable() {
         @Override
         public void run() {

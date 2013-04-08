@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,19 +13,25 @@
  */
 package com.google.dart.tools.core.model;
 
-import com.google.dart.tools.core.internal.model.DartModelManager;
-
 /**
- * A dart ignore listener is notified of changes to dart ignores (e.g., files flagged to be ignored
- * during analysis) as managed by the {@link DartModelManager}.
- * 
- * @see DartModelManager#addIgnoreListener(DartIgnoreListener)
+ * An event that encapsulates an ignore action
  */
-public interface DartIgnoreListener {
+public class DartIgnoreEvent {
 
-  /**
-   * Notifies this listener that the ignore list has been changed.
-   */
-  void ignoresChanged(DartIgnoreEvent event);
+  private final String[] ignoresAdded;
+  private final String[] ignoresRemoved;
 
+  public DartIgnoreEvent(String[] ignoresAdded, String[] ignoresRemoved) {
+
+    this.ignoresAdded = ignoresAdded;
+    this.ignoresRemoved = ignoresRemoved;
+  }
+
+  public String[] getAdded() {
+    return ignoresAdded;
+  }
+
+  public String[] getRemoved() {
+    return ignoresRemoved;
+  }
 }

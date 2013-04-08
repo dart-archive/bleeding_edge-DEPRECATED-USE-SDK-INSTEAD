@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.model;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 
 import org.eclipse.core.resources.IResource;
@@ -180,7 +181,7 @@ public class DartIgnoreManager {
       if (modified) {
         cacheExclusions();
         storage.store();
-        notifyListeners();
+        notifyListeners(new DartIgnoreEvent(absolutePaths, new String[] {}));
         return true;
       }
     }
@@ -384,7 +385,7 @@ public class DartIgnoreManager {
       if (removed.size() > 0) {
         cacheExclusions();
         storage.store();
-        notifyListeners();
+        notifyListeners(new DartIgnoreEvent(new String[] {}, absolutePaths));
         return true;
       }
     }
@@ -433,9 +434,9 @@ public class DartIgnoreManager {
   /**
    * Notify listeners that the exclusion patterns have changed.
    */
-  private void notifyListeners() {
+  private void notifyListeners(DartIgnoreEvent event) {
     for (Object listener : listeners.getListeners()) {
-      ((DartIgnoreListener) listener).ignoresChanged();
+      ((DartIgnoreListener) listener).ignoresChanged(event);
     }
   }
 }
