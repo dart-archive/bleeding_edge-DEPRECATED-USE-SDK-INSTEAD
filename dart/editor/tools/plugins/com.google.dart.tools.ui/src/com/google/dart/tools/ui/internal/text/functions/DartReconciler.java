@@ -180,15 +180,22 @@ public class DartReconciler extends MonoReconciler {
   }
 
   /**
+   * @return the {@link AnalysisContext} which corresponds to the {@link IEditorInput}.
+   */
+  private AnalysisContext getContext() {
+    return project.getContext(file);
+  }
+
+  /**
    * @return the parsed {@link CompilationUnit}, may be <code>null</code>/
    */
   private CompilationUnit getParsedUnit() throws AnalysisException {
     Source source = getSource();
-    if (source == null) {
+    AnalysisContext context = getContext();
+    if (source == null || context == null) {
       return null;
     }
     // parse
-    AnalysisContext context = source.getContext();
     return context.parseCompilationUnit(source);
   }
 
@@ -197,10 +204,10 @@ public class DartReconciler extends MonoReconciler {
    */
   private CompilationUnit getResolvedUnit(boolean forceResolve) throws Exception {
     Source source = getSource();
-    if (source == null) {
+    AnalysisContext context = getContext();
+    if (source == null || context == null) {
       return null;
     }
-    AnalysisContext context = source.getContext();
     // resolve
     Source[] librarySources = context.getLibrariesContaining(source);
     if (librarySources.length != 0) {
@@ -231,13 +238,14 @@ public class DartReconciler extends MonoReconciler {
     oldCode = code;
     // prepare Source
     Source source = getSource();
-    if (source == null) {
+    AnalysisContext context = getContext();
+    if (source == null || context == null) {
       return;
     }
     // notify AnalysisContext about change
-    source.getContext().setContents(source, code);
+    context.setContents(source, code);
     // schedule re-analyzing
-    DartReconcilerWorker.scheduleAnalysis(project, source);
+    DartReconcilerWorker.scheduleAnalysis(project, context);
   }
 
   /**
@@ -279,7 +287,7 @@ public class DartReconciler extends MonoReconciler {
       }
     }
     // schedule initial resolution
-    DartReconcilerWorker.scheduleAnalysis(project, getSource());
+    DartReconcilerWorker.scheduleAnalysis(project, getContext());
     // TODO(scheglov) temporary? at least right now we need to ask one time to resolve
     // because AST may be removed from cache at this moment, and AnalysisWorker will not
     // do anything until change.

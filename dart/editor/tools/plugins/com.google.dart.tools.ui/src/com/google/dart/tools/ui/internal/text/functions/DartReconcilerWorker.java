@@ -100,19 +100,19 @@ public class DartReconcilerWorker {
   /**
    * Requests analysis of the {@link AnalysisContext} for given {@link Source}.
    * 
-   * @param source the {@link Source} to analyze, may be <code>null</code> - will be ignored.
+   * @param context the {@link AnalysisContext} to analyze, may be <code>null</code> - will be
+   *          ignored.
    */
-  public static void scheduleAnalysis(Project project, Source source) {
+  public static void scheduleAnalysis(Project project, AnalysisContext context) {
     // may be stopped
     if (stopped) {
       return;
     }
     // check here to don't check in clients
-    if (source == null) {
+    if (context == null) {
       return;
     }
     // OK, schedule task
-    AnalysisContext context = source.getContext();
     taskQueue.add(new Task(project, context));
     // ensure that thread in running
     ensureThreadStarted();
