@@ -601,6 +601,11 @@ public class VmConnection {
           }
         }
       });
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        // do nothing
+      }
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
