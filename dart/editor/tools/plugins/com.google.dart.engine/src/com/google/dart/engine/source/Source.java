@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.source;
 
-import com.google.dart.engine.context.AnalysisContext;
-
 import java.net.URI;
 import java.nio.CharBuffer;
 
@@ -68,13 +66,6 @@ public interface Source {
    * @return {@code true} if this source exists
    */
   public boolean exists();
-
-  /**
-   * Return the analysis context in which this source is defined.
-   * 
-   * @return the analysis context in which this source is defined
-   */
-  public AnalysisContext getContext();
 
   /**
    * Get the contents of this source and pass it to the given receiver. Exactly one of the methods
@@ -139,14 +130,6 @@ public interface Source {
    * @return {@code true} if this is in a system library
    */
   public boolean isInSystemLibrary();
-
-  /**
-   * Resolve the given URI relative to the location of this source.
-   * 
-   * @param uri the URI to be resolved against this source
-   * @return a source representing the resolved URI
-   */
-  public Source resolve(String uri);
 
   /**
    * Resolve the relative URI against the URI associated with this source object. Return a

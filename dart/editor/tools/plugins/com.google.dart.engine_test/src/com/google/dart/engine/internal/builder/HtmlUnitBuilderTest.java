@@ -192,7 +192,7 @@ public class HtmlUnitBuilderTest extends EngineTestCase {
 
   private HtmlElementImpl build(String contents) throws Exception {
     File file = new File("does-not-exist.html").getAbsoluteFile();
-    TestSource source = new TestSource(sourceFactory, file, contents);
+    TestSource source = new TestSource(sourceFactory.getContentCache(), file, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
     context.applyChanges(changeSet);

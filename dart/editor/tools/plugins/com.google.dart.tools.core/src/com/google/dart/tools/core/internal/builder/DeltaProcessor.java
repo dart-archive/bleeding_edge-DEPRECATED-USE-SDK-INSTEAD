@@ -83,7 +83,9 @@ public class DeltaProcessor {
       if (source == null) {
         IPath location = getResource().getLocation();
         if (location != null) {
-          source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+          source = new FileBasedSource(
+              context.getSourceFactory().getContentCache(),
+              location.toFile());
         } else {
           logNoLocation(getResource());
         }

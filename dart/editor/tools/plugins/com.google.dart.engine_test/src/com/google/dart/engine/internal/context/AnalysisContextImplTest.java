@@ -410,7 +410,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_parseCompilationUnit_nonExistentSource() throws Exception {
-    Source source = new FileBasedSource(sourceFactory, createFile("/test.dart"));
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/test.dart"));
     CompilationUnit unit = context.parseCompilationUnit(source);
     assertNull(unit);
   }
@@ -422,7 +422,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   public void test_performAnalysisTask_IOException() throws Exception {
-    Source source = new FileBasedSource(sourceFactory, createFile("/lib.dart")) {
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile("/lib.dart")) {
       @Override
       public void getContents(ContentReceiver receiver) throws Exception {
         throw new IOException("Some random I/O Exception");
@@ -493,7 +493,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
   }
 
   private Source addSource(String fileName, String contents) {
-    Source source = new FileBasedSource(sourceFactory, createFile(fileName));
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName));
     sourceFactory.setContents(source, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);

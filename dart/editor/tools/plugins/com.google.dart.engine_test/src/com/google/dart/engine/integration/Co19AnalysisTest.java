@@ -20,6 +20,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -170,7 +171,7 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Analyze the file.
     //
-    Source source = new FileBasedSource(sourceFactory, sourceFile);
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), sourceFile);
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.computeLibraryElement(source);
     long endTime = System.currentTimeMillis();

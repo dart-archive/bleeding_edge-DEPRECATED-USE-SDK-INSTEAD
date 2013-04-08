@@ -19,7 +19,6 @@ import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.ImportElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PrefixElement;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.source.SourceFactory;
 
 import static com.google.dart.engine.ast.ASTFactory.identifier;
@@ -29,11 +28,11 @@ import static com.google.dart.engine.element.ElementFactory.library;
 
 public class LibraryElementImplTest extends EngineTestCase {
   public void test_creation() {
-    assertNotNull(new LibraryElementImpl(new AnalysisContextImpl(), libraryIdentifier("l")));
+    assertNotNull(new LibraryElementImpl(createAnalysisContext(), libraryIdentifier("l")));
   }
 
   public void test_getImportedLibraries() {
-    AnalysisContext context = new AnalysisContextImpl();
+    AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library1 = library(context, "l1");
     LibraryElementImpl library2 = library(context, "l2");
     LibraryElementImpl library3 = library(context, "l3");
@@ -49,7 +48,7 @@ public class LibraryElementImplTest extends EngineTestCase {
   }
 
   public void test_getPrefixes() {
-    AnalysisContext context = new AnalysisContextImpl();
+    AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = library(context, "l1");
     PrefixElement prefixA = new PrefixElementImpl(identifier("a"));
     PrefixElement prefixB = new PrefixElementImpl(identifier("b"));
@@ -69,7 +68,7 @@ public class LibraryElementImplTest extends EngineTestCase {
   }
 
   public void test_isUpToDate() {
-    AnalysisContext context = new AnalysisContextImpl();
+    AnalysisContext context = createAnalysisContext();
     context.setSourceFactory(new SourceFactory());
     LibraryElement library = ElementFactory.library(context, "foo");
 
@@ -85,7 +84,7 @@ public class LibraryElementImplTest extends EngineTestCase {
   }
 
   public void test_setImports() {
-    AnalysisContext context = new AnalysisContextImpl();
+    AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library = new LibraryElementImpl(context, libraryIdentifier("l1"));
     ImportElementImpl[] expectedImports = {
         importFor(library(context, "l2"), null), importFor(library(context, "l3"), null)};

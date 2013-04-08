@@ -18,6 +18,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -277,7 +278,9 @@ public class ProjectManagerImplTest extends TestCase {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
     Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory().getContentCache(),
+        file);
     assertSame(resource, manager.getResource(source));
   }
 
@@ -288,7 +291,9 @@ public class ProjectManagerImplTest extends TestCase {
   public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
     Project project = manager.getProject(projectContainer);
-    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory().getContentCache(),
+        file);
     assertNull(manager.getResource(source));
   }
 
@@ -320,7 +325,7 @@ public class ProjectManagerImplTest extends TestCase {
     mockFolder.add(file);
     Project project = manager.getProject(projectContainer);
     Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory(),
+        project.getDefaultContext().getSourceFactory().getContentCache(),
         file.toFile());
     boolean result = manager.isClientLibrary(source);
     assertTrue(result);
@@ -338,7 +343,7 @@ public class ProjectManagerImplTest extends TestCase {
     mockFolder.add(serverFile);
     Project project = manager.getProject(projectContainer);
     Source source = new FileBasedSource(
-        project.getDefaultContext().getSourceFactory(),
+        project.getDefaultContext().getSourceFactory().getContentCache(),
         serverFile.toFile());
     boolean result = manager.isClientLibrary(source);
     assertFalse(result);
@@ -369,8 +374,8 @@ public class ProjectManagerImplTest extends TestCase {
 //    when(expectedSdk.mapDartUri("dart:core")).thenReturn(new File("dart-core-mock.dart"));
     expectedSdk = new DirectoryBasedDartSdk(new File("ignore")) {
       @Override
-      public Source mapDartUri(SourceFactory factory, String uri) {
-        return new FileBasedSource(factory, new File(uri));
+      public Source mapDartUri(ContentCache contentCache, String uri) {
+        return new FileBasedSource(contentCache, new File(uri));
       }
     };
     manager = new MockProjectManagerImpl(rootContainer, expectedSdk, ignoreManager);

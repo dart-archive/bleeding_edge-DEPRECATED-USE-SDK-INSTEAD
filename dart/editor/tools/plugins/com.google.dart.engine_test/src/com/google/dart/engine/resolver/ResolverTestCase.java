@@ -82,7 +82,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory, createFile(filePath));
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
     sourceFactory.setContents(source, contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.added(source);
@@ -194,7 +194,7 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   private FileBasedSource createSource(String fileName) {
-    FileBasedSource source = new FileBasedSource(sourceFactory, createFile(fileName));
+    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName));
     sourceFactory.setContents(source, "");
     return source;
   }

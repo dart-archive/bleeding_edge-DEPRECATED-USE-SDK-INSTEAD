@@ -65,7 +65,7 @@ public class PackageUriResolver extends UriResolver {
   }
 
   @Override
-  public Source resolveAbsolute(SourceFactory factory, URI uri) {
+  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
     if (!isPackageUri(uri)) {
       return null;
     }
@@ -94,10 +94,16 @@ public class PackageUriResolver extends UriResolver {
     for (File packagesDirectory : packagesDirectories) {
       File resolvedFile = new File(packagesDirectory, path);
       if (resolvedFile.exists()) {
-        return new FileBasedSource(factory, getCanonicalFile(packagesDirectory, pkgName, relPath));
+        return new FileBasedSource(contentCache, getCanonicalFile(
+            packagesDirectory,
+            pkgName,
+            relPath));
       }
     }
-    return new FileBasedSource(factory, getCanonicalFile(packagesDirectories[0], pkgName, relPath));
+    return new FileBasedSource(contentCache, getCanonicalFile(
+        packagesDirectories[0],
+        pkgName,
+        relPath));
   }
 
   /**

@@ -19,7 +19,6 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementFactory;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.internal.element.ClassElementImpl;
 import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.FunctionElementImpl;
@@ -1063,7 +1062,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {getterG});
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 
@@ -1082,7 +1081,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classB = classElement("B", classA.getType());
     InterfaceType typeB = classB.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
 
@@ -1096,7 +1095,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 
@@ -1113,7 +1112,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classA.setMethods(new MethodElement[] {methodM});
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 
@@ -1132,7 +1131,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classB = classElement("B", classA.getType());
     InterfaceType typeB = classB.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
 
@@ -1155,7 +1154,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     typeAF.setTypeArguments(new Type[] {typeB.getTypeArguments()[0]});
     classB.setSupertype(typeAF);
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
     //
@@ -1181,7 +1180,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 
@@ -1198,7 +1197,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     classA.setAccessors(new PropertyAccessorElement[] {setterS});
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 
@@ -1217,7 +1216,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classB = classElement("B", classA.getType());
     InterfaceType typeB = classB.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA, classB});
 
@@ -1231,7 +1230,7 @@ public class InterfaceTypeImplTest extends EngineTestCase {
     ClassElementImpl classA = classElement("A");
     InterfaceType typeA = classA.getType();
 
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     CompilationUnitElement unit = library.getDefiningCompilationUnit();
     ((CompilationUnitElementImpl) unit).setTypes(new ClassElement[] {classA});
 

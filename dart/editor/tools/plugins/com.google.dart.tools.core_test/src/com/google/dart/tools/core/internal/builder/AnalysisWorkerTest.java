@@ -105,7 +105,7 @@ public class AnalysisWorkerTest extends TestCase {
   private MockFile addLibrary() {
     MockFile fileRes = projectRes.add(new MockFile(projectRes, "a.dart", "library a;#"));
     File file = fileRes.getLocation().toFile();
-    FileBasedSource source = new FileBasedSource(context.getSourceFactory(), file);
+    FileBasedSource source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
     context.getSourceFactory().setContents(source, fileRes.getContentsAsString());
     ChangeSet changes = new ChangeSet();
     changes.added(source);

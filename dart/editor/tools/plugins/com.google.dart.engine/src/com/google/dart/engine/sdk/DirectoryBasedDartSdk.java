@@ -16,9 +16,9 @@ package com.google.dart.engine.sdk;
 import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
@@ -339,12 +339,15 @@ public class DirectoryBasedDartSdk implements DartSdk {
   }
 
   @Override
-  public Source mapDartUri(SourceFactory factory, String dartUri) {
+  public Source mapDartUri(ContentCache contentCache, String dartUri) {
     SdkLibrary library = libraryMap.getLibrary(dartUri);
     if (library == null) {
       return null;
     }
-    return new FileBasedSource(factory, new File(getLibraryDirectory(), library.getPath()), true);
+    return new FileBasedSource(
+        contentCache,
+        new File(getLibraryDirectory(), library.getPath()),
+        true);
   }
 
   /**

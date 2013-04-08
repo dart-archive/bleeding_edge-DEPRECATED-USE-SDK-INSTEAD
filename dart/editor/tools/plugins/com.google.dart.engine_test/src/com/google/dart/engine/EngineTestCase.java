@@ -16,10 +16,12 @@ package com.google.dart.engine;
 import com.google.common.base.Objects;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.scanner.KeywordToken;
 import com.google.dart.engine.scanner.StringToken;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.type.InterfaceType;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 
@@ -340,6 +342,12 @@ public class EngineTestCase extends TestCase {
     }
 
     return diffPos;
+  }
+
+  protected AnalysisContextImpl createAnalysisContext() {
+    AnalysisContextImpl context = new AnalysisContextImpl();
+    context.setSourceFactory(new SourceFactory());
+    return context;
   }
 
   /**

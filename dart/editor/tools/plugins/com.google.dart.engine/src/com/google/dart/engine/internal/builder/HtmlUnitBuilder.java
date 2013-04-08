@@ -153,7 +153,7 @@ public class HtmlUnitBuilder implements XmlVisitor<Void> {
       } else {
         ExternalHtmlScriptElementImpl script = new ExternalHtmlScriptElementImpl(node);
         if (scriptSourcePath != null) {
-          script.setScriptSource(htmlSource.resolve(scriptSourcePath));
+          script.setScriptSource(context.getSourceFactory().resolveUri(htmlSource, scriptSourcePath));
         }
         scripts.add(script);
       }

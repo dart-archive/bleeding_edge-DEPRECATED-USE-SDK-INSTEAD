@@ -207,7 +207,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
     AnalysisContext context = project.getDefaultContext();
     File file = fileRes.getLocation().toFile();
     SourceFactory factory = context.getSourceFactory();
-    fileSource = new FileBasedSource(factory, file);
+    fileSource = new FileBasedSource(factory.getContentCache(), file);
     factory.setContents(fileSource, fileContents);
 
     participant = new AnalysisEngineParticipant(true, manager, markerManager) {

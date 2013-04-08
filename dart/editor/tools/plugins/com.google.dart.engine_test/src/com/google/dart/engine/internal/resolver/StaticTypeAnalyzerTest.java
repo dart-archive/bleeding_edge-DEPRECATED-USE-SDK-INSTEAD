@@ -945,7 +945,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
         DirectoryBasedDartSdk.getDefaultSdk()));
     context.setSourceFactory(sourceFactory);
     FileBasedSource source = new FileBasedSource(
-        sourceFactory,
+        sourceFactory.getContentCache(),
         FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("lib.dart");
     definingCompilationUnit.setSource(source);

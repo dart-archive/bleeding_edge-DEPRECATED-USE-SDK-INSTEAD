@@ -17,7 +17,6 @@ import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.type.InterfaceType;
 
 import static com.google.dart.engine.element.ElementFactory.classElement;
@@ -84,7 +83,7 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_declared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String getterName = "g";
     PropertyAccessorElement getter = getterElement(getterName, false, null);
@@ -94,7 +93,7 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_inherited() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String getterName = "g";
     PropertyAccessorElement getter = getterElement(getterName, false, null);
@@ -106,14 +105,14 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpGetter_undeclared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpGetter("g", library));
   }
 
   public void test_lookUpMethod_declared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
     MethodElement method = methodElement(methodName, null);
@@ -123,7 +122,7 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpMethod_inherited() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String methodName = "m";
     MethodElement method = methodElement(methodName, null);
@@ -135,14 +134,14 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpMethod_undeclared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpMethod("m", library));
   }
 
   public void test_lookUpSetter_declared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
     PropertyAccessorElement setter = setterElement(setterName, false, null);
@@ -152,7 +151,7 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_inherited() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     String setterName = "s";
     PropertyAccessorElement setter = setterElement(setterName, false, null);
@@ -164,7 +163,7 @@ public class ClassElementImplTest extends EngineTestCase {
   }
 
   public void test_lookUpSetter_undeclared() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classA = classElement("A");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classA});
     assertNull(classA.lookUpSetter("s", library));

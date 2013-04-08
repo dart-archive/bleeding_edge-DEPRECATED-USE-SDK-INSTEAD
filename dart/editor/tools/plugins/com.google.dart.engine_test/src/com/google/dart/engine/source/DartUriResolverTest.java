@@ -30,32 +30,32 @@ public class DartUriResolverTest extends TestCase {
   }
 
   public void test_resolve_dart() throws Exception {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(factory, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
     assertNotNull(result);
   }
 
   public void test_resolve_dart_non_existing_library() throws Exception {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(factory, new URI("dart:cor"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:cor"));
     assertNull(result);
   }
 
   public void test_resolve_nonDart() throws Exception {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
     assertNotNull(sdkDirectory);
     DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
     UriResolver resolver = new DartUriResolver(sdk);
-    Source result = resolver.resolveAbsolute(factory, new URI("package:some/file.dart"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("package:some/file.dart"));
     assertNull(result);
   }
 }

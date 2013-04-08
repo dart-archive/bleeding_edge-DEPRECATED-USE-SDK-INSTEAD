@@ -136,7 +136,7 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     SourceFactory factory = new SourceFactory(new FileUriResolver());
     AnalysisContextImpl context = new AnalysisContextImpl();
     context.setSourceFactory(factory);
-    Source librarySource = new FileBasedSource(factory, createFile("/lib.dart"));
+    Source librarySource = new FileBasedSource(factory.getContentCache(), createFile("/lib.dart"));
     library = new Library(context, listener, librarySource);
     LibraryElementImpl element = new LibraryElementImpl(context, libraryIdentifier("lib"));
     element.setDefiningCompilationUnit(new CompilationUnitElementImpl("lib.dart"));

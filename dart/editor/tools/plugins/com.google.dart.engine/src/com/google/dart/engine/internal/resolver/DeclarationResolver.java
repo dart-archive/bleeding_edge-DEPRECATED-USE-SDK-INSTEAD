@@ -218,7 +218,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       LibraryElement library = enclosingUnit.getLibrary();
       ExportElement exportElement = find(
           library.getExports(),
-          enclosingUnit.getSource().resolve(uri));
+          enclosingUnit.getContext().getSourceFactory().resolveUri(enclosingUnit.getSource(), uri));
       node.setElement(exportElement);
     }
     return super.visitExportDirective(node);
@@ -321,7 +321,7 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
       LibraryElement library = enclosingUnit.getLibrary();
       ImportElement importElement = find(
           library.getImports(),
-          enclosingUnit.getSource().resolve(uri),
+          enclosingUnit.getContext().getSourceFactory().resolveUri(enclosingUnit.getSource(), uri),
           node.getPrefix());
       node.setElement(importElement);
     }
@@ -378,7 +378,9 @@ public class DeclarationResolver extends RecursiveASTVisitor<Void> {
   public Void visitPartDirective(PartDirective node) {
     String uri = getStringValue(node.getUri());
     if (uri != null) {
-      Source partSource = enclosingUnit.getSource().resolve(uri);
+      Source partSource = enclosingUnit.getContext().getSourceFactory().resolveUri(
+          enclosingUnit.getSource(),
+          uri);
       node.setElement(find(enclosingUnit.getLibrary().getParts(), partSource));
     }
     return super.visitPartDirective(node);

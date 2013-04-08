@@ -38,12 +38,12 @@ public class TestSource extends FileBasedSource {
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
    * 
-   * @param factory the source factory that created this source
+   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param contents the contents of the file represented by this source
    */
-  public TestSource(SourceFactory factory, File file, String contents) {
-    super(factory, file);
+  public TestSource(ContentCache contentCache, File file, String contents) {
+    super(contentCache, file);
     this.contents = contents;
   }
 

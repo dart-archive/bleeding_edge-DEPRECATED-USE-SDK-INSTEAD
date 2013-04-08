@@ -13,8 +13,6 @@
  */
 package com.google.dart.engine.source;
 
-import com.google.dart.engine.context.AnalysisContext;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -30,10 +28,10 @@ import java.nio.charset.Charset;
  */
 public class FileBasedSource implements Source {
   /**
-   * The source factory that created this source and that should be used to resolve URI's against
-   * this source.
+   * The content cache used to access the contents of this source if they have been overridden from
+   * what is on disk or cached.
    */
-  private final SourceFactory factory;
+  private final ContentCache contentCache;
 
   /**
    * The file represented by this source.
@@ -59,22 +57,22 @@ public class FileBasedSource implements Source {
    * Initialize a newly created source object. The source object is assumed to not be in a system
    * library.
    * 
-   * @param factory the source factory that created this source
+   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    */
-  public FileBasedSource(SourceFactory factory, File file) {
-    this(factory, file, false);
+  public FileBasedSource(ContentCache contentCache, File file) {
+    this(contentCache, file, false);
   }
 
   /**
    * Initialize a newly created source object.
    * 
-   * @param factory the source factory that created this source
+   * @param contentCache the content cache used to access the contents of this source
    * @param file the file represented by this source
    * @param inSystemLibrary {@code true} if this source is in one of the system libraries
    */
-  public FileBasedSource(SourceFactory factory, File file, boolean inSystemLibrary) {
-    this.factory = factory;
+  public FileBasedSource(ContentCache contentCache, File file, boolean inSystemLibrary) {
+    this.contentCache = contentCache;
     this.file = file;
     this.inSystemLibrary = inSystemLibrary;
     this.fileUriString = file.toURI().toString();
@@ -88,7 +86,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public boolean exists() {
-    return factory.getContents(this) != null || (file.exists() && !file.isDirectory());
+    return contentCache.getContents(this) != null || (file.exists() && !file.isDirectory());
   }
 
   @Override
@@ -96,7 +94,7 @@ public class FileBasedSource implements Source {
     //
     // First check to see whether our factory has an override for our contents.
     //
-    String contents = factory.getContents(this);
+    String contents = contentCache.getContents(this);
     if (contents != null) {
       receiver.accept(contents);
       return;
@@ -133,11 +131,6 @@ public class FileBasedSource implements Source {
   }
 
   @Override
-  public AnalysisContext getContext() {
-    return factory.getContext();
-  }
-
-  @Override
   public String getEncoding() {
     return fileUriString;
   }
@@ -149,7 +142,7 @@ public class FileBasedSource implements Source {
 
   @Override
   public long getModificationStamp() {
-    Long stamp = factory.getModificationStamp(this);
+    Long stamp = contentCache.getModificationStamp(this);
     if (stamp != null) {
       return stamp.longValue();
     }
@@ -172,15 +165,10 @@ public class FileBasedSource implements Source {
   }
 
   @Override
-  public Source resolve(String uri) {
-    return factory.resolveUri(this, uri);
-  }
-
-  @Override
   public Source resolveRelative(URI containedUri) {
     try {
       URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
-      return new FileBasedSource(factory, new File(resolvedUri));
+      return new FileBasedSource(contentCache, new File(resolvedUri));
     } catch (Exception exception) {
       // Fall through to return null
     }

@@ -34,8 +34,9 @@ public abstract class UriResolver {
    * Resolve the given absolute URI. Return a {@link Source source} representing the file to which
    * it was resolved, or {@code null} if it could not be resolved.
    * 
+   * @param contentCache the content cache used to access the contents of the returned source
    * @param uri the URI to be resolved
    * @return a {@link Source source} representing the URI to which given URI was resolved
    */
-  public abstract Source resolveAbsolute(SourceFactory factory, URI uri);
+  public abstract Source resolveAbsolute(ContentCache contentCache, URI uri);
 }

@@ -336,7 +336,7 @@ public class Library {
     if (uri == null) {
       return null;
     }
-    return librarySource.resolve(uri);
+    return analysisContext.getSourceFactory().resolveUri(librarySource, uri);
   }
 
   /**

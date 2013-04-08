@@ -46,10 +46,10 @@ public class FileUriResolver extends UriResolver {
   }
 
   @Override
-  public Source resolveAbsolute(SourceFactory factory, URI uri) {
+  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
     if (!isFileUri(uri)) {
       return null;
     }
-    return new FileBasedSource(factory, new File(uri));
+    return new FileBasedSource(contentCache, new File(uri));
   }
 }

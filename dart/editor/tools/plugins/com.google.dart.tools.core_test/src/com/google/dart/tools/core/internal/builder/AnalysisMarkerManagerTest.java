@@ -127,6 +127,6 @@ public class AnalysisMarkerManagerTest extends TestCase {
     context = project.getDefaultContext();
 
     File file = fileRes.getLocation().toFile();
-    source = new FileBasedSource(context.getSourceFactory(), file);
+    source = new FileBasedSource(context.getSourceFactory().getContentCache(), file);
   }
 }

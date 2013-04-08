@@ -146,7 +146,7 @@ public class LibraryTest extends EngineTestCase {
 
   private Library library(String definingCompilationUnitPath) {
     return new Library(analysisContext, errorListener, new FileBasedSource(
-        sourceFactory,
+        sourceFactory.getContentCache(),
         createFile(definingCompilationUnitPath)));
   }
 }

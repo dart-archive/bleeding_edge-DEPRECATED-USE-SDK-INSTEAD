@@ -29,7 +29,7 @@ public class SourceFactoryTest extends TestCase {
     final boolean[] invoked = {false};
     SourceFactory factory = new SourceFactory(new UriResolver() {
       @Override
-      public Source resolveAbsolute(SourceFactory factory, URI uri) {
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         invoked[0] = true;
         return null;
       }
@@ -39,34 +39,37 @@ public class SourceFactoryTest extends TestCase {
   }
 
   public void test_resolveUri_nonAbsolute_absolute() throws Exception {
-    SourceFactory factory = new SourceFactory(new UriResolver() {
+    ContentCache contentCache = new ContentCache();
+    SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
       @Override
-      public Source resolveAbsolute(SourceFactory factory, URI uri) {
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         return null;
       }
     });
     String absolutePath = "/does/not/matter.dart";
-    Source containingSource = new FileBasedSource(factory, createFile("/does/not/exist.dart"));
+    Source containingSource = new FileBasedSource(contentCache, createFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
     assertEquals(createFile(absolutePath).getAbsolutePath(), result.getFullName());
   }
 
   public void test_resolveUri_nonAbsolute_relative() throws Exception {
-    SourceFactory factory = new SourceFactory(new UriResolver() {
+    ContentCache contentCache = new ContentCache();
+    SourceFactory factory = new SourceFactory(contentCache, new UriResolver() {
       @Override
-      public Source resolveAbsolute(SourceFactory factory, URI uri) {
+      public Source resolveAbsolute(ContentCache contentCache, URI uri) {
         return null;
       }
     });
-    Source containingSource = new FileBasedSource(factory, createFile("/does/not/have.dart"));
+    Source containingSource = new FileBasedSource(contentCache, createFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
     assertEquals(createFile("/does/not/exist.dart").getAbsolutePath(), result.getFullName());
   }
 
   public void test_setContents() {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
+    SourceFactory factory = new SourceFactory(contentCache);
     File file = createFile("/does/not/exist.dart");
-    Source source = new FileBasedSource(factory, file);
+    Source source = new FileBasedSource(contentCache, file);
     assertNull(factory.getContents(source));
     assertNull(factory.getModificationStamp(source));
 
@@ -81,32 +84,34 @@ public class SourceFactoryTest extends TestCase {
   }
 
   public void test_sharedContents() {
-    ContentCache cache = new ContentCache();
+    ContentCache contentCache = new ContentCache();
 
-    SourceFactory factory1 = new SourceFactory(cache);
+    SourceFactory factory1 = new SourceFactory(contentCache);
     File file = createFile("/does/not/exist.dart");
-    Source source1 = new FileBasedSource(factory1, file);
+    Source source1 = new FileBasedSource(contentCache, file);
     assertNull(factory1.getContents(source1));
     String contents = "library lib;";
     factory1.setContents(source1, contents);
     assertEquals(contents, factory1.getContents(source1));
 
-    SourceFactory factory2 = new SourceFactory(cache);
-    Source source2 = new FileBasedSource(factory2, file);
+    SourceFactory factory2 = new SourceFactory(contentCache);
+    Source source2 = new FileBasedSource(contentCache, file);
     assertEquals(contents, factory2.getContents(source2));
   }
 
   public void test_sharedContentsNot() {
-    SourceFactory factory1 = new SourceFactory();
+    ContentCache contentCache1 = new ContentCache();
+    SourceFactory factory1 = new SourceFactory(contentCache1);
     File file = createFile("/does/not/exist.dart");
-    Source source1 = new FileBasedSource(factory1, file);
+    Source source1 = new FileBasedSource(contentCache1, file);
     assertNull(factory1.getContents(source1));
     String contents = "library lib;";
     factory1.setContents(source1, contents);
     assertEquals(contents, factory1.getContents(source1));
 
-    SourceFactory factory2 = new SourceFactory();
-    Source source2 = new FileBasedSource(factory2, file);
+    ContentCache contentCache2 = new ContentCache();
+    SourceFactory factory2 = new SourceFactory(contentCache2);
+    Source source2 = new FileBasedSource(contentCache2, file);
     assertNull(factory2.getContents(source2));
   }
 }

@@ -57,38 +57,38 @@ public class PackageUriResolverTest extends TestCase {
     // Create symlink packages/pkg1/other --> other
     FileUtilities2.createSymLink(otherDir, new File(libDir, "other"));
 
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
     // Assert that package:pkg1 resolves to lib
-    Source result = resolver.resolveAbsolute(factory, new URI("package:pkg1"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1"));
     assertEquals(libDir, new File(result.getFullName()));
 
     // Assert that package:pkg1/ resolves to lib
-    result = resolver.resolveAbsolute(factory, new URI("package:pkg1/"));
+    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/"));
     assertEquals(libDir, new File(result.getFullName()));
 
     // Assert that package:pkg1/other resolves to lib/other not other
-    result = resolver.resolveAbsolute(factory, new URI("package:pkg1/other"));
+    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other"));
     assertEquals(new File(libDir, "other"), new File(result.getFullName()));
 
     // Assert that package:pkg1/other/some.dart resolves to lib/other/some.dart not other.dart
     // when some.dart does NOT exist
     File someDart = new File(new File(libDir, "other"), "some.dart");
-    result = resolver.resolveAbsolute(factory, new URI("package:pkg1/other/some.dart"));
+    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
 
     // Assert that package:pkg1/other/some.dart resolves to lib/other/some.dart not other.dart
     // when some.dart exists
     assertTrue(new File(otherDir, someDart.getName()).createNewFile());
     assertTrue(someDart.exists());
-    result = resolver.resolveAbsolute(factory, new URI("package:pkg1/other/some.dart"));
+    result = resolver.resolveAbsolute(contentCache, new URI("package:pkg1/other/some.dart"));
     assertEquals(someDart, new File(result.getFullName()));
   }
 
   public void test_resolve_invalid() throws Exception {
     File packagesDir = new File("packages");
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     UriResolver resolver = new PackageUriResolver(packagesDir);
 
     // Invalid: URI
@@ -100,27 +100,28 @@ public class PackageUriResolverTest extends TestCase {
     }
 
     // Invalid: just slash
-    Source result = resolver.resolveAbsolute(factory, new URI("package:/"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("package:/"));
     assertNull(result);
 
     // Invalid: leading slash... or should we gracefully degrade and ignore the leading slash?
-    result = resolver.resolveAbsolute(factory, new URI("package:/foo"));
+    result = resolver.resolveAbsolute(contentCache, new URI("package:/foo"));
     assertNull(result);
   }
 
   public void test_resolve_nonPackage() throws Exception {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolveAbsolute(factory, new URI("dart:core"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
     assertNull(result);
   }
 
   public void test_resolve_package() throws Exception {
-    SourceFactory factory = new SourceFactory();
+    ContentCache contentCache = new ContentCache();
     File directory = createFile("/does/not/exist/packages");
     UriResolver resolver = new PackageUriResolver(directory);
-    Source result = resolver.resolveAbsolute(factory, new URI("package:third/party/library.dart"));
+    Source result = resolver.resolveAbsolute(contentCache, new URI(
+        "package:third/party/library.dart"));
     assertNotNull(result);
     assertEquals(
         createFile("/does/not/exist/packages/third/party/library.dart").getAbsoluteFile(),

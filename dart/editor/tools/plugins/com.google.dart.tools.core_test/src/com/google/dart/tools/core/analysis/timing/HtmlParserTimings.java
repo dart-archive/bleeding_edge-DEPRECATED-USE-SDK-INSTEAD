@@ -28,7 +28,7 @@ public class HtmlParserTimings extends TestCase {
 
     @Override
     public void run(File htmlFile) throws Exception {
-      Source source = new FileBasedSource(sourceFactory, htmlFile);
+      Source source = new FileBasedSource(sourceFactory.getContentCache(), htmlFile);
       HtmlParseResult parseResult = new HtmlParser(source).parse(source);
       assertNotNull(parseResult);
     }
@@ -39,7 +39,7 @@ public class HtmlParserTimings extends TestCase {
 
     @Override
     public void run(File htmlFile, String contents) throws Exception {
-      Source source = new FileBasedSource(sourceFactory, htmlFile);
+      Source source = new FileBasedSource(sourceFactory.getContentCache(), htmlFile);
       sourceFactory.setContents(source, contents);
       HtmlParseResult parseResult = new HtmlParser(source).parse(source);
       assertNotNull(parseResult);

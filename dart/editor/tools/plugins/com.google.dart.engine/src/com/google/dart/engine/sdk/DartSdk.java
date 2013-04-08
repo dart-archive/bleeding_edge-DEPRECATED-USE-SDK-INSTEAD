@@ -13,8 +13,8 @@
  */
 package com.google.dart.engine.sdk;
 
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 
 /**
  * Instances of the class {@code DartSdk} represent a Dart SDK installed in a specified location.
@@ -58,9 +58,9 @@ public interface DartSdk {
    * Return the source representing the library with the given {@code dart:} URI, or {@code null} if
    * the given URI does not denote a library in this SDK.
    * 
-   * @param factory the source factory that should own the returned source
+   * @param contentCache the content cache used to access the contents of the mapped source
    * @param dartUri the URI of the library to be returned
    * @return the source representing the specified library
    */
-  public Source mapDartUri(SourceFactory factory, String dartUri);
+  public Source mapDartUri(ContentCache contentCache, String dartUri);
 }

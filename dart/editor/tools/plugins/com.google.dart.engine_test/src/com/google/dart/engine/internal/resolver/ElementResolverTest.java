@@ -60,6 +60,7 @@ import com.google.dart.engine.internal.scope.Scope;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.SourceFactory;
@@ -563,11 +564,12 @@ public class ElementResolverTest extends EngineTestCase {
    */
   private ElementResolver createResolver() {
     AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(
+    ContentCache contentCache = new ContentCache();
+    SourceFactory sourceFactory = new SourceFactory(contentCache, new DartUriResolver(
         DirectoryBasedDartSdk.getDefaultSdk()));
     context.setSourceFactory(sourceFactory);
     FileBasedSource source = new FileBasedSource(
-        sourceFactory,
+        contentCache,
         FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.setSource(source);

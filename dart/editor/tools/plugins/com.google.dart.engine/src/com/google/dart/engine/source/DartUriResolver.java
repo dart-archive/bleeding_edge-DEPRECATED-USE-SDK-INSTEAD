@@ -54,10 +54,10 @@ public class DartUriResolver extends UriResolver {
   }
 
   @Override
-  public Source resolveAbsolute(SourceFactory factory, URI uri) {
+  public Source resolveAbsolute(ContentCache contentCache, URI uri) {
     if (!isDartUri(uri)) {
       return null;
     }
-    return sdk.mapDartUri(factory, uri.toString());
+    return sdk.mapDartUri(contentCache, uri.toString());
   }
 }

@@ -24,7 +24,7 @@ import static com.google.dart.engine.element.ElementFactory.library;
 
 public class ElementImplTest extends EngineTestCase {
   public void test_equals() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElementImpl classElement = classElement("C");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
     FieldElement field = fieldElement("next", false, false, false, classElement.getType());
@@ -36,7 +36,7 @@ public class ElementImplTest extends EngineTestCase {
   }
 
   public void test_isAccessibleIn_private_differentLibrary() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
+    AnalysisContextImpl context = createAnalysisContext();
     LibraryElementImpl library1 = library(context, "lib1");
     ClassElement classElement = classElement("_C");
     ((CompilationUnitElementImpl) library1.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
@@ -45,14 +45,14 @@ public class ElementImplTest extends EngineTestCase {
   }
 
   public void test_isAccessibleIn_private_sameLibrary() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElement classElement = classElement("_C");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
     assertTrue(classElement.isAccessibleIn(library));
   }
 
   public void test_isAccessibleIn_public_differentLibrary() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
+    AnalysisContextImpl context = createAnalysisContext();
     LibraryElementImpl library1 = library(context, "lib1");
     ClassElement classElement = classElement("C");
     ((CompilationUnitElementImpl) library1.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
@@ -61,7 +61,7 @@ public class ElementImplTest extends EngineTestCase {
   }
 
   public void test_isAccessibleIn_public_sameLibrary() {
-    LibraryElementImpl library = library(new AnalysisContextImpl(), "lib");
+    LibraryElementImpl library = library(createAnalysisContext(), "lib");
     ClassElement classElement = classElement("C");
     ((CompilationUnitElementImpl) library.getDefiningCompilationUnit()).setTypes(new ClassElement[] {classElement});
     assertTrue(classElement.isAccessibleIn(library));

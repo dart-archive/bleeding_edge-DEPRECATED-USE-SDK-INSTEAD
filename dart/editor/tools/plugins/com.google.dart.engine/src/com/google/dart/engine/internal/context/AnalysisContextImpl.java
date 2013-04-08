@@ -1154,7 +1154,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
                 URI uri = new URI(null, null, attribute.getText(), null);
                 String fileName = uri.getPath();
                 if (AnalysisEngine.isDartFileName(fileName)) {
-                  Source librarySource = htmlSource.resolve(fileName);
+                  Source librarySource = sourceFactory.resolveUri(htmlSource, fileName);
                   if (librarySource.exists()) {
                     libraries.add(librarySource);
                   }

@@ -241,7 +241,9 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   public void test_getResource_Source() {
     IResource resource = projectContainer.getFolder("web").getFile("other.dart");
     File file = resource.getLocation().toFile();
-    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory().getContentCache(),
+        file);
     assertSame(resource, project.getResource(source));
   }
 
@@ -251,7 +253,9 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
   public void test_getResource_Source_outside() {
     File file = new File("/does/not/exist.dart");
-    Source source = new FileBasedSource(project.getDefaultContext().getSourceFactory(), file);
+    Source source = new FileBasedSource(
+        project.getDefaultContext().getSourceFactory().getContentCache(),
+        file);
     assertNull(project.getResource(source));
   }
 
@@ -499,7 +503,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {
     SourceFactory factory = context.getSourceFactory();
     File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
-    Source source1 = new FileBasedSource(factory, file1);
+    Source source1 = new FileBasedSource(factory.getContentCache(), file1);
 
     Source source2 = factory.resolveUri(source1, "doesNotExist2.dart");
     File file2 = new File(source2.getFullName());

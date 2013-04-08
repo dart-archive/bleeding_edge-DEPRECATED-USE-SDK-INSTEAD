@@ -154,7 +154,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
    * @return the source object representing the added file
    */
   protected Source addSource(String filePath, String contents) {
-    Source source = new FileBasedSource(sourceFactory, createFile(filePath));
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), createFile(filePath));
     sourceFactory.setContents(source, contents);
     return source;
   }

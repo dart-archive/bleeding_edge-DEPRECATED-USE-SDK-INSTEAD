@@ -46,7 +46,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+        Source source = new FileBasedSource(
+            context.getSourceFactory().getContentCache(),
+            location.toFile());
         return context.getHtmlElement(source);
       }
     }
@@ -65,7 +67,7 @@ public abstract class ContextManagerImpl implements ContextManager {
           if (proxy.getType() == IResource.FILE && DartCore.isDartLikeFileName(proxy.getName())) {
             if (proxy.requestResource().getLocation() != null) {
               Source source = new FileBasedSource(
-                  context.getSourceFactory(),
+                  context.getSourceFactory().getContentCache(),
                   proxy.requestResource().getLocation().toFile());
               LibraryElement element = null;
               try {
@@ -96,7 +98,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+        Source source = new FileBasedSource(
+            context.getSourceFactory().getContentCache(),
+            location.toFile());
         try {
           return context.computeLibraryElement(source);
         } catch (AnalysisException exception) {
@@ -113,7 +117,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+        Source source = new FileBasedSource(
+            context.getSourceFactory().getContentCache(),
+            location.toFile());
         return context.getLibraryElement(source);
       }
     }
@@ -127,7 +133,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+        source = new FileBasedSource(
+            context.getSourceFactory().getContentCache(),
+            location.toFile());
       }
     }
     return source;
@@ -139,7 +147,9 @@ public abstract class ContextManagerImpl implements ContextManager {
     if (context != null) {
       IPath location = file.getLocation();
       if (location != null) {
-        Source source = new FileBasedSource(context.getSourceFactory(), location.toFile());
+        Source source = new FileBasedSource(
+            context.getSourceFactory().getContentCache(),
+            location.toFile());
         return context.getKindOf(source);
       }
     }

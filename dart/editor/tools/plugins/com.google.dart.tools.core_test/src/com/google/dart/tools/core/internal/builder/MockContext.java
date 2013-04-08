@@ -121,12 +121,12 @@ public class MockContext implements AnalysisContext {
     final ChangeSet expected = new ChangeSet();
     if (added != null) {
       for (IResource file : added) {
-        expected.added(new FileBasedSource(factory, file.getLocation().toFile()));
+        expected.added(new FileBasedSource(factory.getContentCache(), file.getLocation().toFile()));
       }
     }
     if (changed != null) {
       for (IResource file : changed) {
-        expected.changed(new FileBasedSource(factory, file.getLocation().toFile()));
+        expected.changed(new FileBasedSource(factory.getContentCache(), file.getLocation().toFile()));
       }
     }
     if (removed != null) {
@@ -135,7 +135,9 @@ public class MockContext implements AnalysisContext {
           expected.removedContainer(new DirectoryBasedSourceContainer(
               resource.getLocation().toFile()));
         } else {
-          expected.removed(new FileBasedSource(factory, resource.getLocation().toFile()));
+          expected.removed(new FileBasedSource(
+              factory.getContentCache(),
+              resource.getLocation().toFile()));
         }
       }
     }
@@ -175,7 +177,9 @@ public class MockContext implements AnalysisContext {
 
   public void assertSourcesChanged(IResource... expected) {
     for (IResource resource : expected) {
-      Source source = new FileBasedSource(factory, resource.getLocation().toFile());
+      Source source = new FileBasedSource(
+          factory.getContentCache(),
+          resource.getLocation().toFile());
       calls.assertCall(this, SOURCE_CHANGED, source);
     }
   }
@@ -184,7 +188,7 @@ public class MockContext implements AnalysisContext {
     for (IResource resource : expected) {
       File file = resource.getLocation().toFile();
       if (resource.getType() == IResource.FILE) {
-        Source source = new FileBasedSource(factory, file);
+        Source source = new FileBasedSource(factory.getContentCache(), file);
         calls.assertCall(this, SOURCE_DELETED, source);
       } else {
         SourceContainer sourceContainer = new DirectoryBasedSourceContainer(file);

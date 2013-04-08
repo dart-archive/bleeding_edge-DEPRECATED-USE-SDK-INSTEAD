@@ -92,7 +92,7 @@ public class AbstractDartTest extends TestCase {
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
     }
     // configure Source
-    Source source = new FileBasedSource(sourceFactory, FileUtilities2.createFile(path));
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), FileUtilities2.createFile(path));
     {
       sourceFactory.setContents(source, "");
       ChangeSet changeSet = new ChangeSet();
@@ -256,7 +256,7 @@ public class AbstractDartTest extends TestCase {
    */
   protected final Source setFileContent(String path, String content) {
     String absolutePath = "/" + path;
-    FileBasedSource source = new FileBasedSource(sourceFactory, new File(absolutePath));
+    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), new File(absolutePath));
     sourceWithSetContent.add(source);
     sourceFactory.setContents(source, content);
     return source;

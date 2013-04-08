@@ -44,7 +44,7 @@ public class SourceFactory {
   /**
    * Initialize a newly created source factory.
    * 
-   * @param contentCache the cache holding content used to override the default content of a source.
+   * @param contentCache the cache holding content used to override the default content of a source
    * @param resolvers the resolvers used to resolve absolute URI's
    */
   public SourceFactory(ContentCache contentCache, UriResolver... resolvers) {
@@ -90,6 +90,15 @@ public class SourceFactory {
    */
   public Source fromEncoding(String encoding) {
     return forUri(encoding);
+  }
+
+  /**
+   * Return a cache of content used to override the default content of a source.
+   * 
+   * @return a cache of content used to override the default content of a source
+   */
+  public ContentCache getContentCache() {
+    return contentCache;
   }
 
   /**
@@ -186,7 +195,7 @@ public class SourceFactory {
   private Source resolveUri(Source containingSource, URI containedUri) {
     if (containedUri.isAbsolute()) {
       for (UriResolver resolver : resolvers) {
-        Source result = resolver.resolveAbsolute(this, containedUri);
+        Source result = resolver.resolveAbsolute(contentCache, containedUri);
         if (result != null) {
           return result;
         }

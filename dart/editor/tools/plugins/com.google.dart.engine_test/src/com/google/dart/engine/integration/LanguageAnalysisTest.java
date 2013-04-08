@@ -258,7 +258,7 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     //
     // Analyze the file.
     //
-    Source source = new FileBasedSource(sourceFactory, sourceFile);
+    Source source = new FileBasedSource(sourceFactory.getContentCache(), sourceFile);
     sourceFactory.setContents(source, contents);
     long startTime = System.currentTimeMillis();
     LibraryElement library = context.computeLibraryElement(source);
