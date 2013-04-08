@@ -67,7 +67,7 @@ class FxUtil {
    * changed.
    */
   static Coordinate computeRelativePosition(Element element, Element target) {
-    final testPoint = new DomPoint(0, 0);
+    final testPoint = new Point(0, 0);
     final pagePoint =
         window.convertPointFromNodeToPage(element, testPoint);
     final pointRelativeToTarget =
