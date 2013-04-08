@@ -33,6 +33,7 @@ import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.ui.DartToolsPlugin;
@@ -489,6 +490,20 @@ public class SemanticHighlightingReconciler implements IDartReconcilingListener,
   private final void processNode(SemanticToken token, DartNode node) {
     token.update(node);
     token.attachSource(fSourceViewer.getDocument());
+    // sometimes node has wrong source range; log problem
+    if (token.getSource() == null) {
+      IDocument document = fSourceViewer.getDocument();
+      if (node != null && document != null) {
+        SourceInfo sourceInfo = node.getSourceInfo();
+        if (sourceInfo != null) {
+          DartToolsPlugin.log("Bad node: " + node.getClass().getName() + " offset:"
+              + sourceInfo.getOffset() + " len:" + sourceInfo.getLength() + " in document: "
+              + document.getLength());
+        }
+      }
+      return;
+    }
+    // try SemanticHighlighting instances
     for (int i = 0, n = fJobSemanticHighlightings.length; i < n; i++) {
       if (fJobHighlightings[i].isEnabled()) {
         SemanticHighlighting semanticHighlighting = fJobSemanticHighlightings[i];
