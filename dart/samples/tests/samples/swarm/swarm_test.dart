@@ -4,6 +4,7 @@
 
 library swarm_tests;
 
+import "package:expect/expect.dart";
 import 'dart:html';
 import 'dart:async';
 import '../../../swarm/swarmlib.dart';
