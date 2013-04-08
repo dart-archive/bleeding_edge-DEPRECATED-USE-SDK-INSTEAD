@@ -307,16 +307,14 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
   }
 
   public void test_bad_emptySelection() throws Exception {
-    verifyNoTestUnitErrors = false;
     parseTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "main() {",
         "// start",
         "// end",
-        "  int v = varA + varB;",
+        "  int v = 1 + 2;",
         "}",
         "");
-    verifyNoTestUnitErrors = true;
     setSelectionFromStartEndComments();
     createRefactoring();
     // check conditions

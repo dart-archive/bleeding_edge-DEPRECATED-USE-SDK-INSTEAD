@@ -82,10 +82,9 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
   }
 
   public void test_addTypeAnnotation_local_wrong_unknown() throws Exception {
-    String source = "var v = unknownVar;";
     verifyNoTestUnitErrors = false;
+    String source = "var v = unknownVar;";
     assert_addTypeAnnotation_localVariable(source, " = unknown", source);
-    verifyNoTestUnitErrors = true;
   }
 
   public void test_addTypeAnnotation_topLevelField_OK_int() throws Exception {

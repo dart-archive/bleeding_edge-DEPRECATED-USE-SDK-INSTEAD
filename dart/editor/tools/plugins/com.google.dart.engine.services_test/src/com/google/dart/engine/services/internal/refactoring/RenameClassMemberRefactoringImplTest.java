@@ -42,7 +42,6 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
   }
 
   public void test_checkFinalConditions_OK_noShadow() throws Exception {
-    verifyNoTestUnitErrors = false;
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
@@ -51,12 +50,11 @@ public class RenameClassMemberRefactoringImplTest extends RenameRefactoringImplT
         "class B {",
         "  test() {}",
         "}",
-        "class C extends B {",
+        "class C extends A {",
         "  main() {",
         "    print(newName);",
         "  }",
         "}");
-    verifyNoTestUnitErrors = true;
     createRenameRefactoring("test() {}");
     // check status
     refactoring.setNewName("newName");
