@@ -4,6 +4,7 @@
 
 library layout_tests;
 
+import 'package:expect/expect.dart';
 import 'dart:async';
 import 'dart:html';
 import '../../../../swarm/swarm_ui_lib/base/base.dart';
