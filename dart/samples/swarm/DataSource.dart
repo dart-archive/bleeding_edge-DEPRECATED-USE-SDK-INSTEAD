@@ -90,11 +90,6 @@ class Sections extends Collection<Section> {
 
   List<Section> get sections => _sections;
 
-  // Collection<Section> methods:
-  bool every(bool f(Section element)) => IterableMixinWorkaround.every(this, f);
-  bool any(bool f(Section element)) => IterableMixinWorkaround.any(this, f);
-  void forEach(void f(Section element)) { IterableMixinWorkaround.forEach(this, f); }
-
   // TODO(jmesserly): this should be a property
   bool get isEmpty => length == 0;
 }
