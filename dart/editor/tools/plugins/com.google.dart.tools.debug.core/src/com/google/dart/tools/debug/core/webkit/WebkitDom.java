@@ -117,6 +117,8 @@ public class WebkitDom extends WebkitDomain {
 
   public static interface InspectorListener {
     public void detached(String reason);
+
+    public void targetCrashed();
   }
 
   public static class RGBA {
@@ -180,6 +182,8 @@ public class WebkitDom extends WebkitDomain {
   private final static String DOM_DOCUMENT_UPDATED = "DOM.documentUpdated";
 
   private static final String INSPECTOR_DETACHED = "Inspector.detached";
+  private static final String INSPECTOR_TARGET_CRASHED = "Inspector.targetCrashed";
+
   private List<DomListener> domListeners = new ArrayList<DomListener>();
 
   private List<InspectorListener> inspectorListeners = new ArrayList<InspectorListener>();
@@ -600,6 +604,10 @@ public class WebkitDom extends WebkitDomain {
 
       for (InspectorListener listener : inspectorListeners) {
         listener.detached(reason);
+      }
+    } else if (method.equals(INSPECTOR_TARGET_CRASHED)) {
+      for (InspectorListener listener : inspectorListeners) {
+        listener.targetCrashed();
       }
     } else {
       DartDebugCorePlugin.logInfo("unhandled notification: " + method);

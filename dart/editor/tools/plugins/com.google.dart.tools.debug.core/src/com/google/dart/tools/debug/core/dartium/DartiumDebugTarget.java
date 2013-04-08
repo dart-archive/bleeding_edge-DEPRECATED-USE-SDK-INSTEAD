@@ -325,6 +325,11 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       public void detached(String reason) {
         handleInspectorDetached(reason);
       }
+
+      @Override
+      public void targetCrashed() {
+
+      }
     });
 
     connection.getDebugger().addDebuggerListener(new DebuggerListenerAdapter() {
@@ -428,7 +433,9 @@ public class DartiumDebugTarget extends DartiumDebugElement implements IDebugTar
       public void handleResult(WebkitResult<Boolean> result) {
         // Once all other requests have been processed, then navigate to the given url.
         try {
-          connection.getPage().navigate(url);
+          if (connection.isConnected()) {
+            connection.getPage().navigate(url);
+          }
         } catch (IOException e) {
           DartDebugCorePlugin.logError(e);
         }
