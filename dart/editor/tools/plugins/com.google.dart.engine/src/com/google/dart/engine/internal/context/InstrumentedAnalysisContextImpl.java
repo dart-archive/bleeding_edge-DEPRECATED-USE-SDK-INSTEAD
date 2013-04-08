@@ -162,6 +162,13 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
     return basis.extractContextInto(container, newContext);
   }
 
+  /**
+   * @return the underlying {@link AnalysisContext}.
+   */
+  public AnalysisContext getBasis() {
+    return basis;
+  }
+
   @Override
   public Element getElement(ElementLocation location) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getElement");

@@ -23,6 +23,7 @@ import com.google.dart.engine.element.ElementLocation;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.ElementLocationImpl;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -223,6 +224,27 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
   public void test_recordRelationship_noLocation() throws Exception {
     store.recordRelationship(elementA, relationship, null);
     assertEquals(0, store.getRelationshipCount());
+  }
+
+  public void test_removeContext_instrumented() throws Exception {
+    InstrumentedAnalysisContextImpl instrumentedContext = mock(InstrumentedAnalysisContextImpl.class);
+    when(instrumentedContext.getBasis()).thenReturn(contextA);
+    // configure B
+    when(elementB.getContext()).thenReturn(contextA);
+    Location locationB = mock(Location.class);
+    when(locationB.getElement()).thenReturn(elementB);
+    // record: [B -> A]
+    {
+      store.recordRelationship(elementA, relationship, locationB);
+      assertEquals(1, store.getRelationshipCount());
+      assertEquals(1, store.getDeclarationCount(contextA));
+    }
+    // remove _wrapper_ of context A
+    InstrumentedAnalysisContextImpl iContextA = mock(InstrumentedAnalysisContextImpl.class);
+    when(iContextA.getBasis()).thenReturn(contextA);
+    store.removeContext(iContextA);
+    assertEquals(0, store.getRelationshipCount());
+    assertEquals(0, store.getLocationCount(contextA));
   }
 
   public void test_removeContext_withDeclaration() throws Exception {

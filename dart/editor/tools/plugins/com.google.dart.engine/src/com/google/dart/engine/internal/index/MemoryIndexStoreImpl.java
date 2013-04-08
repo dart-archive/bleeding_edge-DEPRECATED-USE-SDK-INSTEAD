@@ -18,6 +18,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
@@ -26,6 +27,8 @@ import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.MemoryIndexStore;
 import com.google.dart.engine.index.Relationship;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
@@ -87,6 +90,19 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     return null;
   }
 
+  /**
+   * When logging is on, {@link AnalysisEngine} actually creates
+   * {@link InstrumentedAnalysisContextImpl}, which wraps {@link AnalysisContextImpl} used to create
+   * actual {@link Element}s. So, in index we have to unwrap {@link InstrumentedAnalysisContextImpl}
+   * when perform any operation.
+   */
+  private static AnalysisContext unwrapContext(AnalysisContext context) {
+    if (context instanceof InstrumentedAnalysisContextImpl) {
+      context = ((InstrumentedAnalysisContextImpl) context).getBasis();
+    }
+    return context;
+  }
+
   private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
 
   /**
@@ -111,6 +127,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @VisibleForTesting
   public int getDeclarationCount(AnalysisContext context) {
+    context = unwrapContext(context);
     int count = 0;
     Map<Source, Set<Element>> contextDeclarations = sourceToDeclarations.get(context);
     if (contextDeclarations != null) {
@@ -132,6 +149,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @VisibleForTesting
   public int getLocationCount(AnalysisContext context) {
+    context = unwrapContext(context);
     int count = 0;
     Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(context);
     if (contextLocations != null) {
@@ -178,6 +196,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void readIndex(AnalysisContext context, InputStream input) throws IOException {
+    context = unwrapContext(context);
     new MemoryIndexReader(this, context, input).read();
   }
 
@@ -238,6 +257,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeContext(AnalysisContext context) {
+    context = unwrapContext(context);
     removedContexts.put(context, WEAK_SET_VALUE);
     // remove context sources
     sources.remove(context);
@@ -259,6 +279,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeSource(AnalysisContext context, Source source) {
+    context = unwrapContext(context);
     {
       Set<Source> contextSources = sources.get(context);
       if (contextSources != null) {
@@ -285,6 +306,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void removeSources(AnalysisContext context, SourceContainer container) {
+    context = unwrapContext(context);
     // prepare sources to remove
     Set<Source> sourcesToRemove = Sets.newHashSet();
     {
@@ -305,6 +327,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
 
   @Override
   public void writeIndex(AnalysisContext context, OutputStream output) throws IOException {
+    context = unwrapContext(context);
     new MemoryIndexWriter(this, context, output).write();
   }
 
