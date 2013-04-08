@@ -146,6 +146,9 @@ public class InMemoryIndex implements Index {
    * @return the unique instance of this class
    */
   public static InMemoryIndex getInstance() {
+
+    DartCore.oldModelCheck();
+
     return UniqueInstance;
   }
 
