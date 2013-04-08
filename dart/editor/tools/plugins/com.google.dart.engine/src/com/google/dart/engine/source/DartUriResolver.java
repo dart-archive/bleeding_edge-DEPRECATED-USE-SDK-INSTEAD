@@ -53,6 +53,15 @@ public class DartUriResolver extends UriResolver {
     this.sdk = sdk;
   }
 
+  /**
+   * Return the {@link DartSdk} against which URIs are to be resolved.
+   * 
+   * @return the {@link DartSdk} against which URIs are to be resolved.
+   */
+  public DartSdk getDartSdk() {
+    return sdk;
+  }
+
   @Override
   public Source resolveAbsolute(ContentCache contentCache, URI uri) {
     if (!isDartUri(uri)) {

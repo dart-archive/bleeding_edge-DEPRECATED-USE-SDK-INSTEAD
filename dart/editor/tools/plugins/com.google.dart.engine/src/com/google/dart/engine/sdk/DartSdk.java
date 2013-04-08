@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.sdk;
 
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.source.ContentCache;
 import com.google.dart.engine.source.Source;
 
@@ -31,6 +32,13 @@ public interface DartSdk {
    * The short name of the dart SDK html library.
    */
   public static final String DART_HTML = "dart:html";
+
+  /**
+   * Return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}.
+   * 
+   * @return the {@link AnalysisContext} used for all of the sources in this {@link DartSdk}
+   */
+  public AnalysisContext getContext();
 
   /**
    * Return an array containing all of the libraries defined in this SDK.

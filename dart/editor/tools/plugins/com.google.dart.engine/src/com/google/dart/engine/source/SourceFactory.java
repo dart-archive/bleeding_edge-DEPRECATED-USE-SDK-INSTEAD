@@ -15,6 +15,7 @@ package com.google.dart.engine.source;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.sdk.DartSdk;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -108,6 +109,23 @@ public class SourceFactory {
    */
   public AnalysisContext getContext() {
     return context;
+  }
+
+  /**
+   * Return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if there
+   * is no such SDK.
+   * 
+   * @return the {@link DartSdk} associated with this {@link SourceFactory}, or {@code null} if
+   *         there is no such SDK
+   */
+  public DartSdk getDartSdk() {
+    for (UriResolver resolver : resolvers) {
+      if (resolver instanceof DartUriResolver) {
+        DartUriResolver dartUriResolver = (DartUriResolver) resolver;
+        return dartUriResolver.getDartSdk();
+      }
+    }
+    return null;
   }
 
   /**

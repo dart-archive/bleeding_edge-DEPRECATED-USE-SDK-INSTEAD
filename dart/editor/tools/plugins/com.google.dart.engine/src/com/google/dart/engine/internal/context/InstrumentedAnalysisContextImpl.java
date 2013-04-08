@@ -51,7 +51,25 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   /**
    * The analysis context to which all of the non-instrumentation work is delegated.
    */
-  private final InternalAnalysisContext basis = new AnalysisContextImpl();
+  private final InternalAnalysisContext basis;
+
+  /**
+   * Create a new {@link InstrumentedAnalysisContextImpl} which wraps a new
+   * {@link AnalysisContextImpl} as the basis context.
+   */
+  public InstrumentedAnalysisContextImpl() {
+    this(new AnalysisContextImpl());
+  }
+
+  /**
+   * Create a new {@link InstrumentedAnalysisContextImpl} with a specified basis context, aka the
+   * context to wrap and instrument.
+   * 
+   * @param context some {@link InstrumentedAnalysisContext} to wrap and instrument
+   */
+  public InstrumentedAnalysisContextImpl(InternalAnalysisContext context) {
+    basis = context;
+  }
 
   @Override
   public void addSourceInfo(Source source, SourceInfo info) {

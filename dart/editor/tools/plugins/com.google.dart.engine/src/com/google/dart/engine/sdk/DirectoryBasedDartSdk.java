@@ -14,11 +14,16 @@
 package com.google.dart.engine.sdk;
 
 import com.google.dart.engine.AnalysisEngine;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.sdk.LibraryMap;
 import com.google.dart.engine.internal.sdk.SdkLibrariesReader;
 import com.google.dart.engine.source.ContentCache;
+import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
+import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.engine.utilities.os.OSUtilities;
 
@@ -32,6 +37,11 @@ import java.io.IOException;
  * @coverage dart.engine.sdk
  */
 public class DirectoryBasedDartSdk implements DartSdk {
+  /**
+   * The {@link AnalysisContext} which is used for all of the sources in this {@link DartSdk}.
+   */
+  private InternalAnalysisContext analysisContext;
+
   /**
    * The directory containing the SDK.
    */
@@ -186,6 +196,13 @@ public class DirectoryBasedDartSdk implements DartSdk {
     this.sdkDirectory = sdkDirectory.getAbsoluteFile();
     initializeSdk();
     initializeLibraryMap();
+    analysisContext = new AnalysisContextImpl();
+    analysisContext.setSourceFactory(new SourceFactory(new DartUriResolver(this)));
+  }
+
+  @Override
+  public AnalysisContext getContext() {
+    return analysisContext;
   }
 
   /**

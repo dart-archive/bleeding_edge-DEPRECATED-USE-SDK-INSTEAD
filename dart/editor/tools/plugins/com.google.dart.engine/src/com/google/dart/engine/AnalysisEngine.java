@@ -14,7 +14,7 @@
 package com.google.dart.engine;
 
 import com.google.dart.engine.context.AnalysisContext;
-import com.google.dart.engine.internal.context.AnalysisContextImpl;
+import com.google.dart.engine.internal.context.DelegatingAnalysisContextImpl;
 import com.google.dart.engine.internal.context.InstrumentedAnalysisContextImpl;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -101,12 +101,11 @@ public final class AnalysisEngine {
    * @return the analysis context that was created
    */
   public AnalysisContext createAnalysisContext() {
-
-    //If instrumentation is ignoring data, return the uninstrumented analysis context version
+    // If instrumentation is ignoring data, return the uninstrumented analysis context version
     if (Instrumentation.isNullLogger()) {
-      return new AnalysisContextImpl();
+      return new DelegatingAnalysisContextImpl();
     } else {
-      return new InstrumentedAnalysisContextImpl();
+      return new InstrumentedAnalysisContextImpl(new DelegatingAnalysisContextImpl());
     }
   }
 

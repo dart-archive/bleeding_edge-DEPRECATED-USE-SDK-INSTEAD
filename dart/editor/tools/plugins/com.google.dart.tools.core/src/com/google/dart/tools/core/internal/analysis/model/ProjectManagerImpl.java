@@ -13,16 +13,13 @@
  */
 package com.google.dart.tools.core.internal.analysis.model;
 
-import com.google.dart.engine.AnalysisEngine;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexFactory;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
-import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectEvent;
@@ -56,7 +53,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   private final HashMap<IProject, Project> projects = new HashMap<IProject, Project>();
   private final Index index = IndexFactory.newIndex(IndexFactory.newMemoryIndexStore());
   private final DartSdk sdk;
-  private final AnalysisContext sdkContext;
   private final DartIgnoreManager ignoreManager;
   private final ArrayList<ProjectListener> listeners = new ArrayList<ProjectListener>();
 
@@ -100,8 +96,6 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
   public ProjectManagerImpl(IWorkspaceRoot resource, DartSdk sdk, DartIgnoreManager ignoreManager) {
     this.resource = resource;
     this.sdk = sdk;
-    this.sdkContext = AnalysisEngine.getInstance().createAnalysisContext();
-    this.sdkContext.setSourceFactory(new SourceFactory(new DartUriResolver(sdk)));
     this.ignoreManager = ignoreManager;
   }
 
@@ -235,7 +229,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
 
   @Override
   public AnalysisContext getSdkContext() {
-    return sdkContext;
+    return sdk.getContext();
   }
 
   @Override
