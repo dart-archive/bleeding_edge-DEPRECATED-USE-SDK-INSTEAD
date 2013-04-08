@@ -19,6 +19,7 @@ import junit.framework.TestCase;
 
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +58,13 @@ public final class FileUtilities2 {
     assertTrue("Creation of symlinks is not supported", isSymLinkSupported());
     assertTrue("Target file does not exist", existingFile.exists());
     assertFalse("Link already exists", linkFile.exists());
-    Runtime.getRuntime().exec(new String[] {"ln", "-s", existingFile.getPath(), linkFile.getPath()});
+
+    ProcessRunner runner = new ProcessRunner(new String[] {
+        "ln", "-s", existingFile.getPath(), linkFile.getPath()});
+    int exitCode = runner.runSync(10000);
+    if (exitCode != 0) {
+      fail("Symlink creation failed [" + exitCode + "] " + linkFile);
+    }
   }
 
   /**
