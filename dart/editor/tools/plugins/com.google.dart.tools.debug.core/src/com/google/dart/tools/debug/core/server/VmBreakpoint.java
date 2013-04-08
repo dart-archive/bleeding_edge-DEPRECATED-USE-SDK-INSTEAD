@@ -22,7 +22,7 @@ public class VmBreakpoint {
   private int breakpointId;
 
   VmBreakpoint(String url, int line, int breakpointId) {
-    this.location = new VmLocation(url, line);
+    this.location = VmLocation.createFrom(url, line);
     this.breakpointId = breakpointId;
   }
 

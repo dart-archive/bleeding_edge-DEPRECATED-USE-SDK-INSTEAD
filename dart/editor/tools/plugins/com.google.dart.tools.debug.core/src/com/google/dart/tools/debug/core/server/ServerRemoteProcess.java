@@ -31,7 +31,6 @@ import org.eclipse.debug.core.model.IStreamsProxy;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -137,36 +136,10 @@ public class ServerRemoteProcess extends PlatformObject implements IProcess {
   public void setTarget(ServerDebugTarget target) {
     this.target = target;
 
-    this.target.getConnection().addListener(new VmListener() {
+    this.target.getConnection().addListener(new VMListenerAdapter() {
       @Override
       public void connectionClosed(VmConnection connection) {
         fireTerminateEvent();
-      }
-
-      @Override
-      public void connectionOpened(VmConnection connection) {
-
-      }
-
-      @Override
-      public void debuggerPaused(PausedReason reason, VmIsolate isolate, List<VmCallFrame> frames,
-          VmValue exception) {
-
-      }
-
-      @Override
-      public void debuggerResumed(VmIsolate isolate) {
-
-      }
-
-      @Override
-      public void isolateCreated(VmIsolate isolate) {
-
-      }
-
-      @Override
-      public void isolateShutdown(VmIsolate isolate) {
-
       }
     });
   }

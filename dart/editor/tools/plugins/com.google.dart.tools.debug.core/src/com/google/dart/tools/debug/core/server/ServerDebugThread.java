@@ -15,7 +15,6 @@
 package com.google.dart.tools.debug.core.server;
 
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
-import com.google.dart.tools.debug.core.breakpoints.DartBreakpoint;
 import com.google.dart.tools.debug.core.server.VmListener.PausedReason;
 
 import org.eclipse.core.runtime.IStatus;
@@ -235,13 +234,6 @@ public class ServerDebugThread extends ServerDebugElement implements IThread {
     if (expectedSuspendReason != DebugEvent.UNSPECIFIED) {
       reason = expectedSuspendReason;
       expectedSuspendReason = DebugEvent.UNSPECIFIED;
-    } else {
-      DartBreakpoint breakpoint = getTarget().getBreakpointFor(frames);
-
-      if (breakpoint != null) {
-        suspendedBreakpoints = new IBreakpoint[] {breakpoint};
-        reason = DebugEvent.BREAKPOINT;
-      }
     }
 
     suspended = true;

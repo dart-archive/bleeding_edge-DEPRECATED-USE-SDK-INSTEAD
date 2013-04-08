@@ -24,38 +24,82 @@ import org.json.JSONObject;
  */
 public class VmLocation {
 
-  static VmLocation createFrom(JSONObject object) throws JSONException {
-    VmLocation location = new VmLocation();
+  public static VmLocation createFrom(String url, final int lineNumber) {
+    VmLocation location = new VmLocation(null) {
+      private int line;
 
-    location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
-    location.lineNumber = JsonUtils.getInt(object, "lineNumber", -1);
-    // This field is not currently used by the VM.
-    location.columnNumber = JsonUtils.getInt(object, "columnNumber", -1);
+      {
+        line = lineNumber;
+      }
+
+      @Override
+      public int getLineNumber(VmConnection connection) {
+        return line;
+      }
+
+      @Override
+      protected void updateInfo(String url, int lineNumber) {
+        super.updateInfo(url, lineNumber);
+
+        this.line = lineNumber;
+      }
+    };
+
+    location.url = url;
 
     return location;
   }
 
-  private int columnNumber;
+  static VmLocation createFrom(VmIsolate isolate, int libraryId, JSONObject object)
+      throws JSONException {
+    if (object == null) {
+      return null;
+    }
 
-  private int lineNumber;
+    VmLocation location = new VmLocation(isolate);
+
+    location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
+    location.libraryId = libraryId;
+    location.tokenOffset = JsonUtils.getInt(object, "tokenOffset", -1);
+
+    return location;
+  }
+
+  static VmLocation createFrom(VmIsolate isolate, JSONObject object) throws JSONException {
+    if (object == null) {
+      return null;
+    }
+
+    VmLocation location = new VmLocation(isolate);
+
+    location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
+    location.tokenOffset = JsonUtils.getInt(object, "tokenOffset", -1);
+
+    return location;
+  }
+
+  private VmIsolate isolate;
+
+  private int libraryId;
+
+  private int tokenOffset;
 
   private String url;
 
-  public VmLocation(String url, int lineNumber) {
-    this.url = url;
-    this.lineNumber = lineNumber;
+  VmLocation(VmIsolate isolate) {
+    this.isolate = isolate;
   }
 
-  VmLocation() {
-
+  public int getLibraryId() {
+    return libraryId;
   }
 
-  public int getColumnNumber() {
-    return columnNumber;
+  public int getLineNumber(VmConnection connection) {
+    return connection.getLineNumberFromLocation(isolate, this);
   }
 
-  public int getLineNumber() {
-    return lineNumber;
+  public int getTokenOffset() {
+    return tokenOffset;
   }
 
   public String getUrl() {
@@ -66,23 +110,18 @@ public class VmLocation {
     JSONObject object = new JSONObject();
 
     object.put("url", url);
-    object.put("lineNumber", lineNumber);
-
-    if (columnNumber != -1) {
-      object.put("columnNumber", columnNumber);
-    }
+    object.put("tokenOffset", tokenOffset);
 
     return object;
   }
 
   @Override
   public String toString() {
-    return "[" + url + "," + lineNumber + (columnNumber == -1 ? "" : "," + columnNumber) + "]";
+    return "[" + url + ", tokenOffset=" + tokenOffset + "]";
   }
 
-  void updateInfo(String url, int lineNumber) {
+  protected void updateInfo(String url, int lineNumber) {
     this.url = url;
-    this.lineNumber = lineNumber;
   }
 
 }

@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A low level interface to the Dart VM debugger protocol.
@@ -72,6 +74,8 @@ public class VmConnection {
   private static final Set<String> CORE_IMPL_LIBRARIES = new HashSet<String>(
       Arrays.asList(new String[] {"dart:core", "dart:nativewrappers"}));
 
+  private static ExecutorService threadPool = Executors.newCachedThreadPool();
+
   private List<VmListener> listeners = new ArrayList<VmListener>();
 
   private String host;
@@ -87,6 +91,8 @@ public class VmConnection {
   private List<VmBreakpoint> breakpoints = Collections.synchronizedList(new ArrayList<VmBreakpoint>());
 
   private Map<String, String> sourceCache = new HashMap<String, String>();
+
+  private Map<String, VmLineNumberTable> lineNumberTableCache = new HashMap<String, VmLineNumberTable>();
 
   protected Map<Integer, BreakpointResolvedCallback> breakpointCallbackMap = new HashMap<Integer, VmConnection.BreakpointResolvedCallback>();
 
@@ -158,24 +164,35 @@ public class VmConnection {
    * 
    * @throws IOException
    */
-  public void enableAllStepping(final VmIsolate isolate) throws IOException {
+  public void enableAllSteppingSync(final VmIsolate isolate) throws IOException {
+    final CountDownLatch latch = new CountDownLatch(1);
+
     getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
       @Override
       public void handleResult(VmResult<List<VmLibraryRef>> result) {
-        if (!result.isError()) {
-          for (VmLibraryRef ref : result.getResult()) {
-            try {
-              //if (ref.getUrl().startsWith("dart:")) {
-              if (!CORE_IMPL_LIBRARIES.contains(ref.getUrl())) {
-                setLibraryProperties(isolate, ref.getId(), true);
-              }
-            } catch (IOException e) {
+        try {
+          if (!result.isError()) {
+            for (VmLibraryRef ref : result.getResult()) {
+              try {
+                if (!CORE_IMPL_LIBRARIES.contains(ref.getUrl())) {
+                  setLibraryProperties(isolate, ref.getId(), true);
+                }
+              } catch (IOException e) {
 
+              }
             }
           }
+        } finally {
+          latch.countDown();
         }
       }
     });
+
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+
+    }
   }
 
   public void evaluateGlobal(VmIsolate isolate, String expression,
@@ -298,69 +315,6 @@ public class VmConnection {
     });
   }
 
-//  /**
-//   * This synchronous, potentially long-running call returns the cached source for the given script
-//   * url, if any.
-//   * 
-//   * @param url
-//   * @return
-//   */
-//  public String getScriptSource(final VmIsolate isolate, final String url) {
-//    if (!sourceCache.containsKey(url)) {
-//      try {
-//        final CountDownLatch latch = new CountDownLatch(1);
-//
-//        getLibraries(isolate, new VmCallback<List<VmLibraryRef>>() {
-//          @Override
-//          public void handleResult(VmResult<List<VmLibraryRef>> result) {
-//            if (result.isError()) {
-//              sourceCache.put(url, null);
-//              latch.countDown();
-//            } else {
-//              for (VmLibraryRef library : result.getResult()) {
-//                if (url.equals(library.getUrl())) {
-//                  try {
-//                    getScriptSourceAsync(isolate, library.getId(), url, new VmCallback<String>() {
-//                      @Override
-//                      public void handleResult(VmResult<String> result) {
-//                        if (result.isError()) {
-//                          sourceCache.put(url, null);
-//                        } else {
-//                          sourceCache.put(url, result.getResult());
-//                        }
-//
-//                        latch.countDown();
-//                      }
-//                    });
-//                  } catch (IOException e) {
-//                    sourceCache.put(url, null);
-//                    latch.countDown();
-//                  }
-//
-//                  return;
-//                }
-//              }
-//
-//              // No matches found.
-//              sourceCache.put(url, null);
-//              latch.countDown();
-//            }
-//          }
-//        });
-//
-//        try {
-//          latch.await();
-//        } catch (InterruptedException e) {
-//
-//        }
-//      } catch (IOException ioe) {
-//        sourceCache.put(url, null);
-//      }
-//    }
-//
-//    return sourceCache.get(url);
-//  }
-
   public void getLibraryProperties(final VmIsolate isolate, final int libraryId,
       final VmCallback<VmLibrary> callback) throws IOException {
     if (callback == null) {
@@ -382,6 +336,79 @@ public class VmConnection {
               result);
 
           callback.handleResult(retValue);
+        }
+      });
+    } catch (JSONException exception) {
+      throw new IOException(exception);
+    }
+  }
+
+  public int getLineNumberFromLocation(VmIsolate isolate, VmLocation location) {
+    String cacheKey = location.getLibraryId() + ":" + location.getUrl();
+
+    if (!lineNumberTableCache.containsKey(cacheKey)) {
+      final CountDownLatch latch = new CountDownLatch(1);
+      final VmLineNumberTable[] result = new VmLineNumberTable[1];
+
+      try {
+        getLineNumberTable(
+            isolate,
+            location.getLibraryId(),
+            location.getUrl(),
+            new VmCallback<VmLineNumberTable>() {
+              @Override
+              public void handleResult(VmResult<VmLineNumberTable> r) {
+                result[0] = r.getResult();
+
+                latch.countDown();
+              }
+            });
+      } catch (IOException ex) {
+        latch.countDown();
+      }
+
+      try {
+        latch.await();
+      } catch (InterruptedException e) {
+
+      }
+
+      lineNumberTableCache.put(cacheKey, result[0]);
+    }
+
+    VmLineNumberTable lineNumberTable = lineNumberTableCache.get(cacheKey);
+
+    if (lineNumberTable == null) {
+      return 0;
+    } else {
+      return lineNumberTable.getLineForLocation(location);
+    }
+  }
+
+  public void getLineNumberTable(final VmIsolate isolate, final int libraryId,
+      final String eclipseUrl, final VmCallback<VmLineNumberTable> callback) throws IOException {
+    if (callback == null) {
+      throw new IllegalArgumentException("a callback is required");
+    }
+
+    final String vmUrl = VmUtils.eclipseUrlToVm(eclipseUrl);
+
+    try {
+      JSONObject request = new JSONObject();
+
+      request.put("command", "getLineNumberTable");
+      request.put("params", new JSONObject().put("libraryId", libraryId).put("url", vmUrl));
+
+      sendRequest(request, isolate.getId(), new Callback() {
+        @Override
+        public void handleResult(JSONObject result) throws JSONException {
+          VmResult<VmLineNumberTable> vmObjectResult = convertGetLineNumberTableResult(
+              isolate,
+              libraryId,
+              eclipseUrl,
+              result);
+
+          callback.handleResult(vmObjectResult);
         }
       });
     } catch (JSONException exception) {
@@ -531,6 +558,16 @@ public class VmConnection {
     }
   }
 
+  public void getStackTrace(final VmIsolate isolate, final VmCallback<List<VmCallFrame>> callback)
+      throws IOException {
+    sendSimpleCommand("getStackTrace", isolate.getId(), new Callback() {
+      @Override
+      public void handleResult(JSONObject result) throws JSONException {
+        callback.handleResult(convertGetStackTraceResult(isolate, result));
+      }
+    });
+  }
+
   public void interrupt(VmIsolate isolate) throws IOException {
     sendSimpleCommand("interrupt", isolate.getId());
   }
@@ -573,8 +610,20 @@ public class VmConnection {
     sendSimpleCommand("resume", isolate.getId(), resumeOnSuccess(isolate));
   }
 
-  public void setBreakpoint(VmIsolate isolate, final String url, final int line,
+  /**
+   * TODO(devoncarew): we use a synchronous version of this call to work around a deadlock issue in
+   * the VM
+   * 
+   * @param isolate
+   * @param url
+   * @param line
+   * @param callback
+   * @throws IOException
+   */
+  public void setBreakpointSync(VmIsolate isolate, final String url, final int line,
       final BreakpointResolvedCallback callback) throws IOException {
+    final CountDownLatch latch = new CountDownLatch(1);
+
     try {
       JSONObject request = new JSONObject();
 
@@ -586,27 +635,34 @@ public class VmConnection {
       sendRequest(request, isolate.getId(), new Callback() {
         @Override
         public void handleResult(JSONObject object) throws JSONException {
-          if (!object.has("error")) {
-            int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
+          try {
+            if (!object.has("error")) {
+              int breakpointId = JsonUtils.getInt(object.getJSONObject("result"), "breakpointId");
 
-            VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
+              VmBreakpoint bp = new VmBreakpoint(url, line, breakpointId);
 
-            breakpoints.add(bp);
+              breakpoints.add(bp);
 
-            if (callback != null) {
-              //callback.handleResolved(bp);
+              if (callback != null) {
+                //callback.handleResolved(bp);
 
-              breakpointCallbackMap.put(breakpointId, callback);
+                breakpointCallbackMap.put(breakpointId, callback);
+              }
             }
+          } finally {
+            latch.countDown();
           }
         }
       });
+
       try {
-        Thread.sleep(10);
+        latch.await();
       } catch (InterruptedException e) {
-        // do nothing
+
       }
     } catch (JSONException exception) {
+      latch.countDown();
+
       throw new IOException(exception);
     }
   }
@@ -664,14 +720,18 @@ public class VmConnection {
       request.put("command", "setPauseOnException");
       request.put("params", new JSONObject().put("exceptions", kind.toString()));
 
-      sendRequest(request, isolate.getId(), new Callback() {
-        @Override
-        public void handleResult(JSONObject result) throws JSONException {
-          VmResult<Boolean> callbackResult = VmResult.createFrom(result);
-          callbackResult.setResult(true);
-          callback.handleResult(callbackResult);
-        }
-      });
+      if (callback == null) {
+        sendRequest(request, isolate.getId(), null);
+      } else {
+        sendRequest(request, isolate.getId(), new Callback() {
+          @Override
+          public void handleResult(JSONObject result) throws JSONException {
+            VmResult<Boolean> callbackResult = VmResult.createFrom(result);
+            callbackResult.setResult(true);
+            callback.handleResult(callbackResult);
+          }
+        });
+      }
     } catch (JSONException exception) {
       throw new IOException(exception);
     }
@@ -704,16 +764,21 @@ public class VmConnection {
     callbackMap.clear();
   }
 
-  protected void processJson(JSONObject result) {
-    try {
-      if (result.has("id")) {
-        processResponse(result);
-      } else {
-        processNotification(result);
+  protected void processJson(final JSONObject result) {
+    threadPool.execute(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          if (result.has("id")) {
+            processResponse(result);
+          } else {
+            processNotification(result);
+          }
+        } catch (Throwable exception) {
+          DartDebugCorePlugin.logError(exception);
+        }
       }
-    } catch (Throwable exception) {
-      DartDebugCorePlugin.logError(exception);
-    }
+    });
   }
 
   protected void sendSimpleCommand(String command, int isolateId) throws IOException {
@@ -833,6 +898,21 @@ public class VmConnection {
     return result;
   }
 
+  private VmResult<VmLineNumberTable> convertGetLineNumberTableResult(VmIsolate isolate,
+      int libraryId, String url, JSONObject object) throws JSONException {
+    VmResult<VmLineNumberTable> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      result.setResult(VmLineNumberTable.createFrom(
+          isolate,
+          libraryId,
+          url,
+          object.getJSONObject("result")));
+    }
+
+    return result;
+  }
+
   private VmResult<VmValue> convertGetListElementsResult(VmIsolate isolate, JSONObject object)
       throws JSONException {
     VmResult<VmValue> result = VmResult.createFrom(object);
@@ -879,6 +959,21 @@ public class VmConnection {
       }
 
       result.setResult(libUrls);
+    }
+
+    return result;
+  }
+
+  private VmResult<List<VmCallFrame>> convertGetStackTraceResult(VmIsolate isolate,
+      JSONObject object) throws JSONException {
+    VmResult<List<VmCallFrame>> result = VmResult.createFrom(object);
+
+    if (object.has("result")) {
+      List<VmCallFrame> frames = VmCallFrame.createFrom(
+          isolate,
+          object.getJSONObject("result").getJSONArray("callFrames"));
+
+      result.setResult(frames);
     }
 
     return result;
@@ -965,20 +1060,19 @@ public class VmConnection {
       JSONObject params = result.optJSONObject("params");
 
       if (eventName.equals(EVENT_PAUSED)) {
-        // { "event": "paused", "params": { "callFrames" : [  { "functionName": "main" , "location": { "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "lineNumber": 15 }}]}}
+        int isolateId;
+        if (params.has("isolateId")) {
+          isolateId = params.optInt("isolateId", -1);
+        } else {
+          isolateId = params.optInt("id", -1);
+        }
 
         String reason = params.optString("reason", null);
-        int isolateId = params.optInt("id", -1);
         VmIsolate isolate = getCreateIsolate(isolateId);
-
         VmValue exception = VmValue.createFrom(isolate, params.optJSONObject("exception"));
-        List<VmCallFrame> frames = VmCallFrame.createFrom(
-            isolate,
-            params.getJSONArray("callFrames"));
+        VmLocation location = VmLocation.createFrom(isolate, params.optJSONObject("location"));
 
-        for (VmListener listener : listeners) {
-          listener.debuggerPaused(PausedReason.parse(reason), isolate, frames, exception);
-        }
+        sendDelayedDebuggerPaused(PausedReason.parse(reason), isolate, location, exception);
       } else if (eventName.equals(EVENT_BREAKPOINTRESOLVED)) {
         // { "event": "breakpointResolved", "params": {"breakpointId": 2, "url": "file:///Users/devoncarew/tools/eclipse_37/eclipse/samples/time/time_server.dart", "line": 19 }}
 
@@ -1133,6 +1227,28 @@ public class VmConnection {
 
     out.write(bytes);
     out.flush();
+  }
+
+  private void sendDelayedDebuggerPaused(final PausedReason reason, final VmIsolate isolate,
+      final VmLocation location, final VmValue exception) throws JSONException {
+    try {
+      getStackTrace(isolate, new VmCallback<List<VmCallFrame>>() {
+        @Override
+        public void handleResult(VmResult<List<VmCallFrame>> result) {
+          if (result.isError()) {
+            DartDebugCorePlugin.logError(result.getError());
+          } else {
+            List<VmCallFrame> frames = result.getResult();;
+
+            for (VmListener listener : listeners) {
+              listener.debuggerPaused(reason, isolate, frames, exception);
+            }
+          }
+        }
+      });
+    } catch (IOException e) {
+      throw new JSONException(e);
+    }
   }
 
 }

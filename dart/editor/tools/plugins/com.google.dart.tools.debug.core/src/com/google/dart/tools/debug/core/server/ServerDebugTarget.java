@@ -61,8 +61,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
 
   private boolean firstBreak = true;
 
-  private int resumeCount = 0;
-
   private ServerBreakpointManager breakpointManager;
 
   // TODO(devoncarew): this "main" isolate is temporary, until the VM allows us to 
@@ -179,13 +177,22 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     if (firstBreak) {
       firstBreak = false;
 
+      // init everything
+      firstIsolateInit(isolate);
+
       if (PausedReason.breakpoint == reason) {
         DartBreakpoint breakpoint = getBreakpointFor(frames);
 
         // If this is our first break, and there is no user breakpoint here, and the stop is on the
         // main() method, then resume.
         if (breakpoint == null && frames.size() > 0 && frames.get(0).isMain()) {
-          resumed = maybeResume(isolate);
+          resumed = true;
+
+          try {
+            getVmConnection().resume(isolate);
+          } catch (IOException ioe) {
+            DartDebugCorePlugin.logError(ioe);
+          }
         }
       }
     }
@@ -281,9 +288,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
   public void isolateCreated(VmIsolate isolate) {
     if (mainIsolate == null) {
       mainIsolate = isolate;
-
-      // init everything
-      firstIsolateInit(isolate);
     }
 
     addThread(new ServerDebugThread(this, isolate));
@@ -386,7 +390,7 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     breakpointManager.connect(isolate);
 
     try {
-      connection.enableAllStepping(isolate);
+      connection.enableAllSteppingSync(isolate);
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }
@@ -398,16 +402,18 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     } catch (IOException e) {
       DartDebugCorePlugin.logError(e);
     }
-
-    maybeResume(isolate);
   }
 
   private DartBreakpoint getBreakpointFor(VmLocation location) {
+    if (location == null) {
+      return null;
+    }
+
     IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(
         DartDebugCorePlugin.DEBUG_MODEL_ID);
 
     String url = location.getUrl();
-    int line = location.getLineNumber();
+    int line = location.getLineNumber(getConnection());
 
     for (IBreakpoint bp : breakpoints) {
       if (getTarget().supportsBreakpoint(bp)) {
@@ -437,22 +443,6 @@ public class ServerDebugTarget extends ServerDebugElement implements IDebugTarge
     }
 
     return pauseType;
-  }
-
-  private synchronized boolean maybeResume(VmIsolate isolate) {
-    resumeCount++;
-
-    if (resumeCount >= 2) {
-      try {
-        getVmConnection().resume(isolate);
-
-        return resumeCount == 2;
-      } catch (IOException ioe) {
-        DartDebugCorePlugin.logError(ioe);
-      }
-    }
-
-    return false;
   }
 
   private void removeThread(ServerDebugThread thread) {

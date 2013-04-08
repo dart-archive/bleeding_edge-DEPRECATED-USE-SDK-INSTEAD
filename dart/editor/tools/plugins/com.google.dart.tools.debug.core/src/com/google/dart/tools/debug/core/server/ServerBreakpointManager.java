@@ -52,10 +52,10 @@ class ServerBreakpointManager implements IBreakpointListener {
 
         if (bp.getLocation().getUrl().equals(url)
             || (pubUrl != null && bp.getLocation().getUrl().equals(pubUrl))) {
-          if (bp.getLocation().getLineNumber() != dartBreakpoint.getLine()) {
+          if (bp.getLocation().getLineNumber(getConnection()) != dartBreakpoint.getLine()) {
             ignoredBreakpoints.add(dartBreakpoint);
 
-            dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber());
+            dartBreakpoint.updateLineNumber(bp.getLocation().getLineNumber(getConnection()));
           }
         }
       }
@@ -140,12 +140,12 @@ class ServerBreakpointManager implements IBreakpointListener {
       int line = breakpoint.getLine();
 
       try {
-        getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
+        getConnection().setBreakpointSync(isolate, url, line, new BreakpointCallback(breakpoint));
 
         url = getPubUrlForResource(breakpoint.getFile());
 
         if (url != null) {
-          getConnection().setBreakpoint(isolate, url, line, new BreakpointCallback(breakpoint));
+          getConnection().setBreakpointSync(isolate, url, line, new BreakpointCallback(breakpoint));
         }
       } catch (IOException exception) {
         DartDebugCorePlugin.logError(exception);
@@ -158,7 +158,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     final int line = breakpoint.getLine();
 
     for (VmBreakpoint bp : getConnection().getBreakpoints()) {
-      if (line == bp.getLocation().getLineNumber()
+      if (line == bp.getLocation().getLineNumber(getConnection())
           && NetUtils.compareUrls(url, bp.getLocation().getUrl())) {
         return bp;
       }
@@ -172,7 +172,7 @@ class ServerBreakpointManager implements IBreakpointListener {
 
     if (pubUrl != null) {
       for (VmBreakpoint bp : getConnection().getBreakpoints()) {
-        if (line == bp.getLocation().getLineNumber()
+        if (line == bp.getLocation().getLineNumber(getConnection())
             && NetUtils.compareUrls(pubUrl, bp.getLocation().getUrl())) {
           return bp;
         }

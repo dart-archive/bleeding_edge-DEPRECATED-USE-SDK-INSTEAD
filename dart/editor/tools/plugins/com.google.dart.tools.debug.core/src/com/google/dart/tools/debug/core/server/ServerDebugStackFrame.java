@@ -134,7 +134,13 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public int getLineNumber() throws DebugException {
-    return vmFrame.getLocation().getLineNumber();
+    VmLocation location = vmFrame.getLocation();
+
+    if (location != null) {
+      return location.getLineNumber(getConnection());
+    } else {
+      return 0;
+    }
   }
 
   @Override
@@ -165,7 +171,13 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
 
   @Override
   public String getSourceLocationPath() {
-    URI uri = URI.create(vmFrame.getLocation().getUrl());
+    VmLocation location = vmFrame.getLocation();
+
+    if (location == null) {
+      return null;
+    }
+
+    URI uri = URI.create(location.getUrl());
 
     // Resolve a package: reference.
     if (PackageLibraryManager.isPackageUri(uri)) {
@@ -178,7 +190,7 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     if (uri != null && "file".equals(uri.getScheme())) {
       return uri.getPath();
     } else {
-      return "builtin:" + vmFrame.getLibraryId() + ":" + vmFrame.getLocation().getUrl();
+      return "builtin:" + vmFrame.getLibraryId() + ":" + location.getUrl();
     }
   }
 
@@ -336,10 +348,10 @@ public class ServerDebugStackFrame extends ServerDebugElement implements IStackF
     } else {
       if (resource != null) {
         return PackageLibraryManagerProvider.getPackageLibraryManager(
-            resource.getLocation().toFile()).resolvePackageUri(vmFrame.getLocation().getUrl());
+            resource.getLocation().toFile()).resolvePackageUri(uri.toString());
       } else {
         return PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(
-            vmFrame.getLocation().getUrl());
+            uri.toString());
       }
     }
 
