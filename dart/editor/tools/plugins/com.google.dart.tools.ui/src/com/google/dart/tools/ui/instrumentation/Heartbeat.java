@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.instrumentation;
 
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
+import com.google.dart.tools.ui.feedback.FeedbackUtils;
 
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IViewReference;
@@ -43,6 +44,12 @@ public class Heartbeat {
    */
   public void heartbeat(InstrumentationBuilder instrumentation) {
     logWindowsPagesAndTabs(instrumentation);
+
+    //@TODO(lukechurch): Add tests
+    instrumentation.metric("MexMemory-FeedbackUtils", FeedbackUtils.getMaxMem());
+    instrumentation.metric("TotalMemory", Runtime.getRuntime().totalMemory());
+    instrumentation.metric("FreeMemory", Runtime.getRuntime().freeMemory());
+
   }
 
   private void logWindowsPagesAndTabs(InstrumentationBuilder instrumentation) {
