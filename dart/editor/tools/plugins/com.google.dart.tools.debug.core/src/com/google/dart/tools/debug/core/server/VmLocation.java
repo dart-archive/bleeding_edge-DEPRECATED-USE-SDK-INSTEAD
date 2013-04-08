@@ -50,21 +50,6 @@ public class VmLocation {
     return location;
   }
 
-  static VmLocation createFrom(VmIsolate isolate, int libraryId, JSONObject object)
-      throws JSONException {
-    if (object == null) {
-      return null;
-    }
-
-    VmLocation location = new VmLocation(isolate);
-
-    location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
-    location.libraryId = libraryId;
-    location.tokenOffset = JsonUtils.getInt(object, "tokenOffset", -1);
-
-    return location;
-  }
-
   static VmLocation createFrom(VmIsolate isolate, JSONObject object) throws JSONException {
     if (object == null) {
       return null;
@@ -72,6 +57,7 @@ public class VmLocation {
 
     VmLocation location = new VmLocation(isolate);
 
+    location.libraryId = JsonUtils.getInt(object, "libraryId", -1);
     location.url = VmUtils.vmUrlToEclipse(JsonUtils.getString(object, "url"));
     location.tokenOffset = JsonUtils.getInt(object, "tokenOffset", -1);
 
