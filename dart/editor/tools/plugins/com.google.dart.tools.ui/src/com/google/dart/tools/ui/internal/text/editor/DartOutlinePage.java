@@ -318,6 +318,8 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
       actionGroups.dispose();
       actionGroups = null;
     }
+    // we are not selection provider anymore
+    getSite().setSelectionProvider(null);
     // done
     viewer = null;
     input = null;

@@ -1938,6 +1938,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    * resolved.
    */
   public void applyCompilationUnitElement(com.google.dart.engine.ast.CompilationUnit unit) {
+    if (isDisposed()) {
+      return;
+    }
     resolvedUnit = unit;
     Display.getDefault().asyncExec(new Runnable() {
       @Override
@@ -1959,6 +1962,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   public void applyParsedUnitAndSelection(com.google.dart.engine.ast.CompilationUnit unit,
       boolean newUnit, Point selectionRange) {
+    if (isDisposed()) {
+      return;
+    }
     parsedUnit = unit;
     DartOutlinePage outlinePage = (DartOutlinePage) fOutlinePage;
     // may be update Outline
@@ -2087,6 +2093,9 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     selectionProvider = null;
 
     super.dispose();
+
+    parsedUnit = null;
+    resolvedUnit = null;
   }
 
   @Override
