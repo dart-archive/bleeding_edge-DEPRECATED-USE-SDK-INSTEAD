@@ -90,12 +90,6 @@ public class ScanTimings extends TestCase {
 
   private final class MockIndexForScan implements Index {
     @Override
-    public void clear() {
-      // ignored
-
-    }
-
-    @Override
     public String getIndexStatistics() {
       // ignored
       return null;

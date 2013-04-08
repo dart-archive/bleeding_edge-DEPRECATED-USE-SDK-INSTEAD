@@ -109,21 +109,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
    */
   final Map<AnalysisContext, Map<Source, FastRemoveList<ContributedLocation>>> sourceToLocations = Maps.newHashMapWithExpectedSize(64);
 
-  @Override
-  public void clear() {
-    // all current contexts are implicitly removed
-    for (AnalysisContext context : sources.keySet()) {
-      if (context != null) {
-        removedContexts.put(context, WEAK_SET_VALUE);
-      }
-    }
-    // clear data
-    relationshipMap.clear();
-    sources.clear();
-    sourceToDeclarations.clear();
-    sourceToLocations.clear();
-  }
-
   @VisibleForTesting
   public int getDeclarationCount(AnalysisContext context) {
     int count = 0;

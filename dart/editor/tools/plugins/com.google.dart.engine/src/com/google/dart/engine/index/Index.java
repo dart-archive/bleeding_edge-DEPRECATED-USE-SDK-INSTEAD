@@ -33,12 +33,6 @@ import com.google.dart.engine.source.SourceContainer;
  * @coverage dart.engine.index
  */
 public interface Index {
-
-  /**
-   * Clears the index store, removes all relationships that have been stored.
-   */
-  void clear();
-
   /**
    * Answer index statistics.
    */

@@ -20,9 +20,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Relationship;
 import com.google.dart.engine.index.RelationshipCallback;
-import com.google.dart.engine.internal.index.operation.ClearIndexOperation;
 import com.google.dart.engine.internal.index.operation.GetRelationshipsOperation;
-import com.google.dart.engine.internal.index.operation.IndexOperation;
 import com.google.dart.engine.internal.index.operation.IndexUnitOperation;
 import com.google.dart.engine.internal.index.operation.OperationProcessor;
 import com.google.dart.engine.internal.index.operation.OperationQueue;
@@ -46,21 +44,6 @@ public class IndexImpl implements Index {
     this.store = store;
     this.queue = queue;
     this.processor = processor;
-  }
-
-  @Override
-  public void clear() {
-    IndexOperation operation;
-    try {
-      operation = queue.dequeue(0);
-      while (operation != null) {
-        operation = queue.dequeue(0);
-      }
-    } catch (InterruptedException e) {
-      // do nothing
-    }
-
-    new ClearIndexOperation(store, null).performOperation();
   }
 
   @Override

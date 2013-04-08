@@ -26,11 +26,6 @@ import com.google.dart.engine.source.SourceContainer;
  */
 public interface IndexStore {
   /**
-   * Remove all data from this index.
-   */
-  void clear();
-
-  /**
    * Return the number of elements that are currently recorded in this index.
    * 
    * @return the number of elements that are currently recorded in this index

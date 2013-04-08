@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.core.jobs;
 
-import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.index.AnalysisIndexManager;
 import com.google.dart.tools.core.internal.model.DartModelManager;
@@ -65,7 +64,7 @@ public class CleanLibrariesJob extends Job {
 
         DartModelManager.getInstance().resetModel();
       } else {
-        DartCore.getProjectManager().getIndex().clear();
+        // nothing for new analysis
       }
 
       SubMonitor subMonitor = SubMonitor.convert(monitor, "Reanalyzing...", 100);

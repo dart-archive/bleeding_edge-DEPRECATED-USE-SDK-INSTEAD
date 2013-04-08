@@ -82,16 +82,6 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
 
   private Location location = mock(Location.class);
 
-  public void test_clear() throws Exception {
-    store.recordRelationship(elementA, relationship, location);
-    assertEquals(1, store.getElementCount());
-    assertEquals(1, store.getRelationshipCount());
-    // clear
-    store.clear();
-    assertEquals(0, store.getElementCount());
-    assertEquals(0, store.getRelationshipCount());
-  }
-
   public void test_findSource_ClassElement() throws Exception {
     Source source = mock(Source.class);
     CompilationUnitElement unitElement = mock(CompilationUnitElement.class);
@@ -478,7 +468,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       content = baos.toByteArray();
     }
     // clear
-    store.clear();
+    store.removeContext(contextA);
+    store.removeContext(contextB);
     assertEquals(0, store.getElementCount());
     assertEquals(0, store.getRelationshipCount());
     // we need to re-create AnalysisContext, current instance was marked as removed
