@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.index;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.dart.engine.EngineTestCase;
 import com.google.dart.engine.context.AnalysisContext;
@@ -235,6 +236,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(locationB.getElement()).thenReturn(elementB);
     // record: [B -> A]
     {
+      store.recordSourceElements(contextA, sourceA, ImmutableList.of(elementA));
       store.recordRelationship(elementA, relationship, locationB);
       assertEquals(1, store.getRelationshipCount());
       assertEquals(1, store.getDeclarationCount(contextA));
@@ -257,6 +259,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(locationC.getElement()).thenReturn(elementC);
     // record: [B -> A] and [C -> A]
     {
+      store.recordSourceElements(contextA, sourceA, ImmutableList.of(elementA));
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.getRelationshipCount());
@@ -292,7 +295,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.getRelationshipCount());
-      assertEquals(1, store.getDeclarationCount(contextA));
+      assertEquals(0, store.getDeclarationCount(contextA));
       assertEquals(1, store.getLocationCount(contextB));
       assertEquals(1, store.getLocationCount(contextC));
       // we get locations from all contexts
@@ -326,6 +329,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     when(locationC.getElement()).thenReturn(elementC);
     // record: [B -> A] and [C -> A]
     {
+      store.recordSourceElements(contextA, sourceA, ImmutableList.of(elementA));
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       assertEquals(2, store.getRelationshipCount());
@@ -405,8 +409,9 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     Location locationC = mock(Location.class);
     when(locationB.getElement()).thenReturn(elementB);
     when(locationC.getElement()).thenReturn(elementC);
-    // record: [B -> A],  [C -> A] and [B -> C]
+    // record: A, [B -> A],  [C -> A] and [B -> C]
     {
+      store.recordSourceElements(contextA, sourceA, ImmutableList.of(elementA));
       store.recordRelationship(elementA, relationship, locationB);
       store.recordRelationship(elementA, relationship, locationC);
       store.recordRelationship(elementC, relationship, locationB);
@@ -414,7 +419,7 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
       Location[] locations = store.getRelationships(elementA, relationship);
       assertThat(locations).containsOnly(locationB, locationC);
     }
-    // remove container with [A], only [B -> D] left
+    // remove container with [A], only [B -> C] left
     SourceContainer containerA = mockSourceContainer(sourceA);
     store.removeSources(contextA, containerA);
     assertEquals(1, store.getRelationshipCount());
@@ -476,6 +481,8 @@ public class MemoryIndexStoreImplTest extends EngineTestCase {
     // fill store
     Location locationA = new Location(elementA, 0, 0, null);
     Location locationB = new Location(elementB, 0, 0, null);
+    store.recordSourceElements(contextA, sourceA, ImmutableList.of(elementA));
+    store.recordSourceElements(contextB, sourceB, ImmutableList.of(elementB));
     store.recordRelationship(elementA, relationship, locationA);
     store.recordRelationship(elementB, relationship, locationB);
     assertEquals(2, store.getElementCount());

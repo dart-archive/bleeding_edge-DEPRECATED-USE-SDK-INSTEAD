@@ -19,6 +19,8 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 
+import java.util.List;
+
 /**
  * Container of information computed by the index - relationships between elements.
  * 
@@ -84,6 +86,11 @@ public interface IndexStore {
    * @param location the {@link Location} where relationship happens
    */
   void recordRelationship(Element element, Relationship relationship, Location location);
+
+  /**
+   * Remembers {@link Element}s declared in the given {@link Source}.
+   */
+  void recordSourceElements(AnalysisContext context, Source source, List<Element> elements);
 
   /**
    * Remove from the index all of the information associated with {@link AnalysisContext}.

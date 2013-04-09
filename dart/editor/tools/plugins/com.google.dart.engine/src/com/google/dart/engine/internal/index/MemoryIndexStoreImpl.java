@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.index;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 import com.google.common.collect.MapMaker;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -37,6 +38,7 @@ import com.google.dart.engine.utilities.collection.FastRemoveList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,7 +60,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     @Override
     public boolean equals(Object obj) {
       ElementRelationKey other = (ElementRelationKey) obj;
-      return Objects.equal(other.element, element) && other.relationship == relationship;
+      if (other.relationship != relationship) {
+        return false;
+      }
+      if (element instanceof NameElementImpl) {
+        return Objects.equal(other.element, element);
+      }
+      return other.element == element;
     }
 
     @Override
@@ -118,7 +126,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   /**
    * {@link Element}s by {@link Source} where they are declared.
    */
-  final Map<AnalysisContext, Map<Source, Set<Element>>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(64);
+  final Map<AnalysisContext, Map<Source, List<Element>>> sourceToDeclarations = Maps.newHashMapWithExpectedSize(64);
 
   /**
    * {@link ContributedLocation}s by {@link Source} where they are contributed.
@@ -129,9 +137,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   public int getDeclarationCount(AnalysisContext context) {
     context = unwrapContext(context);
     int count = 0;
-    Map<Source, Set<Element>> contextDeclarations = sourceToDeclarations.get(context);
+    Map<Source, List<Element>> contextDeclarations = sourceToDeclarations.get(context);
     if (contextDeclarations != null) {
-      for (Set<Element> sourceDeclarations : contextDeclarations.values()) {
+      for (List<Element> sourceDeclarations : contextDeclarations.values()) {
         count += sourceDeclarations.size();
       }
     }
@@ -230,7 +238,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     // remember sources
     addSource(elementContext, elementSource);
     addSource(locationContext, locationSource);
-    recordSourceToDeclarations(elementContext, elementSource, element);
     //
     Map<Source, FastRemoveList<ContributedLocation>> contextLocations = sourceToLocations.get(locationContext);
     if (contextLocations == null) {
@@ -256,15 +263,35 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
+  public void recordSourceElements(AnalysisContext context, Source source, List<Element> elements) {
+    if (removedContexts.containsKey(context)) {
+      return;
+    }
+    // prepare AnalysisContext declarations
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
+    if (contextElements == null) {
+      contextElements = Maps.newHashMap();
+      sourceToDeclarations.put(context, contextElements);
+    }
+    // remember Element in Source
+    List<Element> sourceElements = contextElements.get(source);
+    if (sourceElements == null) {
+      sourceElements = Lists.newArrayList();
+      contextElements.put(source, sourceElements);
+    }
+    sourceElements.addAll(elements);
+  }
+
+  @Override
   public void removeContext(AnalysisContext context) {
     context = unwrapContext(context);
     removedContexts.put(context, WEAK_SET_VALUE);
     // remove context sources
     sources.remove(context);
     // remove elements declared in Source(s) of removed context
-    Map<Source, Set<Element>> contextElements = sourceToDeclarations.remove(context);
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.remove(context);
     if (contextElements != null) {
-      for (Set<Element> sourceElements : contextElements.values()) {
+      for (List<Element> sourceElements : contextElements.values()) {
         removeSourceDeclaredElements(sourceElements);
       }
     }
@@ -287,9 +314,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       }
     }
     // remove relationships with elements declared in removed source
-    Map<Source, Set<Element>> contextElements = sourceToDeclarations.get(context);
+    Map<Source, List<Element>> contextElements = sourceToDeclarations.get(context);
     if (contextElements != null) {
-      Set<Element> sourceElements = contextElements.remove(source);
+      List<Element> sourceElements = contextElements.remove(source);
       if (sourceElements != null) {
         removeSourceDeclaredElements(sourceElements);
       }
@@ -340,30 +367,13 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     contextSources.add(source);
   }
 
-  private void recordSourceToDeclarations(AnalysisContext context, Source elementSource,
-      Element declaredElement) {
-    // prepare AnalysisContext declarations
-    Map<Source, Set<Element>> contextElements = sourceToDeclarations.get(context);
-    if (contextElements == null) {
-      contextElements = Maps.newHashMap();
-      sourceToDeclarations.put(context, contextElements);
-    }
-    // remember Element in Source
-    Set<Element> sourceElements = contextElements.get(elementSource);
-    if (sourceElements == null) {
-      sourceElements = Sets.newHashSet();
-      contextElements.put(elementSource, sourceElements);
-    }
-    sourceElements.add(declaredElement);
-  }
-
   private void removeSourceContributedLocations(FastRemoveList<ContributedLocation> sourceLocations) {
     for (ContributedLocation contributedLocation : sourceLocations) {
       contributedLocation.removeFromLocationOwner();
     }
   }
 
-  private void removeSourceDeclaredElements(Set<Element> sourceElements) {
+  private void removeSourceDeclaredElements(List<Element> sourceElements) {
     for (Element sourceElement : sourceElements) {
       for (Relationship relationship : Relationship.values()) {
         ElementRelationKey relKey = new ElementRelationKey(sourceElement, relationship);

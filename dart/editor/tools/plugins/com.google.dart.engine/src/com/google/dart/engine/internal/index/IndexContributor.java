@@ -44,6 +44,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.ast.visitor.GeneralizingASTVisitor;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -64,6 +65,7 @@ import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
+import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.index.IndexStore;
 import com.google.dart.engine.index.Location;
 import com.google.dart.engine.index.Relationship;
@@ -72,6 +74,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.collection.IntStack;
 
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Visits resolved AST and adds relationships into {@link IndexStore}.
@@ -258,6 +261,7 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
       elementStack.add(unitElement);
       libraryElement = unitElement.getEnclosingElement();
       if (libraryElement != null) {
+        recordUnitElements(unitElement);
         return super.visitCompilationUnit(node);
       }
     }
@@ -597,5 +601,40 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
         recordRelationship(superElement, relationship, createLocation(superNode));
       }
     }
+  }
+
+  /**
+   * Remembers {@link Element}s declared in the {@link Source} of the given
+   * {@link CompilationUnitElement}.
+   */
+  private void recordUnitElements(final CompilationUnitElement unitElement) {
+    final List<Element> unitElements = Lists.newArrayList();
+    // add elements of unit itself
+    unitElement.accept(new GeneralizingElementVisitor<Void>() {
+      @Override
+      public Void visitElement(Element element) {
+        unitElements.add(element);
+        return super.visitElement(element);
+      }
+    });
+    // add also children of LibraryElement
+    if (libraryElement.getDefiningCompilationUnit() == unitElement) {
+      libraryElement.accept(new GeneralizingElementVisitor<Void>() {
+        @Override
+        public Void visitElement(Element element) {
+          // don't visit units
+          if (element instanceof CompilationUnitElement) {
+            return null;
+          }
+          // visit LibraryElement children
+          unitElements.add(element);
+          return super.visitElement(element);
+        }
+      });
+    }
+    // do record
+    AnalysisContext context = unitElement.getContext();
+    Source source = unitElement.getSource();
+    store.recordSourceElements(context, source, unitElements);
   }
 }
