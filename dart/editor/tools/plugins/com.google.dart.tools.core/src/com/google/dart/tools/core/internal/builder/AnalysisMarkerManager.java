@@ -45,7 +45,6 @@ import java.util.ArrayList;
  * background process if it is running.
  */
 public class AnalysisMarkerManager {
-
   /**
    * Errors to be translated into markers
    */
@@ -67,7 +66,11 @@ public class AnalysisMarkerManager {
       if (!resource.isAccessible()) {
         return;
       }
+
       resource.deleteMarkers(DartCore.DART_PROBLEM_MARKER_TYPE, true, IResource.DEPTH_ZERO);
+
+      int errorCount = 0;
+
       for (AnalysisError error : errors) {
         int severity;
         ErrorSeverity errorSeverity = error.getErrorCode().getErrorSeverity();
@@ -90,9 +93,23 @@ public class AnalysisMarkerManager {
         marker.setAttribute(IMarker.LINE_NUMBER, lineNum);
 //        marker.setAttribute("errorCode", error.getErrorCode());
         marker.setAttribute(IMarker.MESSAGE, error.getMessage());
+
+        errorCount++;
+
+        if (errorCount >= MAX_ERROR_COUNT) {
+          marker = resource.createMarker(DartCore.DART_PROBLEM_MARKER_TYPE);
+          marker.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_WARNING);
+          marker.setAttribute(IMarker.LINE_NUMBER, 1);
+          marker.setAttribute(IMarker.MESSAGE, "There are more then " + MAX_ERROR_COUNT
+              + " errors; not showing any more...");
+
+          break;
+        }
       }
     }
   }
+
+  private static final int MAX_ERROR_COUNT = 500;
 
   /**
    * The singleton used for translating {@link AnalysisError}s into Eclipse markers.
