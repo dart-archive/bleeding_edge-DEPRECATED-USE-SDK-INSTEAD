@@ -54,7 +54,11 @@ public abstract class ThemePreferenceMapper {
    * @throws BackingStoreException
    */
   public void flush() throws BackingStoreException {
-    preferences.flush();
+    try {
+      preferences.flush();
+    } catch (NullPointerException ex) {
+      // ignore it -- not much else we can do
+    }
   }
 
   public IEclipsePreferences getPreviewPreferences() {
@@ -74,7 +78,7 @@ public abstract class ThemePreferenceMapper {
       preferences = previewPreferences;
       runnable.run();
     } catch (Throwable ex) {
-    // TODO(messick): Add proper error handling.
+      // TODO(messick): Add proper error handling.
       ex.printStackTrace();
     } finally {
       preferences = prefs;

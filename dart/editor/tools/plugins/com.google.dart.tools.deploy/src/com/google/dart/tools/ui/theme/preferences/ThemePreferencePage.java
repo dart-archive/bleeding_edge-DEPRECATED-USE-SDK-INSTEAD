@@ -159,6 +159,8 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     if (!DartCoreDebug.ENABLE_THEMES) {
       return true;
     }
+    colorThemeManager.undoPreview();
+
     try {
       if (editor != null) {
         editor.close(false);

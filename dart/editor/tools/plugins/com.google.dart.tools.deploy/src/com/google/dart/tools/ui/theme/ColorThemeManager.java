@@ -327,6 +327,14 @@ public class ColorThemeManager {
     }
   }
 
+  public void undoPreview() {
+    String name = getPreferenceStore().getString("colorTheme");
+    if (name.isEmpty()) {
+      name = "Dartboard";
+    }
+    previewTheme(name);
+  }
+
   private void applyThemeIn(String theme, ThemePreferenceMapper editor) {
     editor.clear();
     if (themes.get(theme) != null) {
