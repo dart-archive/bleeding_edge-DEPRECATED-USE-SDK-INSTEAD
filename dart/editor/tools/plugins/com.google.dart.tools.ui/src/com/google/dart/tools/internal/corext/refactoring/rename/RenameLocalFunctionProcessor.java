@@ -23,7 +23,7 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringAvailability
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 
 import org.eclipse.core.runtime.Assert;
@@ -53,7 +53,7 @@ public class RenameLocalFunctionProcessor extends DartRenameProcessor {
   private final DartFunction function;
   private final String oldName;
 
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
   private List<SearchMatch> references;
 
   /**

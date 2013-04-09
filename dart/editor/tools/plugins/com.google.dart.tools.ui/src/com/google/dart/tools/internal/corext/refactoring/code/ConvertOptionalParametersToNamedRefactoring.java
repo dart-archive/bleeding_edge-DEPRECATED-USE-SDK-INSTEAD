@@ -37,7 +37,7 @@ import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompa
 import com.google.dart.tools.internal.corext.refactoring.rename.MemberDeclarationsReferences;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -66,7 +66,7 @@ public class ConvertOptionalParametersToNamedRefactoring extends Refactoring {
   }
 
   private final DartFunction function;
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
 
   public ConvertOptionalParametersToNamedRefactoring(DartFunction function) {
     this.function = function;

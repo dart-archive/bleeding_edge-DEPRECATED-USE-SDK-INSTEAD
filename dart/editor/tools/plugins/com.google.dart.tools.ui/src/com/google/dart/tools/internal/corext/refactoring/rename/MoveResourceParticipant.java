@@ -32,7 +32,7 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
 import org.eclipse.core.resources.IContainer;
@@ -61,7 +61,7 @@ import java.util.List;
  */
 public class MoveResourceParticipant extends MoveParticipant {
 
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
 
   private IFile file;
 

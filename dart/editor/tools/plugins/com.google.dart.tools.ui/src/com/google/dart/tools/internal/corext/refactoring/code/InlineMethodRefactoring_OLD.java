@@ -60,7 +60,7 @@ import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.rename.FunctionLocalElement;
 import com.google.dart.tools.internal.corext.refactoring.rename.RenameAnalyzeUtil;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.DartElementLabels;
 import com.google.dart.tools.ui.internal.util.DartModelUtil;
 
@@ -183,7 +183,7 @@ public class InlineMethodRefactoring_OLD extends Refactoring implements InlineMe
   private final CompilationUnit selectionUnit;
 
   private final int selectionOffset;
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
   private boolean deleteSource;
   private Mode initialMode;
   private Mode currentMode;

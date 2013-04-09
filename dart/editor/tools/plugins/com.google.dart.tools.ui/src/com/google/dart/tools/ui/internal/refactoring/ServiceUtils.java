@@ -58,15 +58,7 @@ public class ServiceUtils {
     // leaf SourceChange
     if (change instanceof SourceChange) {
       SourceChange sourceChange = (SourceChange) change;
-      Source source = sourceChange.getSource();
-      IFile file = (IFile) DartCore.getProjectManager().getResource(source);
-      TextFileChange ltkChange = new TextFileChange(source.getShortName(), file);
-      ltkChange.setEdit(new MultiTextEdit());
-      List<Edit> edits = sourceChange.getEdits();
-      for (Edit edit : edits) {
-        ltkChange.addEdit(new ReplaceEdit(edit.offset, edit.length, edit.replacement));
-      }
-      return ltkChange;
+      return toLTK(sourceChange);
     }
     // should be CompositeChange
     CompositeChange compositeChange = (CompositeChange) change;
@@ -113,6 +105,21 @@ public class ServiceUtils {
       RefactoringStatusContext context) {
     // TODO(scheglov) not implemented yet
     return null;
+  }
+
+  /**
+   * @return the LTK {@link TextFileChange} for the given services {@link SourceChange}.
+   */
+  public static TextFileChange toLTK(SourceChange change) {
+    Source source = change.getSource();
+    IFile file = (IFile) DartCore.getProjectManager().getResource(source);
+    TextFileChange ltkChange = new TextFileChange(source.getShortName(), file);
+    ltkChange.setEdit(new MultiTextEdit());
+    List<Edit> edits = change.getEdits();
+    for (Edit edit : edits) {
+      ltkChange.addEdit(new ReplaceEdit(edit.offset, edit.length, edit.replacement));
+    }
+    return ltkChange;
   }
 
   /**

@@ -38,7 +38,7 @@ import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages
 import com.google.dart.tools.internal.corext.refactoring.base.DartStatusContext;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
@@ -327,7 +327,7 @@ public abstract class RenameTopLevelProcessor extends DartRenameProcessor {
   private final SourceReference elementSourceReference;
   protected final String oldName;
 
-  private final TextChangeManager changeManager = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
 
   private List<SearchMatch> references;
 

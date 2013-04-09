@@ -15,7 +15,7 @@ package com.google.dart.tools.ui.refactoring;
 
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.internal.corext.refactoring.rename.MoveResourceParticipant;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.MoveSupport;
 
@@ -56,7 +56,7 @@ public final class MoveResourceParticipantTest extends RefactoringTest {
   }
 
   /**
-   * Just for coverage of {@link RenameResourceParticipant} accessors.
+   * Just for coverage of {@link RenameResourceParticipant_OLD} accessors.
    */
   public void test_accessors() throws Exception {
     MoveResourceParticipant participant = new MoveResourceParticipant();

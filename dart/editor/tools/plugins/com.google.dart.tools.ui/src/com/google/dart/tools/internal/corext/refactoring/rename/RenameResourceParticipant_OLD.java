@@ -13,8 +13,6 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.rename;
 
-import com.google.dart.compiler.ast.DartDirective;
-import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -22,8 +20,7 @@ import com.google.dart.tools.core.model.SourceRange;
 import com.google.dart.tools.core.search.SearchEngine;
 import com.google.dart.tools.core.search.SearchEngineFactory;
 import com.google.dart.tools.core.search.SearchMatch;
-import com.google.dart.tools.core.utilities.compiler.DartCompilerUtilities;
-import com.google.dart.tools.core.utilities.general.SourceRangeFactory;
+import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
@@ -39,18 +36,19 @@ import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.TextChange;
 import org.eclipse.ltk.core.refactoring.participants.CheckConditionsContext;
-import org.eclipse.ltk.core.refactoring.participants.DeleteParticipant;
+import org.eclipse.ltk.core.refactoring.participants.RenameArguments;
+import org.eclipse.ltk.core.refactoring.participants.RenameParticipant;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 
 import java.util.List;
 
 /**
- * {@link DeleteParticipant} for removing resource references in Dart libraries.
+ * {@link RenameParticipant} for updating resource references in Dart libraries.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
-public class DeleteResourceParticipant extends DeleteParticipant {
+public class RenameResourceParticipant_OLD extends RenameParticipant {
 
   private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
   private IFile file;
@@ -64,7 +62,6 @@ public class DeleteResourceParticipant extends DeleteParticipant {
   @Override
   public Change createChange(final IProgressMonitor pm) throws CoreException,
       OperationCanceledException {
-    // TODO(scheglov) implement for new engine
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       return null;
     }
@@ -78,7 +75,7 @@ public class DeleteResourceParticipant extends DeleteParticipant {
 
   @Override
   public String getName() {
-    return RefactoringMessages.DeleteResourceParticipant_name;
+    return RefactoringMessages.RenameResourceParticipant_name;
   }
 
   @Override
@@ -90,35 +87,15 @@ public class DeleteResourceParticipant extends DeleteParticipant {
     return false;
   }
 
-  private void addReferenceRemove(SearchMatch match) throws Exception {
-    CompilationUnit unit = match.getElement().getAncestor(CompilationUnit.class);
-    DartUnit unitNode = DartCompilerUtilities.resolveUnit(unit);
-    for (DartDirective directive : unitNode.getDirectives()) {
-      SourceRange directiveRange = SourceRangeFactory.create(directive);
-      if (SourceRangeUtils.intersects(directiveRange, match.getSourceRange())) {
-        String source = unit.getSource();
-        int begin = directiveRange.getOffset();
-        int end = begin + directiveRange.getLength();
-        // skip trailing spaces
-        while (end < source.length()) {
-          char c = source.charAt(end);
-          if (c != ' ' && c != '\t') {
-            break;
-          }
-          end++;
-        }
-        // skip one EOL
-        if (end < source.length() && source.charAt(end) == '\r') {
-          end++;
-        }
-        if (end < source.length() && source.charAt(end) == '\n') {
-          end++;
-        }
-        // remove directive
-        TextEdit edit = new ReplaceEdit(begin, end - begin, "");
-        addTextEdit(unit, RefactoringMessages.DeleteResourceParticipant_remove_reference, edit);
-      }
-    }
+  private void addReferenceUpdate(SearchMatch match, String newName) throws Exception {
+    CompilationUnit cu = match.getElement().getAncestor(CompilationUnit.class);
+    // prepare "old name" range
+    SourceRange matchRange = match.getSourceRange();
+    int end = SourceRangeUtils.getEnd(matchRange) - "'".length();
+    int begin = end - file.getName().length();
+    // add TextEdit to rename "old name" with "new name"
+    TextEdit edit = new ReplaceEdit(begin, end - begin, newName);
+    addTextEdit(cu, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
   }
 
   private void addTextEdit(CompilationUnit unit, String groupName, TextEdit textEdit) {
@@ -132,11 +109,15 @@ public class DeleteResourceParticipant extends DeleteParticipant {
    * Implementation of {@link #createChange(IProgressMonitor)} which can throw any exception.
    */
   private Change createChangeEx(IProgressMonitor pm) throws Exception {
-    // remove references
-    SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
-    List<SearchMatch> references = searchEngine.searchReferences(file, null, null, pm);
-    for (SearchMatch match : references) {
-      addReferenceRemove(match);
+    RenameArguments arguments = getArguments();
+    // update references
+    if (arguments.getUpdateReferences()) {
+      String newName = arguments.getNewName();
+      SearchEngine searchEngine = SearchEngineFactory.createSearchEngine();
+      List<SearchMatch> references = searchEngine.searchReferences(file, null, null, pm);
+      for (SearchMatch match : references) {
+        addReferenceUpdate(match, newName);
+      }
     }
     // return as single CompositeChange
     TextChange[] changes = changeManager.getAllChanges();

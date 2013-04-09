@@ -16,7 +16,7 @@ package com.google.dart.tools.ui.refactoring;
 import com.google.common.base.Joiner;
 import com.google.dart.tools.core.model.DartVariableDeclaration;
 import com.google.dart.tools.internal.corext.refactoring.rename.DeleteResourceParticipant;
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport_OLD;
 
@@ -62,7 +62,7 @@ public final class DeleteResourceParticipantTest extends RefactoringTest {
   }
 
   /**
-   * Just for coverage of {@link RenameResourceParticipant} accessors.
+   * Just for coverage of {@link RenameResourceParticipant_OLD} accessors.
    */
   public void test_accessors() throws Exception {
     DeleteResourceParticipant participant = new DeleteResourceParticipant();

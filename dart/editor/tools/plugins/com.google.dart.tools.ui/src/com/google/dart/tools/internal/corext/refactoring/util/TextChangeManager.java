@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,36 +13,26 @@
  */
 package com.google.dart.tools.internal.corext.refactoring.util;
 
-import com.google.dart.tools.core.model.CompilationUnit;
-import com.google.dart.tools.core.refactoring.CompilationUnitChange;
+import com.google.common.collect.Maps;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * A <code>TextChangeManager</code> manages associations between <code>CompilationUnit</code> or
- * <code>IFile</code> and <code>TextChange</code> objects.
+ * Manages association between {@link Source} and {@link TextChange} objects.
  * 
  * @coverage dart.editor.ui.refactoring.core
  */
 public class TextChangeManager {
-
-  private Map<CompilationUnit, TextChange> fMap = new HashMap<CompilationUnit, TextChange>(10);
-
-  private final boolean fKeepExecutedTextEdits;
-
-  public TextChangeManager() {
-    this(false);
-  }
-
-  public TextChangeManager(boolean keepExecutedTextEdits) {
-    fKeepExecutedTextEdits = keepExecutedTextEdits;
-  }
+  private Map<Source, TextChange> fMap = Maps.newHashMap();
 
   /**
    * Clears all associations between resources and text changes.
@@ -52,91 +42,59 @@ public class TextChangeManager {
   }
 
   /**
-   * Returns if any text changes are managed for the specified compilation unit.
-   * 
-   * @param cu the compilation unit
-   * @return <code>true</code> if any text changes are managed for the specified compilation unit
-   *         and <code>false</code> otherwise
+   * @return {@code true} if any text changes are managed for the given {@link Source}.
    */
-  public boolean containsChangesIn(CompilationUnit cu) {
-    return fMap.containsKey(cu);
+  public boolean containsChangesIn(Source source) {
+    return fMap.containsKey(source);
   }
 
   /**
-   * Returns the <code>TextChange</code> associated with the given compilation unit. If the manager
-   * does not already manage an association it creates a one.
-   * 
-   * @param cu the compilation unit for which the text buffer change is requested
-   * @return the text change associated with the given compilation unit.
+   * @return the {@link TextChange} associated with the given {@link Source}, existing or new.
    */
-  public TextChange get(CompilationUnit cu) {
-    TextChange result = fMap.get(cu);
+  public TextChange get(Source source) {
+    TextChange result = fMap.get(source);
     if (result == null) {
-      result = new CompilationUnitChange(cu.getElementName(), cu);
-      result.setKeepPreviewEdits(fKeepExecutedTextEdits);
-      fMap.put(cu, result);
+      IFile file = (IFile) DartCore.getProjectManager().getResource(source);
+      result = new TextFileChange(source.getShortName(), file);
+      fMap.put(source, result);
     }
     return result;
   }
 
   /**
-   * Returns all text changes managed by this instance.
-   * 
-   * @return all text changes managed by this instance
+   * @return all {@link TextChange}s managed by this instance.
    */
   public TextChange[] getAllChanges() {
-    Set<CompilationUnit> cuSet = fMap.keySet();
-    CompilationUnit[] cus = cuSet.toArray(new CompilationUnit[cuSet.size()]);
-    // sort by cu name:
-    Arrays.sort(cus, new Comparator<CompilationUnit>() {
+    Set<Source> sourceSet = fMap.keySet();
+    Source[] sources = sourceSet.toArray(new Source[sourceSet.size()]);
+    // sort by Source name:
+    Arrays.sort(sources, new Comparator<Source>() {
       @Override
-      public int compare(CompilationUnit o1, CompilationUnit o2) {
-        String name1 = o1.getElementName();
-        String name2 = o2.getElementName();
+      public int compare(Source o1, Source o2) {
+        String name1 = o1.getShortName();
+        String name2 = o2.getShortName();
         return name1.compareTo(name2);
       }
     });
 
-    TextChange[] textChanges = new TextChange[cus.length];
-    for (int i = 0; i < cus.length; i++) {
-      textChanges[i] = fMap.get(cus[i]);
+    TextChange[] textChanges = new TextChange[sources.length];
+    for (int i = 0; i < sources.length; i++) {
+      textChanges[i] = fMap.get(sources[i]);
     }
     return textChanges;
   }
 
   /**
-   * Returns all compilation units managed by this instance.
-   * 
-   * @return all compilation units managed by this instance
+   * @return all {@link Source}s managed by this instance.
    */
-  public CompilationUnit[] getAllCompilationUnits() {
-    return fMap.keySet().toArray(new CompilationUnit[fMap.keySet().size()]);
+  public Source[] getAllSources() {
+    return fMap.keySet().toArray(new Source[fMap.keySet().size()]);
   }
 
   /**
-   * @return <code>true</code> if there are no actual {@link TextChange}s.
+   * @return {@code true} if there are no actual {@link TextChange}s.
    */
   public boolean isEmpty() {
     return fMap.isEmpty();
-  }
-
-  /**
-   * Adds an association between the given compilation unit and the passed change to this manager.
-   * 
-   * @param cu the compilation unit (key)
-   * @param change the change associated with the compilation unit
-   */
-  public void manage(CompilationUnit cu, TextChange change) {
-    fMap.put(cu, change);
-  }
-
-  /**
-   * Removes the <tt>TextChange</tt> managed under the given key <code>unit<code>.
-   * 
-   * @param unit the key determining the <tt>TextChange</tt> to be removed.
-   * @return the removed <tt>TextChange</tt>.
-   */
-  public TextChange remove(CompilationUnit unit) {
-    return fMap.remove(unit);
   }
 }

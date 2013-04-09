@@ -13,7 +13,7 @@
  */
 package com.google.dart.tools.ui.refactoring;
 
-import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant;
+import com.google.dart.tools.internal.corext.refactoring.rename.RenameResourceParticipant_OLD;
 import com.google.dart.tools.internal.corext.refactoring.util.ReflectionUtils;
 
 import org.eclipse.core.resources.IFile;
@@ -27,9 +27,9 @@ import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.resource.RenameResourceDescriptor;
 
 /**
- * Test for {@link RenameResourceParticipant}.
+ * Test for {@link RenameResourceParticipant_OLD}.
  */
-public final class RenameResourceParticipantTest extends RefactoringTest {
+public final class RenameResourceParticipant_OLD_Test extends RefactoringTest {
   /**
    * Asserts that file was renamed to the given name.
    */
@@ -60,10 +60,10 @@ public final class RenameResourceParticipantTest extends RefactoringTest {
   }
 
   /**
-   * Just for coverage of {@link RenameResourceParticipant} accessors.
+   * Just for coverage of {@link RenameResourceParticipant_OLD} accessors.
    */
   public void test_accessors() throws Exception {
-    RenameResourceParticipant participant = new RenameResourceParticipant();
+    RenameResourceParticipant_OLD participant = new RenameResourceParticipant_OLD();
     // initialize(Object) requires IFile
     {
       Object notFile = new Object();

@@ -1,13 +1,21 @@
 package com.google.dart.tools.internal.corext.refactoring.util;
 
+import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.source.Source;
+import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.util.SourceRangeUtils;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.core.model.SourceReference;
+
+import org.eclipse.core.resources.IFile;
 
 public class DartElementUtil {
 
@@ -188,6 +196,30 @@ public class DartElementUtil {
 //  }
 
   /**
+   * @return the {@link CompilationUnitElement} of the given {@link IFile}, may be {@code null}.
+   */
+  public static CompilationUnitElement getCompilationUnitElement(IFile file) {
+    // prepare context
+    ProjectManager projectManager = DartCore.getProjectManager();
+    Source source = projectManager.getSource(file);
+    AnalysisContext context = projectManager.getContext(file);
+    if (source == null || context == null) {
+      return null;
+    }
+    // prepare library
+    Source[] librarySources = context.getLibrariesContaining(source);
+    if (librarySources.length != 1) {
+      return null;
+    }
+    // get unit element
+    CompilationUnit resolvedUnit = context.getResolvedCompilationUnit(source, librarySources[0]);
+    if (resolvedUnit == null) {
+      return null;
+    }
+    return resolvedUnit.getElement();
+  }
+
+  /**
    * @return the given {@link Element} or, its {@link FieldElement} if
    *         {@link FieldFormalParameterElement}.
    */
@@ -227,14 +259,6 @@ public class DartElementUtil {
       }
     }
     return element;
-  }
-
-  public static boolean isSourceAvailable(SourceReference sourceReference) {
-    try {
-      return SourceRangeUtils.isAvailable(sourceReference.getSourceRange());
-    } catch (DartModelException e) {
-      return false;
-    }
   }
 
 //  public static IMember[] merge(IMember[] a1, IMember[] a2) {
@@ -280,4 +304,12 @@ public class DartElementUtil {
 //  //no instances
 //  private JavaElementUtil() {
 //  }
+
+  public static boolean isSourceAvailable(SourceReference sourceReference) {
+    try {
+      return SourceRangeUtils.isAvailable(sourceReference.getSourceRange());
+    } catch (DartModelException e) {
+      return false;
+    }
+  }
 }

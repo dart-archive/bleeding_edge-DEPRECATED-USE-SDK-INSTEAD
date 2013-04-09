@@ -39,7 +39,7 @@ import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompa
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.Messages;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
-import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
+import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager_OLD;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
 import com.google.dart.tools.ui.internal.viewsupport.BasicElementLabels;
 
@@ -322,8 +322,8 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
 
   protected final TypeMember member;
   protected final String oldName;
-  private final TextChangeManager changeManager = new TextChangeManager(true);
-  private final TextChangeManager changeManagerNames = new TextChangeManager(true);
+  private final TextChangeManager_OLD changeManager = new TextChangeManager_OLD(true);
+  private final TextChangeManager_OLD changeManagerNames = new TextChangeManager_OLD(true);
   private List<SearchMatch> declarations;
   private List<SearchMatch> references;
   private List<SearchMatch> nameReferences;
@@ -531,7 +531,7 @@ public abstract class RenameTypeMemberProcessor extends DartRenameProcessor {
     return new ReplaceEdit(sourceRange.getOffset(), sourceRange.getLength(), newName);
   }
 
-  private TextChangeManager getChangeManager(SearchMatch match) {
+  private TextChangeManager_OLD getChangeManager(SearchMatch match) {
     if (match.getQuality() == MatchQuality.EXACT) {
       return changeManager;
     }
