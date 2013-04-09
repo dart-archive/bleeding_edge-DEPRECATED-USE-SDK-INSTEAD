@@ -1803,7 +1803,10 @@ public class Parser {
               TokenType.OPEN_CURLY_BRACKET,
               TokenType.FUNCTION)) {
         validateModifiersForTopLevelFunction(modifiers);
-        return parseFunctionDeclaration(commentAndMetadata, modifiers.getExternalKeyword(), null);
+        return parseFunctionDeclaration(
+            commentAndMetadata,
+            modifiers.getExternalKeyword(),
+            returnType);
       } else {
         //
         // We have found an error of some kind. Try to recover.

@@ -35,6 +35,7 @@ import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.element.LocalVariableElementImpl;
 import com.google.dart.engine.internal.element.ParameterElementImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
+import com.google.dart.engine.internal.type.VoidTypeImpl;
 import com.google.dart.engine.scanner.Keyword;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
@@ -300,6 +301,14 @@ public class TypeResolverVisitorTest extends EngineTestCase {
     Type[] resultArguments = resultType.getTypeArguments();
     assertLength(1, resultArguments);
     assertSame(DynamicTypeImpl.getInstance(), resultArguments[0]);
+    listener.assertNoErrors();
+  }
+
+  public void test_visitTypeName_void() throws Exception {
+    ClassElement classA = classElement("A");
+    TypeName typeName = typeName("void");
+    resolveNode(typeName, classA);
+    assertSame(VoidTypeImpl.getInstance(), typeName.getType());
     listener.assertNoErrors();
   }
 

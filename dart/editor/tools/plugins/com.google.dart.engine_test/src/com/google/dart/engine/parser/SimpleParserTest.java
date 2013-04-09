@@ -1448,6 +1448,14 @@ public class SimpleParserTest extends ParserTestCase {
     assertNull(declaration.getPropertyKeyword());
   }
 
+  public void test_parseCompilationUnitMember_function_void() throws Exception {
+    FunctionDeclaration declaration = parse(
+        "parseCompilationUnitMember",
+        new Object[] {emptyCommentAndMetadata()},
+        "void f() {}");
+    assertNotNull(declaration.getReturnType());
+  }
+
   public void test_parseCompilationUnitMember_getter_external_noType() throws Exception {
     FunctionDeclaration declaration = parse(
         "parseCompilationUnitMember",
