@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
@@ -121,7 +122,7 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) {
+  public AnalysisErrorInfo getErrors(Source source) {
     if (source.isInSystemLibrary()) {
       return sdkAnalysisContext.getErrors(source);
     } else {

@@ -158,15 +158,16 @@ public interface AnalysisContext {
   public Element getElement(ElementLocation location);
 
   /**
-   * Return an array containing all of the errors associated with the given source. The array will
-   * be empty if the source is not known to this context or if there are no errors in the source.
-   * The errors contained in the array can be incomplete.
+   * Return an analysis error info containing the array of all of the errors and the line info
+   * associated with the given source. The array of errors will be empty if the source is not known
+   * to this context or if there are no errors in the source. The errors contained in the array can
+   * be incomplete.
    * 
    * @param source the source whose errors are to be returned
-   * @return all of the errors associated with the given source
+   * @return all of the errors associated with the given source and the line info
    * @see #computeErrors(Source)
    */
-  public AnalysisError[] getErrors(Source source);
+  public AnalysisErrorInfo getErrors(Source source);
 
   /**
    * Return the element model corresponding to the HTML file defined by the given source, or

@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
@@ -384,13 +385,16 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) {
+  public AnalysisErrorInfo getErrors(Source source) {
     synchronized (cacheLock) {
       SourceInfo info = getSourceInfo(source);
       if (info instanceof CompilationUnitInfo) {
-        return ((CompilationUnitInfo) info).getAllErrors();
+        CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) info;
+        return new AnalysisErrorInfoImpl(
+            compilationUnitInfo.getAllErrors(),
+            compilationUnitInfo.getLineInfo());
       }
-      return AnalysisError.NO_ERRORS;
+      return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, info.getLineInfo());
     }
   }
 

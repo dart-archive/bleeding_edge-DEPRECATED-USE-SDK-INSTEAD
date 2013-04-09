@@ -2,6 +2,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
@@ -11,6 +12,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.internal.context.AnalysisErrorInfoImpl;
 import com.google.dart.engine.internal.context.ChangeNoticeImpl;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -234,8 +236,8 @@ public class MockContext implements AnalysisContext {
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) {
-    return AnalysisError.NO_ERRORS;
+  public AnalysisErrorInfo getErrors(Source source) {
+    return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
   }
 
   @Override

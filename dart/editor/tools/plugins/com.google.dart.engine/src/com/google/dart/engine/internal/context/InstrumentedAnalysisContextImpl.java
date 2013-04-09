@@ -2,6 +2,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.context.AnalysisErrorInfo;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.context.ChangeNotice;
 import com.google.dart.engine.context.ChangeSet;
@@ -199,13 +200,13 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
   }
 
   @Override
-  public AnalysisError[] getErrors(Source source) {
+  public AnalysisErrorInfo getErrors(Source source) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("Analysis-getErrors");
     try {
       instrumentation.metric("contextId", contextId);
-      AnalysisError[] ret = basis.getErrors(source);
+      AnalysisErrorInfo ret = basis.getErrors(source);
       if (ret != null) {
-        instrumentation.metric("Errors-count", ret.length);
+        instrumentation.metric("Errors-count", ret.getErrors().length);
       }
       return ret;
     } finally {

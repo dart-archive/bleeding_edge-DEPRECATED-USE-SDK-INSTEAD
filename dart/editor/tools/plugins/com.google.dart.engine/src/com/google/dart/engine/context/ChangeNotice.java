@@ -14,9 +14,7 @@
 package com.google.dart.engine.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
-import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.source.Source;
-import com.google.dart.engine.utilities.source.LineInfo;
 
 /**
  * The interface {@code ChangeNotice} defines the behavior of objects that represent a change to the
@@ -24,7 +22,7 @@ import com.google.dart.engine.utilities.source.LineInfo;
  * 
  * @coverage dart.engine
  */
-public interface ChangeNotice {
+public interface ChangeNotice extends AnalysisErrorInfo {
   /**
    * Return the fully resolved AST that changed as a result of the analysis, or {@code null} if the
    * AST was not changed.
@@ -32,22 +30,6 @@ public interface ChangeNotice {
    * @return the fully resolved AST that changed as a result of the analysis
    */
   public CompilationUnit getCompilationUnit();
-
-  /**
-   * Return the errors that changed as a result of the analysis, or {@code null} if errors were not
-   * changed.
-   * 
-   * @return the errors that changed as a result of the analysis
-   */
-  public AnalysisError[] getErrors();
-
-  /**
-   * Return the line information associated with the source, or {@code null} if errors were not
-   * changed.
-   * 
-   * @return the line information associated with the source
-   */
-  public LineInfo getLineInfo();
 
   /**
    * Return the source for which the result is being reported.

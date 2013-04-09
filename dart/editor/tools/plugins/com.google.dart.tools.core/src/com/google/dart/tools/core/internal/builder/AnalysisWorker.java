@@ -256,13 +256,15 @@ public class AnalysisWorker {
           // only returns errors for added sources
           // DartCore.logError("Failed to determine resource for: " + source);
         } else {
-          IPath location = res.getLocation();
-          if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
-            LineInfo lineInfo = change.getLineInfo();
-            if (lineInfo == null) {
-              DartCore.logError("Missing line information for: " + source);
-            } else {
-              markerManager.queueErrors(res, lineInfo, errors);
+          if (DartCore.isAnalyzed(res)) {
+            IPath location = res.getLocation();
+            if (location != null && !DartCore.isContainedInPackages(location.toFile())) {
+              LineInfo lineInfo = change.getLineInfo();
+              if (lineInfo == null) {
+                DartCore.logError("Missing line information for: " + source);
+              } else {
+                markerManager.queueErrors(res, lineInfo, errors);
+              }
             }
           }
         }

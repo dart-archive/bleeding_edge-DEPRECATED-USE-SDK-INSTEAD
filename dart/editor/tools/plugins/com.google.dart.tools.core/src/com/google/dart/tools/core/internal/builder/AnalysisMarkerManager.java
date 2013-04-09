@@ -18,6 +18,7 @@ import com.google.dart.engine.error.ErrorSeverity;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -158,6 +159,23 @@ public class AnalysisMarkerManager {
    */
   public AnalysisMarkerManager(IWorkspace workspace) {
     this.workspace = workspace;
+  }
+
+  /**
+   * Call this to clear markers and remove resource from error queue
+   */
+  public void clearMarkers(IResource resource) {
+
+    //TODO(keertip): remove resource from queue
+    try {
+      if (resource instanceof IContainer) {
+        resource.deleteMarkers(null, false, IResource.DEPTH_INFINITE);
+      } else {
+        resource.deleteMarkers(null, false, IResource.DEPTH_ZERO);
+      }
+    } catch (Exception e) {
+      DartCore.logError(e);
+    }
   }
 
   /**

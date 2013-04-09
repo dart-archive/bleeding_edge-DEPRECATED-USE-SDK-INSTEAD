@@ -191,19 +191,19 @@ public class AnalysisContextImplTest extends EngineTestCase {
 
   public void test_getErrors_none() throws Exception {
     Source source = addSource("/lib.dart", "library lib;");
-    AnalysisError[] errors = context.getErrors(source);
+    AnalysisError[] errors = context.getErrors(source).getErrors();
     assertLength(0, errors);
     context.computeErrors(source);
-    errors = context.getErrors(source);
+    errors = context.getErrors(source).getErrors();
     assertLength(0, errors);
   }
 
   public void test_getErrors_some() throws Exception {
     Source source = addSource("/lib.dart", "library 'lib';");
-    AnalysisError[] errors = context.getErrors(source);
+    AnalysisError[] errors = context.getErrors(source).getErrors();
     assertLength(0, errors);
     context.computeErrors(source);
-    errors = context.getErrors(source);
+    errors = context.getErrors(source).getErrors();
     assertLength(1, errors);
   }
 
@@ -397,7 +397,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);
     assertNotNull(compilationUnit);
-    AnalysisError[] errors = context.getErrors(source);
+    AnalysisError[] errors = context.getErrors(source).getErrors();
     assertNotNull(errors);
     assertTrue(errors.length > 0);
   }
@@ -406,7 +406,7 @@ public class AnalysisContextImplTest extends EngineTestCase {
     Source source = addSource("/lib.dart", "library lib;");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);
     assertNotNull(compilationUnit);
-    assertLength(0, context.getErrors(source));
+    assertLength(0, context.getErrors(source).getErrors());
   }
 
   public void test_parseCompilationUnit_nonExistentSource() throws Exception {

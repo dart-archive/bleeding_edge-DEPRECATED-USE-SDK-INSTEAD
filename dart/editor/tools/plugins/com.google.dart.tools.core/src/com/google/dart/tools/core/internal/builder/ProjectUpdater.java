@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 
 import org.eclipse.core.resources.IContainer;
@@ -87,12 +88,16 @@ public class ProjectUpdater implements DeltaListener {
 
   @Override
   public void sourceAdded(SourceDeltaEvent event) {
-    currentChanges.added(event.getSource());
+    if (DartCore.isAnalyzed(event.getResource())) {
+      currentChanges.added(event.getSource());
+    }
   }
 
   @Override
   public void sourceChanged(SourceDeltaEvent event) {
-    currentChanges.changed(event.getSource());
+    if (DartCore.isAnalyzed(event.getResource())) {
+      currentChanges.changed(event.getSource());
+    }
   }
 
   @Override
