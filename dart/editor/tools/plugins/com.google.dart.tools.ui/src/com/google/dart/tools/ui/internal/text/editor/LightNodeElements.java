@@ -37,6 +37,7 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
@@ -46,6 +47,44 @@ import java.util.List;
  * Helper for creating and displaying {@link LightNodeElement}s.
  */
 public class LightNodeElements {
+  /**
+   * {@link ViewerComparator} for {@link LightNodeElement} names.
+   */
+  public static class NameComparator extends ViewerComparator {
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (!(e1 instanceof LightNodeElement)) {
+        return 0;
+      }
+      if (!(e2 instanceof LightNodeElement)) {
+        return 0;
+      }
+      String name1 = ((LightNodeElement) e1).getName();
+      String name2 = ((LightNodeElement) e2).getName();
+      if (name1 == null || name2 == null) {
+        return 0;
+      }
+      return name1.compareTo(name2);
+    }
+  }
+  /**
+   * {@link ViewerComparator} for {@link LightNodeElement} positions.
+   */
+  public static class PositionComparator extends ViewerComparator {
+    @Override
+    public int compare(Viewer viewer, Object e1, Object e2) {
+      if (!(e1 instanceof LightNodeElement)) {
+        return 0;
+      }
+      if (!(e2 instanceof LightNodeElement)) {
+        return 0;
+      }
+      int offset1 = ((LightNodeElement) e1).getNameOffset();
+      int offset2 = ((LightNodeElement) e2).getNameOffset();
+      return offset1 - offset2;
+    }
+  }
+
   /**
    * {@link ITreeContentProvider} for {@link LightNodeElement}s in {@link CompilationUnit}.
    */
@@ -186,6 +225,8 @@ public class LightNodeElements {
   }
 
   public static final LabelProvider LABEL_PROVIDER = new NodeLabelProvider();
+  public static final ViewerComparator NAME_COMPARATOR = new NameComparator();
+  public static final ViewerComparator POSITION_COMPARATOR = new PositionComparator();
 
   /**
    * @return the {@link LightNodeElement} for given {@link ASTNode}, may be <code>null</code> if

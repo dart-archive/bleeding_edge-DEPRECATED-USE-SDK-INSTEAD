@@ -24,8 +24,6 @@ import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.internal.viewsupport.ColoredViewersManager;
-import com.google.dart.tools.ui.internal.viewsupport.NameElementComparator;
-import com.google.dart.tools.ui.internal.viewsupport.SourcePositionElementComparator;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -168,9 +166,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
         @Override
         public void run() {
           if (on) {
-            viewer.setComparator(NameElementComparator.INSTANCE);
+            viewer.setComparator(LightNodeElements.NAME_COMPARATOR);
           } else {
-            viewer.setComparator(SourcePositionElementComparator.INSTANCE);
+            viewer.setComparator(LightNodeElements.POSITION_COMPARATOR);
           }
         }
       });
