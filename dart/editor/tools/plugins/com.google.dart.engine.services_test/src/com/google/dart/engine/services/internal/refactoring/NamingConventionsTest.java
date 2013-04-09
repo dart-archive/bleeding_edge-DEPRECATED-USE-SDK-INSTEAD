@@ -135,6 +135,10 @@ public class NamingConventionsTest extends AbstractDartTest {
     assertRefactoringStatusOK(validateConstantName("NAME"));
   }
 
+  public void test_validateConstantName_OK_digit() throws Exception {
+    assertRefactoringStatusOK(validateConstantName("NAME2"));
+  }
+
   public void test_validateConstantName_OK_underscoreLeading() throws Exception {
     assertRefactoringStatusOK(validateConstantName("_NAME"));
   }

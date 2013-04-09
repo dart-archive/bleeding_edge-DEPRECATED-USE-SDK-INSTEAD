@@ -60,7 +60,7 @@ public final class NamingConventions {
     // does not start with lower case
     for (int i = startIndex; i < name.length(); i++) {
       char c = name.charAt(i);
-      if (!Character.isUpperCase(c) && c != '_') {
+      if (!Character.isUpperCase(c) && !Character.isDigit(c) && c != '_') {
         return RefactoringStatus.createWarningStatus("Constant name should be all uppercase with underscores.");
       }
     }
