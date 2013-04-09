@@ -10,9 +10,12 @@
 
 import optparse
 import os
+import platform
 import shutil
 import subprocess
 import sys
+
+from os.path import join
 
 def GetOptions():
   options = optparse.OptionParser(usage='usage: %prog [options] <output>')
@@ -33,7 +36,7 @@ def GetOptions():
 def CompileAnalyzer(options, args):
   # We rely on all jar files being copied to the output dir.
   class_path = options.output_dir + '*'
-  cmd = ['javac',
+  cmd = [GetJavacPath(),
          '-sourcepath', 'foobar',
          '-source', '6',
          '-target', '6',
@@ -47,14 +50,14 @@ def CompileAnalyzer(options, args):
 def CreateJarFile(options):
   class_path_file_name = options.output_dir + options.class_path_file
   jar_file_name = options.output_dir + options.jar_file_name
-  cmd = ['jar', 'cfem', jar_file_name, options.entry_point,
+  cmd = [GetJarToolPath(), 'cfem', jar_file_name, options.entry_point,
          class_path_file_name,
-         '-C', options.output_dir, options.jar_entry_directory];
+         '-C', options.output_dir, options.jar_entry_directory]
   subprocess.call(cmd)
 
 def CopyFiles(options):
   # Strip " from the string
-  files = options.dependent_jar_files.replace('"', '');
+  files = options.dependent_jar_files.replace('"', '')
   for f in files.split(" "):
     shutil.copy(f, options.output_dir)
 
@@ -68,6 +71,25 @@ def CreateClassPathFile(options):
           print >> output, file,
     # Add new line
     print >> output
+
+def GetJavacPath():
+  if 'JAVA_HOME' in os.environ:
+    return join(os.environ['JAVA_HOME'], 'bin', 'javac' + GetExecutableExtension())
+  else:
+    return "javac"
+
+def GetJarToolPath():
+  if 'JAVA_HOME' in os.environ:
+    return join(os.environ['JAVA_HOME'], 'bin', 'jar' + GetExecutableExtension())
+  else:
+    return "jar"
+
+def GetExecutableExtension():
+  id = platform.system()
+  if id == "Windows" or id == "Microsoft":
+    return '.exe'
+  else:
+    return ''
 
 def main():
   (options, args) = GetOptions()
