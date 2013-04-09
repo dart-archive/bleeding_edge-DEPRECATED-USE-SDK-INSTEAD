@@ -126,11 +126,14 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     }
 
     // Perform analysis on each context in the project
-    for (PubFolder pubFolder : project.getPubFolders()) {
-      analyzeContext(pubFolder.getContext(), monitor);
-    }
-    if (project.getPubFolder(project.getResource()) == null) {
-      analyzeContext(project.getDefaultContext(), monitor);
+    if (project != null) {
+      // TODO We probably don't need this null check if the visitor above covers all cases.
+      for (PubFolder pubFolder : project.getPubFolders()) {
+        analyzeContext(pubFolder.getContext(), monitor);
+      }
+      if (project.getPubFolder(project.getResource()) == null) {
+        analyzeContext(project.getDefaultContext(), monitor);
+      }
     }
 
     if (monitor.isCanceled()) {
