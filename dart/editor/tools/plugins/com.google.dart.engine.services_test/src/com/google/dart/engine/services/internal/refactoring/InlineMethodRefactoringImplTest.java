@@ -234,6 +234,25 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "");
   }
 
+  public void test_function_hasReturn_hasReturnType() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "int test(a, b) {",
+        "  return a + b;",
+        "}",
+        "main() {",
+        "  var v = test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = 1 + 2;",
+        "}");
+  }
+
   public void test_function_hasReturn_noVars_oneUsage() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -254,6 +273,25 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
         "  print(1);",
         "  print(2);",
         "  var v = 1 + 2;",
+        "}");
+  }
+
+  public void test_function_hasReturn_voidReturnType() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "void test(a, b) {",
+        "  print(a + b);",
+        "}",
+        "main() {",
+        "  test(1, 2);",
+        "}");
+    selection = findOffset("test(a, b)");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  print(1 + 2);",
         "}");
   }
 
