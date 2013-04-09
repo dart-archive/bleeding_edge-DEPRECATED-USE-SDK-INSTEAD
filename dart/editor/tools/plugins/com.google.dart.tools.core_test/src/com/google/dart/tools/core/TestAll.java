@@ -22,21 +22,36 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
 
-    // Build the SDK index first
-    suite.addTestSuite(TestGenerateArtifacts.class);
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // Build the SDK index first
+      suite.addTestSuite(TestGenerateArtifacts.class);
+    }
 
     suite.addTestSuite(CmdLineOptionsTest.class);
-    suite.addTestSuite(DartCoreTest.class);
+
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTestSuite(DartCoreTest.class);
+    } else {
+      suite.addTestSuite(DartCoreTest_New.class);
+    }
+
     suite.addTestSuite(PluginXMLTest.class);
 
-    suite.addTest(com.google.dart.tools.core.analysis.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.builder.TestAll.suite());
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTest(com.google.dart.tools.core.analysis.TestAll.suite());
+      suite.addTest(com.google.dart.tools.core.builder.TestAll.suite());
+    }
+
     suite.addTest(com.google.dart.tools.core.dart2js.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.dartdoc.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.dom.TestAll.suite());
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTest(com.google.dart.tools.core.dom.TestAll.suite());
+    }
 //    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
+    }
     suite.addTest(com.google.dart.tools.core.html.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.index.TestAll.suite());
 //    suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
@@ -44,10 +59,14 @@ public class TestAll {
     // suite.addTest(com.google.dart.tools.core.model.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.pub.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.refresh.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.samples.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTest(com.google.dart.tools.core.samples.TestAll.suite());
+      suite.addTest(com.google.dart.tools.core.search.TestAll.suite());
+    }
     suite.addTest(com.google.dart.tools.core.utilities.TestAll.suite());
-    suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      suite.addTest(com.google.dart.tools.core.workingcopy.TestAll.suite());
+    }
     return suite;
   }
 }
