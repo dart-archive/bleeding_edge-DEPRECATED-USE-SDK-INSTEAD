@@ -14,7 +14,6 @@
 
 package com.google.dart.tools.debug.core.server;
 
-import com.google.dart.compiler.PackageLibraryManager;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
@@ -195,7 +194,7 @@ class ServerBreakpointManager implements IBreakpointListener {
     int index = locationUrl.indexOf(DartCore.PACKAGES_DIRECTORY_PATH);
 
     if (index != -1) {
-      locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC
+      locationUrl = DartCore.PACKAGE_SCHEME_SPEC
           + locationUrl.substring(index + DartCore.PACKAGES_DIRECTORY_PATH.length());
 
       return locationUrl;
@@ -212,7 +211,7 @@ class ServerBreakpointManager implements IBreakpointListener {
         String packageName = DartCore.getSelfLinkedPackageName(file);
 
         if (packageName != null) {
-          locationUrl = PackageLibraryManager.PACKAGE_SCHEME_SPEC + packageName + File.separator
+          locationUrl = DartCore.PACKAGE_SCHEME_SPEC + packageName + File.separator
               + locationUrl.substring(index + DartCore.LIB_DIRECTORY_PATH.length());
 
           return locationUrl;

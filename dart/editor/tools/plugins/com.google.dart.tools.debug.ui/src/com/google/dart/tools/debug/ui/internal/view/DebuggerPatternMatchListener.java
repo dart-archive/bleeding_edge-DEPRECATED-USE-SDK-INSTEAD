@@ -14,10 +14,14 @@
 
 package com.google.dart.tools.debug.ui.internal.view;
 
-import com.google.dart.compiler.PackageLibraryManager;
+import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.PackageLibraryManagerProvider;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
+import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.browser.BrowserLaunchConfigurationDelegate;
 
 import org.eclipse.core.resources.IFile;
@@ -26,6 +30,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.internal.ui.views.console.ProcessConsole;
 import org.eclipse.debug.ui.console.FileLink;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.swt.widgets.Display;
@@ -34,6 +41,7 @@ import org.eclipse.ui.console.IPatternMatchListener;
 import org.eclipse.ui.console.PatternMatchEvent;
 import org.eclipse.ui.console.TextConsole;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -56,6 +64,7 @@ import java.net.URL;
  * A console pattern match listener that creates hyperlinks in the console for VM and Dartium
  * exceptions.
  */
+@SuppressWarnings("restriction")
 public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
   /**
@@ -154,7 +163,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     // (http://127.0.0.1:3030/Users/util/debuggertest/web_test.dart:33:14)
     // http://127.0.0.1:8081
 
-    return "(http|file)://\\S+";
+    return "(http://|file://|package:)\\S+";
   }
 
   @Override
@@ -177,6 +186,7 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
 
       // Check for reference to line in dart source
       Location location = parseForLocation(match);
+
       if (location != null && location.doesExist()) {
         console.addHyperlink(
             new FileLink(location.getFile(), null, -1, -1, location.getLine()),
@@ -196,10 +206,26 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
     }
   }
 
-  private IFile getIFileForAbsolutePath(String pathStr) {
-    IPath path = new Path(pathStr);
+  protected IResource getResource() {
+    if (console instanceof ProcessConsole) {
+      ProcessConsole processConsole = (ProcessConsole) console;
 
-    return ResourceUtil.getFile(path.toFile());
+      IProcess process = processConsole.getProcess();
+
+      if (process.getLaunch() != null) {
+        ILaunch launch = process.getLaunch();
+        DartLaunchConfigWrapper wrapper = new DartLaunchConfigWrapper(
+            launch.getLaunchConfiguration());
+
+        return wrapper.getApplicationResource();
+      }
+    }
+
+    return null;
+  }
+
+  private IFile getIFileForAbsolutePath(String pathStr) {
+    return ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(pathStr));
   }
 
   private Location parseForLocation(String match) {
@@ -239,8 +265,12 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       // package:abc/abc.dart
 
       // resolve package: urls to file: urls
-      if (PackageLibraryManager.isPackageSpec(url)) {
-        url = PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(url).toString();
+      if (DartCore.isPackageSpec(url)) {
+        url = resolvePackageUri(url);
+      }
+
+      if (url == null) {
+        return null;
       }
 
       // Handle both fully absolute path names and http: urls.
@@ -284,6 +314,35 @@ public class DebuggerPatternMatchListener implements IPatternMatchListener {
       return new URL(match);
     } catch (MalformedURLException e) {
       return null;
+    }
+  }
+
+  private String resolvePackageUri(String url) {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      IResource resource = getResource();
+
+      if (resource != null) {
+        AnalysisContext context = DartCore.getProjectManager().getContext(resource);
+
+        if (context != null) {
+          // TODO: this will resolve most package: urls to files outside of the workspace (in the
+          // pub cache). This is not what we want; we want to be able to open the associated
+          // resource. Possibly an enhancement for ProjectManager?
+          Source source = context.getSourceFactory().forUri(url);
+
+          if (source instanceof FileBasedSource) {
+            FileBasedSource fileSource = (FileBasedSource) source;
+
+            File file = new File(fileSource.getFullName());
+
+            return file.toURI().toString();
+          }
+        }
+      }
+
+      return null;
+    } else {
+      return PackageLibraryManagerProvider.getPackageLibraryManager().resolvePackageUri(url).toString();
     }
   }
 

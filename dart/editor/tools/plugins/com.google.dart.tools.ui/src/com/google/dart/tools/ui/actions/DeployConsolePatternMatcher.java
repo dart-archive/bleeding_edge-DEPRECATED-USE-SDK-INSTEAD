@@ -209,7 +209,7 @@ public class DeployConsolePatternMatcher implements IPatternMatchListener {
       return null;
     }
 
-    if (url.startsWith("package:")) {
+    if (DartCore.isPackageSpec(url)) {
       // Locate the corresponding file for "package:web_ui/dwc.dart".
       String filePath = resolvePackageUrl(url);
 

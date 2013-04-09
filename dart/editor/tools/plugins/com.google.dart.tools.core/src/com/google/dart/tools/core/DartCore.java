@@ -227,6 +227,8 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static final String PACKAGES_DIRECTORY_PATH = File.separator + PACKAGES_DIRECTORY_NAME
       + File.separator;
 
+  public static final String PACKAGE_SCHEME_SPEC = "package:";
+
   /**
    * Path string for lib directory
    */
@@ -995,6 +997,13 @@ public class DartCore extends Plugin implements DartSdkListener {
   public static boolean isPackagesDirectory(IFolder folder) {
     IPath location = folder.getLocation();
     return location != null && isPackagesDirectory(location.toFile());
+  }
+
+  /**
+   * Answer <code>true</code> if the string is a package spec
+   */
+  public static boolean isPackageSpec(String spec) {
+    return spec != null && spec.startsWith(PACKAGE_SCHEME_SPEC);
   }
 
   /**
