@@ -1,52 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
-<colorTheme id="-2" name="Hot Pink" modified="2012-11-28 11:02" author="KS">
+<colorTheme id="-3" name="Hot Pink" modified="2012-11-28 11:02" author="KS">
+    <abstractMethod color="#000000" />
+    <annotation color="#808080" />
+    <background color="#FFFFFF" />
+    <bracket color="#000f6a" />
+    <builtin color="#7e0854" />
     <class color="#008000" bold="true"/>
+    <commentTaskTag color="#417e60" />
+    <constant color="#ae25ab" />
+    <currentLine color="#fff7cd" />
+    <deletionIndication color="#9b5656" />
     <deprecatedMember color="#000000" />
     <directive color="#FF4040" />
     <dynamicType color="#FF4040" />
-    <getter color="#0200C0" />
-    <setter color="#00002C0" />
+    <enum color="#000000" />
     <field color="#0000C0" />
-    <localVariable color="#FF00FF" />
-    <localVariableDeclaration color="#008080" />
-    <methodDeclaration color="#8000FF" />
-    <method color="#2BA6E8" />
-    <number color="#008000" />
-    <parameterVariable color="#D7721E" />
-    <staticField color="#0000C0" />
-    <staticMethod color="#2BA6E8" bold="true" />
-    <staticMethodDeclaration color="#8000FF" bold="true" />
-    <builtin color="#7e0854" />
-    <keyword color="#7e0854" bold="true" />
-    <keywordReturn color="#800390" bold="true" />
-    <singleLineComment color="#417e60" />
-    <multiLineComment color="#417e60" />
-    <commentTaskTag color="#417e60" />
+    <filteredSearchResultIndication color="#CC6633" />
+    <findScope color="#BCADAD" />
+    <foreground color="#000000" />
+    <getter color="#0200C0" />
+    <inheritedMethod color="#2c577c" />
+    <interface color="#000000" />
     <javadoc color="#4162bc" />
+    <javadocKeyword color="#CC9393" />
     <javadocLink color="#4162bc" />
     <javadocTag color="#4162bc" />
-    <javadocKeyword color="#CC9393" />
-    <string color="#2000FF" />
+    <keyword color="#7e0854" bold="true" />
+    <keywordReturn color="#800390" bold="true" />
+    <lineNumber color="#999999" />
+    <localVariable color="#FF00FF" />
+    <localVariableDeclaration color="#008080" />
+    <method color="#2BA6E8" />
+    <methodDeclaration color="#8000FF" />
+    <multiLineComment color="#417e60" />
     <multiLineString color="#2000FF" />
-    <annotation color="#808080" />
-    <staticFinalField color="#464646" />
+    <number color="#008000" />
+    <occurrenceIndication color="#CC6633" />
     <operator color="#5f97a9" />
-    <background color="#FFFFFF" />
-    <foreground color="#000000" />
+    <parameterVariable color="#D7721E" />
+    <searchResultIndication color="#CC6633" />
     <selectionBackground color="#c0c0c0" />
     <selectionForeground color="#FFFFFF" />
-    <searchResultIndication color="#CC6633" />
-    <filteredSearchResultIndication color="#CC6633" />
-    <occurrenceIndication color="#CC6633" />
-    <writeOccurrenceIndication color="#CC6633" />
-    <findScope color="#BCADAD" />
-    <deletionIndication color="#9b5656" />
+    <setter color="#00002C0" />
+    <singleLineComment color="#417e60" />
     <sourceHoverBackground color="#EEEEEE" />
-    <bracket color="#000f6a" />
-    <inheritedMethod color="#2c577c" />
+    <staticField color="#0000C0" />
+    <staticFinalField color="#464646" />
+    <staticMethod color="#2BA6E8" bold="true" />
+    <staticMethodDeclaration color="#8000FF" bold="true" />
+    <string color="#2000FF" />
     <typeArgument color="#d07fcd" />
     <typeParameter color="#D00000" bold="true"/>
-    <constant color="#ae25ab" />
-    <currentLine color="#fff7cd" />
-    <lineNumber color="#999999" />
+    <writeOccurrenceIndication color="#CC6633" />
 </colorTheme>

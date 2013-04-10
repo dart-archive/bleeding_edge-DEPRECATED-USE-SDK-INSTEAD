@@ -599,6 +599,9 @@
             file="themes/dartboard.xml">
       </theme>
       <theme
+            file="themes/default.xml">
+      </theme>
+      <theme
             file="themes/hotpink.xml">
       </theme>
       <theme
