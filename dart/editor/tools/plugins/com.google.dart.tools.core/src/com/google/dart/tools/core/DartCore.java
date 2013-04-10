@@ -213,7 +213,7 @@ public class DartCore extends Plugin implements DartSdkListener {
   /**
    * Cached extensions for image files.
    */
-  private static final String[] IMAGE_FILE_EXTENSIONS = {
+  public static final String[] IMAGE_FILE_EXTENSIONS = {
       "bmp", "gif", "jpeg", "jpg", "png", "raw", "thm", "tif", "tiff"};
 
   /**

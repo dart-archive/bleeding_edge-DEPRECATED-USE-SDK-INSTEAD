@@ -13,8 +13,10 @@
  */
 package com.google.dart.tools.ui.internal.filesview;
 
+import com.google.dart.engine.utilities.io.FileUtilities;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.internal.util.Extensions;
 import com.google.dart.tools.core.model.DartIgnoreEvent;
 import com.google.dart.tools.core.model.DartIgnoreListener;
 import com.google.dart.tools.core.pub.IPubUpdateListener;
@@ -95,6 +97,7 @@ import org.eclipse.ui.part.ViewPart;
 import org.eclipse.ui.views.navigator.LocalSelectionTransfer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -147,6 +150,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   }
 
   public static final String VIEW_ID = "com.google.dart.tools.ui.FileExplorer"; // from plugin.xml
+
+  private static final List<String> NON_TEXT_FILE_EXTENSIONS = Arrays.asList(DartCore.IMAGE_FILE_EXTENSIONS);
 
   /**
    * A constant for the Link with Editor memento.
@@ -455,9 +460,11 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
         manager.add(pasteAction);
       }
 
-      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile
-          && !((IResource) (selection.getFirstElement())).getName().endsWith(".dart")) {
-        manager.add(openAsTextAction);
+      if (selection.size() == 1 && selection.getFirstElement() instanceof IFile) {
+        String extension = FileUtilities.getExtension(((IResource) (selection.getFirstElement())).getName());
+        if (!NON_TEXT_FILE_EXTENSIONS.contains(extension) && !Extensions.DART.equals(extension)) {
+          manager.add(openAsTextAction);
+        }
       }
 
       manager.add(new Separator());
