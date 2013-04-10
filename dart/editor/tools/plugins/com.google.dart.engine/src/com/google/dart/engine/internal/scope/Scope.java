@@ -132,8 +132,12 @@ public abstract class Scope {
     // TODO(brianwilkerson) Customize the error message based on the types of elements that share
     // the same name.
     // TODO(jwren) There are 4 error codes for duplicate, but only 1 is being generated.
+    Source source = duplicate.getSource();
+    if (source == null) {
+      source = getSource();
+    }
     return new AnalysisError(
-        getSource(),
+        source,
         duplicate.getNameOffset(),
         duplicate.getName().length(),
         CompileTimeErrorCode.DUPLICATE_DEFINITION,
