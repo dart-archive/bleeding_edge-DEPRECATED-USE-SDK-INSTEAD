@@ -21,6 +21,7 @@ import com.google.dart.engine.index.Index;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.analysis.model.ContextManager;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 
@@ -60,7 +61,12 @@ public class AnalysisWorker {
           }
           worker = backgroundQueue.remove(0);
         }
-        setName("Analyzing " + worker.project.getResource().getName());
+
+        if (worker.contextManager instanceof Project) {
+          setName("Analyzing " + ((Project) worker.contextManager).getResource().getName());
+        } else if (worker.contextManager instanceof ProjectManager) {
+          setName("Analyzing SDK");
+        }
         worker.performAnalysis();
       }
     }
@@ -103,9 +109,9 @@ public class AnalysisWorker {
   }
 
   /**
-   * The project containing the source for this context (not {@code null}).
+   * The context manager containing the source for this context (not {@code null}).
    */
-  protected final Project project;
+  protected final ContextManager contextManager;
 
   /**
    * An object used to synchronously access the {@link #context} field.
@@ -137,9 +143,9 @@ public class AnalysisWorker {
    * @param project the project containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
    */
-  public AnalysisWorker(Project project, AnalysisContext context) {
+  public AnalysisWorker(ContextManager contextManager, AnalysisContext context) {
     this(
-        project,
+        contextManager,
         context,
         DartCore.getProjectManager().getIndex(),
         AnalysisMarkerManager.getInstance());
@@ -148,18 +154,18 @@ public class AnalysisWorker {
   /**
    * Construct a new instance for performing analysis.
    * 
-   * @param project the project containing sources for the specified context (not {@code null})
+   * @param context the context containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
    * @param index the index to be updated (not {@code null})
    * @param the marker manager used to translate errors into Eclipse markers (not {@code null})
    */
-  public AnalysisWorker(Project project, AnalysisContext context, Index index,
+  public AnalysisWorker(ContextManager contextManager, AnalysisContext context, Index index,
       AnalysisMarkerManager markerManager) {
-    this.project = project;
+    this.contextManager = contextManager;
     this.context = context;
     this.index = index;
     this.markerManager = markerManager;
-    this.project.addAnalysisWorker(this);
+    this.contextManager.addAnalysisWorker(this);
   }
 
   /**
@@ -226,7 +232,7 @@ public class AnalysisWorker {
     synchronized (lock) {
       context = null;
     }
-    project.removeAnalysisWorker(this);
+    contextManager.removeAnalysisWorker(this);
   }
 
   /**
@@ -250,7 +256,7 @@ public class AnalysisWorker {
       AnalysisError[] errors = change.getErrors();
       if (errors != null) {
         Source source = change.getSource();
-        IResource res = project.getResource(source);
+        IResource res = contextManager.getResource(source);
         if (res == null) {
           // TODO (danrubel): log unmatched sources once context 
           // only returns errors for added sources

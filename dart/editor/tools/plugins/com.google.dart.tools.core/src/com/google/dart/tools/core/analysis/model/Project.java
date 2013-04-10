@@ -3,7 +3,6 @@ package com.google.dart.tools.core.analysis.model;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.Source;
-import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
@@ -12,14 +11,6 @@ import org.eclipse.core.resources.IProject;
  * Instances of {@code Project} represents an Eclipse project that has a Dart nature.
  */
 public interface Project extends ContextManager {
-
-  /**
-   * Add the given {@link AnalysisWorker} to the project's list of active workers.
-   * 
-   * @param worker the analysis worker
-   */
-
-  void addAnalysisWorker(AnalysisWorker worker);
 
   /**
    * Discard all analysis contexts in the specified container
@@ -79,12 +70,5 @@ public interface Project extends ContextManager {
    * @param container the container (not {@code null}) from which a pubspec file was removed
    */
   void pubspecRemoved(IContainer container);
-
-  /**
-   * Remove the {@link AnalysisWorker} from the project's active workers list.
-   * 
-   * @param analysisWorker
-   */
-  void removeAnalysisWorker(AnalysisWorker analysisWorker);
 
 }

@@ -318,6 +318,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     resource.getWorkspace().addResourceChangeListener(resourceChangeListener);
     ignoreManager.addListener(ignoreListener);
     analyzeAllProjects();
+    new AnalysisWorker(this, getSdkContext()).performAnalysisInBackground();
   }
 
   @Override

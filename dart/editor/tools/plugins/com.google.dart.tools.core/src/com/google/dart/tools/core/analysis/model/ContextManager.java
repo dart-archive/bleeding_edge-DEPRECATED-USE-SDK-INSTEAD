@@ -18,6 +18,7 @@ import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -28,6 +29,13 @@ import org.eclipse.core.resources.IResource;
  * {@link AnalysisContext}.
  */
 public interface ContextManager {
+
+  /**
+   * Add the given {@link AnalysisWorker} to the project's list of active workers.
+   * 
+   * @param worker the analysis worker
+   */
+  void addAnalysisWorker(AnalysisWorker worker);
 
   /**
    * Answer the {@link AnalysisContext} used to analyze the specified resource.
@@ -118,4 +126,11 @@ public interface ContextManager {
    *         analyzed yet.
    */
   SourceKind getSourceKind(IFile file);
+
+  /**
+   * Remove the {@link AnalysisWorker} from the project's active workers list.
+   * 
+   * @param analysisWorker
+   */
+  void removeAnalysisWorker(AnalysisWorker analysisWorker);
 }

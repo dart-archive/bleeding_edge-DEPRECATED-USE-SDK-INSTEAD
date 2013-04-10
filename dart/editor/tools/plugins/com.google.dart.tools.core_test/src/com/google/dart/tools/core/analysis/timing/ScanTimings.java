@@ -37,6 +37,7 @@ import com.google.dart.tools.core.internal.analysis.model.ProjectImpl;
 import com.google.dart.tools.core.internal.analysis.model.ProjectImpl.AnalysisContextFactory;
 import com.google.dart.tools.core.internal.builder.AnalysisEngineParticipant;
 import com.google.dart.tools.core.internal.builder.AnalysisMarkerManager;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.MockContext;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -136,6 +137,11 @@ public class ScanTimings extends TestCase {
     private final MockIndexForScan index = new MockIndexForScan();
     private final DartIgnoreManager ignoreManager = new DartIgnoreManager();
     private ProjectImpl project;
+
+    @Override
+    public void addAnalysisWorker(AnalysisWorker worker) {
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public void addProjectListener(ProjectListener listener) {
@@ -283,6 +289,11 @@ public class ScanTimings extends TestCase {
 
     @Override
     public void projectAnalyzed(Project project) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
       throw new UnsupportedOperationException();
     }
 

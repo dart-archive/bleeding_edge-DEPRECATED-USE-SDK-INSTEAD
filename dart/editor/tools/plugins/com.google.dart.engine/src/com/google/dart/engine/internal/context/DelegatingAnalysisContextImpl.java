@@ -262,6 +262,15 @@ public class DelegatingAnalysisContextImpl extends AnalysisContextImpl {
     }
   }
 
+//  @Override
+//  public ChangeNotice[] performAnalysisTask() {
+//    ChangeNotice[] sdkNotices = sdkAnalysisContext.performAnalysisTask();
+//    if (sdkNotices != null) {
+//      return sdkNotices;
+//    }
+//    return super.performAnalysisTask();
+//  }
+
   @Override
   public void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     if (elementMap.isEmpty()) {

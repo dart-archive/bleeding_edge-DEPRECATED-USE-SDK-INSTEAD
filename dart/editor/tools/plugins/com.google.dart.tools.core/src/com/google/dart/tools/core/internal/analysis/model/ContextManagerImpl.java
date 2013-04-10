@@ -22,6 +22,7 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ContextManager;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
@@ -31,7 +32,9 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,6 +42,18 @@ import java.util.Set;
  * {@link AnalysisContext}.
  */
 public abstract class ContextManagerImpl implements ContextManager {
+
+  /**
+   * A list of active {@link AnalysisWorker} workers for this project.
+   */
+  private List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
+
+  @Override
+  public void addAnalysisWorker(AnalysisWorker worker) {
+    synchronized (workers) {
+      workers.add(worker);
+    }
+  }
 
   @Override
   public HtmlElement getHtmlElement(IFile file) {
@@ -154,5 +169,28 @@ public abstract class ContextManagerImpl implements ContextManager {
       }
     }
     return null;
+  }
+
+  @Override
+  public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
+    synchronized (workers) {
+      workers.remove(analysisWorker);
+    }
+  }
+
+  /**
+   * Stop workers for the specified context.
+   * 
+   * @param context the context
+   */
+  protected void stopWorkers(AnalysisContext context) {
+    synchronized (workers) {
+      AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
+      for (AnalysisWorker worker : workerArray) {
+        if (worker.getContext() == context) {
+          worker.stop();
+        }
+      }
+    }
   }
 }

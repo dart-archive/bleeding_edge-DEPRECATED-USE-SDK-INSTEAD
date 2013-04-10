@@ -15,7 +15,6 @@ import com.google.dart.tools.core.CmdLineOptions;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.PubFolder;
-import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
@@ -98,11 +97,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   private final DartSdk sdk;
 
   /**
-   * A list of active {@link AnalysisWorker} workers for this project.
-   */
-  private List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
-
-  /**
    * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
    * Synchronize against {@link #lock} when accessing this field. See {@link #getDartUriResolver()}
    */
@@ -173,13 +167,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     this.projectResource = resource;
     this.factory = factory;
     this.sdk = sdk;
-  }
-
-  @Override
-  public void addAnalysisWorker(AnalysisWorker worker) {
-    synchronized (workers) {
-      workers.add(worker);
-    }
   }
 
   @Override
@@ -354,13 +341,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     createPubFolders(container);
   }
 
-  @Override
-  public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
-    synchronized (workers) {
-      workers.remove(analysisWorker);
-    }
-  }
-
   /**
    * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. This
    * assumes that {@link #defaultContext} has already been set by {@link #initialize()}.
@@ -530,17 +510,4 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     DartCore.logInformation("No location for " + container);
   }
 
-  /**
-   * Stop workers for the specified context.
-   * 
-   * @param context the context
-   */
-  private void stopWorkers(AnalysisContext context) {
-    AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
-    for (AnalysisWorker worker : workerArray) {
-      if (worker.getContext() == context) {
-        worker.stop();
-      }
-    }
-  }
 }
