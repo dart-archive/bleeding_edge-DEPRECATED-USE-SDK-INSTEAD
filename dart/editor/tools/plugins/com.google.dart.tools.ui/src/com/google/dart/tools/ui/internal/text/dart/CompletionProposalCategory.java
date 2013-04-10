@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.Messages;
 import com.google.dart.tools.ui.text.dart.ContentAssistInvocationContext;
@@ -111,19 +113,28 @@ public final class CompletionProposalCategory {
    */
   public List<ICompletionProposal> computeCompletionProposals(
       ContentAssistInvocationContext context, String partition, SubProgressMonitor monitor) {
-    fLastError = null;
-    List<ICompletionProposal> result = new ArrayList<ICompletionProposal>();
-    List descriptors = new ArrayList(fRegistry.getProposalComputerDescriptors(partition));
-    for (Iterator it = descriptors.iterator(); it.hasNext();) {
-      CompletionProposalComputerDescriptor desc = (CompletionProposalComputerDescriptor) it.next();
-      if (desc.getCategory() == this) {
-        result.addAll(desc.computeCompletionProposals(context, monitor));
+
+    InstrumentationBuilder instrumentation = Instrumentation.builder("CompletionProposals");
+
+    try {
+
+      fLastError = null;
+      List<ICompletionProposal> result = new ArrayList<ICompletionProposal>();
+      List descriptors = new ArrayList(fRegistry.getProposalComputerDescriptors(partition));
+      for (Iterator it = descriptors.iterator(); it.hasNext();) {
+        CompletionProposalComputerDescriptor desc = (CompletionProposalComputerDescriptor) it.next();
+        if (desc.getCategory() == this) {
+          result.addAll(desc.computeCompletionProposals(context, monitor));
+        }
+        if (fLastError == null) {
+          fLastError = desc.getErrorMessage();
+        }
       }
-      if (fLastError == null) {
-        fLastError = desc.getErrorMessage();
-      }
+      instrumentation.metric("Results-Count", result.size());
+      return result;
+    } finally {
+      instrumentation.log();
     }
-    return result;
   }
 
   /**
