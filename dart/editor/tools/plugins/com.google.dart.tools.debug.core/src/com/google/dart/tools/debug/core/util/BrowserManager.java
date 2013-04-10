@@ -68,8 +68,8 @@ public class BrowserManager {
    * 
    * @return the user data directory path
    */
-  public static String getCreateUserDataDirectoryPath() {
-    String dataDirPath = System.getProperty("user.home") + File.separator + ".dartium";
+  public static String getCreateUserDataDirectoryPath(String baseName) {
+    String dataDirPath = System.getProperty("user.home") + File.separator + "." + baseName;
 
     File dataDir = new File(dataDirPath);
 
@@ -405,18 +405,7 @@ public class BrowserManager {
     arguments.add("--remote-debugging-port=" + devToolsPortNumber);
 
     // In order to start up multiple Chrome processes, we need to specify a different user dir.
-    arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath());
-
-    // Indicates that the browser is in "browse without sign-in" (Guest session) mode. Should 
-    // completely disable extensions, sync and bookmarks.
-    // devoncarew: This only works under _CHROMEOS.
-    //arguments.add("--bwsi");
-
-    // Several extensions in the wild have errors that prevent connecting the debugger to Dartium.
-    //arguments.add("--disable-extensions");
-
-    // Disables syncing browser data to a Google Account. Do we want to do this?
-    //arguments.add("--disable-sync");
+    arguments.add("--user-data-dir=" + getCreateUserDataDirectoryPath("dartium"));
 
     if (launchConfig.getUseWebComponents()) {
       arguments.add("--enable-experimental-webkit-features");
@@ -435,10 +424,6 @@ public class BrowserManager {
     for (String arg : launchConfig.getArgumentsAsArray()) {
       arguments.add(arg);
     }
-
-    // Causes the browser to launch directly into incognito mode.
-    // We use this to prevent the previous session's tabs from re-opening.
-    //arguments.add("--incognito");
 
     if (enableDebugging) {
       // Start up with a blank page.

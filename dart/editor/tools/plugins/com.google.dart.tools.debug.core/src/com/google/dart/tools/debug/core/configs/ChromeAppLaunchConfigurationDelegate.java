@@ -74,14 +74,14 @@ import java.util.Map;
 // TODO(devoncarew): connect debugger to chrome-extension://becj... * ...bhlgj/_generated_background_page.html ?
 // will we get console.log output, even though it starts running before we connect?
 
-// TODO: kill browser process each time the app is run?
-
 /**
  * A ILaunchConfigurationDelegate implementation that can launch Chrome applications. We
  * conceptually launch the manifest.json file which specifies a Chrome app. We currently send
  * Dartium the path to the manifest file's parent directory via the --load-extension flag.
  */
 public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfigurationDelegate {
+
+  private static Process chromeAppBrowserProcess;
 
   /**
    * Create a new ChromeAppLaunchConfigurationDelegate.
@@ -126,7 +126,8 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
 
     commandsList.add(dartium.getAbsolutePath());
     commandsList.add("--enable-udd-profiles");
-    commandsList.add("--user-data-dir=" + BrowserManager.getCreateUserDataDirectoryPath());
+    commandsList.add("--user-data-dir="
+        + BrowserManager.getCreateUserDataDirectoryPath("chrome-apps"));
     commandsList.add("--profile-directory=editor");
     commandsList.add("--no-first-run");
     commandsList.add("--no-default-browser-check");
@@ -134,26 +135,22 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     commandsList.add("--enable-extension-activity-ui");
     //commandsList.add("--load-extension=" + extensionPath);
     commandsList.add("--load-and-launch-app=" + extensionPath);
-    commandsList.add("--remote-debugging-port=1234");
-
-    // TODO: the launch story isn't great (at least on the mac)
-    // if you don't kill chromium after you launch, the next launch will give you the process
-    // lock error. I don't think this is the same on windows or linux.
-    // Kill process before re-launch? refresh the background page?
-    // the load-and-launch flag also opens a blank chromium tab as well...
+    //commandsList.add("--remote-debugging-port=1234");
 
     if (enableDebugging) {
       // TODO(devoncarew):
 
     }
 
+    monitor.beginTask("Dartium", IProgressMonitor.UNKNOWN);
+
+    terminatePreviousLaunch();
+
     String[] commands = commandsList.toArray(new String[commandsList.size()]);
     ProcessBuilder processBuilder = new ProcessBuilder(commands);
     processBuilder.directory(cwd);
 
     Process runtimeProcess = null;
-
-    monitor.beginTask("Dartium", IProgressMonitor.UNKNOWN);
 
     try {
       runtimeProcess = processBuilder.start();
@@ -175,6 +172,8 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
       throw newDebugException("Error starting Dartium");
     }
 
+    saveLaunchedProcess(runtimeProcess);
+
     if (enableDebugging) {
       // TODO(devoncarew):
 
@@ -183,6 +182,7 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
     // TODO(devoncarew): we need to wait until the process is started before we can try and activate
     // the window. We need to find a better way to do this then just a fixed delay.
     sleep(1000);
+
     DebugUIHelper.getHelper().activateApplication(dartium, "Chromium");
 
     monitor.done();
@@ -215,11 +215,36 @@ public class ChromeAppLaunchConfigurationDelegate extends DartLaunchConfiguratio
         t));
   }
 
+  /**
+   * Store the successfully launched process into a static variable;
+   * 
+   * @param process
+   */
+  private void saveLaunchedProcess(Process process) {
+    chromeAppBrowserProcess = process;
+  }
+
   private void sleep(int millis) {
     try {
       Thread.sleep(millis);
     } catch (Exception exception) {
 
+    }
+  }
+
+  private void terminatePreviousLaunch() {
+    if (chromeAppBrowserProcess != null) {
+      try {
+        chromeAppBrowserProcess.exitValue();
+        chromeAppBrowserProcess = null;
+      } catch (IllegalThreadStateException ex) {
+        // exitValue() will throw if the process has not yet stopped. In that case, we ask it to.
+        chromeAppBrowserProcess.destroy();
+        chromeAppBrowserProcess = null;
+
+        // Delay a bit.
+        sleep(100);
+      }
     }
   }
 
