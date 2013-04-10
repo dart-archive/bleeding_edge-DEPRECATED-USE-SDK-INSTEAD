@@ -435,14 +435,16 @@ public class OmniBoxControlContribution {
       textControl.addListener(SWT.Deactivate, new Listener() {
         @Override
         public void handleEvent(Event event) {
-          //selecting the scrollbar will deactivate but in that case we don't want to close
-          // TODO: bug; going from scrollbar back to text entry clears text!
-          Control focusControl = event.display.getFocusControl();
-          //in some cases the focus control goes null even though the text still receives
-          //key events (issue 1905) and we want to *not* close the popup
-          if (focusControl != null && focusControl != popup.table) {
-            popup.close();
-            popup = null;
+          if (popup != null) {
+            //selecting the scrollbar will deactivate but in that case we don't want to close
+            // TODO: bug; going from scrollbar back to text entry clears text!
+            Control focusControl = event.display.getFocusControl();
+            //in some cases the focus control goes null even though the text still receives
+            //key events (issue 1905) and we want to *not* close the popup
+            if (focusControl != null && focusControl != popup.table) {
+              popup.close();
+              popup = null;
+            }
           }
           textControl.removeListener(SWT.Deactivate, this);
         }
