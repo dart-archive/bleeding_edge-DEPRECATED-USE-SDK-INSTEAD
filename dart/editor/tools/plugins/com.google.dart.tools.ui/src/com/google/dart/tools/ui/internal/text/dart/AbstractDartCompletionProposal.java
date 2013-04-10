@@ -13,6 +13,8 @@
  */
 package com.google.dart.tools.ui.internal.text.dart;
 
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.tools.core.completion.CompletionProposal;
 import com.google.dart.tools.core.internal.util.CharOperation;
 import com.google.dart.tools.core.model.DartElement;
@@ -284,67 +286,78 @@ public abstract class AbstractDartCompletionProposal implements IDartCompletionP
   @Override
   public void apply(IDocument document, char trigger, int offset) {
 
-    if (isSupportingRequiredProposals()) {
-      CompletionProposal coreProposal = ((MemberProposalInfo) getProposalInfo()).fProposal;
-      CompletionProposal[] requiredProposals = coreProposal.getRequiredProposals();
-      for (int i = 0; requiredProposals != null && i < requiredProposals.length; i++) {
-        int oldLen = document.getLength();
-        if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
-          LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
-              requiredProposals[i],
-              fInvocationContext);
-          proposal.apply(document);
-          setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
-        } else {
-          /*
-           * we only support the above required proposals, see
-           * CompletionProposal#getRequiredProposals()
-           */
-          Assert.isTrue(false);
-        }
-      }
-    }
+    InstrumentationBuilder instrumentation = Instrumentation.builder("CompletionProposal-Apply");
+    instrumentation.metric("Trigger", trigger);
 
     try {
-      boolean isSmartTrigger = isSmartTrigger(trigger);
+      if (isSupportingRequiredProposals()) {
+        CompletionProposal coreProposal = ((MemberProposalInfo) getProposalInfo()).fProposal;
+        CompletionProposal[] requiredProposals = coreProposal.getRequiredProposals();
+        for (int i = 0; requiredProposals != null && i < requiredProposals.length; i++) {
+          int oldLen = document.getLength();
+          if (requiredProposals[i].getKind() == CompletionProposal.TYPE_REF) {
+            LazyDartCompletionProposal proposal = createRequiredTypeCompletionProposal(
+                requiredProposals[i],
+                fInvocationContext);
+            proposal.apply(document);
+            setReplacementOffset(getReplacementOffset() + document.getLength() - oldLen);
+          } else {
+            /*
+             * we only support the above required proposals, see
+             * CompletionProposal#getRequiredProposals()
+             */
+            Assert.isTrue(false);
+          }
+        }
+      }
 
-      String replacement;
-      if (isSmartTrigger || trigger == (char) 0) {
-        replacement = getReplacementString();
-      } else {
-        StringBuffer buffer = new StringBuffer(getReplacementString());
+      try {
+        boolean isSmartTrigger = isSmartTrigger(trigger);
+        instrumentation.metric("isSmartTrigger", isSmartTrigger);
 
-        // fix for PR #5533. Assumes that no eating takes place.
-        if ((getCursorPosition() > 0 && getCursorPosition() <= buffer.length() && buffer.charAt(getCursorPosition() - 1) != trigger)) {
-          buffer.insert(getCursorPosition(), trigger);
-          setCursorPosition(getCursorPosition() + 1);
+        String replacement;
+        if (isSmartTrigger || trigger == (char) 0) {
+          replacement = getReplacementString();
+        } else {
+          StringBuffer buffer = new StringBuffer(getReplacementString());
+
+          // fix for PR #5533. Assumes that no eating takes place.
+          if ((getCursorPosition() > 0 && getCursorPosition() <= buffer.length() && buffer.charAt(getCursorPosition() - 1) != trigger)) {
+            buffer.insert(getCursorPosition(), trigger);
+            setCursorPosition(getCursorPosition() + 1);
+          }
+
+          replacement = buffer.toString();
+          setReplacementString(replacement);
         }
 
-        replacement = buffer.toString();
-        setReplacementString(replacement);
+        instrumentation.data("Replacement", replacement);
+
+        // reference position just at the end of the document change.
+        int referenceOffset = getReplacementOffset() + getReplacementLength();
+        final ReferenceTracker referenceTracker = new ReferenceTracker();
+        referenceTracker.preReplace(document, referenceOffset);
+
+        replace(document, getReplacementOffset(), getReplacementLength(), replacement);
+
+        referenceOffset = referenceTracker.postReplace(document);
+        int delta = replacement == null ? 0 : replacement.length();
+        if (delta > 0 && replacement.charAt(replacement.length() - 1) == ']') {
+          delta += 1;
+        }
+        setReplacementOffset(referenceOffset - delta);
+
+        // PR 47097
+        if (isSmartTrigger) {
+          handleSmartTrigger(document, trigger, referenceOffset);
+        }
+
+      } catch (BadLocationException x) {
+        instrumentation.metric("Problem", "BadLocationException");
+        // ignore
       }
-
-      // reference position just at the end of the document change.
-      int referenceOffset = getReplacementOffset() + getReplacementLength();
-      final ReferenceTracker referenceTracker = new ReferenceTracker();
-      referenceTracker.preReplace(document, referenceOffset);
-
-      replace(document, getReplacementOffset(), getReplacementLength(), replacement);
-
-      referenceOffset = referenceTracker.postReplace(document);
-      int delta = replacement == null ? 0 : replacement.length();
-      if (delta > 0 && replacement.charAt(replacement.length() - 1) == ']') {
-        delta += 1;
-      }
-      setReplacementOffset(referenceOffset - delta);
-
-      // PR 47097
-      if (isSmartTrigger) {
-        handleSmartTrigger(document, trigger, referenceOffset);
-      }
-
-    } catch (BadLocationException x) {
-      // ignore
+    } finally {
+      instrumentation.log();
     }
   }
 
