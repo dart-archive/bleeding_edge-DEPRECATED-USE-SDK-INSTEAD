@@ -75,9 +75,6 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
       ILaunchConfiguration[] configs = DebugPlugin.getDefault().getLaunchManager().getLaunchConfigurations(
           getConfigurationType());
 
-      if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        resource = getPrimaryLaunchTarget(resource);
-      }
       if (resource != null) {
         for (int i = 0; i < configs.length; i++) {
           ILaunchConfiguration config = configs[i];
