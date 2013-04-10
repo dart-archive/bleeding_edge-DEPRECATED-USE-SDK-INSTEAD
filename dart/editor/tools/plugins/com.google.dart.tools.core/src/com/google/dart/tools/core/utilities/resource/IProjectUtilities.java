@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.utilities.resource;
 
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.internal.model.DartProjectNature;
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.core.refresh.DartPackagesFolderMatcher;
@@ -91,15 +92,24 @@ public final class IProjectUtilities {
    */
   public static IResource createOrOpenProject(File file, IProgressMonitor monitor)
       throws CoreException {
-    IResource[] existingResources = ResourceUtil.getResources(file);
-    if (existingResources.length == 1) {
-      return existingResources[0];
-    } else if (existingResources.length > 1) {
-      throw new CoreException(new Status(
-          IStatus.ERROR,
-          DartCore.PLUGIN_ID,
-          "Too many files representing " + file.getAbsolutePath()));
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      IResource existingResource = getIFileForAbsolutePath(file);
+      if (existingResource != null) {
+        return existingResource;
+      }
+    } else {
+      IResource[] existingResources = ResourceUtil.getResources(file);
+      if (existingResources.length == 1) {
+        return existingResources[0];
+      } else if (existingResources.length > 1) {
+        throw new CoreException(new Status(
+            IStatus.ERROR,
+            DartCore.PLUGIN_ID,
+            "Too many files representing " + file.getAbsolutePath()));
+      }
     }
+
     final File projectDirectory;
     if (file.isDirectory()) {
       projectDirectory = file;
@@ -136,6 +146,12 @@ public final class IProjectUtilities {
       }
     },
         monitor);
+
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      String projectName = projectDirectory.getName();
+      return getProject(workspace, projectName);
+    }
+
     IResource[] newResources = ResourceUtil.getResources(file);
     if (newResources.length == 1) {
       return newResources[0];
@@ -197,6 +213,11 @@ public final class IProjectUtilities {
     command.setBuilderName(DartCore.DART_BUILDER_ID);
     description.setBuildSpec(new ICommand[] {command});
     return description;
+  }
+
+  private static IFile getIFileForAbsolutePath(File file) {
+    return ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(
+        new Path(file.getAbsolutePath()));
   }
 
   /**

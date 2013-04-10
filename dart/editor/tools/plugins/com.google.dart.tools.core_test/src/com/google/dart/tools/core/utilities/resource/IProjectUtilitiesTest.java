@@ -126,9 +126,15 @@ public class IProjectUtilitiesTest extends TestCase {
         IResource result = IProjectUtilities.createOrOpenProject(
             dartFile,
             new NullProgressMonitor());
-        assertTrue(result instanceof IFile);
-        IFile file = (IFile) result;
-        TestUtilities.deleteProject(file.getProject());
+        IProject project = null;
+        if (result instanceof IProject) {
+          project = (IProject) result;
+        }
+        if (result instanceof IFile) {
+          project = ((IFile) result).getProject();
+        }
+        assert (project != null);
+        TestUtilities.deleteProject(project);
       }
     });
   }

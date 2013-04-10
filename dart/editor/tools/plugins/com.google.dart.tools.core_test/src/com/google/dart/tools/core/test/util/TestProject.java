@@ -17,6 +17,7 @@ package com.google.dart.tools.core.test.util;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.util.apache.StringUtils;
 import com.google.dart.tools.core.DartCore;
+import com.google.dart.tools.core.DartCoreDebug;
 import com.google.dart.tools.core.analysis.AnalysisServer;
 import com.google.dart.tools.core.analysis.AnalysisTestUtilities;
 import com.google.dart.tools.core.index.NotifyCallback;
@@ -121,8 +122,13 @@ public class TestProject {
         }
       }
     }, null);
-    // remember DartProject
-    dartProject = DartCore.create(project);
+
+    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      // remember DartProject
+      dartProject = DartCore.create(project);
+    } else {
+      dartProject = null;
+    }
   }
 
   public IFolder createFolder(String path) throws Exception {
