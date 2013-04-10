@@ -115,10 +115,10 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
       String[] ignoresAdded = event.getAdded();
       String[] ignoresRemoved = event.getRemoved();
       if (ignoresAdded.length > 0) {
-        processIgnores(ignoresAdded, false);
+        processIgnoresAdded(ignoresAdded);
       }
       if (ignoresRemoved.length > 0) {
-        processIgnores(ignoresRemoved, true);
+        processIgnoresRemoved(ignoresRemoved);
       }
     }
   };
@@ -342,6 +342,17 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     }
   }
 
+  private IResource getResourceFromPath(String path) {
+    IResource resource = null;
+    File file = new File(path);
+    if (file.isFile()) {
+      resource = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(path));
+    } else {
+      resource = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(new Path(path));
+    }
+    return resource;
+  }
+
   private List<Source> getSourcesIn(IResource resource) {
 
     final List<Source> sources = new ArrayList<Source>();
@@ -369,58 +380,52 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     return sources;
   }
 
-  /**
-   * Add/Remove the ignores from the analysis context
-   */
-  private void processIgnores(String[] paths, boolean addToAnalysis) {
-
+  private void processIgnoresAdded(String[] paths) {
     for (String path : paths) {
-      File file = new File(path);
-      if (file.exists()) {
-        IResource resource;
-        List<Source> sources = new ArrayList<Source>();
-        ChangeSet changeSet = new ChangeSet();
-        if (file.isFile()) {
-          resource = ResourcesPlugin.getWorkspace().getRoot().getFileForLocation(new Path(path));
+      ChangeSet changeSet = new ChangeSet();
+      IResource resource = getResourceFromPath(path);
+      if (resource != null) {
+        AnalysisContext context = getContext(resource);
+        if (resource instanceof IFile) {
+          changeSet.removed(getSource((IFile) resource));
         } else {
-          resource = ResourcesPlugin.getWorkspace().getRoot().getContainerForLocation(
-              new Path(path));
+          changeSet.removedContainer(new DirectoryBasedSourceContainer(new File(path)));
         }
-        if (resource != null) {
-          AnalysisContext context = getContext(resource);
-          if (resource instanceof IFile) {
-            Source source = getSource((IFile) resource);
-            if (addToAnalysis) {
-              sources.add(source);
-              changeSet.added(source);
-            } else {
-              changeSet.removed(source);
-            }
-          } else {
-            if (addToAnalysis) {
-              sources = getSourcesIn(resource);
-              for (Source source : sources) {
-                changeSet.added(source);
-              }
-            } else {
-              changeSet.removedContainer(new DirectoryBasedSourceContainer(file));
-            }
+        context.applyChanges(changeSet);
+        AnalysisMarkerManager.getInstance().clearMarkers(resource);
+      }
+    }
+  }
+
+  private void processIgnoresRemoved(String[] paths) {
+    for (String path : paths) {
+      ChangeSet changeSet = new ChangeSet();
+      List<Source> sources = new ArrayList<Source>();
+      IResource resource = getResourceFromPath(path);
+
+      if (resource != null) {
+        AnalysisContext context = getContext(resource);
+        if (resource instanceof IFile) {
+          Source source = getSource((IFile) resource);
+          sources.add(source);
+          changeSet.added(source);
+        } else {
+          sources = getSourcesIn(resource);
+          for (Source source : sources) {
+            changeSet.added(source);
           }
-          context.applyChanges(changeSet);
-          if (addToAnalysis) {
-            for (Source source : sources) {
-              AnalysisErrorInfo errorInfo = context.getErrors(source);
-              if (errorInfo.getErrors().length > 0) {
-                AnalysisMarkerManager.getInstance().queueErrors(
-                    getResource(source),
-                    errorInfo.getLineInfo(),
-                    errorInfo.getErrors());
-              }
-              new AnalysisWorker(getProject(resource.getProject()), context).performAnalysisInBackground();
-            }
-          } else {
-            AnalysisMarkerManager.getInstance().clearMarkers(resource);
+        }
+
+        context.applyChanges(changeSet);
+        for (Source source : sources) {
+          AnalysisErrorInfo errorInfo = context.getErrors(source);
+          if (errorInfo.getErrors().length > 0) {
+            AnalysisMarkerManager.getInstance().queueErrors(
+                getResource(source),
+                errorInfo.getLineInfo(),
+                errorInfo.getErrors());
           }
+          new AnalysisWorker(getProject(resource.getProject()), context).performAnalysisInBackground();
         }
       }
     }
