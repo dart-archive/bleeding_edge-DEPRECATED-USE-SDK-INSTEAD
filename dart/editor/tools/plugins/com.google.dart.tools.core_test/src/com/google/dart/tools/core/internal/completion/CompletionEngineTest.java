@@ -85,7 +85,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCommentSnippets005() throws Exception {
-    test("class X { m() { return Da!1teTime.JU!2L; }}", "1+DateTime", "2+JUN", "2+JUL");
+    test("class X { m() { return Da!1teTime.JU!2L; }}", "1+DateTime", "2+JUNE", "2+JULY");
   }
 
   public void testCommentSnippets006() throws Exception {
@@ -858,7 +858,7 @@ public class CompletionEngineTest extends TestCase {
   }
 
   public void testCompletion_topLevelField_init2() throws Exception {
-    test("final num M = Dat!1eTime.JUN;", "1+DateTime", "1-void");
+    test("final num M = Dat!1eTime.JUNE;", "1+DateTime", "1-void");
   }
 
   public void testCompletion_while() throws Exception {
