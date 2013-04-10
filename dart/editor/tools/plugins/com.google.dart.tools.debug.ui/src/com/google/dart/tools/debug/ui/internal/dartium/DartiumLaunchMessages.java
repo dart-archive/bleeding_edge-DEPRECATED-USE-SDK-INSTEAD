@@ -28,6 +28,7 @@ public class DartiumLaunchMessages extends NLS {
   public static String DartiumMainTab_NoHtmlFile;
   public static String DartiumMainTab_NoProject;
   public static String DartiumMainTab_NoUrl;
+  public static String DartiumMainTab_InvalidURL;
   public static String DartiumMainTab_ProjectLabel;
   public static String DartiumMainTab_SelectHtml;
   public static String DartiumMainTab_SelectProject;

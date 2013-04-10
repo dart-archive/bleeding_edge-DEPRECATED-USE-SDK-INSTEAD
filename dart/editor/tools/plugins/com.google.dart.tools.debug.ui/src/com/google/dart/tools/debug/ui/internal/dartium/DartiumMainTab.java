@@ -13,11 +13,7 @@
  */
 package com.google.dart.tools.debug.ui.internal.dartium;
 
-import com.google.dart.tools.core.internal.model.DartModelManager;
-import com.google.dart.tools.core.model.DartModelException;
-import com.google.dart.tools.core.model.DartProject;
 import com.google.dart.tools.core.model.DartSdkManager;
-import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.util.AppSelectionDialog;
@@ -55,9 +51,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.FilteredItemsSelectionDialog;
 import org.eclipse.ui.dialogs.FilteredResourcesSelectionDialog;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The main launch configuration UI for running Dart applications in Dartium.
@@ -207,9 +200,17 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     }
 
     if (urlButton.getSelection()) {
-      if (urlText.getText().length() == 0) {
+      String url = urlText.getText();
+
+      if (url.length() == 0) {
         return DartiumLaunchMessages.DartiumMainTab_NoUrl;
-      } else if (projectText.getText().length() == 0) {
+      }
+
+      if (!isValidUrl(url)) {
+        return DartiumLaunchMessages.DartiumMainTab_InvalidURL;
+      }
+
+      if (projectText.getText().length() == 0) {
         return DartiumLaunchMessages.DartiumMainTab_NoProject;
       }
     }
@@ -439,20 +440,12 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
 
   protected void handleProjectBrowseButton() {
     IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
     ProjectSelectionDialog dialog = new ProjectSelectionDialog(getShell(), workspace.getRoot());
     dialog.setTitle(DartiumLaunchMessages.DartiumMainTab_SelectProject);
     dialog.setInitialPattern(".", FilteredItemsSelectionDialog.FULL_SELECTION); //$NON-NLS-1$
 
-    try {
-      DartProject[] dartProjects = DartModelManager.getInstance().getDartModel().getDartProjects();
-      List<IProject> projects = new ArrayList<IProject>();
-      for (DartProject dartProject : dartProjects) {
-        projects.add(dartProject.getProject());
-      }
-      dialog.setInitialSelections(projects.toArray());
-    } catch (DartModelException e) {
-      DartDebugCorePlugin.logError(e);
-    }
+    dialog.setInitialSelections(workspace.getRoot().getProjects());
 
     dialog.open();
 
@@ -478,6 +471,18 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     } else {
       return null;
     }
+  }
+
+  private boolean isValidUrl(String url) {
+    final String[] validSchemes = new String[] {"file:", "http:", "https:"};
+
+    for (String scheme : validSchemes) {
+      if (url.startsWith(scheme)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private void updateEnablements(boolean isFile) {
