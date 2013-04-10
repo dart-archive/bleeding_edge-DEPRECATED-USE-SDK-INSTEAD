@@ -1,6 +1,5 @@
 package com.google.dart.tools.ui.instrumentation;
 
-import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
@@ -136,30 +135,10 @@ public class UIInstrumentation {
       for (CompilationUnit cu : cus) {
         record(cu);
       }
-
-    }
-
-    public void record(DartNode node) {
-      if (node == null) {
-        metric("DartNode", "null");
-        return;
-      }
-
-      metric("DartNode-Class", node.getClass().toString());
-
-      com.google.dart.compiler.resolver.Element element = node.getElement();
-
-      if (element == null) {
-        metric("Element", "null");
-      } else {
-        data("Element-Name", element.getName());
-      }
-
     }
 
     @Override
     public void record(DartTextSelection selection) {
-
       if (selection == null) {
         metric("Selection", "null");
         return;
@@ -173,7 +152,6 @@ public class UIInstrumentation {
       metric("Selection-offset", selection.getOffset());
 
       data("Selection-text", selection.getText());
-
     }
 
     @Override

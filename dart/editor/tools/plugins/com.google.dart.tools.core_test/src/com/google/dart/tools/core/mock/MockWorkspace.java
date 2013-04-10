@@ -121,6 +121,7 @@ public class MockWorkspace implements IWorkspace {
   public void forgetSavedTree(String pluginId) {
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Class adapter) {
     return null;

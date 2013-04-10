@@ -38,6 +38,7 @@ public class MockMarker implements IMarker {
     return false;
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public Object getAdapter(Class adapter) {
     return null;
