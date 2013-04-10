@@ -107,6 +107,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     if (workingCopy == null) {
       return false;
     }
+
     try {
       verifyName();
     } catch (CoreException e) {
@@ -114,14 +115,17 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     }
 
     ILaunchConfigurationTab[] tabs = getTabs();
+
     if (tabs == null) {
       return false;
     }
+
     for (int i = 0; i < tabs.length; i++) {
       if (!tabs[i].isValid(workingCopy)) {
         return false;
       }
     }
+
     return true;
   }
 
@@ -430,7 +434,7 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
     toolBar.setBackground(parent.getBackground());
     GridDataFactory.swtDefaults().grab(true, false).align(SWT.BEGINNING, SWT.FILL).applyTo(toolBar);
 
-    launchesViewer = new TableViewer(leftComposite, SWT.SINGLE | SWT.V_SCROLL | SWT.BORDER);
+    launchesViewer = new TableViewer(leftComposite, SWT.MULTI | SWT.V_SCROLL | SWT.BORDER);
     launchesViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(
         new LaunchConfigLabelProvider()));
     launchesViewer.setComparator(new ViewerComparator(String.CASE_INSENSITIVE_ORDER));
@@ -522,10 +526,6 @@ public class ManageLaunchesDialog extends TitleAreaDialog implements ILaunchConf
   private void refreshLaunchesViewer() {
     launchesViewer.refresh();
   }
-
-//  private boolean isDirty() {
-//    return workingCopy == null ? false : workingCopy.isDirty();
-//  }
 
   private void refreshTable() {
     launchesViewer.refresh();
