@@ -155,7 +155,7 @@ class DateUtils {
     int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
     int daysSince1970 = msSince1970 ~/ Duration.MILLISECONDS_PER_DAY;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + DateTime.THU) % DateTime.DAYS_IN_WEEK);
+    return ((daysSince1970 + DateTime.THURSDAY) % DateTime.DAYS_IN_WEEK);
   }
 
   /** Formats a time in H:MM A format */
