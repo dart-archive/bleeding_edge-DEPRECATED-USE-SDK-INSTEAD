@@ -387,11 +387,9 @@ public abstract class AbstractLaunchShortcut implements ILaunchShortcut2 {
   private IResource getHtmlFileForLibrarySource(Source[] sources) {
     ProjectManager manager = DartCore.getProjectManager();
     for (Source source : sources) {
-      if (manager.isClientLibrary(source)) {
-        IResource launchResource = manager.getHtmlFileForLibrary(source);
-        if (launchResource != null) {
-          return launchResource;
-        }
+      IResource launchResource = manager.getHtmlFileForLibrary(source);
+      if (launchResource != null) {
+        return launchResource;
       }
     }
     return null;

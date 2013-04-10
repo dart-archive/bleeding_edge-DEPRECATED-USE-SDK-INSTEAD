@@ -258,7 +258,7 @@ public class DartServerLaunchShortcut implements ILaunchShortcut, ILaunchShortcu
   private IResource getServerLibraryResource(Source[] sources) {
     ProjectManager manager = DartCore.getProjectManager();
     for (Source source : sources) {
-      if (manager.isServerLibrary(source)) {
+      if (manager.isServerLibrary(source) && manager.getHtmlFileForLibrary(source) == null) {
         return manager.getResource(source);
       }
     }
