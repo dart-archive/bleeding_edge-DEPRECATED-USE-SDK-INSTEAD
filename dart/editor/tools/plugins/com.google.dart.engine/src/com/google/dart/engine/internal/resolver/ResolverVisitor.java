@@ -17,6 +17,7 @@ import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
 import com.google.dart.engine.ast.Comment;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.FunctionDeclaration;
@@ -126,6 +127,18 @@ public class ResolverVisitor extends ScopedVisitor {
     //
     // We do not visit the comments as part of the ResolverVisitor as it requires a special scope.
     //
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    //
+    // We visit the expression, but do not visit the field name because it needs to be visited in
+    // the context of the constructor field initializer node.
+    //
+    safelyVisit(node.getExpression());
+    node.accept(elementResolver);
+    node.accept(typeAnalyzer);
     return null;
   }
 

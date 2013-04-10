@@ -21,6 +21,7 @@ import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.Combinator;
+import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
 import com.google.dart.engine.ast.ExportDirective;
@@ -209,6 +210,18 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     LabelElementImpl labelElement = lookupLabel(node, labelNode);
     if (labelElement != null && labelElement.isOnSwitchMember()) {
       resolver.reportError(ResolverErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER, labelNode);
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    FieldElement fieldElement = null;
+    SimpleIdentifier fieldName = node.getFieldName();
+    ClassElement enclosingClass = resolver.getEnclosingClass();
+    fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
+    if (!fieldElement.isSynthetic()) {
+      recordResolution(fieldName, fieldElement);
     }
     return null;
   }

@@ -115,17 +115,6 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_constConstructorWithNonFinalField_const() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  const int x = 0;",
-        "  const A() {}",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void test_constConstructorWithNonFinalField_constInstanceVar() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -137,21 +126,10 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_constConstructorWithNonFinalField_final() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  final int x = 0;",
-        "  const A() {}",
-        "}"));
-    resolve(source);
-    assertNoErrors();
-    verify(source);
-  }
-
   public void test_constConstructorWithNonFinalField_finalInstanceVar() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        "  final int x;",
+        "  final int x = 0;",
         "  const A() {}",
         "}"));
     resolve(source);

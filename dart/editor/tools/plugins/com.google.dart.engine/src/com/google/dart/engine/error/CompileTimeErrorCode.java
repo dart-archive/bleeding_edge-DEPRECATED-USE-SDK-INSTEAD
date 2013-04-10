@@ -318,9 +318,11 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 5 Variables: It is a compile-time error if a library, static or local variable <i>v</i> is
    * final and <i>v</i> is not initialized at its point of declaration.
    * 
-   * @param name the name of the field in question
+   * @param name the name of the variable in question
    */
-  FINAL_NOT_INITIALIZED(""),
+  // TODO(jwren) not yet being created,
+  // see ErrorVerifier.checkForAllFinalInitializedErrorCodes(ConstructorDeclaration)
+  FINAL_NOT_INITIALIZED("The final variable '%s' must be initialized"),
 
   /**
    * 7.2 Getters: It is a compile-time error if a class has both a getter and a method with the same
