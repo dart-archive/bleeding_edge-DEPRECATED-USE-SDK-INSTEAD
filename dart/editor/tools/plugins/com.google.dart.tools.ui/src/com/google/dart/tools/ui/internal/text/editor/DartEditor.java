@@ -1895,19 +1895,22 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private DartReconciler reconciler;
 
   private final List<ISelectionChangedListener> dartSelectionListeners = Lists.newArrayList();
-
-  private long lastCaretMovedEventId = 0;
   private final CaretListener dartSelectionCaretListener = new CaretListener() {
+    private boolean caretMovedScheduled = false;
+
     @Override
     public void caretMoved(CaretEvent event) {
-      final long id = ++lastCaretMovedEventId;
+      // already scheduled and not executed yet
+      if (caretMovedScheduled) {
+        return;
+      }
+      caretMovedScheduled = true;
+      // schedule selection update
       Display.getCurrent().asyncExec(new Runnable() {
         @Override
         public void run() {
+          caretMovedScheduled = false;
           if (isDisposed()) {
-            return;
-          }
-          if (id != lastCaretMovedEventId) {
             return;
           }
           fireDartSelectionListeners();
@@ -1941,6 +1944,11 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     if (isDisposed()) {
       return;
     }
+    // ignore if already know that we don't have resolved unit
+    if (resolvedUnit == null && unit == null) {
+      return;
+    }
+    // OK, schedule selection update
     resolvedUnit = unit;
     Display.getDefault().asyncExec(new Runnable() {
       @Override

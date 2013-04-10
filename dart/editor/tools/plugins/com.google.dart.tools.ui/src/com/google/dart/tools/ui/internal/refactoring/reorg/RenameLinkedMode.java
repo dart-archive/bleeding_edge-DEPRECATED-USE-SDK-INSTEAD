@@ -22,13 +22,12 @@ import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.engine.services.refactoring.NamingConventions;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.refactoring.RenameSupport;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedNamesAssistProposal.DeleteBlockingExitPolicy;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.EditorHighlightingSynchronizer;
-import com.google.dart.tools.ui.internal.text.functions.DartReconcilerWorker;
 
 import org.eclipse.core.commands.operations.IOperationHistory;
 import org.eclipse.core.commands.operations.IUndoContext;
@@ -69,6 +68,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 import java.lang.reflect.InvocationTargetException;
@@ -154,7 +155,8 @@ public class RenameLinkedMode {
   }
 
   private final DartEditor fEditor;
-  private final AssistContext context;
+  private AssistContext context;
+  private SimpleIdentifier nameNode;
   private Element fDartElement;
 
   private RenameInformationPopup fInfoPopup;
@@ -270,14 +272,10 @@ public class RenameLinkedMode {
 
     try {
       fLinkedPositionGroup = new LinkedPositionGroup();
-      ASTNode selectedNode = context.getCoveredNode();
-      if (!(selectedNode instanceof SimpleIdentifier)) {
+      prepareElement();
+      if (fDartElement == null) {
         return;
       }
-      SimpleIdentifier nameNode = (SimpleIdentifier) selectedNode;
-      fDartElement = nameNode.getElement();
-      fDartElement = DartElementUtil.getFieldIfFieldFormalParameter(fDartElement);
-      fDartElement = DartElementUtil.getVariableIfAccessor(fDartElement);
 
       if (viewer instanceof ITextViewerExtension6) {
         IUndoManager undoManager = ((ITextViewerExtension6) viewer).getUndoManager();
@@ -292,7 +290,7 @@ public class RenameLinkedMode {
       fOriginalName = nameNode.getName();
       final int pos = nameNode.getOffset();
       final List<ASTNode> sameNodes = Lists.newArrayList();
-      selectedNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
+      nameNode.getRoot().accept(new RecursiveASTVisitor<Void>() {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element element = node.getElement();
@@ -484,6 +482,25 @@ public class RenameLinkedMode {
     fInfoPopup.open();
   }
 
+  /**
+   * Uses {@link AssistContext} form {@link DartEditor} to prepare {@link #fDartElement}.
+   */
+  private void prepareElement() {
+    fDartElement = null;
+    context = fEditor.getAssistContext();
+    if (context == null) {
+      return;
+    }
+    ASTNode selectedNode = context.getCoveredNode();
+    if (!(selectedNode instanceof SimpleIdentifier)) {
+      return;
+    }
+    nameNode = (SimpleIdentifier) selectedNode;
+    fDartElement = nameNode.getElement();
+    fDartElement = DartElementUtil.getFieldIfFieldFormalParameter(fDartElement);
+    fDartElement = DartElementUtil.getVariableIfAccessor(fDartElement);
+  }
+
   private void restoreFullSelection() {
     if (fOriginalSelection.y != 0) {
       int originalOffset = fOriginalSelection.x;
@@ -529,17 +546,27 @@ public class RenameLinkedMode {
           }
         });
         // wait for analysis
-        workbenchWindow.run(true, true, new IRunnableWithProgress() {
+        IProgressService progressService = PlatformUI.getWorkbench().getProgressService();
+        progressService.busyCursorWhile(new IRunnableWithProgress() {
           @Override
-          public void run(IProgressMonitor monitor) throws InterruptedException {
+          public void run(IProgressMonitor monitor) throws InvocationTargetException,
+              InterruptedException {
             monitor.beginTask("Waiting for background analysis...", IProgressMonitor.UNKNOWN);
             try {
-              waitForBackgroundAnalysis(monitor);
+              RefactoringUtils.waitResolvedCompilationUnit(fEditor, monitor);
+              RefactoringUtils.waitReadyForRefactoring(monitor);
             } finally {
               monitor.done();
             }
           }
         });
+        // by some reason "busyCursorWhile" looses focus, so restore it
+        fEditor.setFocus();
+        // get new Element, after background build finished
+        prepareElement();
+        if (fDartElement == null) {
+          return null;
+        }
       }
     } catch (InvocationTargetException e) {
       throw new CoreException(new Status(
@@ -559,28 +586,5 @@ public class RenameLinkedMode {
     }
 
     return RenameSupport.create(fDartElement, newName);
-  }
-
-  private void waitForBackgroundAnalysis(IProgressMonitor monitor) throws InterruptedException {
-    // User just stopped typing new name in the editor.
-    // After <Enter> these changed were rolled back.
-    // Wait for resolved CompilationUnit.
-    while (true) {
-      if (monitor.isCanceled()) {
-        throw new InterruptedException();
-      }
-      if (fEditor.getInputUnit() != null) {
-        break;
-      }
-      ExecutionUtils.sleep(10);
-    }
-    // Now, when we have resolved CompilationUnit, we know that some tasks were scheduled
-    // into DartReconcilerWorker. And probably one of them executed (that's why we
-    // got resolved CompilationUnit).
-    // Wait until all of them executed.
-    // So, we will have up-to-date index.
-    if (!DartReconcilerWorker.waitForEmpty(monitor)) {
-      throw new InterruptedException();
-    }
   }
 }

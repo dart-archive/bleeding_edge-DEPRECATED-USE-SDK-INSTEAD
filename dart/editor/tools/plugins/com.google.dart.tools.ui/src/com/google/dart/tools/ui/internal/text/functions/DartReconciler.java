@@ -21,6 +21,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IFile;
@@ -48,12 +49,10 @@ public class DartReconciler extends MonoReconciler {
   private static class EditorState {
     private final long time = System.currentTimeMillis();
     private final String code;
-    private final boolean codeChanged;
     private final Point selectionRange;
 
-    public EditorState(String code, boolean codeChanged, Point selectionRange) {
+    public EditorState(String code, Point selectionRange) {
       this.code = code;
-      this.codeChanged = codeChanged;
       this.selectionRange = selectionRange;
     }
   }
@@ -245,7 +244,7 @@ public class DartReconciler extends MonoReconciler {
     // notify AnalysisContext about change
     context.setContents(source, code);
     // schedule re-analyzing
-    DartReconcilerWorker.scheduleAnalysis(project, context);
+    new AnalysisWorker(project, context).performAnalysisInBackground();
   }
 
   /**
@@ -259,7 +258,7 @@ public class DartReconciler extends MonoReconciler {
         String code = document.get();
         Point selectionRange = textViewer.getSelectedRange();
         synchronized (editorStateLock) {
-          editorState = new EditorState(code, clearUnitElement, selectionRange);
+          editorState = new EditorState(code, selectionRange);
           // notify editor that CompilationUnit is not valid anymore
           if (clearUnitElement) {
             editor.applyCompilationUnitElement(null);
@@ -287,7 +286,10 @@ public class DartReconciler extends MonoReconciler {
       }
     }
     // schedule initial resolution
-    DartReconcilerWorker.scheduleAnalysis(project, getContext());
+    {
+      AnalysisContext context = getContext();
+      new AnalysisWorker(project, context).performAnalysisInBackground();
+    }
     // TODO(scheglov) temporary? at least right now we need to ask one time to resolve
     // because AST may be removed from cache at this moment, and AnalysisWorker will not
     // do anything until change.

@@ -14,6 +14,7 @@
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
 import com.google.dart.tools.ui.internal.refactoring.RefactoringSaveHelper;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
@@ -33,6 +34,10 @@ public class RefactoringStarter {
   public boolean activate(RefactoringWizard wizard, Shell parent, String dialogTitle, int saveMode) {
     RefactoringSaveHelper saveHelper = new RefactoringSaveHelper(saveMode);
     if (!canActivate(saveHelper, parent)) {
+      return false;
+    }
+
+    if (!RefactoringUtils.waitReadyForRefactoring()) {
       return false;
     }
 
