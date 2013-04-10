@@ -302,7 +302,7 @@ class ObservableList<T>
   bool every(bool f(T element)) => _internal.every(f);
   bool any(bool f(T element)) => _internal.any(f);
   void forEach(void f(T element)) { _internal.forEach(f); }
-  String join([String separator]) => _internal.join(separator);
+  String join([String separator = ""]) => _internal.join(separator);
   T firstWhere(bool test(T value), {T orElse()}) {
     return _internal.firstWhere(test, orElse: orElse);
   }
