@@ -925,6 +925,11 @@ public class IndexContributorTest extends AbstractDartTest {
         referencedElement,
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
+    assertRecordedRelation(
+        relations,
+        referencedElement.getDefiningCompilationUnit(),
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
   }
 
   public void test_isReferencedBy_LibraryElement_import() throws Exception {
@@ -949,6 +954,11 @@ public class IndexContributorTest extends AbstractDartTest {
     assertRecordedRelation(
         relations,
         referencedElement,
+        IndexConstants.IS_REFERENCED_BY,
+        new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
+    assertRecordedRelation(
+        relations,
+        referencedElement.getDefiningCompilationUnit(),
         IndexConstants.IS_REFERENCED_BY,
         new ExpectedLocation(mainElement, findOffset("'Lib.dart'"), "'Lib.dart'"));
   }

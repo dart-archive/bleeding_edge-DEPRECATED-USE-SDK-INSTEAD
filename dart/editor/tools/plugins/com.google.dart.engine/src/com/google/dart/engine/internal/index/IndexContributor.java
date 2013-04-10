@@ -40,6 +40,7 @@ import com.google.dart.engine.ast.SuperConstructorInvocation;
 import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.UriBasedDirective;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.WithClause;
@@ -313,8 +314,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public Void visitExportDirective(ExportDirective node) {
     ExportElement element = (ExportElement) node.getElement();
     if (element != null) {
-      Location location = createLocation(node.getUri());
-      recordRelationship(element.getExportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+      LibraryElement expLibrary = element.getExportedLibrary();
+      recordLibraryReference(node, expLibrary);
     }
     return super.visitExportDirective(node);
   }
@@ -346,8 +347,8 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
   public Void visitImportDirective(ImportDirective node) {
     ImportElement element = (ImportElement) node.getElement();
     if (element != null) {
-      Location location = createLocation(node.getUri());
-      recordRelationship(element.getImportedLibrary(), IndexConstants.IS_REFERENCED_BY, location);
+      LibraryElement impLibrary = element.getImportedLibrary();
+      recordLibraryReference(node, impLibrary);
     }
     return super.visitImportDirective(node);
   }
@@ -563,6 +564,21 @@ public class IndexContributor extends GeneralizingASTVisitor<Void> {
           break;
         }
       }
+    }
+  }
+
+  /**
+   * Records reference to the given {@link LibraryElement} and its defining
+   * {@link CompilationUnitElement}.
+   */
+  private void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
+    if (library != null) {
+      Location location = createLocation(node.getUri());
+      recordRelationship(library, IndexConstants.IS_REFERENCED_BY, location);
+      recordRelationship(
+          library.getDefiningCompilationUnit(),
+          IndexConstants.IS_REFERENCED_BY,
+          location);
     }
   }
 
