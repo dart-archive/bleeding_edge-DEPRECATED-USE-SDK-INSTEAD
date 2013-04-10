@@ -38,6 +38,11 @@ public class HtmlScanner implements Source.ContentReceiver {
   private final Source source;
 
   /**
+   * The time at which the contents of the source were last set.
+   */
+  private long modificationTime;
+
+  /**
    * The scanner used to scan the source
    */
   private AbstractScanner scanner;
@@ -57,14 +62,16 @@ public class HtmlScanner implements Source.ContentReceiver {
   }
 
   @Override
-  public void accept(CharBuffer contents) {
+  public void accept(CharBuffer contents, long modificationTime) {
+    this.modificationTime = modificationTime;
     scanner = new CharBufferScanner(source, contents);
     scanner.setPassThroughElements(SCRIPT_TAG);
     token = scanner.tokenize();
   }
 
   @Override
-  public void accept(String contents) {
+  public void accept(String contents, long modificationTime) {
+    this.modificationTime = modificationTime;
     scanner = new StringScanner(source, contents);
     scanner.setPassThroughElements(SCRIPT_TAG);
     token = scanner.tokenize();
@@ -76,6 +83,6 @@ public class HtmlScanner implements Source.ContentReceiver {
    * @return the result (not {@code null})
    */
   public HtmlScanResult getResult() {
-    return new HtmlScanResult(token, scanner.getLineStarts());
+    return new HtmlScanResult(modificationTime, token, scanner.getLineStarts());
   }
 }

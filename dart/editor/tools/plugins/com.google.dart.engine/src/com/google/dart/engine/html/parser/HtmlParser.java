@@ -57,7 +57,11 @@ public class HtmlParser extends XmlParser {
     Token firstToken = scanResult.getToken();
     List<XmlTagNode> tagNodes = parseTopTagNodes(firstToken);
     HtmlUnit unit = new HtmlUnit(firstToken, tagNodes, getCurrentToken());
-    return new HtmlParseResult(firstToken, scanResult.getLineStarts(), unit);
+    return new HtmlParseResult(
+        scanResult.getModificationTime(),
+        firstToken,
+        scanResult.getLineStarts(),
+        unit);
   }
 
   /**

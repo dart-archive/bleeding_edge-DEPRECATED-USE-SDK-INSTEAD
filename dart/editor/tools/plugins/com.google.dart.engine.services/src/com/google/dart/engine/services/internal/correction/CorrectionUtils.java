@@ -394,12 +394,12 @@ public class CorrectionUtils {
     final String result[] = {null};
     source.getContents(new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents) {
+      public void accept(CharBuffer contents, long modificationTime) {
         result[0] = contents.toString();
       }
 
       @Override
-      public void accept(String contents) {
+      public void accept(String contents, long modificationTime) {
         result[0] = contents;
       }
     });

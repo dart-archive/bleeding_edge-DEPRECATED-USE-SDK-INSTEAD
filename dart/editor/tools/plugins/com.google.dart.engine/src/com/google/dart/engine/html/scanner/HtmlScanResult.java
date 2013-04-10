@@ -19,6 +19,10 @@ package com.google.dart.engine.html.scanner;
  * @coverage dart.engine.html
  */
 public class HtmlScanResult {
+  /**
+   * The time at which the contents of the source were last set.
+   */
+  private long modificationTime;
 
   /**
    * The first token in the token stream (not {@code null}).
@@ -30,7 +34,8 @@ public class HtmlScanResult {
    */
   private final int[] lineStarts;
 
-  public HtmlScanResult(Token token, int[] lineStarts) {
+  public HtmlScanResult(long modificationTime, Token token, int[] lineStarts) {
+    this.modificationTime = modificationTime;
     this.token = token;
     this.lineStarts = lineStarts;
   }
@@ -42,6 +47,15 @@ public class HtmlScanResult {
    */
   public int[] getLineStarts() {
     return lineStarts;
+  }
+
+  /**
+   * Return the time at which the contents of the source were last set.
+   * 
+   * @return the time at which the contents of the source were last set
+   */
+  public long getModificationTime() {
+    return modificationTime;
   }
 
   /**

@@ -29,8 +29,8 @@ public class HtmlParseResult extends HtmlScanResult {
    */
   private final HtmlUnit unit;
 
-  public HtmlParseResult(Token token, int[] lineStarts, HtmlUnit unit) {
-    super(token, lineStarts);
+  public HtmlParseResult(long modificationTime, Token token, int[] lineStarts, HtmlUnit unit) {
+    super(modificationTime, token, lineStarts);
     this.unit = unit;
   }
 

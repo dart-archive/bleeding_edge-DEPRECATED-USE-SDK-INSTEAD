@@ -96,12 +96,13 @@ public class FileBasedSource implements Source {
     //
     String contents = contentCache.getContents(this);
     if (contents != null) {
-      receiver.accept(contents);
+      receiver.accept(contents, contentCache.getModificationStamp(this));
       return;
     }
     //
     // If not, read the contents from the file.
     //
+    long modificationTime = this.file.lastModified();
     RandomAccessFile file = new RandomAccessFile(this.file, "r");
     FileChannel channel = null;
     ByteBuffer byteBuffer = null;
@@ -127,7 +128,7 @@ public class FileBasedSource implements Source {
       }
     }
     byteBuffer.rewind();
-    receiver.accept(UTF_8_CHARSET.decode(byteBuffer));
+    receiver.accept(UTF_8_CHARSET.decode(byteBuffer), modificationTime);
   }
 
   @Override

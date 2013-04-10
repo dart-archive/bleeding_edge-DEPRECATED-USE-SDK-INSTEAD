@@ -49,6 +49,6 @@ public class TestSource extends FileBasedSource {
 
   @Override
   public void getContents(ContentReceiver receiver) throws Exception {
-    receiver.accept(contents);
+    receiver.accept(contents, 0L);
   }
 }

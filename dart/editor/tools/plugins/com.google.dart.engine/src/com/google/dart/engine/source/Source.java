@@ -32,15 +32,17 @@ public interface Source {
      * Accept the contents of a source represented as a character buffer.
      * 
      * @param contents the contents of the source
+     * @param modificationTime the time at which the contents were last set
      */
-    public void accept(CharBuffer contents);
+    public void accept(CharBuffer contents, long modificationTime);
 
     /**
      * Accept the contents of a source represented as a string.
      * 
      * @param contents the contents of the source
+     * @param modificationTime the time at which the contents were last set
      */
-    public void accept(String contents);
+    public void accept(String contents, long modificationTime);
   }
 
   /**

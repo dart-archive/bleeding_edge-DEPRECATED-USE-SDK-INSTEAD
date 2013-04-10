@@ -84,6 +84,11 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    */
   private static class ScanResult {
     /**
+     * The time at which the contents of the source were last set.
+     */
+    private long modificationTime;
+
+    /**
      * The first token in the token stream.
      */
     private Token token;
@@ -1315,15 +1320,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     final ScanResult result = new ScanResult();
     Source.ContentReceiver receiver = new Source.ContentReceiver() {
       @Override
-      public void accept(CharBuffer contents) {
+      public void accept(CharBuffer contents, long modificationTime) {
         CharBufferScanner scanner = new CharBufferScanner(source, contents, errorListener);
+        result.modificationTime = modificationTime;
         result.token = scanner.tokenize();
         result.lineStarts = scanner.getLineStarts();
       }
 
       @Override
-      public void accept(String contents) {
+      public void accept(String contents, long modificationTime) {
         StringScanner scanner = new StringScanner(source, contents, errorListener);
+        result.modificationTime = modificationTime;
         result.token = scanner.tokenize();
         result.lineStarts = scanner.getLineStarts();
       }

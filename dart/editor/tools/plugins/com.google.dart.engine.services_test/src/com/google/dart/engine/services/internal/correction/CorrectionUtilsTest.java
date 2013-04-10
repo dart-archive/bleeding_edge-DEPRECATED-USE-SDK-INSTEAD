@@ -1283,7 +1283,7 @@ public class CorrectionUtilsTest extends AbstractDartTest {
     doAnswer(new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        ((Source.ContentReceiver) invocation.getArguments()[0]).accept(charBuffer);
+        ((Source.ContentReceiver) invocation.getArguments()[0]).accept(charBuffer, 0L);
         return null;
       }
     }).when(source).getContents(any(Source.ContentReceiver.class));

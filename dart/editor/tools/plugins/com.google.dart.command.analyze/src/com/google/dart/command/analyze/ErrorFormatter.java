@@ -177,14 +177,14 @@ public class ErrorFormatter {
 
       source.getContents(new Source.ContentReceiver() {
         @Override
-        public void accept(CharBuffer contents) {
+        public void accept(CharBuffer contents, long modificationTime) {
           CharBufferScanner scanner = new CharBufferScanner(source, contents, null);
           scanner.tokenize();
           lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
         }
 
         @Override
-        public void accept(String contents) {
+        public void accept(String contents, long modificationTime) {
           StringScanner scanner = new StringScanner(source, contents, null);
           scanner.tokenize();
           lineInfoMap.put(source, new LineInfo(scanner.getLineStarts()));
@@ -202,5 +202,5 @@ public class ErrorFormatter {
       return severity.name();
     }
   }
-  
+
 }
