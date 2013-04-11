@@ -40,12 +40,16 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExecutableElement;
+import com.google.dart.engine.element.ImportElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.element.visitor.GeneralizingElementVisitor;
 import com.google.dart.engine.formatter.edit.Edit;
+import com.google.dart.engine.internal.scope.Namespace;
+import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.services.internal.util.ExecutionUtils;
@@ -429,31 +433,6 @@ public class CorrectionUtils {
   }
 
   /**
-   * @return the actual type source of the given {@link Expression}, may be <code>null</code> if can
-   *         not be resolved, should be treated as <code>Dynamic</code>.
-   */
-  public static String getTypeSource(Expression expression) {
-    if (expression == null) {
-      return null;
-    }
-    Type type = expression.getStaticType();
-    String typeSource = getTypeSource(type);
-    if ("dynamic".equals(typeSource)) {
-      return null;
-    }
-    return typeSource;
-  }
-
-  /**
-   * @return the source of the given {@link Type}.
-   */
-  public static String getTypeSource(Type type) {
-    String typeSource = type.toString();
-    typeSource = StringUtils.substringBefore(typeSource, "<");
-    return typeSource;
-  }
-
-  /**
    * @return the possible names for variable with initializer of the given {@link StringLiteral}.
    */
   public static String[] getVariableNameSuggestions(String text, Set<String> excluded) {
@@ -689,12 +668,16 @@ public class CorrectionUtils {
   }
 
   private final CompilationUnit unit;
+
+  private final LibraryElement library;
+
   private final String buffer;
 
   private String endOfLine;
 
   public CorrectionUtils(CompilationUnit unit) throws Exception {
     this.unit = unit;
+    this.library = unit.getElement().getLibrary();
     this.buffer = getSourceContent(unit.getElement().getSource());
   }
 
@@ -705,6 +688,56 @@ public class CorrectionUtils {
   public Edit createIndentEdit(SourceRange range, String oldIndent, String newIndent) {
     String newSource = getIndentSource(range, oldIndent, newIndent);
     return new Edit(range.getOffset(), range.getLength(), newSource);
+  }
+
+  /**
+   * @return the enclosing node with given {@link Class}.
+   */
+  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
+    ASTNode node = new NodeLocator(offset).searchWithin(unit);
+    if (node != null) {
+      return node.getAncestor(clazz);
+    }
+    return null;
+  }
+
+  /**
+   * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
+   * 
+   * @return the {@link SourceRange}s of all comments in {@link CompilationUnit}.
+   */
+  public List<SourceRange> getCommentRanges() {
+    List<SourceRange> ranges = Lists.newArrayList();
+    Token token = unit.getBeginToken();
+    while (token != null && token.getType() != TokenType.EOF) {
+      Token commentToken = token.getPrecedingComments();
+      while (commentToken != null) {
+        ranges.add(SourceRangeFactory.rangeToken(commentToken));
+        commentToken = commentToken.getNext();
+      }
+      token = token.getNext();
+    }
+    return ranges;
+  }
+
+  /**
+   * @return the EOL to use for this {@link CompilationUnit}.
+   */
+  public String getEndOfLine() {
+    if (endOfLine == null) {
+      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
+        @Override
+        public String runObject() throws Exception {
+          // try to find Windows
+          if (buffer.contains("\r\n")) {
+            return "\r\n";
+          }
+          // use default
+          return "\n";
+        }
+      }, "\n");
+    }
+    return endOfLine;
   }
 
 //  /**
@@ -763,56 +796,6 @@ public class CorrectionUtils {
 //    desc.insertEmptyLineAfter = insertEmptyLineAfter;
 //    return desc;
 //  }
-
-  /**
-   * @return the enclosing node with given {@link Class}.
-   */
-  public <T extends ASTNode> T findNode(int offset, Class<T> clazz) {
-    ASTNode node = new NodeLocator(offset).searchWithin(unit);
-    if (node != null) {
-      return node.getAncestor(clazz);
-    }
-    return null;
-  }
-
-  /**
-   * TODO(scheglov) replace with nodes once there will be {@link CompilationUnit#getComments()}.
-   * 
-   * @return the {@link SourceRange}s of all comments in {@link CompilationUnit}.
-   */
-  public List<SourceRange> getCommentRanges() {
-    List<SourceRange> ranges = Lists.newArrayList();
-    Token token = unit.getBeginToken();
-    while (token != null && token.getType() != TokenType.EOF) {
-      Token commentToken = token.getPrecedingComments();
-      while (commentToken != null) {
-        ranges.add(SourceRangeFactory.rangeToken(commentToken));
-        commentToken = commentToken.getNext();
-      }
-      token = token.getNext();
-    }
-    return ranges;
-  }
-
-  /**
-   * @return the EOL to use for this {@link CompilationUnit}.
-   */
-  public String getEndOfLine() {
-    if (endOfLine == null) {
-      endOfLine = ExecutionUtils.runObjectIgnore(new RunnableObjectEx<String>() {
-        @Override
-        public String runObject() throws Exception {
-          // try to find Windows
-          if (buffer.contains("\r\n")) {
-            return "\r\n";
-          }
-          // use default
-          return "\n";
-        }
-      }, "\n");
-    }
-    return endOfLine;
-  }
 
   /**
    * @return the default indentation with given level.
@@ -1045,6 +1028,41 @@ public class CorrectionUtils {
   }
 
   /**
+   * @return the actual type source of the given {@link Expression}, may be {@code null} if can not
+   *         be resolved, should be treated as <code>Dynamic</code>.
+   */
+  public String getTypeSource(Expression expression) {
+    if (expression == null) {
+      return null;
+    }
+    Type type = expression.getStaticType();
+    String typeSource = getTypeSource(type);
+    if ("dynamic".equals(typeSource)) {
+      return null;
+    }
+    return typeSource;
+  }
+
+  /**
+   * @return the source to reference the given {@link Type} in this {@link CompilationUnit}.
+   */
+  public String getTypeSource(Type type) {
+    String typeSource = type.toString();
+    typeSource = StringUtils.remove(typeSource, "<dynamic>");
+    typeSource = StringUtils.remove(typeSource, "<dynamic, dynamic>");
+    // find prefix
+    {
+      Element element = type.getElement();
+      ImportElement imp = getImportElement(element);
+      if (imp != null && imp.getPrefix() != null) {
+        return imp.getPrefix().getName() + "." + typeSource;
+      }
+    }
+    // no prefix
+    return typeSource;
+  }
+
+  /**
    * @return the underlying {@link CompilationUnit}.
    */
   public CompilationUnit getUnit() {
@@ -1100,6 +1118,21 @@ public class CorrectionUtils {
     }
     // OK
     return true;
+  }
+
+  /**
+   * @return the {@link ImportElement} used to import given {@link Element} into {@link #library}.
+   *         May be {@code null} if was not imported, i.e. declared in the same library.
+   */
+  private ImportElement getImportElement(Element element) {
+    for (ImportElement imp : library.getImports()) {
+      // TODO(scheglov) may be replace with some API for this
+      Namespace namespace = new NamespaceBuilder().createImportNamespace(imp);
+      if (namespace.getDefinedNames().containsValue(element)) {
+        return imp;
+      }
+    }
+    return null;
   }
 
   private boolean selectionIncludesNonWhitespaceOutsideOperands(SourceRange selection,

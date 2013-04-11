@@ -896,8 +896,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "  int a = 1 + 2;",
         "}",
         "");
-    selectionStart = findOffset("1");
-    selectionEnd = findOffset("2;") + 1;
+    setSelectionString("1 + 2");
     createRefactoring();
     // apply refactoring
     assertSuccessfulRefactoring(
@@ -916,11 +915,10 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "dynaFunction() {}",
         "main() {",
         "  String s = '';",
-        "  var v = s..length; // marker",
+        "  var v = s..length;",
         "}",
         "");
-    selectionStart = findOffset("s..");
-    selectionEnd = findOffset("; // marker");
+    setSelectionString("s..length");
     createRefactoring();
     // apply refactoring
     assertSuccessfulRefactoring(
@@ -928,7 +926,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "dynaFunction() {}",
         "main() {",
         "  String s = '';",
-        "  var v = res(s); // marker",
+        "  var v = res(s);",
         "}",
         "",
         "String res(String s) => s..length;",
@@ -1106,6 +1104,55 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
         "    int positiveB = res(v1, v2);",
         "  }",
         "}",
+        "");
+  }
+
+  public void test_singleExpression_returnTypeGeneric() throws Exception {
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = new List<String>();",
+        "}",
+        "");
+    setSelectionString("new List<String>()");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = res();",
+        "}",
+        "",
+        "List<String> res() => new List<String>();",
+        "");
+  }
+
+  public void test_singleExpression_returnTypePrefix() throws Exception {
+    setFileContent(
+        "MyLib.dart",
+        makeSource(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "library my_lib;",
+            "class A {}",
+            ""));
+    parseTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'MyLib.dart' as ml;",
+        "main() {",
+        "  var a = new ml.A();",
+        "}",
+        "");
+    setSelectionString("new ml.A()");
+    createRefactoring();
+    // apply refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "import 'MyLib.dart' as ml;",
+        "main() {",
+        "  var a = res();",
+        "}",
+        "",
+        "ml.A res() => new ml.A();",
         "");
   }
 

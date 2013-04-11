@@ -45,6 +45,7 @@ import com.google.dart.engine.services.refactoring.ParameterInfo;
 import com.google.dart.engine.services.refactoring.ProgressMonitor;
 import com.google.dart.engine.services.refactoring.SubProgressMonitor;
 import com.google.dart.engine.services.status.RefactoringStatus;
+import com.google.dart.engine.type.Type;
 import com.google.dart.engine.utilities.source.SourceRange;
 import com.google.dart.engine.utilities.source.SourceRangeFactory;
 
@@ -230,7 +231,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           StringBuilder sb = new StringBuilder();
           // may be returns value
           if (returnVariable != null) {
-            String varTypeName = CorrectionUtils.getTypeSource(returnVariable.getType());
+            String varTypeName = utils.getTypeSource(returnVariable.getType());
             String originalName = returnVariable.getName();
             String occurrenceName = occurence.parameterOldToOccurrenceName.get(originalName);
             if (varTypeName.equals("dynamic")) {
@@ -294,7 +295,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           // expression
           if (selectionExpression != null) {
             // add return type
-            String returnTypeName = CorrectionUtils.getTypeSource(selectionExpression);
+            String returnTypeName = utils.getTypeSource(selectionExpression);
             if (returnTypeName != null && !returnTypeName.equals("dynamic")) {
               annotations += returnTypeName + " ";
             }
@@ -305,7 +306,7 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
           // statements
           if (selectionStatements != null) {
             if (returnVariable != null) {
-              String returnTypeName = CorrectionUtils.getTypeSource(returnVariable.getType());
+              String returnTypeName = utils.getTypeSource(returnVariable.getType());
               if (returnTypeName != null && !returnTypeName.equals("dynamic")) {
                 annotations += returnTypeName + " ";
               }
@@ -664,7 +665,9 @@ public class ExtractMethodRefactoringImpl extends RefactoringImpl implements
               String variableName = variableElement.getName();
               // add parameter
               if (!selectionParametersToRanges.containsKey(variableName)) {
-                parameters.add(new ParameterInfoImpl(variableElement));
+                Type paraType = variableElement.getType();
+                String paraTypeName = utils.getTypeSource(paraType);
+                parameters.add(new ParameterInfoImpl(paraTypeName, variableName));
               }
               // add reference to parameter
               {

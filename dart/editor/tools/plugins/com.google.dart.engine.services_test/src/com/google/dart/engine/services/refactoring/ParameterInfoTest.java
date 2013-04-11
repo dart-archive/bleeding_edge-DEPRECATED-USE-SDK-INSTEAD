@@ -14,23 +14,15 @@
 
 package com.google.dart.engine.services.refactoring;
 
-import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.services.internal.correction.AbstractDartTest;
 import com.google.dart.engine.services.internal.refactoring.ParameterInfoImpl;
-import com.google.dart.engine.type.Type;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test for {@link ParameterInfoImpl}.
  */
 public class ParameterInfoTest extends AbstractDartTest {
-  private final Type type = mock(Type.class);
-  private final VariableElement element = mock(VariableElement.class);
-
   public void test_methodStubs() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
     assertSame(null, parameter.getDefaultValue());
     assertEquals(false, parameter.isAdded());
     assertEquals(false, parameter.isDeleted());
@@ -39,14 +31,14 @@ public class ParameterInfoTest extends AbstractDartTest {
   }
 
   public void test_new() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
     assertEquals("int", parameter.getNewTypeName());
   }
 
   public void test_setNewName() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
     // initial state
     assertEquals("test", parameter.getOldName());
     assertEquals("test", parameter.getNewName());
@@ -59,19 +51,11 @@ public class ParameterInfoTest extends AbstractDartTest {
   }
 
   public void test_setNewTypeName() throws Exception {
-    ParameterInfoImpl parameter = new ParameterInfoImpl(element);
+    ParameterInfoImpl parameter = new ParameterInfoImpl("int", "test");
     // initial state
     assertEquals("int", parameter.getNewTypeName());
     // set new name
     parameter.setNewTypeName("num");
     assertEquals("num", parameter.getNewTypeName());
-  }
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    when(type.toString()).thenReturn("int");
-    when(element.getName()).thenReturn("test");
-    when(element.getType()).thenReturn(type);
   }
 }

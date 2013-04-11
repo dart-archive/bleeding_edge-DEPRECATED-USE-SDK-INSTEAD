@@ -13,22 +13,20 @@
  */
 package com.google.dart.engine.services.internal.refactoring;
 
-import com.google.dart.engine.element.VariableElement;
-import com.google.dart.engine.services.internal.correction.CorrectionUtils;
 import com.google.dart.engine.services.refactoring.ParameterInfo;
 
 /**
  * Information about method parameter.
  */
 public class ParameterInfoImpl implements ParameterInfo {
+  private String newTypeName;
   private final String oldName;
   private String newName;
-  private String newTypeName;
 
-  public ParameterInfoImpl(VariableElement variable) {
-    oldName = variable.getName();
+  public ParameterInfoImpl(String typeName, String name) {
+    oldName = name;
     newName = oldName;
-    newTypeName = CorrectionUtils.getTypeSource(variable.getType());
+    newTypeName = typeName;
   }
 
   @Override

@@ -185,7 +185,7 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
     }
     // add edit
     {
-      String typeSource = CorrectionUtils.getTypeSource(type);
+      String typeSource = utils.getTypeSource(type);
       // find "var" token
       KeywordToken varToken;
       {

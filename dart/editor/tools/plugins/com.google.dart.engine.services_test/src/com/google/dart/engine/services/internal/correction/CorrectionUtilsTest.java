@@ -952,39 +952,51 @@ public class CorrectionUtilsTest extends AbstractDartTest {
   }
 
   public void test_getTypeSource_Expression() throws Exception {
+    parseTestUnit("// 0123456789");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    // prepare mocks
     Type type = mock(Type.class);
     Expression expression = mock(Expression.class);
     when(expression.getStaticType()).thenReturn(type);
     // null
-    assertEquals(null, CorrectionUtils.getTypeSource((Expression) null));
+    assertEquals(null, utils.getTypeSource((Expression) null));
     // int
     when(type.toString()).thenReturn("int");
-    assertEquals("int", CorrectionUtils.getTypeSource(expression));
+    assertEquals("int", utils.getTypeSource(expression));
     // dynamic
     when(type.toString()).thenReturn("dynamic");
-    assertEquals(null, CorrectionUtils.getTypeSource(expression));
+    assertEquals(null, utils.getTypeSource(expression));
     // List<dynamic>
     when(type.toString()).thenReturn("List<dynamic>");
-    assertEquals("List", CorrectionUtils.getTypeSource(expression));
+    assertEquals("List", utils.getTypeSource(expression));
+    // List<String>
+    when(type.toString()).thenReturn("List<String>");
+    assertEquals("List<String>", utils.getTypeSource(expression));
     // Map<dynamic, dynamic>
     when(type.toString()).thenReturn("Map<dynamic, dynamic>");
-    assertEquals("Map", CorrectionUtils.getTypeSource(expression));
+    assertEquals("Map", utils.getTypeSource(expression));
+    // Map<int, String>
+    when(type.toString()).thenReturn("Map<int, String>");
+    assertEquals("Map<int, String>", utils.getTypeSource(expression));
   }
 
   public void test_getTypeSource_Type() throws Exception {
+    parseTestUnit("// 0123456789");
+    CorrectionUtils utils = getTestCorrectionUtils();
+    // prepare mocks
     Type type = mock(Type.class);
     // int
     when(type.toString()).thenReturn("int");
-    assertEquals("int", CorrectionUtils.getTypeSource(type));
+    assertEquals("int", utils.getTypeSource(type));
     // dynamic
     when(type.toString()).thenReturn("dynamic");
-    assertEquals("dynamic", CorrectionUtils.getTypeSource(type));
+    assertEquals("dynamic", utils.getTypeSource(type));
     // List<dynamic>
     when(type.toString()).thenReturn("List<dynamic>");
-    assertEquals("List", CorrectionUtils.getTypeSource(type));
+    assertEquals("List", utils.getTypeSource(type));
     // Map<dynamic, dynamic>
     when(type.toString()).thenReturn("Map<dynamic, dynamic>");
-    assertEquals("Map", CorrectionUtils.getTypeSource(type));
+    assertEquals("Map", utils.getTypeSource(type));
   }
 
   public void test_getUnit() throws Exception {
