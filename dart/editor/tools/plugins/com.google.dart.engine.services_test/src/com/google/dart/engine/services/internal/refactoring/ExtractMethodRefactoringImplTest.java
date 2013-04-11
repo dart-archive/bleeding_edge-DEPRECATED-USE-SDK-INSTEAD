@@ -1129,7 +1129,7 @@ public class ExtractMethodRefactoringImplTest extends RefactoringImplTest {
 
   public void test_singleExpression_returnTypePrefix() throws Exception {
     setFileContent(
-        "/MyLib.dart",
+        "MyLib.dart",
         makeSource(
             "// filler filler filler filler filler filler filler filler filler filler",
             "library my_lib;",

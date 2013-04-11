@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -92,7 +91,9 @@ public class AbstractDartTest extends TestCase {
       ANALYSIS_CONTEXT.setSourceFactory(sourceFactory);
     }
     // configure Source
-    Source source = new FileBasedSource(sourceFactory.getContentCache(), FileUtilities2.createFile(path));
+    Source source = new FileBasedSource(
+        sourceFactory.getContentCache(),
+        FileUtilities2.createFile(path));
     {
       sourceFactory.setContents(source, "");
       ChangeSet changeSet = new ChangeSet();
@@ -255,8 +256,9 @@ public class AbstractDartTest extends TestCase {
    * @return the {@link Source} which corresponds given path.
    */
   protected final Source setFileContent(String path, String content) {
-    String absolutePath = "/" + path;
-    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), new File(absolutePath));
+    FileBasedSource source = new FileBasedSource(
+        sourceFactory.getContentCache(),
+        FileUtilities2.createFile("/" + path));
     sourceWithSetContent.add(source);
     sourceFactory.setContents(source, content);
     return source;
