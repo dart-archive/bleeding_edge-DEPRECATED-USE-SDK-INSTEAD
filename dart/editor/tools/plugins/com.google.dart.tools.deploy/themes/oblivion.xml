@@ -33,7 +33,7 @@
     <operator color="#D8D8D8" />
     <parameterVariable color="#79ABFF" />
     <searchResultIndication color="#000000" />
-    <selectionBackground color="#000000" />
+    <selectionBackground color="#404040" />
     <selectionForeground color="#D0D0D0" />
     <singleLineComment color="#C7DD0C" />
     <sourceHoverBackground color="#000000" />

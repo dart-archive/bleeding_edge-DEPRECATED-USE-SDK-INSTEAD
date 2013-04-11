@@ -285,7 +285,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
 
     String activeThemeName = getPreferenceStore().getString("colorTheme"); // $NON-NLS-1$
     if (colorThemeManager.getTheme(activeThemeName) == null) {
-      activeThemeName = "Default";
+      activeThemeName = ColorThemeManager.DEFAULT_THEME_NAME;
     }
     themeSelectionList.setSelection(new String[] {activeThemeName});
     updateDetails(colorThemeManager.getTheme(activeThemeName));
@@ -340,7 +340,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
       themeNames.add(theme.getName());
     }
     Collections.sort(themeNames, String.CASE_INSENSITIVE_ORDER);
-    themeNames.add(0, "Default");
+    themeNames.add(0, ColorThemeManager.DEFAULT_THEME_NAME);
     themeSelectionList.setItems(themeNames.toArray(new String[themeNames.size()]));
   }
 
@@ -355,7 +355,7 @@ public class ThemePreferencePage extends PreferencePage implements IWorkbenchPre
     }
     themeSelectionList.removeAll();
     fillThemeSelectionList();
-    themeSelectionList.setSelection(new String[] {"Default"});
+    themeSelectionList.setSelection(new String[] {ColorThemeManager.DEFAULT_THEME_NAME});
     updateDetails(null);
     container.pack();
   }

@@ -84,6 +84,8 @@ public class ColorThemeManager {
     }
   }
 
+  public static final String DEFAULT_THEME_NAME = "Default";
+
   public static ColorTheme parseTheme(InputStream input) throws ParserConfigurationException,
       SAXException, IOException {
     ColorTheme theme = new ColorTheme();
@@ -127,6 +129,20 @@ public class ColorThemeManager {
     return theme;
   }
 
+  private static void addUndefinedDefaults(ColorTheme theme, Map<String, ColorTheme> themes) {
+    ColorTheme defaults = themes.get(DEFAULT_THEME_NAME);
+    if (theme == defaults) {
+      return;
+    }
+    Map<String, ColorThemeSetting> themeEntries = theme.getEntries();
+    Map<String, ColorThemeSetting> defaultEntries = defaults.getEntries();
+    for (String name : defaultEntries.keySet()) {
+      if (!themeEntries.containsKey(name)) {
+        themeEntries.put(name, defaultEntries.get(name).copy());
+      }
+    }
+  }
+
   private static void amendThemeEntries(Map<String, ColorThemeSetting> theme) {
     applyDefault(theme, METHOD, FOREGROUND);
     applyDefault(theme, FIELD, FOREGROUND);
@@ -163,6 +179,7 @@ public class ColorThemeManager {
       try {
         ColorTheme theme = parseTheme(new ByteArrayInputStream(xml.getBytes()));
         amendThemeEntries(theme.getEntries());
+        addUndefinedDefaults(theme, themes);
         themes.put(theme.getName(), theme);
       } catch (Exception e) {
         // TODO(messick): Add proper error reporting
@@ -187,6 +204,9 @@ public class ColorThemeManager {
       }
     } catch (Exception e) {
       e.printStackTrace();
+    }
+    for (ColorTheme theme : themes.values()) {
+      addUndefinedDefaults(theme, themes);
     }
   }
 
@@ -330,7 +350,7 @@ public class ColorThemeManager {
   public void undoPreview() {
     String name = getPreferenceStore().getString("colorTheme");
     if (name.isEmpty()) {
-      name = "Dartboard";
+      name = DEFAULT_THEME_NAME;
     }
     previewTheme(name);
   }

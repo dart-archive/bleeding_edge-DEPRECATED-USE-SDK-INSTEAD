@@ -25,6 +25,15 @@ public class ColorThemeSetting {
     this.color = new Color(color);
   }
 
+  public ColorThemeSetting copy() {
+    ColorThemeSetting copy = new ColorThemeSetting(color.asHex());
+    copy.boldEnabled = boldEnabled;
+    copy.italicEnabled = italicEnabled;
+    copy.underlineEnabled = underlineEnabled;
+    copy.strikethroughEnabled = strikethroughEnabled;
+    return copy;
+  }
+
   public Color getColor() {
     return color;
   }
