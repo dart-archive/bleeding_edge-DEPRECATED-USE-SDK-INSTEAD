@@ -71,10 +71,7 @@ public class ExtractMethodAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    AssistContext context = selection.getContext();
-    if (context == null) {
-      return;
-    }
+    AssistContext context = getContextAfterBuild(selection);
     try {
       com.google.dart.engine.services.refactoring.ExtractMethodRefactoring newRefactoring = RefactoringFactory.createExtractMethodRefactoring(context);
       ServiceExtractMethodRefactoring ltkRefactoring = new ServiceExtractMethodRefactoring(

@@ -71,10 +71,7 @@ public class ExtractLocalAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    AssistContext context = selection.getContext();
-    if (context == null) {
-      return;
-    }
+    AssistContext context = getContextAfterBuild(selection);
     try {
       com.google.dart.engine.services.refactoring.ExtractLocalRefactoring newRefactoring = RefactoringFactory.createExtractLocalRefactoring(context);
       ServiceExtractLocalRefactoring ltkRefactoring = new ServiceExtractLocalRefactoring(

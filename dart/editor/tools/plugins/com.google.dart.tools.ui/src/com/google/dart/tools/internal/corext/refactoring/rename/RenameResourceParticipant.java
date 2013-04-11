@@ -22,8 +22,6 @@ import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringCoreMessages;
 import com.google.dart.tools.internal.corext.refactoring.changes.TextChangeCompatibility;
 import com.google.dart.tools.internal.corext.refactoring.util.DartElementUtil;
-import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
-import com.google.dart.tools.internal.corext.refactoring.util.RunnableObjectEx;
 import com.google.dart.tools.internal.corext.refactoring.util.TextChangeManager;
 import com.google.dart.tools.ui.internal.refactoring.RefactoringMessages;
 
@@ -64,50 +62,7 @@ public class RenameResourceParticipant extends RenameParticipant {
   }
 
   @Override
-  public Change createPreChange(final IProgressMonitor pm) throws CoreException,
-      OperationCanceledException {
-    return ExecutionUtils.runObjectCore(new RunnableObjectEx<Change>() {
-      @Override
-      public Change runObject() throws Exception {
-        return createChangeEx(pm);
-      }
-    });
-  }
-
-  @Override
-  public String getName() {
-    return RefactoringMessages.RenameResourceParticipant_name;
-  }
-
-  @Override
-  protected boolean initialize(Object element) {
-    if (element instanceof IFile) {
-      file = (IFile) element;
-      return true;
-    }
-    return false;
-  }
-
-  private void addReferenceUpdate(SearchMatch match, String newName) throws Exception {
-    Source source = match.getElement().getSource();
-    // prepare "old name" range
-    SourceRange matchRange = match.getSourceRange();
-    int end = matchRange.getEnd() - "'".length();
-    int begin = end - file.getName().length();
-    // add TextEdit to rename "old name" with "new name"
-    TextEdit edit = new ReplaceEdit(begin, end - begin, newName);
-    addTextEdit(source, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
-  }
-
-  private void addTextEdit(Source source, String groupName, TextEdit textEdit) {
-    TextChange change = changeManager.get(source);
-    TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
-  }
-
-  /**
-   * Implementation of {@link #createChange(IProgressMonitor)} which can throw any exception.
-   */
-  private Change createChangeEx(IProgressMonitor pm) throws Exception {
+  public Change createPreChange(IProgressMonitor pm) {
     RenameArguments arguments = getArguments();
     // update references
     if (arguments.getUpdateReferences()) {
@@ -132,5 +87,35 @@ public class RenameResourceParticipant extends RenameParticipant {
     } else {
       return null;
     }
+  }
+
+  @Override
+  public String getName() {
+    return RefactoringMessages.RenameResourceParticipant_name;
+  }
+
+  @Override
+  protected boolean initialize(Object element) {
+    if (element instanceof IFile) {
+      file = (IFile) element;
+      return true;
+    }
+    return false;
+  }
+
+  private void addReferenceUpdate(SearchMatch match, String newName) {
+    Source source = match.getElement().getSource();
+    // prepare "old name" range
+    SourceRange matchRange = match.getSourceRange();
+    int end = matchRange.getEnd() - "'".length();
+    int begin = end - file.getName().length();
+    // add TextEdit to rename "old name" with "new name"
+    TextEdit edit = new ReplaceEdit(begin, end - begin, newName);
+    addTextEdit(source, RefactoringCoreMessages.RenameProcessor_update_reference, edit);
+  }
+
+  private void addTextEdit(Source source, String groupName, TextEdit textEdit) {
+    TextChange change = changeManager.get(source);
+    TextChangeCompatibility.addTextEdit(change, groupName, textEdit);
   }
 }

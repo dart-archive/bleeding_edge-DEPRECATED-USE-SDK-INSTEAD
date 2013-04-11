@@ -49,16 +49,18 @@ public class InlineAction extends AbstractDartSelectionAction {
   @Override
   protected void doRun(DartSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
-    AssistContext context = selection.getContext();
+    AssistContext context = getContextAfterBuild(selection);
     if (context == null) {
       return;
     }
+    // try to inline
     if (inlineLocal.isEnabled() && inlineLocal.tryInline(context, getShell())) {
       return;
     }
     if (inlineMethod.isEnabled() && inlineMethod.tryInline(context, getShell())) {
       return;
     }
+    // complain
     instrumentation.metric("Problem", "No valid selection, showing dialog");
     MessageDialog.openInformation(
         getShell(),

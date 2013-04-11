@@ -36,6 +36,7 @@ import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.projects.HideProjectAction;
 import com.google.dart.tools.ui.internal.projects.OpenNewApplicationWizardAction;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
@@ -701,7 +702,15 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
     createFolderAction = new OpenNewFolderWizardAction(getSite().getWorkbenchWindow());
     treeViewer.addSelectionChangedListener(createFolderAction);
     createApplicationAction = new OpenNewApplicationWizardAction();
-    renameAction = new RenameResourceAction(getShell(), treeViewer.getTree());
+    renameAction = new RenameResourceAction(getShell(), treeViewer.getTree()) {
+      @Override
+      public void run() {
+        if (!RefactoringUtils.waitReadyForRefactoring()) {
+          return;
+        }
+        super.run();
+      }
+    };
     treeViewer.addSelectionChangedListener(renameAction);
     cleanUpAction = new CleanUpAction(getViewSite());
     treeViewer.addSelectionChangedListener(cleanUpAction);

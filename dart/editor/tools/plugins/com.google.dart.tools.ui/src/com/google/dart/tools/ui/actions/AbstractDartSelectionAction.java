@@ -19,6 +19,7 @@ import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.tools.ui.internal.refactoring.RefactoringUtils;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.internal.text.editor.LightNodeElement;
@@ -30,6 +31,20 @@ import org.eclipse.ui.IWorkbenchSite;
  * Abstract class selection-based actions.
  */
 public abstract class AbstractDartSelectionAction extends InstrumentedSelectionDispatchAction {
+  /**
+   * Waits for background analysis, to be sure that {@link AssistContext} will stay actual. Then
+   * requests {@link AssistContext} from the given {@link DartSelection}.
+   * 
+   * @return the {@link AssistContext}, may be {@code null} if waiting of background analysis was
+   *         cancelled, or {@link DartSelection} has no context.
+   */
+  protected static AssistContext getContextAfterBuild(DartSelection selection) {
+    if (!RefactoringUtils.waitReadyForRefactoring()) {
+      return null;
+    }
+    return selection.getContext();
+  }
+
   /**
    * @return the {@link Element} covered by the given {@link DartSelection}, may be
    *         <code>null</code>.
