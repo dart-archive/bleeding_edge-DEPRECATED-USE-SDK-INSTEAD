@@ -17,16 +17,17 @@ package com.google.dart.tools.ui.internal.preferences;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.PreferenceConstants;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
+import com.google.dart.tools.ui.internal.text.functions.DartColorManager;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 import com.google.dart.tools.ui.text.DartPartitions;
 import com.google.dart.tools.ui.text.DartSourceViewerConfiguration;
-import com.google.dart.tools.ui.text.DartTextTools;
 
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.PreferenceStore;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.Document;
@@ -113,6 +114,11 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
     //   setDescription(PreferencesMessages.DartBasePreferencePage_text_font);
     noDefaultAndApplyButton();
+  }
+
+  @Override
+  public IPreferenceStore getPreferenceStore() {
+    return new PreferenceStore();
   }
 
   @Override
@@ -356,10 +362,9 @@ public class FontPreferencePage extends PreferencePage implements IWorkbenchPref
   }
 
   private SourceViewerConfiguration getSourceViewerConfiguration() {
-    DartTextTools textTools = DartToolsPlugin.getDefault().getDartTextTools();
     return new DartSourceViewerConfiguration(
-        textTools.getColorManager(),
-        getPreferenceStore(),
+        new DartColorManager(),
+        new PreferenceStore(),
         null,
         DartPartitions.DART_PARTITIONING);
   }
