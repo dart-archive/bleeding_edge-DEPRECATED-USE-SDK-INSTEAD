@@ -15,6 +15,7 @@ package com.google.dart.tools.ui.actions;
 
 import com.google.dart.tools.core.internal.util.ResourceUtil;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.projects.NewApplicationCreationPage.ProjectType;
 import com.google.dart.tools.ui.internal.projects.ProjectMessages;
 import com.google.dart.tools.ui.internal.projects.ProjectUtils;
@@ -27,9 +28,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 
@@ -41,7 +42,7 @@ import java.util.ArrayList;
 /**
  * Creates projects in the workspace.
  */
-public class CreateAndRevealProjectAction extends Action {
+public class CreateAndRevealProjectAction extends InstrumentedAction {
 
   //TODO(pquitslund): permit/handle overwriting existing projects
 
@@ -87,14 +88,6 @@ public class CreateAndRevealProjectAction extends Action {
     return status;
   }
 
-  @Override
-  public void run() {
-    status = Status.OK_STATUS; //will get unset if any creation fails
-    for (String d : directories) {
-      createAndRevealProject(d);
-    }
-  }
-
   protected void createAndRevealProject(String directoryPath) {
     Path path = new Path(directoryPath);
     String name = path.lastSegment();
@@ -125,6 +118,18 @@ public class CreateAndRevealProjectAction extends Action {
       project = newProject;
     } else {
       status = Status.CANCEL_STATUS;
+    }
+  }
+
+  @Override
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+    status = Status.OK_STATUS; //will get unset if any creation fails
+
+    instrumentation.metric("Directories-Count", directories.length);
+
+    for (String d : directories) {
+      instrumentation.data("Directory", d);
+      createAndRevealProject(d);
     }
   }
 

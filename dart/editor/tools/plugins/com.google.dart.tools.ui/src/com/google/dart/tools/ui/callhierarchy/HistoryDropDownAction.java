@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.core.model.DartElement;
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.jface.action.Action;
@@ -22,15 +24,16 @@ import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IMenuCreator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.PlatformUI;
 
 import java.util.Arrays;
 
-class HistoryDropDownAction extends Action implements IMenuCreator {
+class HistoryDropDownAction extends InstrumentedAction implements IMenuCreator {
 
-  private static class ClearHistoryAction extends Action {
+  private static class ClearHistoryAction extends InstrumentedAction {
 
     /**
      * Creates a clear history action.
@@ -42,8 +45,9 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       CallHierarchyUI.getDefault().clearHistory();
+
     }
   }
 
@@ -93,14 +97,15 @@ class HistoryDropDownAction extends Action implements IMenuCreator {
     return null;
   }
 
-  @Override
-  public void run() {
-    new HistoryListAction(chvPart).run();
-  }
-
   protected void addActionToMenu(Menu parent, Action action) {
     ActionContributionItem item = new ActionContributionItem(action);
     item.fill(parent, -1);
+  }
+
+  @Override
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+    new HistoryListAction(chvPart).run();
+
   }
 
   private boolean addEntries(Menu menu, DartElement[][] elements) {

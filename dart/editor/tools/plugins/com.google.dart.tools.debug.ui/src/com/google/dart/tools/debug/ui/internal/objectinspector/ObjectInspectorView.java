@@ -21,6 +21,8 @@ import com.google.dart.tools.debug.ui.internal.objectinspector.ExpressionEvaluat
 import com.google.dart.tools.debug.ui.internal.presentation.DartDebugModelPresentation;
 import com.google.dart.tools.ui.DartToolsPlugin;
 import com.google.dart.tools.ui.DartUI;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.editor.DartDocumentSetupParticipant;
 import com.google.dart.tools.ui.internal.text.functions.PreferencesAdapter;
 import com.google.dart.tools.ui.internal.util.SelectionUtil;
@@ -66,6 +68,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
@@ -149,7 +152,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
   }
 
-  private class DoItAction extends Action implements IUpdate {
+  private class DoItAction extends InstrumentedAction implements IUpdate {
     public DoItAction() {
       super("Do It");
 
@@ -157,7 +160,19 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void run() {
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
+    }
+
+    @Override
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+
+      try {
+        instrumentation.data("Value", getValue().getValueString());
+      } catch (Exception e) {
+      }
+      instrumentation.data("Expression", getExpressionText());
+
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -171,15 +186,11 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
-    }
 
-    @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 
-  private class InspectItAction extends Action implements IUpdate {
+  private class InspectItAction extends InstrumentedAction implements IUpdate {
     public InspectItAction() {
       super("Inspect It...", DartDebugUIPlugin.getImageDescriptor("obj16/watchlist_view.gif"));
 
@@ -187,7 +198,19 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void run() {
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
+    }
+
+    @Override
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+
+      try {
+        instrumentation.data("Value", getValue().getValueString());
+      } catch (Exception e) {
+      }
+      instrumentation.data("Expression", getExpressionText());
+
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -203,15 +226,11 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
-    }
 
-    @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 
-  private class PrintItAction extends Action implements IUpdate {
+  private class PrintItAction extends InstrumentedAction implements IUpdate {
     public PrintItAction() {
       super("Print It");
 
@@ -219,7 +238,19 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
     }
 
     @Override
-    public void run() {
+    public void update() {
+      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
+    }
+
+    @Override
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+
+      try {
+        instrumentation.data("Value", getValue().getValueString());
+      } catch (Exception e) {
+      }
+      instrumentation.data("Expression", getExpressionText());
+
       Job job = new ExpressionEvaluateJob(
           getValue(),
           getExpressionText(),
@@ -235,11 +266,7 @@ public class ObjectInspectorView extends ViewPart implements IDebugEventSetListe
           });
 
       job.schedule();
-    }
 
-    @Override
-    public void update() {
-      setEnabled(sourceViewer.canDoOperation(ITextOperationTarget.COPY));
     }
   }
 

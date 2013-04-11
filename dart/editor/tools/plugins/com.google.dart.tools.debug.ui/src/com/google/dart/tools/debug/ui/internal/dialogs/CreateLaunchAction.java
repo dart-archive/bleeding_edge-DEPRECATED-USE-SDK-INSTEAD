@@ -16,13 +16,14 @@ package com.google.dart.tools.debug.ui.internal.dialogs;
 
 import com.google.dart.tools.debug.ui.internal.DartDebugUIPlugin;
 import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.DebugUITools;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.IDecoration;
@@ -34,7 +35,7 @@ import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 /**
  * An action used to create a new launch configuration.
  */
-class CreateLaunchAction extends Action implements IWorkbenchWindowActionDelegate {
+class CreateLaunchAction extends InstrumentedAction implements IWorkbenchWindowActionDelegate {
   //private Menu menu;
   private ManageLaunchesDialog launchConfigurationDialog;
   private ILaunchConfigurationType configType;
@@ -66,17 +67,7 @@ class CreateLaunchAction extends Action implements IWorkbenchWindowActionDelegat
   }
 
   @Override
-  public void run() {
-    create(configType);
-  }
-
-  @Override
   public void run(IAction action) {
-    run();
-  }
-
-  @Override
-  public void runWithEvent(Event event) {
     run();
   }
 
@@ -103,6 +94,12 @@ class CreateLaunchAction extends Action implements IWorkbenchWindowActionDelegat
           "Unable to create the selected launch: " + exception.toString(),
           exception);
     }
+  }
+
+  @Override
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
+    create(configType);
+
   }
 
 }

@@ -32,6 +32,7 @@ public class CancelSearchAction extends Action {
         SearchPluginImages.IMG_LCL_SEARCH_CANCEL);
   }
 
+  @Override
   public void run() {
     ISearchResult result = fView.getCurrentSearchResult();
     if (result != null) {

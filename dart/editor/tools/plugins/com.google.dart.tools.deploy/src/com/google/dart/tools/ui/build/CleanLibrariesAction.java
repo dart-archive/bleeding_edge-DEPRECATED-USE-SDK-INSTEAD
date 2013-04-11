@@ -14,16 +14,19 @@
 package com.google.dart.tools.ui.build;
 
 import com.google.dart.tools.core.jobs.CleanLibrariesJob;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.action.Action;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.actions.ActionFactory;
 
 /**
  * Clean the Dart libraries in the workspace and delete the index.
  */
-public class CleanLibrariesAction extends Action implements ActionFactory.IWorkbenchAction {
+public class CleanLibrariesAction extends InstrumentedAction implements
+    ActionFactory.IWorkbenchAction {
   private static final String ACTION_ID = "buildClean"; //$NON-NLS-1$
 
   /**
@@ -43,10 +46,11 @@ public class CleanLibrariesAction extends Action implements ActionFactory.IWorkb
   }
 
   @Override
-  public void run() {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     Job job = new CleanLibrariesJob();
 
     job.schedule();
+
   }
 
 }

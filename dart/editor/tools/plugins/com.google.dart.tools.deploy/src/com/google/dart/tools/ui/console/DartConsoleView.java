@@ -16,6 +16,8 @@ package com.google.dart.tools.ui.console;
 
 import com.google.dart.tools.deploy.Activator;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
 
@@ -38,6 +40,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleView;
@@ -56,7 +59,7 @@ import org.eclipse.ui.progress.IWorkbenchSiteProgressService;
 @SuppressWarnings("restriction")
 public class DartConsoleView extends ViewPart implements IConsoleView, IPropertyChangeListener {
 
-  private class ClearAction extends Action {
+  private class ClearAction extends InstrumentedAction {
     public ClearAction() {
       super("Clear", Activator.getImageDescriptor("icons/full/eview16/rem_co.gif"));
     }
@@ -66,7 +69,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -83,6 +86,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       };
 
       new Thread(r).start();
+
     }
   }
 
@@ -113,7 +117,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
   }
 
-  private class TerminateAction extends Action implements ILaunchesListener2 {
+  private class TerminateAction extends InstrumentedAction implements ILaunchesListener2 {
 
     public TerminateAction() {
       super("Terminate", Activator.getImageDescriptor("icons/full/eview16/terminate.gif"));
@@ -148,7 +152,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       Runnable r = new Runnable() {
         @Override
         public void run() {
@@ -171,6 +175,7 @@ public class DartConsoleView extends ViewPart implements IConsoleView, IProperty
       } else {
         setEnabled(false);
       }
+
     }
   }
 

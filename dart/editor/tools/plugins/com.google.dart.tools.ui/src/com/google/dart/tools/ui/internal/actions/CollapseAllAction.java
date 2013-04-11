@@ -15,11 +15,14 @@ package com.google.dart.tools.ui.internal.actions;
 
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.actions.ActionMessages;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -27,7 +30,7 @@ import org.eclipse.ui.PlatformUI;
  * <p>
  * (see Eclipse Bug 210255, this bug was the request for this feature in the JDT.)
  */
-public final class CollapseAllAction extends Action {
+public final class CollapseAllAction extends InstrumentedAction {
 
   private final TreeViewer viewer;
 
@@ -41,13 +44,14 @@ public final class CollapseAllAction extends Action {
   }
 
   @Override
-  public void run() {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     try {
       viewer.getControl().setRedraw(false);
       viewer.collapseAll();
     } finally {
       viewer.getControl().setRedraw(true);
     }
+
   }
 
 }

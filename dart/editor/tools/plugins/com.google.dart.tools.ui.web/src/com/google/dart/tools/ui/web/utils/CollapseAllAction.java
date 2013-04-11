@@ -14,15 +14,17 @@
 
 package com.google.dart.tools.ui.web.utils;
 
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.swt.widgets.Event;
 
 /**
  * An action to collapse all the levels in a tree viewer.
  */
-public class CollapseAllAction extends Action {
+public class CollapseAllAction extends InstrumentedAction {
   private TreeViewer viewer;
 
   public CollapseAllAction(TreeViewer treeViewer) {
@@ -34,13 +36,14 @@ public class CollapseAllAction extends Action {
   }
 
   @Override
-  public void run() {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     try {
       viewer.getControl().setRedraw(false);
       viewer.collapseAll();
     } finally {
       viewer.getControl().setRedraw(true);
     }
+
   }
 
 }

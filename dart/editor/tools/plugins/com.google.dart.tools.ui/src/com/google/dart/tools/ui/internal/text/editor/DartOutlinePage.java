@@ -18,8 +18,10 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.tools.search.internal.ui.DartSearchActionGroup;
 import com.google.dart.tools.ui.DartPluginImages;
 import com.google.dart.tools.ui.DartToolsPlugin;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
 import com.google.dart.tools.ui.actions.OpenViewActionGroup;
 import com.google.dart.tools.ui.actions.RefactorActionGroup;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 import com.google.dart.tools.ui.internal.util.SWTUtil;
@@ -30,7 +32,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
@@ -70,7 +71,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  */
 public class DartOutlinePage extends Page implements IContentOutlinePage, DartOutlinePage_I {
 
-  private class CollapseAllAction extends Action {
+  private class CollapseAllAction extends InstrumentedAction {
     CollapseAllAction() {
       super("Collapse All"); //$NON-NLS-1$
       setDescription("Collapse All"); //$NON-NLS-1$
@@ -82,8 +83,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       viewer.collapseAll();
+
     }
   }
 
@@ -113,7 +115,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
-  private class ExpandAllAction extends Action {
+  private class ExpandAllAction extends InstrumentedAction {
     ExpandAllAction() {
       super("Expand All"); //$NON-NLS-1$
       setDescription("Expand All"); //$NON-NLS-1$
@@ -123,8 +125,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       viewer.expandAll();
+
     }
   }
 
@@ -139,7 +142,7 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
   }
 
-  private class LexicalSortingAction extends Action {
+  private class LexicalSortingAction extends InstrumentedAction {
     public LexicalSortingAction() {
       PlatformUI.getWorkbench().getHelpSystem().setHelp(
           this,
@@ -155,8 +158,9 @@ public class DartOutlinePage extends Page implements IContentOutlinePage, DartOu
     }
 
     @Override
-    public void run() {
+    protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
       valueChanged(isChecked(), true);
+
     }
 
     private void valueChanged(final boolean on, boolean store) {

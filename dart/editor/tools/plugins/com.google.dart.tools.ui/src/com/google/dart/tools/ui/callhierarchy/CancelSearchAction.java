@@ -14,15 +14,17 @@
 package com.google.dart.tools.ui.callhierarchy;
 
 import com.google.dart.tools.ui.DartPluginImages;
+import com.google.dart.tools.ui.actions.InstrumentedAction;
+import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
 import com.google.dart.tools.ui.internal.text.DartHelpContextIds;
 
-import org.eclipse.jface.action.Action;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.ui.PlatformUI;
 
 /**
  * This class is copied from the org.eclipse.search2.internal.ui.CancelSearchAction class.
  */
-public class CancelSearchAction extends Action {
+public class CancelSearchAction extends InstrumentedAction {
 
   private CallHierarchyViewPart view;
 
@@ -38,7 +40,8 @@ public class CancelSearchAction extends Action {
   }
 
   @Override
-  public void run() {
+  protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     view.cancelJobs();
+
   }
 }
