@@ -220,7 +220,7 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     SimpleIdentifier fieldName = node.getFieldName();
     ClassElement enclosingClass = resolver.getEnclosingClass();
     fieldElement = ((ClassElementImpl) enclosingClass).getField(fieldName.getName());
-    if (!fieldElement.isSynthetic()) {
+    if (fieldElement != null && !fieldElement.isSynthetic()) {
       recordResolution(fieldName, fieldElement);
     }
     return null;
