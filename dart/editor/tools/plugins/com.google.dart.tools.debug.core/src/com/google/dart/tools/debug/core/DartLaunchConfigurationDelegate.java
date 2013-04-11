@@ -51,6 +51,8 @@ public abstract class DartLaunchConfigurationDelegate extends LaunchConfiguratio
 
       doLaunch(configuration, mode, launch, monitor, instrumentation);
 
+    } catch (CoreException e) {
+      DebugUIHelper.getHelper().showError("Error Launching Application", e.getMessage());
     } finally {
       instrumentation.log();
     }

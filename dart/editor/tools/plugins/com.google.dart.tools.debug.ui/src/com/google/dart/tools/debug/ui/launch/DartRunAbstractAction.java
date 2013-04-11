@@ -17,6 +17,7 @@ package com.google.dart.tools.debug.ui.launch;
 import com.google.dart.tools.debug.core.DartDebugCorePlugin;
 import com.google.dart.tools.debug.core.DartLaunchConfigWrapper;
 import com.google.dart.tools.debug.ui.internal.DartDebugUITools;
+import com.google.dart.tools.debug.ui.internal.DebugErrorHandler;
 import com.google.dart.tools.debug.ui.internal.DebugInstrumentationUtilities;
 import com.google.dart.tools.debug.ui.internal.util.LaunchUtils;
 import com.google.dart.tools.ui.actions.InstrumentedAction;
@@ -161,6 +162,11 @@ public abstract class DartRunAbstractAction extends InstrumentedAction implement
       instrumentation.metric("Problem-Exception", e.toString());
 
       DartDebugCorePlugin.logError(e);
+      DebugErrorHandler.errorDialog(
+          window.getShell(),
+          "Error Launching Application",
+          e.getMessage(),
+          e);
     }
   }
 

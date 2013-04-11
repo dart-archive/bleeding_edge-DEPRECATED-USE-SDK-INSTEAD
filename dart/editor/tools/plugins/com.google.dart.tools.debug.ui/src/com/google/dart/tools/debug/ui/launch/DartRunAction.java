@@ -57,15 +57,10 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
     setImageDescriptor(DartDebugUIPlugin.getImageDescriptor("obj16/run_exc.png"));
     setToolTipText("Run");
 
-//    window.getSelectionService().addSelectionListener(this);
-//    window.addPageListener(this);
   }
 
   @Override
   public void dispose() {
-//    getWindow().removePageListener(this);
-//    getWindow().getSelectionService().removeSelectionListener(this);
-
     super.dispose();
   }
 
@@ -73,21 +68,6 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
   public void init(IViewPart view) {
 
   }
-
-//  @Override
-//  public void pageActivated(IWorkbenchPage page) {
-//    selectionChanged((IWorkbenchPart) null, getWindow().getSelectionService().getSelection());
-//  }
-//
-//  @Override
-//  public void pageClosed(IWorkbenchPage page) {
-//
-//  }
-//
-//  @Override
-//  public void pageOpened(IWorkbenchPage page) {
-//
-//  }
 
   @Override
   protected void doLaunch(UIInstrumentationBuilder instrumentation) {
@@ -113,7 +93,12 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
               "Unable to Run",
               "Unable to run the current selection. Please choose a file in a library with a main() function.");
         } else {
-          chooseAndLaunch(launches, instrumentation);
+          if (!chooseAndLaunch(launches, instrumentation)) {
+            MessageDialog.openInformation(
+                getWindow().getShell(),
+                "Unable to Run",
+                "Could not find a launch configuration.");
+          }
         }
       }
     } catch (CoreException ce) {
@@ -140,31 +125,6 @@ public class DartRunAction extends DartRunAbstractAction implements IViewActionD
           exception);
     }
   }
-
-//  @Override
-//  public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-//    setToolTipText("Run");
-//
-//    IResource resource = LaunchUtils.getSelectedResource(window);
-//
-//    if (resource != null) {
-//      ILaunchConfiguration config = null;
-//
-//      try {
-//        config = LaunchUtils.getLaunchFor(resource);
-//      } catch (DartModelException e) {
-//
-//      }
-//
-//      if (config == null) {
-//        config = LaunchUtils.chooseLatest(LaunchUtils.getAllLaunches());
-//      }
-//
-//      if (config != null) {
-//        setToolTipText(LaunchUtils.getLongLaunchName(config));
-//      }
-//    }
-//  }
 
   protected void launchResource(IResource resource, UIInstrumentationBuilder instrumentation)
       throws DartModelException {
