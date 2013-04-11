@@ -252,7 +252,7 @@ public class UpdateUtils {
   public static void ensureExecutable(File... files) {
     if (files != null) {
       for (File file : files) {
-        if (!file.canExecute()) {
+        if (file != null && !file.canExecute()) {
           if (!makeExecutable(file)) {
             UpdateCore.logError("Could not make " + file.getAbsolutePath() + " executable");
           }
