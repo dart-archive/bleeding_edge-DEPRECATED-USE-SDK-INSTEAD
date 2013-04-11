@@ -108,7 +108,8 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
       }
       if (delta.getKind() == IResourceDelta.REMOVED) {
         if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
-          processPubspecContents(null, resource.getProject(), monitor);
+          DartCore.getProjectManager().getProject(resource.getProject()).discardContextsIn(
+              resource.getParent());
         }
       }
     }
