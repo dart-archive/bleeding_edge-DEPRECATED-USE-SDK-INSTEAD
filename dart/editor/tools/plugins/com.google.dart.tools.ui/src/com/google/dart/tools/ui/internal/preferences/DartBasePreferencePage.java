@@ -47,7 +47,7 @@ import java.io.IOException;
 @SuppressWarnings("restriction")
 public class DartBasePreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
-  public static final String JAVA_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
+  public static final String DART_BASE_PREF_PAGE_ID = "com.google.dart.tools.ui.preferences.DartBasePreferencePage"; //$NON-NLS-1$
 
   private Button lineNumbersCheck;
   private Button printMarginCheck;
@@ -56,7 +56,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
   private Button enableFolding;
   private Button enableAutoCompletion;
   private Button runPubAutoCheck;
-  private Button newAnalyzer;
+  private Button legacyAnalyzer;
 
   public DartBasePreferencePage() {
     setPreferenceStore(DartToolsPlugin.getDefault().getPreferenceStore());
@@ -194,13 +194,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         experimentalGroup);
     GridLayoutFactory.fillDefaults().margins(8, 8).applyTo(experimentalGroup);
 
-    newAnalyzer = createCheckBox(
-        experimentalGroup,
-        "Enable experimental analyzer (not for the faint of heart)", //$NON-NLS-1$
-        "Enable experimental analyzer"); //$NON-NLS-1$
-    GridDataFactory.fillDefaults().applyTo(newAnalyzer);
+    legacyAnalyzer = createCheckBox(experimentalGroup, "Use legacy analyzer (not recommended)", //$NON-NLS-1$
+        "Use legacy analyzer"); //$NON-NLS-1$
+    GridDataFactory.fillDefaults().applyTo(legacyAnalyzer);
 
-    newAnalyzer.addSelectionListener(new SelectionAdapter() {
+    legacyAnalyzer.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e) {
         boolean confirmRestart = MessageDialog.openConfirm(getShell(), "Confirm restart", //$NON-NLS-1$
@@ -210,11 +208,11 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
         if (confirmRestart) {
           DartCore.setUserDefinedProperty(
               DartCoreDebug.ENABLE_NEW_ANALYSIS_USER_FLAG,
-              Boolean.toString(newAnalyzer.getSelection()));
+              Boolean.toString(!legacyAnalyzer.getSelection()));
           PlatformUI.getWorkbench().restart();
         } else {
           // Cancel
-          newAnalyzer.setSelection(!newAnalyzer.getSelection());
+          legacyAnalyzer.setSelection(!legacyAnalyzer.getSelection());
         }
       }
     });
@@ -261,7 +259,7 @@ public class DartBasePreferencePage extends PreferencePage implements IWorkbench
       runPubAutoCheck.setSelection(prefs.getBoolean(DartCore.PUB_AUTO_RUN_PREFERENCE, true));
     }
 
-    newAnalyzer.setSelection(DartCoreDebug.ENABLE_NEW_ANALYSIS);
+    legacyAnalyzer.setSelection(!DartCoreDebug.ENABLE_NEW_ANALYSIS);
 
   }
 

@@ -30,7 +30,7 @@ com.google.dart.tools.core/experimental/formatter = false
 com.google.dart.tools.core/experimental/themes = false
 com.google.dart.tools.core/experimental/tabColors = false
 com.google.dart.tools.core/experimental/validateHtml = false
-com.google.dart.tools.core/experimental/analysis/engine = false
+com.google.dart.tools.core/experimental/analysis/useDartc = false
 
 com.google.dart.tools.core/experimental/pubInWinXP = false
 
