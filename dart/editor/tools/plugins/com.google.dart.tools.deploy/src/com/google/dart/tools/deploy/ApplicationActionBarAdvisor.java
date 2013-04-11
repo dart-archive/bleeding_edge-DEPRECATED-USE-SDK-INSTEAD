@@ -31,6 +31,7 @@ import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.OpenTutorialAction;
 import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
+import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler;
 import com.google.dart.tools.ui.internal.handlers.NewFileHandler.NewFileCommandAction;
@@ -246,7 +247,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private NewFileCommandAction newFileAction;
 
-  private RunPubAction pubPublishAction;
+  private RunPublishAction pubPublishAction;
 
   /**
    * Constructs a new action builder which contributes actions to the given window.
@@ -505,7 +506,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     pubUpdateAction = RunPubAction.createPubUpdateAction(window);
 
-    pubPublishAction = RunPubAction.createPubPublishAction(window);
+    pubPublishAction = RunPublishAction.createPubPublishAction(window);
 
     if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
       // TODO(scheglov)

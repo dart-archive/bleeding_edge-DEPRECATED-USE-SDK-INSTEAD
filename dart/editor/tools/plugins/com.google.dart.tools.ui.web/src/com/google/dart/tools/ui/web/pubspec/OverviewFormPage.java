@@ -18,7 +18,7 @@ import com.google.dart.tools.core.generator.DartIdentifierUtil;
 import com.google.dart.tools.core.pub.IModelListener;
 import com.google.dart.tools.core.pub.PubspecModel;
 import com.google.dart.tools.core.utilities.yaml.PubYamlUtils;
-import com.google.dart.tools.ui.actions.RunPubAction;
+import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.internal.util.ExternalBrowserUtil;
 import com.google.dart.tools.ui.web.DartWebPlugin;
 
@@ -242,7 +242,7 @@ public class OverviewFormPage extends FormPage implements IModelListener {
     publishActionText.addHyperlinkListener(new HyperlinkAdapter() {
       @Override
       public void linkActivated(HyperlinkEvent e) {
-        RunPubAction pubAction = RunPubAction.createPubPublishAction(getSite().getWorkbenchWindow());
+        RunPublishAction pubAction = RunPublishAction.createPubPublishAction(getSite().getWorkbenchWindow());
         pubAction.run();
       }
     });
