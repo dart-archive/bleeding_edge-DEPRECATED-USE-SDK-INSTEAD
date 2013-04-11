@@ -9,6 +9,7 @@
     <constant color="#edd400" />
     <currentLine color="#555753" />
     <deletionIndication color="#D25252" />
+    <dynamicType color="#729fcf" />
     <field color="#BED6FF" />
     <filteredSearchResultIndication color="#D8D8D8" />
     <findScope color="#000000" />

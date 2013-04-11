@@ -9,6 +9,7 @@
     <currentLine color="#5B5A4E" />
     <deletionIndication color="#FF0000" />
     <deprecatedMember color="#FF0000" />
+    <dynamicType color="#CFBFAD" />
     <field color="#CFBFAD" />
     <filteredSearchResultIndication color="#D8D8D8" />
     <findScope color="#000000" />

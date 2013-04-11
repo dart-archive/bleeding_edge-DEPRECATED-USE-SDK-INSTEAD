@@ -5,10 +5,14 @@
     <class color="#87CEFA" />
     <commentTaskTag color="#FF8BFF" />
     <currentLine color="#2D2D44" />
+    <dynamicType color="#CFBFAD" />
+    <enum color="#CFBFAD" />
     <foreground color="#CFBFAD" />
     <interface color="#87FAC4" />
     <keyword color="#808BED" />
     <lineNumber color="#2B91AF" />
+    <localVariable color="#CFBFAD" />
+    <localVariableDeclaration color="#CFBFAD" />
     <method color="#87CEFA" />
     <methodDeclaration color="#CFBFAD" />
     <multiLineComment color="#CD8B00" />

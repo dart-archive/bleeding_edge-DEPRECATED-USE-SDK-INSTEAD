@@ -10,6 +10,7 @@
     <currentLine color="#2F2F2F" />
     <deletionIndication color="#D25252" italic="false" underline="false" strikethrough="false" />
     <deprecatedMember color="#F9F9F9" italic="false" underline="false" strikethrough="false" />
+    <dynamicType color="#4B9CE9" />
     <enum color="#7FB347" italic="false" underline="false" strikethrough="false" />
     <field color="#4B9CE9" italic="false" underline="false" strikethrough="false" />
     <filteredSearchResultIndication color="#5A5A5A" />

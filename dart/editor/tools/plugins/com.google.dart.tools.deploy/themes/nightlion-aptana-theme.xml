@@ -7,6 +7,7 @@
     <commentTaskTag color="#ACC1AC" />
     <currentLine color="#505050" />
     <deprecatedMember color="#FFFFFF" />
+    <dynamicType color="#D4C4A9" />
     <field color="#B3B784" />
     <filteredSearchResultIndication color="#3F3F6A" />
     <findScope color="#BCADAD" />

@@ -9,6 +9,7 @@
     <constant color="#93A2CC" />
     <currentLine color="#00001F" />
     <deprecatedMember color="#F3D651" />
+    <dynamicType color="#A19A83" />
     <field color="#B3B784" />
     <filteredSearchResultIndication color="#3F3F6A" />
     <findScope color="#B9A185" />
