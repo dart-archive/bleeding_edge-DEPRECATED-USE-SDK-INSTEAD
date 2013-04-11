@@ -22,13 +22,18 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.search.SearchEngine;
 import com.google.dart.engine.search.SearchEngineFactory;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.FileBasedSource;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
+import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.formatter.DefaultCodeFormatterConstants;
 import com.google.dart.tools.core.internal.model.SourceRangeImpl;
 import com.google.dart.tools.core.model.CompilationUnit;
@@ -179,6 +184,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPartService;
+import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchPage;
@@ -212,8 +218,10 @@ import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.osgi.service.prefs.BackingStoreException;
 
+import java.io.File;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.text.CharacterIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1703,8 +1711,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
     }
   }
 
-  private IFile inputFile;
-
+  private IFile inputResourceFile;
+  private File inputJavaFile;
   private volatile com.google.dart.engine.ast.CompilationUnit parsedUnit;
   private volatile com.google.dart.engine.ast.CompilationUnit resolvedUnit;
 
@@ -2350,6 +2358,21 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   }
 
   /**
+   * @return the {@link AnalysisContext} corresponding to this editor, may be {@code null}.
+   */
+  public AnalysisContext getInputAnalysisContext() {
+    if (inputResourceFile != null) {
+      return DartCore.getProjectManager().getContext(inputResourceFile);
+    }
+    if (inputJavaFile != null) {
+      if (getInputSource() != null) {
+        return DartCore.getProjectManager().getSdkContext();
+      }
+    }
+    return null;
+  }
+
+  /**
    * Alternative to {@link #getInputDartElement()} that returns the Analysis engine
    * {@link com.google.dart.engine.element.Element} instead of a {@link DartElement}.
    */
@@ -2361,8 +2384,44 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   /**
    * @return the input {@link IFile}, may be <code>null</code> if different kind of input.
    */
-  public IFile getInputFile() {
-    return inputFile;
+  public IFile getInputResourceFile() {
+    return inputResourceFile;
+  }
+
+  /**
+   * @return the {@link Project} corresponding to this editor, may be {@code null}.
+   */
+  public Project getInputProject() {
+    if (inputResourceFile != null) {
+      IProject resourceProject = inputResourceFile.getProject();
+      return DartCore.getProjectManager().getProject(resourceProject);
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link Source} corresponding to this editor, may be {@code null}.
+   */
+  public Source getInputSource() {
+    ProjectManager projectManager = DartCore.getProjectManager();
+    // may be workspace IFile
+    if (inputResourceFile != null) {
+      return projectManager.getSource(inputResourceFile);
+    }
+    // may be SDK
+    if (inputJavaFile != null) {
+      AnalysisContext context = projectManager.getSdkContext();
+      Source source = new FileBasedSource(
+          context.getSourceFactory().getContentCache(),
+          inputJavaFile);
+      Source[] librarySources = context.getLibrariesContaining(source);
+      if (librarySources.length != 1) {
+        return null;
+      }
+      return source;
+    }
+    // unknown source
+    return null;
   }
 
   public com.google.dart.engine.ast.CompilationUnit getInputUnit() {
@@ -3280,9 +3339,19 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
 
   @Override
   protected void doSetInput(IEditorInput input) throws CoreException {
+    AnalysisContext sdkContext = DartCore.getProjectManager().getSdkContext();
     if (input instanceof IFileEditorInput) {
       IFileEditorInput fileInput = (IFileEditorInput) input;
-      inputFile = fileInput.getFile();
+      inputResourceFile = fileInput.getFile();
+    } else if (input instanceof IURIEditorInput) {
+      IURIEditorInput uriInput = (IURIEditorInput) input;
+      URI uri = uriInput.getURI();
+      if (uri != null && uri.getScheme().equals("file") && uri.isAbsolute()) {
+        try {
+          inputJavaFile = new File(uri);
+        } catch (Throwable e) {
+        }
+      }
     }
 
     ISourceViewer sourceViewer = getSourceViewer();
@@ -3566,7 +3635,7 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
       return new NonLocalUndoUserApprover(
           undoContext,
           this,
-          new Object[] {inputFile},
+          new Object[] {inputResourceFile},
           IResource.class);
     } else {
       return new NonLocalUndoUserApprover(
@@ -4517,9 +4586,6 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
    */
   private AssistContext getAssistContext(ITextSelection textSelection) {
     try {
-      if (inputFile == null) {
-        return null;
-      }
       if (textSelection == null) {
         return null;
       }
@@ -4628,8 +4694,8 @@ public abstract class DartEditor extends AbstractDecoratedTextEditor implements
   private boolean isContentEditable() {
     if (!isEditableStateKnown) {
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        if (inputFile != null) {
-          isEditable = !inputFile.isReadOnly();
+        if (inputResourceFile != null) {
+          isEditable = !inputResourceFile.isReadOnly();
         } else {
           isEditable = false;
         }

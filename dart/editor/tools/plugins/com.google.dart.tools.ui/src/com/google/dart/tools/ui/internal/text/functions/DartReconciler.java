@@ -25,7 +25,6 @@ import com.google.dart.tools.core.internal.builder.AnalysisWorker;
 import com.google.dart.tools.ui.internal.text.editor.DartEditor;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
@@ -81,7 +80,9 @@ public class DartReconciler extends MonoReconciler {
       if (newInput != null) {
         newInput.addDocumentListener(this);
       }
-      putEditorState(true);
+      if (oldInput != null) {
+        putEditorState(true);
+      }
     }
 
     @Override
@@ -90,15 +91,17 @@ public class DartReconciler extends MonoReconciler {
     }
   }
 
+  private static final String UNCHANGED_CODE = new String();
+
   private final DartEditor editor;
   private final IFile file;
-  private Project project;
+  private final Project project;
   private volatile Thread thread;
 
   private final Object editorStateLock = new Object();
   private EditorState editorState;
   private EditorState loopEditorState;
-  private String oldCode;
+  private String oldCode = UNCHANGED_CODE;
   private final Listener documentListener = new Listener();
 
   private Boolean lastReadOnly = null;
@@ -106,9 +109,12 @@ public class DartReconciler extends MonoReconciler {
   public DartReconciler(ITextEditor editor, DartCompositeReconcilingStrategy strategy) {
     super(strategy, false);
     this.editor = editor instanceof DartEditor ? (DartEditor) editor : null;
-    this.file = this.editor != null ? this.editor.getInputFile() : null;
+    this.file = this.editor != null ? this.editor.getInputResourceFile() : null;
     if (this.editor != null) {
+      this.project = this.editor.getInputProject();
       this.editor.setReconciler(this);
+    } else {
+      this.project = null;
     }
   }
 
@@ -128,7 +134,7 @@ public class DartReconciler extends MonoReconciler {
   @Override
   public void install(ITextViewer textViewer) {
     super.install(textViewer);
-    if (file != null) {
+    if (editor != null) {
       putEditorState(false);
       // add listener
       {
@@ -182,7 +188,7 @@ public class DartReconciler extends MonoReconciler {
    * @return the {@link AnalysisContext} which corresponds to the {@link IEditorInput}.
    */
   private AnalysisContext getContext() {
-    return project.getContext(file);
+    return editor.getInputAnalysisContext();
   }
 
   /**
@@ -223,14 +229,20 @@ public class DartReconciler extends MonoReconciler {
    * @return the {@link Source} which corresponds to the {@link IEditorInput}.
    */
   private Source getSource() {
-    return project.getSource(file);
+    return editor.getInputSource();
   }
 
   /**
    * Notifies {@link AnalysisContext} that {@link Source} was changed.
    */
   private void notifyContextAboutCode(String code) {
+    if (project == null) {
+      return;
+    }
     // only if changed
+    if (oldCode == UNCHANGED_CODE) {
+      oldCode = code;
+    }
     if (Objects.equal(code, oldCode)) {
       return;
     }
@@ -273,11 +285,6 @@ public class DartReconciler extends MonoReconciler {
    * Performs main refresh loop to reflect changes in {@link DartEditor} and/or environment.
    */
   private void refreshLoop() {
-    // prepare Project
-    {
-      IProject projectResource = file.getProject();
-      project = DartCore.getProjectManager().getProject(projectResource);
-    }
     // change Thread name
     {
       Source source = getSource();
@@ -286,7 +293,7 @@ public class DartReconciler extends MonoReconciler {
       }
     }
     // schedule initial resolution
-    {
+    if (project != null) {
       AnalysisContext context = getContext();
       new AnalysisWorker(project, context).performAnalysisInBackground();
     }
@@ -351,6 +358,9 @@ public class DartReconciler extends MonoReconciler {
    * Checks if input {@link IFile} read-only flag was changed, and notifies {@link DartEditor}.
    */
   private void updateReadOnlyFlag() {
+    if (file == null) {
+      return;
+    }
     boolean readOnly = file.isReadOnly();
     if (lastReadOnly == null || lastReadOnly.booleanValue() != readOnly) {
       lastReadOnly = readOnly;
