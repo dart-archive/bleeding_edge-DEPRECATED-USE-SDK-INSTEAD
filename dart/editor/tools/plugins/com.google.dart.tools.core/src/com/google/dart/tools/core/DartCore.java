@@ -1214,6 +1214,20 @@ public class DartCore extends Plugin implements DartSdkListener {
   }
 
   /**
+   * Remove the given resource (as a path) from the set of ignored resources.
+   * 
+   * @param resource the resource path to (un)ignore
+   * @throws IOException if there was an error accessing the ignore file
+   */
+  public static void removeFromIgnores(IPath resource) throws IOException {
+    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+      getProjectManager().getIgnoreManager().removeFromIgnores(resource);
+    } else {
+      // Unsupported in the old model
+    }
+  }
+
+  /**
    * Remove the given resource from the set of ignored resources.
    * 
    * @param resource the resource to (un)ignore

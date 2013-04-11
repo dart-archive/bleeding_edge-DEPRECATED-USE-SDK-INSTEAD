@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -49,6 +50,7 @@ import org.eclipse.ui.internal.ide.IIDEHelpContextIds;
 import org.eclipse.ui.internal.ide.actions.LTKLauncher;
 import org.eclipse.ui.progress.WorkbenchJob;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -146,11 +148,18 @@ public class DeleteResourceAction extends SelectionListenerAction {
       final IResource[] resources = getSelectedResourcesArray();
       instrumentation.record(resources);
 
+      // Cache paths now since they can't be retrieved post delete
+      final IPath[] resourcePaths = new IPath[resources.length];
+      for (int i = 0; i < resources.length; i++) {
+        resourcePaths[i] = resources[i].getLocation();
+      }
+
       // on Windows platform call out to system to do the delete, since 
       // Eclipse has no knowledge of junctions used in packages
       if (DartCore.isWindows()) {
         if (confirmDelete(resources)) {
           windowsDelete(resources);
+          removeFromIgnores(resourcePaths);
         }
 
         instrumentation.metric("windows-delete", "true");
@@ -163,6 +172,7 @@ public class DeleteResourceAction extends SelectionListenerAction {
         EditorUtility.closeOrphanedEditors();
         instrumentation.metric("DeleteWizardShown", "true");
 
+        removeFromIgnores(resourcePaths);
         return;
 
       }
@@ -199,6 +209,7 @@ public class DeleteResourceAction extends SelectionListenerAction {
           instrumentation.metric("resources-length", resources.length);
           scheduleDeleteJob(resources);
 
+          removeFromIgnores(resourcePaths);
           return Status.OK_STATUS;
         }
       };
@@ -207,7 +218,6 @@ public class DeleteResourceAction extends SelectionListenerAction {
 
     } finally {
       instrumentation.log();
-
     }
   }
 
@@ -403,6 +413,18 @@ public class DeleteResourceAction extends SelectionListenerAction {
         this,
         IIDEHelpContextIds.DELETE_RESOURCE_ACTION);
     setId(ID);
+  }
+
+  private void removeFromIgnores(IPath[] resourcePaths) {
+    if (resourcePaths != null) {
+      for (IPath path : resourcePaths) {
+        try {
+          DartCore.removeFromIgnores(path);
+        } catch (IOException e) {
+          DartToolsPlugin.log(e);
+        }
+      }
+    }
   }
 
   /**
