@@ -195,34 +195,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_finalNotInitialized_library() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "final F;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void fail_finalNotInitialized_local() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "f() {",
-        "  final int x;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
-  public void fail_finalNotInitialized_static() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {",
-        "  static final F;",
-        "}"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
-    verify(source);
-  }
-
   public void fail_getterAndMethodWithSameName() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1435,6 +1407,82 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  const F;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_const_static() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static const F;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_final() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  final F;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_instanceField_final_static() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  static final F;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_library_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "const F;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_library_final() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "final F;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_local_const() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  const int x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
+    verify(source);
+  }
+
+  public void test_finalNotInitialized_local_final() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "f() {",
+        "  final int x;",
+        "}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.FINAL_NOT_INITIALIZED);
     verify(source);
   }
 

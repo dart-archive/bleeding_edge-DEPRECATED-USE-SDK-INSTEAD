@@ -19,6 +19,7 @@ import com.google.dart.engine.ast.AssertStatement;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.CatchClause;
 import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.ClassMember;
 import com.google.dart.engine.ast.ClassTypeAlias;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.ConstructorDeclaration;
@@ -29,6 +30,7 @@ import com.google.dart.engine.ast.DefaultFormalParameter;
 import com.google.dart.engine.ast.DoStatement;
 import com.google.dart.engine.ast.Expression;
 import com.google.dart.engine.ast.ExtendsClause;
+import com.google.dart.engine.ast.FieldDeclaration;
 import com.google.dart.engine.ast.FieldFormalParameter;
 import com.google.dart.engine.ast.FormalParameter;
 import com.google.dart.engine.ast.FormalParameterList;
@@ -49,9 +51,12 @@ import com.google.dart.engine.ast.SimpleFormalParameter;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.SwitchStatement;
 import com.google.dart.engine.ast.ThrowExpression;
+import com.google.dart.engine.ast.TopLevelVariableDeclaration;
 import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.TypeParameter;
+import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
+import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.WhileStatement;
 import com.google.dart.engine.ast.visitor.RecursiveASTVisitor;
 import com.google.dart.engine.element.ClassElement;
@@ -395,6 +400,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   }
 
   @Override
+  public Void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    checkForFinalNotInitialized(node.getVariables());
+    return super.visitTopLevelVariableDeclaration(node);
+  }
+
+  @Override
   public Void visitTypeParameter(TypeParameter node) {
     checkForBuiltInIdentifierAsName(
         node.getName(),
@@ -406,6 +417,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   public Void visitVariableDeclarationList(VariableDeclarationList node) {
     checkForBuiltInIdentifierAsName(node);
     return super.visitVariableDeclarationList(node);
+  }
+
+  @Override
+  public Void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    checkForFinalNotInitialized(node.getVariables());
+    return super.visitVariableDeclarationStatement(node);
   }
 
   @Override
@@ -890,9 +907,49 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @return {@code true} if and only if an error code is generated on the passed node
    * @see CompileTimeErrorCode#FINAL_NOT_INITIALIZED
    */
-  // TODO(jwren) Not yet implemented. 
   private boolean checkForFinalNotInitialized(ClassDeclaration node) {
-    return false;
+    NodeList<ClassMember> classMembers = node.getMembers();
+    for (ClassMember classMember : classMembers) {
+      if (classMember instanceof ConstructorDeclaration) {
+        return false;
+      }
+    }
+    boolean foundError = false;
+    for (ClassMember classMember : classMembers) {
+      if (classMember instanceof FieldDeclaration) {
+        FieldDeclaration field = (FieldDeclaration) classMember;
+        foundError = foundError | checkForFinalNotInitialized(field.getFields());
+      }
+    }
+    return foundError;
+  }
+
+  /**
+   * This verifies that the passed variable declaration list has only initialized variables if the
+   * list is final or const. This method is called by
+   * {@link #checkForFinalNotInitialized(ClassDeclaration)},
+   * {@link #visitTopLevelVariableDeclaration(TopLevelVariableDeclaration)} and
+   * {@link #visitVariableDeclarationStatement(VariableDeclarationStatement)}.
+   * 
+   * @param node the class declaration to test
+   * @return {@code true} if and only if an error code is generated on the passed node
+   * @see CompileTimeErrorCode#FINAL_NOT_INITIALIZED
+   */
+  private boolean checkForFinalNotInitialized(VariableDeclarationList node) {
+    boolean foundError = false;
+    if (!node.isSynthetic() && (node.isConst() || node.isFinal())) {
+      NodeList<VariableDeclaration> variables = node.getVariables();
+      for (VariableDeclaration variable : variables) {
+        if (variable.getInitializer() == null) {
+          errorReporter.reportError(
+              CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+              variable,
+              variable.getName().getName());
+          foundError = true;
+        }
+      }
+    }
+    return foundError;
   }
 
   /**
@@ -904,14 +961,14 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see CompileTimeErrorCode#IMPLEMENTS_DISALLOWED_CLASS
    */
   private boolean checkForImplementsDisallowedClass(ImplementsClause implementsClause) {
-    boolean result = false;
+    boolean foundError = false;
     for (TypeName type : implementsClause.getInterfaces()) {
-      result = result
+      foundError = foundError
           | checkForExtendsOrImplementsDisallowedClass(
               type,
-              CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);;
+              CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS);
     }
-    return result;
+    return foundError;
   }
 
   /**

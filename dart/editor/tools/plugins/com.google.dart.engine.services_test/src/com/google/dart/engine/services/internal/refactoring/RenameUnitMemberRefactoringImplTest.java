@@ -183,8 +183,8 @@ public class RenameUnitMemberRefactoringImplTest extends RenameRefactoringImplTe
   public void test_checkNewName_TopLevelVariableElement_const() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "const TEST;");
-    createRenameRefactoring("TEST;");
+        "const TEST = 0;");
+    createRenameRefactoring("TEST");
     // null
     assertRefactoringStatus(
         refactoring.checkNewName(null),
