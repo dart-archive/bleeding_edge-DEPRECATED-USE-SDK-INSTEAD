@@ -31,9 +31,10 @@ import java.util.List;
  * compiler type checking to what is essentially a property map.
  */
 public class DartLaunchConfigWrapper {
-
   private static final String APPLICATION_ARGUMENTS = "applicationArguments";
   private static final String APPLICATION_NAME = "applicationName";
+  private static final String URL_QUERY_PARAMS = "urlQueryParams";
+
   private static final String VM_CHECKED_MODE = "vmCheckedMode";
   private static final String SHOW_LAUNCH_OUTPUT = "showLaunchOutput";
 
@@ -61,6 +62,20 @@ public class DartLaunchConfigWrapper {
    */
   public DartLaunchConfigWrapper(ILaunchConfiguration launchConfig) {
     this.launchConfig = launchConfig;
+  }
+
+  /**
+   * Return either the original url, or url + '?' + params.
+   * 
+   * @param url
+   * @return
+   */
+  public String appendQueryParams(String url) {
+    if (getUrlQueryParams().length() > 0) {
+      return url + "?" + getUrlQueryParams();
+    } else {
+      return url;
+    }
   }
 
   /**
@@ -221,6 +236,19 @@ public class DartLaunchConfigWrapper {
     }
   }
 
+  /**
+   * @return the url query parameters, if any
+   */
+  public String getUrlQueryParams() {
+    try {
+      return launchConfig.getAttribute(URL_QUERY_PARAMS, "");
+    } catch (CoreException e) {
+      DartDebugCorePlugin.logError(e);
+
+      return "";
+    }
+  }
+
   public boolean getUseDefaultBrowser() {
     try {
       return launchConfig.getAttribute(USE_DEFAULT_BROWSER, true);
@@ -349,6 +377,13 @@ public class DartLaunchConfigWrapper {
    */
   public void setUrl(String value) {
     getWorkingCopy().setAttribute(URL, value);
+  }
+
+  /**
+   * @see #getUrlQueryParams()()
+   */
+  public void setUrlQueryParams(String value) {
+    getWorkingCopy().setAttribute(URL_QUERY_PARAMS, value);
   }
 
   public void setUseDefaultBrowser(boolean value) {

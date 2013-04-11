@@ -117,11 +117,11 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
 
       try {
         // This returns just a plain file: url.
-        //url = resource.getLocationURI().toString();
-
         ResourceServer server = ResourceServerManager.getServer();
 
         url = server.getUrlForResource(resource);
+
+        url = launchConfig.appendQueryParams(url);
       } catch (IOException ioe) {
         throw new CoreException(new Status(
             IStatus.ERROR,
@@ -131,8 +131,10 @@ public class BrowserLaunchConfigurationDelegate extends DartLaunchConfigurationD
       }
     } else {
       url = launchConfig.getUrl();
+
       try {
         String scheme = new URI(url).getScheme();
+
         if (scheme == null) { // add scheme else browser will not launch
           url = "http://" + url;
         }

@@ -241,6 +241,8 @@ public class BrowserManager {
 
     url = resolveLaunchUrl(file, url);
 
+    url = launchConfig.appendQueryParams(url);
+
     // for now, check if browser is open, and connection is alive
     boolean restart = browserProcess == null || isProcessTerminated(browserProcess)
         || DartiumDebugTarget.getActiveTarget() == null

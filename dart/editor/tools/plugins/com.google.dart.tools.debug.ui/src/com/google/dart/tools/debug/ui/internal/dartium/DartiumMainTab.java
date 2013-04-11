@@ -157,7 +157,7 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
     });
 
     useWebComponentsButton = new Button(group, SWT.CHECK);
-    useWebComponentsButton.setText("Enable experimental Webkit features (Web Components)");
+    useWebComponentsButton.setText("Enable experimental browser features (Web Components)");
     useWebComponentsButton.setToolTipText("--enable-experimental-webkit-features"
         + " and --enable-devtools-experiments");
     GridDataFactory.swtDefaults().span(3, 1).applyTo(useWebComponentsButton);
@@ -237,9 +237,11 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   public void initializeFrom(ILaunchConfiguration configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
 
-    htmlText.setText(dartLauncher.getApplicationName());
+    htmlText.setText(dartLauncher.appendQueryParams(dartLauncher.getApplicationName()));
     urlText.setText(dartLauncher.getUrl());
+
     IProject project = dartLauncher.getProject();
+
     if (project != null) {
       projectText.setText(project.getName());
     } else {
@@ -274,37 +276,25 @@ public class DartiumMainTab extends AbstractLaunchConfigurationTab {
   @Override
   public boolean isValid(ILaunchConfiguration launchConfig) {
     return getErrorMessage() == null;
-
-//    DartLaunchConfigWrapper launchWrapper = new DartLaunchConfigWrapper(launchConfig);
-//
-//    if (launchWrapper.getShouldLaunchFile()) {
-//      IResource resource = launchWrapper.getApplicationResource();
-//      if (resource == null) {
-//        return false;
-//      }
-//      if (!resource.exists()) {
-//        return false;
-//      }
-//      return (DartUtil.isWebPage(resource) || DartUtil.isDartLibrary(resource));
-//    } else {
-//      IResource project = ResourcesPlugin.getWorkspace().getRoot().findMember(
-//          launchWrapper.getProjectName());
-//      if (project == null) {
-//        return false;
-//      }
-//      if (!project.exists()) {
-//        return false;
-//      }
-//    }
-//
-//    return true;
   }
 
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     DartLaunchConfigWrapper dartLauncher = new DartLaunchConfigWrapper(configuration);
     dartLauncher.setShouldLaunchFile(htmlButton.getSelection());
-    dartLauncher.setApplicationName(htmlText.getText());
+
+    String fileUrl = htmlText.getText();
+
+    if (fileUrl.indexOf('?') == -1) {
+      dartLauncher.setApplicationName(fileUrl);
+      dartLauncher.setUrlQueryParams("");
+    } else {
+      int index = fileUrl.indexOf('?');
+
+      dartLauncher.setApplicationName(fileUrl.substring(0, index));
+      dartLauncher.setUrlQueryParams(fileUrl.substring(index + 1));
+    }
+
     dartLauncher.setUrl(urlText.getText().trim());
     dartLauncher.setProjectName(projectText.getText().trim());
 
