@@ -49,7 +49,7 @@ public abstract class ContextManagerImpl implements ContextManager {
   private List<AnalysisWorker> workers = new ArrayList<AnalysisWorker>();
 
   @Override
-  public void addAnalysisWorker(AnalysisWorker worker) {
+  public void addWorker(AnalysisWorker worker) {
     synchronized (workers) {
       workers.add(worker);
     }
@@ -172,7 +172,7 @@ public abstract class ContextManagerImpl implements ContextManager {
   }
 
   @Override
-  public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
+  public void removeWorker(AnalysisWorker analysisWorker) {
     synchronized (workers) {
       workers.remove(analysisWorker);
     }
@@ -184,12 +184,13 @@ public abstract class ContextManagerImpl implements ContextManager {
    * @param context the context
    */
   protected void stopWorkers(AnalysisContext context) {
+    AnalysisWorker[] workerArray;
     synchronized (workers) {
-      AnalysisWorker[] workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
-      for (AnalysisWorker worker : workerArray) {
-        if (worker.getContext() == context) {
-          worker.stop();
-        }
+      workerArray = workers.toArray(new AnalysisWorker[workers.size()]);
+    }
+    for (AnalysisWorker worker : workerArray) {
+      if (worker.getContext() == context) {
+        worker.stop();
       }
     }
   }

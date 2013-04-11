@@ -35,7 +35,7 @@ public interface ContextManager {
    * 
    * @param worker the analysis worker
    */
-  void addAnalysisWorker(AnalysisWorker worker);
+  void addWorker(AnalysisWorker worker);
 
   /**
    * Answer the {@link AnalysisContext} used to analyze the specified resource.
@@ -132,5 +132,5 @@ public interface ContextManager {
    * 
    * @param analysisWorker
    */
-  void removeAnalysisWorker(AnalysisWorker analysisWorker);
+  void removeWorker(AnalysisWorker analysisWorker);
 }

@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.internal.context.AnalysisContextImpl;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -98,8 +99,8 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
    */
   private class MockProjectImpl extends ProjectImpl {
 
-    public MockProjectImpl(IProject resource, DartSdk sdk) {
-      super(resource, sdk, new AnalysisContextFactory() {
+    public MockProjectImpl(IProject resource, DartSdk sdk, Index index) {
+      super(resource, sdk, index, new AnalysisContextFactory() {
         @Override
         public AnalysisContext createContext() {
           return new MockAnalysisContextImpl();
@@ -202,7 +203,7 @@ public class AnalysisEngineParticipantTest extends AbstractDartCoreTest {
 
     sdk = DirectoryBasedDartSdk.getDefaultSdk();
     manager = new MockProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
-    project = new MockProjectImpl(projectRes, sdk);
+    project = new MockProjectImpl(projectRes, sdk, manager.getIndex());
 
     AnalysisContext context = project.getDefaultContext();
     File file = fileRes.getLocation().toFile();

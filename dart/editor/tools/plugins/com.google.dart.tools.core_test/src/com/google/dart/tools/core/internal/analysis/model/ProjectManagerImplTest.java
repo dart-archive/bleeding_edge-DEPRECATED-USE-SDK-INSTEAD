@@ -128,6 +128,7 @@ public class ProjectManagerImplTest extends TestCase {
           projectUnderTest = new ProjectImpl(
               projectContainer,
               expectedSdk,
+              getIndex(),
               new AnalysisContextFactory() {
                 @Override
                 public AnalysisContext createContext() {

@@ -14,6 +14,7 @@
 package com.google.dart.tools.core.internal.builder;
 
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.CallList;
@@ -53,7 +54,7 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     private final CallList calls = new CallList();
 
     MockProjectImpl(IProject resource) {
-      super(resource, mock(DartSdk.class), new AnalysisContextFactory() {
+      super(resource, mock(DartSdk.class), mock(Index.class), new AnalysisContextFactory() {
         @Override
         public AnalysisContext createContext() {
           return new MockContext();

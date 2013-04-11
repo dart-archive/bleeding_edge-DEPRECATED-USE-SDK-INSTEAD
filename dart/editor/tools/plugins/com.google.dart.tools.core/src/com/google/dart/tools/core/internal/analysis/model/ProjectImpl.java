@@ -18,7 +18,6 @@ import com.google.dart.tools.core.analysis.model.PubFolder;
 import com.google.dart.tools.core.internal.builder.DeltaAdapter;
 import com.google.dart.tools.core.internal.builder.DeltaProcessor;
 import com.google.dart.tools.core.internal.builder.ResourceDeltaEvent;
-import com.google.dart.tools.core.model.DartSdkManager;
 
 import static com.google.dart.tools.core.DartCore.PACKAGES_DIRECTORY_NAME;
 import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
@@ -63,51 +62,6 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * The Eclipse project associated with this Dart project (not {@code null})
-   */
-  private final IProject projectResource;
-
-  /**
-   * The project resource location on disk or {@code null} if it has not yet been initialized.
-   * 
-   * @see #getResourceLocation()
-   */
-  private IPath projectResourceLocation;
-
-  /**
-   * The factory used to create new {@link AnalysisContext} (not {@code null})
-   */
-  private final AnalysisContextFactory factory;
-
-  /**
-   * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder} or {@code null} if not
-   * yet initialized. Call {@link #initialize()} before accessing this field.
-   */
-  private HashMap<IPath, PubFolder> pubFolders;
-
-  /**
-   * The default analysis context for this project or {@code null} if not yet initialized. Call
-   * {@link #initialize()} before accessing this field.
-   */
-  private AnalysisContext defaultContext;
-
-  /**
-   * The Dart SDK used when constructing the default context.
-   */
-  private final DartSdk sdk;
-
-  /**
-   * The shared dart URI resolver for the Dart SDK or {@code null} if not initialized yet.
-   * Synchronize against {@link #lock} when accessing this field. See {@link #getDartUriResolver()}
-   */
-  private static DartUriResolver dartResolver;
-
-  /**
-   * Lock object for use when accessing {@link #dartResolver}
-   */
-  private static Object lock = new Object();
-
-  /**
    * Answer the package roots for the specified project with the given options. May return an empty
    * array if no package roots are specified either at the project level or in the command line
    * options.
@@ -129,19 +83,44 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Answer the dart URI resolver for the SDK
-   * 
-   * @return the resolver (not {@code null})
+   * The Eclipse project associated with this Dart project (not {@code null})
    */
-  private static DartUriResolver getDartUriResolver() {
-    synchronized (lock) {
-      if (dartResolver == null) {
-        DartSdk sdk = DartSdkManager.getManager().getNewSdk();
-        dartResolver = new DartUriResolver(sdk);
-      }
-      return dartResolver;
-    }
-  }
+  private final IProject projectResource;
+
+  /**
+   * The project resource location on disk or {@code null} if it has not yet been initialized.
+   * 
+   * @see #getResourceLocation()
+   */
+  private IPath projectResourceLocation;
+
+  /**
+   * The factory used to create new {@link AnalysisContext} (not {@code null})
+   */
+  private final AnalysisContextFactory factory;
+
+  /**
+   * A sparse mapping of {@link IResource#getFullPath()} to {@link PubFolder}. Synchronize against
+   * this field and call {@link #initialize()} before accessing this field.
+   */
+  private final HashMap<IPath, PubFolder> pubFolders = new HashMap<IPath, PubFolder>();
+
+  /**
+   * The default analysis context for this project or {@code null} if not yet initialized.
+   * Synchronize against {@link #pubFolders} and call {@link #initialize()} before accessing this
+   * field.
+   */
+  private AnalysisContext defaultContext;
+
+  /**
+   * The Dart SDK used when constructing the default context.
+   */
+  private final DartSdk sdk;
+
+  /**
+   * The index which is updated when contexts are discarded (not {@code null}).
+   */
+  private final Index index;
 
   /**
    * Construct a new instance representing a Dart project
@@ -150,7 +129,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
    */
   public ProjectImpl(IProject resource, DartSdk sdk) {
-    this(resource, sdk, new AnalysisContextFactory());
+    this(resource, sdk, DartCore.getProjectManager().getIndex(), new AnalysisContextFactory());
   }
 
   /**
@@ -158,90 +137,101 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    * 
    * @param resource the Eclipse project associated with this Dart project (not {@code null})
    * @param sdk the Dart SDK to use when initializing contexts (not {@code null})
+   * @param index the index to be updated when contexts are discarded (not {@code null})
    * @param factory the factory used to construct new analysis contexts (not {@code null})
    */
-  public ProjectImpl(IProject resource, DartSdk sdk, AnalysisContextFactory factory) {
+  public ProjectImpl(IProject resource, DartSdk sdk, Index index, AnalysisContextFactory factory) {
     if (resource == null | factory == null | sdk == null) {
       throw new IllegalArgumentException();
     }
     this.projectResource = resource;
-    this.factory = factory;
+    this.index = index;
     this.sdk = sdk;
+    this.factory = factory;
   }
 
   @Override
   public void discardContextsIn(IContainer container) {
-    if (pubFolders == null) {
-      return;
-    }
-
-    // TODO (danrubel): Inject manager rather than accessing global
-    Index index = DartCore.getProjectManager().getIndex();
-
-    // Remove contained pub folders
-    IPath path = container.getFullPath();
-    Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
-    while (iter.hasNext()) {
-      Entry<IPath, PubFolder> entry = iter.next();
-      IPath key = entry.getKey();
-      if (path.equals(key) || path.isPrefixOf(key)) {
-        AnalysisContext context = entry.getValue().getContext();
-        stopWorkers(context);
-        index.removeContext(context);
-        iter.remove();
+    synchronized (pubFolders) {
+      if (!isInitialized()) {
+        return;
       }
-    }
 
-    // Reset the state if discarding the entire project
-    if (projectResource.equals(container)) {
-      stopWorkers(defaultContext);
-      index.removeContext(defaultContext);
-      defaultContext = null;
-      pubFolders = null;
+      // Remove contained pub folders
+      IPath path = container.getFullPath();
+      Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator();
+      while (iter.hasNext()) {
+        Entry<IPath, PubFolder> entry = iter.next();
+        IPath key = entry.getKey();
+        if (path.equals(key) || path.isPrefixOf(key)) {
+          AnalysisContext context = entry.getValue().getContext();
+          stopWorkers(context);
+          index.removeContext(context);
+          iter.remove();
+        }
+      }
+
+      // Reset the state if discarding the entire project
+      if (projectResource.equals(container)) {
+        stopWorkers(defaultContext);
+        index.removeContext(defaultContext);
+        defaultContext = null;
+      }
     }
   }
 
   @Override
   public AnalysisContext getContext(IResource resource) {
-    PubFolder pubFolder = getPubFolder(resource);
-    return pubFolder != null ? pubFolder.getContext() : defaultContext;
+    synchronized (pubFolders) {
+      PubFolder pubFolder = getPubFolder(resource);
+      return pubFolder != null ? pubFolder.getContext() : defaultContext;
+    }
   }
 
   @Override
   public AnalysisContext getDefaultContext() {
-    initialize();
-    return defaultContext;
+    synchronized (pubFolders) {
+      initialize();
+      return defaultContext;
+    }
   }
 
   @Override
   public Source[] getLaunchableClientLibrarySources() {
-    AnalysisContext[] contexts = getAnalysisContexts();
+    AnalysisContext[] contexts;
+    synchronized (pubFolders) {
+      contexts = getAnalysisContexts();
+    }
     List<Source> sources = new ArrayList<Source>();
-    // TODO(keertip): implement when context has API
-//    for (AnalysisContext context : contexts){
-//      sources.addAll(Arrays.asList(context.getLaunchableClientLibrarySources));
-//    }
+    for (AnalysisContext context : contexts) {
+      sources.addAll(Arrays.asList(context.getLaunchableClientLibrarySources()));
+    }
     return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
   public Source[] getLaunchableServerLibrarySources() {
-    AnalysisContext[] contexts = getAnalysisContexts();
+    AnalysisContext[] contexts;
+    synchronized (pubFolders) {
+      initialize();
+      contexts = getAnalysisContexts();
+    }
     List<Source> sources = new ArrayList<Source>();
-    // TODO(keertip): implement when context has API
-//    for (AnalysisContext context : contexts){
-//      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources));
-//    }
+    for (AnalysisContext context : contexts) {
+      sources.addAll(Arrays.asList(context.getLaunchableServerLibrarySources()));
+    }
     return sources.toArray(new Source[sources.size()]);
   }
 
   @Override
   public Source[] getLibrarySources() {
     Set<Source> sources = new HashSet<Source>();
-    for (PubFolder pubfolder : getPubFolders()) {
-      sources.addAll(Arrays.asList(pubfolder.getContext().getLibrarySources()));
+    synchronized (pubFolders) {
+      for (PubFolder pubfolder : getPubFolders()) {
+        sources.addAll(Arrays.asList(pubfolder.getContext().getLibrarySources()));
+      }
+      sources.addAll(Arrays.asList(getDefaultContext().getLibrarySources()));
     }
-    sources.addAll(Arrays.asList(getDefaultContext().getLibrarySources()));
     return sources.toArray(new Source[sources.size()]);
   }
 
@@ -250,14 +240,19 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
     if (!resource.getProject().equals(projectResource)) {
       throw new IllegalArgumentException();
     }
-    initialize();
-    return getPubFolder(resource.getFullPath());
+    synchronized (pubFolders) {
+      initialize();
+      return getPubFolder(resource.getFullPath());
+    }
   }
 
   @Override
   public PubFolder[] getPubFolders() {
-    initialize();
-    Collection<PubFolder> allFolders = pubFolders.values();
+    Collection<PubFolder> allFolders;
+    synchronized (pubFolders) {
+      initialize();
+      allFolders = pubFolders.values();
+    }
     return allFolders.toArray(new PubFolder[allFolders.size()]);
   }
 
@@ -289,61 +284,68 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
   @Override
   public void pubspecAdded(IContainer container) {
-    if (pubFolders == null) {
-      return;
-    }
+    synchronized (pubFolders) {
+      if (!isInitialized()) {
+        return;
+      }
 
-    // If there is already a pubFolder, then ignore the addition
-    if (getPubFolder(container.getFullPath()) != null) {
-      return;
-    }
+      // If there is already a pubFolder, then ignore the addition
+      if (getPubFolder(container.getFullPath()) != null) {
+        return;
+      }
 
-    // Create and cache a new pub folder
-    PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container, sdk), sdk);
-    pubFolders.put(container.getFullPath(), pubFolder);
+      // Create and cache a new pub folder
+      PubFolderImpl pubFolder = new PubFolderImpl(container, createContext(container, sdk), sdk);
+      pubFolders.put(container.getFullPath(), pubFolder);
 
-    // If this is the project, then adjust the context source factory
-    if (container.getType() == PROJECT) {
-      initContext(defaultContext, projectResource, sdk, true);
-    }
+      // If this is the project, then adjust the context source factory
+      if (container.getType() == PROJECT) {
+        initContext(defaultContext, projectResource, sdk, true);
+      }
 
-    // Merge any overlapping pub folders
-    for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator(); iter.hasNext();) {
-      Entry<IPath, PubFolder> entry = iter.next();
-      PubFolder parent = getParentPubFolder(entry.getKey());
-      if (parent != null) {
-        parent.getContext().mergeContext(entry.getValue().getContext());
-        iter.remove();
+      // Merge any overlapping pub folders
+      for (Iterator<Entry<IPath, PubFolder>> iter = pubFolders.entrySet().iterator(); iter.hasNext();) {
+        Entry<IPath, PubFolder> entry = iter.next();
+        PubFolder parent = getParentPubFolder(entry.getKey());
+        if (parent != null) {
+          parent.getContext().mergeContext(entry.getValue().getContext());
+          iter.remove();
+        }
       }
     }
   }
 
   @Override
   public void pubspecRemoved(IContainer container) {
-    if (pubFolders == null) {
-      return;
-    }
+    synchronized (pubFolders) {
+      if (!isInitialized()) {
+        return;
+      }
 
-    // If no pubFolder defined for this container, then ignore
-    PubFolder pubFolder = pubFolders.remove(container.getFullPath());
-    if (pubFolder == null) {
-      return;
-    }
+      // If no pubFolder defined for this container, then ignore
+      PubFolder pubFolder = pubFolders.remove(container.getFullPath());
+      if (pubFolder == null) {
+        return;
+      }
 
-    // Merge the context into the default context
-    if (defaultContext != pubFolder.getContext()) {
-      defaultContext.mergeContext(pubFolder.getContext());
-    } else {
-      initContext(defaultContext, projectResource, sdk, false);
-    }
+      // Merge the context into the default context or re-initialize the default context
+      AnalysisContext context = pubFolder.getContext();
+      if (defaultContext != context) {
+        defaultContext.mergeContext(context);
+        index.removeContext(context);
+      } else {
+        initContext(defaultContext, projectResource, sdk, false);
+      }
 
-    // Traverse container to find pubspec files that were overshadowed by the one just removed
-    createPubFolders(container);
+      // Traverse container to find pubspec files that were overshadowed by the one just removed
+      createPubFolders(container);
+    }
   }
 
   /**
-   * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. This
-   * assumes that {@link #defaultContext} has already been set by {@link #initialize()}.
+   * Answer the {@link AnalysisContext} for the specified container, creating one if necessary. Must
+   * synchronize against {@link #pubFolders} before calling this method and either call
+   * {@link #initialize()} or check that {@link #isInitialized()} returns {@code true}.
    * 
    * @param container the container with sources to be analyzed (not {@code null})
    * @param sdk the Dart SDK to use when initializing the context (not {@code null})
@@ -366,7 +368,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Create pub folders for any pubspec files found within the specified container
+   * Create pub folders for any pubspec files found within the specified container. Must synchronize
+   * against {@link #pubFolders} before calling this method and either call {@link #initialize()} or
+   * check that {@link #isInitialized()} returns {@code true}.
    * 
    * @param container the container (not {@code null})
    */
@@ -401,7 +405,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Answer all the {@link AnalysisContext} for this project
+   * Answer all the {@link AnalysisContext} for this project. Must synchronize against
+   * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
+   * that {@link #isInitialized()} returns {@code true}.
    * 
    * @return all the analysis contexts in the project
    */
@@ -415,8 +421,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Find the {@link PubFolder} defined for an ancestor. This method assumes that
-   * {@link #initialize()} has already been called.
+   * Find the {@link PubFolder} defined for an ancestor. Must synchronize against
+   * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
+   * that {@link #isInitialized()} returns {@code true}.
    * 
    * @param path the resource's full path
    * @return the containing pub folder or {@code null} if none
@@ -426,8 +433,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Answer the {@link PubFolder} for the specified resource path. This method assumes that
-   * {@link #initialize()} has already been called.
+   * Answer the {@link PubFolder} for the specified resource path. Must synchronize against
+   * {@link #pubFolders} before calling this method and either call {@link #initialize()} or check
+   * that {@link #isInitialized()} returns {@code true}.
    * 
    * @param path the resource full path (not {@code null})
    * @return the folder or {@code null} if none is found
@@ -456,7 +464,9 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Initialize the context for analyzing sources in the specified directory
+   * Initialize the context for analyzing sources in the specified directory. Must synchronize
+   * against {@link #pubFolders} before calling this method and either call {@link #initialize()} or
+   * check that {@link #isInitialized()} returns {@code true}.
    * 
    * @param context the context to be initialized (not {@code null})
    * @param container the container with sources to be analyzed
@@ -466,7 +476,7 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
    */
   private AnalysisContext initContext(AnalysisContext context, IContainer container, DartSdk sdk,
       boolean hasPubspec) {
-    DartUriResolver dartResolver = getDartUriResolver();
+    DartUriResolver dartResolver = new DartUriResolver(sdk);
 
     FileUriResolver fileResolver = new FileUriResolver();
 
@@ -494,20 +504,29 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
   }
 
   /**
-   * Initialize the {@link #pubFolders} map if it has not already been initialized.
+   * Initialize {@link #pubFolders} and {@link #defaultContext} if not already been initialized.
+   * Must synchronize against {@link #pubFolders} before calling this method.
    */
   private void initialize() {
-    if (pubFolders != null) {
+    if (isInitialized()) {
       return;
     }
-    pubFolders = new HashMap<IPath, PubFolder>();
     boolean hasPubspec = projectResource.getFile(PUBSPEC_FILE_NAME).exists();
     defaultContext = initContext(factory.createContext(), projectResource, sdk, hasPubspec);
     createPubFolders(projectResource);
   }
 
+  /**
+   * Answer true if {@link #defaultContext} and {@link #pubFolders} have been initialized. Must
+   * synchronize against {@link #pubFolders} before calling this method.
+   * 
+   * @return {@code true} if initialized, else {@code false}
+   */
+  private boolean isInitialized() {
+    return defaultContext != null;
+  }
+
   private void logNoLocation(IContainer container) {
     DartCore.logInformation("No location for " + container);
   }
-
 }

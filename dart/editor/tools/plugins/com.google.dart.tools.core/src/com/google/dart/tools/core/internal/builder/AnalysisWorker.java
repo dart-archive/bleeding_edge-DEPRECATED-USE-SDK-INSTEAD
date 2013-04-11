@@ -165,7 +165,7 @@ public class AnalysisWorker {
     this.context = context;
     this.index = index;
     this.markerManager = markerManager;
-    this.contextManager.addAnalysisWorker(this);
+    this.contextManager.addWorker(this);
   }
 
   /**
@@ -232,7 +232,7 @@ public class AnalysisWorker {
     synchronized (lock) {
       context = null;
     }
-    contextManager.removeAnalysisWorker(this);
+    contextManager.removeWorker(this);
   }
 
   /**

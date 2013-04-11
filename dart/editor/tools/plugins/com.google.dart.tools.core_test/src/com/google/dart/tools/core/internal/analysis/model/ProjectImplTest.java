@@ -15,6 +15,7 @@ package com.google.dart.tools.core.internal.analysis.model;
 
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.element.LibraryElement;
+import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.DirectoryBasedSourceContainer;
 import com.google.dart.engine.source.FileBasedSource;
@@ -45,6 +46,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -76,6 +80,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
   private File[] packageRoots = new File[0];
 
   private DartSdk expectedSdk;
+  private Index index;
 
   public void assertUriResolvedToPackageRoot(IPath expectedPackageRoot) {
     IPath expected = expectedPackageRoot != null ? expectedPackageRoot.append("foo").append(
@@ -97,6 +102,9 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals(0, roots.length);
   }
 
+  /**
+   * Verify context removed from index when folder containing pubspec is discarded
+   */
   public void test_discardContextsIn_project() {
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
@@ -108,9 +116,14 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     myApp.getMockFolder("subApp").remove(PUBSPEC_FILE_NAME);
     project.discardContextsIn(projectContainer);
 
+    verify(index, times(2)).removeContext(pubFolder.getContext());
     assertEquals(0, project.getPubFolders().length);
   }
 
+  /**
+   * Verify that when "web" folder is removed, index is not modified because "web" is a child folder
+   * and does not contains a pubspec
+   */
   public void test_discardContextsIn_project_web() {
     assertEquals(1, project.getPubFolders().length);
     PubFolder pubFolder = project.getPubFolder(projectContainer);
@@ -119,6 +132,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     projectContainer.remove("web");
     project.discardContextsIn(webContainer);
 
+    verifyNoMoreInteractions(index);
     assertEquals(1, project.getPubFolders().length);
     assertSame(pubFolder, project.getPubFolder(projectContainer));
   }
@@ -444,6 +458,31 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertFactoryInitialized(projectContainer, defaultContext);
   }
 
+  /**
+   * Verify index is updated when pubspec is removed
+   */
+  public void test_pubspecRemoved_folder() {
+    projectContainer.remove(PUBSPEC_FILE_NAME);
+
+    assertEquals(1, project.getPubFolders().length);
+    PubFolder pubFolder = project.getPubFolder(appContainer);
+    assertNotNull(pubFolder);
+
+    appContainer.remove(PUBSPEC_FILE_NAME);
+    project.pubspecRemoved(appContainer);
+
+    verify(index).removeContext(pubFolder.getContext());
+    assertEquals(1, project.getPubFolders().length);
+    assertSame(subAppContainer, project.getPubFolder(subAppContainer).getResource());
+    SourceContainer directory = new DirectoryBasedSourceContainer(
+        subAppContainer.getLocation().toFile());
+    ((MockContext) project.getDefaultContext()).extractContext(directory);
+  }
+
+  /**
+   * Verify nothing removed from index when pubspec removed from project container because default
+   * context does not change
+   */
   public void test_pubspecRemoved_project_to_folder() {
     subAppContainer.remove(PUBSPEC_FILE_NAME);
 
@@ -454,6 +493,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     projectContainer.remove(PUBSPEC_FILE_NAME);
     project.pubspecRemoved(projectContainer);
 
+    verifyNoMoreInteractions(index);
     assertEquals(1, project.getPubFolders().length);
     assertSame(appContainer, project.getPubFolder(appContainer).getResource());
     SourceContainer directory = new DirectoryBasedSourceContainer(
@@ -486,8 +526,8 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     appContainer = projectContainer.getMockFolder("myapp");
     subAppContainer = appContainer.getMockFolder("subApp");
     expectedSdk = mock(DartSdk.class);
-
-    project = new ProjectImpl(projectContainer, expectedSdk, new AnalysisContextFactory() {
+    index = mock(Index.class);
+    project = new ProjectImpl(projectContainer, expectedSdk, index, new AnalysisContextFactory() {
       @Override
       public AnalysisContext createContext() {
         return new MockContextForTest();
@@ -515,4 +555,5 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     File parent3 = file3.getParentFile();
     assertEquals("doesNotExist3", parent3.getName());
   }
+
 }

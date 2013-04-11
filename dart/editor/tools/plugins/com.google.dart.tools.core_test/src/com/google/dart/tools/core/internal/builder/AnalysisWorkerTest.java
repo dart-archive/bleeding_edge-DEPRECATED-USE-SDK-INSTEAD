@@ -5,6 +5,7 @@ import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.ChangeSet;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.analysis.model.Project;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -87,7 +88,8 @@ public class AnalysisWorkerTest extends TestCase {
     rootRes = workspace.getRoot();
     projectRes = rootRes.add(new MockProject(rootRes, getClass().getSimpleName()));
 
-    sdk = mock(DartSdk.class);
+//    sdk = mock(DartSdk.class);
+    sdk = DirectoryBasedDartSdk.getDefaultSdk();
     manager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
     project = manager.getProject(projectRes);
     context = project.getDefaultContext();

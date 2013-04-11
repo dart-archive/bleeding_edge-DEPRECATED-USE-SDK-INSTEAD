@@ -139,12 +139,12 @@ public class ScanTimings extends TestCase {
     private ProjectImpl project;
 
     @Override
-    public void addAnalysisWorker(AnalysisWorker worker) {
+    public void addProjectListener(ProjectListener listener) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void addProjectListener(ProjectListener listener) {
+    public void addWorker(AnalysisWorker worker) {
       throw new UnsupportedOperationException();
     }
 
@@ -221,13 +221,17 @@ public class ScanTimings extends TestCase {
     @Override
     public Project getProject(IProject resource) {
       if (project == null) {
-        project = new ProjectImpl(resource, mock(DartSdk.class), new AnalysisContextFactory() {
-          @Override
-          public AnalysisContext createContext() {
-            contextCount++;
-            return new MockContextForScan();
-          }
-        });
+        project = new ProjectImpl(
+            resource,
+            mock(DartSdk.class),
+            index,
+            new AnalysisContextFactory() {
+              @Override
+              public AnalysisContext createContext() {
+                contextCount++;
+                return new MockContextForScan();
+              }
+            });
       }
       return project;
     }
@@ -293,12 +297,12 @@ public class ScanTimings extends TestCase {
     }
 
     @Override
-    public void removeAnalysisWorker(AnalysisWorker analysisWorker) {
+    public void removeProjectListener(ProjectListener listener) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public void removeProjectListener(ProjectListener listener) {
+    public void removeWorker(AnalysisWorker analysisWorker) {
       throw new UnsupportedOperationException();
     }
 
