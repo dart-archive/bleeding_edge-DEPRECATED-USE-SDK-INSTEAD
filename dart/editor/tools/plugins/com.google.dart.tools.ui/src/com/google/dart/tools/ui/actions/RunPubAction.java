@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
@@ -95,6 +96,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
     IEditorInput editorInput = part.getEditorInput();
     IProject project = EditorUtility.getProject(editorInput);
     instrumentation.data("Project", project.getName());
+    savePubspecFile(project);
     runPubJob(project);
   }
 
@@ -115,6 +117,7 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
       if (object != null) {
 
         instrumentation.data("name", ((IContainer) object).getName());
+        savePubspecFile((IContainer) object);
         runPubJob((IContainer) object);
 
         return;
@@ -188,6 +191,16 @@ public class RunPubAction extends InstrumentedSelectionDispatchAction {
       String string = Character.toString((char) c);
       stringBuilder.append(string); // store output to check for errors and warnings
       console.print(string);
+    }
+  }
+
+  private void savePubspecFile(IContainer container) {
+    IResource resource = container.findMember(DartCore.PUBSPEC_FILE_NAME);
+    if (resource != null) {
+      IEditorPart editor = EditorUtility.isOpenInEditor(resource);
+      if (editor != null && editor.isDirty()) {
+        editor.doSave(new NullProgressMonitor());
+      }
     }
   }
 
