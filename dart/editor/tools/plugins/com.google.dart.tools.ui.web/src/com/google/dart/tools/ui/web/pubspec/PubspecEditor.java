@@ -30,6 +30,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.eclipse.ui.forms.editor.IFormPage;
 import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.eclipse.ui.texteditor.IElementStateListener;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +40,41 @@ import java.io.IOException;
  */
 public class PubspecEditor extends FormEditor {
 
+  class ElementListener implements IElementStateListener {
+    @Override
+    public void elementContentAboutToBeReplaced(Object element) {
+
+    }
+
+    @Override
+    public void elementContentReplaced(Object element) {
+      if (element != null && element.equals(getEditorInput())) {
+        doRevert();
+      }
+    }
+
+    @Override
+    public void elementDeleted(Object element) {
+
+    }
+
+    @Override
+    public void elementDirtyStateChanged(Object element, boolean isDirty) {
+
+    }
+
+    @Override
+    public void elementMoved(Object originalElement, Object movedElement) {
+      if (originalElement != null && originalElement.equals(getEditorInput())) {
+        dispose();
+        close(true);
+      }
+    }
+  }
+
   public static String ID = "com.google.dart.tools.ui.editor.pubspec";
+
+  private IElementStateListener elementStateListener = new ElementListener();
 
   private QualifiedName PROPERTY_EDITOR_PAGE_KEY = new QualifiedName(
       DartWebPlugin.PLUGIN_ID,
@@ -60,6 +95,10 @@ public class PubspecEditor extends FormEditor {
       setPropertyEditorPageKey((IFileEditorInput) input);
     }
     super.dispose();
+  }
+
+  public void doRevert() {
+    model.initialize(getContents((IFileEditorInput) getEditorInput()));
   }
 
   @Override
@@ -127,7 +166,8 @@ public class PubspecEditor extends FormEditor {
         }
       }
     }
-
+    elementStateListener = new ElementListener();
+    yamlEditor.getDocumentProvider().addElementStateListener(elementStateListener);
   }
 
   @Override
@@ -158,17 +198,21 @@ public class PubspecEditor extends FormEditor {
     super.setInput(input);
 
     if (input instanceof IFileEditorInput) {
-      File file = ((IFileEditorInput) input).getFile().getLocation().toFile();
-      String contents = null;
-      try {
-        contents = FileUtilities.getContents(file, "UTF-8");
-      } catch (IOException e) {
-        DartWebPlugin.logError(e);
-      }
+      String contents = getContents((IFileEditorInput) input);
       // TODO(keerti): more error checking/recovery if contents cannot be parsed
       model = new PubspecModel(contents);
     }
+  }
 
+  private String getContents(IFileEditorInput input) {
+    File file = input.getFile().getLocation().toFile();
+    String contents = null;
+    try {
+      contents = FileUtilities.getContents(file, "UTF-8");
+    } catch (IOException e) {
+      DartWebPlugin.logError(e);
+    }
+    return contents;
   }
 
   private String getPropertyEditorPageKey(IFileEditorInput input) {
