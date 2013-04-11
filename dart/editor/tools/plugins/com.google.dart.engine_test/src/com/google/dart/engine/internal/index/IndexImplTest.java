@@ -46,10 +46,9 @@ public class IndexImplTest extends EngineTestCase {
   private IndexImpl index = new IndexImpl(store, queue, processor);
 
   public void test_getIndexStatistics() throws Exception {
-    when(store.getRelationshipCount()).thenReturn(40);
-    when(store.getElementCount()).thenReturn(20);
-    when(store.getSourceCount()).thenReturn(10);
-    assertEquals("40 relationships in 20 elements in 10 sources", index.getIndexStatistics());
+    String stats = "40 relationships in 20 elements in 10 sources";
+    when(store.getStatistics()).thenReturn(stats);
+    assertEquals(stats, index.getStatistics());
   }
 
   public void test_getRelationships() throws Exception {

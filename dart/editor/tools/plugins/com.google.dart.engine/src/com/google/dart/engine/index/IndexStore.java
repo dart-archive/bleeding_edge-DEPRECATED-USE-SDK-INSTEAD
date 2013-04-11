@@ -28,20 +28,6 @@ import java.util.List;
  */
 public interface IndexStore {
   /**
-   * Return the number of elements that are currently recorded in this index.
-   * 
-   * @return the number of elements that are currently recorded in this index
-   */
-  int getElementCount();
-
-  /**
-   * Return the number of relationships that are currently recorded in this index.
-   * 
-   * @return the number of relationships that are currently recorded in this index
-   */
-  int getRelationshipCount();
-
-  /**
    * Return the locations of the elements that have the given relationship with the given element.
    * For example, if the element represents a method and the relationship is the is-referenced-by
    * relationship, then the returned locations will be all of the places where the method is
@@ -55,11 +41,9 @@ public interface IndexStore {
   Location[] getRelationships(Element element, Relationship relationship);
 
   /**
-   * Return the number of sources that are currently indexed.
-   * 
-   * @return the number of sources that are currently indexed
+   * Answer index statistics.
    */
-  int getSourceCount();
+  String getStatistics();
 
   /**
    * Record that the given element and location have the given relationship. For example, if the

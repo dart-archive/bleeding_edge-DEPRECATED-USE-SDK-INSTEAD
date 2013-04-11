@@ -47,18 +47,14 @@ public class IndexImpl implements Index {
   }
 
   @Override
-  public String getIndexStatistics() {
-    int relationshipCount = store.getRelationshipCount();
-    int elementCount = store.getElementCount();
-    int sourceCount = store.getSourceCount();
-    return relationshipCount + " relationships in " + elementCount + " elements in " + sourceCount
-        + " sources";
-  }
-
-  @Override
   public void getRelationships(Element element, Relationship relationship,
       RelationshipCallback callback) {
     queue.enqueue(new GetRelationshipsOperation(store, element, relationship, callback));
+  }
+
+  @Override
+  public String getStatistics() {
+    return store.getStatistics();
   }
 
   @Override

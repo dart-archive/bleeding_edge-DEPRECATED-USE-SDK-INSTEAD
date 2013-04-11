@@ -36,7 +36,7 @@ public interface Index {
   /**
    * Answer index statistics.
    */
-  String getIndexStatistics();
+  String getStatistics();
 
   /**
    * Asynchronously invoke the given callback with an array containing all of the locations of the

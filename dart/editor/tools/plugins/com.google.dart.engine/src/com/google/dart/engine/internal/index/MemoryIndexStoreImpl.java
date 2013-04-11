@@ -112,6 +112,9 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   private final Map<AnalysisContext, Object> removedContexts = new MapMaker().weakKeys().makeMap();
+  private int sourceCount;
+  private int elementCount;
+  private int relationshipCount;
 
   /**
    * A table mapping elements to tables mapping relationships to lists of locations.
@@ -146,15 +149,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     return count;
   }
 
-  @Override
-  public int getElementCount() {
-    Set<Element> elements = Sets.newHashSet();
-    for (ElementRelationKey key : relationshipMap.keySet()) {
-      elements.add(key.element);
-    }
-    return elements.size();
-  }
-
   @VisibleForTesting
   public int getLocationCount(AnalysisContext context) {
     context = unwrapContext(context);
@@ -164,15 +158,6 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       for (FastRemoveList<ContributedLocation> contributedLocations : contextLocations.values()) {
         count += contributedLocations.size();
       }
-    }
-    return count;
-  }
-
-  @Override
-  public int getRelationshipCount() {
-    int count = 0;
-    for (FastRemoveList<ContributedLocation> contributedLocations : relationshipMap.values()) {
-      count += contributedLocations.size();
     }
     return count;
   }
@@ -194,12 +179,29 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
   }
 
   @Override
-  public int getSourceCount() {
+  public String getStatistics() {
+    return relationshipCount + " relationships in " + elementCount + " elements in " + sourceCount
+        + " sources";
+  }
+
+  public int internalGetElementCount() {
+    Set<Element> elements = Sets.newHashSet();
+    for (ElementRelationKey key : relationshipMap.keySet()) {
+      elements.add(key.element);
+    }
+    return elements.size();
+  }
+
+  public int internalGetRelationshipCount() {
     int count = 0;
-    for (Set<Source> sourceSet : sources.values()) {
-      count += sourceSet.size();
+    for (FastRemoveList<ContributedLocation> contributedLocations : relationshipMap.values()) {
+      count += contributedLocations.size();
     }
     return count;
+  }
+
+  public int internalGetSourceCount() {
+    return sourceCount;
   }
 
   @Override
@@ -259,6 +261,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
         relationshipMap.put(relKey, locations);
       }
       new ContributedLocation(sourceLocations, locations, location);
+      relationshipCount++;
     }
   }
 
@@ -280,6 +283,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       contextElements.put(source, sourceElements);
     }
     sourceElements.addAll(elements);
+    elementCount += elements.size();
   }
 
   @Override
@@ -287,11 +291,17 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     context = unwrapContext(context);
     removedContexts.put(context, WEAK_SET_VALUE);
     // remove context sources
-    sources.remove(context);
+    {
+      Set<Source> contextSources = sources.remove(context);
+      if (contextSources != null) {
+        sourceCount -= contextSources.size();
+      }
+    }
     // remove elements declared in Source(s) of removed context
     Map<Source, List<Element>> contextElements = sourceToDeclarations.remove(context);
     if (contextElements != null) {
       for (List<Element> sourceElements : contextElements.values()) {
+        elementCount -= sourceElements.size();
         removeSourceDeclaredElements(sourceElements);
       }
     }
@@ -310,7 +320,10 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     {
       Set<Source> contextSources = sources.get(context);
       if (contextSources != null) {
-        contextSources.remove(source);
+        boolean removed = contextSources.remove(source);
+        if (removed) {
+          sourceCount--;
+        }
       }
     }
     // remove relationships with elements declared in removed source
@@ -318,6 +331,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
     if (contextElements != null) {
       List<Element> sourceElements = contextElements.remove(source);
       if (sourceElements != null) {
+        elementCount -= sourceElements.size();
         removeSourceDeclaredElements(sourceElements);
       }
     }
@@ -364,12 +378,16 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
       contextSources = Sets.newHashSet();
       sources.put(context, contextSources);
     }
-    contextSources.add(source);
+    boolean added = contextSources.add(source);
+    if (added) {
+      sourceCount++;
+    }
   }
 
   private void removeSourceContributedLocations(FastRemoveList<ContributedLocation> sourceLocations) {
     for (ContributedLocation contributedLocation : sourceLocations) {
       contributedLocation.removeFromLocationOwner();
+      relationshipCount--;
     }
   }
 
@@ -381,6 +399,7 @@ public class MemoryIndexStoreImpl implements MemoryIndexStore {
         if (contributedLocations != null) {
           for (ContributedLocation contributedLocation : contributedLocations) {
             contributedLocation.removeFromDeclarationOwner();
+            relationshipCount--;
           }
         }
       }

@@ -62,14 +62,14 @@ public class ContributedLocation {
   }
 
   /**
-   * Removes this {@link ContributedLocation} form "declaration" owner.
+   * Removes this {@link ContributedLocation} from "declaration" owner.
    */
   public void removeFromDeclarationOwner() {
     declarationOwner.remove(declarationHandle);
   }
 
   /**
-   * Removes this {@link ContributedLocation} form "location" owner.
+   * Removes this {@link ContributedLocation} from "location" owner.
    */
   public void removeFromLocationOwner() {
     locationOwner.remove(locationHandle);

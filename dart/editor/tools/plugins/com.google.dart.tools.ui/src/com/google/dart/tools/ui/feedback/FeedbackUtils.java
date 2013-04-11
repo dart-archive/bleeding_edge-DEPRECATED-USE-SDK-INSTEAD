@@ -53,7 +53,7 @@ public class FeedbackUtils {
 
     public Stats() {
       if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-        indexStats = "index: " + DartCore.getProjectManager().getIndex().getIndexStatistics();
+        indexStats = "index: " + DartCore.getProjectManager().getIndex().getStatistics();
       } else {
         indexStats = InMemoryIndex.getInstance().getIndexStatus("index");
       }
