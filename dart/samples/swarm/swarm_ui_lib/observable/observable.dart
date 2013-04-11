@@ -191,9 +191,6 @@ class ObservableList<T>
   T get last => _internal.last;
   T get single => _internal.single;
 
-  T min([int compare(T a, T b)]) => _internal.min(compare);
-  T max([int compare(T a, T b)]) => _internal.max(compare);
-
   void insert(int index, T element) {
     _internal.insert(index, element);
     recordListInsert(index, element);
@@ -280,8 +277,7 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  dynamic reduce(var initialValue,
-                 dynamic combine(var previousValue, T element)) {
+  T reduce(T combine(T previousValue, T element)) {
     throw new UnimplementedError();
   }
 
