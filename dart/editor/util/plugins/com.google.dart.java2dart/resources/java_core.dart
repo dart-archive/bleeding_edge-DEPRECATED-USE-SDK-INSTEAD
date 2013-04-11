@@ -324,7 +324,7 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
 
   List<E> sublist(int start, [int end]) => elements.sublist(start, end);
 
-  List<E> getRange(int start, int length) => sublist(start, start + length);
+  Iterable<E> getRange(int start, int end) => elements.getRange(start, end);
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
     elements.setRange(start, length, from, startFrom);

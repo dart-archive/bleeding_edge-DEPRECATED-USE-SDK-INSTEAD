@@ -269,7 +269,7 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  List getRange(int start, int length) {
+  Iterable getRange(int start, int end) {
     throw new UnimplementedError();
   }
 
