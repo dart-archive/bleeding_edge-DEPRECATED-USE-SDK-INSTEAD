@@ -317,7 +317,7 @@ class IsolatedServer {
     response.headers.set(
         "Location", "http://$_host:$_port/${redirectPath}");
     response.contentLength = _redirectPage.length;
-    response.writeBytes(_redirectPage);
+    response.add(_redirectPage);
     response.close();
   }
 
@@ -360,7 +360,7 @@ class IsolatedServer {
     response.statusCode = HttpStatus.NOT_FOUND;
     response.headers.set("Content-Type", "text/html; charset=UTF-8");
     response.contentLength = _notFoundPage.length;
-    response.writeBytes(_notFoundPage);
+    response.add(_notFoundPage);
     response.close();
   }
 
