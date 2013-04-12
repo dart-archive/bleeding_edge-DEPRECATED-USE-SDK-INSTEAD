@@ -1493,7 +1493,10 @@ public class Parser {
       abstractKeyword = getAndAdvance();
     }
     TypeName superclass = parseTypeName();
-    WithClause withClause = parseWithClause();
+    WithClause withClause = null;
+    if (matches(Keyword.WITH)) {
+      withClause = parseWithClause();
+    }
     ImplementsClause implementsClause = null;
     if (matches(Keyword.IMPLEMENTS)) {
       implementsClause = parseImplementsClause();

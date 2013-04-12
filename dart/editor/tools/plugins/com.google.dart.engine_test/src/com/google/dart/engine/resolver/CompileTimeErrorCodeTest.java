@@ -206,16 +206,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_implementsNonClass_typedef() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "class A {}",
-        "int B;",
-        "typedef C = A implements B;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
-    verify(source);
-  }
-
   public void fail_importDuplicatedLibraryName() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "library test;",
@@ -1498,6 +1488,16 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
         "class B implements A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_implementsNonClass_typedef() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "int B;",
+        "typedef C = A implements B;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
