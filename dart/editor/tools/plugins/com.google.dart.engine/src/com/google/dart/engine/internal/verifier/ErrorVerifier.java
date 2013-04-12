@@ -1086,7 +1086,8 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
             returnExpression,
             actualReturnType.getName(),
-            expectedReturnType.getName());
+            expectedReturnType.getName(),
+            currentFunction.getName());
         return true;
       }
     }

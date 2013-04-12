@@ -125,8 +125,12 @@ public enum StaticTypeWarningCode implements ErrorCode {
   /**
    * 13.11 Return: It is a static type warning if the type of <i>e</i> may not be assigned to the
    * declared return type of the immediately enclosing function.
+   * 
+   * @param actualReturnType the return type as declared in the return statement
+   * @param expectedReturnType the expected return type as defined by the method
+   * @param methodName the name of the method
    */
-  RETURN_OF_INVALID_TYPE("The return type '%s' is not a '%s', as defined by the method"),
+  RETURN_OF_INVALID_TYPE("The return type '%s' is not a '%s', as defined by the method '%s'"),
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type arguments to a
@@ -156,6 +160,9 @@ public enum StaticTypeWarningCode implements ErrorCode {
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
+   * 
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
   UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
 
@@ -163,6 +170,8 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if <i>T</i> does not have an accessible instance setter named <i>v=</i>.
    * 
+   * @param setterName the name of the setter
+   * @param enclosingType the name of the enclosing type where the setter is being looked for
    * @see #INACCESSIBLE_SETTER
    */
   UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),

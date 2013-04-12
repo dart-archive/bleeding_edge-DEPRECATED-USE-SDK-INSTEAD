@@ -196,7 +196,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       String methodName = operator.getLexeme();
       MethodElement member = lookUpMethod(leftType, methodName);
       if (member == null) {
-        resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_OPERATOR,
+            operator,
+            methodName,
+            leftType.getName());
       } else {
         node.setElement(member);
       }
@@ -357,7 +361,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     MethodElement member = lookUpMethod(arrayType, operator);
     if (member == null) {
-      resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, node, operator);
+      resolver.reportError(
+          StaticWarningCode.UNDEFINED_OPERATOR,
+          node,
+          operator,
+          arrayType.getName());
     } else {
       node.setElement(member);
     }
@@ -543,7 +551,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     MethodElement member = lookUpMethod(operandType, methodName);
     if (member == null) {
-      resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
+      resolver.reportError(
+          StaticWarningCode.UNDEFINED_OPERATOR,
+          operator,
+          methodName,
+          operandType.getName());
     } else {
       node.setElement(member);
     }
@@ -684,7 +696,11 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
       MethodElement member = lookUpMethod(operandType, methodName);
       if (member == null) {
-        resolver.reportError(StaticWarningCode.UNDEFINED_OPERATOR, operator, methodName);
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_OPERATOR,
+            operator,
+            methodName,
+            operandType.getName());
       } else {
         node.setElement(member);
       }
@@ -718,9 +734,17 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     }
     if (memberElement == null) {
       if (identifier.inSetterContext()) {
-        resolver.reportError(StaticWarningCode.UNDEFINED_SETTER, identifier, identifier.getName());
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_SETTER,
+            identifier,
+            identifier.getName(),
+            targetType.getName());
       } else if (identifier.inGetterContext()) {
-        resolver.reportError(StaticWarningCode.UNDEFINED_GETTER, identifier, identifier.getName());
+        resolver.reportError(
+            StaticWarningCode.UNDEFINED_GETTER,
+            identifier,
+            identifier.getName(),
+            targetType.getName());
       } else {
         resolver.reportError(
             StaticWarningCode.UNDEFINED_IDENTIFIER,

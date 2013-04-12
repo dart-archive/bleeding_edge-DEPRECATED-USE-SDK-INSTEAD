@@ -334,8 +334,12 @@ public enum StaticWarningCode implements ErrorCode {
    * 12.17 Getter Invocation: It is a static warning if there is no class <i>C</i> in the enclosing
    * lexical scope of <i>i</i>, or if <i>C</i> does not declare, implicitly or explicitly, a getter
    * named <i>m</i>.
+   * 
+   * @param getterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
-  UNDEFINED_GETTER("Undefined getter '%s'"),
+  // TODO(jwren) tests needed for this error code
+  UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier expression of the form
@@ -343,6 +347,7 @@ public enum StaticWarningCode implements ErrorCode {
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
    */
+  // TODO(jwren) Should we include the " in '%s'" in this message as well?
   UNDEFINED_IDENTIFIER("Undefined name '%s'"),
 
   /**
@@ -350,8 +355,12 @@ public enum StaticWarningCode implements ErrorCode {
    * <i>id</i> occurs inside a top level or static function (be it function, method, getter, or
    * setter) or variable initializer and there is no declaration <i>d</i> with name <i>id</i> in the
    * lexical scope enclosing the expression.
+   * 
+   * @param operator the name of the operator
+   * @param enclosingType the name of the enclosing type where the operator is being looked for
    */
-  UNDEFINED_OPERATOR("Undefined operator '%s'"),
+  // TODO(jwren) tests needed for this error code
+  UNDEFINED_OPERATOR("There is no such operator '%s' in '%s'"),
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form <i>v = e</i> occurs
@@ -362,14 +371,22 @@ public enum StaticWarningCode implements ErrorCode {
    * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in the enclosing lexical
    * scope of the assignment, or if <i>C</i> does not declare, implicitly or explicitly, a setter
    * <i>v=</i>.
+   * 
+   * @param setterName the name of the getter
+   * @param enclosingType the name of the enclosing type where the setter is being looked for
    */
-  UNDEFINED_SETTER("Undefined setter '%s'"),
+  // TODO(jwren) tests needed for this error code
+  UNDEFINED_SETTER("There is no such setter '%s' in '%s'"),
 
   /**
    * 12.15.3 Static Invocation: It is a static warning if <i>C</i> does not declare a static method
    * or getter <i>m</i>.
+   * 
+   * @param methodName the name of the method
+   * @param enclosingType the name of the enclosing type where the method is being looked for
    */
-  UNDEFINED_STATIC_METHOD_OR_GETTER("Undefined static method '%s'");
+  // TODO(jwren) Even though we have a message here, this warning code is not being generated.
+  UNDEFINED_STATIC_METHOD_OR_GETTER("There is no such static method '%s' in '%s'");
 
   /**
    * The message template used to create the message to be displayed for this error.
