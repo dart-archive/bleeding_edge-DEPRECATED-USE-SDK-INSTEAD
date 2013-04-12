@@ -15,6 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.element.HtmlElement;
 import com.google.dart.engine.html.ast.HtmlUnit;
+import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
 /**
@@ -53,6 +54,16 @@ public class HtmlUnitInfo extends SourceInfo {
    * The element representing the HTML file, or {@code null} if the element is not currently cached.
    */
   private HtmlElement element;
+
+  /**
+   * The state of the cached library sources.
+   */
+  private CacheState librarySourcesState = CacheState.INVALID;
+
+  /**
+   * The sources of libraries referenced by this HTML file.
+   */
+  private Source[] librarySources = Source.EMPTY_ARRAY;
 
   /**
    * Initialize a newly created information holder to be empty.
@@ -97,6 +108,15 @@ public class HtmlUnitInfo extends SourceInfo {
   @Override
   public SourceKind getKind() {
     return SourceKind.HTML;
+  }
+
+  /**
+   * Return the sources of libraries referenced by this HTML file.
+   * 
+   * @return the sources of libraries referenced by this HTML file
+   */
+  public Source[] getLibrarySources() {
+    return librarySources;
   }
 
   /**
@@ -154,6 +174,14 @@ public class HtmlUnitInfo extends SourceInfo {
   }
 
   /**
+   * Mark the library sources as needing to be recomputed.
+   */
+  public void invalidateLibrarySources() {
+    librarySourcesState = CacheState.INVALID;
+    librarySources = Source.EMPTY_ARRAY;
+  }
+
+  /**
    * Mark the parsed HTML unit as needing to be recomputed.
    */
   public void invalidateParsedUnit() {
@@ -181,6 +209,16 @@ public class HtmlUnitInfo extends SourceInfo {
   public void setElement(HtmlElement element) {
     this.element = element;
     elementState = CacheState.VALID;
+  }
+
+  /**
+   * Set the sources of libraries referenced by this HTML file to the given sources.
+   * 
+   * @param sources the sources of libraries referenced by this HTML file
+   */
+  public void setLibrarySources(Source[] sources) {
+    librarySources = sources;
+    librarySourcesState = CacheState.VALID;
   }
 
   /**
@@ -213,9 +251,12 @@ public class HtmlUnitInfo extends SourceInfo {
   protected void copyFrom(SourceInfo info) {
     super.copyFrom(info);
     // TODO(brianwilkerson) Decide how much of this data we can safely copy.
-//    parsedUnitState = info.parsedUnitState;
-//    parsedUnit = info.parsedUnit;
-//    resolvedUnitState = info.resolvedUnitState;
-//    resolvedUnit = info.resolvedUnit;
+//    HtmlUnitInfo htmlInfo = (HtmlUnitInfo) info;
+//    parsedUnitState = htmlInfo.parsedUnitState;
+//    parsedUnit = htmlInfo.parsedUnit;
+//    resolvedUnitState = htmlInfo.resolvedUnitState;
+//    resolvedUnit = htmlInfo.resolvedUnit;
+//    librarySourcesState = htmlInfo.librarySourcesState;
+//    librarySources = htmlInfo.librarySources;
   }
 }

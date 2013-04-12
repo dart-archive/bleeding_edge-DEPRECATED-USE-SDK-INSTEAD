@@ -18,8 +18,6 @@ import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
 
-import java.util.ArrayList;
-
 /**
  * Instances of the class {@code LibraryInfo} maintain the information cached by an analysis context
  * about an individual library.
@@ -49,6 +47,17 @@ public class LibraryInfo extends CompilationUnitInfo {
   private LibraryElement element;
 
   /**
+   * The state of the cached unit sources.
+   */
+  private CacheState unitSourcesState = CacheState.INVALID;
+
+  /**
+   * The sources of the compilation units that compose the library, including both the defining
+   * compilation unit and any parts.
+   */
+  private Source[] unitSources = Source.EMPTY_ARRAY;
+
+  /**
    * The state of the cached public namespace.
    */
   private CacheState publicNamespaceState = CacheState.INVALID;
@@ -74,28 +83,10 @@ public class LibraryInfo extends CompilationUnitInfo {
   private int bitmask = 0;
 
   /**
-   * The sources for the HTML files that reference this library (via a script tag), or {@code null}
-   * if there are no HTML files that reference the library or if the HTML files are not yet known.
-   */
-  private ArrayList<Source> htmlSources = null;
-
-  /**
    * Initialize a newly created information holder to be empty.
    */
   public LibraryInfo() {
     super();
-  }
-
-  /**
-   * Add the given source to the list of sources for the HTML files that reference this library.
-   * 
-   * @param source the source to be added to the list
-   */
-  public void addHtmlSource(Source source) {
-    if (htmlSources == null) {
-      htmlSources = new ArrayList<Source>();
-    }
-    htmlSources.add(source);
   }
 
   /**
@@ -131,18 +122,6 @@ public class LibraryInfo extends CompilationUnitInfo {
     return element;
   }
 
-  /**
-   * Return the sources for the HTML files that reference this library.
-   * 
-   * @return the sources for the HTML files that reference this library
-   */
-  public Source[] getHtmlSources() {
-    if (htmlSources == null) {
-      return Source.EMPTY_ARRAY;
-    }
-    return htmlSources.toArray(new Source[htmlSources.size()]);
-  }
-
   @Override
   public SourceKind getKind() {
     return SourceKind.LIBRARY;
@@ -156,6 +135,16 @@ public class LibraryInfo extends CompilationUnitInfo {
    */
   public Namespace getPublicNamespace() {
     return publicNamespace;
+  }
+
+  /**
+   * Return the sources of the compilation units that compose the library, including both the
+   * defining compilation unit and any parts.
+   * 
+   * @return the sources of the compilation units that compose the library
+   */
+  public Source[] getUnitSources() {
+    return unitSources;
   }
 
   /**
@@ -227,6 +216,14 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
+   * Mark the compilation unit sources as needing to be recomputed.
+   */
+  public void invalidateUnitSources() {
+    unitSourcesState = CacheState.INVALID;
+    unitSources = Source.EMPTY_ARRAY;
+  }
+
+  /**
    * Return {@code true} if this library is client based code: the library depends on the html
    * library.
    * 
@@ -247,29 +244,14 @@ public class LibraryInfo extends CompilationUnitInfo {
   }
 
   /**
-   * Return {@code true} if this library is server based code: the library does not depends on
-   * the html library.
+   * Return {@code true} if this library is server based code: the library does not depends on the
+   * html library.
    * 
-   * @return {@code true} if this library is server based code: the library does not depends on
-   *         the html library
+   * @return {@code true} if this library is server based code: the library does not depends on the
+   *         html library
    */
   public boolean isServer() {
     return (bitmask & CLIENT_CODE) == 0;
-  }
-
-  /**
-   * Remove the given source from the list of sources for the HTML files that reference this
-   * library.
-   * 
-   * @param source the source to be removed to the list
-   */
-  public void removeHtmlSource(Source source) {
-    if (htmlSources != null) {
-      htmlSources.remove(source);
-      if (htmlSources.isEmpty()) {
-        htmlSources = null;
-      }
-    }
   }
 
   /**
@@ -331,6 +313,16 @@ public class LibraryInfo extends CompilationUnitInfo {
     publicNamespaceState = CacheState.VALID;
   }
 
+  /**
+   * Set the sources of the compilation units that compose the library to the given sources.
+   * 
+   * @param sources the sources of the compilation units that compose the library
+   */
+  public void setUnitSources(Source[] sources) {
+    unitSourcesState = CacheState.VALID;
+    unitSources = sources;
+  }
+
   @Override
   protected void copyFrom(SourceInfo info) {
     super.copyFrom(info);
@@ -341,6 +333,8 @@ public class LibraryInfo extends CompilationUnitInfo {
 //      element = libraryInfo.element;
 //      publicNamespaceState = libraryInfo.publicNamespaceState;
 //      publicNamespace = libraryInfo.publicNamespace;
+//      unitSourcesState = libraryInfo.unitSourcesState;
+//      unitSources = libraryInfo.unitSources;
 //    }
   }
 }

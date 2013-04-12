@@ -15,10 +15,7 @@ package com.google.dart.engine.internal.context;
 
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.error.AnalysisError;
-import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceKind;
-
-import java.util.ArrayList;
 
 /**
  * Instances of the class {@code CompilationUnitInfo} maintain the information cached by an analysis
@@ -72,29 +69,10 @@ public class CompilationUnitInfo extends SourceInfo {
   private AnalysisError[] resolutionErrors;
 
   /**
-   * The sources for the defining compilation units of the libraries containing the source, or
-   * {@code null} if the libraries containing the source are not yet known.
-   */
-  private ArrayList<Source> librarySources = null;
-
-  /**
    * Initialize a newly created information holder to be empty.
    */
   public CompilationUnitInfo() {
     super();
-  }
-
-  /**
-   * Add the given source to the list of sources for the defining compilation units for the
-   * libraries containing this source.
-   * 
-   * @param source the source to be added to the list
-   */
-  public void addLibrarySource(Source source) {
-    if (librarySources == null) {
-      librarySources = new ArrayList<Source>();
-    }
-    librarySources.add(source);
   }
 
   /**
@@ -161,18 +139,6 @@ public class CompilationUnitInfo extends SourceInfo {
   @Override
   public SourceKind getKind() {
     return SourceKind.PART;
-  }
-
-  /**
-   * Return the sources for the defining compilation units for the libraries containing this source.
-   * 
-   * @return the sources for the defining compilation units for the libraries containing this source
-   */
-  public Source[] getLibrarySources() {
-    if (librarySources == null) {
-      return Source.EMPTY_ARRAY;
-    }
-    return librarySources.toArray(new Source[librarySources.size()]);
   }
 
   /**
@@ -281,21 +247,6 @@ public class CompilationUnitInfo extends SourceInfo {
   public void invalidateResolvedUnit() {
     resolvedUnitState = CacheState.INVALID;
     resolvedUnit = null;
-  }
-
-  /**
-   * Remove the given source from the list of sources for the defining compilation units for the
-   * libraries containing this source.
-   * 
-   * @param source the source to be removed to the list
-   */
-  public void removeLibrarySource(Source source) {
-    if (librarySources != null) {
-      librarySources.remove(source);
-      if (librarySources.isEmpty()) {
-        librarySources = null;
-      }
-    }
   }
 
   /**

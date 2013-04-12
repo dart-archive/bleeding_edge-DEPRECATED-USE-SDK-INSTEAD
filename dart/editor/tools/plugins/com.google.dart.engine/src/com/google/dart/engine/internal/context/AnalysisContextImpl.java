@@ -417,22 +417,33 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public Source[] getHtmlFilesReferencing(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info instanceof LibraryInfo) {
-        return ((LibraryInfo) info).getHtmlSources();
-      } else if (info instanceof CompilationUnitInfo) {
-        ArrayList<Source> sources = new ArrayList<Source>();
-        for (Source librarySource : ((CompilationUnitInfo) info).getLibrarySources()) {
-          LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-          for (Source htmlSource : libraryInfo.getHtmlSources()) {
-            sources.add(htmlSource);
+      ArrayList<Source> htmlSources = new ArrayList<Source>();
+      switch (getKindOf(source)) {
+        case LIBRARY:
+        default:
+          for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+            if (entry.getValue().getKind() == SourceKind.HTML) {
+              if (contains(((HtmlUnitInfo) entry.getValue()).getLibrarySources(), source)) {
+                htmlSources.add(entry.getKey());
+              }
+            }
           }
-        }
-        if (!sources.isEmpty()) {
-          return sources.toArray(new Source[sources.size()]);
-        }
+          break;
+        case PART:
+          Source[] librarySources = getLibrariesContaining(source);
+          for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+            if (entry.getValue().getKind() == SourceKind.HTML) {
+              if (containsAny(((HtmlUnitInfo) entry.getValue()).getLibrarySources(), librarySources)) {
+                htmlSources.add(entry.getKey());
+              }
+            }
+          }
+          break;
       }
-      return Source.EMPTY_ARRAY;
+      if (htmlSources.isEmpty()) {
+        return Source.EMPTY_ARRAY;
+      }
+      return htmlSources.toArray(new Source[htmlSources.size()]);
     }
   }
 
@@ -489,11 +500,18 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   @Override
   public Source[] getLibrariesContaining(Source source) {
     synchronized (cacheLock) {
-      SourceInfo info = getSourceInfo(source);
-      if (info instanceof CompilationUnitInfo) {
-        return ((CompilationUnitInfo) info).getLibrarySources();
+      ArrayList<Source> librarySources = new ArrayList<Source>();
+      for (Map.Entry<Source, SourceInfo> entry : sourceMap.entrySet()) {
+        if (entry.getValue().getKind() == SourceKind.LIBRARY) {
+          if (contains(((LibraryInfo) entry.getValue()).getUnitSources(), source)) {
+            librarySources.add(entry.getKey());
+          }
+        }
       }
-      return Source.EMPTY_ARRAY;
+      if (librarySources.isEmpty()) {
+        return Source.EMPTY_ARRAY;
+      }
+      return librarySources.toArray(new Source[librarySources.size()]);
     }
   }
 
@@ -671,17 +689,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           unit = result.getHtmlUnit();
           htmlUnitInfo.setLineInfo(new LineInfo(result.getLineStarts()));
           htmlUnitInfo.setParsedUnit(unit);
-          for (SourceInfo sourceInfo : sourceMap.values()) {
-            if (sourceInfo instanceof LibraryInfo) {
-              ((LibraryInfo) sourceInfo).removeHtmlSource(source);
-            }
-          }
-          for (Source librarySource : getLibrarySources(source, unit)) {
-            LibraryInfo libraryInfo = getLibraryInfo(librarySource);
-            if (libraryInfo != null) {
-              libraryInfo.addHtmlSource(source);
-            }
-          }
+          htmlUnitInfo.setLibrarySources(getLibrarySources(source, unit));
         }
       }
       return unit;
@@ -719,29 +727,13 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
           libraryInfo.setElement(library);
           libraryInfo.setLaunchable(library.getEntryPoint() != null);
           libraryInfo.setClient(isClient(library, htmlSource, new HashSet<LibraryElement>()));
-        }
-        //
-        // Remove this library from being a defining compilation unit for any existing units.
-        //
-        for (SourceInfo info : sourceMap.values()) {
-          if (info instanceof CompilationUnitInfo) {
-            ((CompilationUnitInfo) info).removeLibrarySource(librarySource);
+          ArrayList<Source> unitSources = new ArrayList<Source>();
+          unitSources.add(librarySource);
+          for (CompilationUnitElement part : library.getParts()) {
+            Source partSource = part.getSource();
+            unitSources.add(partSource);
           }
-        }
-        //
-        // Cache this library as a defining compilation unit of both it's defining compilation
-        // unit and all of it's parts.
-        //
-        if (libraryInfo != null) {
-          libraryInfo.addLibrarySource(librarySource);
-        }
-        for (CompilationUnitElement part : library.getParts()) {
-          Source partSource = part.getSource();
-          CompilationUnitInfo partInfo = partSource == null ? null
-              : getCompilationUnitInfo(partSource);
-          if (partInfo != null) {
-            partInfo.addLibrarySource(librarySource);
-          }
+          libraryInfo.setUnitSources(unitSources.toArray(new Source[unitSources.size()]));
         }
       }
     }
@@ -991,6 +983,22 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Return {@code true} if the given array of sources contains any of the given target sources.
+   * 
+   * @param sources the sources being searched
+   * @param targetSources the sources being searched for
+   * @return {@code true} if any of the given target sources are in the array
+   */
+  private boolean containsAny(Source[] sources, Source[] targetSources) {
+    for (Source targetSource : targetSources) {
+      if (contains(sources, targetSource)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Create a source information object suitable for the given source. Return the source information
    * object that was created, or {@code null} if the source should not be tracked by this context.
    * 
@@ -1151,7 +1159,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
    * @param htmlUnit the AST for the HTML file being analyzed
    * @return the sources of libraries that are referenced in the HTML file
    */
-  private ArrayList<Source> getLibrarySources(final Source htmlSource, HtmlUnit htmlUnit) {
+  private Source[] getLibrarySources(final Source htmlSource, HtmlUnit htmlUnit) {
     final ArrayList<Source> libraries = new ArrayList<Source>();
     htmlUnit.accept(new RecursiveXmlVisitor<Void>() {
       @Override
@@ -1180,7 +1188,10 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
         return super.visitXmlTagNode(node);
       }
     });
-    return libraries;
+    if (libraries.isEmpty()) {
+      return Source.EMPTY_ARRAY;
+    }
+    return libraries.toArray(new Source[libraries.size()]);
   }
 
   /**
@@ -1354,29 +1365,17 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // TODO(brianwilkerson) This could be optimized. There's no need to flush all of these caches if
     // the public namespace hasn't changed, which will be a fairly common case.
     if (libraryInfo != null) {
-      LibraryElement libraryElement = libraryInfo.getElement();
       libraryInfo.invalidateElement();
       libraryInfo.invalidateLaunchable();
       libraryInfo.invalidatePublicNamespace();
       libraryInfo.invalidateResolutionErrors();
       libraryInfo.invalidateResolvedUnit();
-      if (libraryElement == null) {
-        for (SourceInfo info : sourceMap.values()) {
-          if (info instanceof CompilationUnitInfo && !(info instanceof LibraryInfo)) {
-            CompilationUnitInfo partInfo = (CompilationUnitInfo) info;
-            if (contains(partInfo.getLibrarySources(), librarySource)) {
-              partInfo.invalidateResolutionErrors();
-              partInfo.invalidateResolvedUnit();
-            }
-          }
-        }
-      } else {
-        for (CompilationUnitElement partElement : libraryElement.getParts()) {
-          CompilationUnitInfo partInfo = getCompilationUnitInfo(partElement.getSource());
-          partInfo.invalidateResolutionErrors();
-          partInfo.invalidateResolvedUnit();
-        }
+      for (Source unitSource : libraryInfo.getUnitSources()) {
+        CompilationUnitInfo partInfo = getCompilationUnitInfo(unitSource);
+        partInfo.invalidateResolutionErrors();
+        partInfo.invalidateResolvedUnit();
       }
+      libraryInfo.invalidateUnitSources();
     }
   }
 
@@ -1537,8 +1536,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
       invalidateLibraryResolution(source, libraryInfo);
       sourceMap.put(source, DartInfo.getPendingInstance());
     } else if (sourceInfo instanceof CompilationUnitInfo) {
-      CompilationUnitInfo compilationUnitInfo = (CompilationUnitInfo) sourceInfo;
-      for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
+      for (Source librarySource : getLibrariesContaining(source)) {
         LibraryInfo libraryInfo = getLibraryInfo(librarySource);
         invalidateLibraryResolution(librarySource, libraryInfo);
       }
@@ -1557,7 +1555,7 @@ public class AnalysisContextImpl implements InternalAnalysisContext {
     // about the source.
     CompilationUnitInfo compilationUnitInfo = getCompilationUnitInfo(source);
     if (compilationUnitInfo != null) {
-      for (Source librarySource : compilationUnitInfo.getLibrarySources()) {
+      for (Source librarySource : getLibrariesContaining(source)) {
         LibraryInfo libraryInfo = getLibraryInfo(librarySource);
         invalidateLibraryResolution(librarySource, libraryInfo);
       }

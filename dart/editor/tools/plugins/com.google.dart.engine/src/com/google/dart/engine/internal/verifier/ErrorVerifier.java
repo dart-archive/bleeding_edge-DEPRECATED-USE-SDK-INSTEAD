@@ -849,7 +849,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     }
     Type superType = typeName.getType();
     for (InterfaceType disallowedType : DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT) {
-      if (superType.equals(disallowedType)) {
+      if (superType != null && superType.equals(disallowedType)) {
         // if the violating type happens to be 'num', we need to rule out the case where the
         // enclosing class is 'int' or 'double'
         if (superType.equals(typeProvider.getNumType())) {
