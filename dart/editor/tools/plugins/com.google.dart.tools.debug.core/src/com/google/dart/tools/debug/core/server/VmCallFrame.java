@@ -42,7 +42,6 @@ public class VmCallFrame extends VmRef {
     VmCallFrame frame = new VmCallFrame(isolate);
 
     frame.functionName = JsonUtils.getString(object, "functionName");
-    frame.libraryId = object.optInt("libraryId");
     frame.location = VmLocation.createFrom(isolate, object.getJSONObject("location"));
     frame.locals = VmVariable.createFrom(isolate, object.optJSONArray("locals"));
 
@@ -50,8 +49,6 @@ public class VmCallFrame extends VmRef {
   }
 
   private String functionName;
-
-  private int libraryId;
 
   private VmLocation location;
 
@@ -69,7 +66,7 @@ public class VmCallFrame extends VmRef {
   }
 
   public int getLibraryId() {
-    return libraryId;
+    return location.getLibraryId();
   }
 
   public List<VmVariable> getLocals() {
