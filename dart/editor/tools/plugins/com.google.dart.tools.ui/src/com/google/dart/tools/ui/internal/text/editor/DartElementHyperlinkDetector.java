@@ -15,6 +15,8 @@ package com.google.dart.tools.ui.internal.text.editor;
 
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ClassDeclaration;
+import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.visitor.ElementLocator;
 import com.google.dart.engine.ast.visitor.NodeLocator;
 import com.google.dart.engine.element.Element;
@@ -79,7 +81,8 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     int offset = region.getOffset();
 
     ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
-    if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit) {
+    if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit
+        || node instanceof Directive || node instanceof ClassDeclaration) {
       return null;
     }
 
