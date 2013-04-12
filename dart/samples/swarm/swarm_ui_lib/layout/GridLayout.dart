@@ -380,7 +380,7 @@ class GridLayout extends ViewLayout {
    * Returns true if we have an appropriate content sized dimension, and don't
    * cross a fractional track.
    */
-  static bool _hasContentSizedTracks(Collection<GridTrack> tracks,
+  static bool _hasContentSizedTracks(Iterable<GridTrack> tracks,
       ContentSizeMode sizeMode, _BreadthAccumulator breadth) {
 
     for (final t in tracks) {
