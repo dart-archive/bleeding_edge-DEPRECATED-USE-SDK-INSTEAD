@@ -257,7 +257,7 @@ class IOException implements Exception {
   String toString() => "IOException";
 }
 
-class ListWrapper<E> extends Collection<E> implements List<E> {
+class ListWrapper<E> extends ListBase<E> implements List<E> {
   List<E> elements = new List<E>();
 
   Iterator<E> get iterator {
@@ -277,10 +277,6 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
   }
 
   void add(E value) {
-    elements.add(value);
-  }
-
-  void addLast(E value) {
     elements.add(value);
   }
 
@@ -344,13 +340,13 @@ class ListWrapper<E> extends Collection<E> implements List<E> {
 }
 
 class JavaIterator<E> {
-  Collection<E> _collection;
+  Iterable<E> _iterable;
   List<E> _elements = new List<E>();
   int _coPos = 0;
   int _elPos = 0;
   E _current = null;
-  JavaIterator(this._collection) {
-    Iterator iterator = _collection.iterator;
+  JavaIterator(this._iterable) {
+    Iterator iterator = _iterable.iterator;
     while (iterator.moveNext()) {
       _elements.add(iterator.current);
     }
@@ -368,13 +364,13 @@ class JavaIterator<E> {
   }
 
   void remove() {
-    if (_collection is List) {
+    if (_iterable is List) {
       _coPos--;
-      (_collection as List).remove(_coPos);
-    } else if (_collection is Set) {
-      _collection.remove(_current);
+      (_iterable as List).remove(_coPos);
+    } else if (_iterable is Set) {
+      _iterable.remove(_current);
     } else {
-      throw new StateError("Unsupported collection ${_collection.runtimeType}");
+      throw new StateError("Unsupported iterable ${_iterable.runtimeType}");
     }
   }
 }

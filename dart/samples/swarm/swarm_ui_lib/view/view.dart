@@ -70,7 +70,7 @@ class View implements Positionable {
    * and initialized when their parent view is without the parent having to
    * manually handle that traversal.
    */
-  Collection<View> get childViews {
+  Iterable<View> get childViews {
     return const [];
   }
 

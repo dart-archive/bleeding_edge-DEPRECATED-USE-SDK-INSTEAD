@@ -15,7 +15,7 @@ abstract class Positionable {
   Element get node;
 
   /** Gets the collection of child views. */
-  Collection<Positionable> get childViews;
+  Iterable<Positionable> get childViews;
 
   /** Causes a view to layout its children. */
   void doLayout();

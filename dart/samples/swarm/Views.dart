@@ -170,7 +170,7 @@ class GenericListView<D> extends View {
     _lastSelectedItem = _selectedItem.value;
   }
 
-  Collection<View> get childViews {
+  Iterable<View> get childViews {
     return _itemViews.values.toList();
   }
 
