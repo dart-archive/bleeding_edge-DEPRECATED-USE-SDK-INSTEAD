@@ -482,12 +482,12 @@ public class ProjectImpl extends ContextManagerImpl implements Project {
 
     File[] packageRoots = factory.getPackageRoots(container);
     File[] packagesDirs = null;
-    if (hasPubspec || packageRoots.length == 0) {
+    if (hasPubspec) {
       IPath location = container.getLocation();
       if (location != null) {
         packagesDirs = new File[] {new File(location.toFile(), PACKAGES_DIRECTORY_NAME)};
       }
-    } else {
+    } else if (packageRoots.length > 0) {
       packagesDirs = packageRoots;
     }
     SourceFactory sourceFactory;

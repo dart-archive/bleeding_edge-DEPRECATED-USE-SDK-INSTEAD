@@ -106,12 +106,6 @@ public class PubBuildParticipant implements BuildParticipant, BuildVisitor {
           processLockFileContents(resource, resource.getProject(), monitor);
         }
       }
-      if (delta.getKind() == IResourceDelta.REMOVED) {
-        if (resource.getName().equals(DartCore.PUBSPEC_FILE_NAME)) {
-          DartCore.getProjectManager().getProject(resource.getProject()).discardContextsIn(
-              resource.getParent());
-        }
-      }
     }
 
     return true;

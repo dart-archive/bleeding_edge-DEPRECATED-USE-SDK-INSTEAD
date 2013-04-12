@@ -153,7 +153,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     context1.assertExtracted(appContainer);
     context2.assertExtracted(null);
 
-    assertFactoryInitialized(projectContainer, context1);
+    assertDartSdkFactoryInitialized(projectContainer, context1);
     assertFactoryInitialized(appContainer, context2);
   }
 
@@ -291,7 +291,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     subAppContainer.remove(PUBSPEC_FILE_NAME);
     packageRoots = new File[] {};
 
-    assertUriResolvedToPackageRoot(projectContainer.getLocation().append(PACKAGES_DIRECTORY_NAME));
+    assertUriDoesNotResolve();
   }
 
   public void test_packageRoots_set() throws Exception {
@@ -319,7 +319,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertNotNull(project.getDefaultContext());
     assertNotSame(project.getDefaultContext(), pubFolder.getContext());
 
-    assertFactoryInitialized(projectContainer, project.getDefaultContext());
+    assertDartSdkFactoryInitialized(projectContainer, project.getDefaultContext());
     assertFactoryInitialized(appContainer, pubFolder.getContext());
   }
 
@@ -337,7 +337,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
 
     assertNotNull(project.getDefaultContext());
 
-    assertFactoryInitialized(projectContainer, project.getDefaultContext());
+    assertDartSdkFactoryInitialized(projectContainer, project.getDefaultContext());
   }
 
   public void test_pubFolder_project() {
@@ -369,7 +369,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     MockContext defaultContext = (MockContext) project.getDefaultContext();
     defaultContext.assertExtracted(null);
     defaultContext.assertMergedContext(null);
-    assertFactoryInitialized(projectContainer, defaultContext);
+    assertDartSdkFactoryInitialized(projectContainer, defaultContext);
 
     appContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(appContainer);
@@ -383,7 +383,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertSame(appContainer, pubFolder.getResource());
     defaultContext.assertExtracted(appContainer);
     defaultContext.assertMergedContext(null);
-    assertFactoryInitialized(projectContainer, defaultContext);
+    assertDartSdkFactoryInitialized(projectContainer, defaultContext);
   }
 
   public void test_pubspecAdded_folder_ignored() {
@@ -441,7 +441,7 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     MockContext defaultContext = (MockContext) project.getDefaultContext();
     defaultContext.assertExtracted(appContainer);
     defaultContext.assertMergedContext(null);
-    assertFactoryInitialized(projectContainer, defaultContext);
+    assertDartSdkFactoryInitialized(projectContainer, defaultContext);
 
     projectContainer.addFile(PUBSPEC_FILE_NAME);
     project.pubspecAdded(projectContainer);
@@ -540,6 +540,19 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     });
   }
 
+  private void assertDartSdkFactoryInitialized(MockContainer container, AnalysisContext context) {
+    SourceFactory factory = context.getSourceFactory();
+    File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
+    Source source1 = new FileBasedSource(factory.getContentCache(), file1);
+
+    Source source2 = factory.resolveUri(source1, "doesNotExist2.dart");
+    File file2 = new File(source2.getFullName());
+    assertEquals(file1.getParent(), file2.getParent());
+
+    Source source3 = factory.resolveUri(source1, "package:doesNotExist3/doesNotExist4.dart");
+    assertNull(source3);
+  }
+
   private void assertFactoryInitialized(MockContainer container, AnalysisContext context) {
     SourceFactory factory = context.getSourceFactory();
     File file1 = container.getFile(new Path("doesNotExist1.dart")).getLocation().toFile();
@@ -554,6 +567,13 @@ public class ProjectImplTest extends AbstractDartCoreTest {
     assertEquals("doesNotExist4.dart", file3.getName());
     File parent3 = file3.getParentFile();
     assertEquals("doesNotExist3", parent3.getName());
+  }
+
+  private void assertUriDoesNotResolve() {
+
+    SourceFactory factory = project.getDefaultContext().getSourceFactory();
+    Source source = factory.forUri("package:foo/foo.dart");
+    assertNull(source);
   }
 
 }
