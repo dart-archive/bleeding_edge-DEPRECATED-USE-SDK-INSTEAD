@@ -49,9 +49,7 @@ public class TestAll {
     }
 //    suite.addTest(com.google.dart.tools.core.formatter.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.generator.TestAll.suite());
-    if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
-    }
+    suite.addTest(com.google.dart.tools.core.snapshot.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.html.TestAll.suite());
     suite.addTest(com.google.dart.tools.core.index.TestAll.suite());
 //    suite.addTest(com.google.dart.tools.core.indexer.TestAll.suite());
