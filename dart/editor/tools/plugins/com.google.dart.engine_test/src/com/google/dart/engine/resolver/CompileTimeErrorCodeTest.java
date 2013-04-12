@@ -206,13 +206,13 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_implementsDynamic() throws Exception {
-    //TODO(jwren) This tests case should result in just the IMPLEMENTS_DYNAMIC being raised, to fix,
-    // 'dynamic' needs to be scope- see TypeResolverVisitor.resolveType
+  public void fail_implementsNonClass_typedef() throws Exception {
     Source source = addSource("/test.dart", createSource(//
-        "class A implements dynamic {}"));
+        "class A {}",
+        "int B;",
+        "typedef C = A implements B;"));
     resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
     verify(source);
   }
 
@@ -1155,7 +1155,7 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(librarySource, sourceA, sourceB);
   }
 
-  public void test_extendsNonClass() throws Exception {
+  public void test_extendsNonClass_class() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
         "class B extends A {}"));
@@ -1486,7 +1486,15 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void test_implementsNonClass() throws Exception {
+  public void test_implementsDynamic() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A implements dynamic {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPLEMENTS_DYNAMIC);
+    verify(source);
+  }
+
+  public void test_implementsNonClass_class() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
         "class B implements A {}"));
@@ -1611,6 +1619,25 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.LABEL_UNDEFINED);
     // We cannot verify resolution with undefined labels
+  }
+
+  public void test_mixinOfNonClass_class() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "int A;",
+        "class B with A {}"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    verify(source);
+  }
+
+  public void test_mixinOfNonClass_typedef() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "int B;",
+        "typedef C = A with B;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
+    verify(source);
   }
 
   // TODO(jwren) Move this test somewhere else: This test verifies a parser error code is generated

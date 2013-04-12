@@ -159,12 +159,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
     InterfaceType superclassType = null;
     ExtendsClause extendsClause = node.getExtendsClause();
     if (extendsClause != null) {
-      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
       superclassType = resolveType(
           extendsClause.getSuperclass(),
-          CompileTimeErrorCode.EXTENDS_NON_CLASS,
-          CompileTimeErrorCode.EXTENDS_NON_CLASS,
-          null);
+          CompileTimeErrorCode.EXTENDS_NON_CLASS);
       if (superclassType != getTypeProvider().getObjectType()) {
         classElement.setValidMixin(false);
       }
@@ -186,12 +183,9 @@ public class TypeResolverVisitor extends ScopedVisitor {
   public Void visitClassTypeAlias(ClassTypeAlias node) {
     super.visitClassTypeAlias(node);
     ClassElementImpl classElement = getClassElement(node.getName());
-    // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
     InterfaceType superclassType = resolveType(
         node.getSuperclass(),
-        CompileTimeErrorCode.EXTENDS_NON_CLASS,
-        CompileTimeErrorCode.EXTENDS_NON_CLASS,
-        null);
+        CompileTimeErrorCode.EXTENDS_NON_CLASS);
     if (superclassType == null) {
       superclassType = getTypeProvider().getObjectType();
     }
@@ -441,6 +435,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
         // TODO(brianwilkerson) Report this error.
 //      resolver.reportError(ResolverErrorCode.?, keyType);
       }
+    } else if (element instanceof MultiplyDefinedElement) {
+      Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
+      type = getType(elements);
+      if (type != null) {
+        node.setType(type);
+      }
     } else {
       // The name does not represent a type.
       // TODO(brianwilkerson) Report this error
@@ -684,24 +684,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
   private void resolve(ClassElementImpl classElement, WithClause withClause,
       ImplementsClause implementsClause) {
     if (withClause != null) {
-      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
       InterfaceType[] mixinTypes = resolveTypes(
           withClause.getMixinTypes(),
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-          CompileTimeErrorCode.MIXIN_OF_NON_CLASS,
-          null);
+          CompileTimeErrorCode.MIXIN_OF_NON_CLASS);
       if (classElement != null) {
         classElement.setMixins(mixinTypes);
       }
     }
     if (implementsClause != null) {
       NodeList<TypeName> interfaces = implementsClause.getInterfaces();
-      // TODO(brianwilkerson) Report these errors. (Some of the error codes are wrong.)
       InterfaceType[] interfaceTypes = resolveTypes(
           interfaces,
-          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-          null);
+          CompileTimeErrorCode.IMPLEMENTS_NON_CLASS);
       TypeName[] typeNames = interfaces.toArray(new TypeName[interfaces.size()]);
       String dynamicKeyword = Keyword.DYNAMIC.getSyntax();
       boolean[] detectedRepeatOnIndex = new boolean[typeNames.length];
@@ -737,35 +731,18 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * Return the type specified by the given name.
    * 
    * @param typeName the type name specifying the type to be returned
-   * @param undefinedError the error to produce if the type name is not defined
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
-   * @param nonInterfaceType the error to produce if the type is not an interface type
    * @return the type specified by the type name
    */
-  private InterfaceType resolveType(TypeName typeName, ErrorCode undefinedError,
-      ErrorCode nonTypeError, ErrorCode nonInterfaceType) {
-    // TODO(brianwilkerson) Share code with StaticTypeAnalyzer
+  private InterfaceType resolveType(TypeName typeName, ErrorCode nonTypeError) {
+    Type type = typeName.getType();
+    if (type instanceof InterfaceType) {
+      return (InterfaceType) type;
+    }
+    // If the type is not an InterfaceType, then visitTypeName() sets the type to be a DynamicTypeImpl
     Identifier name = typeName.getName();
-    Element element = getNameScope().lookup(name, getDefiningLibrary());
-    if (element == null) {
-      // TODO(brianwilkerson) Handle the case where a prefixed identifier is not referencing a prefix.
-      reportError(undefinedError, name, name.getName());
-    } else if (element instanceof ClassElement) {
-      Type classType = ((ClassElement) element).getType();
-      // TODO(brianwilkerson) This does not handle the type arguments.
-      typeName.setType(classType);
-      if (classType instanceof InterfaceType) {
-        return (InterfaceType) classType;
-      }
-      reportError(nonInterfaceType, name, name.getName());
-    } else if (element instanceof MultiplyDefinedElement) {
-      Element[] elements = ((MultiplyDefinedElement) element).getConflictingElements();
-      InterfaceType type = getType(elements);
-      if (type != null) {
-        typeName.setType(type);
-      }
-    } else {
+    if (!name.getName().equals(Keyword.DYNAMIC.getSyntax())) {
       reportError(nonTypeError, name, name.getName());
     }
     return null;
@@ -775,17 +752,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
    * Resolve the types in the given list of type names.
    * 
    * @param typeNames the type names to be resolved
-   * @param undefinedError the error to produce if the type name is not defined
    * @param nonTypeError the error to produce if the type name is defined to be something other than
    *          a type
-   * @param nonInterfaceType the error to produce if the type is not an interface type
    * @return an array containing all of the types that were resolved.
    */
-  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode undefinedError,
-      ErrorCode nonTypeError, ErrorCode nonInterfaceType) {
+  private InterfaceType[] resolveTypes(NodeList<TypeName> typeNames, ErrorCode nonTypeError) {
     ArrayList<InterfaceType> types = new ArrayList<InterfaceType>();
     for (TypeName typeName : typeNames) {
-      InterfaceType type = resolveType(typeName, undefinedError, nonTypeError, nonInterfaceType);
+      InterfaceType type = resolveType(typeName, nonTypeError);
       if (type != null) {
         types.add(type);
       }

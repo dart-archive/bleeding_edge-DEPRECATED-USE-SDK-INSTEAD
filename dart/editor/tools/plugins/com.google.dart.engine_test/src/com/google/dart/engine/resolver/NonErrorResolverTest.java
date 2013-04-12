@@ -487,6 +487,21 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedGetter_typeSubstitution() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A<E> {",
+        "  E element;",
+        "}",
+        "class B extends A<List> {",
+        "  m() {",
+        "    element.last;",
+        "  }",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedOperator_tilde() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "const A = 3;",
