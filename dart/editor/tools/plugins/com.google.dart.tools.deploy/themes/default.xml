@@ -38,7 +38,7 @@
     <occurrenceIndication color="#e0e0e0" />
     <operator color="#000000" />
     <parameterVariable color="#87312e" />
-    <searchResultIndication color="#000000" />
+    <searchResultIndication color="#D0D0D0" />
     <selectionBackground color="#b6d6fd" />
     <selectionForeground color="#000000" />
     <setter color="#0618bd" />
