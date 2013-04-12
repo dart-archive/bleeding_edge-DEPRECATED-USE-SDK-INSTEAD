@@ -246,6 +246,14 @@ public class LibraryResolver {
       }
       recordResults();
       instrumentation.metric("recordResults", "complete");
+      instrumentation.metric("librariesInCycles", librariesInCycles.size());
+
+      for (Library lib : librariesInCycles) {
+        instrumentation.metric(
+            "librariesInCycles-CompilationUnitSources-Size",
+            lib.getCompilationUnitSources().size());
+      }
+
       return targetLibrary.getLibraryElement();
     } finally {
       instrumentation.log();
