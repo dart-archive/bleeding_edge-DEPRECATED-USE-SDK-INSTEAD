@@ -8,6 +8,7 @@ import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FieldFormalParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
+import com.google.dart.engine.internal.element.member.Member;
 import com.google.dart.engine.source.Source;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
@@ -194,6 +195,16 @@ public class DartElementUtil {
 //
 //    return isPrimaryType(type) || isCuOnlyType(type);
 //  }
+
+  /**
+   * @return the given {@link Element} or, its "base" {@link Element} if {@link Member}.
+   */
+  public static Element getBaseIfMember(Element element) {
+    if (element instanceof Member) {
+      return ((Member) element).getBaseElement();
+    }
+    return element;
+  }
 
   /**
    * @return the {@link CompilationUnitElement} of the given {@link IFile}, may be {@code null}.

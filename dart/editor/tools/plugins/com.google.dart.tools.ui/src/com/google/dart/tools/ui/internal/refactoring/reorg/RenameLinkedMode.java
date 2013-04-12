@@ -154,18 +154,29 @@ public class RenameLinkedMode {
     return null;
   }
 
+  /**
+   * Given {@link Element} provided by resolver, returns {@link Element} which should be renamed.
+   */
+  private static Element getCanonicalElement(Element element) {
+    element = DartElementUtil.getFieldIfFieldFormalParameter(element);
+    element = DartElementUtil.getBaseIfMember(element);
+    element = DartElementUtil.getVariableIfAccessor(element);
+    return element;
+  }
+
   private final DartEditor fEditor;
   private AssistContext context;
   private SimpleIdentifier nameNode;
+
   private Element fDartElement;
-
   private RenameInformationPopup fInfoPopup;
-  private Point fOriginalSelection;
 
+  private Point fOriginalSelection;
   private String fOriginalName;
   private LinkedPosition fNamePosition;
   private LinkedModeModel fLinkedModeModel;
   private LinkedPositionGroup fLinkedPositionGroup;
+
   private final FocusEditingSupport fFocusEditingSupport;
 
   private boolean fShowPreview;
@@ -183,13 +194,6 @@ public class RenameLinkedMode {
     Assert.isNotNull(editor);
     fEditor = editor;
     fFocusEditingSupport = new FocusEditingSupport();
-  }
-
-  public void cancel() {
-    if (fLinkedModeModel != null) {
-      fLinkedModeModel.exit(ILinkedModeListener.NONE);
-    }
-    linkedModeLeft();
   }
 
 //	private void startAnimation() {
@@ -217,6 +221,13 @@ public class RenameLinkedMode {
 //		RectangleAnimation anim= new RectangleAnimation(shell, startRect, targetRect);
 //		anim.schedule();
 //	}
+
+  public void cancel() {
+    if (fLinkedModeModel != null) {
+      fLinkedModeModel.exit(ILinkedModeListener.NONE);
+    }
+    linkedModeLeft();
+  }
 
   public LinkedPosition getCurrentLinkedPosition() {
     int start = context.getSelectionOffset();
@@ -294,8 +305,7 @@ public class RenameLinkedMode {
         @Override
         public Void visitSimpleIdentifier(SimpleIdentifier node) {
           Element element = node.getElement();
-          element = DartElementUtil.getFieldIfFieldFormalParameter(element);
-          element = DartElementUtil.getVariableIfAccessor(element);
+          element = getCanonicalElement(element);
           if (Objects.equal(element, fDartElement)) {
             sameNodes.add(node);
           }
@@ -497,8 +507,7 @@ public class RenameLinkedMode {
     }
     nameNode = (SimpleIdentifier) selectedNode;
     fDartElement = nameNode.getElement();
-    fDartElement = DartElementUtil.getFieldIfFieldFormalParameter(fDartElement);
-    fDartElement = DartElementUtil.getVariableIfAccessor(fDartElement);
+    fDartElement = getCanonicalElement(fDartElement);
   }
 
   private void restoreFullSelection() {
