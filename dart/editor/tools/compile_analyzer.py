@@ -35,7 +35,10 @@ def GetOptions():
 
 def CompileAnalyzer(options, args):
   # We rely on all jar files being copied to the output dir.
-  class_path = options.output_dir + '*'
+  if sys.platform == 'win32':
+    class_path = options.output_dir + '*;'
+  else:
+    class_path = options.output_dir + '*'
   cmd = [GetJavacPath(),
          '-sourcepath', 'foobar',
          '-source', '6',
@@ -45,7 +48,9 @@ def CompileAnalyzer(options, args):
          '-cp', class_path,
          ]
   cmd.extend(args)
-  subprocess.call(cmd)
+  exit_code = subprocess.call(cmd)
+  if exit_code:
+    raise Exception("Executing command [%s] failed" % cmd)
 
 def CreateJarFile(options):
   class_path_file_name = options.output_dir + options.class_path_file
@@ -53,7 +58,9 @@ def CreateJarFile(options):
   cmd = [GetJarToolPath(), 'cfem', jar_file_name, options.entry_point,
          class_path_file_name,
          '-C', options.output_dir, options.jar_entry_directory]
-  subprocess.call(cmd)
+  exit_code = subprocess.call(cmd)
+  if exit_code:
+    raise Exception("Executing command [%s] failed" % cmd)
 
 def CopyFiles(options):
   # Strip " from the string

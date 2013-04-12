@@ -1,2 +1,9 @@
 /*.Makefile
 /*.target.mk
+/plugin_command_analyze_sources.gypi
+/plugin_command_analyze_sources.txt
+/plugin_command_analyze_sources.xml
+/plugin_engine_sources.gypi
+/plugin_engine_sources.txt
+/plugin_engine_sources.xml
+
