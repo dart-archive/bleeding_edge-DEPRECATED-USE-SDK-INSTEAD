@@ -17,6 +17,8 @@ import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.collection.IntList;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,12 +141,26 @@ public abstract class AbstractScanner {
    * @return the first token in the list of tokens that were produced
    */
   public Token tokenize() {
-    int next = advance();
-    while (next != -1) {
-      next = bigSwitch(next);
+
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.AbstractScanner.tokenize");
+    int tokenCounter = 0;
+
+    try {
+      int next = advance();
+      while (next != -1) {
+        tokenCounter++;
+        next = bigSwitch(next);
+      }
+      appendEofToken();
+      instrumentation.metric("tokensCount", tokenCounter);
+
+      return firstToken();
+
+    } finally {
+      instrumentation.log();
+
     }
-    appendEofToken();
-    return firstToken();
+
   }
 
   /**
