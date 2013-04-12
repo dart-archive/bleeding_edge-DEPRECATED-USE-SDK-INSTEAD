@@ -3,6 +3,7 @@ package com.google.dart.tools.ui.instrumentation;
 import com.google.dart.engine.utilities.instrumentation.Instrumentation;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 import com.google.dart.engine.utilities.instrumentation.InstrumentationLevel;
+import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.tools.core.model.CompilationUnit;
 import com.google.dart.tools.core.model.DartModelException;
 import com.google.dart.tools.ui.internal.text.editor.DartTextSelection;
@@ -220,7 +221,6 @@ public class UIInstrumentation {
 
     @Override
     public void record(Throwable exception) {
-
       if (exception == null) {
         metric("Exception", "null");
         return;
@@ -228,6 +228,11 @@ public class UIInstrumentation {
 
       metric("Exception", exception.getClass().toString());
       data("Exception", exception.toString());
+
+      PrintStringWriter writer = new PrintStringWriter();
+      exception.printStackTrace(writer);
+      data("StackTrace", writer.toString());
+      data("Message", exception.getMessage());
     }
 
   }
