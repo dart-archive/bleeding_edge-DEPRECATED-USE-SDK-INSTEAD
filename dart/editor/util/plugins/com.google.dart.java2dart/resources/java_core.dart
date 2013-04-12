@@ -2,6 +2,7 @@ library java.core;
 
 import "dart:math" as math;
 import "dart:uri";
+import "dart:collection" show ListBase;
 
 class JavaSystem {
   static int currentTimeMillis() {
@@ -276,7 +277,13 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.length = newLength;
   }
 
+  int get length => elements.length;
+
   void add(E value) {
+    elements.add(value);
+  }
+
+  void addLast(E value) {
     elements.add(value);
   }
 
@@ -320,7 +327,7 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   List<E> sublist(int start, [int end]) => elements.sublist(start, end);
 
-  Iterable<E> getRange(int start, int end) => elements.getRange(start, end);
+  List<E> getRange(int start, int length) => sublist(start, start + length);
 
   void setRange(int start, int length, List<E> from, [int startFrom]) {
     elements.setRange(start, length, from, startFrom);
@@ -368,7 +375,7 @@ class JavaIterator<E> {
       _coPos--;
       (_iterable as List).remove(_coPos);
     } else if (_iterable is Set) {
-      _iterable.remove(_current);
+      (_iterable as Set).remove(_current);
     } else {
       throw new StateError("Unsupported iterable ${_iterable.runtimeType}");
     }
