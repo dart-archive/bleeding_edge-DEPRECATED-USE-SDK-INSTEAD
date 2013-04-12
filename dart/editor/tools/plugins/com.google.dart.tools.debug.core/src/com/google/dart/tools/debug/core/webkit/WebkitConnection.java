@@ -288,11 +288,8 @@ public class WebkitConnection {
       JSONObject object = new JSONObject(message.getText());
 
       if (DartDebugCorePlugin.LOGGING) {
-        // These messages are too verbose.
-        if (!message.getText().contains("\"method\":\"Debugger.scriptParsed\"")) {
-          // Print the event / response from the VM.
-          System.out.println("<== " + object);
-        }
+        // Print the event / response from the VM.
+        System.out.println("<== " + object);
       }
 
       if (object.has("id")) {
