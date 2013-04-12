@@ -14,7 +14,6 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.Element;
-import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
@@ -28,7 +27,7 @@ import com.google.dart.engine.utilities.source.SourceRange;
  * Instances of the class {@code ParameterMember} represent a parameter element defined in a
  * parameterized type where the values of the type parameters are known.
  */
-public class ParameterMember extends Member implements ParameterElement {
+public class ParameterMember extends VariableMember implements ParameterElement {
   /**
    * If the given parameter's type is different when any type parameters from the defining type's
    * declaration are replaced with the actual type arguments from the defining type, create a
@@ -78,11 +77,6 @@ public class ParameterMember extends Member implements ParameterElement {
     return element;
   }
 
-  /**
-   * Return the element on which the parameterized element was created.
-   * 
-   * @return the element on which the parameterized element was created
-   */
   @Override
   public ParameterElement getBaseElement() {
     return (ParameterElement) super.getBaseElement();
@@ -91,15 +85,6 @@ public class ParameterMember extends Member implements ParameterElement {
   @Override
   public Element getEnclosingElement() {
     return getBaseElement().getEnclosingElement();
-  }
-
-  @Override
-  public FunctionElement getInitializer() {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-//    return getBaseElement().getInitializer();
   }
 
   @Override
@@ -122,23 +107,8 @@ public class ParameterMember extends Member implements ParameterElement {
   }
 
   @Override
-  public Type getType() {
-    return substituteFor(getBaseElement().getType());
-  }
-
-  @Override
   public SourceRange getVisibleRange() {
     return getBaseElement().getVisibleRange();
-  }
-
-  @Override
-  public boolean isConst() {
-    return getBaseElement().isConst();
-  }
-
-  @Override
-  public boolean isFinal() {
-    return getBaseElement().isFinal();
   }
 
   @Override

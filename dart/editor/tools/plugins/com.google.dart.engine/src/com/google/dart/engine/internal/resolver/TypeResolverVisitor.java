@@ -45,13 +45,13 @@ import com.google.dart.engine.ast.WithClause;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
-import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MultiplyDefinedElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.PrefixElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
+import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
@@ -523,14 +523,14 @@ public class TypeResolverVisitor extends ScopedVisitor {
     Element element = node.getName().getElement();
     if (element instanceof VariableElement) {
       ((VariableElementImpl) element).setType(declaredType);
-      if (element instanceof FieldElement) {
-        FieldElement field = (FieldElement) element;
-        PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) field.getGetter();
+      if (element instanceof PropertyInducingElement) {
+        PropertyInducingElement variableElement = (PropertyInducingElement) element;
+        PropertyAccessorElementImpl getter = (PropertyAccessorElementImpl) variableElement.getGetter();
         FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
         getterType.setReturnType(declaredType);
         getter.setType(getterType);
 
-        PropertyAccessorElementImpl setter = (PropertyAccessorElementImpl) field.getSetter();
+        PropertyAccessorElementImpl setter = (PropertyAccessorElementImpl) variableElement.getSetter();
         if (setter != null) {
           FunctionTypeImpl setterType = new FunctionTypeImpl(setter);
           setterType.setReturnType(VoidTypeImpl.getInstance());

@@ -66,7 +66,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invalidAssignment_instanceVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " int x;",
+        "  int x;",
         "}",
         "f() {",
         "  A a;",
@@ -91,7 +91,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invalidAssignment_staticVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " static int x;",
+        "  static int x;",
         "}",
         "f() {",
         "  A.x = '0';",
@@ -104,9 +104,9 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invocationOfNonFunction_class() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " void m() {",
-        "  A();",
-        " }",
+        "  void m() {",
+        "    A();",
+        "  }",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
@@ -115,8 +115,8 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invocationOfNonFunction_localVariable() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
-        " int x;",
-        " return x();",
+        "  int x;",
+        "  return x();",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
@@ -126,12 +126,12 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invocationOfNonFunction_ordinaryInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " int x;",
+        "  int x;",
         "}",
         "class B {",
-        " m() {",
-        "  A.x();",
-        " }",
+        "  m() {",
+        "    A.x();",
+        "  }",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
@@ -141,10 +141,10 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_invocationOfNonFunction_staticInvocation() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
-        " static int get g => 0;",
-        " f() {",
-        "  A.g();",
-        " }",
+        "  static int get g => 0;",
+        "  f() {",
+        "    A.g();",
+        "  }",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION);
@@ -162,7 +162,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_nonBoolCondition_do() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
-        " do {} while (3);",
+        "  do {} while (3);",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
@@ -172,7 +172,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_nonBoolCondition_if() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
-        " if (3) return 2; else return 1;",
+        "  if (3) return 2; else return 1;",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
@@ -182,7 +182,7 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
   public void test_nonBoolCondition_while() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "f() {",
-        " while (3) {}",
+        "  while (3) {}",
         "}"));
     resolve(source);
     assertErrors(StaticTypeWarningCode.NON_BOOL_CONDITION);
@@ -253,6 +253,15 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedFunction() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "void f() {",
+        "  g();",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_FUNCTION);
+  }
+
   public void test_undefinedGetter() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class T {}",
@@ -269,6 +278,17 @@ public class StaticTypeWarningCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(StaticTypeWarningCode.UNDEFINED_GETTER);
     // A call to verify(source) fails as 'A.B' isn't resolved.
+  }
+
+  public void test_undefinedMethod() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  void m() {",
+        "    n();",
+        "  }",
+        "}"));
+    resolve(source);
+    assertErrors(StaticTypeWarningCode.UNDEFINED_METHOD);
   }
 
   public void test_undefinedSetter() throws Exception {

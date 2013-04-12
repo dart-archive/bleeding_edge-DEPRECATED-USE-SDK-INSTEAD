@@ -14,6 +14,7 @@
 package com.google.dart.engine.resolver;
 
 import com.google.dart.engine.EngineTestCase;
+import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisContextFactory;
 import com.google.dart.engine.context.AnalysisException;
@@ -28,6 +29,9 @@ import com.google.dart.engine.internal.element.CompilationUnitElementImpl;
 import com.google.dart.engine.internal.element.LibraryElementImpl;
 import com.google.dart.engine.internal.resolver.LibraryResolver;
 import com.google.dart.engine.internal.resolver.ResolutionVerifier;
+import com.google.dart.engine.internal.resolver.TypeProvider;
+import com.google.dart.engine.internal.resolver.TypeProviderImpl;
+import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
@@ -155,6 +159,17 @@ public class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Return a type provider that can be used to test the results of resolution.
+   * 
+   * @return a type provider
+   */
+  protected TypeProvider getTypeProvider() {
+    Source coreSource = analysisContext.getSourceFactory().forUri(DartSdk.DART_CORE);
+    LibraryElement coreElement = analysisContext.getLibraryElement(coreSource);
+    return new TypeProviderImpl(coreElement);
+  }
+
+  /**
    * Given a library and all of its parts, resolve the contents of the library and the contents of
    * the parts. This assumes that the sources for the library and its parts have already been added
    * to the content provider using the method {@link #addSource(String, String)}.
@@ -168,6 +183,19 @@ public class ResolverTestCase extends EngineTestCase {
       throws AnalysisException {
     LibraryResolver resolver = new LibraryResolver(analysisContext, errorListener);
     return resolver.resolveLibrary(librarySource, true);
+  }
+
+  /**
+   * Return the resolved compilation unit corresponding to the given source in the given library.
+   * 
+   * @param source the source of the compilation unit to be returned
+   * @param library the library in which the compilation unit is to be resolved
+   * @return the resolved compilation unit
+   * @throws Exception if the compilation unit could not be resolved
+   */
+  protected CompilationUnit resolveCompilationUnit(Source source, LibraryElement library)
+      throws Exception {
+    return analysisContext.resolveCompilationUnit(source, library);
   }
 
   /**
@@ -194,7 +222,9 @@ public class ResolverTestCase extends EngineTestCase {
    * @return the source that was created
    */
   private FileBasedSource createSource(String fileName) {
-    FileBasedSource source = new FileBasedSource(sourceFactory.getContentCache(), createFile(fileName));
+    FileBasedSource source = new FileBasedSource(
+        sourceFactory.getContentCache(),
+        createFile(fileName));
     sourceFactory.setContents(source, "");
     return source;
   }

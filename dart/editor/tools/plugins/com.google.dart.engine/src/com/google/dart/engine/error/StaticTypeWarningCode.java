@@ -158,6 +158,14 @@ public enum StaticTypeWarningCode implements ErrorCode {
   TYPE_ARGUMENT_VIOLATES_BOUNDS(""),
 
   /**
+   * Specification reference needed. This is equivalent to {@link #UNDEFINED_METHOD}, but for
+   * top-level functions.
+   * 
+   * @param methodName the name of the method that is undefined
+   */
+  UNDEFINED_FUNCTION("The FUNCTION '%s' is not defined"),
+
+  /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is a static type
    * warning if <i>T</i> does not have a getter named <i>m</i>.
    * 
@@ -165,6 +173,15 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * @param enclosingType the name of the enclosing type where the getter is being looked for
    */
   UNDEFINED_GETTER("There is no such getter '%s' in '%s'"),
+
+  /**
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>. It is a static type
+   * warning if <i>T</i> does not have an accessible instance member named <i>m</i>.
+   * 
+   * @param methodName the name of the method that is undefined
+   * @param typeName the resolved type name that the method lookup is happening on
+   */
+  UNDEFINED_METHOD("The method '%s' is not defined for the class '%s'"),
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type

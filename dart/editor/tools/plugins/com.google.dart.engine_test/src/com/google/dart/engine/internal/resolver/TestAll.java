@@ -25,6 +25,7 @@ public class TestAll {
     suite.addTestSuite(LibraryElementBuilderTest.class);
     suite.addTestSuite(LibraryTest.class);
     suite.addTestSuite(StaticTypeAnalyzerTest.class);
+    suite.addTestSuite(TypeOverrideManagerTest.class);
     suite.addTestSuite(TypeProviderImplTest.class);
     suite.addTestSuite(TypeResolverVisitorTest.class);
     return suite;

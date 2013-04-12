@@ -954,6 +954,7 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
     Library library = new Library(context, listener, source);
     library.setLibraryElement(definingLibrary);
     ResolverVisitor visitor = new ResolverVisitor(library, source, typeProvider);
+    visitor.getOverrideManager().enterScope();
     try {
       Field analyzerField = visitor.getClass().getDeclaredField("typeAnalyzer");
       analyzerField.setAccessible(true);

@@ -14,6 +14,7 @@
 package com.google.dart.engine.internal.element.member;
 
 import com.google.dart.engine.element.Element;
+import com.google.dart.engine.element.FieldElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.PropertyInducingElement;
 import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
@@ -77,11 +78,11 @@ public class PropertyAccessorMember extends ExecutableMember implements Property
 
   @Override
   public PropertyInducingElement getVariable() {
-    //
-    // Elements within this element should have type parameters substituted, just like this element.
-    //
-    throw new UnsupportedOperationException();
-//    return getBaseElement().getVariable();
+    PropertyInducingElement variable = getBaseElement().getVariable();
+    if (variable instanceof FieldElement) {
+      return FieldMember.from(((FieldElement) variable), getDefiningType());
+    }
+    return variable;
   }
 
   @Override

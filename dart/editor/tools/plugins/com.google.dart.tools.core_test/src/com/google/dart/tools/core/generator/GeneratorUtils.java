@@ -15,10 +15,8 @@
 package com.google.dart.tools.core.generator;
 
 import com.google.dart.engine.AnalysisEngine;
-import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.context.AnalysisException;
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
@@ -51,10 +49,9 @@ public class GeneratorUtils {
     Source librarySource = new FileBasedSource(
         sourceFactory.getContentCache(),
         file.getLocation().toFile());
-    LibraryElement library = context.computeLibraryElement(librarySource);
+    context.computeLibraryElement(librarySource);
 
-    CompilationUnit unit = context.resolveCompilationUnit(librarySource, library);
-    AnalysisError[] errors = unit.getErrors();
+    AnalysisError[] errors = context.getErrors(librarySource).getErrors();
     assertNotNull(errors);
 
     if (errors.length > 0) {

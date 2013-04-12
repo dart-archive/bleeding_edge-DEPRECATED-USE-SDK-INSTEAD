@@ -81,7 +81,6 @@ import com.google.dart.engine.internal.scope.LabelScope;
 import com.google.dart.engine.internal.scope.Namespace;
 import com.google.dart.engine.internal.scope.NamespaceBuilder;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
-import com.google.dart.engine.internal.type.TypeVariableTypeImpl;
 import com.google.dart.engine.resolver.ResolverErrorCode;
 import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
@@ -416,14 +415,12 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     } else {
       Type targetType = getType(target);
       if (targetType instanceof InterfaceType) {
-        element = lookUpMethod(targetType, methodName.getName());
+        InterfaceType classType = (InterfaceType) targetType;
+        element = lookUpMethod(classType, methodName.getName());
         if (element == null) {
-          ClassElement targetClass = (ClassElement) targetType.getElement();
-          PropertyAccessorElement accessor = lookUpGetterInType(targetClass, methodName.getName());
+          PropertyAccessorElement accessor = classType.getGetter(methodName.getName());
           if (accessor != null) {
-            Type returnType = accessor.getType().getReturnType().substitute(
-                ((InterfaceType) targetType).getTypeArguments(),
-                TypeVariableTypeImpl.getTypes(targetClass.getTypeVariables()));
+            Type returnType = accessor.getType().getReturnType();
             if (!isExecutableType(returnType)) {
               resolver.reportError(
                   StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
@@ -492,7 +489,25 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       }
     }
     ExecutableElement invokedMethod = null;
-    if (element instanceof ExecutableElement) {
+    if (element instanceof PropertyAccessorElement) {
+      //
+      // This is really a function expression invocation.
+      //
+      // TODO(brianwilkerson) Consider the possibility of re-writing the AST.
+      PropertyAccessorElement getter = (PropertyAccessorElement) element;
+      FunctionType getterType = getter.getType();
+      if (getterType != null) {
+        Type returnType = getterType.getReturnType();
+        if (!isExecutableType(returnType)) {
+          resolver.reportError(
+              StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+              methodName,
+              methodName.getName());
+        }
+      }
+      recordResolution(methodName, element);
+      return null;
+    } else if (element instanceof ExecutableElement) {
       invokedMethod = (ExecutableElement) element;
     } else {
       //
@@ -524,10 +539,40 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         recordResolution(methodName, element);
         return null;
       } else {
-        resolver.reportError(
-            StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
-            methodName,
-            methodName.getName());
+        if (target == null) {
+          ClassElement enclosingClass = resolver.getEnclosingClass();
+          if (enclosingClass == null) {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_FUNCTION,
+                methodName,
+                methodName.getName());
+          } else if (element == null) {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_METHOD,
+                methodName,
+                methodName.getName(),
+                enclosingClass.getName());
+          } else {
+            resolver.reportError(
+                StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
+                methodName,
+                methodName.getName());
+          }
+        } else {
+          String targetTypeName = getType(target).getName();
+          if (targetTypeName == null) {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_FUNCTION,
+                methodName,
+                methodName.getName());
+          } else {
+            resolver.reportError(
+                StaticTypeWarningCode.UNDEFINED_METHOD,
+                methodName,
+                methodName.getName(),
+                targetTypeName);
+          }
+        }
         return null;
       }
     }
@@ -591,9 +636,9 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
     if (prefixElement instanceof ClassElement) {
       Element memberElement;
       if (node.getIdentifier().inSetterContext()) {
-        memberElement = lookUpSetterInType((ClassElement) prefixElement, identifier.getName());
+        memberElement = ((ClassElementImpl) prefixElement).getSetter(identifier.getName());
       } else {
-        memberElement = lookUpGetterInType((ClassElement) prefixElement, identifier.getName());
+        memberElement = ((ClassElementImpl) prefixElement).getGetter(identifier.getName());
       }
       if (memberElement == null) {
         MethodElement methodElement = lookUpMethod(
@@ -996,23 +1041,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Look up the name of a getter in the given type. Return the element representing the getter that
-   * was found, or {@code null} if there is no getter with the given name.
-   * 
-   * @param element the element representing the type in which the getter is defined
-   * @param memberName the name of the getter being looked up
-   * @return the element representing the getter that was found
-   */
-  private PropertyAccessorElement lookUpGetterInType(ClassElement element, String memberName) {
-    for (PropertyAccessorElement accessor : element.getAccessors()) {
-      if (accessor.isGetter() && accessor.getName().equals(memberName)) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Find the element corresponding to the given label node in the current label scope.
    * 
    * @param parentNode the node containing the given label
@@ -1185,23 +1213,6 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
       return null;
     }
     return lookUpSetterInInterfaces(superclass, setterName, visitedInterfaces);
-  }
-
-  /**
-   * Look up the name of a setter in the given type. Return the element representing the setter that
-   * was found, or {@code null} if there is no setter with the given name.
-   * 
-   * @param element the element representing the type in which the setter is defined
-   * @param memberName the name of the setter being looked up
-   * @return the element representing the setter that was found
-   */
-  private PropertyAccessorElement lookUpSetterInType(ClassElement element, String memberName) {
-    for (PropertyAccessorElement accessor : element.getAccessors()) {
-      if (accessor.isSetter() && accessor.getName().equals(memberName)) {
-        return accessor;
-      }
-    }
-    return null;
   }
 
   /**
