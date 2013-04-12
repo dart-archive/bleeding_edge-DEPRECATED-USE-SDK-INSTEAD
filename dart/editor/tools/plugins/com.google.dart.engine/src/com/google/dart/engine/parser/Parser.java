@@ -29,6 +29,8 @@ import com.google.dart.engine.scanner.Token;
 import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.utilities.dart.ParameterKind;
+import com.google.dart.engine.utilities.instrumentation.Instrumentation;
+import com.google.dart.engine.utilities.instrumentation.InstrumentationBuilder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -91,8 +93,15 @@ public class Parser {
    * @return the compilation unit that was parsed
    */
   public CompilationUnit parseCompilationUnit(Token token) {
-    currentToken = token;
-    return parseCompilationUnit();
+
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseCompilationUnit");
+    try {
+      currentToken = token;
+      return parseCompilationUnit();
+    } finally {
+      instrumentation.log();
+    }
+
   }
 
   /**
@@ -103,8 +112,13 @@ public class Parser {
    *         recognizable expression
    */
   public Expression parseExpression(Token token) {
-    currentToken = token;
-    return parseExpression();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseExpression");
+    try {
+      currentToken = token;
+      return parseExpression();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   /**
@@ -115,8 +129,13 @@ public class Parser {
    *         recognizable statement
    */
   public Statement parseStatement(Token token) {
-    currentToken = token;
-    return parseStatement();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseStatement");
+    try {
+      currentToken = token;
+      return parseStatement();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   /**
@@ -127,8 +146,13 @@ public class Parser {
    *         recognizable sequence of statements
    */
   public List<Statement> parseStatements(Token token) {
-    currentToken = token;
-    return parseStatements();
+    InstrumentationBuilder instrumentation = Instrumentation.builder("dart.engine.Parser.parseStatements");
+    try {
+      currentToken = token;
+      return parseStatements();
+    } finally {
+      instrumentation.log();
+    }
   }
 
   @VisibleForTesting
