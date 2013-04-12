@@ -79,7 +79,7 @@ public class DartElementHyperlinkDetector extends AbstractHyperlinkDetector {
     int offset = region.getOffset();
 
     ASTNode node = new NodeLocator(offset, offset + region.getLength()).searchWithin(cu);
-    if (node == null) {
+    if (node == null || node instanceof com.google.dart.engine.ast.CompilationUnit) {
       return null;
     }
 
