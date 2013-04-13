@@ -798,57 +798,6 @@
       </actionSet>
    </extension>
 <!-- End JavaScript Open action contributions  -->
-    <extension
-        point="org.eclipse.ui.actionSets">
-        <actionSet
-            label="%CodingActionSet.label"
-            description="%CodingActionSet.description"
-            visible="false"
-            id="com.google.dart.tools.ui.RefactorActionSet">
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
-                label="%Refactoring.extractTempAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.ExtractLocal">
-            </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.extract.method"
-                label="%Refactoring.extractMethodAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.ExtractMethod">
-            </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
-                label="%Refactoring.inlineAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.Inline">
-            </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod"
-                label="%Refactoring.convertGetterToMethodAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.ConvertGetterToMethod">
-            </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.convertMethodToGetter"
-                label="%Refactoring.convertMethodToGetterAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.ConvertMethodToGetter">
-            </action>
-            <action
-                definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
-                label="%Refactoring.renameAction.label"
-                retarget="true"
-                menubarPath="edit/endEdit"
-                id="com.google.dart.tools.ui.actions.Rename">
-            </action>
-        </actionSet>
-    </extension>
 
     <extension
         point="org.eclipse.ui.actionSets">
@@ -868,7 +817,7 @@
     </extension>
 
     <extension point="org.eclipse.ui.actionSetPartAssociations">
-        <actionSetPartAssociation targetID="com.google.dart.tools.ui.RefactorActionSet">
+        <actionSetPartAssociation targetID="com.google.dart.tools.ui.CodingActionSet">
             <part id="com.google.dart.tools.ui.text.editor.CompilationUnitEditor"/>
         </actionSetPartAssociation>
         <actionSetPartAssociation targetID="com.google.dart.tools.ui.OpenActionSet">
@@ -950,23 +899,7 @@
                menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup"
                id="org.eclipse.wst.jsdt.ui.actions.Move">
          </action>-->
-         <action
-               definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
-               label="%Refactoring.renameAction.label"
-               retarget="true"
-               menubarPath="com.google.dart.tools.ui.refactoring.menu/reorgGroup"
-               id="com.google.dart.tools.ui.actions.Rename">
-         </action>
-         
-<!-- coding group  -->         
-         <action
-             definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
-               label="%Refactoring.inlineAction.label"
-               retarget="true"
-               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
-               id="com.google.dart.tools.ui.actions.Inline">
-         </action>
-         <action
+         <!--<action
              definitionId="com.google.dart.tools.ui.edit.text.dart.convertGetterToMethod"
                label="%Refactoring.convertGetterToMethodAction.label"
                retarget="true"
@@ -979,7 +912,7 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="com.google.dart.tools.ui.actions.ConvertMethodToGetter">
-         </action>
+         </action>-->
           <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.constant"
                label="%Refactoring.extractConstantAction.label"
@@ -988,11 +921,11 @@
                id="org.eclipse.wst.jsdt.ui.actions.ExtractConstant">
          </action>-->
          <action
-               definitionId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
-               label="%Refactoring.extractTempAction.label"
+             definitionId="com.google.dart.tools.ui.edit.text.dart.inline"
+               label="%Refactoring.inlineAction.label"
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
-               id="com.google.dart.tools.ui.actions.ExtractLocal">
+               id="com.google.dart.tools.ui.actions.Inline">
          </action>
          <action
                definitionId="com.google.dart.tools.ui.edit.text.dart.extract.method"
@@ -1000,6 +933,20 @@
                retarget="true"
                menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
                id="com.google.dart.tools.ui.actions.ExtractMethod">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.dart.extract.local.variable"
+               label="%Refactoring.extractTempAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
+               id="com.google.dart.tools.ui.actions.ExtractLocal">
+         </action>
+         <action
+               definitionId="com.google.dart.tools.ui.edit.text.dart.rename.element"
+               label="%Refactoring.renameAction.label"
+               retarget="true"
+               menubarPath="com.google.dart.tools.ui.refactoring.menu/codingGroup"
+               id="com.google.dart.tools.ui.actions.Rename">
          </action>
          <!--<action
                definitionId="org.eclipse.wst.jsdt.ui.edit.text.java.extract.method"
