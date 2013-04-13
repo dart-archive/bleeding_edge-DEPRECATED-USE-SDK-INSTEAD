@@ -99,6 +99,11 @@ public final class Instrumentation {
     public InstrumentationBuilder metric(String name, String[] value) {
       return this;
     }
+
+    @Override
+    public InstrumentationBuilder record(Throwable exception) {
+      return this;
+    }
   };
 
   /**

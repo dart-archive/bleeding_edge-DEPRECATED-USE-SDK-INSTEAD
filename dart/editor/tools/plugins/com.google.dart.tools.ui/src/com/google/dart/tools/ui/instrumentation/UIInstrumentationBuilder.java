@@ -74,11 +74,4 @@ public interface UIInstrumentationBuilder extends InstrumentationBuilder {
    * @param selection the selection (may be {@code null})
    */
   void record(ITextSelection selection);
-
-  /**
-   * Append information about the exception.
-   * 
-   * @param exception the exception (may be {@code null})
-   */
-  void record(Throwable exception);
 }

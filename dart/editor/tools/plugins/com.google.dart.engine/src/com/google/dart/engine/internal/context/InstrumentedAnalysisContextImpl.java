@@ -40,8 +40,7 @@ public class InstrumentedAnalysisContextImpl implements InternalAnalysisContext 
    */
   private static void recordAnalysisException(InstrumentationBuilder instrumentation,
       AnalysisException exception) {
-    instrumentation.metric("Problem", exception.getClass().toString());
-    instrumentation.data("AnalysisException", exception.toString());
+    instrumentation.record(exception);
   }
 
   /**

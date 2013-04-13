@@ -125,4 +125,15 @@ public interface InstrumentationBuilder {
    * @return this builder
    */
   public InstrumentationBuilder metric(String name, String[] value);
+
+  /**
+   * Append the given exception to the information being collected by this builder. The exception's
+   * class name is captured using {@link #metric(String, String)}. Other aspects of the exception
+   * may contain either user identifiable or contains user intellectual property (but is not
+   * guaranteed to contain either) and thus are captured using the various data methods such as
+   * {@link #data(String, String)}.
+   * 
+   * @param exception the exception (may be {@code null})
+   */
+  public InstrumentationBuilder record(Throwable exception);
 }

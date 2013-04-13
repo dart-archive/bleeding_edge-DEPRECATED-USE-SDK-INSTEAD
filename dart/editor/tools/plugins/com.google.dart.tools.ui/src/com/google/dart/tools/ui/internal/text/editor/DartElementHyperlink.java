@@ -79,8 +79,7 @@ public class DartElementHyperlink implements IHyperlink {
       instrumentation.metric("Run", "Completed");
 
     } catch (RuntimeException e) {
-      instrumentation.metric("Exception", e.getClass().toString());
-      instrumentation.data("Exception", e.toString());
+      instrumentation.record(e);
       throw e;
     }
 

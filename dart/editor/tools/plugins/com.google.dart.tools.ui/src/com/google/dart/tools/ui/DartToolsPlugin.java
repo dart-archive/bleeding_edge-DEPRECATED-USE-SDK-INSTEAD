@@ -327,21 +327,13 @@ public class DartToolsPlugin extends AbstractUIPlugin {
   public static void log(IStatus status) {
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartToolsPlugin.log");
     try {
-
       instrumentation.metric("Severity", status.getSeverity());
       instrumentation.data("Message", status.getMessage());
-
-      Throwable e = status.getException();
-      if (e != null) {
-        instrumentation.metric("Exception", e.getClass().toString());
-        instrumentation.data("Exception", e.toString());
-      }
+      instrumentation.record(status.getException());
 
       getDefault().getLog().log(status);
-
     } finally {
       instrumentation.log();
-
     }
   }
 

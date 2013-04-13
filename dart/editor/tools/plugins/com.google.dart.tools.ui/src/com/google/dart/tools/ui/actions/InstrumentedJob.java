@@ -40,8 +40,7 @@ public abstract class InstrumentedJob extends Job {
       instrumentation.metric("Run", "Completed");
       return result;
     } catch (RuntimeException e) {
-      instrumentation.metric("Exception-Class", e.getClass().toString());
-      instrumentation.data("Exception", e.toString());
+      instrumentation.record(e);
       throw e;
     } finally {
       instrumentation.log();

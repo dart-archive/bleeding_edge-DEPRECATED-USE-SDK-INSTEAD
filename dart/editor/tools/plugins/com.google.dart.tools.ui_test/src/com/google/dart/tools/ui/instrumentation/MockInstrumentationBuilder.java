@@ -116,4 +116,10 @@ public class MockInstrumentationBuilder implements InstrumentationBuilder {
     }
     return this;
   }
+
+  @Override
+  public InstrumentationBuilder record(Throwable exception) {
+    metric.put("Exception", exception.getClass().getName());
+    return this;
+  }
 }
