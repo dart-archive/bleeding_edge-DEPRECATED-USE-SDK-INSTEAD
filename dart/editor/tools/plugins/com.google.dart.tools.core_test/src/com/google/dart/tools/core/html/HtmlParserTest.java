@@ -92,6 +92,14 @@ public class HtmlParserTest extends TestCase {
     assertEquals("here is < some", script.getContents());
   }
 
+  public void test_parse6() {
+    XmlDocument root = new XmlDocument();
+    XmlElement htmlNode = new XmlElement("html");
+    root.addChild(htmlNode);
+
+    verifyParseTree("<html></", root);
+  }
+
   private void validate(XmlNode expectedNode, XmlNode actualNode) {
     assertEquals(expectedNode.getLabel(), actualNode.getLabel());
     assertEquals(expectedNode.getChildren().size(), actualNode.getChildren().size());

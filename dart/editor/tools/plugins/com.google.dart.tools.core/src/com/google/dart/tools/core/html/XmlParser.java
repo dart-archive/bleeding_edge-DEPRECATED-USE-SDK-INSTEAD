@@ -51,16 +51,18 @@ public class XmlParser {
   protected void endTag(Token token) {
     Token t = tokenizer.next();
 
-    XmlNode endNode = new XmlNode(t.getValue());
-    endNode.setStart(token);
-    popTag(endNode);
+    if (t != null) {
+      XmlNode endNode = new XmlNode(t.getValue());
+      endNode.setStart(token);
+      popTag(endNode);
 
-    while (tokenizer.hasNext()) {
-      t = tokenizer.next();
-      endNode.setEnd(t);
+      while (tokenizer.hasNext()) {
+        t = tokenizer.next();
+        endNode.setEnd(t);
 
-      if (">".equals(t.getValue())) {
-        return;
+        if (">".equals(t.getValue())) {
+          return;
+        }
       }
     }
   }
@@ -96,7 +98,7 @@ public class XmlParser {
       } else if (value.startsWith("<?")) {
         handleDirective(token);
       } else {
-        System.out.println("unhandled token: " + token);
+        //System.out.println("unhandled token: " + token);
       }
     }
   }
