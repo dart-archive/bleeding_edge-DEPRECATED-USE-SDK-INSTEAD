@@ -68,6 +68,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
 import com.google.dart.engine.element.TypeVariableElement;
+import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.ErrorCode;
 import com.google.dart.engine.error.StaticTypeWarningCode;
@@ -981,14 +982,15 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
   private boolean checkForInvalidAssignment(AssignmentExpression node) {
     Expression lhs = node.getLeftHandSide();
     Expression rhs = node.getRightHandSide();
-    Type leftType = getType(lhs);
+    VariableElement leftElement = getVariableElement(lhs);
+    Type leftType = (leftElement == null) ? getType(lhs) : leftElement.getType();
     Type rightType = getType(rhs);
     if (!rightType.isAssignableTo(leftType)) {
       errorReporter.reportError(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           rhs,
-          leftType.getName(),
-          rightType.getName());
+          rightType.getName(),
+          leftType.getName());
       return true;
     }
     return false;
@@ -1144,4 +1146,20 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
     return type == null ? dynamicType : type;
   }
 
+  /**
+   * Return the variable element represented by the given expression, or {@code null} if there is no
+   * such element.
+   * 
+   * @param expression the expression whose element is to be returned
+   * @return the variable element represented by the expression
+   */
+  private VariableElement getVariableElement(Expression expression) {
+    if (expression instanceof Identifier) {
+      Element element = ((Identifier) expression).getElement();
+      if (element instanceof VariableElement) {
+        return (VariableElement) element;
+      }
+    }
+    return null;
+  }
 }

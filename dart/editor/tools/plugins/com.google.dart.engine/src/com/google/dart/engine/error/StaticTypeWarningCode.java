@@ -62,10 +62,10 @@ public enum StaticTypeWarningCode implements ErrorCode {
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>. It is a static type
    * warning if the static type of <i>e<sub>2</sub></i> may not be assigned to <i>T</i>.
    * 
-   * @param lhsTypeName the name of the left hand side type
    * @param rhsTypeName the name of the right hand side type
+   * @param lhsTypeName the name of the left hand side type
    */
-  INVALID_ASSIGNMENT("The type '%s' can't be assigned a '%s'"),
+  INVALID_ASSIGNMENT("A value of type '%s' cannot be assigned to a variable of type '%s'"),
 
   /**
    * 12.14.4 Function Expression Invocation: A function expression invocation <i>i</i> has the form
