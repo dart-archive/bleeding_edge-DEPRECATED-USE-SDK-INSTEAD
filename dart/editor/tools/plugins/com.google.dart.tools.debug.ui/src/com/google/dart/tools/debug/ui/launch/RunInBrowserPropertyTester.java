@@ -13,7 +13,6 @@
  */
 package com.google.dart.tools.debug.ui.launch;
 
-import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.source.SourceKind;
 import com.google.dart.tools.core.DartCore;
 import com.google.dart.tools.core.DartCoreDebug;
@@ -52,13 +51,9 @@ public class RunInBrowserPropertyTester extends PropertyTester {
 
           if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
             ProjectManager manager = DartCore.getProjectManager();
-            if (manager.getSourceKind(file) == SourceKind.LIBRARY) {
-              LibraryElement element = manager.getLibraryElementOrNull(file);
-              if (element != null) {
-                if (element.isBrowserApplication()) {
-                  return true;
-                }
-              }
+            if (manager.getSourceKind(file) == SourceKind.LIBRARY
+                && manager.isClientLibrary(manager.getSource(file))) {
+              return true;
             }
             return false;
           } else {
