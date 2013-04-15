@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.ConditionalExpression;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.IfStatement;
+import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.LibraryElement;
@@ -214,6 +215,30 @@ public class TypePropagationTest extends ResolverTestCase {
     ReturnStatement statement = (ReturnStatement) body.getBlock().getStatements().get(1);
     SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
     assertSame(typeA, variableName.getStaticType());
+  }
+
+  public void test_is_subclass() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "class B extends A {",
+        "  B m() => this;",
+        "}",
+        "A f(A p) {",
+        "  if (p is B) {",
+        "    return p.m();",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(2);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
+        0);
+    MethodInvocation invocation = (MethodInvocation) statement.getExpression();
+    assertNotNull(invocation.getMethodName().getElement());
   }
 
   public void test_isNot_conditional() throws Exception {

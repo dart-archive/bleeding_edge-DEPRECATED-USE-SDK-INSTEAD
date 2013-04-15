@@ -529,7 +529,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         recordResolution(methodName, element);
         return null;
       } else if (element instanceof VariableElement) {
-        Type variableType = ((VariableElement) element).getType();
+        Type variableType = resolver.getOverrideManager().getType(element);
+        if (variableType == null) {
+          variableType = ((VariableElement) element).getType();
+        }
         if (!isExecutableType(variableType)) {
           resolver.reportError(
               StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION,
@@ -683,7 +686,10 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
         return null;
       }
     } else if (prefixElement instanceof VariableElement) {
-      variableType = ((VariableElement) prefixElement).getType();
+      variableType = resolver.getOverrideManager().getType(prefixElement);
+      if (variableType == null) {
+        variableType = ((VariableElement) prefixElement).getType();
+      }
       if (variableType == null || variableType.isDynamic()) {
         // TODO(brianwilkerson) Figure out why the type is sometimes null and either prevent it or
         // report it (here or at the point of origin)
