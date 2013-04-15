@@ -20,9 +20,9 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImportDirective;
-import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
+import com.google.dart.engine.ast.PartOfDirective;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.StringLiteral;
@@ -503,7 +503,7 @@ public class LibraryResolver {
           }
           if (importedLibrary != null) {
             library.addImport(importDirective, importedLibrary);
-            if (!doesCompilationUnitDefineLibrary(importedLibrary.getAST(importedSource))) {
+            if (doesCompilationUnitHavePartOfDirective(importedLibrary.getAST(importedSource))) {
               StringLiteral uriLiteral = importDirective.getUri();
               errorListener.onError(new AnalysisError(
                   library.getLibrarySource(),
@@ -528,7 +528,7 @@ public class LibraryResolver {
           }
           if (exportedLibrary != null) {
             library.addExport(exportDirective, exportedLibrary);
-            if (!doesCompilationUnitDefineLibrary(exportedLibrary.getAST(exportedSource))) {
+            if (doesCompilationUnitHavePartOfDirective(exportedLibrary.getAST(exportedSource))) {
               StringLiteral uriLiteral = exportDirective.getUri();
               errorListener.onError(new AnalysisError(
                   library.getLibrarySource(),
@@ -591,16 +591,15 @@ public class LibraryResolver {
   }
 
   /**
-   * Return {@code true} if and only if the passed {@link CompilationUnit} defines a library, that
-   * is if the unit has a {@link LibraryDirective} it its list of directives.
+   * Return {@code true} if and only if the passed {@link CompilationUnit} has a part-of directive.
    * 
    * @param node the {@link CompilationUnit} to test
-   * @return {@code true} if and only if the passed {@link CompilationUnit} defines a library
+   * @return {@code true} if and only if the passed {@link CompilationUnit} has a part-of directive
    */
-  private boolean doesCompilationUnitDefineLibrary(CompilationUnit node) {
+  private boolean doesCompilationUnitHavePartOfDirective(CompilationUnit node) {
     NodeList<Directive> directives = node.getDirectives();
     for (Directive directive : directives) {
-      if (directive instanceof LibraryDirective) {
+      if (directive instanceof PartOfDirective) {
         return true;
       }
     }

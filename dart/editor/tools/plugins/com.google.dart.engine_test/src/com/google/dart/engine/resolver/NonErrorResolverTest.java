@@ -189,6 +189,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_exportOfNonLibrary_libraryDeclared() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'lib1.dart';"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_exportOfNonLibrary_libraryNotDeclared() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'lib1.dart';"));
+    addSource("/lib1.dart", createSource(//
+        ""));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_fieldInitializedByMultipleInitializers() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -296,6 +318,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
         "  final int x;",
         "  A() : x = 0 {}",
         "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_importOfNonLibrary_libraryDeclared() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library lib;",
+        "import 'part.dart';"));
+    addSource("/part.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_importOfNonLibrary_libraryNotDeclared() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library lib;",
+        "import 'part.dart';"));
+    addSource("/part.dart", createSource(//
+        ""));
     resolve(source);
     assertNoErrors();
     verify(source);

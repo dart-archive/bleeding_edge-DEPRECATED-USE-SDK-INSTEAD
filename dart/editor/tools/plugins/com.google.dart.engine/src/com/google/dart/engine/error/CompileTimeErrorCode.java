@@ -217,7 +217,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param uri the uri pointing to a non-library declaration
    */
-  EXPORT_OF_NON_LIBRARY("The exported library '%s' must have a library directive"),
+  EXPORT_OF_NON_LIBRARY("The exported library '%s' must not have a part-of directive"),
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
@@ -374,7 +374,7 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * 
    * @param uri the uri pointing to a non-library declaration
    */
-  IMPORT_OF_NON_LIBRARY("The imported library '%s' must have a library directive"),
+  IMPORT_OF_NON_LIBRARY("The imported library '%s' must not have a part-of directive"),
 
   /**
    * 13.9 Switch: It is a compile-time error if values of the expressions <i>e<sub>k</sub></i> are
