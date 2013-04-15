@@ -169,7 +169,7 @@ public class FileBasedSource implements Source {
   public Source resolveRelative(URI containedUri) {
     try {
       URI resolvedUri = getFile().toURI().resolve(containedUri).normalize();
-      return new FileBasedSource(contentCache, new File(resolvedUri));
+      return new FileBasedSource(contentCache, new File(resolvedUri), isInSystemLibrary());
     } catch (Exception exception) {
       // Fall through to return null
     }

@@ -13,11 +13,15 @@
  */
 package com.google.dart.engine.source;
 
+import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
+
 import static com.google.dart.engine.utilities.io.FileUtilities2.createFile;
 
 import junit.framework.TestCase;
 
 import java.io.File;
+import java.net.URI;
 
 public class FileBasedSourceTest extends TestCase {
   public void test_equals_false_differentFiles() {
@@ -98,6 +102,22 @@ public class FileBasedSourceTest extends TestCase {
     FileBasedSource source1 = new FileBasedSource(contentCache, file1);
     FileBasedSource source2 = new FileBasedSource(contentCache, file2);
     assertEquals(source1.hashCode(), source2.hashCode());
+  }
+
+  public void test_isInSystemLibrary_contagious() throws Exception {
+    ContentCache contentCache = new ContentCache();
+    File sdkDirectory = DirectoryBasedDartSdk.getDefaultSdkDirectory();
+    assertNotNull(sdkDirectory);
+    DartSdk sdk = new DirectoryBasedDartSdk(sdkDirectory);
+    UriResolver resolver = new DartUriResolver(sdk);
+    // resolve dart:core
+    Source result = resolver.resolveAbsolute(contentCache, new URI("dart:core"));
+    assertNotNull(result);
+    assertTrue(result.isInSystemLibrary());
+    // system libraries reference only other system libraries
+    Source partSource = result.resolveRelative(new URI("num.dart"));
+    assertNotNull(partSource);
+    assertTrue(partSource.isInSystemLibrary());
   }
 
   public void test_isInSystemLibrary_false() {
