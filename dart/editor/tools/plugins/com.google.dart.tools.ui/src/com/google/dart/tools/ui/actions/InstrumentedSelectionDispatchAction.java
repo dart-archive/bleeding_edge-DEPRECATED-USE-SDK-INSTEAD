@@ -66,6 +66,30 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   }
 
   /**
+   * Executes this actions with the given selection. This default implementation does nothing.
+   * 
+   * @param selection the selection
+   */
+  public void doRun(ISelection selection, Event event, UIInstrumentationBuilder instrumentation) {
+    if (selection instanceof DartSelection) {
+      instrumentation.record((DartSelection) selection);
+      doRun((DartSelection) selection, event, instrumentation);
+    } else if (selection instanceof DartTextSelection) {
+      instrumentation.record((DartTextSelection) selection);
+      doRun((DartTextSelection) selection, event, instrumentation);
+    } else if (selection instanceof IStructuredSelection) {
+      instrumentation.record((IStructuredSelection) selection);
+      doRun((IStructuredSelection) selection, event, instrumentation);
+    } else if (selection instanceof ITextSelection) {
+      instrumentation.record((ITextSelection) selection);
+      doRun((ITextSelection) selection, event, instrumentation);
+    } else {
+      instrumentation.record(selection);
+      doRun(selection, event, instrumentation);
+    }
+  }
+
+  /**
    * Returns the selection provided by the site owning this action.
    * 
    * @return the site's selection
@@ -258,30 +282,7 @@ public abstract class InstrumentedSelectionDispatchAction extends InstrumentedAc
   @Override
   protected void doRun(Event event, UIInstrumentationBuilder instrumentation) {
     ISelection selection = getSelection();
-    if (selection instanceof DartSelection) {
-      instrumentation.record((DartSelection) selection);
-      doRun((DartSelection) selection, event, instrumentation);
-    } else if (selection instanceof DartTextSelection) {
-      instrumentation.record((DartTextSelection) selection);
-      doRun((DartTextSelection) selection, event, instrumentation);
-    } else if (selection instanceof IStructuredSelection) {
-      instrumentation.record((IStructuredSelection) selection);
-      doRun((IStructuredSelection) selection, event, instrumentation);
-    } else if (selection instanceof ITextSelection) {
-      instrumentation.record((ITextSelection) selection);
-      doRun((ITextSelection) selection, event, instrumentation);
-    } else {
-      instrumentation.record(selection);
-      doRun(selection, event, instrumentation);
-    }
-  }
-
-  /**
-   * Executes this actions with the given selection. This default implementation does nothing.
-   * 
-   * @param selection the selection
-   */
-  protected void doRun(ISelection selection, Event event, UIInstrumentationBuilder instrumentation) {
+    doRun(selection, event, instrumentation);
   }
 
   /**

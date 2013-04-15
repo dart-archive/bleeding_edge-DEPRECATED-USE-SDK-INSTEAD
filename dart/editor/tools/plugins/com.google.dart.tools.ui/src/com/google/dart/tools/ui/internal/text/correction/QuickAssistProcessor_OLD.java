@@ -62,7 +62,7 @@ import com.google.dart.tools.ui.internal.text.Selection;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertGetterToMethodRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertMethodToGetterRefactoringProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.ConvertOptionalParametersToNamedRefactoringProposal;
-import com.google.dart.tools.ui.internal.text.correction.proposals.InstrumentedRenameRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal_OLD;
 import com.google.dart.tools.ui.internal.text.correction.proposals.LinkedCorrectionProposal;
 import com.google.dart.tools.ui.internal.text.correction.proposals.SourceBuilder;
 import com.google.dart.tools.ui.internal.text.correction.proposals.TrackedNodeProposal;
@@ -531,7 +531,7 @@ public class QuickAssistProcessor_OLD implements IQuickAssistProcessor {
       if (editor instanceof DartEditor) {
         DartEditor dartEditor = (DartEditor) editor;
         // add proposal
-        ICommandAccess proposal = new InstrumentedRenameRefactoringProposal(dartEditor);
+        ICommandAccess proposal = new RenameRefactoringProposal_OLD(dartEditor);
         proposals.add(proposal);
       }
     }

@@ -20,6 +20,7 @@ import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
+import com.google.dart.engine.source.Source;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
 import com.google.dart.tools.ui.actions.AbstractDartSelectionAction;
 import com.google.dart.tools.ui.instrumentation.UIInstrumentationBuilder;
@@ -45,8 +46,9 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
    * @return {@code true} if given {@link DartSelection} looks valid and we can try to rename.
    */
   private static boolean isValidSelection(DartSelection selection) {
-    // can we rename this node at all?
+    Element element = getSelectionElement(selection);
     ASTNode node = getSelectionNode(selection);
+    // can we rename this node at all?
     if (node instanceof SimpleIdentifier) {
       // usually
     } else if (node instanceof InstanceCreationExpression) {
@@ -54,9 +56,16 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
     } else {
       return false;
     }
-    // is it resolved to an interesting Element?
-    if (!isInterestingElementSelected(selection)) {
+    // do we have interesting Element?
+    if (!isInterestingElement(node, element)) {
       return false;
+    }
+    // we don't want to rename anything from SDK
+    {
+      Source source = element.getSource();
+      if (source == null || source.isInSystemLibrary()) {
+        return false;
+      }
     }
     // OK
     return true;

@@ -87,12 +87,10 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
   }
 
   /**
-   * @return {@code true} if {@link Element} covered by the given {@link DartSelection} is
-   *         interesting in broad meaning, i.e. we can do something with it - open, find, etc.
+   * @return {@code true} if given {@link ASTNode} and {@link Element} are interesting in broad
+   *         meaning, i.e. we can do something with it - open, find, etc.
    */
-  protected static boolean isInterestingElementSelected(DartSelection selection) {
-    Element element = getSelectionElement(selection);
-    ASTNode node = getSelectionNode(selection);
+  protected static boolean isInterestingElement(ASTNode node, Element element) {
     // no node - probably impossible
     if (node == null) {
       return false;
@@ -116,6 +114,16 @@ public abstract class AbstractDartSelectionAction extends InstrumentedSelectionD
     }
     // OK
     return true;
+  }
+
+  /**
+   * @return {@code true} if {@link Element} covered by the given {@link DartSelection} is
+   *         interesting in broad meaning, i.e. we can do something with it - open, find, etc.
+   */
+  protected static boolean isInterestingElementSelected(DartSelection selection) {
+    ASTNode node = getSelectionNode(selection);
+    Element element = getSelectionElement(selection);
+    return isInterestingElement(node, element);
   }
 
   public AbstractDartSelectionAction(DartEditor editor) {

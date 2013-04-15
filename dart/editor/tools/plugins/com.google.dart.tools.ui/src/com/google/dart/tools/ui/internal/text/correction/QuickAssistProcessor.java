@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, the Dart project authors.
+ * Copyright (c) 2013, the Dart project authors.
  * 
  * Licensed under the Eclipse Public License v1.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,11 @@ import com.google.dart.engine.services.correction.CorrectionProposal;
 import com.google.dart.tools.internal.corext.refactoring.util.ExecutionUtils;
 import com.google.dart.tools.internal.corext.refactoring.util.RunnableEx;
 import com.google.dart.tools.ui.internal.refactoring.ServiceUtils;
+import com.google.dart.tools.ui.internal.refactoring.actions.RenameDartElementAction;
 import com.google.dart.tools.ui.internal.text.correction.proposals.CUCorrectionProposal;
+import com.google.dart.tools.ui.internal.text.correction.proposals.RenameRefactoringProposal;
+import com.google.dart.tools.ui.internal.text.editor.DartEditor;
+import com.google.dart.tools.ui.internal.text.editor.DartSelection;
 import com.google.dart.tools.ui.text.dart.IDartCompletionProposal;
 import com.google.dart.tools.ui.text.dart.IInvocationContext;
 import com.google.dart.tools.ui.text.dart.IProblemLocation;
@@ -38,13 +42,24 @@ import java.util.List;
  * @coverage dart.editor.ui.correction
  */
 public class QuickAssistProcessor implements IQuickAssistProcessor {
+  private AssistContext context;
+  private DartEditor editor;
+  private DartSelection selection;
+  private List<IDartCompletionProposal> proposals;
+
   @Override
-  public synchronized IDartCompletionProposal[] getAssists(final IInvocationContext context,
+  public synchronized IDartCompletionProposal[] getAssists(IInvocationContext _context,
       IProblemLocation[] locations) throws CoreException {
-    final List<IDartCompletionProposal> proposals = Lists.newArrayList();
+    this.context = (AssistContext) _context;
+    this.editor = (DartEditor) context.getEditor();
+    this.selection = (DartSelection) editor.getSelectionProvider().getSelection();
+    proposals = Lists.newArrayList();
     ExecutionUtils.runLog(new RunnableEx() {
       @Override
       public void run() throws Exception {
+        // add refactoring proposals
+        addProposal_renameRefactoring();
+        // ask services
         com.google.dart.engine.services.correction.QuickAssistProcessor serviceProcessor;
         serviceProcessor = CorrectionProcessors.getQuickAssistProcessor();
         CorrectionProposal[] serviceProposals = serviceProcessor.getProposals(context.getContext());
@@ -53,7 +68,7 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
           // TODO(scheglov) why do we have several SourceChange-s in CorrectionProposal? 
           List<SourceChange> serviceChanges = serviceProposal.getChanges();
           if (serviceChanges.size() == 1) {
-            TextChange textChange = (TextChange) ServiceUtils.toLTK(serviceChanges.get(0));
+            TextChange textChange = ServiceUtils.toLTK(serviceChanges.get(0));
             proposals.add(new CUCorrectionProposal(
                 serviceProposal.getName(),
                 context.getContext().getCompilationUnit().getElement(),
@@ -64,11 +79,26 @@ public class QuickAssistProcessor implements IQuickAssistProcessor {
         }
       }
     });
-    return proposals.toArray(new IDartCompletionProposal[proposals.size()]);
+    this.context = null;
+    this.editor = null;
+    this.selection = null;
+    try {
+      return proposals.toArray(new IDartCompletionProposal[proposals.size()]);
+    } finally {
+      proposals = null;
+    }
   }
 
   @Override
   public boolean hasAssists(IInvocationContext context) throws CoreException {
     return context.getContext() != null;
+  }
+
+  void addProposal_renameRefactoring() throws CoreException {
+    RenameDartElementAction action = new RenameDartElementAction(editor);
+    action.update(selection);
+    if (action.isEnabled()) {
+      proposals.add(new RenameRefactoringProposal(action, selection));
+    }
   }
 }

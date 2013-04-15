@@ -39,14 +39,14 @@ import org.eclipse.swt.graphics.Point;
  * 
  * @coverage dart.editor.ui.correction
  */
-public class InstrumentedRenameRefactoringProposal implements IDartCompletionProposal,
+public class RenameRefactoringProposal_OLD implements IDartCompletionProposal,
     ICompletionProposalExtension6, ICommandAccess {
 
   private final String fLabel;
   private final int fRelevance;
   private final DartEditor fEditor;
 
-  public InstrumentedRenameRefactoringProposal(DartEditor editor) {
+  public RenameRefactoringProposal_OLD(DartEditor editor) {
     Assert.isNotNull(editor);
     fEditor = editor;
     fLabel = CorrectionMessages.RenameRefactoringProposal_name;
