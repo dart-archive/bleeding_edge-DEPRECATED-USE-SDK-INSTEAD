@@ -14,7 +14,8 @@ class DateUtils {
 
   static const YESTERDAY = 'Yesterday';
 
-  static const MS_IN_WEEK = DateTime.DAYS_IN_WEEK * Duration.MILLISECONDS_PER_DAY;
+  static const MS_IN_WEEK =
+      DateTime.DAYS_PER_WEEK * Duration.MILLISECONDS_PER_DAY;
 
   // TODO(jmesserly): workaround for missing DateTime.fromDate in Dartium
   // Remove this once that is implemented. See b/5055106
@@ -155,7 +156,7 @@ class DateUtils {
     int msSince1970 = dateTime.difference(unixTimeStart).inMilliseconds;
     int daysSince1970 = msSince1970 ~/ Duration.MILLISECONDS_PER_DAY;
     // 1970-1-1 was Thursday
-    return ((daysSince1970 + DateTime.THURSDAY) % DateTime.DAYS_IN_WEEK);
+    return ((daysSince1970 + DateTime.THURSDAY) % DateTime.DAYS_PER_WEEK);
   }
 
   /** Formats a time in H:MM A format */
