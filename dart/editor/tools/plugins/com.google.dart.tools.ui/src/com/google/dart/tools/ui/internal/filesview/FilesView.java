@@ -30,7 +30,6 @@ import com.google.dart.tools.ui.actions.OpenExternalDartdocAction_OLD;
 import com.google.dart.tools.ui.actions.OpenNewFileWizardAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
-import com.google.dart.tools.ui.internal.actions.CleanUpAction;
 import com.google.dart.tools.ui.internal.actions.CollapseAllAction;
 import com.google.dart.tools.ui.internal.handlers.OpenFolderHandler;
 import com.google.dart.tools.ui.internal.preferences.FontPreferencePage;
@@ -192,7 +191,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
   private MoveResourceAction moveAction;
   private PropertyDialogAction propertyDialogAction;
   private RenameResourceAction renameAction;
-  private CleanUpAction cleanUpAction;
+//  private CleanUpAction cleanUpAction;
   private DeleteAction deleteAction;
   private OpenNewFileWizardAction createFileAction;
   private OpenNewFolderWizardAction createFolderAction;
@@ -486,7 +485,7 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
 
       if (!isPackagesDir) {
 
-        manager.add(cleanUpAction);
+//        manager.add(cleanUpAction);
         manager.add(new Separator());
 
         boolean analysisTargets = true;
@@ -712,8 +711,8 @@ public class FilesView extends ViewPart implements ISetSelectionTarget {
       }
     };
     treeViewer.addSelectionChangedListener(renameAction);
-    cleanUpAction = new CleanUpAction(getViewSite());
-    treeViewer.addSelectionChangedListener(cleanUpAction);
+//    cleanUpAction = new CleanUpAction(getViewSite());
+//    treeViewer.addSelectionChangedListener(cleanUpAction);
     moveAction = new MoveResourceAction(getShell());
     treeViewer.addSelectionChangedListener(moveAction);
 

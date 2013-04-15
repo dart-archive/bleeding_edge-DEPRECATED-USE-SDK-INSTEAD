@@ -29,7 +29,6 @@ import com.google.dart.tools.ui.actions.OpenIntroEditorAction;
 import com.google.dart.tools.ui.actions.OpenNewFolderWizardAction;
 import com.google.dart.tools.ui.actions.OpenOnlineDocsAction;
 import com.google.dart.tools.ui.actions.OpenTutorialAction;
-import com.google.dart.tools.ui.actions.OrganizeImportsAction;
 import com.google.dart.tools.ui.actions.RunPubAction;
 import com.google.dart.tools.ui.actions.RunPublishAction;
 import com.google.dart.tools.ui.build.CleanLibrariesAction;
@@ -191,7 +190,7 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
   private RunPubAction pubUpdateAction;
 
-  private OrganizeImportsAction organizeImportsAction;
+//  private OrganizeImportsAction organizeImportsAction;
 
   private IWorkbenchAction importResourcesAction;
 
@@ -508,11 +507,11 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 
     pubPublishAction = RunPublishAction.createPubPublishAction(window);
 
-    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      // TODO(scheglov)
-    } else {
-      organizeImportsAction = new OrganizeImportsAction(window);
-    }
+//    if (DartCoreDebug.ENABLE_NEW_ANALYSIS) {
+//      // TODO(scheglov)
+//    } else {
+//      organizeImportsAction = new OrganizeImportsAction(window);
+//    }
 
     newApplicationWizardAction = new OpenNewApplicationWizardAction();
 
@@ -876,9 +875,9 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
     menu.add(new GroupMarker(IWorkbenchActionConstants.FIND_EXT));
     menu.add(new Separator());
 
-    if (organizeImportsAction != null) {
-      menu.add(organizeImportsAction);
-    }
+//    if (organizeImportsAction != null) {
+//      menu.add(organizeImportsAction);
+//    }
     //menu.add(actionFactory.getBookmarkItem());
     //menu.add(actionFactory.getTaskItem());
     //menu.add(new GroupMarker(IWorkbenchActionConstants.ADD_EXT));

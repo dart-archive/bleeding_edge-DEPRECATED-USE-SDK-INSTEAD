@@ -1457,13 +1457,13 @@
             categoryId="org.eclipse.wst.jsdt.ui.category.source"
             id="org.eclipse.wst.jsdt.ui.edit.text.java.add.import">
       </command-->
-      <command
+      <!--<command
             defaultHandler="com.google.dart.tools.ui.internal.handlers.OrganizeImportsHandler"
             name="%ActionDefinition.organizeImports.name"
             description="%ActionDefinition.organizeImports.description"
             categoryId="org.eclipse.wst.jsdt.ui.category.source"
             id="com.google.dart.tools.ui.edit.text.organize.imports">
-      </command>     
+      </command>-->   
       <command
             name="%ActionDefinition.overrideMethods.name"
             description="%ActionDefinition.overrideMethods.description"
@@ -2900,7 +2900,7 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="com.google.dart.tools.dartAcceleratorConfiguration"
             sequence="M1+M3+J"/>
-       <key
+       <!--<key
            sequence="M2+M3+O"
            commandId="com.google.dart.tools.ui.edit.text.organize.imports"
            schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
@@ -2908,8 +2908,7 @@
            platform="carbon"
            sequence="COMMAND+ALT+O"
            commandId="com.google.dart.tools.ui.edit.text.organize.imports"
-           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>
-
+           schemeId="com.google.dart.tools.dartAcceleratorConfiguration"/>-->
        <key
            platform="win32"
            sequence="M2+M3+R"

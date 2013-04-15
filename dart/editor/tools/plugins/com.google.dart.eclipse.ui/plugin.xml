@@ -253,11 +253,11 @@
                 label="Don&apos;t Analyze"
                 style="push">
           </command>
-          <command
+          <!--<command
                 commandId="com.google.dart.eclipse.cleanup"
                 label="%command.cleanup.name"
                 style="push">
-          </command>
+          </command>-->
           <separator
                 name="com.google.dart.eclipse.ui.separator.generate"
                 visible="true">
@@ -425,11 +425,11 @@
             description="%command.openType.desc"
             id="com.google.dart.eclipse.openType"
             name="%command.openType.name"/>
-      <command
+      <!--<command
             defaultHandler="com.google.dart.eclipse.ui.internal.handlers.CleanupHandler"
             id="com.google.dart.eclipse.cleanup"
             name="%command.cleanup.name">
-      </command>
+      </command>-->
       <command
             categoryId="org.eclipse.ui.category.help"
             defaultHandler="com.google.dart.eclipse.ui.internal.actions.OpenFeedbackDialogHandler"
