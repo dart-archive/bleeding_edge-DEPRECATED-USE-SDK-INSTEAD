@@ -39,8 +39,22 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class DartEngineAnalysisTest extends TestCase {
-  public void test_dartEngineAnalysis() throws AnalysisException {
+public class Dart2JSAnalysisTest extends TestCase {
+
+  private static String[] DART2JS_LIB_PATHS = {
+      "dart2js.dart", "apiimpl.dart", "closure.dart", "colors.dart", "dart_types.dart",
+      "deferred_load.dart", "filenames.dart", "native_handler.dart", "patch_parser.dart",
+      "source_file.dart", "source_file_provider.dart", "source_map_builder.dart",
+      "string_validator.dart", "dart_backend/dart_backend.dart", "elements/elements.dart",
+      "elements/modelx.dart", "js/js.dart", "js_backend/js_backend.dart", "js/precedence.dart",
+      "mirrors/dart2js_mirror.dart", "mirrors/mirrors.dart", "mirrors/mirrors_util.dart",
+      "mirrors/util.dart", "resolution/resolution.dart", "resolution/secret_tree_element.dart",
+      "scanner/scannerlib.dart", "scanner/scanner_implementation.dart", "ssa/ssa.dart",
+      "ssa/tracer.dart", "tree/tree.dart", "types/types.dart", "universe/universe.dart",
+      "util/characters.dart", "util/uri_extras.dart", "util/util.dart",
+      "util/util_implementation.dart"};
+
+  public void test_dart2jsAnalysis() throws AnalysisException {
     String svnRootName = System.getProperty("svnRoot");
     assertNotNull("Missing property value: set using -DsvnRoot=...", svnRootName);
     File svnRoot = new File(svnRootName);
@@ -54,22 +68,29 @@ public class DartEngineAnalysisTest extends TestCase {
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
 
+    ArrayList<LibraryElement> libraries = new ArrayList<LibraryElement>();
+    File dart2jsDir = new File(svnRoot, "sdk/lib/_internal/compiler/implementation/");
     long startTime = System.currentTimeMillis();
-    LibraryElement library = context.computeLibraryElement(new FileBasedSource(
-        sourceFactory.getContentCache(),
-        new File(svnRoot, "pkg/analyzer_experimental/lib/src/generated/engine.dart")));
+    for (String library : DART2JS_LIB_PATHS) {
+      File libraryFile = new File(dart2jsDir, library);
+      assertTrue("Invalid dart2js library file: " + libraryFile.toString(), libraryFile.exists());
+      libraries.add(context.computeLibraryElement(new FileBasedSource(
+          sourceFactory.getContentCache(),
+          libraryFile)));
+    }
     long endTime = System.currentTimeMillis();
     //
     // Print out timing information.
     //
-    System.out.print("Resolved Dart analysis engine in ");
+    System.out.print("Resolved dart2js in ");
     System.out.print(endTime - startTime);
     System.out.println(" ms");
     System.out.println();
     //
     // Print out memory usage information.
     //
-//    MemoryUsage usage = MemoryUtilities.measureMemoryUsage(library);
+    LibraryElement[] libraryEltArray = libraries.toArray(new LibraryElement[libraries.size()]);
+//    MemoryUsage usage = MemoryUtilities.measureMemoryUsage(libraryEltArray);
 //    PrintWriter writer = new PrintWriter(System.out);
 //    usage.writeSummary(writer);
 //    writer.flush();
@@ -77,9 +98,11 @@ public class DartEngineAnalysisTest extends TestCase {
     // Validate that there were no errors.
     //
     ArrayList<AnalysisError> errorList = new ArrayList<AnalysisError>();
-    addErrors(errorList, library.getDefiningCompilationUnit());
-    for (CompilationUnitElement part : library.getParts()) {
-      addErrors(errorList, part);
+    for (LibraryElement library : libraryEltArray) {
+      addErrors(errorList, library.getDefiningCompilationUnit());
+      for (CompilationUnitElement part : library.getParts()) {
+        addErrors(errorList, part);
+      }
     }
     assertErrors(errorList);
     //
@@ -88,23 +111,25 @@ public class DartEngineAnalysisTest extends TestCase {
     StaticTypeVerifier staticTypeVerifier = new StaticTypeVerifier();
     ResolutionVerifier resolutionVerifier = new ResolutionVerifier();
     ElementStructureVerifier elementVerifier = new ElementStructureVerifier();
-    library.accept(elementVerifier);
+    for (LibraryElement library : libraryEltArray) {
+      library.accept(elementVerifier);
 
-    CompilationUnitElement definingCompilationUnitElement = library.getDefiningCompilationUnit();
-    CompilationUnitElement[] compilationUnitElements = library.getParts();
+      CompilationUnitElement definingCompilationUnitElement = library.getDefiningCompilationUnit();
+      CompilationUnitElement[] compilationUnitElements = library.getParts();
 
-    CompilationUnit definingCompilationUnit = context.resolveCompilationUnit(
-        definingCompilationUnitElement.getSource(),
-        library);
-    definingCompilationUnit.accept(staticTypeVerifier);
-    definingCompilationUnit.accept(resolutionVerifier);
-
-    for (CompilationUnitElement compilationUnitElement : compilationUnitElements) {
-      CompilationUnit compilationUnit = context.resolveCompilationUnit(
-          compilationUnitElement.getSource(),
+      CompilationUnit definingCompilationUnit = context.resolveCompilationUnit(
+          definingCompilationUnitElement.getSource(),
           library);
-      compilationUnit.accept(staticTypeVerifier);
-      compilationUnit.accept(resolutionVerifier);
+      definingCompilationUnit.accept(staticTypeVerifier);
+      definingCompilationUnit.accept(resolutionVerifier);
+
+      for (CompilationUnitElement compilationUnitElement : compilationUnitElements) {
+        CompilationUnit compilationUnit = context.resolveCompilationUnit(
+            compilationUnitElement.getSource(),
+            library);
+        compilationUnit.accept(staticTypeVerifier);
+        compilationUnit.accept(resolutionVerifier);
+      }
     }
     staticTypeVerifier.assertResolved();
     resolutionVerifier.assertResolved();
