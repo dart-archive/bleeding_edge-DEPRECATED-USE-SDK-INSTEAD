@@ -35,6 +35,19 @@ public class SimpleResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_class_definesCall() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {",
+        "  int call(int x) { return x; }",
+        "}",
+        "int f(A a) {",
+        "  return a(0);",
+        "}"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_class_extends_implements() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends B implements C {}",

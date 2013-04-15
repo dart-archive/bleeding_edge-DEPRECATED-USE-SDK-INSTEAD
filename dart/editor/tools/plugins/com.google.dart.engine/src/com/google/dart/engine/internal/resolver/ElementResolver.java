@@ -981,7 +981,14 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
    * @return {@code true} if the given type represents an object that could be invoked
    */
   private boolean isExecutableType(Type type) {
-    return type.isDynamic() || (type instanceof FunctionType) || type.isDartCoreFunction();
+    if (type.isDynamic() || (type instanceof FunctionType) || type.isDartCoreFunction()) {
+      return true;
+    } else if (type instanceof InterfaceType) {
+      ClassElement classElement = ((InterfaceType) type).getElement();
+      MethodElement methodElement = classElement.lookUpMethod("call", resolver.getDefiningLibrary());
+      return methodElement != null;
+    }
+    return false;
   }
 
   /**
