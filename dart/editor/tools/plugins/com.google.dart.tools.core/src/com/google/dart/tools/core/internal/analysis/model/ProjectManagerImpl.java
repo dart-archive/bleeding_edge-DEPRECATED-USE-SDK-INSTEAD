@@ -50,6 +50,7 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
@@ -95,14 +96,24 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
               if (res.getType() == IResource.PROJECT) {
                 if (delta.getKind() == IResourceDelta.REMOVED) {
                   removeProject((IProject) res);
+                  return false;
                 }
+                return true;
+              }
+              if (res.getType() == IResource.FOLDER) {
+                if (res.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
+                  if (res.getParent().findMember("pubspec.yaml").exists()) {
+                    processPackageChanges(res, delta.getAffectedChildren());
+                  }
+                  return false;
+                }
+                return true;
               }
               return false;
             }
           });
         } catch (CoreException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+          DartCore.logError(e);
         }
       }
     }
@@ -343,6 +354,10 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
     }
   }
 
+  private String getPath(IPath dirPath, IPath fullPath) {
+    return fullPath.makeRelativeTo(dirPath).toString();
+  }
+
   private IResource getResourceFromPath(String path) {
     IResource resource = null;
     File file = new File(path);
@@ -430,6 +445,53 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
         }
       }
     }
+  }
+
+  /**
+   * Process changes in the packages folder
+   */
+  private void processPackageChanges(IResource packagesDir, IResourceDelta[] deltas) {
+    final AnalysisContext context = getContext(packagesDir);
+    final ChangeSet changeSet = new ChangeSet();
+    try {
+      for (IResourceDelta delta : deltas) {
+        switch (delta.getKind()) {
+          case IResourceDelta.ADDED:
+          case IResourceDelta.CHANGED:
+            final File dirFile = delta.getResource().getLocation().toFile().getCanonicalFile();
+            final IPath dirPath = delta.getResource().getFullPath();
+            delta.accept(new IResourceDeltaVisitor() {
+              @Override
+              public boolean visit(IResourceDelta delta) throws CoreException {
+                IResource res = delta.getResource();
+                if (res instanceof IFile) {
+                  Source source;
+                  source = new FileBasedSource(
+                      context.getSourceFactory().getContentCache(),
+                      new File(dirFile, getPath(dirPath, res.getFullPath())));
+                  if (delta.getKind() == IResourceDelta.ADDED) {
+                    changeSet.added(source);
+                  } else {
+                    changeSet.changed(source);
+                  }
+                  return false;
+                }
+                return true;
+              }
+            });
+            break;
+          case IResourceDelta.REMOVED:
+            // TODO(keertip): canonical can only be got pre-delete, this needs
+            // to be figured out before the delete actually happens. 
+            changeSet.removedContainer(new DirectoryBasedSourceContainer(
+                delta.getResource().getLocation().toFile().getCanonicalFile()));
+        }
+      }
+    } catch (Exception e) {
+      DartCore.logError(e);
+    }
+    context.applyChanges(changeSet);
+    new AnalysisWorker(getProject(packagesDir.getProject()), context).performAnalysisInBackground();
   }
 
   /**
