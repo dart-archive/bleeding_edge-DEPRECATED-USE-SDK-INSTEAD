@@ -172,14 +172,14 @@ Future usingGrid(String example, Future test_(View grid)) {
 Future verifyGrid(String example, [Map expected = null]) {
   printMetrics(example);
   if (expected == null) {
-    return new Future.immediate(null);
+    return new Future.value();
   }
 
   for (String name in expected.keys) {
     final values = expected[name];
     final node = document.body.query('#$name');
     Expect.isNotNull(node);
-    return new Future.immediate(null).then((_) {
+    return new Future.value().then((_) {
       Expect.equals(values[0], node.offsetLeft);
       Expect.equals(values[1], node.offsetTop);
       Expect.equals(values[2], node.offsetWidth);
