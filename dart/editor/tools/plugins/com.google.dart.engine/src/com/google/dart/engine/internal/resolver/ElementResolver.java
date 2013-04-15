@@ -559,7 +559,8 @@ public class ElementResolver extends SimpleASTVisitor<Void> {
                 methodName.getName());
           }
         } else {
-          String targetTypeName = getType(target).getName();
+          Type targetType = getType(target);
+          String targetTypeName = targetType == null ? null : targetType.getName();
           if (targetTypeName == null) {
             resolver.reportError(
                 StaticTypeWarningCode.UNDEFINED_FUNCTION,
