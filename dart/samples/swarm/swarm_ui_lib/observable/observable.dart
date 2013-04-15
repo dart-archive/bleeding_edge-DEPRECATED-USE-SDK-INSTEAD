@@ -261,10 +261,6 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  void insertRange(int start, int length, [initialValue = null]) {
-    throw new UnimplementedError();
-  }
-
   List sublist(int start, [int end]) {
     throw new UnimplementedError();
   }

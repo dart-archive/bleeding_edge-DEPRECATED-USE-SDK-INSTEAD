@@ -337,10 +337,6 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.removeRange(start, end);
   }
 
-  void insertRange(int start, int length, [E fill]) {
-    elements.insertRange(start, length, fill);
-  }
-
   Map<int, E> asMap() {
     return elements.asMap();
   }

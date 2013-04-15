@@ -25,16 +25,14 @@ void main() {
 void checkNormal(List l) {
   // Count how many times each byte value occurs.  Assert that the counts
   // are all withing a reasonable (six-sigma) range.
-  List counts = new List<int>();
-  counts.insertRange(0, 256, 0);
+  List counts = new List<int>.filled(256, 0);
   for (var e in l) { counts[e]++; }
   new RandomArray().randomArray(256000, 18, checkCorrelation(counts));
 }
 
 void checkCorrelation(List counts) {
   return (List l) {
-    List counts_2 = new List<int>();
-    counts_2.insertRange(0, 256, 0);
+    List counts_2 = new List<int>.filled(256, 0);
     for (var e in l) { counts_2[e]++; }
     var product = 0;
     for (var i = 0; i < 256; ++i) {
