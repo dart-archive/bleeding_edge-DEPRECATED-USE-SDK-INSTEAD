@@ -567,6 +567,11 @@ public class QuickAssistProcessorImplTest extends AbstractDartTest {
     assert_joinVariableDeclaration_wrong(initial, "v2;");
   }
 
+  public void test_nullContext() throws Exception {
+    CorrectionProposal[] proposals = PROCESSOR.getProposals(null);
+    assertThat(proposals).isEmpty();
+  }
+
   public void test_removeTypeAnnotation_classField_OK() throws Exception {
     String initial = makeSource(
         "// filler filler filler filler filler filler filler filler filler filler",

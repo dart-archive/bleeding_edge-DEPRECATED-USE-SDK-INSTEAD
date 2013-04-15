@@ -34,62 +34,6 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
   private boolean deleteSource = true;
   private RefactoringStatus refactoringStatus;
 
-  // TODO(scheglov) later, we cannot find PropertyAccessorElement yet
-  public void _test_fieldAccessor_getter() throws Exception {
-    indexTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var f;",
-        "  get foo() {",
-        "    return f * 2;",
-        "  }",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  print(a.foo);",
-        "}");
-    selection = findOffset("foo() {");
-    createRefactoring();
-    // do refactoring
-    assertSuccessfulRefactoring(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var f;",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  print(a.f * 2);",
-        "}");
-  }
-
-  // TODO(scheglov) later, we cannot find PropertyAccessorElement yet
-  public void _test_fieldAccessor_setter() throws Exception {
-    indexTestUnit(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var f;",
-        "  set foo(x) {",
-        "    f = x;",
-        "  }",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  a.foo = 0;",
-        "}");
-    selection = findOffset("foo(x) {");
-    createRefactoring();
-    // do refactoring
-    assertSuccessfulRefactoring(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "class A {",
-        "  var f;",
-        "}",
-        "main() {",
-        "  A a = new A();",
-        "  a.f = 0;",
-        "}");
-  }
-
   public void test_access_FunctionElement() throws Exception {
     indexTestUnit(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -213,6 +157,126 @@ public class InlineMethodRefactoringImplTest extends RefactoringImplTest {
     // check
     // TODO(scheglov) currently always "true"
     assertEquals(true, refactoring.canDeleteSource());
+  }
+
+  public void test_fieldAccessor_getter() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  get foo {",
+        "    return f * 2;",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.foo);",
+        "}");
+    selection = findOffset("foo {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  print(a.f * 2);",
+        "}");
+  }
+
+  public void test_fieldAccessor_getter_PropertyAccess() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  get foo {",
+        "    return f * 2;",
+        "  }",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  print(b.a.foo);",
+        "}");
+    selection = findOffset("foo {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  print(b.a.f * 2);",
+        "}");
+  }
+
+  public void test_fieldAccessor_setter() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  set foo(x) {",
+        "    f = x;",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.foo = 0;",
+        "}");
+    selection = findOffset("foo(x) {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.f = 0;",
+        "}");
+  }
+
+  public void test_fieldAccessor_setter_PropertyAccess() throws Exception {
+    indexTestUnit(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "  set foo(x) {",
+        "    f = x;",
+        "  }",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  b.a.foo = 0;",
+        "}");
+    selection = findOffset("foo(x) {");
+    createRefactoring();
+    // do refactoring
+    assertSuccessfulRefactoring(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var f;",
+        "}",
+        "class B {",
+        "  A a = new A();",
+        "}",
+        "main() {",
+        "  B b = new B();",
+        "  b.a.f = 0;",
+        "}");
   }
 
   public void test_function_expressionFunctionBody() throws Exception {

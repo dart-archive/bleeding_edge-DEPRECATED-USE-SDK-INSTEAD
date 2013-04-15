@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BlockFunctionBody;
@@ -31,6 +32,8 @@ import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.MethodDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
+import com.google.dart.engine.ast.PrefixedIdentifier;
+import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.ReturnStatement;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
@@ -90,6 +93,141 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       this.range = range;
     }
   }
+
+  /**
+   * Processor for single {@link SearchMatch} reference to {@link #methodElement}.
+   */
+  private class ReferenceProcessor {
+    private final RefactoringStatus result;
+    private final SourceChange refChange;
+    private final CorrectionUtils refUtils;
+    private final ASTNode node;
+    private final SourceRange refLineRange;
+    private final String refPrefix;
+
+    ReferenceProcessor(RefactoringStatus result, SearchMatch reference) throws Exception {
+      this.result = result;
+      // prepare SourceChange to update
+      Element refElement = reference.getElement();
+      Source refSource = refElement.getSource();
+      refChange = changeManager.get(refSource);
+      // prepare CorrectionUtils
+      CompilationUnit refUnit = CorrectionUtils.getResolvedUnit(refElement);
+      refUtils = new CorrectionUtils(refUnit);
+      // prepare node and environment
+      node = refUtils.findNode(reference.getSourceRange().getOffset(), ASTNode.class);
+      Statement refStatement = node.getAncestor(Statement.class);
+      refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
+      refPrefix = refUtils.getNodePrefix(refStatement);
+    }
+
+    void process() throws Exception {
+      ASTNode nodeParent = node.getParent();
+      // may be only single place should be inlined
+      if (currentMode == Mode.INLINE_SINGLE) {
+        SourceRange parentRange = rangeNode(nodeParent);
+        if (!parentRange.contains(context.getSelectionOffset())) {
+          return;
+        }
+      }
+      // may be invocation of inline method
+      if (nodeParent instanceof MethodInvocation) {
+        MethodInvocation invocation = (MethodInvocation) nodeParent;
+        Expression target = invocation.getTarget();
+        List<Expression> arguments = invocation.getArgumentList().getArguments();
+        inlineMethodBody(invocation, invocation.isCascaded(), target, arguments);
+      } else {
+        // cannot inline reference to method: var v = new A().method;
+        if (methodElement instanceof MethodElement) {
+          result.addFatalError(
+              "Cannot inline class method reference.",
+              RefactoringStatusContext.create(node));
+          return;
+        }
+        // PropertyAccessorElement
+        if (methodElement instanceof PropertyAccessorElement) {
+          Expression target = null;
+          boolean cascade = false;
+          // TODO(scheglov) hopefully at some point in future we will have only PropertyAccess
+          if (nodeParent instanceof PrefixedIdentifier) {
+            PrefixedIdentifier propertyAccess = (PrefixedIdentifier) nodeParent;
+            target = propertyAccess.getPrefix();
+            cascade = false;
+          }
+          if (nodeParent instanceof PropertyAccess) {
+            PropertyAccess propertyAccess = (PropertyAccess) nodeParent;
+            target = propertyAccess.getRealTarget();
+            cascade = propertyAccess.isCascaded();
+          }
+          // prepare arguments
+          List<Expression> arguments = Lists.newArrayList();
+          if (((SimpleIdentifier) node).inSetterContext()) {
+            arguments.add(((AssignmentExpression) nodeParent.getParent()).getRightHandSide());
+          }
+          // inline body
+          inlineMethodBody(nodeParent, cascade, target, arguments);
+          return;
+        }
+        // not invocation, just reference to function
+        String source;
+        {
+          source = methodUtils.getText(rangeStartEnd(
+              methodParameters.getLeftParenthesis(),
+              methodNode));
+          String methodPrefix = methodUtils.getLinePrefix(methodNode.getOffset());
+          source = refUtils.getIndentSource(source, methodPrefix, refPrefix);
+          source = source.trim();
+        }
+        // do insert
+        SourceRange range = rangeNode(node);
+        Edit edit = new Edit(range, source);
+        refChange.addEdit("Replace all references to method with statements", edit);
+      }
+    }
+
+    private void inlineMethodBody(ASTNode methodUsage, boolean cascaded, Expression target,
+        List<Expression> arguments) {
+      // we don't support cascade
+      if (cascaded) {
+        result.addError(
+            "Cannot inline cascade invocation.",
+            RefactoringStatusContext.create(methodUsage));
+      }
+      // insert non-return statements
+      if (methodStatementsPart != null) {
+        // prepare statements source for invocation
+        String source = getMethodSourceForInvocation(
+            methodStatementsPart,
+            refUtils,
+            methodUsage,
+            target,
+            arguments);
+        source = refUtils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
+        // do insert
+        SourceRange range = rangeStartLength(refLineRange, 0);
+        Edit edit = new Edit(range, source);
+        refChange.addEdit("Replace all references to method with statements", edit);
+      }
+      // replace invocation with return expression
+      if (methodExpressionPart != null) {
+        // prepare expression source for invocation
+        String source = getMethodSourceForInvocation(
+            methodExpressionPart,
+            refUtils,
+            methodUsage,
+            target,
+            arguments);
+        // do replace
+        SourceRange methodUsageRange = rangeNode(methodUsage);
+        Edit edit = new Edit(methodUsageRange, source);
+        refChange.addEdit("Replace all references to method with statements", edit);
+      } else {
+        Edit edit = new Edit(refLineRange, "");
+        refChange.addEdit("Replace all references to method with statements", edit);
+      }
+    }
+  }
+
   /**
    * Information about part of the source in {@link #methodUnit}.
    */
@@ -166,11 +304,10 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   }
 
   private final AssistContext context;
-
   private final SourceChangeManager changeManager = new SourceChangeManager();
   private Mode initialMode;
-  private Mode currentMode;
 
+  private Mode currentMode;
   private boolean deleteSource;
   private ExecutableElement methodElement;
   private CompilationUnit methodUnit;
@@ -179,6 +316,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
   private FormalParameterList methodParameters;
   private FunctionBody methodBody;
   private SourcePart methodExpressionPart;
+
   private SourcePart methodStatementsPart;
 
   public InlineMethodRefactoringImpl(AssistContext context) throws Exception {
@@ -204,91 +342,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
           null);
       // replace all references
       for (SearchMatch reference : references) {
-        Source refSource = reference.getElement().getSource();
-        SourceChange refChange = changeManager.get(refSource);
-        CompilationUnit refUnit = CorrectionUtils.getResolvedUnit(methodElement);
-        CorrectionUtils refUtils = new CorrectionUtils(refUnit);
-        // prepare environment
-        ASTNode node = refUtils.findNode(reference.getSourceRange().getOffset(), ASTNode.class);
-        Statement refStatement = node.getAncestor(Statement.class);
-        SourceRange refLineRange = refUtils.getLinesRange(ImmutableList.of(refStatement));
-        String refPrefix = refUtils.getNodePrefix(refStatement);
-        // may be invocation of inline method
-        if (node.getParent() instanceof MethodInvocation) {
-          MethodInvocation invocation = (MethodInvocation) node.getParent();
-          Expression targetExpression = invocation.getTarget();
-          List<Expression> arguments = invocation.getArgumentList().getArguments();
-          SourceRange invocationRange = rangeNode(invocation);
-          // we don't support cascade
-          if (invocation.isCascaded()) {
-            result.addError(
-                "Cannot inline cascade invocation.",
-                RefactoringStatusContext.create(invocation));
-          }
-          // may be only single place should be inlined
-          if (currentMode == Mode.INLINE_SINGLE) {
-            if (!invocationRange.contains(context.getSelectionOffset())) {
-              continue;
-            }
-          }
-          // insert non-return statements
-          if (methodStatementsPart != null) {
-            // prepare statements source for invocation
-            String source = getMethodSourceForInvocation(
-                methodStatementsPart,
-                refUtils,
-                node,
-                targetExpression,
-                arguments);
-            source = refUtils.getIndentSource(source, methodStatementsPart.prefix, refPrefix);
-            // do insert
-            SourceRange range = rangeStartLength(refLineRange, 0);
-            refChange.addEdit("Replace all references to method with statements", new Edit(
-                range,
-                source));
-          }
-          // replace invocation with return expression
-          if (methodExpressionPart != null) {
-            // prepare expression source for invocation
-            String source = getMethodSourceForInvocation(
-                methodExpressionPart,
-                refUtils,
-                node,
-                targetExpression,
-                arguments);
-            // do replace
-            refChange.addEdit("Replace all references to method with statements", new Edit(
-                invocationRange,
-                source));
-          } else {
-            refChange.addEdit("Replace all references to method with statements", new Edit(
-                refLineRange,
-                ""));
-          }
-        } else {
-          // cannot inline: var v = new A().method;
-          if (methodElement instanceof MethodElement) {
-            result.addFatalError(
-                "Cannot inline class method reference.",
-                RefactoringStatusContext.create(node));
-            return result;
-          }
-          // not invocation, just reference to inline method
-          String source;
-          {
-            source = methodUtils.getText(rangeStartEnd(
-                methodParameters.getLeftParenthesis(),
-                methodNode));
-            String methodPrefix = methodUtils.getLinePrefix(methodNode.getOffset());
-            source = refUtils.getIndentSource(source, methodPrefix, refPrefix);
-            source = source.trim();
-          }
-          // do insert
-          SourceRange range = rangeNode(node);
-          refChange.addEdit("Replace all references to method with statements", new Edit(
-              range,
-              source));
-        }
+        new ReferenceProcessor(result, reference).process();
       }
       // delete method
       if (deleteSource && currentMode == Mode.INLINE_ALL) {
@@ -386,9 +440,12 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
 
       @Override
       public Void visitSimpleIdentifier(SimpleIdentifier node) {
-        addInstanceFieldQualifier(node);
-        addParameter(node);
-        addVariable(node);
+        SourceRange nodeRange = rangeNode(node);
+        if (sourceRange.covers(nodeRange)) {
+          addInstanceFieldQualifier(node);
+          addParameter(node);
+          addVariable(node);
+        }
         return null;
       }
 
@@ -586,19 +643,8 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     methodElement = (ExecutableElement) selectedElement;
     methodUnit = CorrectionUtils.getResolvedUnit(selectedElement);
     methodUtils = new CorrectionUtils(methodUnit);
-    if (selectedElement instanceof MethodElement) {
-      MethodDeclaration methodDeclaration = methodUtils.findNode(
-          methodElement.getNameOffset(),
-          MethodDeclaration.class);
-      methodNode = methodDeclaration;
-      methodParameters = methodDeclaration.getParameters();
-      methodBody = methodDeclaration.getBody();
-      // prepare mode
-      boolean isDeclaration = methodDeclaration.getName() == selectedNode;
-      initialMode = currentMode = isDeclaration ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
-    }
-    // TODO(scheglov) unify with method
-    if (selectedElement instanceof PropertyAccessorElement) {
+    if (selectedElement instanceof MethodElement
+        || selectedElement instanceof PropertyAccessorElement) {
       MethodDeclaration methodDeclaration = methodUtils.findNode(
           methodElement.getNameOffset(),
           MethodDeclaration.class);
@@ -620,6 +666,7 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
       boolean isDeclaration = functionDeclaration.getName() == selectedNode;
       initialMode = currentMode = isDeclaration ? Mode.INLINE_ALL : Mode.INLINE_SINGLE;
     }
+    // OK
     return new RefactoringStatus();
   }
 
@@ -671,4 +718,5 @@ public class InlineMethodRefactoringImpl extends RefactoringImpl implements Inli
     }
     return result;
   }
+
 }
