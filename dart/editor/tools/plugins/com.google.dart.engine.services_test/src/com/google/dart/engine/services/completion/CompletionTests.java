@@ -548,10 +548,10 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets033() throws Exception {
     // TODO Enable after type propagation is implemented.
-//    test(
-//        "class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}",
-//        "1+add",
-//        "1+length");
+    test(
+        "class List{add(){}length(){}}t1() {var x;if (x is List) {x.!1add(3);}}",
+        "1+add",
+        "1+length");
   }
 
   public void testCommentSnippets034() throws Exception {
@@ -562,10 +562,10 @@ public class CompletionTests extends CompletionTestCase {
 
   public void testCommentSnippets035() throws Exception {
     // TODO Enable after type propagation is implemented.
-//    test(
-//        "class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}",
-//        "1+length",
-//        "2+clear");
+    test(
+        "class List{clear(){}length(){}}t3() {var x=new List(), y=x.!1length();x.!2clear();}",
+        "1+length",
+        "2+clear");
   }
 
   public void testCommentSnippets036() throws Exception {
