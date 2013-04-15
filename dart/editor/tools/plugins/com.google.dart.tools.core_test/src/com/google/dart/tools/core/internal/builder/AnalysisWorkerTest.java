@@ -8,6 +8,8 @@ import com.google.dart.engine.sdk.DartSdk;
 import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.tools.core.analysis.model.Project;
+import com.google.dart.tools.core.analysis.model.ProjectEvent;
+import com.google.dart.tools.core.analysis.model.ProjectListener;
 import com.google.dart.tools.core.analysis.model.ProjectManager;
 import com.google.dart.tools.core.internal.analysis.model.ProjectManagerImpl;
 import com.google.dart.tools.core.internal.model.DartIgnoreManager;
@@ -26,6 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class AnalysisWorkerTest extends TestCase {
 
@@ -39,9 +42,10 @@ public class AnalysisWorkerTest extends TestCase {
   private Index index;
   private AnalysisMarkerManager markerManager;
   private AnalysisWorker worker;
+  private final ArrayList<Project> analyzedProjects = new ArrayList<Project>();
 
   public void test_performAnalysis() throws Exception {
-    worker = new AnalysisWorker(project, context, index, markerManager);
+    worker = new AnalysisWorker(project, context, manager, markerManager);
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
@@ -51,11 +55,13 @@ public class AnalysisWorkerTest extends TestCase {
     fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
     verify(index, atLeastOnce()).indexUnit(eq(context), any(CompilationUnit.class));
+    assertEquals(1, analyzedProjects.size());
+    assertEquals(project, analyzedProjects.get(0));
     // TODO (danrubel): Assert no log entries once context only returns errors for added sources
   }
 
   public void test_performAnalysisInBackground() throws Exception {
-    worker = new AnalysisWorker(project, context, index, markerManager);
+    worker = new AnalysisWorker(project, context, manager, markerManager);
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
@@ -66,10 +72,12 @@ public class AnalysisWorkerTest extends TestCase {
     fileRes.assertMarkersDeleted();
     assertTrue(fileRes.getMarkers().size() > 0);
     verify(index, atLeastOnce()).indexUnit(eq(context), any(CompilationUnit.class));
+    assertEquals(1, analyzedProjects.size());
+    assertEquals(project, analyzedProjects.get(0));
   }
 
   public void test_stop() throws Exception {
-    worker = new AnalysisWorker(project, context, index, markerManager);
+    worker = new AnalysisWorker(project, context, manager, markerManager);
 
     // Perform the analysis and wait for the results to flow through the marker manager
     MockFile fileRes = addLibrary();
@@ -80,6 +88,7 @@ public class AnalysisWorkerTest extends TestCase {
     fileRes.assertMarkersNotDeleted();
     assertTrue(fileRes.getMarkers().size() == 0);
     verifyNoMoreInteractions(index);
+    assertEquals(0, analyzedProjects.size());
   }
 
   @Override
@@ -87,14 +96,25 @@ public class AnalysisWorkerTest extends TestCase {
     workspace = new MockWorkspace();
     rootRes = workspace.getRoot();
     projectRes = rootRes.add(new MockProject(rootRes, getClass().getSimpleName()));
+    index = mock(Index.class);
 
 //    sdk = mock(DartSdk.class);
     sdk = DirectoryBasedDartSdk.getDefaultSdk();
-    manager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager());
+    manager = new ProjectManagerImpl(rootRes, sdk, new DartIgnoreManager()) {
+      @Override
+      public Index getIndex() {
+        return index;
+      }
+    };
+    manager.addProjectListener(new ProjectListener() {
+      @Override
+      public void projectAnalyzed(ProjectEvent event) {
+        analyzedProjects.add(event.getProject());
+      }
+    });
     project = manager.getProject(projectRes);
     context = project.getDefaultContext();
 
-    index = mock(Index.class);
     markerManager = new AnalysisMarkerManager(workspace);
   }
 

@@ -130,6 +130,12 @@ public class AnalysisWorker {
   private final AnalysisMarkerManager markerManager;
 
   /**
+   * The project manager used to obtain the index to be updated and used to notify others when
+   * analysis is complete (not {@code null}).
+   */
+  private final ProjectManager projectManager;
+
+  /**
    * The index to be updated (not {@code null}).
    */
   private final Index index;
@@ -144,11 +150,7 @@ public class AnalysisWorker {
    * @param context the context used to perform the analysis (not {@code null})
    */
   public AnalysisWorker(ContextManager contextManager, AnalysisContext context) {
-    this(
-        contextManager,
-        context,
-        DartCore.getProjectManager().getIndex(),
-        AnalysisMarkerManager.getInstance());
+    this(contextManager, context, DartCore.getProjectManager(), AnalysisMarkerManager.getInstance());
   }
 
   /**
@@ -156,14 +158,16 @@ public class AnalysisWorker {
    * 
    * @param context the context containing sources for the specified context (not {@code null})
    * @param context the context used to perform the analysis (not {@code null})
-   * @param index the index to be updated (not {@code null})
-   * @param the marker manager used to translate errors into Eclipse markers (not {@code null})
+   * @param projectManager used to obtain the index to be updated and notified others when analysis
+   *          is complete (not {@code null})
+   * @param markerManager used to translate errors into Eclipse markers (not {@code null})
    */
-  public AnalysisWorker(ContextManager contextManager, AnalysisContext context, Index index,
-      AnalysisMarkerManager markerManager) {
+  public AnalysisWorker(ContextManager contextManager, AnalysisContext context,
+      ProjectManager projectManager, AnalysisMarkerManager markerManager) {
     this.contextManager = contextManager;
     this.context = context;
-    this.index = index;
+    this.projectManager = projectManager;
+    this.index = projectManager.getIndex();
     this.markerManager = markerManager;
     this.contextManager.addWorker(this);
   }
@@ -184,6 +188,7 @@ public class AnalysisWorker {
    * both the index and the error markers based upon the analysis results.
    */
   public void performAnalysis() {
+    boolean analysisComplete = false;
     while (true) {
 
       // Check if the context has been set to null indicating that analysis should stop
@@ -198,6 +203,7 @@ public class AnalysisWorker {
       // Exit if no more analysis to be performed (changes == null)
       ChangeNotice[] changes = context.performAnalysisTask();
       if (changes == null) {
+        analysisComplete = true;
         break;
       }
 
@@ -207,6 +213,11 @@ public class AnalysisWorker {
     }
     stop();
     markerManager.done();
+
+    // Notify others that analysis is complete
+    if (analysisComplete && contextManager instanceof Project) {
+      projectManager.projectAnalyzed((Project) contextManager);
+    }
   }
 
   /**

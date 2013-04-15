@@ -139,9 +139,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
     if (monitor.isCanceled()) {
       return;
     }
-
-    // Notify others
-    projectManager.projectAnalyzed(project);
   }
 
   /**
@@ -189,6 +186,6 @@ public class AnalysisEngineParticipant implements BuildParticipant {
    * @param monitor the progress monitor (not {@code null})
    */
   private void analyzeContext(AnalysisContext context, IProgressMonitor monitor) {
-    performAnalysis(new AnalysisWorker(project, context, projectManager.getIndex(), markerManager));
+    performAnalysis(new AnalysisWorker(project, context, projectManager, markerManager));
   }
 }
