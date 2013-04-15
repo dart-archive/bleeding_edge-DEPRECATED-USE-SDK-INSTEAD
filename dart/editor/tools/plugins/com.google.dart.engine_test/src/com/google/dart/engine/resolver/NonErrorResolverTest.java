@@ -546,6 +546,28 @@ public class NonErrorResolverTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_undefinedIdentifier_hide() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'lib1.dart' hide a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
+  public void test_undefinedIdentifier_show() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'lib1.dart' show a;"));
+    addSource("/lib1.dart", createSource(//
+        "library lib1;"));
+    resolve(source);
+    assertNoErrors();
+    verify(source);
+  }
+
   public void test_undefinedOperator_tilde() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "const A = 3;",

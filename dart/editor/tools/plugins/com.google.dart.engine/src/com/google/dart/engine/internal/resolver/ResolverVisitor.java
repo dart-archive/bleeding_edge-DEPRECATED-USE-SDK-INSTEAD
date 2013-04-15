@@ -35,6 +35,7 @@ import com.google.dart.engine.ast.ForStatement;
 import com.google.dart.engine.ast.FunctionBody;
 import com.google.dart.engine.ast.FunctionDeclaration;
 import com.google.dart.engine.ast.FunctionExpression;
+import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.IfStatement;
 import com.google.dart.engine.ast.IsExpression;
 import com.google.dart.engine.ast.Label;
@@ -48,6 +49,7 @@ import com.google.dart.engine.ast.PropertyAccess;
 import com.google.dart.engine.ast.RedirectingConstructorInvocation;
 import com.google.dart.engine.ast.RethrowExpression;
 import com.google.dart.engine.ast.ReturnStatement;
+import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
 import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.SuperConstructorInvocation;
@@ -361,6 +363,15 @@ public class ResolverVisitor extends ScopedVisitor {
   }
 
   @Override
+  public Void visitHideCombinator(HideCombinator node) {
+    //
+    // Combinators aren't visited by this visitor, the LibraryResolver has already resolved the
+    // identifiers.
+    //
+    return null;
+  }
+
+  @Override
   public Void visitIfStatement(IfStatement node) {
     Expression condition = node.getCondition();
     condition.accept(this);
@@ -482,6 +493,15 @@ public class ResolverVisitor extends ScopedVisitor {
     safelyVisit(node.getArgumentList());
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
+    return null;
+  }
+
+  @Override
+  public Void visitShowCombinator(ShowCombinator node) {
+    //
+    // Combinators aren't visited by this visitor, the LibraryResolver has already resolved the
+    // identifiers.
+    //
     return null;
   }
 
