@@ -22,8 +22,8 @@ public class TestAll {
   public static Test suite() {
     TestSuite suite = new TestSuite("Tests in " + TestAll.class.getPackage().getName());
     suite.addTest(com.google.dart.tools.core.internal.analysis.model.TestAll.suite());
+    suite.addTest(com.google.dart.tools.core.internal.builder.TestAll.suite());
     if (!DartCoreDebug.ENABLE_NEW_ANALYSIS) {
-      suite.addTest(com.google.dart.tools.core.internal.builder.TestAll.suite());
       suite.addTest(com.google.dart.tools.core.internal.completion.TestAll.suite());
       suite.addTest(com.google.dart.tools.core.internal.index.TestAll.suite());
     }
