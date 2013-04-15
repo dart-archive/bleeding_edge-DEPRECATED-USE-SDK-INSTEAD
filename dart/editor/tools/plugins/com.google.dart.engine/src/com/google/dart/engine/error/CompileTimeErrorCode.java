@@ -214,8 +214,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
+   * 
+   * @param uri the uri pointing to a non-library declaration
    */
-  EXPORT_OF_NON_LIBRARY(""),
+  EXPORT_OF_NON_LIBRARY("The exported library '%s' must have a library directive"),
 
   /**
    * 7.9 Superclasses: It is a compile-time error if the extends clause of a class <i>C</i> includes
@@ -369,8 +371,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
    * not a library declaration.
+   * 
+   * @param uri the uri pointing to a non-library declaration
    */
-  IMPORT_OF_NON_LIBRARY(""),
+  IMPORT_OF_NON_LIBRARY("The imported library '%s' must have a library directive"),
 
   /**
    * 13.9 Switch: It is a compile-time error if values of the expressions <i>e<sub>k</sub></i> are
@@ -487,6 +491,20 @@ public enum CompileTimeErrorCode implements ErrorCode {
    * type parameter.
    */
   INVALID_TYPE_ARGUMENT_IN_CONST_MAP(""),
+
+  /**
+   * 14.2 Exports: It is a compile-time error if the compilation unit found at the specified URI is
+   * not a library declaration.
+   * <p>
+   * 14.1 Imports: It is a compile-time error if the compilation unit found at the specified URI is
+   * not a library declaration.
+   * <p>
+   * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
+   * declaration.
+   * 
+   * @param uri the uri pointing to a non-library declaration
+   */
+  INVALID_URI("'%s' is not a valid uri"),
 
   /**
    * 13.13 Break: It is a compile-time error if no such statement <i>s<sub>E</sub></i> exists within
@@ -644,8 +662,10 @@ public enum CompileTimeErrorCode implements ErrorCode {
   /**
    * 14.3 Parts: It is a compile time error if the contents of the URI are not a valid part
    * declaration.
+   * 
+   * @param uri the uri pointing to a non-library declaration
    */
-  PART_OF_NON_PART(""),
+  PART_OF_NON_PART("The included part '%s' must have a part-of directive"),
 
   /**
    * 14.1 Imports: It is a compile-time error if the current library declares a top-level member

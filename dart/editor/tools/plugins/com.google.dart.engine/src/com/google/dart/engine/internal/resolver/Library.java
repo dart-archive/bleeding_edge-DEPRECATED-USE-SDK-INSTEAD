@@ -278,7 +278,16 @@ public class Library {
           CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
-    return getSource(getStringValue(uriLiteral));
+    Source source = getSource(getStringValue(uriLiteral));
+    if (source == null || !source.exists()) {
+      errorListener.onError(new AnalysisError(
+          librarySource,
+          uriLiteral.getOffset(),
+          uriLiteral.getLength(),
+          CompileTimeErrorCode.INVALID_URI,
+          uriLiteral.toSource()));
+    }
+    return source;
   }
 
   /**

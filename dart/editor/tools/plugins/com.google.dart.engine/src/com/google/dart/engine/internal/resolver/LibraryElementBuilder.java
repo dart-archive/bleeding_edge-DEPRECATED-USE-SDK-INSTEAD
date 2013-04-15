@@ -25,6 +25,7 @@ import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.FunctionElement;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.error.StaticWarningCode;
 import com.google.dart.engine.internal.builder.CompilationUnitBuilder;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
@@ -115,7 +116,8 @@ public class LibraryElementBuilder {
                 librarySource,
                 partUri.getOffset(),
                 partUri.getLength(),
-                ResolverErrorCode.MISSING_PART_OF_DIRECTIVE));
+                CompileTimeErrorCode.PART_OF_NON_PART,
+                partUri.toSource()));
           } else if (libraryNameNode == null) {
             // TODO(brianwilkerson) Collect the names declared by the part. If they are all the same
             // then we can use that name as the inferred name of the library and present it in a

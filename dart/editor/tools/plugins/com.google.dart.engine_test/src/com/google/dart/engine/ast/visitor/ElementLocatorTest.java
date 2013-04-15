@@ -112,7 +112,7 @@ public class ElementLocatorTest extends ResolverTestCase {
 
   public void test_importElement() throws Exception {
 
-    addSource("/foo.dart", "");
+    addSource("/foo.dart", "library 'foo';");
 
     ASTNode id = findNodeIn("'foo.dart'", //
         "import 'foo.dart';",

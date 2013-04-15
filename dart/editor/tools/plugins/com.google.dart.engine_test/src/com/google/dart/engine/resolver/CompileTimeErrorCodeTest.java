@@ -157,17 +157,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
-  public void fail_exportOfNonLibrary() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "library L;",
-        "export 'lib1.dart';"));
-    addSource("/lib1.dart", createSource(//
-        "part of lib;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
-    verify(source);
-  }
-
   public void fail_extendsOrImplementsDisallowedClass_extends_null() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A extends Null {}"));
@@ -217,17 +206,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "library lib;"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.IMPORT_DUPLICATED_LIBRARY_NAME);
-    verify(source);
-  }
-
-  public void fail_importOfNonLibrary() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "library lib;",
-        "import 'part.dart';"));
-    addSource("/part.dart", createSource(//
-        "part of lib;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
     verify(source);
   }
 
@@ -572,17 +550,6 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.OVERRIDE_MISSING_REQUIRED_PARAMETERS);
-    verify(source);
-  }
-
-  public void fail_partOfNonPart() throws Exception {
-    Source source = addSource("/test.dart", createSource(//
-        "library l1;",
-        "part 'l2.dart';"));
-    addSource("/l2.dart", createSource(//
-        "library l2;"));
-    resolve(source);
-    assertErrors(CompileTimeErrorCode.PART_OF_NON_PART);
     verify(source);
   }
 
@@ -1145,6 +1112,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(librarySource, sourceA, sourceB);
   }
 
+  public void test_exportOfNonLibrary() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'lib1.dart';"));
+    addSource("/lib1.dart", createSource(//
+        "part of lib;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY);
+    verify(source);
+  }
+
   public void test_extendsNonClass_class() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "int A;",
@@ -1532,6 +1510,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     verify(source);
   }
 
+  public void test_importOfNonLibrary() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library lib;",
+        "import 'part.dart';"));
+    addSource("/part.dart", createSource(//
+        "part of lib;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
+    verify(source);
+  }
+
   public void test_initializingFormalForNonExistantField() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {",
@@ -1574,6 +1563,30 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
     resolve(source);
     assertErrors(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_STATIC_FIELD);
     verify(source);
+  }
+
+  public void test_invalidUri_export() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "export 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_URI);
+  }
+
+  public void test_invalidUri_import() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "import 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_URI);
+  }
+
+  public void test_invalidUri_part() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library L;",
+        "part 'unknown.dart';"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.INVALID_URI);
   }
 
   public void test_labelInOuterScope() throws Exception {
@@ -1701,6 +1714,17 @@ public class CompileTimeErrorCodeTest extends ResolverTestCase {
         "}"));
     resolve(source);
     assertErrors(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE);
+    verify(source);
+  }
+
+  public void test_partOfNonPart() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "library l1;",
+        "part 'l2.dart';"));
+    addSource("/l2.dart", createSource(//
+        "library l2;"));
+    resolve(source);
+    assertErrors(CompileTimeErrorCode.PART_OF_NON_PART);
     verify(source);
   }
 

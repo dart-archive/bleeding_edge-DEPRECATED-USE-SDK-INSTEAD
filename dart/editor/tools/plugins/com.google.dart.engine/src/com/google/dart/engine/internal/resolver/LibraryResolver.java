@@ -20,10 +20,12 @@ import com.google.dart.engine.ast.Directive;
 import com.google.dart.engine.ast.ExportDirective;
 import com.google.dart.engine.ast.HideCombinator;
 import com.google.dart.engine.ast.ImportDirective;
+import com.google.dart.engine.ast.LibraryDirective;
 import com.google.dart.engine.ast.NamespaceDirective;
 import com.google.dart.engine.ast.NodeList;
 import com.google.dart.engine.ast.ShowCombinator;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.ast.StringLiteral;
 import com.google.dart.engine.context.AnalysisException;
 import com.google.dart.engine.element.ExportElement;
 import com.google.dart.engine.element.ImportElement;
@@ -31,6 +33,7 @@ import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.NamespaceCombinator;
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.error.CompileTimeErrorCode;
 import com.google.dart.engine.internal.constant.ConstantValueComputer;
 import com.google.dart.engine.internal.context.InternalAnalysisContext;
 import com.google.dart.engine.internal.context.RecordingErrorListener;
@@ -500,6 +503,15 @@ public class LibraryResolver {
           }
           if (importedLibrary != null) {
             library.addImport(importDirective, importedLibrary);
+            if (!doesCompilationUnitDefineLibrary(importedLibrary.getAST(importedSource))) {
+              StringLiteral uriLiteral = importDirective.getUri();
+              errorListener.onError(new AnalysisError(
+                  library.getLibrarySource(),
+                  uriLiteral.getOffset(),
+                  uriLiteral.getLength(),
+                  CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
+                  uriLiteral.toSource()));
+            }
           }
         }
       } else if (directive instanceof ExportDirective) {
@@ -516,6 +528,15 @@ public class LibraryResolver {
           }
           if (exportedLibrary != null) {
             library.addExport(exportDirective, exportedLibrary);
+            if (!doesCompilationUnitDefineLibrary(exportedLibrary.getAST(exportedSource))) {
+              StringLiteral uriLiteral = exportDirective.getUri();
+              errorListener.onError(new AnalysisError(
+                  library.getLibrarySource(),
+                  uriLiteral.getOffset(),
+                  uriLiteral.getLength(),
+                  CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
+                  uriLiteral.toSource()));
+            }
           }
         }
       }
@@ -567,6 +588,23 @@ public class LibraryResolver {
     }
     libraryMap.put(librarySource, library);
     return library;
+  }
+
+  /**
+   * Return {@code true} if and only if the passed {@link CompilationUnit} defines a library, that
+   * is if the unit has a {@link LibraryDirective} it its list of directives.
+   * 
+   * @param node the {@link CompilationUnit} to test
+   * @return {@code true} if and only if the passed {@link CompilationUnit} defines a library
+   */
+  private boolean doesCompilationUnitDefineLibrary(CompilationUnit node) {
+    NodeList<Directive> directives = node.getDirectives();
+    for (Directive directive : directives) {
+      if (directive instanceof LibraryDirective) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

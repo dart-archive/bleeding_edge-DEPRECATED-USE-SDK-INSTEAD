@@ -99,9 +99,7 @@ public class LibraryElementBuilderTest extends EngineTestCase {
         "",
         "part 'a.dart';"));
 
-    LibraryElement element = buildLibrary(
-        librarySource,
-        ResolverErrorCode.MISSING_PART_OF_DIRECTIVE);
+    LibraryElement element = buildLibrary(librarySource, CompileTimeErrorCode.PART_OF_NON_PART);
     assertNotNull(element);
   }
 

@@ -36,8 +36,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "A continue label resolves to switch, must be loop or switch member"),
 
   MISSING_LIBRARY_DIRECTIVE_WITH_PART(COMPILE_TIME_ERROR,
-      "Libraries that have parts must have a library directive"),
-  MISSING_PART_OF_DIRECTIVE(COMPILE_TIME_ERROR, "The included part must have a part-of directive");
+      "Libraries that have parts must have a library directive");
 
   /**
    * The type of this error.
