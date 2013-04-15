@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssertStatement;
+import com.google.dart.engine.ast.BinaryExpression;
 import com.google.dart.engine.ast.Block;
 import com.google.dart.engine.ast.BreakStatement;
 import com.google.dart.engine.ast.ClassDeclaration;
@@ -63,6 +64,7 @@ import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.VariableElement;
 import com.google.dart.engine.error.AnalysisErrorListener;
+import com.google.dart.engine.scanner.TokenType;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.type.Type;
 
@@ -666,6 +668,12 @@ public class ResolverVisitor extends ScopedVisitor {
           }
         }
       }
+    } else if (condition instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) condition;
+      if (binary.getOperator().getType() == TokenType.BAR_BAR) {
+        propagateFalseState(binary.getLeftOperand());
+        propagateFalseState(binary.getRightOperand());
+      }
     }
   }
 
@@ -689,6 +697,12 @@ public class ResolverVisitor extends ScopedVisitor {
             overrideManager.setType(element, type);
           }
         }
+      }
+    } else if (condition instanceof BinaryExpression) {
+      BinaryExpression binary = (BinaryExpression) condition;
+      if (binary.getOperator().getType() == TokenType.AMPERSAND_AMPERSAND) {
+        propagateTrueState(binary.getLeftOperand());
+        propagateTrueState(binary.getRightOperand());
       }
     }
   }

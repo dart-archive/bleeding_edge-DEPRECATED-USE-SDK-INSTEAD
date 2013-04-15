@@ -173,6 +173,31 @@ public class TypePropagationTest extends ResolverTestCase {
     assertSame(typeA, variableName.getStaticType());
   }
 
+  public void test_is_if_logicalAnd() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "A f(var p) {",
+        "  if (p is A && p != null) {",
+        "    return p;",
+        "  } else {",
+        "    return null;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+    InterfaceType typeA = classA.getElement().getType();
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getThenStatement()).getStatements().get(
+        0);
+    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+    assertSame(typeA, variableName.getStaticType());
+  }
+
   public void test_is_postConditional() throws Exception {
     Source source = addSource("/test.dart", createSource(//
         "class A {}",
@@ -266,6 +291,31 @@ public class TypePropagationTest extends ResolverTestCase {
         "class A {}",
         "A f(var p) {",
         "  if (p is! A) {",
+        "    return null;",
+        "  } else {",
+        "    return p;",
+        "  }",
+        "}"));
+    LibraryElement library = resolve(source);
+    assertNoErrors();
+    verify(source);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    ClassDeclaration classA = (ClassDeclaration) unit.getDeclarations().get(0);
+    InterfaceType typeA = classA.getElement().getType();
+    FunctionDeclaration function = (FunctionDeclaration) unit.getDeclarations().get(1);
+    BlockFunctionBody body = (BlockFunctionBody) function.getFunctionExpression().getBody();
+    IfStatement ifStatement = (IfStatement) body.getBlock().getStatements().get(0);
+    ReturnStatement statement = (ReturnStatement) ((Block) ifStatement.getElseStatement()).getStatements().get(
+        0);
+    SimpleIdentifier variableName = (SimpleIdentifier) statement.getExpression();
+    assertSame(typeA, variableName.getStaticType());
+  }
+
+  public void test_isNot_if_logicalOr() throws Exception {
+    Source source = addSource("/test.dart", createSource(//
+        "class A {}",
+        "A f(var p) {",
+        "  if (p is! A || null == p) {",
         "    return null;",
         "  } else {",
         "    return p;",
