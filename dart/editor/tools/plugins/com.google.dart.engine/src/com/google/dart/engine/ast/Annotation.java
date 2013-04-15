@@ -24,7 +24,7 @@ import com.google.dart.engine.scanner.Token;
  *     annotation*
  * 
  * annotation ::=
- *     '@' {@link Identifier qualified} (‘.’ {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
+ *     '@' {@link Identifier qualified} ('.' {@link SimpleIdentifier identifier})? {@link ArgumentList arguments}?
  * </pre>
  * 
  * @coverage dart.engine.ast

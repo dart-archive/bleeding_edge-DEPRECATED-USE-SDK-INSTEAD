@@ -705,7 +705,7 @@ public class Parser {
    * 
    * <pre>
    * annotation ::=
-   *     '@' qualified (‘.’ identifier)? arguments?
+   *     '@' qualified ('.' identifier)? arguments?
    * </pre>
    * 
    * @return the annotation that was parsed
