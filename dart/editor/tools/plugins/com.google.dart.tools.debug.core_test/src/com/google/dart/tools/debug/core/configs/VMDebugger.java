@@ -15,6 +15,7 @@ package com.google.dart.tools.debug.core.configs;
 
 import com.google.dart.tools.core.dart2js.ProcessRunner;
 import com.google.dart.tools.core.model.DartSdkManager;
+import com.google.dart.tools.core.utilities.net.NetUtils;
 import com.google.dart.tools.debug.core.DartDebugCoreTestPlugin;
 
 import org.eclipse.core.runtime.FileLocator;
@@ -32,6 +33,7 @@ public class VMDebugger {
   private static final int DEFAULT_PORT = 5859;
 
   private String scriptPath;
+  private int serverSocketPort;
 
   private ProcessRunner processRunner;
 
@@ -41,6 +43,15 @@ public class VMDebugger {
 
   public VMDebugger(String scriptPath) {
     this.scriptPath = scriptPath;
+
+    serverSocketPort = NetUtils.findUnusedPort(DEFAULT_PORT);
+
+    try {
+      // Give the temporary server socket (from NetUtils.findUnusedPort()) time to close.
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+
+    }
   }
 
   public void dispose() {
@@ -48,7 +59,7 @@ public class VMDebugger {
   }
 
   public int getConnectionPort() {
-    return DEFAULT_PORT;
+    return serverSocketPort;
   }
 
   public String getOutput() {
@@ -58,7 +69,7 @@ public class VMDebugger {
   public void start() throws IOException {
     ProcessBuilder builder = new ProcessBuilder(
         DartSdkManager.getManager().getSdk().getVmExecutable().getPath(),
-        "--debug:" + DEFAULT_PORT,
+        "--debug:" + getConnectionPort(),
         getScriptFilePath());
 
     processRunner = new ProcessRunner(builder);
