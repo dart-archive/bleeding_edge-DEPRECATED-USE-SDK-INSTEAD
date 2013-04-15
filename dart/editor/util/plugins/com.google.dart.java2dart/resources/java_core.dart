@@ -291,6 +291,10 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
     elements.addAll(iterable);
   }
 
+  void setAll(int index, Iterable<E> iterable) {
+    elements.setAll(iterable);
+  }
+
   void sort([int compare(E a, E b)]) {
     elements.sort(compare);
   }
@@ -301,6 +305,10 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   void insert(int index, E element) {
     elements.insert(index, element);
+  }
+
+  void insertAll(int index, Iterable<E> iterable) {
+    elements.insertAll(index, iterable);
   }
 
   int lastIndexOf(E element, [int start]) {
@@ -335,6 +343,14 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   void removeRange(int start, int end) {
     elements.removeRange(start, end);
+  }
+
+  void replaceRange(int start, int end, Iterable<E> iterable) {
+    elements.replaceRange(start, end, iterable);
+  }
+
+  void fillRange(int start, int end, [E fillValue]) {
+    elements.fillRange(start, end, fillValue);
   }
 
   Map<int, E> asMap() {

@@ -196,6 +196,14 @@ class ObservableList<T>
     recordListInsert(index, element);
   }
 
+  void insertAll(int index, Iterable<T> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void setAll(int index, Iterable<T> iterable) {
+    throw new UnimplementedError();
+  }
+
   T removeLast() {
     final result = _internal.removeLast();
     recordListRemove(length, result);
@@ -258,6 +266,14 @@ class ObservableList<T>
   }
 
   void removeRange(int start, int end) {
+    throw new UnimplementedError();
+  }
+
+  void replaceRange(int start, int end, Iterable<T> iterable) {
+    throw new UnimplementedError();
+  }
+
+  void fillRange(int start, int end, [T fillValue]) {
     throw new UnimplementedError();
   }
 
