@@ -27,7 +27,7 @@ void _processFile(String file) {
   String contents = new File(file).readAsStringSync();
 
   if (contents != null) {
-    IOSink<File> out = new File("${file}bar").openWrite();
+    IOSink out = new File("${file}bar").openWrite();
     out.write("// processed from ${file}:\n${contents}");
     out.close();
   }

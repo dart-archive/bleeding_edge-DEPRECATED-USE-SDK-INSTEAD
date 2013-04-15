@@ -118,7 +118,7 @@ void _processFile(String arg) {
 
     File outFile = new File("${arg}bar");
 
-    IOSink<File> out = outFile.openWrite();
+    IOSink out = outFile.openWrite();
     out.writeln("// processed from ${file.path}:");
     if (contents != null) {
       out.write(contents);
