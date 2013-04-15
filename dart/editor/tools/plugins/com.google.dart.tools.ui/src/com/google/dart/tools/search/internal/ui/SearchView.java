@@ -15,14 +15,12 @@
 package com.google.dart.tools.search.internal.ui;
 
 import com.google.dart.tools.ui.DartToolsPlugin;
-import com.google.dart.tools.ui.DartUI;
 import com.google.dart.tools.ui.internal.util.GridLayoutFactory;
+import com.google.dart.tools.ui.internal.util.SWTUtil;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.SubActionBars;
@@ -37,21 +35,7 @@ public class SearchView extends ViewPart {
   public static final String SEARCH_MARKER = "com.google.dart.tools.search.searchmarker";
 
   static void updateColors(Control control) {
-    Display display = control.getDisplay();
-    Color color = DartUI.getEditorForeground(
-        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
-        display);
-    if (color == null) {
-      color = display.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
-    }
-    control.setForeground(color);
-    color = DartUI.getEditorBackground(
-        DartToolsPlugin.getDefault().getCombinedPreferenceStore(),
-        display);
-    if (color == null) {
-      color = display.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
-    }
-    control.setBackground(color);
+    SWTUtil.setColors(control, DartToolsPlugin.getDefault().getCombinedPreferenceStore());
   }
 
   private IActionBars actionBars;
