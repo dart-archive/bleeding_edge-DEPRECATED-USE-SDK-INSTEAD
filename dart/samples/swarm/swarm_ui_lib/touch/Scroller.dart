@@ -75,10 +75,15 @@ class Scroller implements Draggable, MomentumDelegate {
   Momentum _momentum;
 
   StreamController<Event> _onScrollerStart;
+  Stream<Event> _onScrollerStartStream;
   StreamController<Event> _onScrollerEnd;
+  Stream<Event> _onScrollerEndStream;
   StreamController<Event> _onScrollerDragEnd;
+  Stream<Event> _onScrollerDragEndStream;
   StreamController<Event> _onContentMoved;
+  Stream<Event> _onContentMovedStream;
   StreamController<Event> _onDecelStart;
+  Stream<Event> _onDecelStartStream;
 
   /** Set if vertical scrolling should be enabled. */
   bool verticalEnabled;
@@ -242,36 +247,41 @@ class Scroller implements Draggable, MomentumDelegate {
   Stream<Event> get onScrollerStart {
     if (_onScrollerStart == null) {
       _onScrollerStart = new StreamController<Event>();
+      _onScrollerStartStream = _onScrollerStart.stream.asBroadcastStream();
     }
-    return _onScrollerStart.stream.asBroadcastStream();
+    return _onScrollerStartStream;
   }
 
   Stream<Event> get onScrollerEnd {
     if (_onScrollerEnd == null) {
       _onScrollerEnd = new StreamController<Event>();
+      _onScrollerEndStream = _onScrollerEnd.stream.asBroadcastStream();
     }
-    return _onScrollerEnd.stream.asBroadcastStream();
+    return _onScrollerEndStream;
   }
 
   Stream<Event> get onScrollerDragEnd {
     if (_onScrollerDragEnd == null) {
       _onScrollerDragEnd = new StreamController<Event>();
+      _onScrollerDragEndStream = _onScrollerDragEnd.stream.asBroadcastStream();
     }
-    return _onScrollerDragEnd.stream.asBroadcastStream();
+    return _onScrollerDragEndStream;
   }
 
   Stream<Event> get onContentMoved {
     if (_onContentMoved == null) {
       _onContentMoved = new StreamController<Event>();
+      _onContentMovedStream = _onContentMoved.stream.asBroadcastStream();
     }
-    return _onContentMoved.stream.asBroadcastStream();
+    return _onContentMovedStream;
   }
 
   Stream<Event> get onDecelStart {
     if (_onDecelStart == null) {
       _onDecelStart = new StreamController<Event>();
+      _onDecelStartStream = _onDecelStart.stream.asBroadcastStream();
     }
-    return _onDecelStart.stream.asBroadcastStream();
+    return _onDecelStartStream;
   }
 
 
