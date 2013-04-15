@@ -6,7 +6,7 @@ part of swarmlib;
 
 /** The top-level collection of all sections for a user. */
 // TODO(jimhug): This is known as UserData in the server model.
-class Sections extends Iterable<Section> {
+class Sections extends IterableBase<Section> {
   final List<Section> _sections;
 
   Sections(this._sections);
