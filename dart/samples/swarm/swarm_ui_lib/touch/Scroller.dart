@@ -241,37 +241,37 @@ class Scroller implements Draggable, MomentumDelegate {
 
   Stream<Event> get onScrollerStart {
     if (_onScrollerStart == null) {
-      _onScrollerStart = new StreamController<Event>.broadcast();
+      _onScrollerStart = new StreamController<Event>();
     }
-    return _onScrollerStart.stream;
+    return _onScrollerStart.stream.asBroadcastStream();
   }
 
   Stream<Event> get onScrollerEnd {
     if (_onScrollerEnd == null) {
-      _onScrollerEnd = new StreamController<Event>.broadcast();
+      _onScrollerEnd = new StreamController<Event>();
     }
-    return _onScrollerEnd.stream;
+    return _onScrollerEnd.stream.asBroadcastStream();
   }
 
   Stream<Event> get onScrollerDragEnd {
     if (_onScrollerDragEnd == null) {
-      _onScrollerDragEnd = new StreamController<Event>.broadcast();
+      _onScrollerDragEnd = new StreamController<Event>();
     }
-    return _onScrollerDragEnd.stream;
+    return _onScrollerDragEnd.stream.asBroadcastStream();
   }
 
   Stream<Event> get onContentMoved {
     if (_onContentMoved == null) {
-      _onContentMoved = new StreamController<Event>.broadcast();
+      _onContentMoved = new StreamController<Event>();
     }
-    return _onContentMoved.stream;
+    return _onContentMoved.stream.asBroadcastStream();
   }
 
   Stream<Event> get onDecelStart {
     if (_onDecelStart == null) {
-      _onDecelStart = new StreamController<Event>.broadcast();
+      _onDecelStart = new StreamController<Event>();
     }
-    return _onDecelStart.stream;
+    return _onDecelStart.stream.asBroadcastStream();
   }
 
 
