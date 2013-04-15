@@ -253,7 +253,7 @@ class ObservableList<T>
     }
   }
 
-  void setRange(int start, int length, List from, [int startFrom = 0]) {
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     throw new UnimplementedError();
   }
 

@@ -329,8 +329,8 @@ class ListWrapper<E> extends ListBase<E> implements List<E> {
 
   List<E> getRange(int start, int length) => sublist(start, start + length);
 
-  void setRange(int start, int length, List<E> from, [int startFrom]) {
-    elements.setRange(start, length, from, startFrom);
+  void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
+    elements.setRange(start, end, iterable, skipCount);
   }
 
   void removeRange(int start, int length) {
