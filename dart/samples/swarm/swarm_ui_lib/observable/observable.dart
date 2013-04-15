@@ -257,7 +257,7 @@ class ObservableList<T>
     throw new UnimplementedError();
   }
 
-  void removeRange(int start, int length) {
+  void removeRange(int start, int end) {
     throw new UnimplementedError();
   }
 
