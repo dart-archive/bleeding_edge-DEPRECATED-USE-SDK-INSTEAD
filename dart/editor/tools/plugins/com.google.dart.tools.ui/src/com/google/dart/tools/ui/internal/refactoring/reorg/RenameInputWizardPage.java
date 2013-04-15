@@ -138,6 +138,13 @@ abstract class RenameInputWizardPage extends TextInputWizardPage {
     return nameUpdating.getNewElementName();
   }
 
+  @Override
+  protected boolean isEmptyInputValid() {
+    // In general - no, but for name of constructor - yes.
+    // It is up to the name validator to check exactly.
+    return true;
+  }
+
   protected void saveBooleanSetting(String key, Button checkBox) {
     if (checkBox != null) {
       getRefactoringSettings().put(key, checkBox.getSelection());

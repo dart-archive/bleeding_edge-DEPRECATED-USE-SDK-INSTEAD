@@ -15,6 +15,7 @@ package com.google.dart.engine.ast.visitor;
 
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.MethodInvocation;
 import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.ConstructorElement;
@@ -81,6 +82,16 @@ public class ElementLocatorTest extends ResolverTestCase {
     assertNotNull(cu.getElement());
     Element element = ElementLocator.locate(cu);
     assertSame(cu.getElement(), element);
+  }
+
+  public void test_ConstructorDeclaration() throws Exception {
+    ASTNode id = findNodeIndexedIn("bar", 0, //
+        "class A {",
+        "  A.bar() {}",
+        "}");
+    ConstructorDeclaration declaration = id.getAncestor(ConstructorDeclaration.class);
+    Element element = ElementLocator.locate(declaration);
+    assertInstanceOf(ConstructorElement.class, element);
   }
 
   public void test_fieldElement() throws Exception {

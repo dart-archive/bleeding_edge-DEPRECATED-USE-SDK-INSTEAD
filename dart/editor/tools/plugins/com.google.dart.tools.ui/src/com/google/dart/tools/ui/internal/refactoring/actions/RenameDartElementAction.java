@@ -13,7 +13,11 @@
  */
 package com.google.dart.tools.ui.internal.refactoring.actions;
 
+import com.google.dart.engine.ast.ASTNode;
+import com.google.dart.engine.ast.ConstructorDeclaration;
+import com.google.dart.engine.ast.InstanceCreationExpression;
 import com.google.dart.engine.ast.SimpleIdentifier;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.services.assist.AssistContext;
 import com.google.dart.tools.internal.corext.refactoring.RefactoringExecutionStarter;
@@ -42,7 +46,12 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
    */
   private static boolean isValidSelection(DartSelection selection) {
     // can we rename this node at all?
-    if (!(getSelectionNode(selection) instanceof SimpleIdentifier)) {
+    ASTNode node = getSelectionNode(selection);
+    if (node instanceof SimpleIdentifier) {
+      // usually
+    } else if (node instanceof InstanceCreationExpression) {
+      // "new X()" - to give name to unnamed constructor
+    } else {
       return false;
     }
     // is it resolved to an interesting Element?
@@ -87,6 +96,25 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
       if (context == null) {
         return;
       }
+      // Unnamed constructor are special case - we don't have name to start linked mode.
+      // Named constructors may become unnamed, this looks ugly because of analysis as you type.
+      {
+        Element element = context.getCoveredElement();
+        // it is more logical to rename constructor, not type
+        ASTNode node = context.getCoveredNode();
+        if (node instanceof SimpleIdentifier && node.getParent() instanceof ConstructorDeclaration) {
+          ConstructorDeclaration constructor = (ConstructorDeclaration) node.getParent();
+          if (constructor.getName() == null && constructor.getReturnType() == node) {
+            element = constructor.getElement();
+          }
+        }
+        // is it constructor?
+        if (element instanceof ConstructorElement) {
+          renameUsingDialog(element);
+          return;
+        }
+      }
+      // start linked mode rename
       new RenameLinkedMode(editor, context).start();
     }
   }
@@ -95,6 +123,14 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
   protected void doRun(IStructuredSelection selection, Event event,
       UIInstrumentationBuilder instrumentation) {
     Element element = getSelectionElement(selection);
+    renameUsingDialog(element);
+  }
+
+  @Override
+  protected void init() {
+  }
+
+  private void renameUsingDialog(Element element) {
     if (element == null) {
       return;
     }
@@ -106,9 +142,5 @@ public class RenameDartElementAction extends AbstractDartSelectionAction {
           RefactoringMessages.RenameDartElementAction_name,
           RefactoringMessages.RenameDartElementAction_exception);
     }
-  }
-
-  @Override
-  protected void init() {
   }
 }
