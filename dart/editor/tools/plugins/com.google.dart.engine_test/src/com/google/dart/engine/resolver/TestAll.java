@@ -27,6 +27,7 @@ public class TestAll {
     suite.addTestSuite(SimpleResolverTest.class);
     suite.addTestSuite(StaticTypeWarningCodeTest.class);
     suite.addTestSuite(StaticWarningCodeTest.class);
+    suite.addTestSuite(TypePropagationTest.class);
     return suite;
   }
 }

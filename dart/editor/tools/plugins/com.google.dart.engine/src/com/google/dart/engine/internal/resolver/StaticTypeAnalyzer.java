@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.resolver;
 import com.google.dart.engine.ast.ASTNode;
 import com.google.dart.engine.ast.AdjacentStrings;
 import com.google.dart.engine.ast.ArgumentDefinitionTest;
+import com.google.dart.engine.ast.ArgumentList;
 import com.google.dart.engine.ast.AsExpression;
 import com.google.dart.engine.ast.AssignmentExpression;
 import com.google.dart.engine.ast.BinaryExpression;
@@ -57,9 +58,11 @@ import com.google.dart.engine.ast.TypeName;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.visitor.SimpleASTVisitor;
 import com.google.dart.engine.element.ClassElement;
+import com.google.dart.engine.element.ConstructorElement;
 import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.ExecutableElement;
 import com.google.dart.engine.element.FunctionTypeAliasElement;
+import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.element.MethodElement;
 import com.google.dart.engine.element.ParameterElement;
@@ -77,6 +80,7 @@ import com.google.dart.engine.type.Type;
 import com.google.dart.engine.type.TypeVariableType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 /**
@@ -91,6 +95,80 @@ import java.util.LinkedHashMap;
  * @coverage dart.engine.resolver
  */
 public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
+  /**
+   * Create a table mapping HTML tag names to the names of the classes (in 'dart:html') that
+   * implement those tags.
+   * 
+   * @return the table that was created
+   */
+  private static HashMap<String, String> createHtmlTagToClassMap() {
+    HashMap<String, String> map = new HashMap<String, String>();
+    map.put("a", "AnchorElement");
+    map.put("area", "AreaElement");
+    map.put("br", "BRElement");
+    map.put("base", "BaseElement");
+    map.put("body", "BodyElement");
+    map.put("button", "ButtonElement");
+    map.put("canvas", "CanvasElement");
+    map.put("content", "ContentElement");
+    map.put("dl", "DListElement");
+    map.put("datalist", "DataListElement");
+    map.put("details", "DetailsElement");
+    map.put("div", "DivElement");
+    map.put("embed", "EmbedElement");
+    map.put("fieldset", "FieldSetElement");
+    map.put("form", "FormElement");
+    map.put("hr", "HRElement");
+    map.put("head", "HeadElement");
+    map.put("h1", "HeadingElement");
+    map.put("h2", "HeadingElement");
+    map.put("h3", "HeadingElement");
+    map.put("h4", "HeadingElement");
+    map.put("h5", "HeadingElement");
+    map.put("h6", "HeadingElement");
+    map.put("html", "HtmlElement");
+    map.put("iframe", "IFrameElement");
+    map.put("img", "ImageElement");
+    map.put("input", "InputElement");
+    map.put("keygen", "KeygenElement");
+    map.put("li", "LIElement");
+    map.put("label", "LabelElement");
+    map.put("legend", "LegendElement");
+    map.put("link", "LinkElement");
+    map.put("map", "MapElement");
+    map.put("menu", "MenuElement");
+    map.put("meter", "MeterElement");
+    map.put("ol", "OListElement");
+    map.put("object", "ObjectElement");
+    map.put("optgroup", "OptGroupElement");
+    map.put("output", "OutputElement");
+    map.put("p", "ParagraphElement");
+    map.put("param", "ParamElement");
+    map.put("pre", "PreElement");
+    map.put("progress", "ProgressElement");
+    map.put("script", "ScriptElement");
+    map.put("select", "SelectElement");
+    map.put("source", "SourceElement");
+    map.put("span", "SpanElement");
+    map.put("style", "StyleElement");
+    map.put("caption", "TableCaptionElement");
+    map.put("td", "TableCellElement");
+    map.put("col", "TableColElement");
+    map.put("table", "TableElement");
+    map.put("tr", "TableRowElement");
+    map.put("textarea", "TextAreaElement");
+    map.put("title", "TitleElement");
+    map.put("track", "TrackElement");
+    map.put("ul", "UListElement");
+    map.put("video", "VideoElement");
+    return map;
+  }
+
+  /**
+   * The resolver driving the resolution and type analysis.
+   */
+  private ResolverVisitor resolver;
+
   /**
    * The object providing access to the types defined by the language.
    */
@@ -118,11 +196,18 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   public static final boolean USE_TYPE_PROPAGATION = true;
 
   /**
+   * A table mapping HTML tag names to the names of the classes (in 'dart:html') that implement
+   * those tags.
+   */
+  private static final HashMap<String, String> HTML_ELEMENT_TO_CLASS_MAP = createHtmlTagToClassMap();
+
+  /**
    * Initialize a newly created type analyzer.
    * 
    * @param resolver the resolver driving this participant
    */
   public StaticTypeAnalyzer(ResolverVisitor resolver) {
+    this.resolver = resolver;
     typeProvider = resolver.getTypeProvider();
     dynamicType = typeProvider.getDynamicType();
     overrideManager = resolver.getOverrideManager();
@@ -215,7 +300,7 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
     }
     Type rightType = getType(node.getRightHandSide());
     if (USE_TYPE_PROPAGATION) {
-      VariableElement element = getOverridableElement(node.getLeftHandSide());
+      VariableElement element = resolver.getOverridableElement(node.getLeftHandSide());
       if (element != null) {
         override(element, getType(element), rightType);
       }
@@ -430,6 +515,22 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (USE_TYPE_PROPAGATION) {
+      ConstructorElement element = node.getElement();
+      if (element != null && "Element".equals(element.getEnclosingElement().getName())
+          && "tag".equals(element.getName())) {
+        LibraryElement library = element.getLibrary();
+        if (isHtmlLibrary(library)) {
+          Type returnType = getFirstArgumentAsType(
+              library,
+              node.getArgumentList(),
+              HTML_ELEMENT_TO_CLASS_MAP);
+          if (returnType != null) {
+            return recordType(node, returnType);
+          }
+        }
+      }
+    }
     return recordType(node, node.getConstructorName().getType().getType());
   }
 
@@ -554,6 +655,34 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
    */
   @Override
   public Void visitMethodInvocation(MethodInvocation node) {
+    if (USE_TYPE_PROPAGATION) {
+      // Consider adding support for $dom_createElement, even though it is deprecated.
+      String methodName = node.getMethodName().getName();
+      if (methodName.equals("$dom_createEvent")) {
+        Expression target = node.getRealTarget();
+        if (target != null) {
+          Type targetType = getType(target);
+          if (targetType instanceof InterfaceType
+              && (targetType.getName().equals("HtmlDocument") || targetType.getName().equals(
+                  "Document"))) {
+            LibraryElement library = targetType.getElement().getLibrary();
+            if (isHtmlLibrary(library)) {
+              Type returnType = getFirstArgumentAsType(library, node.getArgumentList());
+              if (returnType != null) {
+                return recordType(node, returnType);
+              }
+            }
+          }
+        }
+      } else if (methodName.equals("JS")) {
+        Type returnType = getFirstArgumentAsType(
+            typeProvider.getObjectType().getElement().getLibrary(),
+            node.getArgumentList());
+        if (returnType != null) {
+          return recordType(node, returnType);
+        }
+      }
+    }
     return recordReturnType(node, node.getMethodName().getElement());
   }
 
@@ -916,17 +1045,43 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
   }
 
   /**
-   * Return the element associated with the given expression whose type can be overridden, or
-   * {@code null} if there is no element whose type can be overridden.
+   * If the given argument list contains at least one argument, and if the argument is a simple
+   * string literal, and if the value of the argument is the name of a class defined within the
+   * given library, return the type specified by the argument.
    * 
-   * @param expression the expression with which the element is associated
-   * @return the element associated with the given expression
+   * @param library the library in which the specified type would be defined
+   * @param argumentList the list of arguments from which a type is to be extracted
+   * @return the type specified by the first argument in the argument list
    */
-  private VariableElement getOverridableElement(Expression expression) {
-    if (expression instanceof SimpleIdentifier) {
-      Element element = ((SimpleIdentifier) expression).getElement();
-      if (element instanceof VariableElement) {
-        return (VariableElement) element;
+  private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList) {
+    return getFirstArgumentAsType(library, argumentList, null);
+  }
+
+  /**
+   * If the given argument list contains at least one argument, and if the argument is a simple
+   * string literal, and if the value of the argument is the name of a class defined within the
+   * given library, return the type specified by the argument.
+   * 
+   * @param library the library in which the specified type would be defined
+   * @param argumentList the list of arguments from which a type is to be extracted
+   * @return the type specified by the first argument in the argument list
+   */
+  private Type getFirstArgumentAsType(LibraryElement library, ArgumentList argumentList,
+      HashMap<String, String> nameMap) {
+    NodeList<Expression> arguments = argumentList.getArguments();
+    if (arguments.size() > 0) {
+      Expression argument = arguments.get(0);
+      if (argument instanceof SimpleStringLiteral) {
+        String argumentValue = ((SimpleStringLiteral) argument).getValue();
+        if (argumentValue != null) {
+          if (nameMap != null) {
+            argumentValue = nameMap.get(argumentValue.toLowerCase());
+          }
+          ClassElement returnType = library.getType(argumentValue);
+          if (returnType != null) {
+            return returnType.getType();
+          }
+        }
       }
     }
     return null;
@@ -1024,6 +1179,16 @@ public class StaticTypeAnalyzer extends SimpleASTVisitor<Void> {
       return dynamicType;
     }
     return type;
+  }
+
+  /**
+   * Return {@code true} if the given library is the 'dart:html' library.
+   * 
+   * @param library the library being tested
+   * @return {@code true} if the library is 'dart:html'
+   */
+  private boolean isHtmlLibrary(LibraryElement library) {
+    return library.getName().equals("dart.dom.html");
   }
 
   /**

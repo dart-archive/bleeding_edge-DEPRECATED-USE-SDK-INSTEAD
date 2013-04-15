@@ -13,6 +13,7 @@
  */
 package com.google.dart.engine.internal.element.handle;
 
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ExportElement;
@@ -80,6 +81,11 @@ public class LibraryElementHandle extends ElementHandle implements LibraryElemen
   @Override
   public PrefixElement[] getPrefixes() {
     return getActualElement().getPrefixes();
+  }
+
+  @Override
+  public ClassElement getType(String className) {
+    return getActualElement().getType(className);
   }
 
   @Override

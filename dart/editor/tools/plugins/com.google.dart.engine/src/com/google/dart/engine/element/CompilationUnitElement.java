@@ -44,6 +44,13 @@ public interface CompilationUnitElement extends Element {
   public FunctionElement[] getFunctions();
 
   /**
+   * Return an array containing all of the function type aliases contained in this compilation unit.
+   * 
+   * @return the function type aliases contained in this compilation unit
+   */
+  public FunctionTypeAliasElement[] getFunctionTypeAliases();
+
+  /**
    * Return an array containing all of the top-level variables contained in this compilation unit.
    * 
    * @return the top-level variables contained in this compilation unit
@@ -51,11 +58,13 @@ public interface CompilationUnitElement extends Element {
   public TopLevelVariableElement[] getTopLevelVariables();
 
   /**
-   * Return an array containing all of the function type aliases contained in this compilation unit.
+   * Return the class defined in this compilation unit that has the given name, or {@code null} if
+   * this compilation unit does not define a class with the given name.
    * 
-   * @return the function type aliases contained in this compilation unit
+   * @param className the name of the class to be returned
+   * @return the class with the given name that is defined in this compilation unit
    */
-  public FunctionTypeAliasElement[] getFunctionTypeAliases();
+  public ClassElement getType(String className);
 
   /**
    * Return an array containing all of the classes contained in this compilation unit.

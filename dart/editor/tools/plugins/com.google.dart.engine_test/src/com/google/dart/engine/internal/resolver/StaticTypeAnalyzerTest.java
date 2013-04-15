@@ -535,12 +535,13 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
   public void test_visitInstanceCreationExpression_named() throws Exception {
     // new C.m()
-    ClassElement classElement = classElement("C");
+    ClassElementImpl classElement = classElement("C");
     String constructorName = "m";
     ConstructorElementImpl constructor = constructorElement(constructorName);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
+    classElement.setConstructors(new ConstructorElement[] {constructor});
     InstanceCreationExpression node = instanceCreationExpression(
         null,
         typeName(classElement),
@@ -572,11 +573,12 @@ public class StaticTypeAnalyzerTest extends EngineTestCase {
 
   public void test_visitInstanceCreationExpression_unnamed() throws Exception {
     // new C()
-    ClassElement classElement = classElement("C");
+    ClassElementImpl classElement = classElement("C");
     ConstructorElementImpl constructor = constructorElement(null);
     FunctionTypeImpl constructorType = new FunctionTypeImpl(constructor);
     constructorType.setReturnType(classElement.getType());
     constructor.setType(constructorType);
+    classElement.setConstructors(new ConstructorElement[] {constructor});
     InstanceCreationExpression node = instanceCreationExpression(null, typeName(classElement));
     node.setElement(constructor);
     assertSame(classElement.getType(), analyze(node));

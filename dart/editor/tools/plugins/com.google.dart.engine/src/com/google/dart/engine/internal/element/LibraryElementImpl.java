@@ -16,6 +16,7 @@ package com.google.dart.engine.internal.element;
 import com.google.common.collect.Sets;
 import com.google.dart.engine.ast.LibraryIdentifier;
 import com.google.dart.engine.context.AnalysisContext;
+import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.ElementVisitor;
@@ -239,6 +240,21 @@ public class LibraryElementImpl extends ElementImpl implements LibraryElement {
       return null;
     }
     return definingCompilationUnit.getSource();
+  }
+
+  @Override
+  public ClassElement getType(String className) {
+    ClassElement type = definingCompilationUnit.getType(className);
+    if (type != null) {
+      return type;
+    }
+    for (CompilationUnitElement part : parts) {
+      type = part.getType(className);
+      if (type != null) {
+        return type;
+      }
+    }
+    return null;
   }
 
   @Override

@@ -17,10 +17,10 @@ import com.google.dart.engine.element.ClassElement;
 import com.google.dart.engine.element.CompilationUnitElement;
 import com.google.dart.engine.element.ElementKind;
 import com.google.dart.engine.element.FunctionElement;
+import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.element.LibraryElement;
 import com.google.dart.engine.element.PropertyAccessorElement;
 import com.google.dart.engine.element.TopLevelVariableElement;
-import com.google.dart.engine.element.FunctionTypeAliasElement;
 import com.google.dart.engine.source.Source;
 
 /**
@@ -55,6 +55,11 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
+  public FunctionTypeAliasElement[] getFunctionTypeAliases() {
+    return getActualElement().getFunctionTypeAliases();
+  }
+
+  @Override
   public ElementKind getKind() {
     return ElementKind.COMPILATION_UNIT;
   }
@@ -70,8 +75,8 @@ public class CompilationUnitElementHandle extends ElementHandle implements Compi
   }
 
   @Override
-  public FunctionTypeAliasElement[] getFunctionTypeAliases() {
-    return getActualElement().getFunctionTypeAliases();
+  public ClassElement getType(String className) {
+    return getActualElement().getType(className);
   }
 
   @Override

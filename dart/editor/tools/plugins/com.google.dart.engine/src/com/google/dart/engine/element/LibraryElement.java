@@ -83,6 +83,15 @@ public interface LibraryElement extends Element {
   public PrefixElement[] getPrefixes();
 
   /**
+   * Return the class defined in this library that has the given name, or {@code null} if this
+   * library does not define a class with the given name.
+   * 
+   * @param className the name of the class to be returned
+   * @return the class with the given name that is defined in this library
+   */
+  public ClassElement getType(String className);
+
+  /**
    * Answer {@code true} if this library is an application that can be run in the browser.
    * 
    * @return {@code true} if this library is an application that can be run in the browser
