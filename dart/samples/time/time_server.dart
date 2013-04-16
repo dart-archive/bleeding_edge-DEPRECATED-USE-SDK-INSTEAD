@@ -29,7 +29,7 @@ void requestReceivedHandler(HttpRequest request) {
   request.response.headers.set(
       HttpHeaders.CONTENT_TYPE, "text/html; charset=UTF-8");
   request.response.write(text);
-  request.response.close();
+  request.response.close().catchError(print);
 }
 
 String createHtmlResponse() {
