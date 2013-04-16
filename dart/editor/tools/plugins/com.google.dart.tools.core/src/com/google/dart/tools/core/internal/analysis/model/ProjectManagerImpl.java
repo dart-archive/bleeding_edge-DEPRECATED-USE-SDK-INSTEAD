@@ -102,7 +102,7 @@ public class ProjectManagerImpl extends ContextManagerImpl implements ProjectMan
               }
               if (res.getType() == IResource.FOLDER) {
                 if (res.getName().equals(DartCore.PACKAGES_DIRECTORY_NAME)) {
-                  if (res.getParent().findMember("pubspec.yaml").exists()) {
+                  if (res.getParent().findMember("pubspec.yaml") != null) {
                     processPackageChanges(res, delta.getAffectedChildren());
                   }
                   return false;
