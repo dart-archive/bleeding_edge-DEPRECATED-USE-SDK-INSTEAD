@@ -58,6 +58,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -91,15 +92,15 @@ public class ScanTimings extends TestCase {
 
   private final class MockIndexForScan implements Index {
     @Override
-    public String getStatistics() {
-      // ignored
-      return null;
-    }
-
-    @Override
     public void getRelationships(Element element, Relationship relationship,
         RelationshipCallback callback) {
       // ignored
+    }
+
+    @Override
+    public String getStatistics() {
+      // ignored
+      return null;
     }
 
     @Override
@@ -521,9 +522,10 @@ public class ScanTimings extends TestCase {
       protected DeltaProcessor createProcessor(Project project) {
         return new DeltaProcessor(project) {
           @Override
-          protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
+          protected boolean visitPackagesProxy(IResourceProxy proxy, String name, File packageDir,
+              IPath packagePath) {
             checkName(name);
-            return super.visitPackagesProxy(proxy, name);
+            return super.visitPackagesProxy(proxy, name, packageDir, packagePath);
           }
 
           @Override

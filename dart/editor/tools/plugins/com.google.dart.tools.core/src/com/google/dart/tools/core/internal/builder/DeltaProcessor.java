@@ -42,6 +42,9 @@ import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 
+import java.io.File;
+import java.io.IOException;
+
 /**
  * {@code DeltaProcessor} traverses both {@link IResource} hierarchies and {@link IResourceDelta}s.
  * As Dart related resources are encountered, registered {@link DeltaListener}s are notified.
@@ -274,9 +277,18 @@ public class DeltaProcessor {
 
     switch (delta.getKind()) {
       case ADDED:
+
         for (IResource child : ((IContainer) packagesContainer).members()) {
-          processPackagesResources(child);
+          try {
+            processPackagesResources(
+                child,
+                child.getLocation().toFile().getCanonicalFile(),
+                child.getFullPath());
+          } catch (IOException e) {
+            DartCore.logError(e);
+          }
         }
+
         return;
       case CHANGED:
         // Fall through to traverse child resource changes
@@ -290,6 +302,13 @@ public class DeltaProcessor {
     }
 
     for (IResourceDelta childDelta : delta.getAffectedChildren()) {
+      final File[] packageDirFile = new File[1];
+      try {
+        packageDirFile[0] = childDelta.getResource().getLocation().toFile().getCanonicalFile();
+      } catch (IOException e1) {
+        DartCore.logError(e1);
+      }
+      final IPath packageDirPath = childDelta.getResource().getFullPath();
       childDelta.accept(new IResourceDeltaVisitor() {
         @Override
         public boolean visit(IResourceDelta delta) throws CoreException {
@@ -305,6 +324,11 @@ public class DeltaProcessor {
           if (resource.getType() == IResource.FILE) {
             if (isDartLikeFileName(name)) {
               event.setResource(resource);
+              if (packageDirFile[0] != null) {
+                event.source = new FileBasedSource(
+                    context.getSourceFactory().getContentCache(),
+                    new File(packageDirFile[0], getPath(packageDirPath, resource.getFullPath())));
+              }
               switch (delta.getKind()) {
                 case ADDED:
                   listener.packageSourceAdded(event);
@@ -325,7 +349,14 @@ public class DeltaProcessor {
           // Notify context of any package folders that were added or removed
           switch (delta.getKind()) {
             case ADDED:
-              processPackagesResources(resource);
+              try {
+                processPackagesResources(
+                    resource,
+                    resource.getLocation().toFile().getCanonicalFile(),
+                    resource.getFullPath());
+              } catch (IOException e) {
+                DartCore.logError(e);
+              }
               return false;
             case CHANGED:
               // Recursively visit changed resources
@@ -339,7 +370,7 @@ public class DeltaProcessor {
           }
         }
       });
-    }
+    };
   }
 
   /**
@@ -347,11 +378,12 @@ public class DeltaProcessor {
    * 
    * @param resource the added resource (not {@code null})
    */
-  protected void processPackagesResources(IResource resource) throws CoreException {
+  protected void processPackagesResources(IResource resource, final File packageDir,
+      final IPath packagePath) throws CoreException {
     resource.accept(new IResourceProxyVisitor() {
       @Override
       public boolean visit(IResourceProxy proxy) throws CoreException {
-        return visitPackagesProxy(proxy, proxy.getName());
+        return visitPackagesProxy(proxy, proxy.getName(), packageDir, packagePath);
       }
     }, 0);
   }
@@ -376,7 +408,8 @@ public class DeltaProcessor {
    * @param proxy the resource proxy (not {@code null})
    * @param name the resource name (not {@code null})
    */
-  protected boolean visitPackagesProxy(IResourceProxy proxy, String name) {
+  protected boolean visitPackagesProxy(IResourceProxy proxy, String name, File packageDir,
+      IPath packagePath) {
     // Ignore hidden resources and nested packages directories
     if (name.startsWith(".") || name.equals(PACKAGES_DIRECTORY_NAME)) {
       return false;
@@ -386,6 +419,9 @@ public class DeltaProcessor {
     if (proxy.getType() == FILE) {
       if (isDartLikeFileName(name)) {
         event.setProxy(proxy);
+        event.source = new FileBasedSource(context.getSourceFactory().getContentCache(), new File(
+            packageDir,
+            getPath(packagePath, proxy.requestFullPath())));
         listener.packageSourceAdded(event);
       }
       return false;
@@ -429,6 +465,10 @@ public class DeltaProcessor {
 
     // Cache the context and traverse child resource changes
     return setContextFor((IContainer) proxy.requestResource());
+  }
+
+  private String getPath(IPath packagePath, IPath fullPath) {
+    return fullPath.makeRelativeTo(packagePath).toString();
   }
 
   /**
