@@ -74,12 +74,9 @@ class AbstractObservable implements Observable {
   }
 
   bool removeChangeListener(ChangeListener listener) {
-    // TODO(rnystrom): This is awkward without List.remove(e).
-    if (listeners.indexOf(listener, 0) != -1) {
-      bool found = false;
-      listeners = listeners
-          .where((e) => found || !(found = (e == listener)))
-          .toList();
+    var index = listeners.indexOf(listener, 0);
+    if (index != -1) {
+      listeners.removeAt(index);
       return true;
     } else {
       return false;
