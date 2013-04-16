@@ -93,13 +93,15 @@ public class SamplesAnalysisTest extends DirectoryBasedSuiteBuilder {
    * @return the test suite that was built
    */
   public static Test suite() {
-    String directoryName = System.getProperty("samplesDirectory");
-    if (directoryName != null) {
-      File directory = new File(directoryName);
-      SamplesAnalysisTest tester = new SamplesAnalysisTest();
-      TestSuite suite = tester.buildSamplesSuite(directory, "Analyze sample files");
-      suite.addTest(tester.new ReportingTest("reportResults"));
-      return suite;
+    String svnRootName = System.getProperty("svnRoot");
+    if (svnRootName != null) {
+      File directory = new File(new File(svnRootName), "samples");
+      if (directory.exists()) {
+        SamplesAnalysisTest tester = new SamplesAnalysisTest();
+        TestSuite suite = tester.buildSamplesSuite(directory, "Analyze sample files");
+        suite.addTest(tester.new ReportingTest("reportResults"));
+        return suite;
+      }
     }
     return new TestSuite("Analyze sample files (no tests: directory not found)");
   }

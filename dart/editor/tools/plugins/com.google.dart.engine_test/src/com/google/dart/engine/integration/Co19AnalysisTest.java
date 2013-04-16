@@ -108,13 +108,15 @@ public class Co19AnalysisTest extends DirectoryBasedSuiteBuilder {
    * @return the test suite that was built
    */
   public static Test suite() {
-    String directoryName = System.getProperty("co19Directory");
-    if (directoryName != null) {
-      File directory = new File(directoryName);
-      Co19AnalysisTest tester = new Co19AnalysisTest();
-      TestSuite suite = tester.buildSuite(directory, "Analyze co19 files");
-      suite.addTest(tester.new ReportingTest("reportResults"));
-      return suite;
+    String svnRootName = System.getProperty("svnRoot");
+    if (svnRootName != null) {
+      File directory = new File(new File(svnRootName), "tests/co19/src/Language");
+      if (directory.exists()) {
+        Co19AnalysisTest tester = new Co19AnalysisTest();
+        TestSuite suite = tester.buildSuite(directory, "Analyze co19 files");
+        suite.addTest(tester.new ReportingTest("reportResults"));
+        return suite;
+      }
     }
     return new TestSuite("Analyze co19 files (no tests: directory not found)");
   }

@@ -23,6 +23,7 @@ import com.google.dart.engine.sdk.DirectoryBasedDartSdk;
 import com.google.dart.engine.source.DartUriResolver;
 import com.google.dart.engine.source.FileBasedSource;
 import com.google.dart.engine.source.FileUriResolver;
+import com.google.dart.engine.source.PackageUriResolver;
 import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.utilities.io.FileUtilities;
@@ -111,6 +112,11 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
   }
 
   /**
+   * The URI resolver used to resolve package: URI's.
+   */
+  private static PackageUriResolver packageResolver;
+
+  /**
    * An array containing the relative paths of test files that are expected to fail.
    */
   private static final String[] FAILING_TESTS = {//
@@ -161,13 +167,33 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
    * @return the test suite that was built
    */
   public static Test suite() {
-    String directoryName = System.getProperty("languageDirectory");
-    if (directoryName != null) {
-      File directory = new File(directoryName);
-      LanguageAnalysisTest tester = new LanguageAnalysisTest();
-      TestSuite suite = tester.buildSuite(directory, "Analyze language files");
-      suite.addTest(tester.new ReportingTest("reportResults"));
-      return suite;
+    String svnRootName = System.getProperty("svnRoot");
+    if (svnRootName != null) {
+      File svnRoot = new File(svnRootName);
+      File packageDirectory = new File(svnRoot, "pkg");
+      File testDirectory = new File(svnRoot, "tests/language");
+      if (packageDirectory.exists() && testDirectory.exists()) {
+        packageResolver = new PackageUriResolver(packageDirectory) {
+          @Override
+          protected File getCanonicalFile(File packagesDirectory, String pkgName, String relPath) {
+            File pkgDir = new File(packagesDirectory, pkgName);
+            try {
+              pkgDir = pkgDir.getCanonicalFile();
+            } catch (IOException e) {
+              AnalysisEngine.getInstance().getLogger().logError("Canonical failed: " + pkgDir, e);
+            }
+            File file = new File(pkgDir, relPath.replace('/', File.separatorChar));
+            if (!file.exists()) {
+              file = new File(new File(pkgDir, "lib"), relPath.replace('/', File.separatorChar));
+            }
+            return file;
+          }
+        };
+        LanguageAnalysisTest tester = new LanguageAnalysisTest();
+        TestSuite suite = tester.buildSuite(testDirectory, "Analyze language files");
+        suite.addTest(tester.new ReportingTest("reportResults"));
+        return suite;
+      }
     }
     return new TestSuite("Analyze language files (no tests: directory not found)");
   }
@@ -252,7 +278,11 @@ public class LanguageAnalysisTest extends DirectoryBasedSuiteBuilder {
     // Create the analysis context in which the file will be analyzed.
     //
     DartSdk sdk = DirectoryBasedDartSdk.getDefaultSdk();
-    SourceFactory sourceFactory = new SourceFactory(new DartUriResolver(sdk), new FileUriResolver());
+    Assert.assertNotNull(packageResolver);
+    SourceFactory sourceFactory = new SourceFactory(
+        new DartUriResolver(sdk),
+        new FileUriResolver(),
+        packageResolver);
     AnalysisContext context = AnalysisEngine.getInstance().createAnalysisContext();
     context.setSourceFactory(sourceFactory);
     //

@@ -115,7 +115,7 @@ public class PackageUriResolver extends UriResolver {
    *          but may be empty string)
    * @return the file (not {@code null})
    */
-  private File getCanonicalFile(File packagesDirectory, String pkgName, String relPath) {
+  protected File getCanonicalFile(File packagesDirectory, String pkgName, String relPath) {
     File pkgDir = new File(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
