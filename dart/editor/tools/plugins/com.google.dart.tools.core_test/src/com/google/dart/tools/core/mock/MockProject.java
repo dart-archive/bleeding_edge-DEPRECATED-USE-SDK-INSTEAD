@@ -20,6 +20,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IPluginDescriptor;
@@ -33,6 +34,8 @@ import java.util.Map;
 @SuppressWarnings("deprecation")
 public class MockProject extends MockContainer implements IProject {
   private IProjectDescription description;
+
+  private IPath location;
 
   public MockProject() {
     this(null);
@@ -124,6 +127,17 @@ public class MockProject extends MockContainer implements IProject {
   @Override
   public IFolder getFolder(String name) {
     return getFolder(new Path(name));
+  }
+
+  @Override
+  public IPath getLocation() {
+    if (location != null) {
+      return location;
+    }
+    if (getParent() == null) {
+      return ResourcesPlugin.getWorkspace().getRoot().getLocation().append(getName());
+    }
+    return super.getLocation();
   }
 
   @Override
@@ -222,5 +236,9 @@ public class MockProject extends MockContainer implements IProject {
   public void setDescription(IProjectDescription description, IProgressMonitor monitor)
       throws CoreException {
     this.description = description;
+  }
+
+  public void setLocation(IPath location) {
+    this.location = location;
   }
 }

@@ -16,6 +16,7 @@ package com.google.dart.tools.core.internal.builder;
 import com.google.dart.engine.context.AnalysisContext;
 import com.google.dart.engine.index.Index;
 import com.google.dart.engine.sdk.DartSdk;
+import com.google.dart.engine.utilities.io.FileUtilities2;
 import com.google.dart.tools.core.AbstractDartCoreTest;
 import com.google.dart.tools.core.CallList;
 import com.google.dart.tools.core.analysis.model.PubFolder;
@@ -34,10 +35,13 @@ import static com.google.dart.tools.core.DartCore.PUBSPEC_FILE_NAME;
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.Path;
 
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 import static org.mockito.Mockito.mock;
+
+import java.io.File;
 
 public class DeltaProcessorTest extends AbstractDartCoreTest {
 
@@ -75,6 +79,22 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     @Override
     public void pubspecRemoved(IContainer container) {
       calls.add(this, PUBSPEC_REMOVED, container);
+    }
+
+    void assertChanged(IContainer pubFolderResource, File[] added, File[] changed,
+        File[] removedFiles, File[] removedDirs) {
+      MockContext context;
+      if (pubFolderResource != null) {
+        PubFolder pubFolder = getPubFolder(pubFolderResource);
+        assertNotNull(pubFolder);
+        assertSame(pubFolderResource, pubFolder.getResource());
+        context = (MockContext) pubFolder.getContext();
+      } else {
+        PubFolder pubFolder = getPubFolder(getResource());
+        assertNull(pubFolder);
+        context = (MockContext) getDefaultContext();
+      }
+      context.assertChanged(added, changed, removedFiles, removedDirs);
     }
 
     void assertChanged(IContainer pubFolderResource, IResource[] added, IResource[] changed,
@@ -273,6 +293,41 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
         pkgFolder.getMockFile("bar.dart"), pkgFolder.getMockFile("build.dart")};
 
     project.assertChanged(projectContainer, added, null, null);
+    project.assertNoCalls();
+  }
+
+  public void test_traverse_package_added_canonical() throws Exception {
+    if (!FileUtilities2.isSymLinkSupported()) {
+      System.out.println("Skipping " + getClass().getSimpleName()
+          + " test_traverse_package_added_canonical");
+      return;
+    }
+
+    // Create symlink from /project/packages/pkg1 --> /pkg1
+    File projDir = FileUtilities2.createTempDir(projectContainer.getName());
+    File packagesDir = new File(projDir, "packages");
+    assertTrue(packagesDir.mkdir());
+    File pkg1Dir = FileUtilities2.createTempDir("pkg1").getCanonicalFile();
+    FileUtilities2.createSymLink(pkg1Dir, new File(packagesDir, "pkg1"));
+
+    projectContainer.setLocation(new Path(projDir.getAbsolutePath()));
+
+    MockDelta delta = new MockDelta(projectContainer);
+    delta.add(PACKAGES_DIRECTORY_NAME).add("pkg1", ADDED);
+
+    DeltaProcessor processor = new DeltaProcessor(project);
+    ProjectUpdater updater = new ProjectUpdater();
+    processor.addDeltaListener(updater);
+    processor.traverse(delta);
+    updater.applyChanges();
+
+    // Canonical locations
+    File pkg1SomeDir = new File(pkg1Dir, "some_folder");
+    File[] added = new File[] {
+        new File(pkg1Dir, "build.dart"), new File(pkg1Dir, "bar.dart"),
+        new File(pkg1SomeDir, "build.dart"), new File(pkg1SomeDir, "bar.dart")};
+
+    project.assertChanged(projectContainer, added, null, null, null);
     project.assertNoCalls();
   }
 
@@ -553,5 +608,10 @@ public class DeltaProcessorTest extends AbstractDartCoreTest {
     appContainer = projectContainer.getMockFolder("myapp");
     subAppContainer = appContainer.getMockFolder("subApp");
     project = new MockProjectImpl(projectContainer);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    FileUtilities2.deleteTempDir();
   }
 }

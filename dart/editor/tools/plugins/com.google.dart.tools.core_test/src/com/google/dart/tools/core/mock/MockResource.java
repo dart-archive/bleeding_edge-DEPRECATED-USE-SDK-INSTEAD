@@ -25,7 +25,6 @@ import org.eclipse.core.resources.IResourceProxy;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourceAttributes;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -183,7 +182,7 @@ public abstract class MockResource implements IResource {
 
   @Override
   public IPath getLocation() {
-    return ResourcesPlugin.getWorkspace().getRoot().getLocation().append(getFullPath());
+    return getParent().getLocation().append(getName());
   }
 
   @Override

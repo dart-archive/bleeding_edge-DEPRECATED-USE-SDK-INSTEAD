@@ -20,7 +20,6 @@ import com.google.dart.engine.source.Source;
 import com.google.dart.engine.source.SourceContainer;
 import com.google.dart.engine.source.SourceFactory;
 import com.google.dart.engine.source.SourceKind;
-import com.google.dart.engine.utilities.general.ObjectUtilities;
 import com.google.dart.engine.utilities.io.PrintStringWriter;
 import com.google.dart.engine.utilities.source.LineInfo;
 import com.google.dart.tools.core.CallList;
@@ -33,7 +32,6 @@ import org.eclipse.core.resources.IResource;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * Mock {@link AnalysisContext} that validates calls and returns Mocks rather than performing the
@@ -92,17 +90,6 @@ public class MockContext implements AnalysisContext {
       }
       return copy.isEmpty();
     }
-
-    private boolean equalArgument(Map<Source, String> firstMap, Map<Source, String> secondMap) {
-      ArrayList<Object> copy = new ArrayList<Object>(secondMap.keySet());
-      for (Map.Entry<Source, String> entry : firstMap.entrySet()) {
-        Source key = entry.getKey();
-        if (!copy.remove(key) || !ObjectUtilities.equals(entry.getValue(), secondMap.get(key))) {
-          return false;
-        }
-      }
-      return copy.isEmpty();
-    }
   }
 
   private static final String CHANGED = "changed";
@@ -119,31 +106,37 @@ public class MockContext implements AnalysisContext {
     calls.add(new ChangedCall(this, changes));
   }
 
-  public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {
+  public void assertChanged(File[] added, File[] changed, File[] removedFiles, File[] removedDirs) {
     final ChangeSet expected = new ChangeSet();
     if (added != null) {
-      for (IResource file : added) {
-        expected.added(new FileBasedSource(factory.getContentCache(), file.getLocation().toFile()));
+      for (File file : added) {
+        expected.added(new FileBasedSource(factory.getContentCache(), file));
       }
     }
     if (changed != null) {
-      for (IResource file : changed) {
-        expected.changed(new FileBasedSource(factory.getContentCache(), file.getLocation().toFile()));
+      for (File file : changed) {
+        expected.changed(new FileBasedSource(factory.getContentCache(), file));
       }
     }
-    if (removed != null) {
-      for (IResource resource : removed) {
-        if (resource instanceof IFolder) {
-          expected.removedContainer(new DirectoryBasedSourceContainer(
-              resource.getLocation().toFile()));
-        } else {
-          expected.removed(new FileBasedSource(
-              factory.getContentCache(),
-              resource.getLocation().toFile()));
-        }
+    if (removedFiles != null) {
+      for (File file : removedFiles) {
+        expected.removed(new FileBasedSource(factory.getContentCache(), file));
+      }
+    }
+    if (removedDirs != null) {
+      for (File dir : removedDirs) {
+        expected.removedContainer(new DirectoryBasedSourceContainer(dir));
       }
     }
     calls.assertCall(new ChangedCall(this, expected));
+  }
+
+  public void assertChanged(IResource[] added, IResource[] changed, IResource[] removed) {
+    assertChanged(
+        asFiles(added),
+        asFiles(changed),
+        asFiles(filesOnly(removed)),
+        asFiles(foldersOnly(removed)));
   }
 
   public void assertExtracted(IContainer expectedContainer) {
@@ -365,5 +358,42 @@ public class MockContext implements AnalysisContext {
   @Override
   public Iterable<Source> sourcesToResolve(Source[] changedSources) {
     throw new UnsupportedOperationException();
+  }
+
+  private File[] asFiles(IResource[] resources) {
+    if (resources == null) {
+      return null;
+    }
+    File[] files = new File[resources.length];
+    for (int i = 0; i < resources.length; i++) {
+      files[i] = resources[i].getLocation().toFile();
+    }
+    return files;
+  }
+
+  private IResource[] filesOnly(IResource[] resources) {
+    if (resources == null) {
+      return null;
+    }
+    ArrayList<IResource> result = new ArrayList<IResource>();
+    for (IResource res : resources) {
+      if (!(res instanceof IFolder)) {
+        result.add(res);
+      }
+    }
+    return result.toArray(new IResource[result.size()]);
+  }
+
+  private IResource[] foldersOnly(IResource[] resources) {
+    if (resources == null) {
+      return null;
+    }
+    ArrayList<IResource> result = new ArrayList<IResource>();
+    for (IResource res : resources) {
+      if (res instanceof IFolder) {
+        result.add(res);
+      }
+    }
+    return result.toArray(new IResource[result.size()]);
   }
 }
