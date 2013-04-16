@@ -38,6 +38,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.PlatformUI;
 
+import java.io.File;
+
 /**
  * This early startup class is called after the main workbench window opens, and is used to warm up
  * various bits of compiler infrastructure.
@@ -211,6 +213,8 @@ public class DartUIStartup implements IStartup {
     }
   }
 
+  private static final String DART_INSTRUMENTATION_FLAGS_FILE_NAME = "dart_instrumentation_flags.txt";
+
   private static StartupJob startupJob;
 
   private static final Object startupSync = new Object();
@@ -262,6 +266,17 @@ public class DartUIStartup implements IStartup {
     }
   }
 
+  /**
+   * Determine if the {@value #DART_INSTRUMENTATION_FLAGS_FILE_NAME} file exists in the user's dart
+   * directory.
+   * 
+   * @return {@code true} if the file exists, else false
+   */
+  private boolean IsInstrumentationFlagFilePresent() {
+    File dartDir = new File(DartCore.getUserDefaultDartFolder());
+    return new File(dartDir, DART_INSTRUMENTATION_FLAGS_FILE_NAME).exists();
+  }
+
   private void reportDartCoreDebug() {
     InstrumentationBuilder instrumentation = Instrumentation.builder("DartUIStartup.reportDartCoreDebug");
     try {
@@ -282,6 +297,7 @@ public class DartUIStartup implements IStartup {
       instrumentation.metric("Version", DartCore.getVersion());
       instrumentation.metric("SDKVersion", DartSdkManager.getManager().getSdk().getSdkVersion());
       instrumentation.metric("OSVersion", FeedbackUtils.getOSName());
+      instrumentation.metric("IsInstrumentationFlagFilePresent", IsInstrumentationFlagFilePresent());
     } finally {
       instrumentation.log();
     }
