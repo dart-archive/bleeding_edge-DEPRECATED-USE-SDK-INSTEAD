@@ -15,6 +15,8 @@ package com.google.dart.engine.scanner;
 
 import com.google.dart.engine.error.AnalysisError;
 import com.google.dart.engine.error.GatheringErrorListener;
+import com.google.dart.engine.source.TestSource;
+import com.google.dart.engine.utilities.source.LineInfo;
 
 import junit.framework.TestCase;
 
@@ -417,6 +419,17 @@ public abstract class AbstractScannerTest extends TestCase {
 
   public void test_keyword_with() throws Exception {
     assertKeywordToken("with");
+  }
+
+  public void test_lineInfo() throws Exception {
+    String source = "/*\r *\r */";
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Token token = scan(source, listener);
+    assertSame(TokenType.MULTI_LINE_COMMENT, token.getPrecedingComments().getType());
+    listener.assertNoErrors();
+    LineInfo info = listener.getLineInfo(new TestSource());
+    assertNotNull(info);
+    assertEquals(3, info.getLocation(source.length() - 1).getLineNumber());
   }
 
   public void test_lt() throws Exception {

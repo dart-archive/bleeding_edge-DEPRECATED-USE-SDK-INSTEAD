@@ -868,6 +868,15 @@ public abstract class AbstractScanner {
           next = advance();
           ++nesting;
         }
+      } else if (next == '\r') {
+        next = advance();
+        if (next == '\n') {
+          next = advance();
+        }
+        recordStartOfLine();
+      } else if (next == '\n') {
+        recordStartOfLine();
+        next = advance();
       } else {
         next = advance();
       }

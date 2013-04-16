@@ -244,6 +244,17 @@ public class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
+   * Return the line information associated with the given source, or {@code null} if no line
+   * information has been associated with the source.
+   * 
+   * @param source the source with which the line information is associated
+   * @return the line information associated with the source
+   */
+  public LineInfo getLineInfo(Source source) {
+    return lineInfoMap.get(source);
+  }
+
+  /**
    * Return {@code true} if an error with the given error code has been gathered.
    * 
    * @param errorCode the error code being searched for
