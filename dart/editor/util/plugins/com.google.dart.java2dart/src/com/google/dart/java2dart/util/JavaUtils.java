@@ -242,6 +242,10 @@ public class JavaUtils {
       }
       return methodBinding;
     }
+    if (binding instanceof IVariableBinding) {
+      IVariableBinding varBinding = (IVariableBinding) binding;
+      return varBinding.getVariableDeclaration();
+    }
     return binding;
   }
 

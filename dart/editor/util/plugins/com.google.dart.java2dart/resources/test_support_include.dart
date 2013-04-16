@@ -1,8 +1,9 @@
 
 
 class TestSource implements Source {
+  int get hashCode => 0;
   bool operator ==(Object object) {
-    return this == object;
+    return object is TestSource;
   }
   AnalysisContext get context {
     throw new UnsupportedOperationException();

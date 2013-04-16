@@ -323,7 +323,7 @@ public class CollectionSemanticProcessorTest extends SemanticProcessorTest {
     assertFormattedSource(
         "class Test {",
         "  void foo(List<int> items) {",
-        "    items.insertRange(2, 1, 42);",
+        "    items.insert(2, 42);",
         "  }",
         "}");
   }

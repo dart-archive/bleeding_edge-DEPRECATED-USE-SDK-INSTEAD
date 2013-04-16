@@ -771,12 +771,18 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
   public boolean visit(org.eclipse.jdt.core.dom.EnumDeclaration node) {
     SimpleIdentifier name = translateSimpleName(node.getName());
     // implements
-    ImplementsClause implementsClause = null;
-    if (!node.superInterfaceTypes().isEmpty()) {
+    ImplementsClause implementsClause;
+    {
       List<TypeName> interfaces = Lists.newArrayList();
-      for (Object javaInterface : node.superInterfaceTypes()) {
-        interfaces.add((TypeName) translate((org.eclipse.jdt.core.dom.ASTNode) javaInterface));
+      // add Comparable
+      interfaces.add(typeName("Comparable", typeName(name)));
+      // add declared interfaces
+      if (!node.superInterfaceTypes().isEmpty()) {
+        for (Object javaInterface : node.superInterfaceTypes()) {
+          interfaces.add((TypeName) translate((org.eclipse.jdt.core.dom.ASTNode) javaInterface));
+        }
       }
+      // create ImplementsClause
       implementsClause = new ImplementsClause(null, interfaces);
     }
     // members
@@ -847,6 +853,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
           node.bodyDeclarations().remove(ac);
         }
       }
+      // compareTo()
+      members.add(methodDeclaration(
+          typeName("int"),
+          identifier("compareTo"),
+          formalParameterList(simpleFormalParameter(typeName(name), "other")),
+          expressionFunctionBody(binaryExpression(
+              identifier("__ordinal"),
+              TokenType.MINUS,
+              propertyAccess(identifier("other"), identifier("__ordinal"))))));
       // toString()
       members.add(methodDeclaration(
           typeName("String"),
@@ -1199,10 +1214,26 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.ParameterizedType node) {
+    List<TypeName> typeArguments;
+    {
+      List<?> javaTypeArguments = node.typeArguments();
+      boolean hasMethodTypeVariable = false;
+      for (Object _javaTypeArgument : javaTypeArguments) {
+        org.eclipse.jdt.core.dom.Type javaTypeArgument = (org.eclipse.jdt.core.dom.Type) _javaTypeArgument;
+        ITypeBinding binding = javaTypeArgument.resolveBinding();
+        if (binding != null && binding.isTypeVariable() && binding.getDeclaringMethod() != null) {
+          hasMethodTypeVariable = true;
+          break;
+        }
+      }
+      if (hasMethodTypeVariable) {
+        typeArguments = null;
+      } else {
+        typeArguments = translateTypeNames(javaTypeArguments);
+      }
+    }
     ITypeBinding binding = node.resolveBinding();
-    TypeName typeName = typeName(
-        ((TypeName) translate(node.getType())).getName(),
-        translateTypeNames(node.typeArguments()));
+    TypeName typeName = typeName(((TypeName) translate(node.getType())).getName(), typeArguments);
     context.putNodeBinding(typeName, binding);
     context.putNodeTypeBinding(typeName, binding);
     return done(typeName);
@@ -1344,8 +1375,15 @@ public class SyntaxTranslator extends org.eclipse.jdt.core.dom.ASTVisitor {
 
   @Override
   public boolean visit(org.eclipse.jdt.core.dom.SimpleType node) {
-    ITypeBinding binding = node.resolveBinding();
     String name = node.getName().toString();
+    ITypeBinding binding = node.resolveBinding();
+    // in Dart we cannot use separate type parameters for methods, so we replace
+    // them with type bounds
+    if (binding != null && binding.isTypeVariable() && binding.getDeclaringMethod() != null) {
+      binding = binding.getErasure();
+      name = binding.getName();
+    }
+    // translate name
     SimpleIdentifier nameNode = identifier(name);
     putReference(binding, nameNode);
     {

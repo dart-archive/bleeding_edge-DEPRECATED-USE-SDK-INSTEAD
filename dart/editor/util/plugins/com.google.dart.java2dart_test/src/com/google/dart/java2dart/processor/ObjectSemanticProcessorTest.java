@@ -774,6 +774,22 @@ public class ObjectSemanticProcessorTest extends SemanticProcessorTest {
         "}");
   }
 
+  public void test_String_replace() throws Exception {
+    translateSingleFile(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "package test;",
+        "public class Test {",
+        "  public String foo(String s, String p, String r) {",
+        "    return s.replace(p, r);",
+        "  }",
+        "}");
+    ObjectSemanticProcessor.INSTANCE.process(context, unit);
+    assertFormattedSource(//
+        "class Test {",
+        "  String foo(String s, String p, String r) => s.replaceAll(p, r);",
+        "}");
+  }
+
   public void test_StringBuilder() throws Exception {
     translateSingleFile(
         "// filler filler filler filler filler filler filler filler filler filler",

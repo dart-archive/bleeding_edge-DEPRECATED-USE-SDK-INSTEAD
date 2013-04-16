@@ -448,7 +448,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return false;
     }
     boolean foundError = false;
-    HashMap<FieldElement, INIT_STATE> fieldElementsMap = new HashMap<FieldElement, ErrorVerifier.INIT_STATE>(
+    HashMap<FieldElement, INIT_STATE> fieldElementsMap = new HashMap<FieldElement, INIT_STATE>(
         initialFieldElementsMap);
 
     // Visit all of the field formal parameters

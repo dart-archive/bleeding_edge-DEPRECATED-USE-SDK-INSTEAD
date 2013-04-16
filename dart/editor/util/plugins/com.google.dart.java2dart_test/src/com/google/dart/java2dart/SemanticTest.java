@@ -15,6 +15,7 @@
 package com.google.dart.java2dart;
 
 import com.google.dart.engine.ast.CompilationUnit;
+import com.google.dart.java2dart.processor.PropertySemanticProcessor;
 
 import java.io.File;
 
@@ -710,7 +711,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test {",
+            "class Test implements Comparable<Test> {",
             "  static final Test EOF = new Test_EOF('EOF', 0, 5);",
             "  static final Test DEF = new Test.con1('DEF', 1);",
             "  static final List<Test> values = [EOF, DEF];",
@@ -734,6 +735,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  void foo() {",
             "    print(1);",
             "  }",
+            "  int compareTo(Test other) => __ordinal - other.__ordinal;",
             "  String toString() => __name;",
             "}",
             "class Test_EOF extends Test {",
@@ -764,7 +766,7 @@ public class SemanticTest extends AbstractSemanticTest {
         toString(
             "class Test {",
             "}",
-            "class MyEnum {",
+            "class MyEnum implements Comparable<MyEnum> {",
             "  static final MyEnum ONE = new MyEnum('ONE', 0);",
             "  static final MyEnum TWO = new MyEnum('TWO', 1);",
             "  static final List<MyEnum> values = [ONE, TWO];",
@@ -773,6 +775,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  int get ordinal => __ordinal;",
             "  MyEnum(this.__name, this.__ordinal) {",
             "  }",
+            "  int compareTo(MyEnum other) => __ordinal - other.__ordinal;",
             "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
@@ -793,7 +796,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test {",
+            "class Test implements Comparable<Test> {",
             "  static final Test ONE = new Test('ONE', 0);",
             "  static final Test TWO = new Test('TWO', 1);",
             "  static final List<Test> values = [ONE, TWO];",
@@ -802,6 +805,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  int get ordinal => __ordinal;",
             "  Test(this.__name, this.__ordinal) {",
             "  }",
+            "  int compareTo(Test other) => __ordinal - other.__ordinal;",
             "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
@@ -828,7 +832,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class Test {",
+            "class Test implements Comparable<Test> {",
             "  static final Test ONE = new Test.con1('ONE', 0);",
             "  static final Test TWO = new Test.withPriority('TWO', 1, 2);",
             "  static final List<Test> values = [ONE, TWO];",
@@ -848,6 +852,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "    __name = ___name;",
             "    __ordinal = ___ordinal;",
             "  }",
+            "  int compareTo(Test other) => __ordinal - other.__ordinal;",
             "  String toString() => __name;",
             "}"),
         getFormattedSource(unit));
@@ -912,6 +917,38 @@ public class SemanticTest extends AbstractSemanticTest {
             "    print(with2);",
             "  }",
             "  static void print(int p) {",
+            "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_genericField() throws Exception {
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "import java.util.List;",
+            "public class Test<T> {",
+            "  private List<T> elements;",
+            "  void foo() {",
+            "    elements.add(null);",
+            "  }",
+            "}",
+            ""));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    // This will rename "elements" to "_elements".
+    // We need to make sure that all references are renamed.
+    PropertySemanticProcessor.INSTANCE.process(context, unit);
+    assertEquals(
+        toString(
+            "class Test<T> {",
+            "  List<T> _elements;",
+            "  void foo() {",
+            "    _elements.add(null);",
             "  }",
             "}"),
         getFormattedSource(unit));
@@ -1418,7 +1455,7 @@ public class SemanticTest extends AbstractSemanticTest {
     CompilationUnit unit = context.translate();
     assertEquals(
         toString(
-            "class A {",
+            "class A implements Comparable<A> {",
             "  static final A ONE = new A('ONE', 0);",
             "  static final A TWO = new A('TWO', 1);",
             "  static final List<A> values = [ONE, TWO];",
@@ -1427,6 +1464,7 @@ public class SemanticTest extends AbstractSemanticTest {
             "  int get ordinal => __ordinal;",
             "  A(this.__name, this.__ordinal) {",
             "  }",
+            "  int compareTo(A other) => __ordinal - other.__ordinal;",
             "  String toString() => __name;",
             "}",
             "class B {",
@@ -1671,6 +1709,39 @@ public class SemanticTest extends AbstractSemanticTest {
             "    } catch (e) {",
             "    }",
             "  }",
+            "}"),
+        getFormattedSource(unit));
+  }
+
+  public void test_typeVariable_inGenericMethod() throws Exception {
+    setFileLines(
+        "test/A.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "public class A {",
+            "}"));
+    setFileLines(
+        "test/Test.java",
+        toString(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "package test;",
+            "import java.util.ArrayList;",
+            "public class Test {",
+            "  public static <T extends A> ArrayList<T> foo() {",
+            "    return new ArrayList<T>();",
+            "  }",
+            "}"));
+    Context context = new Context();
+    context.addSourceFolder(tmpFolder);
+    context.addSourceFiles(tmpFolder);
+    CompilationUnit unit = context.translate();
+    assertEquals(
+        toString(
+            "class A {",
+            "}",
+            "class Test {",
+            "  static ArrayList foo() => new ArrayList();",
             "}"),
         getFormattedSource(unit));
   }

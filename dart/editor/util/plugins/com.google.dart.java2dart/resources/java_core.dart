@@ -42,6 +42,11 @@ bool isInstanceOf(o, Type t) {
   if (oTypeName == "${tTypeName}Impl") {
     return true;
   }
+  if (tTypeName == "MethodElement") {
+    if (oTypeName == "MethodMember") {
+      return true;
+    }
+  }
   if (tTypeName == "ExecutableElement") {
     if (oTypeName == "MethodElementImpl" || oTypeName == "FunctionElementImpl") {
       return true;

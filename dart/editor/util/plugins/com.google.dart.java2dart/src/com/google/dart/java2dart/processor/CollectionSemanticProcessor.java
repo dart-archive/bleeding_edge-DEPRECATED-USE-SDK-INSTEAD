@@ -45,7 +45,6 @@ import static com.google.dart.java2dart.util.ASTFactory.functionExpression;
 import static com.google.dart.java2dart.util.ASTFactory.identifier;
 import static com.google.dart.java2dart.util.ASTFactory.indexExpression;
 import static com.google.dart.java2dart.util.ASTFactory.instanceCreationExpression;
-import static com.google.dart.java2dart.util.ASTFactory.integer;
 import static com.google.dart.java2dart.util.ASTFactory.methodInvocation;
 import static com.google.dart.java2dart.util.ASTFactory.propertyAccess;
 import static com.google.dart.java2dart.util.ASTFactory.typeName;
@@ -115,7 +114,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
                 && JavaUtils.getQualifiedName(intfs[0]).equals("java.util.Comparator")) {
               ClassDeclaration innerClass = context.getAnonymousDeclaration(node);
               if (innerClass != null) {
-                unit.getDeclarations().remove(innerClass);
+                boolean removed = unit.getDeclarations().remove(innerClass);
                 List<ClassMember> innerMembers = innerClass.getMembers();
                 MethodDeclaration compareMethod = (MethodDeclaration) innerMembers.get(0);
                 FunctionExpression functionExpression = functionExpression(
@@ -211,8 +210,7 @@ public class CollectionSemanticProcessor extends SemanticProcessor {
           return null;
         }
         if (isMethodInClass2(node, "add(int,java.lang.Object)", "java.util.List")) {
-          nameNode.setToken(TokenFactory.token("insertRange"));
-          args.add(1, integer(1));
+          nameNode.setToken(TokenFactory.token("insert"));
           return null;
         }
         if (isMethodInClass(node, "add", "java.util.Set")) {

@@ -222,13 +222,14 @@ public class SyntaxTranslatorTest extends AbstractSemanticTest {
     assertDartSource(
         "abstract class I {",
         "}",
-        "class Direction implements I {",
+        "class Direction implements Comparable<Direction>, I {",
         "  static final List<Direction> values = [];",
         "  final String __name;",
         "  final int __ordinal;",
         "  int get ordinal => __ordinal;",
         "  Direction.jtd_constructor_0_decl(this.__name, this.__ordinal) {",
         "  }",
+        "  int compareTo(Direction other) => __ordinal - other.__ordinal;",
         "  String toString() => __name;",
         "}");
   }

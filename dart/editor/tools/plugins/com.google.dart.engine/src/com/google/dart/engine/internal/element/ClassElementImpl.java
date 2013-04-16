@@ -26,7 +26,6 @@ import com.google.dart.engine.element.TypeVariableElement;
 import com.google.dart.engine.internal.type.InterfaceTypeImpl;
 import com.google.dart.engine.type.InterfaceType;
 
-import java.util.Collection;
 import java.util.HashSet;
 
 /**
@@ -107,7 +106,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
 
   @Override
   public InterfaceType[] getAllSupertypes() {
-    Collection<InterfaceType> list = new HashSet<InterfaceType>();
+    HashSet<InterfaceType> list = new HashSet<InterfaceType>();
     collectAllSupertypes(list);
     return list.toArray(new InterfaceType[list.size()]);
   }
@@ -528,7 +527,7 @@ public class ClassElementImpl extends ElementImpl implements ClassElement {
     }
   }
 
-  private void collectAllSupertypes(Collection<InterfaceType> list) {
+  private void collectAllSupertypes(HashSet<InterfaceType> list) {
     if (supertype == null || list.contains(supertype)) {
       return;
     }

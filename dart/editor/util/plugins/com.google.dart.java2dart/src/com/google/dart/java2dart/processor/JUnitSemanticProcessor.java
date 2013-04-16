@@ -117,6 +117,12 @@ public class JUnitSemanticProcessor extends SemanticProcessor {
               "junit.framework.Assert")) {
             node.setMethodName(identifier("assertFalseMsg"));
           }
+          if (isMethodInClass2(
+              node,
+              "assertNotNull(java.lang.String,java.lang.Object)",
+              "junit.framework.Assert")) {
+            node.setMethodName(identifier("assertNotNullMsg"));
+          }
           if (name.equals("assertEquals")) {
             if (args.size() == 3) {
               node.setMethodName(identifier("assertEqualsMsg"));

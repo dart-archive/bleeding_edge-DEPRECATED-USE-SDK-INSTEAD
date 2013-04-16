@@ -611,8 +611,15 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                     typeName("String"),
                     variableDeclaration(
                         "contents",
-                        methodInvocation(identifier("_factory"), "getContents", thisExpression())))));
+                        methodInvocation(
+                            identifier("_contentCache"),
+                            "getContents",
+                            thisExpression())))));
             SimpleIdentifier contentsIdent = identifier("contents");
+            Expression modificationStampExpr = methodInvocation(
+                identifier("_contentCache"),
+                "getModificationStamp",
+                thisExpression());
             tryCacheBlock.getStatements().add(
                 ifStatement(
                     binaryExpression(contentsIdent, TokenType.BANG_EQ, nullLiteral()),
@@ -620,13 +627,15 @@ public class EngineSemanticProcessor extends SemanticProcessor {
                         expressionStatement(methodInvocation(
                             receiverIdent,
                             "accept2",
-                            contentsIdent)),
+                            contentsIdent,
+                            modificationStampExpr)),
                         returnStatement())));
           }
           ExpressionStatement doReadStatement = expressionStatement(methodInvocation(
               receiverIdent,
               "accept2",
-              methodInvocation(identifier("_file"), "readAsStringSync")));
+              methodInvocation(identifier("_file"), "readAsStringSync"),
+              methodInvocation(identifier("_file"), "lastModified")));
           node.setBody(blockFunctionBody(tryCacheBlock, doReadStatement));
           return null;
         }

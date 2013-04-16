@@ -64,7 +64,7 @@ public class PropertySemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitMethodDeclaration(MethodDeclaration node) {
         if (node.getName() instanceof SimpleIdentifier && node.getParameters() != null) {
-          SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();
+          SimpleIdentifier nameNode = node.getName();
           String name = context.getIdentifierOriginalName(nameNode);
           List<FormalParameter> parameters = node.getParameters().getParameters();
           // getter

@@ -246,6 +246,10 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
           nameNode.setToken(token("codeUnitAt"));
           return null;
         }
+        if (isMethodInClass(node, "replace", "java.lang.String")) {
+          nameNode.setToken(token("replaceAll"));
+          return null;
+        }
         if (isMethodInClass(node, "equalsIgnoreCase", "java.lang.String")) {
           replaceNode(
               node,
@@ -437,15 +441,6 @@ public class ObjectSemanticProcessor extends SemanticProcessor {
       @Override
       public Void visitTypeName(TypeName node) {
         ITypeBinding typeBinding = (ITypeBinding) context.getNodeBinding(node);
-        // in Dart we cannot use separate type parameters for methods, so we replace
-        // them with type bounds
-        if (getAncestor(node, MethodDeclaration.class) != null) {
-          if (typeBinding != null) {
-            if (typeBinding.isTypeVariable() && typeBinding.getDeclaringMethod() != null) {
-              replaceNode(node, typeName(typeBinding.getErasure().getName()));
-            }
-          }
-        }
         // replace by name
         if (node.getName() instanceof SimpleIdentifier) {
           SimpleIdentifier nameNode = (SimpleIdentifier) node.getName();

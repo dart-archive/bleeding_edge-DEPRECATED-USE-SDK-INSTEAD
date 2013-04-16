@@ -1238,7 +1238,7 @@ public final class ASTFactory {
   }
 
   public static TypeName typeName(Identifier name, List<TypeName> arguments) {
-    if (arguments.isEmpty()) {
+    if (arguments == null || arguments.isEmpty()) {
       return new TypeName(name, null);
     }
     return new TypeName(name, typeArgumentList(arguments));
