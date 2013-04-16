@@ -152,7 +152,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * The method or function that we are currently visiting, or {@code null} if we are not inside a
    * method or function.
    */
-  private ExecutableElement currentFunction;
+  private ExecutableElement enclosingFunction;
 
   /**
    * This map is initialized when visiting the contents of a class declaration. If the visitor is
@@ -260,9 +260,9 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitConstructorDeclaration(ConstructorDeclaration node) {
-    ExecutableElement previousFunction = currentFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      currentFunction = node.getElement();
+      enclosingFunction = node.getElement();
       isEnclosingConstructorConst = node.getConstKeyword() != null;
       checkForConstConstructorWithNonFinalField(node);
       checkForConflictingConstructorNameAndMember(node);
@@ -270,7 +270,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
       return super.visitConstructorDeclaration(node);
     } finally {
       isEnclosingConstructorConst = false;
-      currentFunction = previousFunction;
+      enclosingFunction = outerFunction;
     }
   }
 
@@ -295,23 +295,23 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement previousFunction = currentFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      currentFunction = node.getElement();
+      enclosingFunction = node.getElement();
       return super.visitFunctionDeclaration(node);
     } finally {
-      currentFunction = previousFunction;
+      enclosingFunction = outerFunction;
     }
   }
 
   @Override
   public Void visitFunctionExpression(FunctionExpression node) {
-    ExecutableElement previousFunction = currentFunction;
+    ExecutableElement outerFunction = enclosingFunction;
     try {
-      currentFunction = node.getElement();
+      enclosingFunction = node.getElement();
       return super.visitFunctionExpression(node);
     } finally {
-      currentFunction = previousFunction;
+      enclosingFunction = outerFunction;
     }
   }
 
@@ -355,12 +355,12 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
 
   @Override
   public Void visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement previousFunction = currentFunction;
+    ExecutableElement previousFunction = enclosingFunction;
     try {
-      currentFunction = node.getElement();
+      enclosingFunction = node.getElement();
       return super.visitMethodDeclaration(node);
     } finally {
-      currentFunction = previousFunction;
+      enclosingFunction = previousFunction;
     }
   }
 
@@ -1078,7 +1078,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
    * @see StaticTypeWarningCode#RETURN_OF_INVALID_TYPE
    */
   private boolean checkForReturnOfInvalidType(ReturnStatement node) {
-    FunctionType functionType = currentFunction == null ? null : currentFunction.getType();
+    FunctionType functionType = enclosingFunction == null ? null : enclosingFunction.getType();
     Type expectedReturnType = functionType == null ? null : functionType.getReturnType();
     Expression returnExpression = node.getExpression();
     if (expectedReturnType != null && !expectedReturnType.isVoid() && returnExpression != null) {
@@ -1089,7 +1089,7 @@ public class ErrorVerifier extends RecursiveASTVisitor<Void> {
             returnExpression,
             actualReturnType.getName(),
             expectedReturnType.getName(),
-            currentFunction.getName());
+            enclosingFunction.getName());
         return true;
       }
     }

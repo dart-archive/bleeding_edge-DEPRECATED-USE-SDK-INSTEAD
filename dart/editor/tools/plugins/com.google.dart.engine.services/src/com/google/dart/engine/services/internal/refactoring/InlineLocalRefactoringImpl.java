@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.Statement;
 import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.element.LocalVariableElement;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.scanner.TokenType;
@@ -80,8 +81,9 @@ public class InlineLocalRefactoringImpl extends RefactoringImpl implements Inlin
         ASTNode coveringNode = context.getCoveringNode();
         if (coveringNode instanceof SimpleIdentifier) {
           SimpleIdentifier coveringIdentifier = (SimpleIdentifier) coveringNode;
-          if (coveringIdentifier.getElement() instanceof LocalVariableElement) {
-            variableElement = (LocalVariableElement) coveringIdentifier.getElement();
+          Element element = coveringIdentifier.getElement();
+          if (element instanceof LocalVariableElement) {
+            variableElement = (LocalVariableElement) element;
             variableNode = utils.findNode(
                 variableElement.getNameOffset(),
                 VariableDeclaration.class);

@@ -1069,7 +1069,10 @@ public class CompletionEngine {
             "".toString(); // TODO This currently is just a place-holder for a breakpoint.
           } else {
             // { new Cla!ss.cons() }
-            namedConstructorReference((ClassElement) identifier.getElement(), identifier);
+            Element element = identifier.getElement();
+            if (element instanceof ClassElement) {
+              namedConstructorReference((ClassElement) element, identifier);
+            }
           }
         } else {
           // { new ! } { new Na!me(); } { new js!on. }

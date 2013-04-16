@@ -715,9 +715,12 @@ public class TypeResolverVisitor extends ScopedVisitor {
         }
         if (!detectedRepeatOnIndex[i]) {
           for (int j = i + 1; j < typeNames.length; j++) {
+            Element element = typeName.getName().getElement();
             TypeName typeName2 = typeNames[j];
-            String name2 = typeName2.getName().getName();
-            if (typeName.getName().getElement().equals(typeName2.getName().getElement())) {
+            Identifier identifier2 = typeName2.getName();
+            String name2 = identifier2.getName();
+            Element element2 = identifier2.getElement();
+            if (element != null && element.equals(element2)) {
               detectedRepeatOnIndex[j] = true;
               reportError(CompileTimeErrorCode.IMPLEMENTS_REPEATED, typeName2, name2);
             }

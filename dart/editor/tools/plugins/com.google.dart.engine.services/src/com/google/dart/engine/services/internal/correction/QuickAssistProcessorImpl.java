@@ -41,6 +41,7 @@ import com.google.dart.engine.ast.VariableDeclaration;
 import com.google.dart.engine.ast.VariableDeclarationList;
 import com.google.dart.engine.ast.VariableDeclarationStatement;
 import com.google.dart.engine.ast.visitor.NodeLocator;
+import com.google.dart.engine.element.Element;
 import com.google.dart.engine.formatter.edit.Edit;
 import com.google.dart.engine.internal.type.BottomTypeImpl;
 import com.google.dart.engine.internal.type.DynamicTypeImpl;
@@ -371,7 +372,11 @@ public class QuickAssistProcessorImpl implements QuickAssistProcessor {
       return;
     }
     // prepare "declaration" statement
-    int declOffset = ((SimpleIdentifier) node).getElement().getNameOffset();
+    Element element = ((SimpleIdentifier) node).getElement();
+    if (element == null) {
+      return;
+    }
+    int declOffset = element.getNameOffset();
     ASTNode declNode = new NodeLocator(declOffset).searchWithin(unit);
     if (declNode != null && declNode.getParent() instanceof VariableDeclaration
         && ((VariableDeclaration) declNode.getParent()).getName() == declNode
