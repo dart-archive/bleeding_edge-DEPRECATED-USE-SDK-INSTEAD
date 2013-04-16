@@ -20,7 +20,8 @@ wrong order when using lists and ifs together.
   <link rel="stylesheet" href="../web/base.css">
   <script src="packages/web_ui/testing/testing.js"></script>
   <title>Dart • TodoMVC</title>
-</head><body>
+</head>
+<body>
   <todo-app></todo-app>
   <script type="application/dart">
 import 'dart:async';
@@ -39,18 +40,18 @@ main() {
     app.todos.add(new Todo('three (unchecked)'));
     locationHash = '#/';
 
-    var root = query('todo-app').xtag.shadowRoot;
+    var root = query('span[is=todo-app]').xtag.shadowRoot;
 
     deliverChangesSync();
-    expect(root.queryAll('#todo-list todo-row').length, 3);
+    expect(root.queryAll('#todo-list li[is=todo-row]').length, 3);
 
     locationHash = '#/active';
     deliverChangesSync();
-    expect(root.queryAll('#todo-list todo-row').length, 2);
+    expect(root.queryAll('#todo-list li[is=todo-row]').length, 2);
 
     locationHash = '#/completed';
     deliverChangesSync();
-    expect(root.queryAll('#todo-list todo-row').length, 1);
+    expect(root.queryAll('#todo-list li[is=todo-row]').length, 1);
 
     locationHash = '#/';
     deliverChangesSync();
