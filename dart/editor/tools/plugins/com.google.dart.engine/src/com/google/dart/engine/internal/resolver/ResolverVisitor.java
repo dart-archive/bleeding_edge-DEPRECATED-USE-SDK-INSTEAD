@@ -24,6 +24,7 @@ import com.google.dart.engine.ast.Comment;
 import com.google.dart.engine.ast.CompilationUnit;
 import com.google.dart.engine.ast.CompilationUnitMember;
 import com.google.dart.engine.ast.ConditionalExpression;
+import com.google.dart.engine.ast.ConstructorDeclaration;
 import com.google.dart.engine.ast.ConstructorFieldInitializer;
 import com.google.dart.engine.ast.ConstructorName;
 import com.google.dart.engine.ast.ContinueStatement;
@@ -261,6 +262,18 @@ public class ResolverVisitor extends ScopedVisitor {
       } else if (thenIsAbrupt && !elseIsAbrupt) {
         propagateFalseState(condition);
       }
+    }
+    return null;
+  }
+
+  @Override
+  public Void visitConstructorDeclaration(ConstructorDeclaration node) {
+    ExecutableElement outerFunction = enclosingFunction;
+    try {
+      enclosingFunction = node.getElement();
+      super.visitConstructorDeclaration(node);
+    } finally {
+      enclosingFunction = outerFunction;
     }
     return null;
   }
